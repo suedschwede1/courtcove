@@ -20,11 +20,21 @@ use Illuminate\View\View;
  */
 final class LoginController extends Controller
 {
+    /** Render the login form. */
     public function showForm(): View
     {
         return view('auth.login');
     }
 
+    /**
+     * Validate credentials and authenticate the user.
+     *
+     * Redirects to /login with errors if the account is disabled or credentials are invalid.
+     * On success, regenerates the session and redirects to the intended URL (default: /calendar).
+     *
+     * @param Request $request Must contain email and password fields
+     * @return RedirectResponse
+     */
     public function login(Request $request): RedirectResponse
     {
         $credentials = $request->validate([

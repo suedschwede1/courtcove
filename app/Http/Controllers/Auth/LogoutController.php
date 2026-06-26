@@ -17,6 +17,12 @@ use Illuminate\Support\Facades\Auth;
  */
 final class LogoutController extends Controller
 {
+    /**
+     * Log out the current user, invalidate the session, and redirect to login.
+     *
+     * @param Request $request Current HTTP request (needed to invalidate and regenerate the CSRF token)
+     * @return RedirectResponse Redirect to /login
+     */
     public function logout(Request $request): RedirectResponse
     {
         Auth::logout();

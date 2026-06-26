@@ -22,6 +22,12 @@ final class CalendarController extends Controller
         private readonly ReservationService $reservations,
     ) {}
 
+    /**
+     * Render the daily calendar view for all courts.
+     *
+     * @param Request $request Accepts optional ?date=YYYY-MM-DD query parameter; defaults to today
+     * @return View           calendar.index with $date, $squares, and $reservationsBySquare
+     */
     public function index(Request $request): View
     {
         $date    = $request->input('date') ? Carbon::parse($request->input('date')) : Carbon::today();
