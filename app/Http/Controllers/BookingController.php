@@ -9,7 +9,9 @@ use App\Models\Booking;
 use App\Models\Square;
 use App\Services\BookingService;
 use Carbon\Carbon;
+use App\Models\User;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -80,6 +82,29 @@ final class BookingController extends Controller
 
         return redirect()->route('calendar.index', ['date' => Carbon::parse($data['date'])->format('Y-m-d')])
             ->with('success', 'Ihre Buchung wurde erfolgreich abgeschlossen!');
+    }
+
+    /**
+     * AJAX player-name autocomplete: returns up to 10 active member aliases
+     * matching the query (min 2 chars). Replaces the old all-names datalist dump.
+     */
+    public function players(Request $request): JsonResponse
+    {
+        $q = trim((string) $request->query('q', ''));
+
+        if (mb_strlen($q) < 2) {
+            return response()->json([]);
+        }
+
+        $aliases = User::query()
+            ->where('status', '!=', 'deleted')
+            ->where('alias', 'like', '%' . $q . '%')
+            ->orderBy('alias')
+            ->limit(10)
+            ->pluck('alias')
+            ->values();
+
+        return response()->json($aliases);
     }
 
     private function parseTimeToSeconds(string $time): int

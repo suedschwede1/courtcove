@@ -82,6 +82,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var quantitySelect = document.getElementById('modal-quantity');
     var cancelEditLink = document.getElementById('cancel-modal-edit');
+    var createEventLink = document.getElementById('modal-create-event');
     var playerFields = [2, 3, 4].map(function (index) {
         return {
             index: index,
@@ -133,14 +134,39 @@ document.addEventListener('DOMContentLoaded', function () {
         closeFeedbackModal();
     }
 
+    function padNumber(value) {
+        return String(value).padStart(2, '0');
+    }
+
+    function secondsToTime(seconds) {
+        var totalMinutes = Math.floor(Number(seconds || 0) / 60);
+        var hours = Math.floor(totalMinutes / 60);
+        var minutes = totalMinutes % 60;
+
+        return padNumber(hours) + ':' + padNumber(minutes);
+    }
+
     function openBookingModal(trigger) {
+        var slotDate = trigger.getAttribute('data-date');
+        var timeStart = trigger.getAttribute('data-time-start');
+        var timeEnd = trigger.getAttribute('data-time-end');
+
         document.getElementById('modal-title').textContent = trigger.getAttribute('data-square-name') + ' buchen';
         document.getElementById('modal-date').textContent = trigger.getAttribute('data-date-label');
         document.getElementById('modal-time').textContent = trigger.getAttribute('data-time-label');
         document.getElementById('modal-sid').value = trigger.getAttribute('data-sid');
-        document.getElementById('modal-date-input').value = trigger.getAttribute('data-date');
-        document.getElementById('modal-ts').value = trigger.getAttribute('data-time-start');
-        document.getElementById('modal-te').value = trigger.getAttribute('data-time-end');
+        document.getElementById('modal-date-input').value = slotDate;
+        document.getElementById('modal-ts').value = timeStart;
+        document.getElementById('modal-te').value = timeEnd;
+
+        if (createEventLink) {
+            var eventUrl = new URL(createEventLink.getAttribute('data-event-create-base'), window.location.origin);
+            eventUrl.searchParams.set('sid', trigger.getAttribute('data-sid'));
+            eventUrl.searchParams.set('datetime_start', slotDate + ' ' + secondsToTime(timeStart));
+            eventUrl.searchParams.set('datetime_end', slotDate + ' ' + secondsToTime(timeEnd));
+            createEventLink.href = eventUrl.toString();
+        }
+
         resetBookingFields();
         bookingModal.style.display = 'block';
     }
@@ -219,5 +245,45 @@ document.addEventListener('DOMContentLoaded', function () {
         if (event.key === 'Escape') {
             closeAllModals();
         }
+    });
+});
+
+// Player-name autocomplete: fetches matching member aliases from the AJAX
+// endpoint (min 2 chars, debounced) and fills the #player-suggestions datalist.
+// Self-contained — does not depend on the modal logic above.
+document.addEventListener('DOMContentLoaded', function () {
+    var datalist = document.getElementById('player-suggestions');
+    if (!datalist) {
+        return;
+    }
+
+    var timer = null;
+
+    function refresh(value) {
+        var q = value.trim();
+        if (q.length < 2) {
+            datalist.innerHTML = '';
+            return;
+        }
+
+        fetch('/bookings/players?q=' + encodeURIComponent(q), { headers: { 'Accept': 'application/json' } })
+            .then(function (r) { return r.ok ? r.json() : []; })
+            .then(function (list) {
+                datalist.innerHTML = '';
+                (list || []).forEach(function (alias) {
+                    var opt = document.createElement('option');
+                    opt.value = alias;
+                    datalist.appendChild(opt);
+                });
+            })
+            .catch(function () {});
+    }
+
+    document.querySelectorAll('input[list="player-suggestions"]').forEach(function (input) {
+        input.addEventListener('input', function (event) {
+            clearTimeout(timer);
+            var value = event.target.value;
+            timer = setTimeout(function () { refresh(value); }, 200);
+        });
     });
 });

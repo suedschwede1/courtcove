@@ -20,6 +20,7 @@ Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.in
 
 Route::middleware('auth')->group(function (): void {
     Route::get('/bookings/create', [BookingController::class, 'create'])->name('bookings.create');
+    Route::get('/bookings/players', [BookingController::class, 'players'])->name('bookings.players');
     Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
     Route::delete('/bookings/{booking}', [BookingController::class, 'destroy'])->name('bookings.destroy');
 
