@@ -36,4 +36,24 @@ class AccessControlTest extends TestCase
         $user = User::factory()->create(['status' => 'enabled']);
         $this->assertFalse(Gate::forUser($user)->allows('admin.user'));
     }
+
+    #[Test]
+    public function admin_can_open_dashboard(): void
+    {
+        $admin = \App\Models\User::factory()->create(['status' => 'admin']);
+        $this->actingAs($admin)->get('/admin')->assertOk()->assertSee('Administration');
+    }
+
+    #[Test]
+    public function regular_member_is_forbidden_from_dashboard(): void
+    {
+        $user = \App\Models\User::factory()->create(['status' => 'enabled']);
+        $this->actingAs($user)->get('/admin')->assertForbidden();
+    }
+
+    #[Test]
+    public function guest_dashboard_redirects_to_login(): void
+    {
+        $this->get('/admin')->assertRedirect('/login');
+    }
 }
