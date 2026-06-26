@@ -1091,3 +1091,40 @@ a.cc-own:hover {
         grid-template-columns: repeat(2, minmax(260px, 1fr));
     }
 }
+
+.booking-modal__card--event {
+    max-width: 520px;
+}
+
+.booking-modal__body--event {
+    display: grid;
+    gap: 12px;
+    padding: 0 20px 18px;
+    text-align: left;
+}
+
+.booking-modal__body--event .booking-modal__field {
+    gap: 5px;
+}
+
+.booking-modal__body--event .booking-modal__field-label {
+    text-align: left;
+    letter-spacing: 1px;
+}
+
+.booking-modal__event-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 14px;
+}
+
+.booking-modal__actions--event {
+    padding: 4px 0 0;
+    gap: 8px;
+}
+
+@media screen and (max-width: 560px) {
+    .booking-modal__event-grid {
+        grid-template-columns: 1fr;
+    }
+}

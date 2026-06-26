@@ -152,7 +152,7 @@
                                             $cellTitle = $squareLabel . ' – Vergangen';
                                         } elseif (!$reservation) {
                                             $cellClass = 'cc-free';
-                                            $action = auth()->check() && !$isPastSlot ? 'book' : 'login';
+                                            $action = auth()->check() && !$isPastSlot ? (auth()->user()->can('admin.booking') ? 'admin-book' : 'book') : 'login';
                                             $cellTitle = auth()->check()
                                                 ? ($squareLabel . ' um ' . $timeLabel . ' buchen')
                                                 : 'Zum Buchen bitte anmelden';
@@ -403,6 +403,7 @@
 </div>
 @endcan
 @endsection
+
 
 
 
