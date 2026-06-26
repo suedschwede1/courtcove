@@ -45,7 +45,15 @@ class AdminBookingTest extends TestCase
     public function admin_can_cancel_any_booking(): void
     {
         $b = Booking::factory()->create(['status' => 'single']);
-        $this->actingAs($this->admin())->delete("/admin/bookings/{$b->bid}")->assertRedirect(route('admin.bookings.index'));
+        $this->actingAs($this->admin())->post("/admin/bookings/{$b->bid}/cancel")->assertRedirect(route('admin.bookings.index'));
         $this->assertSame('cancelled', $b->fresh()->status);
+    }
+
+    #[Test]
+    public function admin_can_delete_a_booking(): void
+    {
+        $b = Booking::factory()->create(['status' => 'single']);
+        $this->actingAs($this->admin())->delete("/admin/bookings/{$b->bid}")->assertRedirect(route('admin.bookings.index'));
+        $this->assertDatabaseMissing('bs_bookings', ['bid' => $b->bid]);
     }
 }
