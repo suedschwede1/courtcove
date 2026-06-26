@@ -39,8 +39,11 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function (): v
     });
 
     Route::middleware('can:admin.booking')->group(function (): void {
-        Route::get('bookings', [\App\Http\Controllers\Admin\BookingController::class, 'index'])->name('bookings.index');
-        Route::get('bookings/{booking}', [\App\Http\Controllers\Admin\BookingController::class, 'show'])->name('bookings.show');
-        Route::delete('bookings/{booking}', [\App\Http\Controllers\Admin\BookingController::class, 'destroy'])->name('bookings.destroy');
+        Route::resource('bookings', \App\Http\Controllers\Admin\BookingController::class)->only(['index', 'show', 'edit', 'update', 'destroy']);
+    });
+
+    Route::middleware('can:admin.config')->group(function (): void {
+        Route::get('config', [\App\Http\Controllers\Admin\OptionController::class, 'edit'])->name('config.edit');
+        Route::put('config', [\App\Http\Controllers\Admin\OptionController::class, 'update'])->name('config.update');
     });
 });
