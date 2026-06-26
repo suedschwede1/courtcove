@@ -28,4 +28,9 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function (): v
     Route::middleware('can:admin.see-menu')
         ->get('/', [DashboardController::class, 'index'])
         ->name('dashboard');
+
+    Route::middleware('can:admin.user')->group(function (): void {
+        Route::resource('users', \App\Http\Controllers\Admin\UserController::class)->except(['show']);
+        // password route added in a later task
+    });
 });
