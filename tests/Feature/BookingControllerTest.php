@@ -38,11 +38,12 @@ class BookingControllerTest extends TestCase
         ]);
 
         $this->actingAs($user)->post('/bookings', [
-            'sid'        => $square->sid,
-            'date'       => '2026-07-10',
-            'time_start' => '10:00',
-            'time_end'   => '11:00',
-            'quantity'   => 2,
+            'sid'           => $square->sid,
+            'date'          => '2026-07-10',
+            'time_start'    => '10:00',
+            'time_end'      => '11:00',
+            'quantity'      => 2,
+            'player_name_2' => 'Partner Mustermann',
         ])->assertRedirect();
 
         $this->assertDatabaseHas('bs_bookings', ['uid' => $user->uid, 'sid' => $square->sid, 'status' => 'single']);

@@ -307,6 +307,13 @@
                 <input type="hidden" id="modal-ts" name="time_start">
                 <input type="hidden" id="modal-te" name="time_end">
 
+                @can('admin.event')
+                    <a id="modal-create-event"
+                       href="#"
+                       class="default-button"
+                       data-event-create-base="{{ route('admin.events.create') }}">Veranstaltung anlegen</a>
+                @endcan
+
                 <label class="booking-modal__field">
                     <span class="booking-modal__field-label">Spielart</span>
                     <select id="modal-quantity" name="quantity" class="booking-modal__select">
@@ -330,11 +337,8 @@
                     <input type="text" id="modal-player4" name="player_name_4" class="booking-modal__input" list="player-suggestions" maxlength="120" placeholder="Name des 4. Spielers">
                 </label>
 
-                <datalist id="player-suggestions">
-                    @foreach($playerSuggestions as $playerSuggestion)
-                        <option value="{{ $playerSuggestion }}"></option>
-                    @endforeach
-                </datalist>
+                {{-- Suggestions are loaded on demand (no member names dumped into the page). --}}
+                <datalist id="player-suggestions"></datalist>
 
                 <button type="submit" class="modal-primary-button">Jetzt buchen</button>
                 <button type="button" id="modal-cancel" class="default-button">Abbrechen</button>
@@ -343,6 +347,7 @@
     </div>
 </div>
 @endsection
+
 
 
 

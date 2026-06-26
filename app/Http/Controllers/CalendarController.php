@@ -7,7 +7,6 @@ namespace App\Http\Controllers;
 use App\Models\Event;
 use App\Models\Reservation;
 use App\Models\Square;
-use App\Models\User;
 use App\Services\ReservationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -59,13 +58,6 @@ final class CalendarController extends Controller
             ->orderBy('sid')
             ->get();
         $squareIds = $squares->pluck('sid')->values()->all();
-        $playerSuggestions = User::query()
-            ->where('status', '!=', 'deleted')
-            ->orderBy('alias')
-            ->pluck('alias')
-            ->filter()
-            ->unique()
-            ->values();
 
         $calendarReservations = $this->reservations->getCalendarReservations($squareIds, $rangeStart, $rangeEnd);
 
@@ -188,7 +180,6 @@ final class CalendarController extends Controller
             'date' => $date,
             'dates' => $dates,
             'squares' => $squares,
-            'playerSuggestions' => $playerSuggestions,
             'reservationsByDate' => $reservationsByDate,
             'reservationsBySquare' => $reservationsByDate[$date->format('Y-m-d')] ?? [],
             'reservationsBySlot' => $reservationsBySlot,
