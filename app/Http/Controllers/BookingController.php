@@ -84,10 +84,6 @@ final class BookingController extends Controller
             ->with('success', 'Ihre Buchung wurde erfolgreich abgeschlossen!');
     }
 
-    /**
-     * AJAX player-name autocomplete: returns up to 10 active member aliases
-     * matching the query (min 2 chars). Replaces the old all-names datalist dump.
-     */
     public function players(Request $request): JsonResponse
     {
         $q = trim((string) $request->query('q', ''));
@@ -97,11 +93,26 @@ final class BookingController extends Controller
         }
 
         $aliases = User::query()
-            ->where('status', '!=', 'deleted')
-            ->where('alias', 'like', '%' . $q . '%')
-            ->orderBy('alias')
+            ->select('bs_users.alias')
+            ->leftJoin('bs_users_meta as firstnames', function ($join): void {
+                $join->on('firstnames.uid', '=', 'bs_users.uid')
+                    ->where('firstnames.key', '=', 'firstname');
+            })
+            ->leftJoin('bs_users_meta as lastnames', function ($join): void {
+                $join->on('lastnames.uid', '=', 'bs_users.uid')
+                    ->where('lastnames.key', '=', 'lastname');
+            })
+            ->where('bs_users.status', '!=', 'deleted')
+            ->where(function ($query) use ($q): void {
+                $query->where('bs_users.alias', 'like', '%' . $q . '%')
+                    ->orWhere('firstnames.value', 'like', '%' . $q . '%')
+                    ->orWhere('lastnames.value', 'like', '%' . $q . '%')
+                    ->orWhereRaw("CONCAT(COALESCE(firstnames.value, ''), ' ', COALESCE(lastnames.value, '')) like ?", ['%' . $q . '%']);
+            })
+            ->orderBy('bs_users.alias')
             ->limit(10)
-            ->pluck('alias')
+            ->pluck('bs_users.alias')
+            ->unique()
             ->values();
 
         return response()->json($aliases);
@@ -132,4 +143,3 @@ final class BookingController extends Controller
             ->with('success', 'Buchung storniert.');
     }
 }
-

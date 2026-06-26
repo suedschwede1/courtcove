@@ -179,19 +179,22 @@
                                     <td rowspan="{{ $evBlock['rows'] }}" colspan="{{ $evBlock['cols'] }}" class="event-cell" title="{{ $evBlock['name'] }}">
                                         <span class="event-label">{{ $evBlock['name'] }}</span>
                                     </td>
-                                @elseif($action === 'book')
+                                @elseif($action === 'book' || $action === 'admin-book')
                                     <td>
                                         <a href="#"
                                            class="calendar-cell {{ $cellClass }}{{ $slotClass }} booking-trigger"
                                            title="{{ $cellTitle }}"
-                                           data-action="book"
+                                           data-action="{{ $action }}"
                                            data-sid="{{ $sid }}"
                                            data-date="{{ $dateKey }}"
                                            data-time-start="{{ $h * 3600 }}"
                                            data-time-end="{{ ($h + 1) * 3600 }}"
                                            data-square-name="{{ $squareLabel }}"
                                            data-date-label="{{ $d->isoFormat('dddd, D. MMMM YYYY') }}"
-                                           data-time-label="{{ $timeLabel }} – {{ $nextLabel }} Uhr"></a>
+                                           data-time-label="{{ $timeLabel }} – {{ $nextLabel }} Uhr"
+                                           @if(auth()->check() && auth()->user()->can('admin.booking'))
+                                               data-create-url="{{ route('admin.bookings.create') }}?sid={{ $sid }}&date={{ $dateKey }}&time_start={{ $h * 3600 }}&time_end={{ ($h + 1) * 3600 }}"
+                                           @endif></a>
                                     </td>
                                 @elseif($action === 'cancel')
                                     <td>
@@ -307,13 +310,6 @@
                 <input type="hidden" id="modal-ts" name="time_start">
                 <input type="hidden" id="modal-te" name="time_end">
 
-                @can('admin.event')
-                    <a id="modal-create-event"
-                       href="#"
-                       class="default-button"
-                       data-event-create-base="{{ route('admin.events.create') }}">Veranstaltung anlegen</a>
-                @endcan
-
                 <label class="booking-modal__field">
                     <span class="booking-modal__field-label">Spielart</span>
                     <select id="modal-quantity" name="quantity" class="booking-modal__select">
@@ -337,19 +333,76 @@
                     <input type="text" id="modal-player4" name="player_name_4" class="booking-modal__input" list="player-suggestions" maxlength="120" placeholder="Name des 4. Spielers">
                 </label>
 
-                {{-- Suggestions are loaded on demand (no member names dumped into the page). --}}
                 <datalist id="player-suggestions"></datalist>
 
+                @can('admin.event')
+                    <button type="button" id="modal-create-event" class="default-button">Veranstaltung anlegen</button>
+                @endcan
                 <button type="submit" class="modal-primary-button">Jetzt buchen</button>
                 <button type="button" id="modal-cancel" class="default-button">Abbrechen</button>
             </form>
         </div>
     </div>
 </div>
+
+@can('admin.event')
+<div id="event-modal" class="booking-modal" style="display:none;">
+    <div class="booking-modal__viewport">
+        <div class="booking-modal__card booking-modal__card--event">
+            <button id="event-modal-close" class="booking-modal__close" title="Schließen">&#x2715;</button>
+            <div class="booking-modal__header">
+                <h2>Veranstaltung anlegen</h2>
+            </div>
+            <form id="event-form" method="POST" action="{{ route('admin.events.store') }}" class="booking-modal__body booking-modal__body--event">
+                @csrf
+                <input type="hidden" name="status" value="enabled">
+                <input type="hidden" name="redirect_to" value="{{ route('calendar.index', ['date' => $date->format('Y-m-d')]) }}">
+                <input type="hidden" name="datetime_start" id="event-datetime-start">
+                <input type="hidden" name="datetime_end" id="event-datetime-end">
+
+                <label class="booking-modal__field">
+                    <span class="booking-modal__field-label">Name</span>
+                    <input type="text" name="name" id="event-name" class="booking-modal__input" maxlength="128" required>
+                </label>
+
+                <div class="booking-modal__event-grid">
+                    <label class="booking-modal__field">
+                        <span class="booking-modal__field-label">Datum (Beginn)</span>
+                        <input type="date" id="event-date-start" class="booking-modal__input" required>
+                    </label>
+                    <label class="booking-modal__field">
+                        <span class="booking-modal__field-label">Zeit (Beginn)</span>
+                        <input type="time" id="event-time-start" class="booking-modal__input" required>
+                    </label>
+                    <label class="booking-modal__field">
+                        <span class="booking-modal__field-label">Datum (Ende)</span>
+                        <input type="date" id="event-date-end" class="booking-modal__input" required>
+                    </label>
+                    <label class="booking-modal__field">
+                        <span class="booking-modal__field-label">Zeit (Ende)</span>
+                        <input type="time" id="event-time-end" class="booking-modal__input" required>
+                    </label>
+                </div>
+
+                <label class="booking-modal__field">
+                    <span class="booking-modal__field-label">Platz</span>
+                    <select name="sid" id="event-sid" class="booking-modal__select">
+                        @foreach($squares as $square)
+                            <option value="{{ $square->sid }}">{{ $square->display_name }}</option>
+                        @endforeach
+                    </select>
+                </label>
+
+                <div class="booking-modal__actions booking-modal__actions--stacked booking-modal__actions--event">
+                    <button type="submit" class="modal-primary-button">Veranstaltung speichern</button>
+                    <button type="button" id="event-modal-cancel" class="default-button">Abbrechen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endcan
 @endsection
-
-
-
 
 
 

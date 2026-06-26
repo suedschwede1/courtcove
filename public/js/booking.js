@@ -41,10 +41,198 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     var feedbackModal = document.getElementById('feedback-modal');
+    var bookingModal = document.getElementById('booking-modal');
+    var cancelModal = document.getElementById('cancel-modal');
+    var eventModal = document.getElementById('event-modal');
+    var quantitySelect = document.getElementById('modal-quantity');
+    var cancelEditLink = document.getElementById('cancel-modal-edit');
+    var createEventButton = document.getElementById('modal-create-event');
+    var eventForm = document.getElementById('event-form');
+    var eventDateStart = document.getElementById('event-date-start');
+    var eventTimeStart = document.getElementById('event-time-start');
+    var eventDateEnd = document.getElementById('event-date-end');
+    var eventTimeEnd = document.getElementById('event-time-end');
+    var eventDatetimeStart = document.getElementById('event-datetime-start');
+    var eventDatetimeEnd = document.getElementById('event-datetime-end');
+    var eventSid = document.getElementById('event-sid');
+    var eventName = document.getElementById('event-name');
+    var activeSlot = null;
+    var playerFields = [2, 3, 4].map(function (index) {
+        return {
+            index: index,
+            field: document.getElementById('modal-player' + index + '-field'),
+            input: document.getElementById('modal-player' + index),
+        };
+    });
+
     function closeFeedbackModal() {
         if (feedbackModal) {
             feedbackModal.style.display = 'none';
         }
+    }
+
+    function hideModal(modal) {
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    function showModal(modal) {
+        if (modal) {
+            modal.style.display = 'block';
+        }
+    }
+
+    function closeAllModals() {
+        hideModal(bookingModal);
+        hideModal(cancelModal);
+        hideModal(eventModal);
+        closeFeedbackModal();
+    }
+
+    function padNumber(value) {
+        return String(value).padStart(2, '0');
+    }
+
+    function secondsToTime(seconds) {
+        var totalMinutes = Math.floor(Number(seconds || 0) / 60);
+        var hours = Math.floor(totalMinutes / 60);
+        var minutes = totalMinutes % 60;
+
+        return padNumber(hours) + ':' + padNumber(minutes);
+    }
+
+    function syncBookingFields() {
+        if (!quantitySelect) {
+            return;
+        }
+
+        var quantity = quantitySelect.value;
+        playerFields.forEach(function (player) {
+            if (!player.field || !player.input) {
+                return;
+            }
+
+            var shouldShow = quantity === '4' ? true : (quantity === '2' && player.index === 2);
+            if (shouldShow) {
+                player.field.removeAttribute('hidden');
+                player.input.required = true;
+                if (!player.input.placeholder) {
+                    player.input.placeholder = player.index === 2 ? 'Mitglied auswählen oder frei eingeben' : 'Mitglied auswählen oder frei eingeben';
+                }
+            } else {
+                player.field.setAttribute('hidden', '');
+                player.input.required = false;
+                player.input.value = '';
+            }
+        });
+    }
+
+    function resetBookingFields() {
+        if (quantitySelect) {
+            quantitySelect.value = '2';
+        }
+
+        playerFields.forEach(function (player) {
+            if (player.input) {
+                player.input.value = '';
+            }
+        });
+
+        syncBookingFields();
+    }
+
+    function fillEventFieldsFromSlot(slot) {
+        if (!slot) {
+            return;
+        }
+
+        var slotDate = slot.getAttribute('data-date');
+        var timeStart = secondsToTime(slot.getAttribute('data-time-start'));
+        var timeEnd = secondsToTime(slot.getAttribute('data-time-end'));
+
+        if (eventDateStart) {
+            eventDateStart.value = slotDate;
+        }
+
+        if (eventTimeStart) {
+            eventTimeStart.value = timeStart;
+        }
+
+        if (eventDateEnd) {
+            eventDateEnd.value = slotDate;
+        }
+
+        if (eventTimeEnd) {
+            eventTimeEnd.value = timeEnd;
+        }
+
+        if (eventSid) {
+            eventSid.value = slot.getAttribute('data-sid');
+        }
+
+        if (eventName && !eventName.value.trim()) {
+            eventName.value = slot.getAttribute('data-square-name');
+        }
+    }
+
+    function syncEventDateTime() {
+        if (!eventDatetimeStart || !eventDatetimeEnd || !eventDateStart || !eventTimeStart || !eventDateEnd || !eventTimeEnd) {
+            return;
+        }
+
+        eventDatetimeStart.value = eventDateStart.value && eventTimeStart.value ? eventDateStart.value + ' ' + eventTimeStart.value : '';
+        eventDatetimeEnd.value = eventDateEnd.value && eventTimeEnd.value ? eventDateEnd.value + ' ' + eventTimeEnd.value : '';
+    }
+
+    function openBookingModal(trigger) {
+        activeSlot = trigger;
+        var slotDate = trigger.getAttribute('data-date');
+        var timeStart = trigger.getAttribute('data-time-start');
+        var timeEnd = trigger.getAttribute('data-time-end');
+
+        document.getElementById('modal-title').textContent = trigger.getAttribute('data-square-name') + ' buchen';
+        document.getElementById('modal-date').textContent = trigger.getAttribute('data-date-label');
+        document.getElementById('modal-time').textContent = trigger.getAttribute('data-time-label');
+        document.getElementById('modal-sid').value = trigger.getAttribute('data-sid');
+        document.getElementById('modal-date-input').value = slotDate;
+        document.getElementById('modal-ts').value = timeStart;
+        document.getElementById('modal-te').value = timeEnd;
+
+        if (createEventButton) {
+            createEventButton.hidden = false;
+        }
+
+        resetBookingFields();
+        showModal(bookingModal);
+    }
+
+    function openEventModal() {
+        fillEventFieldsFromSlot(activeSlot);
+        syncEventDateTime();
+        hideModal(bookingModal);
+        showModal(eventModal);
+    }
+
+    function openCancelModal(trigger) {
+        var bid = trigger.getAttribute('data-bid');
+        var editUrl = trigger.getAttribute('data-edit-url');
+        document.getElementById('cancel-modal-title').textContent = trigger.getAttribute('data-square-name');
+        document.getElementById('cancel-modal-date').textContent = trigger.getAttribute('data-date-label');
+        document.getElementById('cancel-modal-time').textContent = trigger.getAttribute('data-time-label');
+        document.getElementById('cancel-form').action = '/bookings/' + bid;
+
+        if (cancelEditLink) {
+            if (editUrl) {
+                cancelEditLink.href = editUrl;
+                cancelEditLink.hidden = false;
+            } else {
+                cancelEditLink.hidden = true;
+                cancelEditLink.href = '#';
+            }
+        }
+
+        showModal(cancelModal);
     }
 
     if (feedbackModal) {
@@ -69,147 +257,50 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    var bookingModal = document.getElementById('booking-modal');
-    var cancelModal = document.getElementById('cancel-modal');
-    if (!bookingModal || !cancelModal) {
-        document.addEventListener('keydown', function (event) {
-            if (event.key === 'Escape') {
-                closeFeedbackModal();
-            }
-        });
-        return;
-    }
-
-    var quantitySelect = document.getElementById('modal-quantity');
-    var cancelEditLink = document.getElementById('cancel-modal-edit');
-    var createEventLink = document.getElementById('modal-create-event');
-    var playerFields = [2, 3, 4].map(function (index) {
-        return {
-            index: index,
-            field: document.getElementById('modal-player' + index + '-field'),
-            input: document.getElementById('modal-player' + index),
-        };
-    });
-
-    function syncBookingFields() {
-        if (!quantitySelect) {
-            return;
-        }
-
-        var quantity = quantitySelect.value;
-        playerFields.forEach(function (player) {
-            if (!player.field || !player.input) {
-                return;
-            }
-
-            var shouldShow = quantity === '4' ? true : (quantity === '2' && player.index === 2);
-            if (shouldShow) {
-                player.field.removeAttribute('hidden');
-                player.input.required = true;
-            } else {
-                player.field.setAttribute('hidden', '');
-                player.input.required = false;
-                player.input.value = '';
-            }
-        });
-    }
-
-    function resetBookingFields() {
-        if (quantitySelect) {
-            quantitySelect.value = '2';
-        }
-
-        playerFields.forEach(function (player) {
-            if (player.input) {
-                player.input.value = '';
-            }
-        });
-
-        syncBookingFields();
-    }
-
-    function closeAllModals() {
-        bookingModal.style.display = 'none';
-        cancelModal.style.display = 'none';
-        closeFeedbackModal();
-    }
-
-    function padNumber(value) {
-        return String(value).padStart(2, '0');
-    }
-
-    function secondsToTime(seconds) {
-        var totalMinutes = Math.floor(Number(seconds || 0) / 60);
-        var hours = Math.floor(totalMinutes / 60);
-        var minutes = totalMinutes % 60;
-
-        return padNumber(hours) + ':' + padNumber(minutes);
-    }
-
-    function openBookingModal(trigger) {
-        var slotDate = trigger.getAttribute('data-date');
-        var timeStart = trigger.getAttribute('data-time-start');
-        var timeEnd = trigger.getAttribute('data-time-end');
-
-        document.getElementById('modal-title').textContent = trigger.getAttribute('data-square-name') + ' buchen';
-        document.getElementById('modal-date').textContent = trigger.getAttribute('data-date-label');
-        document.getElementById('modal-time').textContent = trigger.getAttribute('data-time-label');
-        document.getElementById('modal-sid').value = trigger.getAttribute('data-sid');
-        document.getElementById('modal-date-input').value = slotDate;
-        document.getElementById('modal-ts').value = timeStart;
-        document.getElementById('modal-te').value = timeEnd;
-
-        if (createEventLink) {
-            var eventUrl = new URL(createEventLink.getAttribute('data-event-create-base'), window.location.origin);
-            eventUrl.searchParams.set('sid', trigger.getAttribute('data-sid'));
-            eventUrl.searchParams.set('datetime_start', slotDate + ' ' + secondsToTime(timeStart));
-            eventUrl.searchParams.set('datetime_end', slotDate + ' ' + secondsToTime(timeEnd));
-            createEventLink.href = eventUrl.toString();
-        }
-
-        resetBookingFields();
-        bookingModal.style.display = 'block';
-    }
-
-    function openCancelModal(trigger) {
-        var bid = trigger.getAttribute('data-bid');
-        var editUrl = trigger.getAttribute('data-edit-url');
-        document.getElementById('cancel-modal-title').textContent = trigger.getAttribute('data-square-name');
-        document.getElementById('cancel-modal-date').textContent = trigger.getAttribute('data-date-label');
-        document.getElementById('cancel-modal-time').textContent = trigger.getAttribute('data-time-label');
-        document.getElementById('cancel-form').action = '/bookings/' + bid;
-
-        if (cancelEditLink) {
-            if (editUrl) {
-                cancelEditLink.href = editUrl;
-                cancelEditLink.hidden = false;
-            } else {
-                cancelEditLink.hidden = true;
-                cancelEditLink.href = '#';
-            }
-        }
-
-        cancelModal.style.display = 'block';
-    }
-
     if (quantitySelect) {
         quantitySelect.addEventListener('change', syncBookingFields);
         syncBookingFields();
+    }
+
+    [eventDateStart, eventTimeStart, eventDateEnd, eventTimeEnd].forEach(function (input) {
+        if (input) {
+            input.addEventListener('input', syncEventDateTime);
+            input.addEventListener('change', syncEventDateTime);
+        }
+    });
+
+    if (eventForm) {
+        eventForm.addEventListener('submit', function () {
+            syncEventDateTime();
+        });
+    }
+
+    if (createEventButton) {
+        createEventButton.addEventListener('click', function () {
+            openEventModal();
+        });
     }
 
     document.addEventListener('click', function (event) {
         var trigger = event.target.closest('.booking-trigger');
         if (trigger) {
             event.preventDefault();
-            if (trigger.getAttribute('data-action') === 'cancel') {
+            var action = trigger.getAttribute('data-action');
+
+            if (action === 'cancel') {
                 openCancelModal(trigger);
+            } else if (action === 'admin-book') {
+                var createUrl = trigger.getAttribute('data-create-url');
+                if (createUrl) {
+                    window.location.href = createUrl;
+                }
             } else {
                 openBookingModal(trigger);
             }
             return;
         }
 
-        if (event.target === bookingModal || event.target === cancelModal) {
+        if (event.target === bookingModal || event.target === cancelModal || event.target === eventModal) {
             closeAllModals();
         }
     });
@@ -218,6 +309,8 @@ document.addEventListener('DOMContentLoaded', function () {
     var modalCancel = document.getElementById('modal-cancel');
     var cancelClose = document.getElementById('cancel-modal-close');
     var cancelAbort = document.getElementById('cancel-modal-abort');
+    var eventClose = document.getElementById('event-modal-close');
+    var eventCancel = document.getElementById('event-modal-cancel');
 
     if (modalClose) {
         modalClose.addEventListener('click', function (event) {
@@ -241,6 +334,17 @@ document.addEventListener('DOMContentLoaded', function () {
         cancelAbort.addEventListener('click', closeAllModals);
     }
 
+    if (eventClose) {
+        eventClose.addEventListener('click', function (event) {
+            event.preventDefault();
+            closeAllModals();
+        });
+    }
+
+    if (eventCancel) {
+        eventCancel.addEventListener('click', closeAllModals);
+    }
+
     document.addEventListener('keydown', function (event) {
         if (event.key === 'Escape') {
             closeAllModals();
@@ -248,9 +352,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-// Player-name autocomplete: fetches matching member aliases from the AJAX
-// endpoint (min 2 chars, debounced) and fills the #player-suggestions datalist.
-// Self-contained — does not depend on the modal logic above.
 document.addEventListener('DOMContentLoaded', function () {
     var datalist = document.getElementById('player-suggestions');
     if (!datalist) {
@@ -287,3 +388,4 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
+

@@ -1,10 +1,13 @@
 <?php
+
 declare(strict_types=1);
+
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\Square;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -17,24 +20,42 @@ final class EventController extends Controller
         return view('admin.events.index', compact('events'));
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
-        return view('admin.events.create', ['squares' => Square::orderBy('priority')->get()]);
+        $event = new Event([
+            'sid' => $request->input('sid'),
+            'status' => $request->input('status', 'enabled'),
+            'datetime_start' => $this->normalizeDateTime($request->input('datetime_start')),
+            'datetime_end' => $this->normalizeDateTime($request->input('datetime_end')),
+        ]);
+
+        return view('admin.events.create', [
+            'squares' => Square::orderBy('priority')->get(),
+            'event' => $event,
+            'name' => (string) $request->input('name', ''),
+        ]);
     }
 
     public function store(Request $request): RedirectResponse
     {
         $data = $this->validateEvent($request);
         $event = Event::create([
-            'sid'            => $data['sid'] !== '' && $data['sid'] !== null ? (int) $data['sid'] : null,
-            'status'         => $data['status'],
+            'sid' => $data['sid'] !== '' && $data['sid'] !== null ? (int) $data['sid'] : null,
+            'status' => $data['status'],
             'datetime_start' => $data['datetime_start'],
-            'datetime_end'   => $data['datetime_end'],
-            'capacity'       => null,
+            'datetime_end' => $data['datetime_end'],
+            'capacity' => null,
         ]);
+
         if (!empty($data['name'])) {
             $event->meta()->create(['key' => 'name', 'value' => $data['name']]);
         }
+
+        $redirectTo = $request->string('redirect_to')->trim()->value();
+        if ($redirectTo !== '') {
+            return redirect()->to($redirectTo)->with('success', 'Veranstaltung angelegt.');
+        }
+
         return redirect()->route('admin.events.index')->with('success', 'Veranstaltung angelegt.');
     }
 
@@ -81,5 +102,18 @@ final class EventController extends Controller
             'datetime_start' => ['required', 'date'],
             'datetime_end'   => ['required', 'date', 'after:datetime_start'],
         ]);
+    }
+
+    private function normalizeDateTime(mixed $value): ?string
+    {
+        if (!is_string($value) || trim($value) === '') {
+            return null;
+        }
+
+        return rescue(
+            fn() => Carbon::parse($value)->format('Y-m-d H:i:s'),
+            null,
+            report: false,
+        );
     }
 }

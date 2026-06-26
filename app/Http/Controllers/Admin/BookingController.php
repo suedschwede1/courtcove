@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exceptions\BookingValidationException;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Event;
@@ -54,6 +55,99 @@ final class BookingController extends Controller
         return view('admin.bookings.index', compact('bookings', 'squares'));
     }
 
+    public function create(Request $request): View
+    {
+        $square = Square::findOrFail((int) $request->integer('sid'));
+        $date = $request->string('date')->value();
+        $timeStartSeconds = (int) $request->input('time_start', 0);
+        $timeEndSeconds = (int) $request->input('time_end', $timeStartSeconds + 3600);
+        $defaultUser = auth()->user();
+
+        $booking = new Booking([
+            'uid' => $defaultUser?->getAuthIdentifier(),
+            'sid' => $square->sid,
+            'quantity' => 2,
+            'status' => 'single',
+            'status_billing' => 'pending',
+        ]);
+        $booking->setRelation('user', $defaultUser);
+        $booking->setRelation('square', $square);
+
+        $reservation = new Reservation([
+            'date' => $date,
+            'time_start' => sprintf('%02d:%02d:00', intdiv($timeStartSeconds, 3600), intdiv($timeStartSeconds % 3600, 60)),
+            'time_end' => sprintf('%02d:%02d:00', intdiv($timeEndSeconds, 3600), intdiv($timeEndSeconds % 3600, 60)),
+        ]);
+
+        return view('admin.bookings.edit', [
+            'booking' => $booking,
+            'users' => User::where('status', '!=', 'deleted')->orderBy('alias')->get(),
+            'squares' => Square::orderBy('priority')->orderBy('sid')->get(),
+            'reservation' => $reservation,
+            'playerNames' => [2 => '', 3 => '', 4 => ''],
+            'adminNote' => '',
+            'repeatOptions' => self::REPEAT_OPTIONS,
+            'repeatType' => 'once',
+            'repeatEndDate' => $date,
+            'isCreate' => true,
+        ]);
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        try {
+            $data = $this->validateBookingData($request);
+            [, , $occurrenceStarts, $durationSeconds] = $this->buildBookingTimeline($data);
+
+            if ($data['status'] !== 'cancelled') {
+                foreach ($occurrenceStarts as $occurrenceStart) {
+                    $occurrenceEnd = $occurrenceStart->copy()->addSeconds($durationSeconds);
+                    if ($this->hasBookingConflict((int) $data['sid'], $occurrenceStart, $occurrenceEnd, null)) {
+                        return back()->withErrors(['booking' => 'Mindestens ein Wiederholungstermin kollidiert mit einer anderen Buchung.'])->withInput();
+                    }
+
+                    if ($this->hasEventConflict((int) $data['sid'], $occurrenceStart, $occurrenceEnd)) {
+                        return back()->withErrors(['booking' => 'Mindestens ein Wiederholungstermin kollidiert mit einer Veranstaltung.'])->withInput();
+                    }
+                }
+            }
+
+            DB::transaction(function () use ($data, $occurrenceStarts, $durationSeconds): void {
+                $booking = Booking::create([
+                    'uid' => (int) $data['uid'],
+                    'sid' => (int) $data['sid'],
+                    'quantity' => (int) $data['quantity'],
+                    'status' => $data['status'] === 'cancelled' ? 'cancelled' : (count($occurrenceStarts) > 1 ? 'subscription' : 'single'),
+                    'status_billing' => $data['status_billing'],
+                    'visibility' => 'public',
+                    'created' => now()->format('Y-m-d H:i:s'),
+                ]);
+
+                foreach ($occurrenceStarts as $occurrenceStart) {
+                    $occurrenceEnd = $occurrenceStart->copy()->addSeconds($durationSeconds);
+                    $booking->reservations()->create([
+                        'date' => $occurrenceStart->format('Y-m-d'),
+                        'time_start' => $occurrenceStart->format('H:i:s'),
+                        'time_end' => $occurrenceEnd->format('H:i:s'),
+                    ]);
+                }
+
+                $this->bookingService->syncPlayerMeta($booking, [
+                    2 => $data['player_name_2'] ?? null,
+                    3 => $data['player_name_3'] ?? null,
+                    4 => $data['player_name_4'] ?? null,
+                ]);
+
+                $this->syncBookingMeta($booking, 'admin-note', $data['admin_note'] ?? null);
+            });
+        } catch (BookingValidationException $e) {
+            return back()->withErrors(['booking' => $e->getMessage()])->withInput();
+        }
+
+        return redirect()->route('calendar.index', ['date' => Carbon::parse($data['date'])->format('Y-m-d')])
+            ->with('success', 'Buchung angelegt.');
+    }
+
     public function show(Booking $booking): View
     {
         $booking->load(['user', 'square', 'reservations', 'meta']);
@@ -83,6 +177,7 @@ final class BookingController extends Controller
             'repeatOptions' => self::REPEAT_OPTIONS,
             'repeatType' => $repeatType,
             'repeatEndDate' => $repeatEndDate,
+            'isCreate' => false,
         ]);
     }
 
@@ -94,6 +189,82 @@ final class BookingController extends Controller
             return back()->withErrors(['booking' => 'Zu dieser Buchung wurde keine Reservierung gefunden.']);
         }
 
+        try {
+            $data = $this->validateBookingData($request);
+            [, , $occurrenceStarts, $durationSeconds] = $this->buildBookingTimeline($data);
+
+            if ($data['status'] !== 'cancelled') {
+                foreach ($occurrenceStarts as $occurrenceStart) {
+                    $occurrenceEnd = $occurrenceStart->copy()->addSeconds($durationSeconds);
+                    if ($this->hasBookingConflict((int) $data['sid'], $occurrenceStart, $occurrenceEnd, $booking->bid)) {
+                        return back()->withErrors(['booking' => 'Mindestens ein Wiederholungstermin kollidiert mit einer anderen Buchung.'])->withInput();
+                    }
+
+                    if ($this->hasEventConflict((int) $data['sid'], $occurrenceStart, $occurrenceEnd)) {
+                        return back()->withErrors(['booking' => 'Mindestens ein Wiederholungstermin kollidiert mit einer Veranstaltung.'])->withInput();
+                    }
+                }
+            }
+
+            DB::transaction(function () use ($booking, $data, $occurrenceStarts, $durationSeconds): void {
+                $effectiveStatus = $data['status'] === 'cancelled'
+                    ? 'cancelled'
+                    : (count($occurrenceStarts) > 1 ? 'subscription' : 'single');
+
+                $booking->update([
+                    'uid' => (int) $data['uid'],
+                    'sid' => (int) $data['sid'],
+                    'quantity' => (int) $data['quantity'],
+                    'status' => $effectiveStatus,
+                    'status_billing' => $data['status_billing'],
+                ]);
+
+                $booking->loadMissing(['reservations.meta']);
+                foreach ($booking->reservations as $reservation) {
+                    $reservation->meta()->delete();
+                }
+                $booking->reservations()->delete();
+
+                foreach ($occurrenceStarts as $occurrenceStart) {
+                    $occurrenceEnd = $occurrenceStart->copy()->addSeconds($durationSeconds);
+                    $booking->reservations()->create([
+                        'date' => $occurrenceStart->format('Y-m-d'),
+                        'time_start' => $occurrenceStart->format('H:i:s'),
+                        'time_end' => $occurrenceEnd->format('H:i:s'),
+                    ]);
+                }
+
+                $this->bookingService->syncPlayerMeta($booking, [
+                    2 => $data['player_name_2'] ?? null,
+                    3 => $data['player_name_3'] ?? null,
+                    4 => $data['player_name_4'] ?? null,
+                ]);
+
+                $this->syncBookingMeta($booking, 'admin-note', $data['admin_note'] ?? null);
+            });
+        } catch (BookingValidationException $e) {
+            return back()->withErrors(['booking' => $e->getMessage()])->withInput();
+        }
+
+        return redirect()->route('admin.bookings.index')->with('success', 'Buchung aktualisiert.');
+    }
+
+    public function cancel(Booking $booking): RedirectResponse
+    {
+        $this->bookingService->cancelSingle($booking);
+
+        return redirect()->route('admin.bookings.index')->with('success', 'Buchung storniert.');
+    }
+
+    public function destroy(Booking $booking): RedirectResponse
+    {
+        $this->bookingService->deleteSingle($booking);
+
+        return redirect()->route('admin.bookings.index')->with('success', 'Buchung gelöscht.');
+    }
+
+    private function validateBookingData(Request $request): array
+    {
         $data = $request->validate([
             'uid' => ['required', 'integer', 'exists:bs_users,uid'],
             'sid' => ['required', 'integer', 'exists:bs_squares,sid'],
@@ -111,16 +282,21 @@ final class BookingController extends Controller
             'admin_note' => ['nullable', 'string', 'max:2000'],
         ]);
 
+        if ((int) $data['quantity'] === 2) {
+            $data['player_name_3'] = null;
+            $data['player_name_4'] = null;
+        }
+
+        return $data;
+    }
+
+    private function buildBookingTimeline(array $data): array
+    {
         $dateStart = Carbon::createFromFormat('Y-m-d H:i', $data['date'] . ' ' . $data['time_start']);
         $dateEnd = Carbon::createFromFormat('Y-m-d H:i', $data['date'] . ' ' . $data['time_end']);
 
         if (!$dateEnd->greaterThan($dateStart)) {
-            return back()->withErrors(['booking' => 'Die Endzeit muss nach der Startzeit liegen.'])->withInput();
-        }
-
-        if ((int) $data['quantity'] === 2) {
-            $data['player_name_3'] = null;
-            $data['player_name_4'] = null;
+            throw BookingValidationException::withMessage('Die Endzeit muss nach der Startzeit liegen.');
         }
 
         $repeatType = $data['repeat_type'];
@@ -129,81 +305,15 @@ final class BookingController extends Controller
             : Carbon::createFromFormat('Y-m-d', (string) ($data['date_end'] ?: $data['date']));
 
         if ($repeatEndDate->lt($dateStart->copy()->startOfDay())) {
-            return back()->withErrors(['booking' => 'Das Enddatum der Wiederholung muss am oder nach dem Startdatum liegen.'])->withInput();
+            throw BookingValidationException::withMessage('Das Enddatum der Wiederholung muss am oder nach dem Startdatum liegen.');
         }
 
         $occurrenceStarts = $this->buildOccurrenceStarts($dateStart, $repeatType, $repeatEndDate);
         if ($occurrenceStarts === []) {
-            return back()->withErrors(['booking' => 'Es konnte keine gültige Wiederholung erzeugt werden.'])->withInput();
+            throw BookingValidationException::withMessage('Es konnte keine gültige Wiederholung erzeugt werden.');
         }
 
-        $durationSeconds = $dateStart->diffInSeconds($dateEnd);
-
-        if ($data['status'] !== 'cancelled') {
-            foreach ($occurrenceStarts as $occurrenceStart) {
-                $occurrenceEnd = $occurrenceStart->copy()->addSeconds($durationSeconds);
-                if ($this->hasBookingConflict((int) $data['sid'], $occurrenceStart, $occurrenceEnd, $booking->bid)) {
-                    return back()->withErrors(['booking' => 'Mindestens ein Wiederholungstermin kollidiert mit einer anderen Buchung.'])->withInput();
-                }
-
-                if ($this->hasEventConflict((int) $data['sid'], $occurrenceStart, $occurrenceEnd)) {
-                    return back()->withErrors(['booking' => 'Mindestens ein Wiederholungstermin kollidiert mit einer Veranstaltung.'])->withInput();
-                }
-            }
-        }
-
-        DB::transaction(function () use ($booking, $data, $occurrenceStarts, $durationSeconds): void {
-            $effectiveStatus = $data['status'] === 'cancelled'
-                ? 'cancelled'
-                : (count($occurrenceStarts) > 1 ? 'subscription' : 'single');
-
-            $booking->update([
-                'uid' => (int) $data['uid'],
-                'sid' => (int) $data['sid'],
-                'quantity' => (int) $data['quantity'],
-                'status' => $effectiveStatus,
-                'status_billing' => $data['status_billing'],
-            ]);
-
-            $booking->loadMissing(['reservations.meta']);
-            foreach ($booking->reservations as $reservation) {
-                $reservation->meta()->delete();
-            }
-            $booking->reservations()->delete();
-
-            foreach ($occurrenceStarts as $occurrenceStart) {
-                $occurrenceEnd = $occurrenceStart->copy()->addSeconds($durationSeconds);
-                $booking->reservations()->create([
-                    'date' => $occurrenceStart->format('Y-m-d'),
-                    'time_start' => $occurrenceStart->format('H:i:s'),
-                    'time_end' => $occurrenceEnd->format('H:i:s'),
-                ]);
-            }
-
-            $this->bookingService->syncPlayerMeta($booking, [
-                2 => $data['player_name_2'] ?? null,
-                3 => $data['player_name_3'] ?? null,
-                4 => $data['player_name_4'] ?? null,
-            ]);
-
-            $this->syncBookingMeta($booking, 'admin-note', $data['admin_note'] ?? null);
-        });
-
-        return redirect()->route('admin.bookings.index')->with('success', 'Buchung aktualisiert.');
-    }
-
-    public function cancel(Booking $booking): RedirectResponse
-    {
-        $this->bookingService->cancelSingle($booking);
-
-        return redirect()->route('admin.bookings.index')->with('success', 'Buchung storniert.');
-    }
-
-    public function destroy(Booking $booking): RedirectResponse
-    {
-        $this->bookingService->deleteSingle($booking);
-
-        return redirect()->route('admin.bookings.index')->with('success', 'Buchung gelöscht.');
+        return [$dateStart, $dateEnd, $occurrenceStarts, $dateStart->diffInSeconds($dateEnd)];
     }
 
     private function syncBookingMeta(Booking $booking, string $key, ?string $value): void
@@ -307,17 +417,21 @@ final class BookingController extends Controller
         return $occurrences;
     }
 
-    private function hasBookingConflict(int $sid, Carbon $start, Carbon $end, int $excludeBookingId): bool
+    private function hasBookingConflict(int $sid, Carbon $start, Carbon $end, ?int $excludeBookingId): bool
     {
-        return Reservation::query()
+        $query = Reservation::query()
             ->join('bs_bookings', 'bs_bookings.bid', '=', 'bs_reservations.bid')
             ->where('bs_bookings.sid', $sid)
             ->whereIn('bs_bookings.status', Booking::ACTIVE_STATUSES)
-            ->where('bs_bookings.bid', '!=', $excludeBookingId)
             ->where('bs_reservations.date', $start->format('Y-m-d'))
             ->where('bs_reservations.time_start', '<', $end->format('H:i:s'))
-            ->where('bs_reservations.time_end', '>', $start->format('H:i:s'))
-            ->exists();
+            ->where('bs_reservations.time_end', '>', $start->format('H:i:s'));
+
+        if ($excludeBookingId !== null) {
+            $query->where('bs_bookings.bid', '!=', $excludeBookingId);
+        }
+
+        return $query->exists();
     }
 
     private function hasEventConflict(int $sid, Carbon $start, Carbon $end): bool
@@ -330,4 +444,3 @@ final class BookingController extends Controller
             ->exists();
     }
 }
-
