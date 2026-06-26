@@ -106,8 +106,16 @@ final class BookingController extends Controller
             ->where(function ($query) use ($q): void {
                 $query->where('bs_users.alias', 'like', '%' . $q . '%')
                     ->orWhere('firstnames.value', 'like', '%' . $q . '%')
-                    ->orWhere('lastnames.value', 'like', '%' . $q . '%')
-                    ->orWhereRaw("CONCAT(COALESCE(firstnames.value, ''), ' ', COALESCE(lastnames.value, '')) like ?", ['%' . $q . '%']);
+                    ->orWhere('lastnames.value', 'like', '%' . $q . '%');
+
+                // Full-name match ("Vorname Nachname") — DB-agnostic (no CONCAT/|| which differ across MySQL/SQLite).
+                if (str_contains($q, ' ')) {
+                    [$first, $last] = explode(' ', $q, 2);
+                    $query->orWhere(function ($sub) use ($first, $last): void {
+                        $sub->where('firstnames.value', 'like', '%' . trim($first) . '%')
+                            ->where('lastnames.value', 'like', '%' . trim($last) . '%');
+                    });
+                }
             })
             ->orderBy('bs_users.alias')
             ->limit(10)
