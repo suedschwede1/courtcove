@@ -31,6 +31,6 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function (): v
 
     Route::middleware('can:admin.user')->group(function (): void {
         Route::resource('users', \App\Http\Controllers\Admin\UserController::class)->except(['show']);
-        // password route added in a later task
+        Route::post('users/{user}/password', [\App\Http\Controllers\Admin\UserController::class, 'password'])->name('users.password');
     });
 });

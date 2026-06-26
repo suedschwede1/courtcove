@@ -56,4 +56,47 @@ class UserManagementTest extends TestCase
             'alias' => '', 'email' => 'dup@example.com', 'status' => 'enabled', 'password' => 'x',
         ])->assertSessionHasErrors(['alias', 'email']);
     }
+
+    #[Test]
+    public function admin_can_update_user_and_toggle_privileges(): void
+    {
+        $u = User::factory()->create(['alias' => 'Alt', 'status' => 'assist']);
+        $u->syncPrivileges(['admin.user']);
+
+        $this->actingAs($this->admin())->put("/admin/users/{$u->uid}", [
+            'alias' => 'Neu', 'email' => $u->email, 'status' => 'assist',
+            'privileges' => ['calendar.see-data'],
+        ])->assertRedirect(route('admin.users.index'));
+
+        $u->refresh();
+        $this->assertSame('Neu', $u->alias);
+        $this->assertFalse($u->can('admin.user'));
+        $this->assertTrue($u->can('calendar.see-data'));
+    }
+
+    #[Test]
+    public function admin_can_reset_password(): void
+    {
+        $u = User::factory()->create();
+        $this->actingAs($this->admin())->post("/admin/users/{$u->uid}/password", ['password' => 'neuespass1'])
+            ->assertRedirect();
+        $this->assertTrue(Hash::check('neuespass1', $u->fresh()->pw));
+    }
+
+    #[Test]
+    public function destroy_soft_deletes_user(): void
+    {
+        $u = User::factory()->create(['status' => 'enabled']);
+        $this->actingAs($this->admin())->delete("/admin/users/{$u->uid}")->assertRedirect(route('admin.users.index'));
+        $this->assertSame('deleted', $u->fresh()->status);
+    }
+
+    #[Test]
+    public function update_validates_email_uniqueness_ignoring_self(): void
+    {
+        $u = User::factory()->create(['email' => 'self@example.com']);
+        $this->actingAs($this->admin())->put("/admin/users/{$u->uid}", [
+            'alias' => 'Self', 'email' => 'self@example.com', 'status' => 'enabled',
+        ])->assertRedirect(route('admin.users.index')); // own email allowed
+    }
 }

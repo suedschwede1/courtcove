@@ -53,4 +53,53 @@ final class UserController extends Controller
 
         return redirect()->route('admin.users.index')->with('success', 'Benutzer angelegt.');
     }
+
+    public function edit(User $user): View
+    {
+        return view('admin.users.edit', [
+            'user'       => $user,
+            'privileges' => User::PRIVILEGES,
+            'granted'    => $user->grantedPrivileges(),
+            'profile'    => [
+                'firstname' => $user->getMeta('firstname'),
+                'lastname'  => $user->getMeta('lastname'),
+                'phone'     => $user->getMeta('phone'),
+            ],
+        ]);
+    }
+
+    public function update(Request $request, User $user): RedirectResponse
+    {
+        $data = $request->validate([
+            'alias'        => ['required', 'string', 'max:128'],
+            'email'        => ['nullable', 'email', 'max:128', 'unique:bs_users,email,' . $user->uid . ',uid'],
+            'status'       => ['required', 'in:admin,assist,enabled,disabled'],
+            'firstname'    => ['nullable', 'string', 'max:128'],
+            'lastname'     => ['nullable', 'string', 'max:128'],
+            'phone'        => ['nullable', 'string', 'max:64'],
+            'privileges'   => ['array'],
+            'privileges.*' => ['in:' . implode(',', User::PRIVILEGES)],
+        ]);
+
+        $user->update(['alias' => $data['alias'], 'email' => $data['email'] ?? null, 'status' => $data['status']]);
+        foreach (['firstname', 'lastname', 'phone'] as $field) {
+            $user->setMeta($field, $data[$field] ?? null);
+        }
+        $user->syncPrivileges($data['privileges'] ?? []);
+
+        return redirect()->route('admin.users.index')->with('success', 'Benutzer aktualisiert.');
+    }
+
+    public function password(Request $request, User $user): RedirectResponse
+    {
+        $request->validate(['password' => ['required', 'string', 'min:6']]);
+        $user->update(['pw' => Hash::make($request->string('password')->value())]);
+        return back()->with('success', 'Passwort zurückgesetzt.');
+    }
+
+    public function destroy(User $user): RedirectResponse
+    {
+        $user->update(['status' => 'deleted']);
+        return redirect()->route('admin.users.index')->with('success', 'Benutzer gelöscht.');
+    }
 }

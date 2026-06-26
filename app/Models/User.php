@@ -48,6 +48,12 @@ class User extends Authenticatable
 
     protected $hidden = ['pw'];
 
+    /** Route-model binding for {user} resolves on the primary key `uid`. */
+    public function getRouteKeyName(): string
+    {
+        return 'uid';
+    }
+
     /** Laravel auth reads the password from the `pw` column. */
     public function getAuthPassword(): string
     {
