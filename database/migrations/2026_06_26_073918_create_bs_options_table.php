@@ -6,14 +6,18 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * Real booking_local schema. Global config as key/value, optionally per-locale.
+ */
 return new class extends Migration
 {
     public function up(): void
     {
         Schema::create('bs_options', function (Blueprint $table) {
-            $table->integer('oid')->autoIncrement();
-            $table->string('option_key', 64)->unique();
-            $table->text('option_value')->nullable();
+            $table->increments('oid');
+            $table->string('key', 64)->index();
+            $table->text('value');
+            $table->string('locale', 8)->nullable();
         });
     }
 

@@ -11,15 +11,20 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('bs_squares_pricing', function (Blueprint $table) {
-            $table->integer('sprid')->autoIncrement();
-            $table->integer('sid')->index();
-            $table->integer('spid')->index();
-            $table->integer('date_start')->default(0);
-            $table->integer('date_end')->default(0);
-            $table->integer('time_start')->default(0);
-            $table->integer('time_end')->default(86400);
-            $table->integer('price')->default(0);
-            $table->integer('priority')->default(0);
+            $table->increments('spid');
+            $table->unsignedInteger('sid')->nullable()->index();
+            $table->unsignedInteger('priority');
+            $table->date('date_start');
+            $table->date('date_end');
+            $table->unsignedTinyInteger('day_start')->nullable();
+            $table->unsignedTinyInteger('day_end')->nullable();
+            $table->time('time_start')->nullable();
+            $table->time('time_end')->nullable();
+            $table->unsignedInteger('price')->nullable();
+            $table->unsignedInteger('rate')->nullable();
+            $table->boolean('gross')->nullable();
+            $table->unsignedInteger('per_time_block')->nullable();
+            $table->boolean('per_quantity')->nullable();
         });
     }
 

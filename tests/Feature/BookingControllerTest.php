@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\BookingStatus;
 use App\Models\Booking;
 use App\Models\Square;
 use App\Models\User;
@@ -33,7 +32,7 @@ class BookingControllerTest extends TestCase
     #[Test]
     public function user_can_create_booking_on_available_slot(): void
     {
-        $user   = User::factory()->create(['permissions' => 'calendar.create-single-bookings']);
+        $user   = User::factory()->create();
         $square = Square::factory()->create([
             'status' => 'enabled', 'time_block_bookable_max' => 0, 'range_book' => 0,
         ]);
@@ -46,14 +45,14 @@ class BookingControllerTest extends TestCase
             'quantity'   => 2,
         ])->assertRedirect();
 
-        $this->assertDatabaseHas('bs_bookings', ['uid' => $user->uid, 'sid' => $square->sid]);
-        $this->assertDatabaseHas('bs_reservations', ['time_start' => 36000, 'time_end' => 39600]);
+        $this->assertDatabaseHas('bs_bookings', ['uid' => $user->uid, 'sid' => $square->sid, 'status' => 'single']);
+        $this->assertDatabaseHas('bs_reservations', ['time_start' => '10:00:00', 'time_end' => '11:00:00']);
     }
 
     #[Test]
     public function user_cannot_create_booking_on_disabled_square(): void
     {
-        $user   = User::factory()->create(['permissions' => 'calendar.create-single-bookings']);
+        $user   = User::factory()->create();
         $square = Square::factory()->create(['status' => 'disabled']);
 
         $response = $this->actingAs($user)->post('/bookings', [
@@ -72,12 +71,12 @@ class BookingControllerTest extends TestCase
     public function user_can_cancel_own_booking(): void
     {
         $user    = User::factory()->create();
-        $booking = Booking::factory()->create(['uid' => $user->uid, 'status' => 'enabled']);
+        $booking = Booking::factory()->create(['uid' => $user->uid, 'status' => 'single']);
 
         $this->actingAs($user)->delete("/bookings/{$booking->bid}")->assertRedirect();
 
         $booking->refresh();
-        $this->assertSame(BookingStatus::Disabled, $booking->status);
+        $this->assertSame('cancelled', $booking->status);
     }
 
     #[Test]

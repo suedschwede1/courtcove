@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Factories;
 
-use App\Enums\BillingStatus;
-use App\Enums\BookingStatus;
 use App\Enums\SquareStatus;
 use App\Models\Booking;
 use App\Models\BookingBill;
@@ -30,7 +28,7 @@ class FactoryTest extends TestCase
         $user = User::factory()->create();
         $this->assertNotNull($user->uid);
         $this->assertNotEmpty($user->email);
-        $this->assertNotEmpty($user->name);
+        $this->assertNotEmpty($user->alias);
     }
 
     #[Test]
@@ -42,11 +40,11 @@ class FactoryTest extends TestCase
     }
 
     #[Test]
-    public function booking_factory_creates_enum_statuses(): void
+    public function booking_factory_creates_string_statuses(): void
     {
         $booking = Booking::factory()->create();
-        $this->assertInstanceOf(BookingStatus::class, $booking->status);
-        $this->assertInstanceOf(BillingStatus::class, $booking->status_billing);
+        $this->assertContains($booking->status, ['single', 'subscription', 'cancelled']);
+        $this->assertIsString($booking->status_billing);
     }
 
     #[Test]
@@ -68,7 +66,7 @@ class FactoryTest extends TestCase
     {
         $reservation = Reservation::factory()->create();
         $this->assertNotNull($reservation->rid);
-        $this->assertGreaterThan(0, $reservation->time_start);
+        $this->assertNotEmpty($reservation->time_start);
         $this->assertGreaterThan($reservation->time_start, $reservation->time_end);
     }
 
@@ -85,7 +83,7 @@ class FactoryTest extends TestCase
     {
         $event = Event::factory()->create();
         $this->assertNotNull($event->eid);
-        $this->assertGreaterThan(0, $event->datetime_start);
+        $this->assertNotNull($event->datetime_start);
     }
 
     #[Test]
@@ -93,7 +91,7 @@ class FactoryTest extends TestCase
     {
         $meta = SquareMeta::factory()->create();
         $this->assertNotNull($meta->smid);
-        $this->assertNotEmpty($meta->meta_key);
+        $this->assertNotEmpty($meta->key);
     }
 
     #[Test]
@@ -101,7 +99,7 @@ class FactoryTest extends TestCase
     {
         $meta = UserMeta::factory()->create();
         $this->assertNotNull($meta->umid);
-        $this->assertNotEmpty($meta->meta_key);
+        $this->assertNotEmpty($meta->key);
     }
 
     #[Test]
@@ -109,6 +107,6 @@ class FactoryTest extends TestCase
     {
         $meta = BookingMeta::factory()->create();
         $this->assertNotNull($meta->bmid);
-        $this->assertNotEmpty($meta->meta_key);
+        $this->assertNotEmpty($meta->key);
     }
 }

@@ -16,9 +16,10 @@ class SquareMetaFactory extends Factory
     public function definition(): array
     {
         return [
-            'sid'        => Square::factory(),
-            'meta_key'   => fake()->unique()->slug(2),
-            'meta_value' => fake()->word(),
+            'sid'    => Square::factory(),
+            'key'    => fake()->unique()->slug(2),
+            'value'  => fake()->word(),
+            'locale' => null,
         ];
     }
 }

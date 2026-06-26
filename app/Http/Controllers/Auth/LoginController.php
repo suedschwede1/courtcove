@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
-use App\Enums\UserStatus;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -21,9 +20,11 @@ use Illuminate\View\View;
 final class LoginController extends Controller
 {
     /** Render the login form. */
-    public function showForm(): View
+    public function showForm(Request $request): View
     {
-        return view('auth.login');
+        return view('auth.login', [
+            'redirectTo' => $this->normalizeRedirectTarget($request->query('redirect_to')),
+        ]);
     }
 
     /**
@@ -38,21 +39,35 @@ final class LoginController extends Controller
     public function login(Request $request): RedirectResponse
     {
         $credentials = $request->validate([
-            'email'    => ['required', 'email'],
+            'email' => ['required', 'email'],
             'password' => ['required'],
+            'redirect_to' => ['nullable', 'string'],
         ]);
 
         $user = User::where('email', $credentials['email'])->first();
 
-        if ($user?->status === UserStatus::Disabled) {
+        if ($user && !$user->isEnabled()) {
             return redirect('/login')->withErrors(['email' => 'Konto ist deaktiviert.']);
         }
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
+        if (Auth::attempt([
+            'email' => $credentials['email'],
+            'password' => $credentials['password'],
+        ], $request->boolean('remember'))) {
             $request->session()->regenerate();
-            return redirect()->intended('/calendar');
+
+            return redirect()->to($this->normalizeRedirectTarget($credentials['redirect_to'] ?? null));
         }
 
         return redirect('/login')->withErrors(['email' => 'Ungültige Anmeldedaten.']);
+    }
+
+    private function normalizeRedirectTarget(?string $redirectTo): string
+    {
+        if (is_string($redirectTo) && str_starts_with($redirectTo, '/')) {
+            return $redirectTo;
+        }
+
+        return route('calendar.index');
     }
 }

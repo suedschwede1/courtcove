@@ -10,36 +10,45 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * A bookable court/square.
+ * A bookable court/square. Real bs_squares schema: opening hours are TIME columns,
+ * priority is a float, and there is NO `alias` column - the court alias and labels
+ * live in bs_squares_meta (keys like 'alias', 'label.free', 'public_names', ...).
  *
  * @property int          $sid
  * @property string       $name
- * @property string|null  $alias                   Human-readable court name (e.g. "Court A")
  * @property SquareStatus $status
+ * @property float        $priority                Display sort order
  * @property int          $capacity                Max concurrent players
  * @property int          $capacity_heterogenic    Allow mixed player counts (0/1)
- * @property int          $time_start              Day start in seconds from midnight
- * @property int          $time_end                Day end in seconds from midnight
+ * @property int          $allow_notes             Allow user notes (0/1)
+ * @property string       $time_start              Opening time 'H:i:s'
+ * @property string       $time_end                Closing time 'H:i:s'
  * @property int          $time_block              Slot size in seconds
  * @property int          $time_block_bookable     Minimum bookable duration in seconds
- * @property int          $time_block_bookable_max Max per-user per-day seconds (0=unlimited)
- * @property int          $min_range_book          Min advance booking in seconds (0=allow past)
- * @property int          $range_book              Max advance booking in seconds (0=unlimited)
- * @property int          $range_cancel            Cancellation deadline in seconds
- * @property int          $priority                Display sort order
+ * @property int|null     $time_block_bookable_max Max per-user per-day seconds (0/null=unlimited)
+ * @property int          $min_range_book          Min advance booking in seconds
+ * @property int|null     $range_book              Max advance booking in seconds (0/null=unlimited)
+ * @property int          $max_active_bookings     Max concurrent open bookings per user (0=unlimited)
+ * @property int|null     $range_cancel            Cancellation deadline in seconds
  */
 class Square extends Model
 {
     use HasFactory;
+
+    private const LEGACY_DISPLAY_NAMES = [
+        '1' => 'Court B',
+        '2' => 'Court D',
+        '3' => 'Court C',
+    ];
 
     protected $table      = 'bs_squares';
     protected $primaryKey = 'sid';
     public $timestamps    = false;
 
     protected $fillable = [
-        'name', 'alias', 'status', 'capacity', 'capacity_heterogenic',
-        'time_start', 'time_end', 'time_block', 'time_block_bookable',
-        'time_block_bookable_max', 'min_range_book', 'range_book', 'range_cancel', 'priority',
+        'name', 'status', 'priority', 'capacity', 'capacity_heterogenic', 'allow_notes',
+        'time_start', 'time_end', 'time_block', 'time_block_bookable', 'time_block_bookable_max',
+        'min_range_book', 'range_book', 'max_active_bookings', 'range_cancel',
     ];
 
     protected $casts = ['status' => SquareStatus::class];
@@ -58,6 +67,34 @@ class Square extends Model
 
     /** @return HasMany<Event, $this> */
     public function events(): HasMany { return $this->hasMany(Event::class, 'sid', 'sid'); }
+
+    /** Read a single meta value by key from bs_squares_meta. */
+    public function getMeta(string $key, ?string $default = null): ?string
+    {
+        if ($this->relationLoaded('meta')) {
+            $value = $this->meta->firstWhere('key', $key)?->value;
+
+            return $value !== null ? (string) $value : $default;
+        }
+
+        $value = $this->meta()->where('key', $key)->value('value');
+
+        return $value !== null ? (string) $value : $default;
+    }
+
+    /** Court display alias (from meta), without hardcoded fallback. */
+    public function getAliasAttribute(): ?string
+    {
+        return $this->getMeta('alias');
+    }
+
+    /** Public-facing court label used across calendar, dialogs, and tooltips. */
+    public function getDisplayNameAttribute(): string
+    {
+        return $this->alias
+            ?? self::LEGACY_DISPLAY_NAMES[(string) $this->name]
+            ?? (string) $this->name;
+    }
 
     /** Whether public users may book this court. */
     public function isBookable(): bool { return $this->status === SquareStatus::Enabled; }

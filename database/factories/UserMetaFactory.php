@@ -16,9 +16,9 @@ class UserMetaFactory extends Factory
     public function definition(): array
     {
         return [
-            'uid'        => User::factory(),
-            'meta_key'   => 'key_' . fake()->unique()->word(),
-            'meta_value' => fake()->sentence(),
+            'uid'   => User::factory(),
+            'key'   => 'key_' . fake()->unique()->word(),
+            'value' => fake()->sentence(),
         ];
     }
 }

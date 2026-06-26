@@ -17,9 +17,9 @@ class LoginTest extends TestCase
     public function user_can_login_with_valid_credentials(): void
     {
         User::factory()->create([
-            'email'    => 'test@example.com',
-            'password' => bcrypt('secret123'),
-            'status'   => 'enabled',
+            'email' => 'test@example.com',
+            'pw' => bcrypt('secret123'),
+            'status' => 'enabled',
         ]);
 
         $this->post('/login', ['email' => 'test@example.com', 'password' => 'secret123'])
@@ -29,11 +29,27 @@ class LoginTest extends TestCase
     }
 
     #[Test]
+    public function login_respects_redirect_target(): void
+    {
+        User::factory()->create([
+            'email' => 'test@example.com',
+            'pw' => bcrypt('secret123'),
+            'status' => 'enabled',
+        ]);
+
+        $this->post('/login', [
+            'email' => 'test@example.com',
+            'password' => 'secret123',
+            'redirect_to' => '/calendar?date=2026-07-10',
+        ])->assertRedirect('/calendar?date=2026-07-10');
+    }
+
+    #[Test]
     public function login_fails_with_wrong_password(): void
     {
         User::factory()->create([
-            'email'    => 'test@example.com',
-            'password' => bcrypt('secret123'),
+            'email' => 'test@example.com',
+            'pw' => bcrypt('secret123'),
         ]);
 
         $this->post('/login', ['email' => 'test@example.com', 'password' => 'wrong'])
@@ -55,9 +71,9 @@ class LoginTest extends TestCase
     public function disabled_user_cannot_login(): void
     {
         User::factory()->create([
-            'email'    => 'test@example.com',
-            'password' => bcrypt('secret123'),
-            'status'   => 'disabled',
+            'email' => 'test@example.com',
+            'pw' => bcrypt('secret123'),
+            'status' => 'disabled',
         ]);
 
         $this->post('/login', ['email' => 'test@example.com', 'password' => 'secret123'])
@@ -77,9 +93,9 @@ class LoginTest extends TestCase
     }
 
     #[Test]
-    public function guest_is_redirected_to_login(): void
+    public function guest_can_access_calendar(): void
     {
-        $this->get('/calendar')->assertRedirect('/login');
+        $this->get('/calendar')->assertOk();
     }
 
     #[Test]

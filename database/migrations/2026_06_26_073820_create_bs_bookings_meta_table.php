@@ -11,10 +11,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('bs_bookings_meta', function (Blueprint $table) {
-            $table->integer('bmid')->autoIncrement();
-            $table->integer('bid')->index();
-            $table->string('meta_key', 64)->index();
-            $table->text('meta_value')->nullable();
+            $table->increments('bmid');
+            $table->unsignedInteger('bid')->index();
+            $table->string('key', 64)->index();
+            $table->text('value');
         });
     }
 

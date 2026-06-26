@@ -46,7 +46,7 @@ class SquareValidatorTest extends TestCase
     public function readonly_square_blocks_booking_without_privilege(): void
     {
         $square = Square::factory()->create(['status' => 'readonly']);
-        $user   = User::factory()->create(['permissions' => '']);
+        $user   = User::factory()->create(['status' => 'enabled']);
 
         $result = $this->validator->validate(
             $square, $user, 2,
@@ -63,7 +63,7 @@ class SquareValidatorTest extends TestCase
         $square = Square::factory()->create([
             'status' => 'readonly', 'time_block_bookable_max' => 0, 'range_book' => 0,
         ]);
-        $user = User::factory()->create(['permissions' => 'calendar.create-single-bookings']);
+        $user = User::factory()->create(['status' => 'admin']);
 
         $result = $this->validator->validate(
             $square, $user, 2,
@@ -96,7 +96,7 @@ class SquareValidatorTest extends TestCase
         $square = Square::factory()->create([
             'status' => 'enabled', 'range_book' => 14 * 86400, 'time_block_bookable_max' => 0,
         ]);
-        $user = User::factory()->create(['permissions' => 'calendar.create-single-bookings']);
+        $user = User::factory()->create();
 
         $result = $this->validator->validate(
             $square, $user, 2,
@@ -111,14 +111,14 @@ class SquareValidatorTest extends TestCase
     public function daily_limit_is_enforced(): void
     {
         $square  = Square::factory()->create(['status' => 'enabled', 'time_block_bookable_max' => 3600]);
-        $user    = User::factory()->create(['permissions' => 'calendar.create-single-bookings']);
-        $booking = Booking::factory()->create(['uid' => $user->uid, 'sid' => $square->sid]);
+        $user    = User::factory()->create();
+        $booking = Booking::factory()->create(['uid' => $user->uid, 'sid' => $square->sid, 'status' => 'single']);
 
         Reservation::factory()->create([
             'bid'        => $booking->bid,
-            'date'       => Carbon::now()->addDays(3)->startOfDay()->timestamp,
-            'time_start' => 36000,
-            'time_end'   => 39600,
+            'date'       => Carbon::now()->addDays(3)->toDateString(),
+            'time_start' => '10:00:00',
+            'time_end'   => '11:00:00',
         ]);
 
         $result = $this->validator->validate(
@@ -135,7 +135,7 @@ class SquareValidatorTest extends TestCase
     public function short_booking_within_30min_ignores_daily_limit(): void
     {
         $square = Square::factory()->create(['status' => 'enabled', 'time_block_bookable_max' => 3600]);
-        $user   = User::factory()->create(['permissions' => 'calendar.create-single-bookings']);
+        $user   = User::factory()->create();
 
         $dateStart = Carbon::now()->addMinutes(20);
 
@@ -154,7 +154,7 @@ class SquareValidatorTest extends TestCase
         $square = Square::factory()->create([
             'status' => 'enabled', 'range_book' => 0, 'time_block_bookable_max' => 0,
         ]);
-        $user = User::factory()->create(['permissions' => 'calendar.create-single-bookings']);
+        $user = User::factory()->create();
 
         $result = $this->validator->validate(
             $square, $user, 2,

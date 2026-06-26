@@ -11,12 +11,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('bs_squares_products', function (Blueprint $table) {
-            $table->integer('spid')->autoIncrement();
-            $table->integer('sid')->index();
-            $table->string('name', 64);
-            $table->string('type', 32)->default('single');
-            $table->integer('price')->default(0);
-            $table->integer('priority')->default(0);
+            $table->increments('spid');
+            $table->unsignedInteger('sid')->nullable()->index();
+            $table->unsignedInteger('priority');
+            $table->date('date_start')->nullable();
+            $table->date('date_end')->nullable();
+            $table->string('name', 128);
+            $table->text('description')->nullable();
+            $table->string('options', 512);
+            $table->unsignedInteger('price');
+            $table->unsignedInteger('rate');
+            $table->boolean('gross');
+            $table->string('locale', 8)->nullable();
         });
     }
 

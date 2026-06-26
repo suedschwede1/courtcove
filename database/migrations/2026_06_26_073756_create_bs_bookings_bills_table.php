@@ -11,11 +11,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('bs_bookings_bills', function (Blueprint $table) {
-            $table->integer('bbid')->autoIncrement();
-            $table->integer('bid')->index();
-            $table->integer('spid')->nullable()->index();
-            $table->integer('price')->default(0);
-            $table->string('description', 255)->nullable();
+            $table->increments('bbid');
+            $table->unsignedInteger('bid')->index();
+            $table->string('description', 512);
+            $table->unsignedInteger('quantity')->nullable();
+            $table->unsignedInteger('time')->nullable();
+            $table->integer('price');
+            $table->unsignedInteger('rate');
+            $table->boolean('gross');
         });
     }
 

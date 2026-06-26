@@ -9,12 +9,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * Arbitrary key-value metadata attached to a user.
+ * Arbitrary key-value metadata attached to a user (firstname, lastname, phone, allow.*, …).
  *
- * @property int         $umid
- * @property int         $uid
- * @property string      $meta_key
- * @property string|null $meta_value
+ * @property int    $umid
+ * @property int    $uid
+ * @property string $key
+ * @property string $value
  */
 class UserMeta extends Model
 {
@@ -23,7 +23,7 @@ class UserMeta extends Model
     protected $table      = 'bs_users_meta';
     protected $primaryKey = 'umid';
     public $timestamps    = false;
-    protected $fillable   = ['uid', 'meta_key', 'meta_value'];
+    protected $fillable   = ['uid', 'key', 'value'];
 
     /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo

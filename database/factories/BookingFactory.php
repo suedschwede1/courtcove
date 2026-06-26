@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
-use App\Enums\BillingStatus;
-use App\Enums\BookingStatus;
-use App\Enums\Visibility;
 use App\Models\Booking;
 use App\Models\Square;
 use App\Models\User;
@@ -22,12 +19,11 @@ class BookingFactory extends Factory
         return [
             'uid'            => User::factory(),
             'sid'            => Square::factory(),
-            'status'         => BookingStatus::Enabled->value,
-            'status_billing' => BillingStatus::Pending->value,
-            'visibility'     => Visibility::Public->value,
+            'status'         => 'single',
+            'status_billing' => 'pending',
+            'visibility'     => 'public',
             'quantity'       => fake()->numberBetween(1, 4),
-            'created'        => time(),
-            'updated'        => time(),
+            'created'        => now(),
         ];
     }
 }

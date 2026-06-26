@@ -7,7 +7,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-/** @property int $emid @property int $eid @property string $meta_key @property string|null $meta_value */
+/** @property int $emid @property int $eid @property string $key @property string $value @property string|null $locale */
 class EventMeta extends Model
 {
     use HasFactory;
@@ -15,5 +15,5 @@ class EventMeta extends Model
     protected $table      = 'bs_events_meta';
     protected $primaryKey = 'emid';
     public $timestamps    = false;
-    protected $fillable   = ['eid', 'meta_key', 'meta_value'];
+    protected $fillable   = ['eid', 'key', 'value', 'locale'];
 }

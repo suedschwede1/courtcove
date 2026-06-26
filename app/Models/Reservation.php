@@ -12,11 +12,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * One time-slot reservation within a booking. Subscriptions have multiple.
  *
- * @property int $rid
- * @property int $bid
- * @property int $date       Unix timestamp (midnight)
- * @property int $time_start Seconds from midnight
- * @property int $time_end   Seconds from midnight
+ * Real bs_reservations schema: date is a DATE ('Y-m-d') and time_start/time_end
+ * are TIME ('H:i:s') columns — Eloquent returns them as plain strings.
+ *
+ * @property int    $rid
+ * @property int    $bid
+ * @property string $date       DATE 'Y-m-d'
+ * @property string $time_start TIME 'H:i:s'
+ * @property string $time_end   TIME 'H:i:s'
  */
 class Reservation extends Model
 {

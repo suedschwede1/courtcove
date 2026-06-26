@@ -11,10 +11,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('bs_squares_meta', function (Blueprint $table) {
-            $table->integer('smid')->autoIncrement();
-            $table->integer('sid')->index();
-            $table->string('meta_key', 64)->index();
-            $table->text('meta_value')->nullable();
+            $table->increments('smid');
+            $table->unsignedInteger('sid')->index();
+            $table->string('key', 64)->index();
+            $table->text('value');
+            $table->string('locale', 8)->nullable();
         });
     }
 

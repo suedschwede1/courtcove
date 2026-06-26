@@ -7,7 +7,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-/** @property int $rmid @property int $rid @property string $meta_key @property string|null $meta_value */
+/** @property int $rmid @property int $rid @property string $key @property string $value */
 class ReservationMeta extends Model
 {
     use HasFactory;
@@ -15,5 +15,5 @@ class ReservationMeta extends Model
     protected $table      = 'bs_reservations_meta';
     protected $primaryKey = 'rmid';
     public $timestamps    = false;
-    protected $fillable   = ['rid', 'meta_key', 'meta_value'];
+    protected $fillable   = ['rid', 'key', 'value'];
 }

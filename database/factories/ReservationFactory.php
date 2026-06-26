@@ -17,9 +17,9 @@ class ReservationFactory extends Factory
     {
         return [
             'bid'        => Booking::factory(),
-            'date'       => mktime(0, 0, 0, (int) date('m'), (int) date('d'), (int) date('Y')),
-            'time_start' => 36000, // 10:00
-            'time_end'   => 39600, // 11:00
+            'date'       => now()->toDateString(), // 'Y-m-d'
+            'time_start' => '10:00:00',
+            'time_end'   => '11:00:00',
         ];
     }
 }

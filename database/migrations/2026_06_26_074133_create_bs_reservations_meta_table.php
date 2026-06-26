@@ -11,10 +11,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('bs_reservations_meta', function (Blueprint $table) {
-            $table->integer('rmid')->autoIncrement();
-            $table->integer('rid')->index();
-            $table->string('meta_key', 64)->index();
-            $table->text('meta_value')->nullable();
+            $table->increments('rmid');
+            $table->unsignedInteger('rid')->index();
+            $table->string('key', 64)->index();
+            $table->text('value');
         });
     }
 

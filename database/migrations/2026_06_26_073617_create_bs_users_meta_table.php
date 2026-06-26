@@ -11,10 +11,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('bs_users_meta', function (Blueprint $table) {
-            $table->integer('umid')->autoIncrement();
-            $table->integer('uid')->index();
-            $table->string('meta_key', 64)->index();
-            $table->text('meta_value')->nullable();
+            $table->increments('umid');
+            $table->unsignedInteger('uid')->index();
+            $table->string('key', 64)->index();
+            $table->text('value');
         });
     }
 

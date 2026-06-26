@@ -8,11 +8,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Global key-value configuration option.
+ * Global key-value configuration option (optionally per-locale).
  *
  * @property int         $oid
- * @property string      $option_key
- * @property string|null $option_value
+ * @property string      $key
+ * @property string      $value
+ * @property string|null $locale
  */
 class Option extends Model
 {
@@ -21,11 +22,25 @@ class Option extends Model
     protected $table      = 'bs_options';
     protected $primaryKey = 'oid';
     public $timestamps    = false;
-    protected $fillable   = ['option_key', 'option_value'];
+    protected $fillable   = ['key', 'value', 'locale'];
 
-    /** Get an option value by key, with optional fallback default. */
-    public static function getValue(string $key, mixed $default = null): mixed
+    /**
+     * Get an option value by key, with optional fallback default.
+     * Prefers a locale-specific row, falling back to the locale-less default.
+     */
+    public static function getValue(string $key, mixed $default = null, ?string $locale = null): mixed
     {
-        return static::where('option_key', $key)->value('option_value') ?? $default;
+        $query = static::where('key', $key);
+
+        if ($locale !== null) {
+            $localized = (clone $query)->where('locale', $locale)->value('value');
+            if ($localized !== null) {
+                return $localized;
+            }
+        }
+
+        return $query->whereNull('locale')->value('value')
+            ?? $query->value('value')
+            ?? $default;
     }
 }

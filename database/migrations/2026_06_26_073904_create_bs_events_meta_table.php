@@ -11,10 +11,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('bs_events_meta', function (Blueprint $table) {
-            $table->integer('emid')->autoIncrement();
-            $table->integer('eid')->index();
-            $table->string('meta_key', 64)->index();
-            $table->text('meta_value')->nullable();
+            $table->increments('emid');
+            $table->unsignedInteger('eid')->index();
+            $table->string('key', 64)->index();
+            $table->text('value');
+            $table->string('locale', 8)->nullable();
         });
     }
 

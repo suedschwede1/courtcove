@@ -6,17 +6,21 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * Real booking_local schema. sid is nullable (null = blocks all courts).
+ * datetime_start / datetime_end are DATETIME columns.
+ */
 return new class extends Migration
 {
     public function up(): void
     {
         Schema::create('bs_events', function (Blueprint $table) {
-            $table->integer('eid')->autoIncrement();
-            $table->integer('sid')->index();
-            $table->integer('datetime_start')->default(0);
-            $table->integer('datetime_end')->default(0);
-            $table->integer('capacity')->default(0);
-            $table->string('status', 32)->default('enabled');
+            $table->increments('eid');
+            $table->unsignedInteger('sid')->nullable()->index();
+            $table->string('status', 64)->default('enabled');
+            $table->dateTime('datetime_start')->index();
+            $table->dateTime('datetime_end')->index();
+            $table->unsignedInteger('capacity')->nullable();
         });
     }
 

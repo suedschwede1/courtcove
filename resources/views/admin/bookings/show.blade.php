@@ -7,6 +7,7 @@
         <dt>Mitglied</dt><dd>{{ $booking->user?->alias ?? '—' }}</dd>
         <dt>Platz</dt><dd>{{ $booking->square?->display_name ?? '—' }}</dd>
         <dt>Status</dt><dd>{{ $booking->status }}</dd>
+        <dt>Spieler</dt><dd>{{ $booking->player_names !== [] ? implode(', ', $booking->player_names) : '—' }}</dd>
     </dl>
 
     <h2>Reservierungen</h2>
@@ -23,9 +24,18 @@
         </tbody>
     </table>
 
-    <form method="POST" action="{{ route('admin.bookings.destroy', $booking) }}" onsubmit="return confirm('Buchung stornieren?')">
+    <p><a href="{{ route('admin.bookings.edit', $booking) }}">Buchung bearbeiten</a></p>
+
+    @if($booking->status !== 'cancelled')
+        <form method="POST" action="{{ route('admin.bookings.cancel', $booking) }}" onsubmit="return confirm('Buchung wirklich stornieren?')">
+            @csrf
+            <button type="submit" class="default-button">Stornieren</button>
+        </form>
+    @endif
+
+    <form method="POST" action="{{ route('admin.bookings.destroy', $booking) }}" onsubmit="return confirm('Buchung wirklich dauerhaft löschen?')">
         @method('DELETE') @csrf
-        <button type="submit" class="abmelden-button default-button">Stornieren</button>
+        <button type="submit" class="abmelden-button default-button">Dauerhaft löschen</button>
     </form>
 
     <a href="{{ route('admin.bookings.index') }}">Zurück</a>

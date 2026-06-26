@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Models;
 
-use App\Enums\BillingStatus;
-use App\Enums\BookingStatus;
-use App\Enums\Visibility;
 use App\Models\Booking;
 use App\Models\BookingBill;
 use App\Models\Reservation;
@@ -59,29 +56,20 @@ class BookingModelTest extends TestCase
     }
 
     #[Test]
-    public function booking_status_is_cast_to_enum(): void
+    public function status_is_a_plain_string(): void
     {
-        $booking = Booking::factory()->create(['status' => 'enabled']);
+        $booking = Booking::factory()->create(['status' => 'single', 'status_billing' => 'pending', 'visibility' => 'public']);
 
-        $this->assertInstanceOf(BookingStatus::class, $booking->status);
-        $this->assertSame(BookingStatus::Enabled, $booking->status);
+        $this->assertSame('single', $booking->status);
+        $this->assertSame('pending', $booking->status_billing);
+        $this->assertSame('public', $booking->visibility);
     }
 
     #[Test]
-    public function booking_billing_status_is_cast_to_enum(): void
+    public function cancelled_and_subscription_helpers(): void
     {
-        $booking = Booking::factory()->create(['status_billing' => 'pending']);
-
-        $this->assertInstanceOf(BillingStatus::class, $booking->status_billing);
-        $this->assertSame(BillingStatus::Pending, $booking->status_billing);
-    }
-
-    #[Test]
-    public function booking_visibility_is_cast_to_enum(): void
-    {
-        $booking = Booking::factory()->create(['visibility' => 'public']);
-
-        $this->assertInstanceOf(Visibility::class, $booking->visibility);
-        $this->assertSame(Visibility::Public, $booking->visibility);
+        $this->assertTrue(Booking::factory()->create(['status' => 'cancelled'])->isCancelled());
+        $this->assertTrue(Booking::factory()->create(['status' => 'subscription'])->isSubscription());
+        $this->assertFalse(Booking::factory()->create(['status' => 'single'])->isCancelled());
     }
 }

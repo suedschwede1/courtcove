@@ -15,8 +15,9 @@ class OptionFactory extends Factory
     public function definition(): array
     {
         return [
-            'option_key'   => fake()->unique()->slug(2),
-            'option_value' => fake()->word(),
+            'key'    => fake()->unique()->slug(2),
+            'value'  => fake()->word(),
+            'locale' => null,
         ];
     }
 }

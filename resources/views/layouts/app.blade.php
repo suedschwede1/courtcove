@@ -27,8 +27,11 @@
 
         <div class="header-actions-card">
             <div class="header-actions">
+                @hasSection('calendar-system-info')
+                    <button type="button" class="default-button header-help-toggle" data-panel-toggle="system-info-panel">Infos</button>
+                @endif
                 @hasSection('calendar-help')
-                    <button type="button" class="default-button header-help-toggle" data-help-toggle>Hinweise</button>
+                    <button type="button" class="default-button header-help-toggle" data-panel-toggle="help-panel">Hinweise</button>
                 @endif
                 @auth
                     <a href="#" class="default-button">Meine Buchungen</a>
@@ -49,11 +52,29 @@
     </header>
 
     <main id="content">
-        @if(session('success'))
-            <div class="success-message">{{ session('success') }}</div>
+        @if(session('success') || session('error'))
+            <div id="feedback-modal" class="booking-modal" style="display:block;">
+                <div class="booking-modal__viewport">
+                    <div class="booking-modal__card booking-modal__card--feedback">
+                        <button id="feedback-modal-close" class="booking-modal__close" title="Schließen">&#x2715;</button>
+                        <div class="booking-modal__header">
+                            <h2>{{ session('success') ? 'Erfolg' : 'Hinweis' }}</h2>
+                        </div>
+                        <div class="booking-modal__body">
+                            <p class="{{ session('success') ? 'booking-modal__success' : 'booking-modal__warning' }} booking-modal__flash">{{ session('success') ?? session('error') }}</p>
+                        </div>
+                        <div class="booking-modal__actions">
+                            <button type="button" id="feedback-modal-ok" class="default-button">Schließen</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         @endif
-        @if(session('error'))
-            <div class="error-message">{{ session('error') }}</div>
+
+        @hasSection('calendar-system-info')
+            <section class="help-panel no-print" id="system-info-panel" hidden>
+                @yield('calendar-system-info')
+            </section>
         @endif
 
         @hasSection('calendar-help')

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
-use App\Enums\UserStatus;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -19,16 +18,21 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'name'        => fake()->name(),
-            'email'       => fake()->unique()->safeEmail(),
-            'password'    => static::$password ??= Hash::make('password'),
-            'phone'       => fake()->phoneNumber(),
-            'roles'       => 'member',
-            'permissions' => '',
-            'status'      => UserStatus::Enabled->value,
-            'token'       => null,
-            'created'     => time(),
-            'updated'     => time(),
+            'alias'          => fake()->name(),
+            'status'         => 'enabled',
+            'email'          => fake()->unique()->safeEmail(),
+            'pw'             => static::$password ??= Hash::make('password'),
+            'login_attempts' => null,
+            'login_detent'   => null,
+            'last_activity'  => null,
+            'last_ip'        => null,
+            'created'        => now(),
         ];
+    }
+
+    /** Grant a status (e.g. admin / assist) for permission tests. */
+    public function status(string $status): static
+    {
+        return $this->state(fn() => ['status' => $status]);
     }
 }

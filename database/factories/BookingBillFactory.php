@@ -17,9 +17,12 @@ class BookingBillFactory extends Factory
     {
         return [
             'bid'         => Booking::factory(),
-            'spid'        => null,
-            'price'       => fake()->numberBetween(500, 5000),
             'description' => fake()->sentence(),
+            'quantity'    => 1,
+            'time'        => null,
+            'price'       => fake()->numberBetween(500, 5000),
+            'rate'        => 20,
+            'gross'       => 1,
         ];
     }
 }
