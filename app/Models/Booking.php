@@ -33,6 +33,8 @@ class Booking extends Model
     protected $primaryKey = 'bid';
     public $timestamps    = false;
 
+    public function getRouteKeyName(): string { return 'bid'; }
+
     protected $fillable = [
         'uid', 'sid', 'status', 'status_billing', 'visibility', 'quantity', 'created', 'updated',
     ];
