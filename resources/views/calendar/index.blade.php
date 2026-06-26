@@ -3,7 +3,7 @@
 @section('content')
 <div class="toolbar">
     <a href="{{ route('calendar.index', ['date' => $date->copy()->subDay()->format('Y-m-d')]) }}">&lt;</a>
-    <strong>{{ $date->format('d.m.Y') }}</strong>
+    <strong data-date="{{ $date->format('Y-m-d') }}">{{ $date->format('d.m.Y') }}</strong>
     <a href="{{ route('calendar.index', ['date' => $date->copy()->addDay()->format('Y-m-d')]) }}">&gt;</a>
     <a href="{{ route('calendar.index') }}">Heute</a>
 </div>
