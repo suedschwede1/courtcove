@@ -1,0 +1,34 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Unit\Models;
+
+use App\Models\Option;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
+
+class OptionModelTest extends TestCase
+{
+    use RefreshDatabase;
+
+    #[Test]
+    public function get_value_returns_stored_value(): void
+    {
+        Option::create(['option_key' => 'site_name', 'option_value' => 'ExampleClub']);
+        $this->assertEquals('ExampleClub', Option::getValue('site_name'));
+    }
+
+    #[Test]
+    public function get_value_returns_default_when_missing(): void
+    {
+        $this->assertEquals('fallback', Option::getValue('nonexistent', 'fallback'));
+    }
+
+    #[Test]
+    public function get_value_returns_null_by_default(): void
+    {
+        $this->assertNull(Option::getValue('nonexistent'));
+    }
+}
