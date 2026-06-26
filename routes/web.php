@@ -33,4 +33,8 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function (): v
         Route::resource('users', \App\Http\Controllers\Admin\UserController::class)->except(['show']);
         Route::post('users/{user}/password', [\App\Http\Controllers\Admin\UserController::class, 'password'])->name('users.password');
     });
+
+    Route::middleware('can:admin.event')->group(function (): void {
+        Route::resource('events', \App\Http\Controllers\Admin\EventController::class)->except(['show']);
+    });
 });
