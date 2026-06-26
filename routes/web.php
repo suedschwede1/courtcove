@@ -37,4 +37,10 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function (): v
     Route::middleware('can:admin.event')->group(function (): void {
         Route::resource('events', \App\Http\Controllers\Admin\EventController::class)->except(['show']);
     });
+
+    Route::middleware('can:admin.booking')->group(function (): void {
+        Route::get('bookings', [\App\Http\Controllers\Admin\BookingController::class, 'index'])->name('bookings.index');
+        Route::get('bookings/{booking}', [\App\Http\Controllers\Admin\BookingController::class, 'show'])->name('bookings.show');
+        Route::delete('bookings/{booking}', [\App\Http\Controllers\Admin\BookingController::class, 'destroy'])->name('bookings.destroy');
+    });
 });
