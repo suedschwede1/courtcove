@@ -34,8 +34,8 @@
                     <button type="button" class="default-button header-help-toggle" data-panel-toggle="help-panel">Hinweise</button>
                 @endif
                 @auth
-                    <a href="#" class="default-button">Meine Buchungen</a>
-                    <a href="#" class="default-button">Mein Konto</a>
+                    <a href="{{ route('account.bookings') }}" class="default-button">Meine Buchungen</a>
+                    <a href="{{ route('account.edit') }}" class="default-button">Mein Konto</a>
                     @can('admin.see-menu')
                         <a href="{{ route('admin.dashboard') }}" class="default-button">Administration</a>
                     @endcan

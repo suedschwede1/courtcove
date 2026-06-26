@@ -22,6 +22,11 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/bookings/create', [BookingController::class, 'create'])->name('bookings.create');
     Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
     Route::delete('/bookings/{booking}', [BookingController::class, 'destroy'])->name('bookings.destroy');
+
+    Route::get('/meine-buchungen', [\App\Http\Controllers\AccountController::class, 'bookings'])->name('account.bookings');
+    Route::get('/mein-konto', [\App\Http\Controllers\AccountController::class, 'edit'])->name('account.edit');
+    Route::put('/mein-konto', [\App\Http\Controllers\AccountController::class, 'update'])->name('account.update');
+    Route::put('/mein-konto/passwort', [\App\Http\Controllers\AccountController::class, 'password'])->name('account.password');
 });
 
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function (): void {
