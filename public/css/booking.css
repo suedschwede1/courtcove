@@ -2047,16 +2047,52 @@ textarea {
 .admin-table .admin-table__actions a { margin-right: 10px; }
 .admin-table form { display: inline; }
 
-/* Formularraster: Label links, Eingabe rechts, Hinweis darunter */
-.admin-form { width: 100%; }
+/* ── Admin form ───────────────────────────────────────────────────────────── */
+.admin-form {
+    width: 100%;
+    max-width: 640px;
+}
+
+.admin-form__section {
+    background: #fff;
+    border: 1px solid #ddd5c9;
+    border-radius: 6px;
+    padding: 0;
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.admin-form__section-title {
+    background: #f7f3ee;
+    border-bottom: 1px solid #ddd5c9;
+    padding: 10px 16px;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #888;
+}
+
 .admin-form__row {
     display: grid;
-    grid-template-columns: 220px 1fr;
-    gap: 6px 16px;
+    grid-template-columns: 200px 1fr;
+    gap: 0 16px;
     align-items: start;
-    padding: 8px 0;
+    padding: 12px 16px;
+    border-bottom: 1px solid #f0ebe3;
 }
-.admin-form__label { padding-top: 7px; text-align: right; color: #547B97; }
+
+.admin-form__row:last-child {
+    border-bottom: 0;
+}
+
+.admin-form__label {
+    padding-top: 9px;
+    font-size: 12px;
+    color: #444;
+    font-weight: bold;
+}
+
 .admin-form__field input[type="text"],
 .admin-form__field input[type="email"],
 .admin-form__field input[type="number"],
@@ -2064,13 +2100,81 @@ textarea {
 .admin-form__field input[type="date"],
 .admin-form__field input[type="password"],
 .admin-form__field select,
-.admin-form__field textarea { width: 100%; max-width: 420px; }
-.admin-form__note { margin: 3px 0 0; color: #666; font-size: 11px; font-style: italic; line-height: 1.4; }
-.admin-form__actions { margin-top: 20px; padding-left: 236px; }
+.admin-form__field textarea {
+    width: 100%;
+    max-width: 380px;
+    padding: 7px 10px;
+    border: 1px solid #ccc5bb;
+    border-radius: 5px;
+    background: #fff;
+    font-family: Verdana, sans-serif;
+    font-size: 12px;
+    color: #222;
+    transition: border-color 0.12s, box-shadow 0.12s;
+    box-sizing: border-box;
+}
+
+.admin-form__field input:focus,
+.admin-form__field select:focus,
+.admin-form__field textarea:focus {
+    outline: none;
+    border-color: #c75518;
+    box-shadow: 0 0 0 3px rgba(199, 85, 24, 0.12);
+}
+
+.admin-form__field select {
+    cursor: pointer;
+}
+
+.admin-form__note {
+    margin: 5px 0 0;
+    color: #888;
+    font-size: 11px;
+    font-style: italic;
+    line-height: 1.4;
+}
+
+.admin-form__actions {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* Primary (filled) button for admin form submits */
+.admin-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    padding: 0 20px;
+    border: 1px solid #a8440f;
+    border-radius: 6px;
+    background: linear-gradient(180deg, #d96020 0%, #c75518 100%);
+    color: #fff;
+    font-family: Verdana, sans-serif;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.12s, box-shadow 0.12s;
+}
+
+.admin-btn-primary:hover {
+    background: linear-gradient(180deg, #e0682a 0%, #d05e1e 100%);
+    box-shadow: 0 2px 6px rgba(199, 85, 24, 0.25);
+}
 
 @media (max-width: 700px) {
     .admin-panel { padding: 16px; }
-    .admin-form__row { grid-template-columns: 1fr; }
-    .admin-form__label { text-align: left; padding-top: 0; }
+    .admin-form__row { grid-template-columns: 1fr; gap: 4px; }
+    .admin-form__label { padding-top: 0; }
     .admin-form__actions { padding-left: 0; }
+    .admin-form__field input[type="text"],
+    .admin-form__field input[type="email"],
+    .admin-form__field input[type="number"],
+    .admin-form__field input[type="time"],
+    .admin-form__field input[type="date"],
+    .admin-form__field input[type="password"],
+    .admin-form__field select,
+    .admin-form__field textarea { max-width: 100%; }
 }
