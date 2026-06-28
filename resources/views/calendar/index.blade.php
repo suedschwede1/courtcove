@@ -68,32 +68,32 @@
 @section('content')
 <div class="calendar-layout">
     <div class="calendar-wrap">
-        <table class="calendar-square-table booking-grid">
+        <table class="calendar-square-table booking-grid" id="calendar-grid" data-squares="{{ $squares->count() }}" data-max-days="{{ count($dates) }}">
             <colgroup>
                 <col class="calendar-time-col">
-                @foreach($dates as $d)
+                @foreach($dates as $dayIndex => $d)
                     @foreach($squares as $square)
-                        <col class="calendar-slot-col">
+                        <col @class(['calendar-slot-col', 'cal-extra-day' => $dayIndex >= 3]) data-day="{{ $dayIndex }}">
                     @endforeach
                 @endforeach
             </colgroup>
             <thead>
                 <tr class="calendar-date-row">
                     <td class="time-spacer">&nbsp;</td>
-                    @foreach($dates as $d)
-                        <td colspan="{{ $squares->count() }}" class="day-header-cell">
+                    @foreach($dates as $dayIndex => $d)
+                        <td colspan="{{ $squares->count() }}" @class(['day-header-cell', 'cal-extra-day' => $dayIndex >= 3]) data-day="{{ $dayIndex }}">
                             <div class="day-header-inline"><span class="day-header-name">{{ $d->isoFormat('dddd') }}</span><span class="day-header-date">{{ $d->isoFormat('D. MMMM YYYY') }}</span></div>
                         </td>
                     @endforeach
                 </tr>
                 <tr class="calendar-square-row">
                     <td class="time-side-head">{{ __('booking.calendar.court') }}</td>
-                    @foreach($dates as $d)
+                    @foreach($dates as $dayIndex => $d)
                         @foreach($squares as $square)
                             @php
                                 $squareAlias = $square->display_name !== $square->name ? $square->display_name : null;
                             @endphp
-                            <td class="square-head-cell">
+                            <td @class(['square-head-cell', 'cal-extra-day' => $dayIndex >= 3]) data-day="{{ $dayIndex }}">
                                 <span class="square-head-title">{{ $square->name }}</span>
                                 @if($squareAlias)
                                     <span class="square-head-alias">{{ $squareAlias }}</span>
@@ -115,12 +115,13 @@
                             <span class="time-sub">{{ __('booking.calendar.to_time', ['time' => $nextLabel]) }}</span>
                         </td>
 
-                        @foreach($dates as $d)
+                        @foreach($dates as $dayIndex => $d)
                             @php
                                 $dateKey = $d->format('Y-m-d');
                                 $slotStart = $d->copy()->startOfDay()->addHours($h);
                                 $slotEnd = $slotStart->copy()->addHour();
                                 $isPastSlot = $slotEnd->isPast();
+                                $extraDay = $dayIndex >= 3;
                             @endphp
                             @foreach($squares as $square)
                                 @php
@@ -179,11 +180,11 @@
                                 @endphp
 
                                 @if($evBlock)
-                                    <td rowspan="{{ $evBlock['rows'] }}" colspan="{{ $evBlock['cols'] }}" class="event-cell" title="{{ $evBlock['name'] }}">
+                                    <td rowspan="{{ $evBlock['rows'] }}" colspan="{{ $evBlock['cols'] }}" @class(['event-cell', 'cal-extra-day' => $extraDay]) data-day="{{ $dayIndex }}" title="{{ $evBlock['name'] }}">
                                         <span class="event-label">{{ $evBlock['name'] }}</span>
                                     </td>
                                 @elseif($action === 'book' || $action === 'admin-book')
-                                    <td>
+                                    <td @class(['cal-extra-day' => $extraDay]) data-day="{{ $dayIndex }}">
                                         <a href="#"
                                            class="calendar-cell {{ $cellClass }}{{ $slotClass }} booking-trigger"
                                            title="{{ $cellTitle }}"
@@ -200,7 +201,7 @@
                                            @endif></a>
                                     </td>
                                 @elseif($action === 'cancel')
-                                    <td>
+                                    <td @class(['cal-extra-day' => $extraDay]) data-day="{{ $dayIndex }}">
                                         <a href="#"
                                            class="calendar-cell {{ $cellClass }}{{ $slotClass }} booking-trigger"
                                            title="{{ $cellTitle }}"
@@ -219,13 +220,13 @@
                                         </a>
                                     </td>
                                 @elseif($action === 'login')
-                                    <td>
+                                    <td @class(['cal-extra-day' => $extraDay]) data-day="{{ $dayIndex }}">
                                         <a href="{{ route('login', ['redirect_to' => route('calendar.index', ['date' => $date->format('Y-m-d')])]) }}"
                                            class="calendar-cell {{ $cellClass }}{{ $slotClass }} guest-login-cell"
                                            title="{{ $cellTitle }}"></a>
                                     </td>
                                 @else
-                                    <td>
+                                    <td @class(['cal-extra-day' => $extraDay]) data-day="{{ $dayIndex }}">
                                         <span class="calendar-cell {{ $cellClass }}{{ $slotClass }}" title="{{ $cellTitle }}">
                                             @if($primaryLabel)
                                                 <span class="cc-label-primary">{{ $primaryLabel }}</span>
@@ -244,12 +245,12 @@
             <tfoot>
                 <tr class="calendar-square-row">
                     <td class="time-side-head">{{ __('booking.calendar.court') }}</td>
-                    @foreach($dates as $d)
+                    @foreach($dates as $dayIndex => $d)
                         @foreach($squares as $square)
                             @php
                                 $squareAlias = $square->display_name !== $square->name ? $square->display_name : null;
                             @endphp
-                            <td class="square-head-cell">
+                            <td @class(['square-head-cell', 'cal-extra-day' => $dayIndex >= 3]) data-day="{{ $dayIndex }}">
                                 <span class="square-head-title">{{ $square->name }}</span>
                                 @if($squareAlias)
                                     <span class="square-head-alias">{{ $squareAlias }}</span>
@@ -260,8 +261,8 @@
                 </tr>
                 <tr class="calendar-date-row footer-date-row">
                     <td class="time-spacer">&nbsp;</td>
-                    @foreach($dates as $d)
-                        <td colspan="{{ $squares->count() }}" class="day-header-cell">
+                    @foreach($dates as $dayIndex => $d)
+                        <td colspan="{{ $squares->count() }}" @class(['day-header-cell', 'cal-extra-day' => $dayIndex >= 3]) data-day="{{ $dayIndex }}">
                             <div class="day-header-inline"><span class="day-header-name">{{ $d->isoFormat('dddd') }}</span><span class="day-header-date">{{ $d->isoFormat('D. MMMM YYYY') }}</span></div>
                         </td>
                     @endforeach
@@ -406,6 +407,49 @@
 </div>
 @endcan
 @endsection
+
+@push('scripts')
+<script>
+(function () {
+    var grid = document.getElementById('calendar-grid');
+    if (!grid) { return; }
+
+    var wrap = grid.closest('.calendar-wrap') || grid.parentElement;
+    var squares = parseInt(grid.dataset.squares, 10) || 1;
+    var maxDays = parseInt(grid.dataset.maxDays, 10) || 3;
+    var BASE_DAYS = 3;
+    var extras = grid.querySelectorAll('.cal-extra-day');
+
+    function cssPx(name, fallback) {
+        var value = parseFloat(getComputedStyle(grid).getPropertyValue(name));
+        return isNaN(value) ? fallback : value;
+    }
+
+    function visibleDayCount() {
+        var dayWidth = squares * cssPx('--calendar-slot-col', 136);
+        if (dayWidth <= 0) { return BASE_DAYS; }
+
+        var fits = Math.floor((wrap.clientWidth - cssPx('--calendar-time-col', 94)) / dayWidth);
+        return Math.max(BASE_DAYS, Math.min(maxDays, fits));
+    }
+
+    function applyVisibleDays() {
+        var count = visibleDayCount();
+        extras.forEach(function (el) {
+            el.classList.toggle('is-visible', parseInt(el.getAttribute('data-day'), 10) < count);
+        });
+    }
+
+    var timer;
+    window.addEventListener('resize', function () {
+        clearTimeout(timer);
+        timer = setTimeout(applyVisibleDays, 100);
+    });
+
+    applyVisibleDays();
+})();
+</script>
+@endpush
 
 
 

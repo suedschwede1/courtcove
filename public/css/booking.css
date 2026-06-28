@@ -1670,9 +1670,21 @@ textarea {
     --calendar-time-col: 94px;
     --calendar-slot-col: 136px;
     --calendar-row-height: 56px;
-    width: 1318px;
+    /* Size to the visible columns: hidden extra days (.cal-extra-day) collapse,
+       revealed ones grow the table. min-width keeps the base 3-day floor. */
+    width: max-content;
     min-width: 1318px;
     table-layout: fixed;
+}
+
+/* Optional extra day-columns (index >= 3). Hidden by default so the no-JS /
+   default render is the base 3 days; the calendar script reveals as many as fit. */
+.cal-extra-day {
+    display: none;
+}
+
+.cal-extra-day.is-visible {
+    display: revert;
 }
 
 .calendar-time-col,
@@ -1742,7 +1754,7 @@ textarea {
         --calendar-time-col: 72px;
         --calendar-slot-col: 104px;
         --calendar-row-height: 52px;
-        width: 1008px;
+        width: max-content;
         min-width: 1008px;
     }
 }
@@ -1752,7 +1764,7 @@ textarea {
         --calendar-time-col: 72px;
         --calendar-slot-col: 96px;
         --calendar-row-height: 56px;
-        width: 936px;
+        width: max-content;
         min-width: 936px;
     }
 }
