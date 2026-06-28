@@ -265,12 +265,22 @@ final class BookingController extends Controller
             return back()->withErrors(['booking' => $e->getMessage()])->withInput();
         }
 
+        $redirectTo = $request->string('redirect_to')->trim()->value();
+        if ($redirectTo !== '') {
+            return redirect()->to($redirectTo)->with('success', __('booking.messages.booking_updated'));
+        }
+
         return redirect()->route('admin.bookings.index')->with('success', __('booking.messages.booking_updated'));
     }
 
-    public function cancel(Booking $booking): RedirectResponse
+    public function cancel(Request $request, Booking $booking): RedirectResponse
     {
         $this->bookingService->cancelSingle($booking);
+
+        $redirectTo = $request->string('redirect_to')->trim()->value();
+        if ($redirectTo !== '') {
+            return redirect()->to($redirectTo)->with('success', __('booking.messages.booking_cancelled'));
+        }
 
         return redirect()->route('admin.bookings.index')->with('success', __('booking.messages.booking_cancelled'));
     }

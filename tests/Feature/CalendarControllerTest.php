@@ -243,4 +243,82 @@ class CalendarControllerTest extends TestCase
             ->assertOk()
             ->assertSee('Stadtmeisterschaft');
     }
+    #[Test]
+    public function admin_can_open_existing_event_from_calendar(): void
+    {
+        $admin = User::factory()->create(['status' => 'admin']);
+        $square = Square::factory()->create();
+        $event = Event::factory()->create([
+            'sid' => $square->sid,
+            'status' => 'enabled',
+            'datetime_start' => Carbon::today()->setTime(10, 0),
+            'datetime_end' => Carbon::today()->setTime(11, 0),
+        ]);
+        EventMeta::create(['eid' => $event->eid, 'key' => 'name', 'value' => 'Admin Turnier']);
+
+        $this->actingAs($admin)->get('/calendar?date='.$targetDate->format('Y-m-d'))
+            ->assertOk()
+            ->assertSee('event-edit-trigger', false)
+            ->assertSee(route('admin.events.edit', $event), false);
+    }
+
+    #[Test]
+    public function guest_does_not_get_event_edit_link(): void
+    {
+        $square = Square::factory()->create();
+        $event = Event::factory()->create([
+            'sid' => $square->sid,
+            'status' => 'enabled',
+            'datetime_start' => Carbon::today()->setTime(10, 0),
+            'datetime_end' => Carbon::today()->setTime(11, 0),
+        ]);
+        EventMeta::create(['eid' => $event->eid, 'key' => 'name', 'value' => 'Nur Text Event']);
+
+        $this->get('/calendar?date='.Carbon::today()->format('Y-m-d'))
+            ->assertOk()
+            ->assertSee('Nur Text Event')
+            ->assertDontSee('event-edit-trigger', false)
+            ->assertDontSee(route('admin.events.edit', $event), false);
+    }
+
+    #[Test]
+    public function admin_clickable_booking_contains_edit_url_for_popup(): void
+    {
+        $admin = User::factory()->create(['status' => 'admin']);
+        $owner = User::factory()->create(['alias' => 'Edit Popup Owner']);
+        $square = Square::factory()->create();
+        $booking = Booking::factory()->create(['uid' => $owner->uid, 'sid' => $square->sid, 'status' => 'single']);
+        $targetDate = Carbon::tomorrow();
+        Reservation::factory()->create([
+            'bid' => $booking->bid,
+            'date' => $targetDate->toDateString(),
+            'time_start' => '10:00:00',
+            'time_end' => '11:00:00',
+        ]);
+
+        $this->actingAs($admin)->get('/calendar?date='.$targetDate->format('Y-m-d'))
+            ->assertOk()
+            ->assertSee('data-edit-url', false)
+            ->assertSee('/admin/bookings/'.$booking->bid.'/edit', false);
+    }    #[Test]
+    public function admin_booking_popup_contains_delete_action(): void
+    {
+        $admin = User::factory()->create(['status' => 'admin']);
+        $owner = User::factory()->create(['alias' => 'Delete Popup Owner']);
+        $square = Square::factory()->create();
+        $booking = Booking::factory()->create(['uid' => $owner->uid, 'sid' => $square->sid, 'status' => 'single']);
+        $targetDate = Carbon::tomorrow();
+        Reservation::factory()->create([
+            'bid' => $booking->bid,
+            'date' => $targetDate->toDateString(),
+            'time_start' => '10:00:00',
+            'time_end' => '11:00:00',
+        ]);
+
+        $this->actingAs($admin)->get('/calendar?date='.$targetDate->format('Y-m-d'))
+            ->assertOk()
+            ->assertSee('id="delete-form"', false)
+            ->assertSee('data-delete-url', false)
+            ->assertSee('/admin/bookings/'.$booking->bid, false);
+    }
 }

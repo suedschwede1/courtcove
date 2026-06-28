@@ -124,6 +124,11 @@ final class EventController extends Controller
 
         $this->syncMeta($event, $data);
 
+        $redirectTo = $request->string('redirect_to')->trim()->value();
+        if ($redirectTo !== '') {
+            return redirect()->to($redirectTo)->with('success', __('booking.messages.event_updated'));
+        }
+
         return redirect()->route('admin.events.index')->with('success', __('booking.messages.event_updated'));
     }
 

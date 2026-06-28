@@ -1,9 +1,4 @@
 @csrf
-<p class="admin-form__lang-hint">
-    <span class="admin-form__lang-hint-icon">ℹ</span>
-    {{ __('booking.admin.events.lang_hint') }}
-</p>
-
 <div class="admin-form__section">
     <div class="admin-form__row">
         <label class="admin-form__label" for="ef-name">{{ __('booking.admin.events.name') }}</label>
@@ -11,10 +6,10 @@
             <input id="ef-name" type="text" name="name" value="{{ old('name', $name ?? '') }}">
         </div>
     </div>
-    <div class="admin-form__row">
+    <div class="admin-form__row admin-event-form__description-row">
         <label class="admin-form__label" for="ef-description">{{ __('booking.admin.events.description') }}</label>
         <div class="admin-form__field">
-            <textarea id="ef-description" name="description" rows="6">{{ old('description', $description ?? '') }}</textarea>
+            <textarea id="ef-description" name="description" rows="4">{{ old('description', $description ?? '') }}</textarea>
         </div>
     </div>
     <div class="admin-form__row">
@@ -57,7 +52,7 @@
             </div>
             <div class="admin-form__inline-group">
                 <span class="admin-form__inline-label">{{ __('booking.admin.events.capacity') }}</span>
-                <input type="number" name="capacity" value="{{ old('capacity', $event->capacity ?? 0) }}" min="0" style="width:100px">
+                <input type="number" name="capacity" value="{{ old('capacity', $event->capacity ?? 0) }}" min="0" class="admin-event-form__capacity">
                 <span class="admin-form__note">{{ __('booking.admin.events.capacity_hint') }}</span>
             </div>
         </div>
@@ -65,7 +60,7 @@
     <div class="admin-form__row">
         <label class="admin-form__label" for="ef-notes">{{ __('booking.admin.events.notes') }}</label>
         <div class="admin-form__field">
-            <textarea id="ef-notes" name="notes" rows="3">{{ old('notes', $notes ?? '') }}</textarea>
+            <textarea id="ef-notes" name="notes" rows="2">{{ old('notes', $notes ?? '') }}</textarea>
             <p class="admin-form__note">{{ __('booking.admin.events.notes_hint') }}</p>
         </div>
     </div>

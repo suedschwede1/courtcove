@@ -1,7 +1,9 @@
 @extends('layouts.admin')
 @section('admin-title', __('booking.admin.events.create_title'))
 @section('admin-content')
+@unless(request('popup'))
 <h1>{{ __('booking.admin.events.create_title') }}</h1>
+@endunless
 
 @php
     $bookingUrl = route('admin.bookings.create', array_filter([
@@ -17,7 +19,7 @@
     <span class="admin-type-switcher__tab admin-type-switcher__tab--active">{{ __('booking.admin.bookings.type_event') }}</span>
 </div>
 
-<form method="POST" action="{{ route('admin.events.store') }}" class="admin-form">
+<form method="POST" action="{{ route('admin.events.store') }}" class="admin-form admin-event-form{{ request('popup') ? ' admin-form--compact' : '' }}">
     @csrf
     @if(request('popup'))
     <input type="hidden" name="popup" value="1">

@@ -30,6 +30,10 @@
     @unless($isCreateMode)
         @method('PUT')
     @endunless
+    @if(request('popup'))
+        <input type="hidden" name="popup" value="1">
+        <input type="hidden" name="redirect_to" value="{{ route('calendar.index', ['date' => old('date', $reservation?->date ?? now()->format('Y-m-d'))]) }}">
+    @endif
 
     @if($isCreateMode)
     {{-- Row 1: Platz | Gebucht für --}}
@@ -235,26 +239,40 @@
     </div>
     @endif
 
+    @if($isCreateMode)
     {{-- Actions --}}
     <div class="admin-form__actions">
         <button type="submit" class="admin-btn-primary">{{ __('booking.admin.common.save') }}</button>
         <a href="{{ $closeRoute }}" class="default-button">{{ __('booking.admin.common.abort') }}</a>
-
-        @unless($isCreateMode)
-            @if($booking->status !== 'cancelled')
-                <form method="POST" action="{{ route('admin.bookings.cancel', $booking) }}" onsubmit="return confirm('{{ __('booking.admin.bookings.confirm_cancel') }}')">
-                    @csrf
-                    <button type="submit" class="default-button">{{ __('booking.admin.bookings.cancel_booking') }}</button>
-                </form>
-            @endif
-            <form method="POST" action="{{ route('admin.bookings.destroy', $booking) }}" onsubmit="return confirm('{{ __('booking.admin.bookings.confirm_delete') }}')">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="abmelden-button default-button">{{ __('booking.admin.common.delete') }}</button>
-            </form>
-        @endunless
     </div>
+    @endif
 </form>
+
+@unless($isCreateMode)
+    {{-- Actions --}}
+    <div class="admin-form__actions">
+        <button type="submit" form="{{ $formId }}" class="admin-btn-primary">{{ __('booking.admin.common.save') }}</button>
+        <a href="{{ $closeRoute }}" class="default-button">{{ __('booking.admin.common.abort') }}</a>
+
+        @if($booking->status !== 'cancelled')
+            <form method="POST" action="{{ route('admin.bookings.cancel', $booking) }}" onsubmit="return confirm('{{ __('booking.admin.bookings.confirm_cancel') }}')">
+                @csrf
+                @if(request('popup'))
+                    <input type="hidden" name="redirect_to" value="{{ route('calendar.index', ['date' => old('date', $reservation?->date ?? now()->format('Y-m-d'))]) }}">
+                @endif
+                <button type="submit" class="default-button">{{ __('booking.admin.bookings.cancel_booking') }}</button>
+            </form>
+        @endif
+        <form method="POST" action="{{ route('admin.bookings.destroy', $booking) }}" onsubmit="return confirm('{{ __('booking.admin.bookings.confirm_delete') }}')">
+            @csrf
+            @method('DELETE')
+            @if(request('popup'))
+                <input type="hidden" name="redirect_to" value="{{ route('calendar.index', ['date' => old('date', $reservation?->date ?? now()->format('Y-m-d'))]) }}">
+            @endif
+            <button type="submit" class="abmelden-button default-button">{{ __('booking.admin.common.delete') }}</button>
+        </form>
+    </div>
+@endunless
 
 @if($isCreateMode ?? false)
 @can('admin.event')

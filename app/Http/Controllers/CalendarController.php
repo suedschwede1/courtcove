@@ -92,6 +92,12 @@ final class CalendarController extends Controller
             }
         }
 
+        $authUser    = auth()->user();
+        $authUserId  = $authUser?->uid;
+        $isLoggedIn  = $authUser !== null;
+        $isAdmin     = $isLoggedIn && $authUser->can('admin.booking');
+        $canAdminEvents = $isLoggedIn && $authUser->can('admin.event');
+
         $events = Event::with(['meta' => fn ($query) => $query->where('key', 'name')])
             ->where('status', 'enabled')
             ->where('datetime_start', '<', $rangeEnd)
@@ -168,6 +174,7 @@ final class CalendarController extends Controller
                         'rows' => $rows,
                         'cols' => $cols,
                         'name' => $eventName,
+                        'event' => $event,
                     ];
 
                     for ($h = $firstHour; $h < $firstHour + $rows; $h++) {
@@ -193,11 +200,6 @@ final class CalendarController extends Controller
             ];
         }
 
-        $authUser    = auth()->user();
-        $authUserId  = $authUser?->uid;
-        $isLoggedIn  = $authUser !== null;
-        $isAdmin     = $isLoggedIn && $authUser->can('admin.booking');
-
         $adminUsers = $isAdmin
             ? User::whereNotIn('status', ['deleted', 'placeholder'])->orderBy('alias')->get(['uid', 'alias'])
             : collect();
@@ -217,6 +219,7 @@ final class CalendarController extends Controller
             'authUserId'         => $authUserId,
             'isLoggedIn'         => $isLoggedIn,
             'isAdmin'            => $isAdmin,
+            'canAdminEvents'     => $canAdminEvents,
             'now'                => $now,
             'today'              => $now->format('Y-m-d'),
             'dateLabels'         => $dateLabels,

@@ -235,6 +235,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function openCancelModal(trigger) {
         var bid = trigger.getAttribute('data-bid');
         var editUrl = trigger.getAttribute('data-edit-url');
+        var deleteUrl = trigger.getAttribute('data-delete-url');
         document.getElementById('cancel-modal-title').textContent = trigger.getAttribute('data-square-name');
         document.getElementById('cancel-modal-date').textContent = trigger.getAttribute('data-date-label');
         document.getElementById('cancel-modal-time').textContent = trigger.getAttribute('data-time-label');
@@ -250,12 +251,32 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
+        if (deleteForm) {
+            if (deleteUrl) {
+                deleteForm.action = deleteUrl;
+                deleteForm.hidden = false;
+            } else {
+                deleteForm.action = '';
+                deleteForm.hidden = true;
+            }
+        }
+
         showModal(cancelModal);
     }
 
     function secondsToHHMM(seconds) {
         var s = parseInt(seconds, 10) || 0;
         return padNumber(Math.floor(s / 3600)) + ':' + padNumber(Math.floor((s % 3600) / 60));
+    }
+
+    function openAdminUrlInModal(url) {
+        var iframe = document.getElementById('abm-iframe');
+        if (!iframe || !url) { return; }
+
+        var target = new URL(url, window.location.origin);
+        target.searchParams.set('popup', '1');
+        iframe.src = target.pathname + '?' + target.searchParams.toString();
+        showModal(adminBookingModal);
     }
 
     function openAdminBookingModal(trigger) {
@@ -272,8 +293,11 @@ document.addEventListener('DOMContentLoaded', function () {
         var base = trigger.getAttribute('data-create-url') || '/admin/bookings/create';
         base = base.split('?')[0];
         params.set('popup', '1');
-        iframe.src = base + '?' + params.toString();
-        showModal(adminBookingModal);
+        openAdminUrlInModal(base + '?' + params.toString());
+    }
+
+    function openAdminEventEditModal(trigger) {
+        openAdminUrlInModal(trigger.getAttribute('data-edit-url') || trigger.href);
     }
 
     if (adminBookingModal) {
@@ -357,13 +381,25 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     document.addEventListener('click', function (event) {
+        var eventEditTrigger = event.target.closest('.event-edit-trigger');
+        if (eventEditTrigger && adminBookingModal) {
+            event.preventDefault();
+            openAdminEventEditModal(eventEditTrigger);
+            return;
+        }
+
         var trigger = event.target.closest('.booking-trigger');
         if (trigger) {
             event.preventDefault();
             var action = trigger.getAttribute('data-action');
 
             if (action === 'cancel') {
-                openCancelModal(trigger);
+                var editUrl = trigger.getAttribute('data-edit-url');
+                if (editUrl && adminBookingModal) {
+                    openAdminUrlInModal(editUrl);
+                } else {
+                    openCancelModal(trigger);
+                }
             } else if (action === 'admin-book' && adminBookingModal) {
                 openAdminBookingModal(trigger);
             } else {

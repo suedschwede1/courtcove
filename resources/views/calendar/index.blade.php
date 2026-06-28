@@ -176,8 +176,15 @@
                                 @endphp
 
                                 @if($evBlock)
-                                    <td rowspan="{{ $evBlock['rows'] }}" colspan="{{ $evBlock['cols'] }}" @class(['event-cell', 'cal-extra-day' => $extraDay]) data-day="{{ $dayIndex }}" title="{{ $evBlock['name'] }}">
-                                        <span class="event-label">{{ $evBlock['name'] }}</span>
+                                    @php
+                                        $eventEditUrl = $canAdminEvents ? route('admin.events.edit', $evBlock['event']) : null;
+                                    @endphp
+                                    <td rowspan="{{ $evBlock['rows'] }}" colspan="{{ $evBlock['cols'] }}" @class(['event-cell', 'event-cell--editable' => $canAdminEvents, 'cal-extra-day' => $extraDay]) data-day="{{ $dayIndex }}" title="{{ $evBlock['name'] }}">
+                                        @if($eventEditUrl)
+                                            <a href="{{ $eventEditUrl }}" class="event-label event-edit-trigger" data-edit-url="{{ $eventEditUrl }}">{{ $evBlock['name'] }}</a>
+                                        @else
+                                            <span class="event-label">{{ $evBlock['name'] }}</span>
+                                        @endif
                                     </td>
                                 @elseif($action === 'book' || $action === 'admin-book')
                                     <td @class(['cal-extra-day' => $extraDay]) data-day="{{ $dayIndex }}">
@@ -208,6 +215,7 @@
                                            data-time-label="{{ $timeLabel }} – {{ $nextLabel }} Uhr"
                                            @if($isAdmin)
                                                data-edit-url="{{ route('admin.bookings.edit', $reservation->booking) }}"
+                                               data-delete-url="{{ route('admin.bookings.destroy', $reservation->booking) }}"
                                            @endif>
                                             <span class="cc-label-primary">{{ $primaryLabel }}</span>
                                             @if($secondaryLabel)
@@ -280,13 +288,23 @@
                 <div id="cancel-modal-time" class="booking-modal__meta"></div>
                 <p class="booking-modal__warning">{{ __('booking.modal.confirm_cancel') }}</p>
             </div>
-            <form id="cancel-form" method="POST" action="" class="booking-modal__actions">
-                @csrf
-                @method('DELETE')
+            <div class="booking-modal__actions booking-modal__actions--manage">
                 <a id="cancel-modal-edit" href="#" class="default-button" hidden>{{ __('booking.modal.edit') }}</a>
-                <button type="submit" class="modal-danger-button">{{ __('booking.modal.cancel_booking') }}</button>
+                <form id="cancel-form" method="POST" action="" class="booking-modal__action-form">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="modal-danger-button">{{ __('booking.modal.cancel_booking') }}</button>
+                </form>
+                @can('admin.booking')
+                <form id="delete-form" method="POST" action="" class="booking-modal__action-form" onsubmit="return confirm('{{ __('booking.admin.bookings.confirm_delete') }}')" hidden>
+                    @csrf
+                    @method('DELETE')
+                    <input type="hidden" name="redirect_to" value="{{ route('calendar.index', ['date' => $date->format('Y-m-d')]) }}">
+                    <button type="submit" class="modal-danger-button modal-danger-button--delete">{{ __('booking.admin.bookings.delete_permanent') }}</button>
+                </form>
+                @endcan
                 <button type="button" id="cancel-modal-abort" class="default-button">{{ __('booking.modal.cancel') }}</button>
-            </form>
+            </div>
         </div>
     </div>
 </div>
@@ -345,7 +363,7 @@
     </div>
 </div>
 
-@can('admin.booking')
+@if(auth()->user()?->can('admin.booking') || auth()->user()?->can('admin.event'))
 <div id="admin-booking-modal" class="booking-modal booking-modal--iframe" style="display:none;">
     <div class="booking-modal__viewport booking-modal__viewport--iframe">
         <div class="booking-modal__card booking-modal__card--iframe">
@@ -354,7 +372,7 @@
         </div>
     </div>
 </div>
-@endcan
+@endif
 
 @can('admin.event')
 <div id="event-modal" class="booking-modal" style="display:none;">
