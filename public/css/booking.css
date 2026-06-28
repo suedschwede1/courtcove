@@ -2414,10 +2414,10 @@ textarea {
     white-space: nowrap;
 }
 /* wider date/time inputs */
-.abf-row2 input[type="date"],
-.abf-row2 input[type="time"] {
-    min-width: 0;
+.abf-dateinput {
     width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 /* Primary (filled) button for admin form submits */

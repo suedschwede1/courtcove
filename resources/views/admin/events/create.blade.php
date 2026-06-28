@@ -9,6 +9,7 @@
         'date'       => request('date_start'),
         'time_start' => request('time_start'),
         'time_end'   => request('time_end'),
+        'popup'      => request('popup') ?: null,
     ]));
 @endphp
 <div class="admin-type-switcher">

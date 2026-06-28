@@ -43,30 +43,12 @@
     {{-- Compact 3-card layout for create/popup mode --}}
     <div class="abf-row">
 
-        {{-- Card 1: Gebucht für + Spielernamen --}}
+        {{-- Card 1: Gebucht für --}}
         <div class="abf-card">
             <div class="abf-field">
                 <label class="abf-label" for="booked_for">{{ __('booking.admin.bookings.booked_for') }}</label>
                 <input type="text" id="booked_for" name="booked_for" value="{{ old('booked_for', $bookedFor) }}"
                        list="admin-player-suggestions" maxlength="120" required class="abf-input">
-            </div>
-            <div class="abf-field" style="margin-top:10px;">
-                <span class="abf-label">{{ __('booking.admin.bookings.player_names') }}</span>
-            </div>
-            <div class="abf-field">
-                <label class="abf-sublabel" for="admin-player2">2.</label>
-                <input type="text" id="admin-player2" name="player_name_2" value="{{ old('player_name_2', $playerNames[2]) }}"
-                       list="admin-player-suggestions" maxlength="120" class="abf-input">
-            </div>
-            <div class="abf-field" id="admin-player3-field">
-                <label class="abf-sublabel" for="admin-player3">3.</label>
-                <input type="text" id="admin-player3" name="player_name_3" value="{{ old('player_name_3', $playerNames[3]) }}"
-                       list="admin-player-suggestions" maxlength="120" class="abf-input">
-            </div>
-            <div class="abf-field" id="admin-player4-field">
-                <label class="abf-sublabel" for="admin-player4">4.</label>
-                <input type="text" id="admin-player4" name="player_name_4" value="{{ old('player_name_4', $playerNames[4]) }}"
-                       list="admin-player-suggestions" maxlength="120" class="abf-input">
             </div>
         </div>
 
@@ -75,21 +57,21 @@
             <div class="abf-row2">
                 <div class="abf-field">
                     <label class="abf-label" for="time_start">{{ __('booking.admin.bookings.time_start') }}</label>
-                    <input type="time" id="time_start" name="time_start" value="{{ old('time_start', $reservation ? substr((string) $reservation->time_start, 0, 5) : '') }}">
+                    <input type="time" id="time_start" name="time_start" value="{{ old('time_start', $reservation ? substr((string) $reservation->time_start, 0, 5) : '') }}" class="abf-dateinput">
                 </div>
                 <div class="abf-field">
                     <label class="abf-label" for="time_end">{{ __('booking.admin.bookings.time_end') }}</label>
-                    <input type="time" id="time_end" name="time_end" value="{{ old('time_end', $reservation ? substr((string) $reservation->time_end, 0, 5) : '') }}">
+                    <input type="time" id="time_end" name="time_end" value="{{ old('time_end', $reservation ? substr((string) $reservation->time_end, 0, 5) : '') }}" class="abf-dateinput">
                 </div>
             </div>
             <div class="abf-row2" style="margin-top:8px;">
                 <div class="abf-field">
                     <label class="abf-label" for="date">{{ __('booking.admin.bookings.date_start') }}</label>
-                    <input type="date" id="date" name="date" value="{{ old('date', $reservation?->date) }}">
+                    <input type="date" id="date" name="date" value="{{ old('date', $reservation?->date) }}" class="abf-dateinput">
                 </div>
                 <div class="abf-field">
                     <label class="abf-label" for="admin-booking-date-end">{{ __('booking.admin.bookings.date_end') }}</label>
-                    <input type="date" id="admin-booking-date-end" name="date_end" value="{{ old('date_end', $repeatEndDate) }}">
+                    <input type="date" id="admin-booking-date-end" name="date_end" value="{{ old('date_end', $repeatEndDate) }}" class="abf-dateinput">
                 </div>
             </div>
             <div class="abf-field" style="margin-top:8px;">
@@ -102,7 +84,7 @@
             </div>
         </div>
 
-        {{-- Card 3: Platz + Spieleranzahl + Notizen --}}
+        {{-- Card 3: Platz + Spieleranzahl + Spielernamen --}}
         <div class="abf-card">
             <div class="abf-field">
                 <label class="abf-label" for="sid">{{ __('booking.admin.common.court') }}</label>
@@ -118,6 +100,21 @@
                     <option value="2" @selected((int) old('quantity', $booking->quantity) === 2)>2</option>
                     <option value="4" @selected((int) old('quantity', $booking->quantity) === 4)>4</option>
                 </select>
+            </div>
+            <div style="margin-top:10px;">
+                <span class="abf-label">{{ __('booking.admin.bookings.player_names') }}</span>
+                <div class="abf-field" style="margin-top:4px;">
+                    <label class="abf-sublabel" for="admin-player2">2.</label>
+                    <input type="text" id="admin-player2" name="player_name_2" value="{{ old('player_name_2', $playerNames[2]) }}" list="admin-player-suggestions" maxlength="120" class="abf-input">
+                </div>
+                <div class="abf-field" id="admin-player3-field">
+                    <label class="abf-sublabel" for="admin-player3">3.</label>
+                    <input type="text" id="admin-player3" name="player_name_3" value="{{ old('player_name_3', $playerNames[3]) }}" list="admin-player-suggestions" maxlength="120" class="abf-input">
+                </div>
+                <div class="abf-field" id="admin-player4-field">
+                    <label class="abf-sublabel" for="admin-player4">4.</label>
+                    <input type="text" id="admin-player4" name="player_name_4" value="{{ old('player_name_4', $playerNames[4]) }}" list="admin-player-suggestions" maxlength="120" class="abf-input">
+                </div>
             </div>
         </div>
 
