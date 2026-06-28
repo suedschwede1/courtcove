@@ -57,7 +57,15 @@ final class EventController extends Controller
         ]);
 
         return view('admin.events.create', array_merge(
-            ['squares' => Square::orderBy('priority')->get(), 'event' => $event, 'name' => ''],
+            [
+                'squares'    => Square::orderBy('priority')->get(),
+                'event'      => $event,
+                'name'       => '',
+                'date_start' => $request->input('date_start', ''),
+                'time_start' => $request->input('time_start', ''),
+                'date_end'   => $request->input('date_end', ''),
+                'time_end'   => $request->input('time_end', ''),
+            ],
             $this->emptyMeta(),
         ));
     }

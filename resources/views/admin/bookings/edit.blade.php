@@ -29,7 +29,9 @@
             'popup'      => request('popup') ?: null,
         ]));
     @endphp
+    @can('admin.event')
     <a href="{{ $eventUrl }}" class="admin-type-switcher__tab">{{ __('booking.admin.bookings.type_event') }}</a>
+    @endcan
 </div>
 @endif
 
