@@ -1,12 +1,12 @@
 @extends('layouts.admin')
-@section('admin-title', ($isCreate ?? false) ? 'Buchung anlegen' : 'Buchung bearbeiten')
+@section('admin-title', ($isCreate ?? false) ? __('booking.admin.bookings.create_title') : __('booking.admin.bookings.edit_title'))
 @section('admin-content')
 @php
     $bookingUser = $booking->user;
     $userStatusLabel = $bookingUser?->status ? ucfirst($bookingUser->status) : '—';
-    $userEmail = $bookingUser?->email ?: 'Keine E-Mail hinterlegt';
+    $userEmail = $bookingUser?->email ?: __('booking.admin.bookings.no_email');
     $userPhone = $bookingUser?->getMeta('phone');
-    $createdLabel = $booking->created ? \Carbon\Carbon::parse($booking->created)->format('d.m.Y \u\m H:i \U\h\r') : 'Noch nicht gespeichert';
+    $createdLabel = $booking->created ? \Carbon\Carbon::parse($booking->created)->format('d.m.Y \u\m H:i \U\h\r') : __('booking.admin.bookings.not_saved_yet');
     $ownerName = trim((string) ($booking->meta->firstWhere('key', 'owner-name')?->value ?? ''));
     $isMemberOwner = $ownerName === '' && $bookingUser !== null;
     $memberLabel = $bookingUser ? $bookingUser->alias . ' (' . $bookingUser->uid . ')' : '—';
@@ -17,7 +17,7 @@
 @endphp
 
 <div class="admin-booking-shell">
-    <a href="{{ $closeRoute }}" class="admin-booking-close" aria-label="Schließen">&times;</a>
+    <a href="{{ $closeRoute }}" class="admin-booking-close" aria-label="{{ __('booking.admin.common.close') }}">&times;</a>
 
     <form method="POST" action="{{ $formAction }}" class="admin-booking-form" id="{{ $formId }}">
         @csrf
@@ -27,7 +27,7 @@
 
         <div class="admin-booking-layout">
             <section class="admin-booking-card admin-booking-card--user">
-                <h2 class="admin-booking-card__title">Gebucht für</h2>
+                <h2 class="admin-booking-card__title">{{ __('booking.admin.bookings.booked_for') }}</h2>
                 <label class="admin-booking-field admin-booking-field--full">
                     <input type="text" name="booked_for" value="{{ old('booked_for', $bookedFor) }}"
                            list="admin-player-suggestions" maxlength="120" class="admin-booking-input" required>
@@ -35,39 +35,39 @@
                 @if($isMemberOwner)
                     <div class="admin-booking-user-name">{{ $memberLabel }}</div>
                     <div class="admin-booking-user-meta">
-                        <div>Status: {{ $userStatusLabel }}</div>
-                        <div>E-Mail: {{ $userEmail }}</div>
+                        <div>{{ __('booking.admin.common.status') }}: {{ $userStatusLabel }}</div>
+                        <div>{{ __('booking.admin.bookings.email_label') }}: {{ $userEmail }}</div>
                         @if($userPhone)
-                            <div>Telefon: {{ $userPhone }}</div>
+                            <div>{{ __('booking.admin.bookings.phone_label') }}: {{ $userPhone }}</div>
                         @endif
                     </div>
                     @if(Route::has('admin.users.edit') && auth()->user()->can('admin.user'))
-                        <a href="{{ route('admin.users.edit', $bookingUser) }}" class="admin-booking-link">Benutzer bearbeiten</a>
+                        <a href="{{ route('admin.users.edit', $bookingUser) }}" class="admin-booking-link">{{ __('booking.admin.bookings.edit_user') }}</a>
                     @endif
                 @endif
             </section>
 
             <section class="admin-booking-card">
-                <h2 class="admin-booking-card__title">Zeit</h2>
+                <h2 class="admin-booking-card__title">{{ __('booking.admin.bookings.time_section') }}</h2>
                 <div class="admin-booking-grid admin-booking-grid--two">
                     <label class="admin-booking-field">
-                        <span class="admin-booking-field__label">Zeit (Beginn)</span>
+                        <span class="admin-booking-field__label">{{ __('booking.admin.bookings.time_start') }}</span>
                         <input type="time" name="time_start" value="{{ old('time_start', $reservation ? substr((string) $reservation->time_start, 0, 5) : '') }}" class="admin-booking-input">
                     </label>
                     <label class="admin-booking-field">
-                        <span class="admin-booking-field__label">Zeit (Ende)</span>
+                        <span class="admin-booking-field__label">{{ __('booking.admin.bookings.time_end') }}</span>
                         <input type="time" name="time_end" value="{{ old('time_end', $reservation ? substr((string) $reservation->time_end, 0, 5) : '') }}" class="admin-booking-input">
                     </label>
                     <label class="admin-booking-field">
-                        <span class="admin-booking-field__label">Datum (Beginn)</span>
+                        <span class="admin-booking-field__label">{{ __('booking.admin.bookings.date_start') }}</span>
                         <input type="date" name="date" value="{{ old('date', $reservation?->date) }}" class="admin-booking-input">
                     </label>
                     <label class="admin-booking-field">
-                        <span class="admin-booking-field__label">Datum (Ende)</span>
+                        <span class="admin-booking-field__label">{{ __('booking.admin.bookings.date_end') }}</span>
                         <input type="date" name="date_end" id="admin-booking-date-end" value="{{ old('date_end', $repeatEndDate) }}" class="admin-booking-input">
                     </label>
                     <label class="admin-booking-field admin-booking-field--full admin-booking-field--repeat">
-                        <span class="admin-booking-field__label">Wiederholung</span>
+                        <span class="admin-booking-field__label">{{ __('booking.admin.bookings.repeat') }}</span>
                         <select name="repeat_type" id="admin-booking-repeat" class="admin-booking-select">
                             @foreach($repeatOptions as $repeatValue => $repeatLabel)
                                 <option value="{{ $repeatValue }}" @selected(old('repeat_type', $repeatType) === $repeatValue)>{{ $repeatLabel }}</option>
@@ -78,10 +78,10 @@
             </section>
 
             <section class="admin-booking-card">
-                <h2 class="admin-booking-card__title">Buchung</h2>
+                <h2 class="admin-booking-card__title">{{ __('booking.admin.bookings.booking_section') }}</h2>
                 <div class="admin-booking-grid admin-booking-grid--stack">
                     <label class="admin-booking-field">
-                        <span class="admin-booking-field__label">Platz</span>
+                        <span class="admin-booking-field__label">{{ __('booking.admin.common.court') }}</span>
                         <select name="sid" class="admin-booking-select">
                             @foreach($squares as $square)
                                 <option value="{{ $square->sid }}" @selected(old('sid', $booking->sid) == $square->sid)>{{ $square->display_name }}</option>
@@ -90,7 +90,7 @@
                     </label>
 
                     <label class="admin-booking-field">
-                        <span class="admin-booking-field__label">Spieleranzahl</span>
+                        <span class="admin-booking-field__label">{{ __('booking.admin.bookings.player_count') }}</span>
                         <select name="quantity" id="admin-booking-quantity" class="admin-booking-select">
                             <option value="2" @selected((int) old('quantity', $booking->quantity) === 2)>2</option>
                             <option value="4" @selected((int) old('quantity', $booking->quantity) === 4)>4</option>
@@ -98,17 +98,17 @@
                     </label>
 
                     <label class="admin-booking-field">
-                        <span class="admin-booking-field__label">Buchungsstatus</span>
+                        <span class="admin-booking-field__label">{{ __('booking.admin.bookings.booking_status') }}</span>
                         <select name="status" class="admin-booking-select">
-                            <option value="single" @selected(old('status', $booking->status) === 'single')>Aktiv</option>
-                            <option value="subscription" @selected(old('status', $booking->status) === 'subscription')>Serie</option>
-                            <option value="cancelled" @selected(old('status', $booking->status) === 'cancelled')>Storniert</option>
+                            <option value="single" @selected(old('status', $booking->status) === 'single')>{{ __('booking.admin.bookings.status_active') }}</option>
+                            <option value="subscription" @selected(old('status', $booking->status) === 'subscription')>{{ __('booking.admin.bookings.status_series') }}</option>
+                            <option value="cancelled" @selected(old('status', $booking->status) === 'cancelled')>{{ __('booking.admin.bookings.status_cancelled') }}</option>
                         </select>
                     </label>
                 </div>
 
                 <div class="admin-booking-players">
-                    <div class="admin-booking-field__label">Spielernamen</div>
+                    <div class="admin-booking-field__label">{{ __('booking.admin.bookings.player_names') }}</div>
                     <label class="admin-booking-field admin-booking-field--player" id="admin-player2-field">
                         <span class="admin-booking-player-index">2.</span>
                         <input type="text" id="admin-player2" name="player_name_2" value="{{ old('player_name_2', $playerNames[2]) }}" list="admin-player-suggestions" maxlength="120" class="admin-booking-input" required>
@@ -130,25 +130,25 @@
             </section>
 
             <section class="admin-booking-card admin-booking-card--notes">
-                <h2 class="admin-booking-card__title">Notizen</h2>
+                <h2 class="admin-booking-card__title">{{ __('booking.admin.bookings.notes_section') }}</h2>
                 <label class="admin-booking-field admin-booking-field--full">
                     <textarea name="admin_note" rows="6" class="admin-booking-textarea">{{ old('admin_note', $adminNote) }}</textarea>
                 </label>
-                <div class="admin-booking-note-hint">Nur für die Administration sichtbar</div>
-                <div class="admin-booking-created">Buchung erstellt: {{ $createdLabel }}</div>
+                <div class="admin-booking-note-hint">{{ __('booking.admin.bookings.note_hint') }}</div>
+                <div class="admin-booking-created">{{ __('booking.admin.bookings.booking_created_at', ['date' => $createdLabel]) }}</div>
             </section>
         </div>
     </form>
 
     <div class="admin-booking-actions">
-        <button type="submit" form="{{ $formId }}" class="default-button admin-booking-actions__save">Speichern</button>
-        <span class="admin-booking-actions__divider">oder</span>
-        <a href="{{ $closeRoute }}" class="default-button admin-booking-actions__cancel">Abbrechen</a>
+        <button type="submit" form="{{ $formId }}" class="default-button admin-booking-actions__save">{{ __('booking.admin.common.save') }}</button>
+        <span class="admin-booking-actions__divider">{{ __('booking.admin.common.or') }}</span>
+        <a href="{{ $closeRoute }}" class="default-button admin-booking-actions__cancel">{{ __('booking.admin.common.abort') }}</a>
         @unless($isCreateMode)
-            <form method="POST" action="{{ route('admin.bookings.destroy', $booking) }}" onsubmit="return confirm('Buchung wirklich dauerhaft löschen?')">
+            <form method="POST" action="{{ route('admin.bookings.destroy', $booking) }}" onsubmit="return confirm('{{ __('booking.admin.bookings.confirm_delete') }}')">
                 @csrf
                 @method('DELETE')
-                <button type="submit" class="abmelden-button default-button">Löschen</button>
+                <button type="submit" class="abmelden-button default-button">{{ __('booking.admin.common.delete') }}</button>
             </form>
         @endunless
     </div>
@@ -156,9 +156,9 @@
     @unless($isCreateMode)
         @if($booking->status !== 'cancelled')
             <div class="admin-booking-secondary-actions">
-                <form method="POST" action="{{ route('admin.bookings.cancel', $booking) }}" onsubmit="return confirm('Buchung wirklich stornieren?')">
+                <form method="POST" action="{{ route('admin.bookings.cancel', $booking) }}" onsubmit="return confirm('{{ __('booking.admin.bookings.confirm_cancel') }}')">
                     @csrf
-                    <button type="submit" class="admin-booking-link-button">Buchung stornieren</button>
+                    <button type="submit" class="admin-booking-link-button">{{ __('booking.admin.bookings.cancel_booking') }}</button>
                 </form>
             </div>
         @endif

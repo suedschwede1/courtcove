@@ -1,21 +1,21 @@
 @extends('layouts.admin')
-@section('admin-title', 'Buchungen')
+@section('admin-title', __('booking.admin.bookings.title'))
 @section('admin-content')
-    <h1>Buchungen</h1>
+    <h1>{{ __('booking.admin.bookings.title') }}</h1>
 
     <form method="GET" action="{{ route('admin.bookings.index') }}" style="margin-bottom:1rem">
         <select name="sid">
-            <option value="">Alle Plätze</option>
+            <option value="">{{ __('booking.admin.common.all_courts') }}</option>
             @foreach($squares as $square)
                 <option value="{{ $square->sid }}" @selected(request('sid') == $square->sid)>{{ $square->display_name }}</option>
             @endforeach
         </select>
-        <button type="submit" class="default-button">Filtern</button>
+        <button type="submit" class="default-button">{{ __('booking.admin.common.filter') }}</button>
     </form>
 
     <div class="calendar-wrap">
     <table class="booking-grid">
-        <thead><tr><th>Mitglied</th><th>Platz</th><th>Datum</th><th>Zeit</th><th>Spieler</th><th>Status</th><th></th></tr></thead>
+        <thead><tr><th>{{ __('booking.admin.common.member') }}</th><th>{{ __('booking.admin.common.court') }}</th><th>{{ __('booking.admin.common.date') }}</th><th>{{ __('booking.admin.common.time') }}</th><th>{{ __('booking.admin.common.player') }}</th><th>{{ __('booking.admin.common.status') }}</th><th></th></tr></thead>
         <tbody>
         @foreach($bookings as $b)
             @php($reservation = $b->reservations->sortBy(['date', 'time_start'])->first())
@@ -27,16 +27,16 @@
                 <td>{{ $b->player_names !== [] ? implode(', ', $b->player_names) : '—' }}</td>
                 <td>{{ $b->status }}</td>
                 <td>
-                    <a href="{{ route('admin.bookings.edit', $b) }}">Bearbeiten</a>
+                    <a href="{{ route('admin.bookings.edit', $b) }}">{{ __('booking.admin.common.edit') }}</a>
                     @if($b->status !== 'cancelled')
-                        <form method="POST" action="{{ route('admin.bookings.cancel', $b) }}" onsubmit="return confirm('Buchung wirklich stornieren?')" style="display:inline">
+                        <form method="POST" action="{{ route('admin.bookings.cancel', $b) }}" onsubmit="return confirm('{{ __('booking.admin.bookings.confirm_cancel') }}')" style="display:inline">
                             @csrf
-                            <button type="submit" class="default-button">Stornieren</button>
+                            <button type="submit" class="default-button">{{ __('booking.admin.common.cancel') }}</button>
                         </form>
                     @endif
-                    <form method="POST" action="{{ route('admin.bookings.destroy', $b) }}" onsubmit="return confirm('Buchung wirklich dauerhaft löschen?')" style="display:inline">
+                    <form method="POST" action="{{ route('admin.bookings.destroy', $b) }}" onsubmit="return confirm('{{ __('booking.admin.bookings.confirm_delete') }}')" style="display:inline">
                         @method('DELETE') @csrf
-                        <button type="submit" class="abmelden-button default-button">Löschen</button>
+                        <button type="submit" class="abmelden-button default-button">{{ __('booking.admin.common.delete') }}</button>
                     </form>
                 </td>
             </tr>
