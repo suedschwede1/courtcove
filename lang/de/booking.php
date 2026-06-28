@@ -83,6 +83,7 @@ return [
         'player_name_3_placeholder' => 'Name des 3. Spielers',
         'player_name_4_placeholder' => 'Name des 4. Spielers',
         'create_event' => 'Veranstaltung anlegen',
+        'admin_form' => 'Admin-Formular',
         'book_now' => 'Jetzt buchen',
         'complete_booking' => 'Buchung abschließen',
         'event_name' => 'Name',

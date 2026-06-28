@@ -203,6 +203,17 @@ document.addEventListener('DOMContentLoaded', function () {
             createEventButton.hidden = false;
         }
 
+        var adminLink = document.getElementById('modal-admin-link');
+        if (adminLink) {
+            var createUrl = trigger.getAttribute('data-create-url');
+            if (createUrl) {
+                adminLink.href = createUrl;
+                adminLink.hidden = false;
+            } else {
+                adminLink.hidden = true;
+            }
+        }
+
         resetBookingFields();
         showModal(bookingModal);
     }
@@ -289,11 +300,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (action === 'cancel') {
                 openCancelModal(trigger);
-            } else if (action === 'admin-book') {
-                var createUrl = trigger.getAttribute('data-create-url');
-                if (createUrl) {
-                    window.location.href = createUrl;
-                }
             } else {
                 openBookingModal(trigger);
             }

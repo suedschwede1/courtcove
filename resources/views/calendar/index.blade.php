@@ -342,6 +342,9 @@
                 @can('admin.event')
                     <button type="button" id="modal-create-event" class="default-button">{{ __('booking.modal.create_event') }}</button>
                 @endcan
+                @can('admin.booking')
+                    <a id="modal-admin-link" href="#" class="default-button" hidden>{{ __('booking.modal.admin_form') }}</a>
+                @endcan
                 <button type="submit" class="modal-primary-button">{{ __('booking.modal.book_now') }}</button>
                 <button type="button" id="modal-cancel" class="default-button">{{ __('booking.modal.cancel') }}</button>
             </form>
