@@ -6,6 +6,7 @@ namespace App\Providers;
 
 use App\Models\Option;
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -34,9 +35,11 @@ class AppServiceProvider extends ServiceProvider
         // and the like — not just the layout. Falls back to config if the DB is
         // unavailable (e.g. console/migrations).
         View::share('bookingName', rescue(function (): string {
-            $name = trim((string) Option::getValue('service.name', config('booking.name')));
+            return Cache::remember('booking.service_name', 300, function (): string {
+                $name = trim((string) Option::getValue('service.name', config('booking.name')));
 
-            return $name !== '' ? $name : (string) config('booking.name');
+                return $name !== '' ? $name : (string) config('booking.name');
+            });
         }, (string) config('booking.name'), report: false));
     }
 }

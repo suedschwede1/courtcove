@@ -33,17 +33,17 @@ class Option extends Model
      */
     public static function getValue(string $key, mixed $default = null, ?string $locale = null): mixed
     {
-        $query = static::where('key', $key);
+        $rows = static::where('key', $key)->get(['value', 'locale']);
 
         if ($locale !== null) {
-            $localized = (clone $query)->where('locale', $locale)->value('value');
+            $localized = $rows->firstWhere('locale', $locale)?->value;
             if ($localized !== null) {
                 return $localized;
             }
         }
 
-        return $query->whereNull('locale')->value('value')
-            ?? $query->value('value')
+        return $rows->firstWhere('locale', null)?->value
+            ?? $rows->first()?->value
             ?? $default;
     }
 }

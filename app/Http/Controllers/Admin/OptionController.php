@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Option;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 final class OptionController extends Controller
@@ -51,6 +52,8 @@ final class OptionController extends Controller
             $row ? $row->update(['value' => (string) $data[$field]])
                  : Option::create(['key' => $key, 'value' => (string) $data[$field], 'locale' => null]);
         }
+
+        Cache::forget('booking.service_name');
 
         return redirect()->route('admin.config.edit')->with('success', __('booking.messages.config_saved'));
     }
