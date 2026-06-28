@@ -124,15 +124,9 @@ final class BookingController extends Controller
             [, , $occurrenceStarts, $durationSeconds] = $this->buildBookingTimeline($data);
 
             if ($data['status'] !== 'cancelled') {
-                foreach ($occurrenceStarts as $occurrenceStart) {
-                    $occurrenceEnd = $occurrenceStart->copy()->addSeconds($durationSeconds);
-                    if ($this->hasBookingConflict((int) $data['sid'], $occurrenceStart, $occurrenceEnd, null)) {
-                        return back()->withErrors(['booking' => __('booking.messages.repeat_booking_conflict')])->withInput();
-                    }
-
-                    if ($this->hasEventConflict((int) $data['sid'], $occurrenceStart, $occurrenceEnd)) {
-                        return back()->withErrors(['booking' => __('booking.messages.repeat_event_conflict')])->withInput();
-                    }
+                $conflictError = $this->batchCheckConflicts((int) $data['sid'], $occurrenceStarts, $durationSeconds, null);
+                if ($conflictError !== null) {
+                    return back()->withErrors(['booking' => $conflictError])->withInput();
                 }
             }
 
@@ -147,14 +141,16 @@ final class BookingController extends Controller
                     'created' => now()->format('Y-m-d H:i:s'),
                 ]);
 
+                $rows = [];
                 foreach ($occurrenceStarts as $occurrenceStart) {
-                    $occurrenceEnd = $occurrenceStart->copy()->addSeconds($durationSeconds);
-                    $booking->reservations()->create([
-                        'date' => $occurrenceStart->format('Y-m-d'),
+                    $rows[] = [
+                        'bid'        => $booking->bid,
+                        'date'       => $occurrenceStart->format('Y-m-d'),
                         'time_start' => $occurrenceStart->format('H:i:s'),
-                        'time_end' => $occurrenceEnd->format('H:i:s'),
-                    ]);
+                        'time_end'   => $occurrenceStart->copy()->addSeconds($durationSeconds)->format('H:i:s'),
+                    ];
                 }
+                DB::table('bs_reservations')->insert($rows);
 
                 $this->bookingService->syncPlayerMeta($booking, [
                     2 => $data['player_name_2'] ?? null,
@@ -221,15 +217,9 @@ final class BookingController extends Controller
             [, , $occurrenceStarts, $durationSeconds] = $this->buildBookingTimeline($data);
 
             if ($data['status'] !== 'cancelled') {
-                foreach ($occurrenceStarts as $occurrenceStart) {
-                    $occurrenceEnd = $occurrenceStart->copy()->addSeconds($durationSeconds);
-                    if ($this->hasBookingConflict((int) $data['sid'], $occurrenceStart, $occurrenceEnd, $booking->bid)) {
-                        return back()->withErrors(['booking' => __('booking.messages.repeat_booking_conflict')])->withInput();
-                    }
-
-                    if ($this->hasEventConflict((int) $data['sid'], $occurrenceStart, $occurrenceEnd)) {
-                        return back()->withErrors(['booking' => __('booking.messages.repeat_event_conflict')])->withInput();
-                    }
+                $conflictError = $this->batchCheckConflicts((int) $data['sid'], $occurrenceStarts, $durationSeconds, $booking->bid);
+                if ($conflictError !== null) {
+                    return back()->withErrors(['booking' => $conflictError])->withInput();
                 }
             }
 
@@ -251,14 +241,16 @@ final class BookingController extends Controller
                 }
                 $booking->reservations()->delete();
 
+                $rows = [];
                 foreach ($occurrenceStarts as $occurrenceStart) {
-                    $occurrenceEnd = $occurrenceStart->copy()->addSeconds($durationSeconds);
-                    $booking->reservations()->create([
-                        'date' => $occurrenceStart->format('Y-m-d'),
+                    $rows[] = [
+                        'bid'        => $booking->bid,
+                        'date'       => $occurrenceStart->format('Y-m-d'),
                         'time_start' => $occurrenceStart->format('H:i:s'),
-                        'time_end' => $occurrenceEnd->format('H:i:s'),
-                    ]);
+                        'time_end'   => $occurrenceStart->copy()->addSeconds($durationSeconds)->format('H:i:s'),
+                    ];
                 }
+                DB::table('bs_reservations')->insert($rows);
 
                 $this->bookingService->syncPlayerMeta($booking, [
                     2 => $data['player_name_2'] ?? null,
@@ -283,9 +275,14 @@ final class BookingController extends Controller
         return redirect()->route('admin.bookings.index')->with('success', __('booking.messages.booking_cancelled'));
     }
 
-    public function destroy(Booking $booking): RedirectResponse
+    public function destroy(Request $request, Booking $booking): RedirectResponse
     {
         $this->bookingService->deleteSingle($booking);
+
+        $redirectTo = $request->string('redirect_to')->trim()->value();
+        if ($redirectTo !== '') {
+            return redirect()->to($redirectTo)->with('success', __('booking.messages.booking_deleted'));
+        }
 
         return redirect()->route('admin.bookings.index')->with('success', __('booking.messages.booking_deleted'));
     }
@@ -470,6 +467,68 @@ final class BookingController extends Controller
         }
 
         return $occurrences;
+    }
+
+    /**
+     * Check all occurrences for booking and event conflicts in 2 queries instead of 2×N.
+     * Returns a translated error string on the first conflict found, or null if clear.
+     *
+     * @param Carbon[] $occurrenceStarts
+     */
+    private function batchCheckConflicts(int $sid, array $occurrenceStarts, int $durationSeconds, ?int $excludeBookingId): ?string
+    {
+        if (empty($occurrenceStarts)) {
+            return null;
+        }
+
+        $dateMin = min($occurrenceStarts)->format('Y-m-d');
+        $lastEnd = max($occurrenceStarts)->copy()->addSeconds($durationSeconds);
+        $dateMax = $lastEnd->format('Y-m-d');
+
+        // One query: all active reservations for this court in the date range
+        $existingReservations = Reservation::query()
+            ->join('bs_bookings', 'bs_bookings.bid', '=', 'bs_reservations.bid')
+            ->where('bs_bookings.sid', $sid)
+            ->whereIn('bs_bookings.status', Booking::ACTIVE_STATUSES)
+            ->whereBetween('bs_reservations.date', [$dateMin, $dateMax])
+            ->when($excludeBookingId !== null, fn ($q) => $q->where('bs_bookings.bid', '!=', $excludeBookingId))
+            ->select(['bs_reservations.date', 'bs_reservations.time_start', 'bs_reservations.time_end'])
+            ->get();
+
+        // One query: all enabled events overlapping the range
+        $existingEvents = Event::query()
+            ->where('status', 'enabled')
+            ->where(fn ($q) => $q->where('sid', $sid)->orWhereNull('sid'))
+            ->where('datetime_start', '<', $lastEnd->format('Y-m-d H:i:s'))
+            ->where('datetime_end', '>', min($occurrenceStarts)->format('Y-m-d H:i:s'))
+            ->select(['datetime_start', 'datetime_end'])
+            ->get();
+
+        foreach ($occurrenceStarts as $occurrenceStart) {
+            $occurrenceEnd   = $occurrenceStart->copy()->addSeconds($durationSeconds);
+            $dateStr         = $occurrenceStart->format('Y-m-d');
+            $startTimeStr    = $occurrenceStart->format('H:i:s');
+            $endTimeStr      = $occurrenceEnd->format('H:i:s');
+            $startDatetimeStr = $occurrenceStart->format('Y-m-d H:i:s');
+            $endDatetimeStr   = $occurrenceEnd->format('Y-m-d H:i:s');
+
+            foreach ($existingReservations as $res) {
+                if ($res->date === $dateStr
+                    && (string) $res->time_start < $endTimeStr
+                    && (string) $res->time_end > $startTimeStr) {
+                    return __('booking.messages.repeat_booking_conflict');
+                }
+            }
+
+            foreach ($existingEvents as $event) {
+                if ((string) $event->datetime_start < $endDatetimeStr
+                    && (string) $event->datetime_end > $startDatetimeStr) {
+                    return __('booking.messages.repeat_event_conflict');
+                }
+            }
+        }
+
+        return null;
     }
 
     private function hasBookingConflict(int $sid, Carbon $start, Carbon $end, ?int $excludeBookingId): bool
