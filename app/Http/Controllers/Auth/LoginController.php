@@ -47,7 +47,7 @@ final class LoginController extends Controller
         $user = User::where('email', $credentials['email'])->first();
 
         if ($user && !$user->isEnabled()) {
-            return redirect('/login')->withErrors(['email' => 'Konto ist deaktiviert.']);
+            return redirect('/login')->withErrors(['email' => __('booking.auth.disabled')]);
         }
 
         if (Auth::attempt([
@@ -59,7 +59,7 @@ final class LoginController extends Controller
             return redirect()->to($this->normalizeRedirectTarget($credentials['redirect_to'] ?? null));
         }
 
-        return redirect('/login')->withErrors(['email' => 'Ungültige Anmeldedaten.']);
+        return redirect('/login')->withErrors(['email' => __('booking.auth.invalid')]);
     }
 
     private function normalizeRedirectTarget(?string $redirectTo): string

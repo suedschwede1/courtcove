@@ -1,40 +1,37 @@
 @extends('layouts.app')
-@section('title', 'Buchungsplan – ' . $date->format('d.m.Y'))
+@section('title', __('booking.calendar.title', ['date' => $date->format('d.m.Y')]))
 
 @push('header-nav')
 <a href="{{ route('calendar.index', ['date' => $date->copy()->subDay()->format('Y-m-d')]) }}"
    class="default-button nav-arrow"
-   title="Vorheriger Tag">&#9664;</a>
+   title="{{ __('booking.nav.previous_day') }}">&#9664;</a>
 
-<a href="{{ route('calendar.index') }}" class="default-button">Heute</a>
+<a href="{{ route('calendar.index') }}" class="default-button">{{ __('booking.nav.today') }}</a>
 
 <form method="GET" action="{{ route('calendar.index') }}" class="date-switcher-form">
     <input type="date" name="date" id="c-date"
            value="{{ $date->format('Y-m-d') }}"
            class="date-switcher-input date-switcher-input--native"
-           aria-label="Datum wählen">
+           aria-label="{{ __('booking.nav.choose_date') }}">
 </form>
 
 <a href="{{ route('calendar.index', ['date' => $date->copy()->addDay()->format('Y-m-d')]) }}"
    class="default-button nav-arrow"
-   title="Nächster Tag">&#9654;</a>
+   title="{{ __('booking.nav.next_day') }}">&#9654;</a>
 @endpush
 
 @section('calendar-system-info')
 <div class="help-panel__grid help-panel__grid--single">
     <section class="help-card">
-        <p class="help-card__eyebrow">Buchungssystem</p>
-        <h2 class="help-card__title">Informationen</h2>
-        <p class="help-card__text">
-            Das Reservierungssystem zeigt immer drei Tage gleichzeitig und alle drei Plaetze vollstaendig an.
-            Freie Zeiten koennen direkt im Plan gewaehlt werden.
+        <p class="help-card__eyebrow">{{ __('booking.calendar.system_eyebrow') }}</p>
+        <h2 class="help-card__title">{{ __('booking.calendar.information') }}</h2>
+                <p class="help-card__text">
+            {{ __('booking.calendar.system_text') }}
         </p>
         <ul class="help-card__list">
-            <li>Weisse Felder sind sofort buchbar.</li>
-            <li>Blaue Felder sind eigene oder bestehende Reservierungen.</li>
-            <li>Rosafarbene Flaechen markieren Veranstaltungen oder Sperren.</li>
-            <li>Graue Felder liegen in der Vergangenheit und sind nicht mehr buchbar.</li>
-            <li>Mit den Pfeilen oben wechselt der Plan tageweise.</li>
+            @foreach(__('booking.calendar.system_items') as $item)
+                <li>{{ $item }}</li>
+            @endforeach
         </ul>
     </section>
 </div>
@@ -44,27 +41,25 @@
 <div class="help-panel__grid">
     @auth
         <section class="help-card">
-            <p class="help-card__eyebrow">Mein Bereich</p>
+            <p class="help-card__eyebrow">{{ __('booking.calendar.my_area') }}</p>
             <h2 class="help-card__title">{{ auth()->user()->name }}</h2>
-            <p class="help-card__text">
-                Freie Felder lassen sich direkt anklicken. Eigene Reservierungen erscheinen blau
-                und können aus dem Plan heraus storniert werden.
+                        <p class="help-card__text">
+                {{ __('booking.calendar.member_text') }}
             </p>
             <div class="help-card__status">
-                <span class="help-card__status-label">Status</span>
-                <strong>Mitglied angemeldet</strong>
+                <span class="help-card__status-label">{{ __('booking.calendar.status') }}</span>
+                <strong>{{ __('booking.calendar.member_logged_in') }}</strong>
             </div>
         </section>
     @endauth
 
     <section class="help-card">
-        <p class="help-card__eyebrow">Hinweise</p>
-        <h2 class="help-card__title">So funktioniert's</h2>
-        <ul class="help-card__list">
-            <li>Freie Felder sind weiß markiert.</li>
-            <li>Graue Felder sind bereits belegt oder liegen in der Vergangenheit.</li>
-            <li>Rosafarbene Blöcke kennzeichnen Veranstaltungen oder Sperren.</li>
-            <li>Navigation oben wechselt zwischen den angezeigten Tagen.</li>
+        <p class="help-card__eyebrow">{{ __('booking.nav.help') }}</p>
+        <h2 class="help-card__title">{{ __('booking.calendar.help_heading') }}</h2>
+                <ul class="help-card__list">
+            @foreach(__('booking.calendar.help_items') as $item)
+                <li>{{ $item }}</li>
+            @endforeach
         </ul>
     </section>
 </div>
@@ -92,7 +87,7 @@
                     @endforeach
                 </tr>
                 <tr class="calendar-square-row">
-                    <td class="time-side-head">Platz</td>
+                    <td class="time-side-head">{{ __('booking.calendar.court') }}</td>
                     @foreach($dates as $d)
                         @foreach($squares as $square)
                             @php
@@ -117,7 +112,7 @@
                     <tr class="calendar-core-row">
                         <td class="time-cell">
                             <span class="time-main">{{ $timeLabel }}</span>
-                            <span class="time-sub">bis {{ $nextLabel }} Uhr</span>
+                            <span class="time-sub">{{ __('booking.calendar.to_time', ['time' => $nextLabel]) }}</span>
                         </td>
 
                         @foreach($dates as $d)
@@ -152,33 +147,33 @@
                                     $slotClass = $isPastSlot ? ' slot-cell--past' : '';
                                     $primaryLabel = '';
                                     $action = null;
-                                    $cellTitle = $squareLabel . ' – Vergangen';
+                                    $cellTitle = $squareLabel . ' – ' . __('booking.calendar.past');
 
                                     if (!$evBlock) {
                                         if ($isPastSlot && !$reservation) {
                                             $cellClass = 'cc-over';
-                                            $cellTitle = $squareLabel . ' – Vergangen';
+                                            $cellTitle = $squareLabel . ' – ' . __('booking.calendar.past');
                                         } elseif (!$reservation) {
                                             $cellClass = 'cc-free';
                                             $action = auth()->check() && !$isPastSlot ? (auth()->user()->can('admin.booking') ? 'admin-book' : 'book') : 'login';
                                             $cellTitle = auth()->check()
-                                                ? ($squareLabel . ' um ' . $timeLabel . ' buchen')
-                                                : 'Zum Buchen bitte anmelden';
+                                                ? __('booking.calendar.book_title', ['court' => $squareLabel, 'time' => $timeLabel])
+                                                : __('booking.calendar.login_to_book');
                                         } elseif ($isOwn || ($canManageBooking && !$isPastSlot)) {
                                             $cellClass = $isOwn ? 'cc-own' : 'cc-single-future';
                                             $action = 'cancel';
                                             $primaryLabel = $reservation->booking->owner_label;
                                             $cellTitle = $isOwn
-                                                ? 'Buchung auf ' . $squareLabel . ' stornieren'
-                                                : 'Buchung auf ' . $squareLabel . ' bearbeiten';
+                                                ? __('booking.calendar.cancel_title', ['court' => $squareLabel])
+                                                : __('booking.calendar.edit_title', ['court' => $squareLabel]);
                                         } else {
                                             $cellClass = 'cc-single-future';
                                             $primaryLabel = auth()->check()
-                                                ? ($reservation->booking?->owner_label ?? 'Belegt')
+                                                ? ($reservation->booking?->owner_label ?? __('booking.calendar.occupied'))
                                                 : '';
                                             $cellTitle = $isPastSlot
-                                                ? ($squareLabel . ' – Vergangen')
-                                                : ($squareLabel . ' – Belegt');
+                                                ? ($squareLabel . ' – ' . __('booking.calendar.past'))
+                                                : ($squareLabel . ' – ' . __('booking.calendar.occupied'));
                                         }
                                     }
                                 @endphp
@@ -248,7 +243,7 @@
             </tbody>
             <tfoot>
                 <tr class="calendar-square-row">
-                    <td class="time-side-head">Platz</td>
+                    <td class="time-side-head">{{ __('booking.calendar.court') }}</td>
                     @foreach($dates as $d)
                         @foreach($squares as $square)
                             @php
@@ -279,21 +274,21 @@
 <div id="cancel-modal" class="booking-modal" style="display:none;">
     <div class="booking-modal__viewport">
         <div class="booking-modal__card">
-            <button id="cancel-modal-close" class="booking-modal__close" title="Schließen">&#x2715;</button>
+            <button id="cancel-modal-close" class="booking-modal__close" title="{{ __('booking.feedback.close') }}">&#x2715;</button>
             <div class="booking-modal__header">
                 <h2 id="cancel-modal-title"></h2>
             </div>
             <div class="booking-modal__body">
                 <div id="cancel-modal-date" class="booking-modal__meta"></div>
                 <div id="cancel-modal-time" class="booking-modal__meta"></div>
-                <p class="booking-modal__warning">Möchten Sie diese Buchung stornieren?</p>
+                <p class="booking-modal__warning">{{ __('booking.modal.confirm_cancel') }}</p>
             </div>
             <form id="cancel-form" method="POST" action="" class="booking-modal__actions">
                 @csrf
                 @method('DELETE')
-                <a id="cancel-modal-edit" href="#" class="default-button" hidden>Bearbeiten</a>
-                <button type="submit" class="modal-danger-button">Stornieren</button>
-                <button type="button" id="cancel-modal-abort" class="default-button">Abbrechen</button>
+                <a id="cancel-modal-edit" href="#" class="default-button" hidden>{{ __('booking.modal.edit') }}</a>
+                <button type="submit" class="modal-danger-button">{{ __('booking.modal.cancel_booking') }}</button>
+                <button type="button" id="cancel-modal-abort" class="default-button">{{ __('booking.modal.cancel') }}</button>
             </form>
         </div>
     </div>
@@ -302,14 +297,14 @@
 <div id="booking-modal" class="booking-modal" style="display:none;">
     <div class="booking-modal__viewport">
         <div class="booking-modal__card">
-            <button id="modal-close" class="booking-modal__close" title="Schließen">&#x2715;</button>
+            <button id="modal-close" class="booking-modal__close" title="{{ __('booking.feedback.close') }}">&#x2715;</button>
             <div class="booking-modal__header">
                 <h2 id="modal-title"></h2>
             </div>
             <div class="booking-modal__body">
                 <div id="modal-date" class="booking-modal__meta"></div>
                 <div id="modal-time" class="booking-modal__meta"></div>
-                <p class="booking-modal__success">Dieser Platz ist noch frei.</p>
+                <p class="booking-modal__success">{{ __('booking.modal.slot_free') }}</p>
             </div>
             <form method="POST" action="{{ route('bookings.store') }}" class="booking-modal__actions booking-modal__actions--stacked">
                 @csrf
@@ -319,35 +314,35 @@
                 <input type="hidden" id="modal-te" name="time_end">
 
                 <label class="booking-modal__field">
-                    <span class="booking-modal__field-label">Spielart</span>
+                    <span class="booking-modal__field-label">{{ __('booking.modal.play_type') }}</span>
                     <select id="modal-quantity" name="quantity" class="booking-modal__select">
-                        <option value="2">Einzel</option>
-                        <option value="4">Doppel</option>
+                        <option value="2">{{ __('booking.modal.single') }}</option>
+                        <option value="4">{{ __('booking.modal.double') }}</option>
                     </select>
                 </label>
 
                 <label class="booking-modal__field booking-modal__field--player" id="modal-player2-field" hidden>
-                    <span class="booking-modal__field-label">2. Spielername</span>
-                    <input type="text" id="modal-player2" name="player_name_2" class="booking-modal__input" list="player-suggestions" maxlength="120" placeholder="Name des 2. Spielers" required>
+                    <span class="booking-modal__field-label">{{ __('booking.modal.player_name_2') }}</span>
+                    <input type="text" id="modal-player2" name="player_name_2" class="booking-modal__input" list="player-suggestions" maxlength="120" placeholder="{{ __('booking.modal.player_name_2_placeholder') }}" required>
                 </label>
 
                 <label class="booking-modal__field booking-modal__field--player" id="modal-player3-field" hidden>
-                    <span class="booking-modal__field-label">3. Spielername</span>
-                    <input type="text" id="modal-player3" name="player_name_3" class="booking-modal__input" list="player-suggestions" maxlength="120" placeholder="Name des 3. Spielers">
+                    <span class="booking-modal__field-label">{{ __('booking.modal.player_name_3') }}</span>
+                    <input type="text" id="modal-player3" name="player_name_3" class="booking-modal__input" list="player-suggestions" maxlength="120" placeholder="{{ __('booking.modal.player_name_3_placeholder') }}">
                 </label>
 
                 <label class="booking-modal__field booking-modal__field--player" id="modal-player4-field" hidden>
-                    <span class="booking-modal__field-label">4. Spielername</span>
-                    <input type="text" id="modal-player4" name="player_name_4" class="booking-modal__input" list="player-suggestions" maxlength="120" placeholder="Name des 4. Spielers">
+                    <span class="booking-modal__field-label">{{ __('booking.modal.player_name_4') }}</span>
+                    <input type="text" id="modal-player4" name="player_name_4" class="booking-modal__input" list="player-suggestions" maxlength="120" placeholder="{{ __('booking.modal.player_name_4_placeholder') }}">
                 </label>
 
                 <datalist id="player-suggestions"></datalist>
 
                 @can('admin.event')
-                    <button type="button" id="modal-create-event" class="default-button">Veranstaltung anlegen</button>
+                    <button type="button" id="modal-create-event" class="default-button">{{ __('booking.modal.create_event') }}</button>
                 @endcan
-                <button type="submit" class="modal-primary-button">Jetzt buchen</button>
-                <button type="button" id="modal-cancel" class="default-button">Abbrechen</button>
+                <button type="submit" class="modal-primary-button">{{ __('booking.modal.book_now') }}</button>
+                <button type="button" id="modal-cancel" class="default-button">{{ __('booking.modal.cancel') }}</button>
             </form>
         </div>
     </div>
@@ -357,9 +352,9 @@
 <div id="event-modal" class="booking-modal" style="display:none;">
     <div class="booking-modal__viewport">
         <div class="booking-modal__card booking-modal__card--event">
-            <button id="event-modal-close" class="booking-modal__close" title="Schließen">&#x2715;</button>
+            <button id="event-modal-close" class="booking-modal__close" title="{{ __('booking.feedback.close') }}">&#x2715;</button>
             <div class="booking-modal__header">
-                <h2>Veranstaltung anlegen</h2>
+                <h2>{{ __('booking.modal.create_event') }}</h2>
             </div>
             <form id="event-form" method="POST" action="{{ route('admin.events.store') }}" class="booking-modal__body booking-modal__body--event">
                 @csrf
@@ -369,31 +364,31 @@
                 <input type="hidden" name="datetime_end" id="event-datetime-end">
 
                 <label class="booking-modal__field">
-                    <span class="booking-modal__field-label">Name</span>
+                    <span class="booking-modal__field-label">{{ __('booking.modal.event_name') }}</span>
                     <input type="text" name="name" id="event-name" class="booking-modal__input" maxlength="128" required>
                 </label>
 
                 <div class="booking-modal__event-grid">
                     <label class="booking-modal__field">
-                        <span class="booking-modal__field-label">Datum (Beginn)</span>
+                        <span class="booking-modal__field-label">{{ __('booking.modal.date_start') }}</span>
                         <input type="date" id="event-date-start" class="booking-modal__input" required>
                     </label>
                     <label class="booking-modal__field">
-                        <span class="booking-modal__field-label">Zeit (Beginn)</span>
+                        <span class="booking-modal__field-label">{{ __('booking.modal.time_start') }}</span>
                         <input type="time" id="event-time-start" class="booking-modal__input" required>
                     </label>
                     <label class="booking-modal__field">
-                        <span class="booking-modal__field-label">Datum (Ende)</span>
+                        <span class="booking-modal__field-label">{{ __('booking.modal.date_end') }}</span>
                         <input type="date" id="event-date-end" class="booking-modal__input" required>
                     </label>
                     <label class="booking-modal__field">
-                        <span class="booking-modal__field-label">Zeit (Ende)</span>
+                        <span class="booking-modal__field-label">{{ __('booking.modal.time_end') }}</span>
                         <input type="time" id="event-time-end" class="booking-modal__input" required>
                     </label>
                 </div>
 
                 <label class="booking-modal__field">
-                    <span class="booking-modal__field-label">Platz</span>
+                    <span class="booking-modal__field-label">{{ __('booking.calendar.court') }}</span>
                     <select name="sid" id="event-sid" class="booking-modal__select">
                         @foreach($squares as $square)
                             <option value="{{ $square->sid }}">{{ $square->display_name }}</option>
@@ -402,8 +397,8 @@
                 </label>
 
                 <div class="booking-modal__actions booking-modal__actions--stacked booking-modal__actions--event">
-                    <button type="submit" class="modal-primary-button">Veranstaltung speichern</button>
-                    <button type="button" id="event-modal-cancel" class="default-button">Abbrechen</button>
+                    <button type="submit" class="modal-primary-button">{{ __('booking.modal.save_event') }}</button>
+                    <button type="button" id="event-modal-cancel" class="default-button">{{ __('booking.modal.cancel') }}</button>
                 </div>
             </form>
         </div>

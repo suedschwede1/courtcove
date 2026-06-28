@@ -1,9 +1,9 @@
 @extends('layouts.app')
-@section('title', 'Meine Buchungen')
+@section('title', __('booking.account.my_bookings'))
 
 @section('content')
 <div class="panel" style="max-width:820px; margin:32px auto; padding:28px 32px;">
-    <h1 style="font-size:20px; color:#C84B11; margin:0 0 24px 0;">Meine Buchungen</h1>
+    <h1 style="font-size:20px; color:#C84B11; margin:0 0 24px 0;">{{ __('booking.account.my_bookings') }}</h1>
 
     @if($bookings->isEmpty())
         <p style="color:#888;">Sie haben derzeit keine aktiven Buchungen.</p>
@@ -11,7 +11,7 @@
         <table style="width:100%; border-collapse:collapse;">
             <thead>
                 <tr>
-                    <th style="text-align:left; padding:8px; border-bottom:1px solid #ddd;">Platz</th>
+                    <th style="text-align:left; padding:8px; border-bottom:1px solid #ddd;">{{ __('booking.account.court') }}</th>
                     <th style="text-align:left; padding:8px; border-bottom:1px solid #ddd;">Datum</th>
                     <th style="text-align:left; padding:8px; border-bottom:1px solid #ddd;">Zeit</th>
                     <th style="text-align:left; padding:8px; border-bottom:1px solid #ddd;">Status</th>
@@ -37,7 +37,7 @@
                                   onsubmit="return confirm('Diese Buchung wirklich stornieren?')" style="margin:0;">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="default-button abmelden-button">Stornieren</button>
+                                <button type="submit" class="default-button abmelden-button">{{ __('booking.account.cancel') }}</button>
                             </form>
                         </td>
                     </tr>

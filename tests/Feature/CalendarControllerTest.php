@@ -148,6 +148,38 @@ class CalendarControllerTest extends TestCase
     }
 
     #[Test]
+    public function calendar_renders_up_to_eight_days_forward(): void
+    {
+        $response = $this->get('/calendar?date=2026-07-10');
+
+        $dates = $response->viewData('dates');
+        $this->assertCount(8, $dates);
+        $this->assertSame('2026-07-09', $dates[0]->format('Y-m-d'));                  // yesterday
+        $this->assertSame('2026-07-10', $dates[1]->format('Y-m-d'));                  // today
+        $this->assertSame('2026-07-16', $dates[count($dates) - 1]->format('Y-m-d')); // today+6
+    }
+
+    #[Test]
+    public function calendar_window_spans_yesterday_through_six_days_ahead(): void
+    {
+        $response = $this->get('/calendar?date=2026-07-10');
+
+        $byDate = $response->viewData('reservationsByDate');
+        $this->assertArrayHasKey('2026-07-09', $byDate); // yesterday in window
+        $this->assertArrayHasKey('2026-07-16', $byDate); // today+6 in window
+        $this->assertArrayNotHasKey('2026-07-17', $byDate); // today+7 out of window
+    }
+
+    #[Test]
+    public function calendar_marks_extra_days_as_hidden_by_default(): void
+    {
+        $this->get('/calendar?date=2026-07-10')
+            ->assertOk()
+            ->assertSee('cal-extra-day', false)
+            ->assertSee('data-day="3"', false);
+    }
+
+    #[Test]
     public function calendar_shows_date_navigation_links(): void
     {
         $response = $this->get('/calendar?date=2026-07-10');
@@ -166,7 +198,7 @@ class CalendarControllerTest extends TestCase
 
         Reservation::factory()->create([
             'bid'        => $booking->bid,
-            'date'       => Carbon::today()->addDays(5)->toDateString(),
+            'date'       => Carbon::today()->addDays(10)->toDateString(),
             'time_start' => '10:00:00',
             'time_end'   => '11:00:00',
         ]);

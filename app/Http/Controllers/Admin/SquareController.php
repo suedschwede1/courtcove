@@ -31,7 +31,7 @@ final class SquareController extends Controller
         $square = Square::create($payload['columns']);
         $this->applyMeta($square, $payload['meta']);
 
-        return redirect()->route('admin.squares.index')->with('success', 'Platz angelegt.');
+        return redirect()->route('admin.squares.index')->with('success', __('booking.messages.square_created'));
     }
 
     public function edit(Square $square): View
@@ -45,7 +45,7 @@ final class SquareController extends Controller
         $square->update($payload['columns']);
         $this->applyMeta($square, $payload['meta']);
 
-        return redirect()->route('admin.squares.index')->with('success', 'Platz aktualisiert.');
+        return redirect()->route('admin.squares.index')->with('success', __('booking.messages.square_updated'));
     }
 
     public function destroy(Square $square): RedirectResponse
@@ -54,13 +54,13 @@ final class SquareController extends Controller
             $square->update(['status' => 'disabled']);
 
             return redirect()->route('admin.squares.index')
-                ->with('success', 'Platz hat Buchungen und wurde deaktiviert statt gelöscht.');
+                ->with('success', __('booking.messages.square_disabled_instead_deleted'));
         }
 
         $square->meta()->delete();
         $square->delete();
 
-        return redirect()->route('admin.squares.index')->with('success', 'Platz gelöscht.');
+        return redirect()->route('admin.squares.index')->with('success', __('booking.messages.square_deleted'));
     }
 
     /** Build form values from a square, reversing the unit conversions of buildPayload(). */

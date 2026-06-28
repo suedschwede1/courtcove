@@ -1,5 +1,5 @@
 @php
-    $bookingName = trim((string) \App\Models\Option::getValue('client.name.full', config('booking.name')));
+    $bookingName = trim((string) \App\Models\Option::getValue('service.name', config('booking.name')));
     $bookingName = $bookingName !== '' ? $bookingName : config('booking.name');
 @endphp
 <!DOCTYPE html>
@@ -36,24 +36,24 @@
         <div class="header-actions-card">
             <div class="header-actions">
                 @hasSection('calendar-system-info')
-                    <button type="button" class="default-button header-help-toggle" data-panel-toggle="system-info-panel">Infos</button>
+                    <button type="button" class="default-button header-help-toggle" data-panel-toggle="system-info-panel">{{ __('booking.nav.info') }}</button>
                 @endif
                 @hasSection('calendar-help')
-                    <button type="button" class="default-button header-help-toggle" data-panel-toggle="help-panel">Hinweise</button>
+                    <button type="button" class="default-button header-help-toggle" data-panel-toggle="help-panel">{{ __('booking.nav.help') }}</button>
                 @endif
                 @auth
-                    <a href="{{ route('account.bookings') }}" class="default-button">Meine Buchungen</a>
-                    <a href="{{ route('account.edit') }}" class="default-button">Mein Konto</a>
+                    <a href="{{ route('account.bookings') }}" class="default-button">{{ __('booking.nav.my_bookings') }}</a>
+                    <a href="{{ route('account.edit') }}" class="default-button">{{ __('booking.nav.my_account') }}</a>
                     @can('admin.see-menu')
-                        <a href="{{ route('admin.dashboard') }}" class="default-button">Administration</a>
+                        <a href="{{ route('admin.dashboard') }}" class="default-button">{{ __('booking.nav.admin') }}</a>
                     @endcan
                     <form method="POST" action="{{ route('logout') }}" style="display:inline; margin:0;">
                         @csrf
-                        <button type="submit" class="default-button abmelden-button">Abmelden</button>
+                        <button type="submit" class="default-button abmelden-button">{{ __('booking.nav.logout') }}</button>
                     </form>
                     <a href="#" class="default-button header-help">?</a>
                 @else
-                    <a href="{{ route('login', ['redirect_to' => url()->full()]) }}" class="default-button">Anmelden</a>
+                    <a href="{{ route('login', ['redirect_to' => url()->full()]) }}" class="default-button">{{ __('booking.nav.login') }}</a>
                 @endauth
             </div>
         </div>
@@ -64,15 +64,15 @@
             <div id="feedback-modal" class="booking-modal" style="display:block;">
                 <div class="booking-modal__viewport">
                     <div class="booking-modal__card booking-modal__card--feedback">
-                        <button id="feedback-modal-close" class="booking-modal__close" title="Schließen">&#x2715;</button>
+                        <button id="feedback-modal-close" class="booking-modal__close" title="{{ __('booking.feedback.close') }}">&#x2715;</button>
                         <div class="booking-modal__header">
-                            <h2>{{ session('success') ? 'Erfolg' : 'Hinweis' }}</h2>
+                            <h2>{{ session('success') ? __('booking.feedback.success') : __('booking.feedback.notice') }}</h2>
                         </div>
                         <div class="booking-modal__body">
                             <p class="{{ session('success') ? 'booking-modal__success' : 'booking-modal__warning' }} booking-modal__flash">{{ session('success') ?? session('error') }}</p>
                         </div>
                         <div class="booking-modal__actions">
-                            <button type="button" id="feedback-modal-ok" class="default-button">Schließen</button>
+                            <button type="button" id="feedback-modal-ok" class="default-button">{{ __('booking.feedback.close') }}</button>
                         </div>
                     </div>
                 </div>

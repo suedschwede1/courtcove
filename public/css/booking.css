@@ -1771,3 +1771,13 @@ textarea {
     height: var(--booking-logo-height, 108px);
     object-fit: contain;
 }
+/* Keep the desktop header action buttons level with the calendar navigation row. */
+.header-actions-card {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.header-actions {
+    width: 100%;
+}

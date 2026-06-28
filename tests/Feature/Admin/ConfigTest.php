@@ -22,14 +22,16 @@ class ConfigTest extends TestCase
     #[Test]
     public function edit_shows_current_values(): void
     {
+        Option::create(['key' => 'service.name', 'value' => 'Buchungssystem', 'locale' => null]);
         Option::create(['key' => 'client.name.full', 'value' => 'Example Club', 'locale' => null]);
-        $this->actingAs($this->admin())->get('/admin/config')->assertOk()->assertSee('Example Club');
+        $this->actingAs($this->admin())->get('/admin/config')->assertOk()->assertSee('Buchungssystem')->assertSee('Example Club');
     }
 
     #[Test]
     public function update_writes_default_locale_rows(): void
     {
         $this->actingAs($this->admin())->put('/admin/config', [
+            'system_name'      => 'Neues System',
             'client_name_full' => 'Neuer Name',
             'contact_email'    => 'info@example.com',
             'calendar_days'    => '5',
@@ -37,7 +39,20 @@ class ConfigTest extends TestCase
             'maintenance'      => '0',
         ])->assertRedirect();
 
+        $this->assertSame('Neues System', Option::getValue('service.name'));
         $this->assertSame('Neuer Name', Option::getValue('client.name.full'));
         $this->assertSame('5', Option::getValue('service.calendar.days'));
+    }
+
+    #[Test]
+    public function public_header_uses_system_name(): void
+    {
+        Option::create(['key' => 'service.name', 'value' => 'Reservierungssystem', 'locale' => null]);
+        Option::create(['key' => 'client.name.full', 'value' => 'Vereinsname', 'locale' => null]);
+
+        $this->get('/calendar')
+            ->assertOk()
+            ->assertSee('Reservierungssystem')
+            ->assertDontSee('Vereinsname');
     }
 }

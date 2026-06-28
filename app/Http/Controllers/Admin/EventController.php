@@ -53,10 +53,10 @@ final class EventController extends Controller
 
         $redirectTo = $request->string('redirect_to')->trim()->value();
         if ($redirectTo !== '') {
-            return redirect()->to($redirectTo)->with('success', 'Veranstaltung angelegt.');
+            return redirect()->to($redirectTo)->with('success', __('booking.messages.event_created'));
         }
 
-        return redirect()->route('admin.events.index')->with('success', 'Veranstaltung angelegt.');
+        return redirect()->route('admin.events.index')->with('success', __('booking.messages.event_created'));
     }
 
     public function edit(Event $event): View
@@ -83,14 +83,14 @@ final class EventController extends Controller
         } elseif ($nameRow) {
             $nameRow->delete();
         }
-        return redirect()->route('admin.events.index')->with('success', 'Veranstaltung aktualisiert.');
+        return redirect()->route('admin.events.index')->with('success', __('booking.messages.event_updated'));
     }
 
     public function destroy(Event $event): RedirectResponse
     {
         $event->meta()->delete();
         $event->delete();
-        return redirect()->route('admin.events.index')->with('success', 'Veranstaltung gelöscht.');
+        return redirect()->route('admin.events.index')->with('success', __('booking.messages.event_deleted'));
     }
 
     private function validateEvent(Request $request): array

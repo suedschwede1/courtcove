@@ -35,11 +35,6 @@ class Square extends Model
 {
     use HasFactory;
 
-    private const LEGACY_DISPLAY_NAMES = [
-        '1' => 'Court B',
-        '2' => 'Court D',
-        '3' => 'Court C',
-    ];
 
     /** Allowed values for the bs_squares_meta 'capacity-ask-names' dropdown. */
     public const ASK_NAMES_OPTIONS = [
@@ -132,7 +127,7 @@ class Square extends Model
     public function getDisplayNameAttribute(): string
     {
         return $this->alias
-            ?? self::LEGACY_DISPLAY_NAMES[(string) $this->name]
+            ?? config('booking.square_names')[(string) $this->name]
             ?? (string) $this->name;
     }
 

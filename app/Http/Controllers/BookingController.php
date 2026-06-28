@@ -81,7 +81,7 @@ final class BookingController extends Controller
         }
 
         return redirect()->route('calendar.index', ['date' => Carbon::parse($data['date'])->format('Y-m-d')])
-            ->with('success', 'Ihre Buchung wurde erfolgreich abgeschlossen!');
+            ->with('success', __('booking.messages.booking_created_public'));
     }
 
     public function players(Request $request): JsonResponse
@@ -146,12 +146,12 @@ final class BookingController extends Controller
         }
 
         if (!$user || !$this->bookingService->canUserCancelSingle($user, $booking)) {
-            return back()->withErrors(['booking' => 'Diese Buchung kann online nicht mehr storniert werden.']);
+            return back()->withErrors(['booking' => __('booking.messages.booking_not_cancellable')]);
         }
 
         $this->bookingService->cancelSingle($booking);
 
         return redirect()->route('calendar.index')
-            ->with('success', 'Buchung storniert.');
+            ->with('success', __('booking.messages.booking_cancelled'));
     }
 }

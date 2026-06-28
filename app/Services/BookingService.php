@@ -182,11 +182,11 @@ final class BookingService
         }
 
         if (!$this->hasEnoughCapacity($square, $quantity, $dateStart, $dateEnd)) {
-            throw new BookingValidationException('Der gewaehlte Zeitraum ist bereits belegt.');
+            throw new BookingValidationException(__('booking.messages.slot_occupied'));
         }
 
         if ($this->hasEventConflict($square, $dateStart, $dateEnd)) {
-            throw new BookingValidationException('Der gewaehlte Zeitraum ist durch eine Veranstaltung gesperrt.');
+            throw new BookingValidationException(__('booking.messages.slot_blocked_by_event'));
         }
     }
 

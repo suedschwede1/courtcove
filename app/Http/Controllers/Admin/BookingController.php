@@ -105,11 +105,11 @@ final class BookingController extends Controller
                 foreach ($occurrenceStarts as $occurrenceStart) {
                     $occurrenceEnd = $occurrenceStart->copy()->addSeconds($durationSeconds);
                     if ($this->hasBookingConflict((int) $data['sid'], $occurrenceStart, $occurrenceEnd, null)) {
-                        return back()->withErrors(['booking' => 'Mindestens ein Wiederholungstermin kollidiert mit einer anderen Buchung.'])->withInput();
+                        return back()->withErrors(['booking' => __('booking.messages.repeat_booking_conflict')])->withInput();
                     }
 
                     if ($this->hasEventConflict((int) $data['sid'], $occurrenceStart, $occurrenceEnd)) {
-                        return back()->withErrors(['booking' => 'Mindestens ein Wiederholungstermin kollidiert mit einer Veranstaltung.'])->withInput();
+                        return back()->withErrors(['booking' => __('booking.messages.repeat_event_conflict')])->withInput();
                     }
                 }
             }
@@ -148,7 +148,7 @@ final class BookingController extends Controller
         }
 
         return redirect()->route('calendar.index', ['date' => Carbon::parse($data['date'])->format('Y-m-d')])
-            ->with('success', 'Buchung angelegt.');
+            ->with('success', __('booking.messages.booking_created'));
     }
 
     public function show(Booking $booking): View
@@ -190,7 +190,7 @@ final class BookingController extends Controller
         $firstReservation = $booking->reservations()->orderBy('date')->orderBy('time_start')->first();
 
         if (!$firstReservation) {
-            return back()->withErrors(['booking' => 'Zu dieser Buchung wurde keine Reservierung gefunden.']);
+            return back()->withErrors(['booking' => __('booking.messages.booking_reservation_missing')]);
         }
 
         try {
@@ -202,11 +202,11 @@ final class BookingController extends Controller
                 foreach ($occurrenceStarts as $occurrenceStart) {
                     $occurrenceEnd = $occurrenceStart->copy()->addSeconds($durationSeconds);
                     if ($this->hasBookingConflict((int) $data['sid'], $occurrenceStart, $occurrenceEnd, $booking->bid)) {
-                        return back()->withErrors(['booking' => 'Mindestens ein Wiederholungstermin kollidiert mit einer anderen Buchung.'])->withInput();
+                        return back()->withErrors(['booking' => __('booking.messages.repeat_booking_conflict')])->withInput();
                     }
 
                     if ($this->hasEventConflict((int) $data['sid'], $occurrenceStart, $occurrenceEnd)) {
-                        return back()->withErrors(['booking' => 'Mindestens ein Wiederholungstermin kollidiert mit einer Veranstaltung.'])->withInput();
+                        return back()->withErrors(['booking' => __('booking.messages.repeat_event_conflict')])->withInput();
                     }
                 }
             }
@@ -251,21 +251,21 @@ final class BookingController extends Controller
             return back()->withErrors(['booking' => $e->getMessage()])->withInput();
         }
 
-        return redirect()->route('admin.bookings.index')->with('success', 'Buchung aktualisiert.');
+        return redirect()->route('admin.bookings.index')->with('success', __('booking.messages.booking_updated'));
     }
 
     public function cancel(Booking $booking): RedirectResponse
     {
         $this->bookingService->cancelSingle($booking);
 
-        return redirect()->route('admin.bookings.index')->with('success', 'Buchung storniert.');
+        return redirect()->route('admin.bookings.index')->with('success', __('booking.messages.booking_cancelled'));
     }
 
     public function destroy(Booking $booking): RedirectResponse
     {
         $this->bookingService->deleteSingle($booking);
 
-        return redirect()->route('admin.bookings.index')->with('success', 'Buchung gelöscht.');
+        return redirect()->route('admin.bookings.index')->with('success', __('booking.messages.booking_deleted'));
     }
 
     /**
