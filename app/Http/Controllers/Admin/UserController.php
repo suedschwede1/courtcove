@@ -19,15 +19,17 @@ final class UserController extends Controller
         $users = collect();
 
         if ($searched) {
-            $query = User::where('status', '!=', 'deleted')->orderBy('alias');
+            $query = User::orderBy('alias');
+
+            if ($request->filled('status')) {
+                $query->where('status', $request->input('status'));
+            } else {
+                $query->where('status', '!=', 'deleted');
+            }
 
             if ($request->filled('q')) {
                 $q = '%'.$request->string('q')->trim()->value().'%';
                 $query->where(fn ($sub) => $sub->where('alias', 'like', $q)->orWhere('email', 'like', $q));
-            }
-
-            if ($request->filled('status')) {
-                $query->where('status', $request->input('status'));
             }
 
             $users = $query->get();
@@ -50,7 +52,7 @@ final class UserController extends Controller
         $data = $request->validate([
             'alias' => ['required', 'string', 'max:128'],
             'email' => ['nullable', 'email', 'max:128', 'unique:bs_users,email'],
-            'status' => ['required', 'in:admin,assist,enabled,disabled'],
+            'status' => ['required', 'in:admin,assist,enabled,disabled,blocked'],
             'password' => ['required', 'string', 'min:6'],
             'firstname' => ['nullable', 'string', 'max:128'],
             'lastname' => ['nullable', 'string', 'max:128'],
@@ -96,7 +98,7 @@ final class UserController extends Controller
         $data = $request->validate([
             'alias' => ['required', 'string', 'max:128'],
             'email' => ['nullable', 'email', 'max:128', 'unique:bs_users,email,'.$user->uid.',uid'],
-            'status' => ['required', 'in:admin,assist,enabled,disabled'],
+            'status' => ['required', 'in:admin,assist,enabled,disabled,blocked'],
             'firstname' => ['nullable', 'string', 'max:128'],
             'lastname' => ['nullable', 'string', 'max:128'],
             'phone' => ['nullable', 'string', 'max:64'],

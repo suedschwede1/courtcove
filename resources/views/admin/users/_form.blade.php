@@ -13,7 +13,7 @@
         <label class="admin-form__label" for="uf-status">{{ __('booking.admin.users.status') }}</label>
         <div class="admin-form__field">
             <select id="uf-status" name="status">
-                @foreach(['admin' => 'status_admin', 'assist' => 'status_assist', 'enabled' => 'status_enabled', 'disabled' => 'status_disabled'] as $val => $key)
+                @foreach(['admin' => 'status_admin', 'assist' => 'status_assist', 'enabled' => 'status_enabled', 'disabled' => 'status_disabled', 'blocked' => 'status_blocked'] as $val => $key)
                     <option value="{{ $val }}" @selected(old('status', $user->status ?? 'enabled') === $val)>{{ __('booking.admin.users.'.$key) }}</option>
                 @endforeach
             </select>

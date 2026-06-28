@@ -9,10 +9,9 @@
                placeholder="{{ __('booking.admin.search_placeholder') }}" class="admin-filter-bar__input">
         <select name="status" class="admin-filter-bar__select">
             <option value="">{{ __('booking.admin.search_status_all') }}</option>
-            <option value="admin"    @selected(($filters['status'] ?? '') === 'admin')>admin</option>
-            <option value="assist"   @selected(($filters['status'] ?? '') === 'assist')>assist</option>
-            <option value="enabled"  @selected(($filters['status'] ?? '') === 'enabled')>enabled</option>
-            <option value="disabled" @selected(($filters['status'] ?? '') === 'disabled')>disabled</option>
+            @foreach(['admin' => 'status_admin', 'assist' => 'status_assist', 'enabled' => 'status_enabled', 'disabled' => 'status_disabled', 'blocked' => 'status_blocked', 'deleted' => 'status_deleted', 'placeholder' => 'status_placeholder'] as $val => $key)
+            <option value="{{ $val }}" @selected(($filters['status'] ?? '') === $val)>{{ __('booking.admin.users.'.$key) }}</option>
+            @endforeach
         </select>
         <button type="submit" class="admin-btn-primary">{{ __('booking.admin.common.filter') }}</button>
         <a href="{{ route('admin.users.create') }}" class="default-button">{{ __('booking.admin.users.new_user') }}</a>
