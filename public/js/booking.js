@@ -280,13 +280,12 @@ document.addEventListener('DOMContentLoaded', function () {
         var abmIframe = document.getElementById('abm-iframe');
         if (abmIframe) {
             abmIframe.addEventListener('load', function () {
-                var src = abmIframe.src;
-                if (!src || src === '' || src === 'about:blank') { return; }
+                if (adminBookingModal.style.display === 'none') { return; }
                 try {
                     var iframePath = abmIframe.contentWindow.location.pathname;
                     if (iframePath && iframePath.indexOf('/admin/bookings') === -1) {
                         closeAllModals();
-                        abmIframe.src = '';
+                        abmIframe.src = 'about:blank';
                         window.location.reload();
                     }
                 } catch (e) {}
@@ -298,14 +297,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 e.preventDefault();
                 closeAllModals();
                 var iframe = document.getElementById('abm-iframe');
-                if (iframe) { iframe.src = ''; }
+                if (iframe) { iframe.src = 'about:blank'; }
             });
         }
         adminBookingModal.addEventListener('click', function (e) {
             if (e.target === adminBookingModal) {
                 closeAllModals();
                 var iframe = document.getElementById('abm-iframe');
-                if (iframe) { iframe.src = ''; }
+                if (iframe) { iframe.src = 'about:blank'; }
             }
         });
     }
