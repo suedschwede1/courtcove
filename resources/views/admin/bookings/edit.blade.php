@@ -40,20 +40,27 @@
     @endunless
 
     @if($isCreateMode)
-    {{-- Compact 3-card layout for create/popup mode --}}
+    {{-- Row 1: Gebucht für | Platz --}}
     <div class="abf-row">
-
-        {{-- Card 1: Gebucht für --}}
-        <div class="abf-card">
-            <div class="abf-field">
-                <label class="abf-label" for="booked_for">{{ __('booking.admin.bookings.booked_for') }}</label>
-                <input type="text" id="booked_for" name="booked_for" value="{{ old('booked_for', $bookedFor) }}"
-                       list="admin-player-suggestions" maxlength="120" required class="abf-input">
-            </div>
+        <div class="abf-card" style="flex:2;">
+            <label class="abf-label" for="booked_for">{{ __('booking.admin.bookings.booked_for') }}</label>
+            <input type="text" id="booked_for" name="booked_for" value="{{ old('booked_for', $bookedFor) }}"
+                   list="admin-player-suggestions" maxlength="120" required class="abf-input">
         </div>
+        <div class="abf-card" style="flex:1;">
+            <label class="abf-label" for="sid">{{ __('booking.admin.common.court') }}</label>
+            <select name="sid" id="sid" class="abf-select">
+                @foreach($squares as $square)
+                    <option value="{{ $square->sid }}" @selected(old('sid', $booking->sid) == $square->sid)>{{ $square->display_name }}</option>
+                @endforeach
+            </select>
+        </div>
+    </div>
 
-        {{-- Card 2: Zeit + Datum + Wiederholung --}}
-        <div class="abf-card">
+    {{-- Row 2: Zeit + Datum + Wiederholung | Spieleranzahl + Spielernamen --}}
+    <div class="abf-row" style="margin-top:8px;">
+        {{-- Zeit / Datum --}}
+        <div class="abf-card" style="flex:2;">
             <div class="abf-row2">
                 <div class="abf-field">
                     <label class="abf-label" for="time_start">{{ __('booking.admin.bookings.time_start') }}</label>
@@ -84,43 +91,30 @@
             </div>
         </div>
 
-        {{-- Card 3: Platz + Spieleranzahl + Spielernamen --}}
-        <div class="abf-card">
-            <div class="abf-field">
-                <label class="abf-label" for="sid">{{ __('booking.admin.common.court') }}</label>
-                <select name="sid" id="sid" class="abf-select">
-                    @foreach($squares as $square)
-                        <option value="{{ $square->sid }}" @selected(old('sid', $booking->sid) == $square->sid)>{{ $square->display_name }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="abf-field" style="margin-top:8px;">
-                <label class="abf-label" for="admin-booking-quantity">{{ __('booking.admin.bookings.player_count') }}</label>
-                <select name="quantity" id="admin-booking-quantity" class="abf-select">
-                    <option value="2" @selected((int) old('quantity', $booking->quantity) === 2)>2</option>
-                    <option value="4" @selected((int) old('quantity', $booking->quantity) === 4)>4</option>
-                </select>
-            </div>
+        {{-- Spieleranzahl + Spielernamen --}}
+        <div class="abf-card" style="flex:1;">
+            <label class="abf-label" for="admin-booking-quantity">{{ __('booking.admin.bookings.player_count') }}</label>
+            <select name="quantity" id="admin-booking-quantity" class="abf-select">
+                <option value="2" @selected((int) old('quantity', $booking->quantity) === 2)>2</option>
+                <option value="4" @selected((int) old('quantity', $booking->quantity) === 4)>4</option>
+            </select>
             <div style="margin-top:10px;">
                 <span class="abf-label">{{ __('booking.admin.bookings.player_names') }}</span>
-                <div class="abf-field" style="margin-top:4px;">
-                    <label class="abf-sublabel" for="admin-player2">2.</label>
-                    <input type="text" id="admin-player2" name="player_name_2" value="{{ old('player_name_2', $playerNames[2]) }}" list="admin-player-suggestions" maxlength="120" class="abf-input">
-                </div>
-                <div class="abf-field" id="admin-player3-field">
+                <label class="abf-sublabel" for="admin-player2">2.</label>
+                <input type="text" id="admin-player2" name="player_name_2" value="{{ old('player_name_2', $playerNames[2]) }}" list="admin-player-suggestions" maxlength="120" class="abf-input">
+                <div id="admin-player3-field">
                     <label class="abf-sublabel" for="admin-player3">3.</label>
                     <input type="text" id="admin-player3" name="player_name_3" value="{{ old('player_name_3', $playerNames[3]) }}" list="admin-player-suggestions" maxlength="120" class="abf-input">
                 </div>
-                <div class="abf-field" id="admin-player4-field">
+                <div id="admin-player4-field">
                     <label class="abf-sublabel" for="admin-player4">4.</label>
                     <input type="text" id="admin-player4" name="player_name_4" value="{{ old('player_name_4', $playerNames[4]) }}" list="admin-player-suggestions" maxlength="120" class="abf-input">
                 </div>
             </div>
         </div>
-
     </div>
 
-    {{-- Notizen below --}}
+    {{-- Row 3: Notizen --}}
     <div class="abf-card abf-card--notes">
         <div class="abf-row2">
             <div class="abf-field" style="flex:1;">

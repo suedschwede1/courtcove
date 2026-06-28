@@ -2353,7 +2353,6 @@ textarea {
     flex: 1;
     min-width: 0;
 }
-.abf-card:nth-child(2) { flex: 1.4; }
 .abf-field {
     display: flex;
     flex-direction: column;
