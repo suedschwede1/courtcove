@@ -1793,3 +1793,66 @@ textarea {
 .header-actions {
     width: 100%;
 }
+
+/* ============================================================
+   Admin layout (Alt-System-Optik: helles, zentriertes Panel)
+   ============================================================ */
+.admin-nav { display: flex; flex-wrap: wrap; gap: 6px; }
+.admin-nav .default-button.is-active {
+    color: #333;
+    border-color: #888;
+    border-bottom-color: #333;
+    background: linear-gradient(to bottom, #fff 0%, #dcdcdc 100%);
+    font-weight: 700;
+}
+
+.admin-panel {
+    margin: 16px auto;
+    max-width: 1024px;
+    padding: 32px;
+    color: #333;
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
+}
+.admin-panel h1 { margin: 0 0 4px; font-size: 22px; color: #333; }
+.admin-intro { margin: 0 0 12px; color: #666; font-size: 13px; }
+.admin-separator { margin: 12px 0 20px; border: 0; border-top: 1px solid #ccc; }
+
+/* Tabellen */
+.admin-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+.admin-table th,
+.admin-table td { padding: 8px; border: 1px solid #ccc; text-align: left; vertical-align: top; }
+.admin-table thead th { background: #eee; color: #547B97; font-weight: 700; }
+.admin-table tbody tr:nth-child(even) td { background: #fafafa; }
+.admin-table .admin-table__actions { white-space: nowrap; }
+.admin-table .admin-table__actions a { margin-right: 10px; }
+.admin-table form { display: inline; }
+
+/* Formularraster: Label links, Eingabe rechts, Hinweis darunter */
+.admin-form { width: 100%; }
+.admin-form__row {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 6px 16px;
+    align-items: start;
+    padding: 8px 0;
+}
+.admin-form__label { padding-top: 7px; text-align: right; color: #547B97; }
+.admin-form__field input[type="text"],
+.admin-form__field input[type="email"],
+.admin-form__field input[type="number"],
+.admin-form__field input[type="time"],
+.admin-form__field input[type="date"],
+.admin-form__field input[type="password"],
+.admin-form__field select,
+.admin-form__field textarea { width: 100%; max-width: 420px; }
+.admin-form__note { margin: 3px 0 0; color: #666; font-size: 11px; font-style: italic; line-height: 1.4; }
+.admin-form__actions { margin-top: 20px; padding-left: 236px; }
+
+@media (max-width: 700px) {
+    .admin-panel { padding: 16px; }
+    .admin-form__row { grid-template-columns: 1fr; }
+    .admin-form__label { text-align: left; padding-top: 0; }
+    .admin-form__actions { padding-left: 0; }
+}
