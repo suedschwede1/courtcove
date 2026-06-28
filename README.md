@@ -1,58 +1,211 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# ExampleClub-Booking
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Online-Platzreservierung für den Tennisverein **Example Tennis Club**.
+Mitglieder reservieren die drei Plätze über einen Tageskalender, Administratoren
+verwalten Buchungen, Veranstaltungen, Mitglieder und Einstellungen.
 
-## About Laravel
+Dies ist die **Laravel-13-Neufassung** des bisherigen Zend-Framework-2-Systems
+(`C:\development\booking`). Sie läuft gegen dieselbe, unveränderte produktive
+MySQL-Datenbank.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Tech-Stack
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+| Bereich    | Technologie                                   |
+|------------|-----------------------------------------------|
+| Framework  | Laravel 13, PHP 8.3+ (vorwärtskompatibel 9.0) |
+| Datenbank  | MySQL (`booking_local`, Tabellen `bs_*`)      |
+| Views      | Blade                                         |
+| Frontend   | Vite + Tailwind CSS 4                          |
+| Tests      | PHPUnit (Laravel Test-Suite)                  |
 
-## Learning Laravel
+PHP-9.0-Stil: `declare(strict_types=1)` in jeder Datei, `readonly` auf
+injizierten Abhängigkeiten, Enums für Status-/Typ-Felder, vollständige Typ-Hints.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+---
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Schnellstart
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+Voraussetzungen: PHP 8.3+, Composer, Node.js, eine laufende MySQL-Instanz mit der
+Datenbank `booking_local`.
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+composer install
+npm install
+cp .env.example .env        # bzw. vorhandene .env prüfen
+php artisan key:generate    # nur falls noch kein APP_KEY gesetzt
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+DB-Zugang in `.env` (Standard für lokal):
 
-## Contributing
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=booking_local
+DB_USERNAME=booking
+DB_PASSWORD=REDACTED
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Logo und feste Anzeigegröße können ebenfalls über `.env` angepasst werden:
 
-## Code of Conduct
+```env
+BOOKING_NAME=ExampleClub-Booking
+BOOKING_LOGO_PATH=imgs-client/layout/client-logo.jpg
+BOOKING_LOGO_WIDTH=112
+BOOKING_LOGO_HEIGHT=108
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Alles auf einmal starten (Server + Queue + Logs + Vite):
 
-## Security Vulnerabilities
+```bash
+composer run dev
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Danach im Browser: **http://localhost:8000**
 
-## License
+> Nur den Webserver (ohne Queue/Vite): `php artisan serve` — reicht, wenn die
+> Assets schon mit `npm run build` gebaut wurden.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+> ⚠️ **Keine Migrations gegen die echte DB laufen lassen.** Das System nutzt das
+> bestehende Legacy-Schema (siehe unten). Die mitgelieferten Migrations/Seeder
+> beschreiben teils ein abweichendes Schema und sind nur für `:memory:`-Tests
+> bzw. Doku gedacht — niemals `php artisan migrate` auf `booking_local`.
+
+---
+
+## Funktionsumfang
+
+### Öffentlicher Kalender (`/calendar`)
+- Zeigt **drei Tage gleichzeitig** (gestern / heute / morgen) und alle Plätze.
+- Zeitraster **08:00–19:00 Uhr**, ein Block = 1 Stunde.
+- Navigation tageweise per Pfeile, „Heute" oder Datumswähler.
+- Farbcodierung:
+  - **Weiß** – frei und buchbar
+  - **Blau** – belegte/eigene Reservierung (Gäste sehen „Belegt")
+  - **Rosa** – Veranstaltung oder Sperre
+  - **Grau** – Vergangenheit, nicht mehr buchbar
+- Plätze: `1 → Court B`, `2 → Court D`, `3 → Court C`
+  (Anzeigenamen kommen aus `bs_squares_meta`, Fallback auf diese Legacy-Namen).
+
+### Buchen & Stornieren (angemeldet)
+- Freies Feld anklicken → Modal: **Einzel** (2 Spieler) oder **Doppel** (4 Spieler).
+- Mitspielernamen mit **AJAX-Autocomplete** (`/bookings/players`, sucht in
+  `alias`, `firstname`, `lastname`).
+- Eigene Buchungen sind blau und lassen sich direkt aus dem Plan stornieren.
+- Validierung beim Anlegen: Platzstatus, Buchungsfenster/-vorlauf, Tageslimit,
+  Slot-Überschneidung und Veranstaltungs-Sperren (`SquareValidator` +
+  `BookingService`, doppelt geprüft innerhalb einer DB-Transaktion).
+
+### Mein Bereich (angemeldet)
+- `/meine-buchungen` – eigene Reservierungen
+- `/mein-konto` – Profil & Passwort ändern
+
+### Admin-Bereich (`/admin`, rechtegesteuert)
+- **Mitglieder** (`admin.user`)
+- **Buchungen** (`admin.booking`) – anlegen/bearbeiten/stornieren für alle
+- **Veranstaltungen** (`admin.event`) – Plätze sperren/blockieren
+- **Konfiguration** (`admin.config`)
+- Dashboard sichtbar ab `admin.see-menu`
+
+### Bewusst nicht migriert
+Diese Legacy-Funktionen aus `C:\development\booking` werden in der Laravel-Version absichtlich nicht übernommen:
+
+- Zusatzprodukte zur Buchung
+- Preis-/Billing-Zusammenfassung im Public-Booking-Flow
+- Akzeptieren von Regel-Dokumenten
+- Akzeptieren von Regel-Texten
+
+Die zugehörigen Legacy-Tabellen/Models können für historische Daten weiter existieren, sind aber nicht Teil des neuen öffentlichen Buchungsablaufs.
+
+---
+
+## Berechtigungsmodell
+
+Es gibt **keine** Rollen-/Permission-Tabelle. Die Rechte ergeben sich aus
+`bs_users.status` plus Meta-Flags:
+
+- `status = 'admin'` → `can()` ist immer `true` (alle Rechte).
+- `status = 'assist'` → Einzelrechte als Flags in `bs_users_meta`
+  (`allow.<privilege> = 'true'`). Die Privileg-Strings unterstützen
+  **ODER** (`,`) und **UND** (`+`): `"a, b+c"` = `a` ODER (`b` UND `c`).
+- `status = 'enabled'` (und andere) → keine privilegierten Rechte.
+
+Verfügbare Privilegien: siehe `User::PRIVILEGES`
+(`admin.*`, `calendar.see-past`, `calendar.see-data`,
+`calendar.create/cancel/delete-single-bookings`, … `-subscription-bookings`).
+
+---
+
+## Datenmodell (Legacy-Schema, `bs_*`)
+
+Wichtige Eigenheiten der echten Tabellen — Code richtet sich danach, **nicht** nach
+den Beispiel-Migrations:
+
+- **`bs_users`** – Anmeldename ist `alias`, Passwort-Hash ist `pw` (nicht
+  `password`). Profilfelder (firstname, lastname, phone …) liegen in
+  `bs_users_meta`.
+- **`bs_squares`** – kein `alias`-Spalte (Labels in `bs_squares_meta`),
+  Öffnungszeiten als `TIME`-Spalten, `priority` ist `float`.
+- **`bs_bookings`** – `status` = `single` | `subscription` (aktiv) | `cancelled`;
+  `status_billing` = `pending` | `paid` | `cancelled`. Klartext-Strings, **keine**
+  Enum-Casts.
+- **`bs_reservations`** – `date` ist `'Y-m-d'`-String (kein Unix-Timestamp),
+  `time_start`/`time_end` sind `'HH:MM:SS'`-Strings. Überschneidung wird als
+  halboffenes Intervall `[start, end)` geprüft.
+- **`bs_bookings_meta`** – Mitspielernamen als **serialisiertes PHP-Array** unter
+  dem Key `player-names`.
+- **`bs_events`** – Veranstaltungen/Sperren; `sid = NULL` sperrt alle Plätze.
+
+Übersicht der Tabellen: `bs_users(_meta)`, `bs_squares(_meta/_products/_pricing/_coupons)`,
+`bs_bookings(_bills/_meta)`, `bs_reservations(_meta)`, `bs_events(_meta)`, `bs_options`.
+
+---
+
+## Projektstruktur
+
+```
+app/
+  Enums/         Status-/Typ-Enums (BookingStatus, SquareStatus, …)
+  Http/Controllers/
+    CalendarController        3-Tage-Kalender (öffentlich)
+    BookingController         Buchen/Stornieren + Spieler-Autocomplete
+    AccountController         Mein Konto / Meine Buchungen
+    Auth/                     Login/Logout
+    Admin/                    User-, Booking-, Event-, Option-, Dashboard-Controller
+  Models/        Eloquent-Models auf die bs_*-Tabellen
+  Services/
+    BookingService            Buchung anlegen/stornieren/löschen (transaktional)
+    ReservationService        Reservierungs-Queries & Slot-Overlap
+    SquareValidator           Buchungsregeln (Status, Vorlauf, Limits)
+resources/views/ Blade-Templates (calendar, account, admin, auth, layouts)
+routes/web.php   alle Routen
+```
+
+---
+
+## Tests
+
+```bash
+composer test
+# oder
+php artisan test
+```
+
+Tests laufen gegen SQLite `:memory:` und sind vom produktiven MySQL entkoppelt.
+
+---
+
+## Wichtige Routen
+
+| Methode | Pfad                       | Zweck                          | Auth          |
+|---------|----------------------------|--------------------------------|---------------|
+| GET     | `/calendar`                | Kalender (Start)               | öffentlich    |
+| GET     | `/login`, POST `/login`    | Anmeldung                      | öffentlich    |
+| POST    | `/bookings`                | Buchung anlegen                | Mitglied      |
+| DELETE  | `/bookings/{booking}`      | Buchung stornieren             | Eigner/Admin  |
+| GET     | `/bookings/players`        | Spieler-Autocomplete (JSON)    | Mitglied      |
+| GET     | `/meine-buchungen`         | eigene Buchungen               | Mitglied      |
+| GET/PUT | `/mein-konto`              | Profil/Passwort                | Mitglied      |
+| —       | `/admin/...`               | Verwaltung                     | rechtegesteuert |
