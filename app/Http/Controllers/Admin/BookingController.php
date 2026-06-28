@@ -386,7 +386,9 @@ final class BookingController extends Controller
         for ($i = 1, $count = count($dates); $i < $count; $i++) {
             $previous = $dates[$i - 1]->copy();
             $current = $dates[$i]->copy();
-            $daySteps[] = $previous->diffInDays($current);
+            // diffInDays() returns a float in Carbon 3; cast to int so the match
+            // arms below (1, 2, … 7, 14) compare correctly instead of always failing.
+            $daySteps[] = (int) $previous->diffInDays($current);
             if (! $previous->copy()->addMonthNoOverflow()->isSameDay($current)) {
                 $allMonthly = false;
             }

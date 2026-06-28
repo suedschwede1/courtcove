@@ -32,11 +32,13 @@ final class ReservationService
     public function getInRange(Carbon $from, Carbon $to): Collection
     {
         return Reservation::query()
-            ->whereBetween('date', [
+            ->select('bs_reservations.*')
+            ->join('bs_bookings', 'bs_bookings.bid', '=', 'bs_reservations.bid')
+            ->whereIn('bs_bookings.status', self::ACTIVE_STATUSES)
+            ->whereBetween('bs_reservations.date', [
                 $from->format('Y-m-d'),
                 $to->format('Y-m-d'),
             ])
-            ->whereHas('booking', fn ($query) => $query->whereIn('status', self::ACTIVE_STATUSES))
             ->get();
     }
 
@@ -48,13 +50,14 @@ final class ReservationService
     public function getInRangeBySquare(Square $square, Carbon $from, Carbon $to): Collection
     {
         return Reservation::query()
-            ->whereBetween('date', [
+            ->select('bs_reservations.*')
+            ->join('bs_bookings', 'bs_bookings.bid', '=', 'bs_reservations.bid')
+            ->whereIn('bs_bookings.status', self::ACTIVE_STATUSES)
+            ->where('bs_bookings.sid', $square->sid)
+            ->whereBetween('bs_reservations.date', [
                 $from->format('Y-m-d'),
                 $to->format('Y-m-d'),
             ])
-            ->whereHas('booking', fn ($query) => $query
-                ->whereIn('status', self::ACTIVE_STATUSES)
-                ->where('sid', $square->sid))
             ->get();
     }
 
@@ -68,19 +71,17 @@ final class ReservationService
     public function getCalendarReservations(array $squareIds, Carbon $from, Carbon $to): Collection
     {
         return Reservation::query()
-            ->with([
-                'booking.user',
-                'booking.meta',
-            ])
-            ->whereBetween('date', [
+            ->select('bs_reservations.*')
+            ->join('bs_bookings', 'bs_bookings.bid', '=', 'bs_reservations.bid')
+            ->whereIn('bs_bookings.status', self::ACTIVE_STATUSES)
+            ->whereIn('bs_bookings.sid', $squareIds)
+            ->whereBetween('bs_reservations.date', [
                 $from->format('Y-m-d'),
                 $to->format('Y-m-d'),
             ])
-            ->whereHas('booking', fn ($query) => $query
-                ->whereIn('status', self::ACTIVE_STATUSES)
-                ->whereIn('sid', $squareIds))
-            ->orderBy('date')
-            ->orderBy('time_start')
+            ->with(['booking.user', 'booking.meta'])
+            ->orderBy('bs_reservations.date')
+            ->orderBy('bs_reservations.time_start')
             ->get();
     }
 

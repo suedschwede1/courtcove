@@ -13,11 +13,33 @@ use Illuminate\View\View;
 
 final class UserController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $users = User::where('status', '!=', 'deleted')->orderBy('alias')->get();
+        $searched = $request->hasAny(['q', 'status']);
+        $users = collect();
 
-        return view('admin.users.index', compact('users'));
+        if ($searched) {
+            $query = User::orderBy('alias');
+
+            if ($request->filled('status')) {
+                $query->where('status', $request->input('status'));
+            } else {
+                $query->where('status', '!=', 'deleted');
+            }
+
+            if ($request->filled('q')) {
+                $q = '%'.$request->string('q')->trim()->value().'%';
+                $query->where(fn ($sub) => $sub->where('alias', 'like', $q)->orWhere('email', 'like', $q));
+            }
+
+            $users = $query->get();
+        }
+
+        return view('admin.users.index', [
+            'users'    => $users,
+            'searched' => $searched,
+            'filters'  => $request->only('q', 'status'),
+        ]);
     }
 
     public function create(): View
@@ -30,7 +52,7 @@ final class UserController extends Controller
         $data = $request->validate([
             'alias' => ['required', 'string', 'max:128'],
             'email' => ['nullable', 'email', 'max:128', 'unique:bs_users,email'],
-            'status' => ['required', 'in:admin,assist,enabled,disabled'],
+            'status' => ['required', 'in:admin,assist,enabled,disabled,blocked,deleted,placeholder'],
             'password' => ['required', 'string', 'min:6'],
             'firstname' => ['nullable', 'string', 'max:128'],
             'lastname' => ['nullable', 'string', 'max:128'],
@@ -76,7 +98,7 @@ final class UserController extends Controller
         $data = $request->validate([
             'alias' => ['required', 'string', 'max:128'],
             'email' => ['nullable', 'email', 'max:128', 'unique:bs_users,email,'.$user->uid.',uid'],
-            'status' => ['required', 'in:admin,assist,enabled,disabled'],
+            'status' => ['required', 'in:admin,assist,enabled,disabled,blocked,deleted,placeholder'],
             'firstname' => ['nullable', 'string', 'max:128'],
             'lastname' => ['nullable', 'string', 'max:128'],
             'phone' => ['nullable', 'string', 'max:64'],

@@ -14,43 +14,68 @@ use Illuminate\View\View;
 
 final class EventController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $events = Event::with(['meta', 'square'])->orderByDesc('datetime_start')->get();
+        $searched = $request->hasAny(['q', 'sid', 'date']);
+        $events   = collect();
+        $squares  = Square::orderBy('priority')->get();
 
-        return view('admin.events.index', compact('events'));
+        if ($searched) {
+            $query = Event::with(['meta', 'square'])->orderByDesc('datetime_start');
+
+            if ($request->filled('q')) {
+                $q = '%'.$request->string('q')->trim()->value().'%';
+                $query->whereHas('meta', fn ($m) => $m->where('key', 'name')->where('value', 'like', $q));
+            }
+
+            if ($request->filled('sid')) {
+                $query->where('sid', (int) $request->input('sid'));
+            }
+
+            if ($request->filled('date')) {
+                $date = Carbon::parse($request->input('date'));
+                $query->whereDate('datetime_start', '<=', $date)->whereDate('datetime_end', '>=', $date);
+            }
+
+            $events = $query->get();
+        }
+
+        return view('admin.events.index', [
+            'events'   => $events,
+            'squares'  => $squares,
+            'searched' => $searched,
+            'filters'  => $request->only('q', 'sid', 'date'),
+        ]);
     }
 
     public function create(Request $request): View
     {
         $event = new Event([
-            'sid' => $request->input('sid'),
-            'status' => $request->input('status', 'enabled'),
-            'datetime_start' => $this->normalizeDateTime($request->input('datetime_start')),
-            'datetime_end' => $this->normalizeDateTime($request->input('datetime_end')),
+            'sid'      => $request->input('sid'),
+            'status'   => 'enabled',
+            'capacity' => 0,
         ]);
 
-        return view('admin.events.create', [
-            'squares' => Square::orderBy('priority')->get(),
-            'event' => $event,
-            'name' => (string) $request->input('name', ''),
-        ]);
+        return view('admin.events.create', array_merge(
+            ['squares' => Square::orderBy('priority')->get(), 'event' => $event, 'name' => ''],
+            $this->emptyMeta(),
+        ));
     }
 
     public function store(Request $request): RedirectResponse
     {
         $data = $this->validateEvent($request);
+        [$dtStart, $dtEnd] = $this->combineDateTimes($data);
+
         $event = Event::create([
-            'sid' => $data['sid'] !== '' && $data['sid'] !== null ? (int) $data['sid'] : null,
-            'status' => $data['status'],
-            'datetime_start' => $data['datetime_start'],
-            'datetime_end' => $data['datetime_end'],
-            'capacity' => null,
+            'sid'            => $data['sid'] !== '' && $data['sid'] !== null ? (int) $data['sid'] : null,
+            'status'         => 'enabled',
+            'datetime_start' => $dtStart,
+            'datetime_end'   => $dtEnd,
+            'capacity'       => (int) ($data['capacity'] ?? 0),
         ]);
 
-        if (! empty($data['name'])) {
-            $event->meta()->create(['key' => 'name', 'value' => $data['name']]);
-        }
+        $this->syncMeta($event, $data);
 
         $redirectTo = $request->string('redirect_to')->trim()->value();
         if ($redirectTo !== '') {
@@ -62,28 +87,34 @@ final class EventController extends Controller
 
     public function edit(Event $event): View
     {
+        $metaMap = $event->meta()->pluck('value', 'key');
+
         return view('admin.events.edit', [
-            'event' => $event,
-            'squares' => Square::orderBy('priority')->get(),
-            'name' => $event->meta()->where('key', 'name')->value('value'),
+            'event'       => $event,
+            'squares'     => Square::orderBy('priority')->get(),
+            'name'        => $metaMap['name'] ?? '',
+            'description' => $metaMap['description'] ?? '',
+            'notes'       => $metaMap['notes'] ?? '',
+            'date_start'  => $event->datetime_start?->format('Y-m-d') ?? '',
+            'time_start'  => $event->datetime_start?->format('H:i') ?? '',
+            'date_end'    => $event->datetime_end?->format('Y-m-d') ?? '',
+            'time_end'    => $event->datetime_end?->format('H:i') ?? '',
         ]);
     }
 
     public function update(Request $request, Event $event): RedirectResponse
     {
         $data = $this->validateEvent($request);
+        [$dtStart, $dtEnd] = $this->combineDateTimes($data);
+
         $event->update([
-            'sid' => $data['sid'] !== '' && $data['sid'] !== null ? (int) $data['sid'] : null,
-            'status' => $data['status'],
-            'datetime_start' => $data['datetime_start'],
-            'datetime_end' => $data['datetime_end'],
+            'sid'            => $data['sid'] !== '' && $data['sid'] !== null ? (int) $data['sid'] : null,
+            'datetime_start' => $dtStart,
+            'datetime_end'   => $dtEnd,
+            'capacity'       => (int) ($data['capacity'] ?? 0),
         ]);
-        $nameRow = $event->meta()->where('key', 'name')->first();
-        if (! empty($data['name'])) {
-            $nameRow ? $nameRow->update(['value' => $data['name']]) : $event->meta()->create(['key' => 'name', 'value' => $data['name']]);
-        } elseif ($nameRow) {
-            $nameRow->delete();
-        }
+
+        $this->syncMeta($event, $data);
 
         return redirect()->route('admin.events.index')->with('success', __('booking.messages.event_updated'));
     }
@@ -99,24 +130,42 @@ final class EventController extends Controller
     private function validateEvent(Request $request): array
     {
         return $request->validate([
-            'sid' => ['nullable'],
-            'name' => ['nullable', 'string', 'max:128'],
-            'status' => ['required', 'in:enabled,disabled'],
-            'datetime_start' => ['required', 'date'],
-            'datetime_end' => ['required', 'date', 'after:datetime_start'],
+            'sid'         => ['nullable'],
+            'name'        => ['nullable', 'string', 'max:128'],
+            'description' => ['nullable', 'string', 'max:4096'],
+            'notes'       => ['nullable', 'string', 'max:2048'],
+            'capacity'    => ['nullable', 'integer', 'min:0'],
+            'date_start'  => ['required', 'date_format:Y-m-d'],
+            'time_start'  => ['required', 'date_format:H:i'],
+            'date_end'    => ['required', 'date_format:Y-m-d'],
+            'time_end'    => ['required', 'date_format:H:i'],
         ]);
     }
 
-    private function normalizeDateTime(mixed $value): ?string
+    /** @return array{0:string,1:string} */
+    private function combineDateTimes(array $data): array
     {
-        if (! is_string($value) || trim($value) === '') {
-            return null;
-        }
+        $start = Carbon::createFromFormat('Y-m-d H:i', $data['date_start'].' '.$data['time_start'])->format('Y-m-d H:i:s');
+        $end   = Carbon::createFromFormat('Y-m-d H:i', $data['date_end'].' '.$data['time_end'])->format('Y-m-d H:i:s');
 
-        return rescue(
-            fn () => Carbon::parse($value)->format('Y-m-d H:i:s'),
-            null,
-            report: false,
-        );
+        return [$start, $end];
+    }
+
+    private function syncMeta(Event $event, array $data): void
+    {
+        foreach (['name', 'description', 'notes'] as $key) {
+            $row = $event->meta()->where('key', $key)->first();
+            if (! empty($data[$key])) {
+                $row ? $row->update(['value' => $data[$key]]) : $event->meta()->create(['key' => $key, 'value' => $data[$key]]);
+            } elseif ($row) {
+                $row->delete();
+            }
+        }
+    }
+
+    /** @return array<string,string> */
+    private function emptyMeta(): array
+    {
+        return ['description' => '', 'notes' => '', 'date_start' => '', 'time_start' => '', 'date_end' => '', 'time_end' => ''];
     }
 }

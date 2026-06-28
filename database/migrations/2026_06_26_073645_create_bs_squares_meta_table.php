@@ -10,6 +10,9 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('bs_squares_meta')) {
+            return;
+        }
         Schema::create('bs_squares_meta', function (Blueprint $table) {
             $table->increments('smid');
             $table->unsignedInteger('sid')->index();

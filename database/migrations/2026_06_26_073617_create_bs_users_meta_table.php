@@ -10,6 +10,9 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('bs_users_meta')) {
+            return;
+        }
         Schema::create('bs_users_meta', function (Blueprint $table) {
             $table->increments('umid');
             $table->unsignedInteger('uid')->index();

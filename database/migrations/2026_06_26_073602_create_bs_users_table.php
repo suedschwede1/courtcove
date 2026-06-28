@@ -15,6 +15,9 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('bs_users')) {
+            return;
+        }
         Schema::create('bs_users', function (Blueprint $table) {
             $table->increments('uid');
             $table->string('alias', 128)->index();

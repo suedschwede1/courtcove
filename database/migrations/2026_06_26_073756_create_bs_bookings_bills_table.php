@@ -10,6 +10,9 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('bs_bookings_bills')) {
+            return;
+        }
         Schema::create('bs_bookings_bills', function (Blueprint $table) {
             $table->increments('bbid');
             $table->unsignedInteger('bid')->index();

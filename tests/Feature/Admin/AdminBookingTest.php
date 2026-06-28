@@ -252,6 +252,26 @@ class AdminBookingTest extends TestCase
     }
 
     #[Test]
+    public function edit_detects_weekly_repeat_from_reservations(): void
+    {
+        $admin = $this->admin();
+        $square = Square::factory()->create();
+        $booking = Booking::factory()->create([
+            'uid' => $admin->uid, 'sid' => $square->sid, 'status' => 'subscription', 'quantity' => 2,
+        ]);
+        foreach (['2026-07-06', '2026-07-13', '2026-07-20'] as $date) {
+            Reservation::factory()->create([
+                'bid' => $booking->bid, 'date' => $date, 'time_start' => '10:00:00', 'time_end' => '11:00:00',
+            ]);
+        }
+
+        $response = $this->actingAs($admin)->get("/admin/bookings/{$booking->bid}/edit");
+
+        $response->assertOk();
+        $this->assertSame('weekly', $response->viewData('repeatType'));
+    }
+
+    #[Test]
     public function admin_can_cancel_any_booking(): void
     {
         $b = Booking::factory()->create(['status' => 'single']);

@@ -5,6 +5,6 @@
 <form method="POST" action="{{ route('admin.squares.update', $square) }}" class="admin-form">
     @method('PUT')
     @include('admin.squares._form', ['form' => $form, 'square' => $square])
-    <div class="admin-form__actions"><button type="submit" class="default-button">{{ __('booking.admin.common.save') }}</button></div>
+    <div class="admin-form__actions"><button type="submit" class="admin-btn-primary">{{ __('booking.admin.common.save') }}</button></div>
 </form>
 @endsection

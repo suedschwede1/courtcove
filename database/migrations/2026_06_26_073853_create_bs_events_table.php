@@ -14,6 +14,9 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('bs_events')) {
+            return;
+        }
         Schema::create('bs_events', function (Blueprint $table) {
             $table->increments('eid');
             $table->unsignedInteger('sid')->nullable()->index();

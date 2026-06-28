@@ -10,6 +10,9 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('bs_reservations_meta')) {
+            return;
+        }
         Schema::create('bs_reservations_meta', function (Blueprint $table) {
             $table->increments('rmid');
             $table->unsignedInteger('rid')->index();

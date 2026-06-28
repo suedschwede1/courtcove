@@ -1,54 +1,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Match arm comparison between float and 1 is always false\.$#'
-			identifier: match.alwaysFalse
-			count: 1
-			path: app/Http/Controllers/Admin/BookingController.php
-
-		-
-			message: '#^Match arm comparison between float and 14 is always false\.$#'
-			identifier: match.alwaysFalse
-			count: 1
-			path: app/Http/Controllers/Admin/BookingController.php
-
-		-
-			message: '#^Match arm comparison between float and 2 is always false\.$#'
-			identifier: match.alwaysFalse
-			count: 1
-			path: app/Http/Controllers/Admin/BookingController.php
-
-		-
-			message: '#^Match arm comparison between float and 3 is always false\.$#'
-			identifier: match.alwaysFalse
-			count: 1
-			path: app/Http/Controllers/Admin/BookingController.php
-
-		-
-			message: '#^Match arm comparison between float and 4 is always false\.$#'
-			identifier: match.alwaysFalse
-			count: 1
-			path: app/Http/Controllers/Admin/BookingController.php
-
-		-
-			message: '#^Match arm comparison between float and 5 is always false\.$#'
-			identifier: match.alwaysFalse
-			count: 1
-			path: app/Http/Controllers/Admin/BookingController.php
-
-		-
-			message: '#^Match arm comparison between float and 6 is always false\.$#'
-			identifier: match.alwaysFalse
-			count: 1
-			path: app/Http/Controllers/Admin/BookingController.php
-
-		-
-			message: '#^Match arm comparison between float and 7 is always false\.$#'
-			identifier: match.alwaysFalse
-			count: 1
-			path: app/Http/Controllers/Admin/BookingController.php
-
-		-
 			message: '#^Using nullsafe property access "\?\-\>date" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 1
