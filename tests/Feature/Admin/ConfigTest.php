@@ -29,8 +29,8 @@ class ConfigTest extends TestCase
     public function edit_shows_current_values(): void
     {
         Option::create(['key' => 'service.name', 'value' => 'Buchungssystem', 'locale' => null]);
-        Option::create(['key' => 'client.name.full', 'value' => 'Example Club', 'locale' => null]);
-        $this->actingAs($this->admin())->get('/admin/config')->assertOk()->assertSee('Buchungssystem')->assertSee('Example Club');
+        Option::create(['key' => 'client.name.full', 'value' => 'Tennis-Booking', 'locale' => null]);
+        $this->actingAs($this->admin())->get('/admin/config')->assertOk()->assertSee('Buchungssystem')->assertSee('Tennis-Booking');
     }
 
     #[Test]

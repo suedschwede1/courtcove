@@ -1,12 +1,16 @@
-# ExampleClub-Booking
+# Tennis-Booking
 
-Online-Platzreservierung für den Tennisverein **Example Tennis Club**.
-Mitglieder reservieren die drei Plätze über einen Tageskalender, Administratoren
+> ⚠️ **Work in Progress** — die Migration ist noch nicht abgeschlossen. Dieses Repository befindet sich aktiv in Entwicklung.
+
+Online-Platzreservierung für Tennisvereine — eine **Laravel-13-Neufassung** des
+Open-Source-Systems [ep3-bs](https://github.com/tkrebs/ep3-bs) (Zend Framework 2),
+konzentriert auf die Kernanforderungen eines kleinen Vereins.
+
+Mitglieder reservieren Plätze über einen Tageskalender, Administratoren
 verwalten Buchungen, Veranstaltungen, Mitglieder und Einstellungen.
 
-Dies ist die **Laravel-13-Neufassung** des bisherigen Zend-Framework-2-Systems
-(`C:\development\booking`). Sie läuft gegen dieselbe, unveränderte produktive
-MySQL-Datenbank.
+Das System läuft gegen dieselbe, unveränderte produktive MySQL-Datenbank wie
+ep3-bs — beide Systeme können parallel betrieben werden.
 
 ---
 
@@ -51,7 +55,7 @@ DB_PASSWORD=REDACTED
 Der sichtbare Name im Header kommt aus der Admin-Konfiguration `service.name` (`Name des Systems`). `BOOKING_NAME` ist der Fallback, wenn diese Option leer ist. Logo und feste Anzeigegröße können über `.env` angepasst werden:
 
 ```env
-BOOKING_NAME=ExampleClub-Booking
+BOOKING_NAME=Tennis-Booking
 BOOKING_LOGO_PATH=imgs-client/layout/client-logo.jpg
 BOOKING_LOGO_WIDTH=112
 BOOKING_LOGO_HEIGHT=108
@@ -110,7 +114,7 @@ Danach im Browser: **http://localhost:8000**
 - Dashboard sichtbar ab `admin.see-menu`
 
 ### Bewusst nicht migriert
-Diese Legacy-Funktionen aus `C:\development\booking` werden in der Laravel-Version absichtlich nicht übernommen:
+Diese Legacy-Funktionen aus ep3-bs werden in der Laravel-Version absichtlich nicht übernommen:
 
 - Zusatzprodukte zur Buchung
 - Preis-/Billing-Zusammenfassung im Public-Booking-Flow
@@ -141,8 +145,8 @@ Verfügbare Privilegien: siehe `User::PRIVILEGES`
 ## Datenmodell (Legacy-Schema, `bs_*`)
 
 > **Kompatibilität mit dem Altsystem (Pflicht).** Die Laravel-Neufassung läuft
-> gegen **dieselbe produktive Datenbank** wie das alte ZF2-System
-> (`C:\development\booking`). Beide Systeme können parallel auf denselben Daten
+> gegen **dieselbe produktive Datenbank** wie das alte ep3-bs-System.
+> Beide Systeme können parallel auf denselben Daten
 > arbeiten, daher muss das neue System zum bestehenden Schema **abwärtskompatibel**
 > bleiben: bestehende Spalten und Keys dürfen **nicht** umbenannt, umtypisiert oder
 > entfernt werden, und bestehende Werte müssen weiterhin so interpretiert werden wie

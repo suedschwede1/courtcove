@@ -16,8 +16,8 @@ class OptionModelTest extends TestCase
     #[Test]
     public function get_value_returns_stored_value(): void
     {
-        Option::create(['key' => 'site_name', 'value' => 'ExampleClub']);
-        $this->assertEquals('ExampleClub', Option::getValue('site_name'));
+        Option::create(['key' => 'site_name', 'value' => 'Tennis-Booking']);
+        $this->assertEquals('Tennis-Booking', Option::getValue('site_name'));
     }
 
     #[Test]

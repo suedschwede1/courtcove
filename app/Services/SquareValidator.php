@@ -13,7 +13,7 @@ use Carbon\Carbon;
 
 /**
  * Validates whether a user may create a booking on a given court at a given time.
- * Mirrors the legacy SquareValidator rules from C:\development\booking.
+ * Mirrors the legacy SquareValidator rules from ep3-bs.
  */
 final class SquareValidator
 {
