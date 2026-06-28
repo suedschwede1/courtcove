@@ -19,7 +19,7 @@ ep3-bs — beide Systeme können parallel betrieben werden.
 | Bereich    | Technologie                                   |
 |------------|-----------------------------------------------|
 | Framework  | Laravel 13, PHP 8.3+ (vorwärtskompatibel 9.0) |
-| Datenbank  | MySQL (`booking_local`, Tabellen `bs_*`)      |
+| Datenbank  | MySQL (beliebiger Name, Tabellen `bs_*`)       |
 | Views      | Blade                                         |
 | Frontend   | Vite + Tailwind CSS 4                          |
 | Tests      | PHPUnit (Laravel Test-Suite)                  |
@@ -32,7 +32,7 @@ injizierten Abhängigkeiten, Enums für Status-/Typ-Felder, vollständige Typ-Hi
 ## Schnellstart
 
 Voraussetzungen: PHP 8.3+, Composer, Node.js, eine laufende MySQL-Instanz mit der
-Datenbank `booking_local`.
+bestehenden ep3-bs-Datenbank (Name frei konfigurierbar via `DB_DATABASE`).
 
 ```bash
 composer install
@@ -41,14 +41,14 @@ cp .env.example .env        # bzw. vorhandene .env prüfen
 php artisan key:generate    # nur falls noch kein APP_KEY gesetzt
 ```
 
-DB-Zugang in `.env` (Standard für lokal):
+DB-Zugang in `.env` — alle Werte sind frei konfigurierbar:
 
 ```env
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_DATABASE=booking_local
-DB_USERNAME=booking
+DB_DATABASE=tennis_booking   # beliebiger Datenbankname
+DB_USERNAME=your_db_user
 DB_PASSWORD=REDACTED
 ```
 
@@ -75,7 +75,7 @@ Danach im Browser: **http://localhost:8000**
 > ⚠️ **Keine Migrations gegen die echte DB laufen lassen.** Das System nutzt das
 > bestehende Legacy-Schema (siehe unten). Die mitgelieferten Migrations/Seeder
 > beschreiben teils ein abweichendes Schema und sind nur für `:memory:`-Tests
-> bzw. Doku gedacht — niemals `php artisan migrate` auf `booking_local`.
+> bzw. Doku gedacht — niemals `php artisan migrate` auf der produktiven Datenbank.
 
 ---
 
