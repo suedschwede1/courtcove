@@ -59,8 +59,18 @@ final class BookingController extends Controller
     {
         $square = Square::findOrFail((int) $request->integer('sid'));
         $date = $request->string('date')->value();
-        $timeStartSeconds = (int) $request->input('time_start', 0);
-        $timeEndSeconds = (int) $request->input('time_end', $timeStartSeconds + 3600);
+        $rawStart = $request->input('time_start', '00:00');
+        $rawEnd   = $request->input('time_end', '01:00');
+        // Accept either H:i strings ("12:00") or raw seconds ("43200")
+        $timeStartSeconds = str_contains((string) $rawStart, ':')
+            ? (int) explode(':', $rawStart)[0] * 3600 + (int) explode(':', $rawStart)[1] * 60
+            : (int) $rawStart;
+        $timeEndSeconds = str_contains((string) $rawEnd, ':')
+            ? (int) explode(':', $rawEnd)[0] * 3600 + (int) explode(':', $rawEnd)[1] * 60
+            : (int) $rawEnd;
+        if ($timeEndSeconds <= $timeStartSeconds) {
+            $timeEndSeconds = $timeStartSeconds + 3600;
+        }
         $defaultUser = auth()->user();
 
         $booking = new Booking([

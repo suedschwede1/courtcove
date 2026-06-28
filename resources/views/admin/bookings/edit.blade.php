@@ -151,6 +151,7 @@
             </div>
         </div>
 
+        @unless($isCreateMode)
         <div class="admin-form__row">
             <label class="admin-form__label" for="status">{{ __('booking.admin.bookings.booking_status') }}</label>
             <div class="admin-form__field">
@@ -161,6 +162,7 @@
                 </select>
             </div>
         </div>
+        @endunless
     </div>
 
     {{-- Spielernamen --}}
