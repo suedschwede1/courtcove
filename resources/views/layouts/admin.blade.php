@@ -27,6 +27,9 @@
             @if(Route::has('admin.config.edit'))@can('admin.config')
             <a href="{{ route('admin.config.edit') }}" @class(['admin-sidebar__link', 'is-active' => request()->routeIs('admin.config.*')])>{{ __('booking.admin.config') }}</a>
             @endcan @endif
+            @if(Route::has('admin.testmail.index'))@can('admin.config')
+            <a href="{{ route('admin.testmail.index') }}" @class(['admin-sidebar__link', 'is-active' => request()->routeIs('admin.testmail.*')])>Testmail</a>
+            @endcan @endif
         </nav>
         <div class="admin-sidebar__footer">
             <a href="{{ route('calendar.index') }}" class="admin-sidebar__link admin-sidebar__link--muted">← {{ __('booking.admin.to_calendar') }}</a>

@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EventController;
 use App\Http\Controllers\Admin\OptionController;
 use App\Http\Controllers\Admin\SquareController;
+use App\Http\Controllers\Admin\TestMailController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
@@ -58,5 +59,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function (): v
         Route::get('config', [OptionController::class, 'edit'])->name('config.edit');
         Route::put('config', [OptionController::class, 'update'])->name('config.update');
         Route::resource('squares', SquareController::class)->except(['show']);
+        Route::get('testmail', [TestMailController::class, 'index'])->name('testmail.index');
+        Route::post('testmail', [TestMailController::class, 'send'])->name('testmail.send');
     });
 });
