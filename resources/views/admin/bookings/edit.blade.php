@@ -139,27 +139,11 @@
                        list="admin-player-suggestions" maxlength="120" required>
             </div>
         </div>
-        @if($isMemberOwner)
+        @if($isMemberOwner && Route::has('admin.users.edit') && auth()->user()->can('admin.user'))
             <div class="admin-form__row">
-                <div class="admin-form__label">{{ __('booking.admin.common.status') }}</div>
-                <div class="admin-form__field"><span class="admin-form__meta">{{ $memberLabel }} — {{ $userStatusLabel }}</span></div>
+                <div class="admin-form__label"></div>
+                <div class="admin-form__field"><a href="{{ route('admin.users.edit', $bookingUser) }}">{{ __('booking.admin.bookings.edit_user') }}</a></div>
             </div>
-            <div class="admin-form__row">
-                <div class="admin-form__label">{{ __('booking.admin.bookings.email_label') }}</div>
-                <div class="admin-form__field"><span class="admin-form__meta">{{ $userEmail }}</span></div>
-            </div>
-            @if($userPhone)
-                <div class="admin-form__row">
-                    <div class="admin-form__label">{{ __('booking.admin.bookings.phone_label') }}</div>
-                    <div class="admin-form__field"><span class="admin-form__meta">{{ $userPhone }}</span></div>
-                </div>
-            @endif
-            @if(Route::has('admin.users.edit') && auth()->user()->can('admin.user'))
-                <div class="admin-form__row">
-                    <div class="admin-form__label"></div>
-                    <div class="admin-form__field"><a href="{{ route('admin.users.edit', $bookingUser) }}">{{ __('booking.admin.bookings.edit_user') }}</a></div>
-                </div>
-            @endif
         @endif
     </div>
 
@@ -174,8 +158,6 @@
                 <label class="admin-form__inline-label" for="time_end">{{ __('booking.admin.bookings.time_end') }}</label>
                 <input type="time" id="time_end" name="time_end" value="{{ old('time_end', $reservation ? substr((string) $reservation->time_end, 0, 5) : '') }}">
             </div>
-        </div>
-        <div class="admin-form__row admin-form__field--flex">
             <div class="admin-form__inline-group">
                 <label class="admin-form__inline-label" for="date">{{ __('booking.admin.bookings.date_start') }}</label>
                 <input type="date" id="date" name="date" value="{{ old('date', $reservation?->date) }}">
@@ -215,10 +197,8 @@
                     <option value="4" @selected((int) old('quantity', $booking->quantity) === 4)>4</option>
                 </select>
             </div>
-        </div>
-        <div class="admin-form__row">
-            <label class="admin-form__label" for="status">{{ __('booking.admin.bookings.booking_status') }}</label>
-            <div class="admin-form__field">
+            <div class="admin-form__inline-group">
+                <label class="admin-form__inline-label" for="status">{{ __('booking.admin.bookings.booking_status') }}</label>
                 <select name="status" id="status">
                     <option value="single" @selected(old('status', $booking->status) === 'single')>{{ __('booking.admin.bookings.status_active') }}</option>
                     <option value="subscription" @selected(old('status', $booking->status) === 'subscription')>{{ __('booking.admin.bookings.status_series') }}</option>
