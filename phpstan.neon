@@ -1,0 +1,13 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+    - phpstan-baseline.neon
+
+parameters:
+    paths:
+        - app
+
+    # Start at a pragmatic level; ratchet up over time as the baseline shrinks.
+    level: 5
+
+    # Eloquent models read from the real legacy bs_* schema; their dynamic
+    # attributes/relations are described via @property docblocks on the models.

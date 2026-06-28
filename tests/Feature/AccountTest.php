@@ -46,9 +46,9 @@ class AccountTest extends TestCase
     #[Test]
     public function account_edit_shows_profile(): void
     {
-        $u = User::factory()->create(['alias' => 'Heinz Mayer']);
+        $u = User::factory()->create(['alias' => 'Max Mustermann']);
         $u->setMeta('phone', '+43123');
-        $this->actingAs($u)->get('/mein-konto')->assertOk()->assertSee('Heinz Mayer')->assertSee('+43123');
+        $this->actingAs($u)->get('/mein-konto')->assertOk()->assertSee('Max Mustermann')->assertSee('+43123');
     }
 
     #[Test]

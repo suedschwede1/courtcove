@@ -1,0 +1,109 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Match arm comparison between float and 1 is always false\.$#'
+			identifier: match.alwaysFalse
+			count: 1
+			path: app/Http/Controllers/Admin/BookingController.php
+
+		-
+			message: '#^Match arm comparison between float and 14 is always false\.$#'
+			identifier: match.alwaysFalse
+			count: 1
+			path: app/Http/Controllers/Admin/BookingController.php
+
+		-
+			message: '#^Match arm comparison between float and 2 is always false\.$#'
+			identifier: match.alwaysFalse
+			count: 1
+			path: app/Http/Controllers/Admin/BookingController.php
+
+		-
+			message: '#^Match arm comparison between float and 3 is always false\.$#'
+			identifier: match.alwaysFalse
+			count: 1
+			path: app/Http/Controllers/Admin/BookingController.php
+
+		-
+			message: '#^Match arm comparison between float and 4 is always false\.$#'
+			identifier: match.alwaysFalse
+			count: 1
+			path: app/Http/Controllers/Admin/BookingController.php
+
+		-
+			message: '#^Match arm comparison between float and 5 is always false\.$#'
+			identifier: match.alwaysFalse
+			count: 1
+			path: app/Http/Controllers/Admin/BookingController.php
+
+		-
+			message: '#^Match arm comparison between float and 6 is always false\.$#'
+			identifier: match.alwaysFalse
+			count: 1
+			path: app/Http/Controllers/Admin/BookingController.php
+
+		-
+			message: '#^Match arm comparison between float and 7 is always false\.$#'
+			identifier: match.alwaysFalse
+			count: 1
+			path: app/Http/Controllers/Admin/BookingController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>date" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/Admin/BookingController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>value" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/Admin/BookingController.php
+
+		-
+			message: '#^Negated boolean expression is always false\.$#'
+			identifier: booleanNot.alwaysFalse
+			count: 1
+			path: app/Http/Controllers/BookingController.php
+
+		-
+			message: '#^Offset int\<1, max\> does not exist on non\-empty\-list\<int\>\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: app/Http/Controllers/CalendarController.php
+
+		-
+			message: '#^Parameter \#1 \$array \(array\{0\?\: int\}\) of array_values is already a list, call has no effect\.$#'
+			identifier: arrayValues.list
+			count: 1
+			path: app/Http/Controllers/CalendarController.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between int and null will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Http/Controllers/CalendarController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>value" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/CalendarController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>alias" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Models/Booking.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>value" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Models/Booking.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>range_cancel" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Services/BookingService.php

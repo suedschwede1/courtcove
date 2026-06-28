@@ -66,9 +66,9 @@ class UserModelTest extends TestCase
     public function get_meta_reads_profile_fields(): void
     {
         $user = User::factory()->create();
-        UserMeta::create(['uid' => $user->uid, 'key' => 'firstname', 'value' => 'Heinz']);
+        UserMeta::create(['uid' => $user->uid, 'key' => 'firstname', 'value' => 'Max']);
 
-        $this->assertEquals('Heinz', $user->getMeta('firstname'));
+        $this->assertEquals('Max', $user->getMeta('firstname'));
         $this->assertNull($user->getMeta('missing'));
     }
 
@@ -98,8 +98,8 @@ class UserModelTest extends TestCase
     public function set_meta_upserts_value(): void
     {
         $user = User::factory()->create();
-        $user->setMeta('firstname', 'Heinz');
-        $this->assertEquals('Heinz', $user->getMeta('firstname'));
+        $user->setMeta('firstname', 'Max');
+        $this->assertEquals('Max', $user->getMeta('firstname'));
         $user->setMeta('firstname', 'Karl');
         $this->assertEquals('Karl', $user->fresh()->getMeta('firstname'));
         $this->assertEquals(1, $user->meta()->where('key', 'firstname')->count());
