@@ -14,6 +14,9 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('bs_squares')) {
+            return;
+        }
         Schema::create('bs_squares', function (Blueprint $table) {
             $table->increments('sid');
             $table->string('name', 64);

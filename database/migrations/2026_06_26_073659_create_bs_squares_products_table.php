@@ -10,6 +10,9 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('bs_squares_products')) {
+            return;
+        }
         Schema::create('bs_squares_products', function (Blueprint $table) {
             $table->increments('spid');
             $table->unsignedInteger('sid')->nullable()->index();

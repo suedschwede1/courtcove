@@ -19,13 +19,17 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('bs_bookings', function (Blueprint $table): void {
-            $table->index(['sid', 'status'], 'bs_bookings_sid_status_index');
-        });
+        if (!Schema::hasIndex('bs_bookings', 'bs_bookings_sid_status_index')) {
+            Schema::table('bs_bookings', function (Blueprint $table): void {
+                $table->index(['sid', 'status'], 'bs_bookings_sid_status_index');
+            });
+        }
 
-        Schema::table('bs_reservations', function (Blueprint $table): void {
-            $table->index(['date', 'bid'], 'bs_reservations_date_bid_index');
-        });
+        if (!Schema::hasIndex('bs_reservations', 'bs_reservations_date_bid_index')) {
+            Schema::table('bs_reservations', function (Blueprint $table): void {
+                $table->index(['date', 'bid'], 'bs_reservations_date_bid_index');
+            });
+        }
     }
 
     public function down(): void

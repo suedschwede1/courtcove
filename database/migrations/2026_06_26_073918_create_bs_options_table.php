@@ -13,6 +13,9 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('bs_options')) {
+            return;
+        }
         Schema::create('bs_options', function (Blueprint $table) {
             $table->increments('oid');
             $table->string('key', 64)->index();
