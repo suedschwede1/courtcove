@@ -129,6 +129,20 @@ final class EventController extends Controller
 
     private function validateEvent(Request $request): array
     {
+        // Support two input shapes:
+        // 1. Admin form: separate date_start/time_start/date_end/time_end fields
+        // 2. Calendar popup modal: combined datetime_start/datetime_end hidden fields
+        if ($request->filled('datetime_start') && ! $request->filled('date_start')) {
+            $start = Carbon::parse($request->input('datetime_start'));
+            $end   = Carbon::parse($request->input('datetime_end'));
+            $request->merge([
+                'date_start' => $start->format('Y-m-d'),
+                'time_start' => $start->format('H:i'),
+                'date_end'   => $end->format('Y-m-d'),
+                'time_end'   => $end->format('H:i'),
+            ]);
+        }
+
         return $request->validate([
             'sid'         => ['nullable'],
             'name'        => ['nullable', 'string', 'max:128'],
