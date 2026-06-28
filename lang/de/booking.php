@@ -249,6 +249,9 @@ return [
             'firstname' => 'Vorname',
             'lastname' => 'Nachname',
             'phone' => 'Telefon',
+            'section_account' => 'Konto',
+            'section_profile' => 'Profil',
+            'section_access' => 'Zugang',
         ],
         'events' => [
             'title' => 'Veranstaltungen',
