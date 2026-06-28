@@ -426,6 +426,9 @@
     }
 
     function visibleDayCount() {
+        // A day's width is ALL of its courts together. Using the full day width with
+        // Math.floor means an extra day is revealed only when every court of that day
+        // fits — a day that would be partially cut off is never shown.
         var dayWidth = squares * cssPx('--calendar-slot-col', 136);
         if (dayWidth <= 0) { return BASE_DAYS; }
 
