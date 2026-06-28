@@ -217,7 +217,7 @@
                                                data-edit-url="{{ route('admin.bookings.edit', $reservation->booking) }}"
                                                data-delete-url="{{ route('admin.bookings.destroy', $reservation->booking) }}"
                                            @elseif($isOwn)
-                                               data-edit-url="{{ route('bookings.edit', $reservation->booking) }}"
+                                               data-edit-url="{{ route('bookings.edit', $reservation->booking) }}?popup=1"
                                            @endif>
                                             <span class="cc-label-primary">{{ $primaryLabel }}</span>
                                             @if($secondaryLabel)
