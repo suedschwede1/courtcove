@@ -188,6 +188,6 @@ final class EventController extends Controller
     /** @return array<string,string> */
     private function emptyMeta(): array
     {
-        return ['description' => '', 'notes' => '', 'date_start' => '', 'time_start' => '', 'date_end' => '', 'time_end' => ''];
+        return ['description' => '', 'notes' => ''];
     }
 }

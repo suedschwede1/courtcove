@@ -183,7 +183,13 @@ final class CalendarController extends Controller
             }
         }
 
-        $adminUsers = auth()->check() && auth()->user()->can('admin.booking')
+        $now         = Carbon::now();
+        $authUser    = auth()->user();
+        $authUserId  = $authUser?->uid;
+        $isLoggedIn  = $authUser !== null;
+        $isAdmin     = $isLoggedIn && $authUser->can('admin.booking');
+
+        $adminUsers = $isAdmin
             ? User::whereNotIn('status', ['deleted', 'placeholder'])->orderBy('alias')->get(['uid', 'alias'])
             : collect();
 
@@ -198,6 +204,12 @@ final class CalendarController extends Controller
             'eventBlocks'        => $eventBlocks,
             'eventSkip'          => $eventSkip,
             'adminUsers'         => $adminUsers,
+            'authUser'           => $authUser,
+            'authUserId'         => $authUserId,
+            'isLoggedIn'         => $isLoggedIn,
+            'isAdmin'            => $isAdmin,
+            'now'                => $now,
+            'today'              => $now->format('Y-m-d'),
         ]);
     }
 }

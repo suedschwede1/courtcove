@@ -42,7 +42,7 @@
     @auth
         <section class="help-card">
             <p class="help-card__eyebrow">{{ __('booking.calendar.my_area') }}</p>
-            <h2 class="help-card__title">{{ auth()->user()->name }}</h2>
+            <h2 class="help-card__title">{{ $authUser->name }}</h2>
                         <p class="help-card__text">
                 {{ __('booking.calendar.member_text') }}
             </p>
@@ -118,9 +118,7 @@
                         @foreach($dates as $dayIndex => $d)
                             @php
                                 $dateKey = $d->format('Y-m-d');
-                                $slotStart = $d->copy()->startOfDay()->addHours($h);
-                                $slotEnd = $slotStart->copy()->addHour();
-                                $isPastSlot = $slotEnd->isPast();
+                                $isPastSlot = $dateKey < $today || ($dateKey === $today && ($h + 1) <= $now->hour);
                                 $extraDay = $dayIndex >= 3;
                             @endphp
                             @foreach($squares as $square)
@@ -134,15 +132,13 @@
                                     $reservation = $reservationsBySlot[$dateKey][$sid][$h] ?? null;
 
                                     $isOwn = $reservation
-                                        && auth()->check()
+                                        && $isLoggedIn
                                         && isset($reservation->booking->user)
-                                        && $reservation->booking->user->uid === auth()->id();
+                                        && $reservation->booking->user->uid === $authUserId;
 
-                                    $canManageBooking = $reservation
-                                        && auth()->check()
-                                        && auth()->user()->can('admin.booking');
+                                    $canManageBooking = $reservation && $isAdmin;
 
-                                    $secondaryLabel = auth()->check() ? $reservation?->booking?->player_names_label : null;
+                                    $secondaryLabel = $isLoggedIn ? $reservation?->booking?->player_names_label : null;
 
                                     $cellClass = 'cc-over';
                                     $slotClass = $isPastSlot ? ' slot-cell--past' : '';
@@ -156,8 +152,8 @@
                                             $cellTitle = $squareLabel . ' – ' . __('booking.calendar.past');
                                         } elseif (!$reservation) {
                                             $cellClass = 'cc-free';
-                                            $action = auth()->check() && !$isPastSlot ? (auth()->user()->can('admin.booking') ? 'admin-book' : 'book') : 'login';
-                                            $cellTitle = auth()->check()
+                                            $action = $isLoggedIn && !$isPastSlot ? ($isAdmin ? 'admin-book' : 'book') : 'login';
+                                            $cellTitle = $isLoggedIn
                                                 ? __('booking.calendar.book_title', ['court' => $squareLabel, 'time' => $timeLabel])
                                                 : __('booking.calendar.login_to_book');
                                         } elseif ($isOwn || ($canManageBooking && !$isPastSlot)) {
@@ -169,7 +165,7 @@
                                                 : __('booking.calendar.edit_title', ['court' => $squareLabel]);
                                         } else {
                                             $cellClass = 'cc-single-future';
-                                            $primaryLabel = auth()->check()
+                                            $primaryLabel = $isLoggedIn
                                                 ? ($reservation->booking?->owner_label ?? __('booking.calendar.occupied'))
                                                 : '';
                                             $cellTitle = $isPastSlot
@@ -196,7 +192,7 @@
                                            data-square-name="{{ $squareLabel }}"
                                            data-date-label="{{ $d->isoFormat('dddd, D. MMMM YYYY') }}"
                                            data-time-label="{{ $timeLabel }} – {{ $nextLabel }} Uhr"
-                                           @if(auth()->check() && auth()->user()->can('admin.booking'))
+                                           @if($isAdmin)
                                                data-create-url="{{ route('admin.bookings.create') }}?sid={{ $sid }}&date={{ $dateKey }}&time_start={{ $h * 3600 }}&time_end={{ ($h + 1) * 3600 }}"
                                            @endif></a>
                                     </td>
@@ -210,7 +206,7 @@
                                            data-square-name="{{ $squareLabel }}"
                                            data-date-label="{{ $d->isoFormat('dddd, D. MMMM YYYY') }}"
                                            data-time-label="{{ $timeLabel }} – {{ $nextLabel }} Uhr"
-                                           @if(auth()->check() && auth()->user()->can('admin.booking'))
+                                           @if($isAdmin)
                                                data-edit-url="{{ route('admin.bookings.edit', $reservation->booking) }}"
                                            @endif>
                                             <span class="cc-label-primary">{{ $primaryLabel }}</span>

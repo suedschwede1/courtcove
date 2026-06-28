@@ -78,4 +78,15 @@ class EventManagementTest extends TestCase
         $this->actingAs($this->admin())->delete("/admin/events/{$event->eid}")->assertRedirect(route('admin.events.index'));
         $this->assertDatabaseMissing('bs_events', ['eid' => $event->eid]);
     }
+
+    #[Test]
+    public function create_form_pre_fills_date_and_time_from_query_params(): void
+    {
+        Square::factory()->create();
+        $response = $this->actingAs($this->admin())->get('/admin/events/create?sid=1&date_start=2026-07-05&time_start=10:00&date_end=2026-07-05&time_end=12:00');
+        $response->assertOk();
+        $response->assertSee('value="2026-07-05"', false);
+        $response->assertSee('value="10:00"', false);
+        $response->assertSee('value="12:00"', false);
+    }
 }
