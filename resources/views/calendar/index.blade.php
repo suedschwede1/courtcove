@@ -82,7 +82,7 @@
                     <td class="time-spacer">&nbsp;</td>
                     @foreach($dates as $dayIndex => $d)
                         <td colspan="{{ $squares->count() }}" @class(['day-header-cell', 'cal-extra-day' => $dayIndex >= 3]) data-day="{{ $dayIndex }}">
-                            <div class="day-header-inline"><span class="day-header-name">{{ $d->isoFormat('dddd') }}</span><span class="day-header-date">{{ $d->isoFormat('D. MMMM YYYY') }}</span></div>
+                            <div class="day-header-inline"><span class="day-header-name">{{ $dateLabels[$d->format('Y-m-d')]['short'] }}</span><span class="day-header-date">{{ $dateLabels[$d->format('Y-m-d')]['long'] }}</span></div>
                         </td>
                     @endforeach
                 </tr>
@@ -190,7 +190,7 @@
                                            data-time-start="{{ $h * 3600 }}"
                                            data-time-end="{{ ($h + 1) * 3600 }}"
                                            data-square-name="{{ $squareLabel }}"
-                                           data-date-label="{{ $d->isoFormat('dddd, D. MMMM YYYY') }}"
+                                           data-date-label="{{ $dateLabels[$d->format('Y-m-d')]['full'] }}"
                                            data-time-label="{{ $timeLabel }} – {{ $nextLabel }} Uhr"
                                            @if($isAdmin)
                                                data-create-url="{{ route('admin.bookings.create') }}?sid={{ $sid }}&date={{ $dateKey }}&time_start={{ $h * 3600 }}&time_end={{ ($h + 1) * 3600 }}"
@@ -204,7 +204,7 @@
                                            data-action="cancel"
                                            data-bid="{{ $reservation->booking->bid }}"
                                            data-square-name="{{ $squareLabel }}"
-                                           data-date-label="{{ $d->isoFormat('dddd, D. MMMM YYYY') }}"
+                                           data-date-label="{{ $dateLabels[$d->format('Y-m-d')]['full'] }}"
                                            data-time-label="{{ $timeLabel }} – {{ $nextLabel }} Uhr"
                                            @if($isAdmin)
                                                data-edit-url="{{ route('admin.bookings.edit', $reservation->booking) }}"
@@ -259,7 +259,7 @@
                     <td class="time-spacer">&nbsp;</td>
                     @foreach($dates as $dayIndex => $d)
                         <td colspan="{{ $squares->count() }}" @class(['day-header-cell', 'cal-extra-day' => $dayIndex >= 3]) data-day="{{ $dayIndex }}">
-                            <div class="day-header-inline"><span class="day-header-name">{{ $d->isoFormat('dddd') }}</span><span class="day-header-date">{{ $d->isoFormat('D. MMMM YYYY') }}</span></div>
+                            <div class="day-header-inline"><span class="day-header-name">{{ $dateLabels[$d->format('Y-m-d')]['short'] }}</span><span class="day-header-date">{{ $dateLabels[$d->format('Y-m-d')]['long'] }}</span></div>
                         </td>
                     @endforeach
                 </tr>
