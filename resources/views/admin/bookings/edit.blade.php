@@ -42,13 +42,8 @@
     @endunless
 
     @if($isCreateMode)
-    {{-- Row 1: Gebucht für | Platz --}}
+    {{-- Row 1: Platz | Gebucht für --}}
     <div class="abf-row">
-        <div class="abf-card" style="flex:2;">
-            <label class="abf-label" for="booked_for">{{ __('booking.admin.bookings.booked_for') }}</label>
-            <input type="text" id="booked_for" name="booked_for" value="{{ old('booked_for', $bookedFor) }}"
-                   list="admin-player-suggestions" maxlength="120" required class="abf-input">
-        </div>
         <div class="abf-card" style="flex:1;">
             <label class="abf-label" for="sid">{{ __('booking.admin.common.court') }}</label>
             <select name="sid" id="sid" class="abf-select">
@@ -56,6 +51,11 @@
                     <option value="{{ $square->sid }}" @selected(old('sid', $booking->sid) == $square->sid)>{{ $square->display_name }}</option>
                 @endforeach
             </select>
+        </div>
+        <div class="abf-card" style="flex:2;">
+            <label class="abf-label" for="booked_for">{{ __('booking.admin.bookings.booked_for') }}</label>
+            <input type="text" id="booked_for" name="booked_for" value="{{ old('booked_for', $bookedFor) }}"
+                   list="admin-player-suggestions" maxlength="120" required class="abf-input">
         </div>
     </div>
 
