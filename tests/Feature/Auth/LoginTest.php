@@ -14,6 +14,12 @@ class LoginTest extends TestCase
     use RefreshDatabase;
 
     #[Test]
+    public function login_page_renders(): void
+    {
+        $this->get('/login')->assertOk()->assertViewIs('auth.login');
+    }
+
+    #[Test]
     public function user_can_login_with_valid_credentials(): void
     {
         User::factory()->create([
