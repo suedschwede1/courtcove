@@ -2,10 +2,10 @@
 @section('admin-title', __('booking.admin.users.edit_title'))
 @section('admin-content')
 <h1>{{ __('booking.admin.users.edit_title') }}</h1>
-<form method="POST" action="{{ route('admin.users.update', $user) }}">
+<form method="POST" action="{{ route('admin.users.update', $user) }}" class="admin-form">
     @method('PUT')
     @include('admin.users._form', ['privileges' => $privileges, 'user' => $user, 'profile' => $profile, 'granted' => $granted])
-    <button type="submit" class="default-button">{{ __('booking.admin.common.save') }}</button>
+    <div class="admin-form__actions"><button type="submit" class="default-button">{{ __('booking.admin.common.save') }}</button></div>
 </form>
 <hr>
 <form method="POST" action="{{ route('admin.users.password', $user) }}">
