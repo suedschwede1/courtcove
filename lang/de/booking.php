@@ -269,6 +269,10 @@ return [
             'section_period' => 'Zeitraum',
         ],
         'squares' => [
+            'section_general' => 'Allgemein',
+            'section_booking' => 'Buchung',
+            'section_times' => 'Zeiten',
+            'section_display' => 'Anzeige',
             'title' => 'Plätze',
             'create_title' => 'Neuer Platz',
             'edit_title' => 'Platz bearbeiten',
