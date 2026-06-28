@@ -45,6 +45,22 @@ class LoginTest extends TestCase
     }
 
     #[Test]
+    public function login_rejects_protocol_relative_redirect_target(): void
+    {
+        User::factory()->create([
+            'email' => 'test@example.com',
+            'pw' => bcrypt('secret123'),
+            'status' => 'enabled',
+        ]);
+
+        $this->post('/login', [
+            'email' => 'test@example.com',
+            'password' => 'secret123',
+            'redirect_to' => '//example.com',
+        ])->assertRedirect('/calendar');
+    }
+
+    #[Test]
     public function login_fails_with_wrong_password(): void
     {
         User::factory()->create([

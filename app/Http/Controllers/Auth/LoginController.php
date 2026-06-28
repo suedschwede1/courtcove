@@ -64,8 +64,16 @@ final class LoginController extends Controller
 
     private function normalizeRedirectTarget(?string $redirectTo): string
     {
-        if (is_string($redirectTo) && str_starts_with($redirectTo, '/')) {
-            return $redirectTo;
+        if (!is_string($redirectTo)) {
+            return route('calendar.index');
+        }
+
+        $target = trim($redirectTo);
+        if (str_starts_with($target, '/')
+            && !str_starts_with($target, '//')
+            && !str_contains($target, '\\')
+            && !preg_match('/[[:cntrl:]]/', $target)) {
+            return $target;
         }
 
         return route('calendar.index');
