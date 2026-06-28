@@ -11,8 +11,8 @@
                 <td>{{ $square->name }}</td>
                 <td>{{ $square->display_name }}</td>
                 <td>{{ $square->status->value }}</td>
-                <td>{{ substr((string) $square->time_start, 0, 5) }}–{{ substr((string) $square->time_end, 0, 5) }} Uhr</td>
-                <td>{{ (int) round($square->time_block / 60) }} Min</td>
+                <td>{{ substr((string) $square->time_start, 0, 5) }}–{{ substr((string) $square->time_end, 0, 5) }} {{ __('booking.admin.common.clock_suffix') }}</td>
+                <td>{{ (int) round($square->time_block / 60) }} {{ __('booking.admin.common.minutes_suffix') }}</td>
                 <td>
                     <a href="{{ route('admin.squares.edit', $square) }}">{{ __('booking.admin.common.edit') }}</a>
                     <form method="POST" action="{{ route('admin.squares.destroy', $square) }}" onsubmit="return confirm('{{ __('booking.admin.squares.confirm_delete') }}')" style="display:inline">
