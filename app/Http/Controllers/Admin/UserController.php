@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\UserActivated;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 
 final class UserController extends Controller
@@ -76,6 +78,10 @@ final class UserController extends Controller
         }
         $user->syncPrivileges($data['privileges'] ?? []);
 
+        if ($data['status'] === 'enabled' && ! empty($data['email'])) {
+            Mail::to($data['email'])->queue(new UserActivated($user));
+        }
+
         return redirect()->route('admin.users.index')->with('success', __('booking.messages.user_created'));
     }
 
@@ -106,11 +112,16 @@ final class UserController extends Controller
             'privileges.*' => ['in:'.implode(',', User::PRIVILEGES)],
         ]);
 
+        $wasEnabled = $user->status === 'enabled';
         $user->update(['alias' => $data['alias'], 'email' => $data['email'] ?? null, 'status' => $data['status']]);
         foreach (['firstname', 'lastname', 'phone'] as $field) {
             $user->setMeta($field, $data[$field] ?? null);
         }
         $user->syncPrivileges($data['privileges'] ?? []);
+
+        if (! $wasEnabled && $data['status'] === 'enabled' && ! empty($user->email)) {
+            Mail::to($user->email)->queue(new UserActivated($user));
+        }
 
         return redirect()->route('admin.users.index')->with('success', __('booking.messages.user_updated'));
     }

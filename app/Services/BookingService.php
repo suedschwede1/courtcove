@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Exceptions\BookingValidationException;
+use App\Mail\BookingCancelled;
+use App\Mail\BookingConfirmed;
 use App\Models\Booking;
 use App\Models\Event;
 use App\Models\Reservation;
@@ -12,6 +14,7 @@ use App\Models\Square;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 final class BookingService
 {
@@ -31,7 +34,7 @@ final class BookingService
         $dateEnd = $this->normalizeBookableEnd($square, $dateStart, $dateEnd);
         $this->assertSingleBookingIsValid($user, $square, $quantity, $dateStart, $dateEnd);
 
-        return DB::transaction(function () use ($user, $square, $quantity, $dateStart, $dateEnd, $bills, $meta): Booking {
+        $booking = DB::transaction(function () use ($user, $square, $quantity, $dateStart, $dateEnd, $bills, $meta): Booking {
             // Re-check inside the transaction so stale forms cannot overbook a slot.
             $this->assertSingleBookingIsValid($user, $square, $quantity, $dateStart, $dateEnd);
 
@@ -62,6 +65,12 @@ final class BookingService
 
             return $booking->load('reservations', 'bills', 'meta');
         });
+
+        if (!empty($user->email)) {
+            Mail::to($user->email)->queue(new BookingConfirmed($booking));
+        }
+
+        return $booking;
     }
 
     /**
@@ -119,10 +128,17 @@ final class BookingService
 
     public function cancelSingle(Booking $booking): void
     {
+        $booking->loadMissing('user');
+
         $booking->update([
             'status' => 'cancelled',
             'status_billing' => 'cancelled',
         ]);
+
+        $email = $booking->user?->email ?? null;
+        if (!empty($email)) {
+            Mail::to($email)->queue(new BookingCancelled($booking));
+        }
     }
 
     public function canUserCancelSingle(User $user, Booking $booking): bool
