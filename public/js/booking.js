@@ -283,7 +283,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (adminBookingModal.style.display === 'none') { return; }
                 try {
                     var iframePath = abmIframe.contentWindow.location.pathname;
-                    if (iframePath && iframePath.indexOf('/admin/bookings') === -1) {
+                    var isAdminForm = iframePath.indexOf('/admin/bookings') !== -1 || iframePath.indexOf('/admin/events') !== -1;
+                    if (iframePath && !isAdminForm) {
                         closeAllModals();
                         abmIframe.src = 'about:blank';
                         window.location.reload();

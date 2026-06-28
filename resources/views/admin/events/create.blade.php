@@ -19,6 +19,10 @@
 
 <form method="POST" action="{{ route('admin.events.store') }}" class="admin-form">
     @csrf
+    @if(request('popup'))
+    <input type="hidden" name="popup" value="1">
+    <input type="hidden" name="redirect_to" value="{{ route('calendar.index') }}">
+    @endif
     @include('admin.events._form', ['squares' => $squares])
     <div class="admin-form__actions"><button type="submit" class="admin-btn-primary">{{ __('booking.admin.common.create') }}</button></div>
 </form>
