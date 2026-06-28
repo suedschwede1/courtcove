@@ -15,12 +15,14 @@ final class OptionController extends Controller
 {
     /** form field => option key */
     private const MAP = [
-        'system_name' => 'service.name',
+        'system_name'      => 'service.name',
         'client_name_full' => 'client.name.full',
-        'contact_email' => 'client.contact.email',
-        'calendar_days' => 'service.calendar.days',
-        'registration' => 'service.user.registration',
-        'maintenance' => 'service.maintenance',
+        'contact_email'    => 'client.contact.email',
+        'calendar_days'    => 'service.calendar.days',
+        'calendar_hide'    => 'service.calendar.day-exceptions',
+        'registration'     => 'service.user.registration',
+        'activation'       => 'service.user.activation',
+        'maintenance'      => 'service.maintenance',
     ];
 
     public function edit(): View
@@ -39,9 +41,11 @@ final class OptionController extends Controller
             'system_name' => ['nullable', 'string', 'max:255'],
             'client_name_full' => ['nullable', 'string', 'max:255'],
             'contact_email' => ['nullable', 'email', 'max:128'],
-            'calendar_days' => ['nullable', 'integer', 'min:1', 'max:31'],
-            'registration' => ['nullable', 'in:0,1'],
-            'maintenance' => ['nullable', 'in:0,1'],
+            'calendar_days'  => ['nullable', 'integer', 'min:1', 'max:31'],
+            'calendar_hide'  => ['nullable', 'string', 'max:4096'],
+            'registration'   => ['nullable', 'in:0,1'],
+            'activation'     => ['nullable', 'in:immediate,manual,manual-email,email'],
+            'maintenance'    => ['nullable', 'in:0,1'],
         ]);
 
         foreach (self::MAP as $field => $key) {

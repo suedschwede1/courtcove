@@ -51,6 +51,26 @@ class ConfigTest extends TestCase
     }
 
     #[Test]
+    public function activation_and_day_exceptions_are_saved(): void
+    {
+        $this->actingAs($this->admin())->put('/admin/config', [
+            'activation'   => 'manual',
+            'calendar_hide' => "Sunday\n2026-12-25",
+        ])->assertRedirect();
+
+        $this->assertSame('manual', Option::getValue('service.user.activation'));
+        $this->assertSame("Sunday\n2026-12-25", Option::getValue('service.calendar.day-exceptions'));
+    }
+
+    #[Test]
+    public function activation_rejects_invalid_value(): void
+    {
+        $this->actingAs($this->admin())->put('/admin/config', [
+            'activation' => 'bogus',
+        ])->assertSessionHasErrors('activation');
+    }
+
+    #[Test]
     public function public_header_uses_system_name(): void
     {
         Option::create(['key' => 'service.name', 'value' => 'Reservierungssystem', 'locale' => null]);

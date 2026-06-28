@@ -51,6 +51,25 @@
                 </select>
             </div>
         </div>
+        <div class="admin-form__row">
+            <label class="admin-form__label" for="cf-activation">{{ __('booking.admin.activation') }}</label>
+            <div class="admin-form__field">
+                <select id="cf-activation" name="activation">
+                    <option value="immediate" @selected(($values['activation'] ?? 'immediate') === 'immediate')>{{ __('booking.admin.activation_immediate') }}</option>
+                    <option value="manual"    @selected(($values['activation'] ?? '') === 'manual')>{{ __('booking.admin.activation_manual') }}</option>
+                    <option value="manual-email" @selected(($values['activation'] ?? '') === 'manual-email')>{{ __('booking.admin.activation_manual_email') }}</option>
+                    <option value="email"     @selected(($values['activation'] ?? '') === 'email')>{{ __('booking.admin.activation_email') }}</option>
+                </select>
+                <p class="admin-form__note">{{ __('booking.admin.activation_hint') }}</p>
+            </div>
+        </div>
+        <div class="admin-form__row">
+            <label class="admin-form__label" for="cf-hide">{{ __('booking.admin.calendar_hide') }}</label>
+            <div class="admin-form__field">
+                <textarea id="cf-hide" name="calendar_hide" rows="5">{{ $values['calendar_hide'] }}</textarea>
+                <p class="admin-form__note">{{ __('booking.admin.calendar_hide_hint') }}</p>
+            </div>
+        </div>
     </div>
 
     <div class="admin-form__actions">
