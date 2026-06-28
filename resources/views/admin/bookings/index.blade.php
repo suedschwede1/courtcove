@@ -2,7 +2,7 @@
 @section('admin-title', __('booking.admin.bookings.title'))
 @section('admin-content')
     <h1>{{ __('booking.admin.bookings.title') }}</h1>
-
+    <hr class="admin-separator">
     <form method="GET" action="{{ route('admin.bookings.index') }}" style="margin-bottom:1rem">
         <select name="sid">
             <option value="">{{ __('booking.admin.common.all_courts') }}</option>
@@ -14,7 +14,7 @@
     </form>
 
     <div class="calendar-wrap">
-    <table class="booking-grid">
+    <table class="admin-table">
         <thead><tr><th>{{ __('booking.admin.common.member') }}</th><th>{{ __('booking.admin.common.court') }}</th><th>{{ __('booking.admin.common.date') }}</th><th>{{ __('booking.admin.common.time') }}</th><th>{{ __('booking.admin.common.player') }}</th><th>{{ __('booking.admin.common.status') }}</th><th></th></tr></thead>
         <tbody>
         @foreach($bookings as $b)

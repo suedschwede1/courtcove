@@ -10,8 +10,9 @@
         <dt>{{ __('booking.admin.common.player') }}</dt><dd>{{ $booking->player_names !== [] ? implode(', ', $booking->player_names) : '—' }}</dd>
     </dl>
 
+    <hr class="admin-separator">
     <h2>{{ __('booking.admin.bookings.reservations') }}</h2>
-    <table class="booking-grid">
+    <table class="admin-table">
         <thead><tr><th>{{ __('booking.admin.common.date') }}</th><th>{{ __('booking.admin.common.from') }}</th><th>{{ __('booking.admin.common.to') }}</th></tr></thead>
         <tbody>
         @foreach($booking->reservations as $reservation)
