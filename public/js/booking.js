@@ -12,6 +12,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
+            var parts = dateInput.value.split('-');
+            var label = document.getElementById('c-date-label');
+            if (label) { label.textContent = parts[2] + '.' + parts[1] + '.' + parts[0]; }
+
             window.location.href = dateInput.closest('form').action + '?date=' + dateInput.value;
         });
 
