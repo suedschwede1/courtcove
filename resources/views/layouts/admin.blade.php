@@ -13,16 +13,16 @@
         <nav class="admin-sidebar__nav">
             <a href="{{ route('admin.dashboard') }}" @class(['admin-sidebar__link', 'is-active' => request()->routeIs('admin.dashboard')])>{{ __('booking.admin.overview') }}</a>
             @if(Route::has('admin.users.index'))@can('admin.user')
-            <a href="{{ route('admin.users.index') }}" @class(['admin-sidebar__link', 'is-active' => request()->routeIs('admin.users.*')])>{{ __('booking.admin.users') }}</a>
+            <a href="{{ route('admin.users.index') }}" @class(['admin-sidebar__link', 'is-active' => request()->routeIs('admin.users.*')])>{{ __('booking.admin.nav_users') }}</a>
             @endcan @endif
             @if(Route::has('admin.events.index'))@can('admin.event')
-            <a href="{{ route('admin.events.index') }}" @class(['admin-sidebar__link', 'is-active' => request()->routeIs('admin.events.*')])>{{ __('booking.admin.events') }}</a>
+            <a href="{{ route('admin.events.index') }}" @class(['admin-sidebar__link', 'is-active' => request()->routeIs('admin.events.*')])>{{ __('booking.admin.nav_events') }}</a>
             @endcan @endif
             @if(Route::has('admin.bookings.index'))@can('admin.booking')
-            <a href="{{ route('admin.bookings.index') }}" @class(['admin-sidebar__link', 'is-active' => request()->routeIs('admin.bookings.*')])>{{ __('booking.admin.bookings') }}</a>
+            <a href="{{ route('admin.bookings.index') }}" @class(['admin-sidebar__link', 'is-active' => request()->routeIs('admin.bookings.*')])>{{ __('booking.admin.nav_bookings') }}</a>
             @endcan @endif
             @if(Route::has('admin.squares.index'))@can('admin.config')
-            <a href="{{ route('admin.squares.index') }}" @class(['admin-sidebar__link', 'is-active' => request()->routeIs('admin.squares.*')])>{{ __('booking.admin.courts') }}</a>
+            <a href="{{ route('admin.squares.index') }}" @class(['admin-sidebar__link', 'is-active' => request()->routeIs('admin.squares.*')])>{{ __('booking.admin.nav_courts') }}</a>
             @endcan @endif
             @if(Route::has('admin.config.edit'))@can('admin.config')
             <a href="{{ route('admin.config.edit') }}" @class(['admin-sidebar__link', 'is-active' => request()->routeIs('admin.config.*')])>{{ __('booking.admin.config') }}</a>
