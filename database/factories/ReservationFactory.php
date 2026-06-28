@@ -16,10 +16,10 @@ class ReservationFactory extends Factory
     public function definition(): array
     {
         return [
-            'bid'        => Booking::factory(),
-            'date'       => now()->toDateString(), // 'Y-m-d'
+            'bid' => Booking::factory(),
+            'date' => now()->toDateString(), // 'Y-m-d'
             'time_start' => '10:00:00',
-            'time_end'   => '11:00:00',
+            'time_end' => '11:00:00',
         ];
     }
 }

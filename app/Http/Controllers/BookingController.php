@@ -7,9 +7,9 @@ namespace App\Http\Controllers;
 use App\Exceptions\BookingValidationException;
 use App\Models\Booking;
 use App\Models\Square;
+use App\Models\User;
 use App\Services\BookingService;
 use Carbon\Carbon;
-use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -24,8 +24,8 @@ final class BookingController extends Controller
     public function create(Request $request): View|RedirectResponse
     {
         $data = $request->validate([
-            'sid'        => ['required', 'integer', 'exists:bs_squares,sid'],
-            'date'       => ['required', 'date_format:Y-m-d'],
+            'sid' => ['required', 'integer', 'exists:bs_squares,sid'],
+            'date' => ['required', 'date_format:Y-m-d'],
             'time_start' => ['required', 'integer', 'min:0', 'max:23'],
         ]);
 
@@ -40,11 +40,11 @@ final class BookingController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'sid'           => ['required', 'integer', 'exists:bs_squares,sid'],
-            'date'          => ['required', 'date'],
-            'time_start'    => ['required', 'integer', 'min:0', 'max:86399'],
-            'time_end'      => ['required', 'integer', 'min:1', 'max:86400'],
-            'quantity'      => ['required', 'integer', 'in:2,4'],
+            'sid' => ['required', 'integer', 'exists:bs_squares,sid'],
+            'date' => ['required', 'date'],
+            'time_start' => ['required', 'integer', 'min:0', 'max:86399'],
+            'time_end' => ['required', 'integer', 'min:1', 'max:86400'],
+            'quantity' => ['required', 'integer', 'in:2,4'],
             'player_name_2' => ['required_if:quantity,2,4', 'nullable', 'string', 'max:120'],
             'player_name_3' => ['required_if:quantity,4', 'nullable', 'string', 'max:120'],
             'player_name_4' => ['required_if:quantity,4', 'nullable', 'string', 'max:120'],
@@ -104,16 +104,16 @@ final class BookingController extends Controller
             })
             ->where('bs_users.status', '!=', 'deleted')
             ->where(function ($query) use ($q): void {
-                $query->where('bs_users.alias', 'like', '%' . $q . '%')
-                    ->orWhere('firstnames.value', 'like', '%' . $q . '%')
-                    ->orWhere('lastnames.value', 'like', '%' . $q . '%');
+                $query->where('bs_users.alias', 'like', '%'.$q.'%')
+                    ->orWhere('firstnames.value', 'like', '%'.$q.'%')
+                    ->orWhere('lastnames.value', 'like', '%'.$q.'%');
 
                 // Full-name match ("Vorname Nachname") — DB-agnostic (no CONCAT/|| which differ across MySQL/SQLite).
                 if (str_contains($q, ' ')) {
                     [$first, $last] = explode(' ', $q, 2);
                     $query->orWhere(function ($sub) use ($first, $last): void {
-                        $sub->where('firstnames.value', 'like', '%' . trim($first) . '%')
-                            ->where('lastnames.value', 'like', '%' . trim($last) . '%');
+                        $sub->where('firstnames.value', 'like', '%'.trim($first).'%')
+                            ->where('lastnames.value', 'like', '%'.trim($last).'%');
                     });
                 }
             })
@@ -141,11 +141,11 @@ final class BookingController extends Controller
     {
         $user = auth()->user();
 
-        if ($booking->uid !== $user?->getAuthIdentifier() && !$user?->can('admin.booking')) {
+        if ($booking->uid !== $user?->getAuthIdentifier() && ! $user?->can('admin.booking')) {
             abort(403);
         }
 
-        if (!$user || !$this->bookingService->canUserCancelSingle($user, $booking)) {
+        if (! $user || ! $this->bookingService->canUserCancelSingle($user, $booking)) {
             return back()->withErrors(['booking' => __('booking.messages.booking_not_cancellable')]);
         }
 

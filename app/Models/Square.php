@@ -35,7 +35,6 @@ class Square extends Model
 {
     use HasFactory;
 
-
     /** Allowed values for the bs_squares_meta 'capacity-ask-names' dropdown. */
     public const ASK_NAMES_OPTIONS = [
         '', 'optional-names', 'optional-names-email', 'optional-names-phone', 'optional-names-email-phone',

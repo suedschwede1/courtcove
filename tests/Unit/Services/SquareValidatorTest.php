@@ -23,14 +23,14 @@ class SquareValidatorTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->validator = new SquareValidator();
+        $this->validator = new SquareValidator;
     }
 
     #[Test]
     public function disabled_square_blocks_all_bookings(): void
     {
         $square = Square::factory()->create(['status' => 'disabled']);
-        $user   = User::factory()->create();
+        $user = User::factory()->create();
 
         $result = $this->validator->validate(
             $square, $user, 2,
@@ -63,7 +63,7 @@ class SquareValidatorTest extends TestCase
     public function readonly_square_blocks_booking_without_privilege(): void
     {
         $square = Square::factory()->create(['status' => 'readonly']);
-        $user   = User::factory()->create(['status' => 'enabled']);
+        $user = User::factory()->create(['status' => 'enabled']);
 
         $result = $this->validator->validate(
             $square, $user, 2,
@@ -95,7 +95,7 @@ class SquareValidatorTest extends TestCase
     public function booking_beyond_range_book_is_rejected(): void
     {
         $square = Square::factory()->create(['status' => 'enabled', 'range_book' => 7 * 86400]);
-        $user   = User::factory()->create();
+        $user = User::factory()->create();
 
         $result = $this->validator->validate(
             $square, $user, 2,
@@ -127,16 +127,16 @@ class SquareValidatorTest extends TestCase
     #[Test]
     public function daily_limit_is_enforced(): void
     {
-        $square  = Square::factory()->create(['status' => 'enabled', 'time_block_bookable_max' => 3600]);
+        $square = Square::factory()->create(['status' => 'enabled', 'time_block_bookable_max' => 3600]);
         $otherSquare = Square::factory()->create(['status' => 'enabled']);
-        $user    = User::factory()->create();
+        $user = User::factory()->create();
         $booking = Booking::factory()->create(['uid' => $user->uid, 'sid' => $otherSquare->sid, 'status' => 'single']);
 
         Reservation::factory()->create([
-            'bid'        => $booking->bid,
-            'date'       => Carbon::now()->addDays(3)->toDateString(),
+            'bid' => $booking->bid,
+            'date' => Carbon::now()->addDays(3)->toDateString(),
             'time_start' => '10:00:00',
-            'time_end'   => '11:00:00',
+            'time_end' => '11:00:00',
         ]);
 
         $result = $this->validator->validate(
@@ -155,7 +155,7 @@ class SquareValidatorTest extends TestCase
         Carbon::setTestNow(Carbon::parse('2026-07-10 10:00:00'));
 
         $square = Square::factory()->create(['status' => 'enabled', 'time_block_bookable_max' => 3600]);
-        $user   = User::factory()->create();
+        $user = User::factory()->create();
 
         $dateStart = Carbon::now()->addMinutes(20);
 

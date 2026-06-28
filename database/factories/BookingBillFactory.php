@@ -16,13 +16,13 @@ class BookingBillFactory extends Factory
     public function definition(): array
     {
         return [
-            'bid'         => Booking::factory(),
+            'bid' => Booking::factory(),
             'description' => fake()->sentence(),
-            'quantity'    => 1,
-            'time'        => null,
-            'price'       => fake()->numberBetween(500, 5000),
-            'rate'        => 20,
-            'gross'       => 1,
+            'quantity' => 1,
+            'time' => null,
+            'price' => fake()->numberBetween(500, 5000),
+            'rate' => 20,
+            'gross' => 1,
         ];
     }
 }

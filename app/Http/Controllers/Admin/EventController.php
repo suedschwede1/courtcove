@@ -17,6 +17,7 @@ final class EventController extends Controller
     public function index(): View
     {
         $events = Event::with(['meta', 'square'])->orderByDesc('datetime_start')->get();
+
         return view('admin.events.index', compact('events'));
     }
 
@@ -47,7 +48,7 @@ final class EventController extends Controller
             'capacity' => null,
         ]);
 
-        if (!empty($data['name'])) {
+        if (! empty($data['name'])) {
             $event->meta()->create(['key' => 'name', 'value' => $data['name']]);
         }
 
@@ -62,9 +63,9 @@ final class EventController extends Controller
     public function edit(Event $event): View
     {
         return view('admin.events.edit', [
-            'event'   => $event,
+            'event' => $event,
             'squares' => Square::orderBy('priority')->get(),
-            'name'    => $event->meta()->where('key', 'name')->value('value'),
+            'name' => $event->meta()->where('key', 'name')->value('value'),
         ]);
     }
 
@@ -72,17 +73,18 @@ final class EventController extends Controller
     {
         $data = $this->validateEvent($request);
         $event->update([
-            'sid'            => $data['sid'] !== '' && $data['sid'] !== null ? (int) $data['sid'] : null,
-            'status'         => $data['status'],
+            'sid' => $data['sid'] !== '' && $data['sid'] !== null ? (int) $data['sid'] : null,
+            'status' => $data['status'],
             'datetime_start' => $data['datetime_start'],
-            'datetime_end'   => $data['datetime_end'],
+            'datetime_end' => $data['datetime_end'],
         ]);
         $nameRow = $event->meta()->where('key', 'name')->first();
-        if (!empty($data['name'])) {
+        if (! empty($data['name'])) {
             $nameRow ? $nameRow->update(['value' => $data['name']]) : $event->meta()->create(['key' => 'name', 'value' => $data['name']]);
         } elseif ($nameRow) {
             $nameRow->delete();
         }
+
         return redirect()->route('admin.events.index')->with('success', __('booking.messages.event_updated'));
     }
 
@@ -90,28 +92,29 @@ final class EventController extends Controller
     {
         $event->meta()->delete();
         $event->delete();
+
         return redirect()->route('admin.events.index')->with('success', __('booking.messages.event_deleted'));
     }
 
     private function validateEvent(Request $request): array
     {
         return $request->validate([
-            'sid'            => ['nullable'],
-            'name'           => ['nullable', 'string', 'max:128'],
-            'status'         => ['required', 'in:enabled,disabled'],
+            'sid' => ['nullable'],
+            'name' => ['nullable', 'string', 'max:128'],
+            'status' => ['required', 'in:enabled,disabled'],
             'datetime_start' => ['required', 'date'],
-            'datetime_end'   => ['required', 'date', 'after:datetime_start'],
+            'datetime_end' => ['required', 'date', 'after:datetime_start'],
         ]);
     }
 
     private function normalizeDateTime(mixed $value): ?string
     {
-        if (!is_string($value) || trim($value) === '') {
+        if (! is_string($value) || trim($value) === '') {
             return null;
         }
 
         return rescue(
-            fn() => Carbon::parse($value)->format('Y-m-d H:i:s'),
+            fn () => Carbon::parse($value)->format('Y-m-d H:i:s'),
             null,
             report: false,
         );

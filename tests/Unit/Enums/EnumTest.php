@@ -86,8 +86,8 @@ class EnumTest extends TestCase
     public function all_enums_implement_string_backed(): void
     {
         foreach ([BookingStatus::Enabled, BillingStatus::Pending, SquareStatus::Enabled,
-                  Visibility::Public, UserStatus::Enabled, EventStatus::Enabled,
-                  CouponType::Percent, ProductType::Single] as $case) {
+            Visibility::Public, UserStatus::Enabled, EventStatus::Enabled,
+            CouponType::Percent, ProductType::Single] as $case) {
             $this->assertIsString($case->value);
         }
     }

@@ -13,11 +13,17 @@ class SquareMeta extends Model
 {
     use HasFactory;
 
-    protected $table      = 'bs_squares_meta';
+    protected $table = 'bs_squares_meta';
+
     protected $primaryKey = 'smid';
-    public $timestamps    = false;
-    protected $fillable   = ['sid', 'key', 'value', 'locale'];
+
+    public $timestamps = false;
+
+    protected $fillable = ['sid', 'key', 'value', 'locale'];
 
     /** @return BelongsTo<Square, $this> */
-    public function square(): BelongsTo { return $this->belongsTo(Square::class, 'sid', 'sid'); }
+    public function square(): BelongsTo
+    {
+        return $this->belongsTo(Square::class, 'sid', 'sid');
+    }
 }

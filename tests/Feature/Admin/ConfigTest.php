@@ -1,5 +1,7 @@
 <?php
+
 declare(strict_types=1);
+
 namespace Tests\Feature\Admin;
 
 use App\Models\Option;
@@ -11,7 +13,11 @@ use Tests\TestCase;
 class ConfigTest extends TestCase
 {
     use RefreshDatabase;
-    private function admin(): User { return User::factory()->create(['status' => 'admin']); }
+
+    private function admin(): User
+    {
+        return User::factory()->create(['status' => 'admin']);
+    }
 
     #[Test]
     public function regular_member_is_forbidden(): void
@@ -31,12 +37,12 @@ class ConfigTest extends TestCase
     public function update_writes_default_locale_rows(): void
     {
         $this->actingAs($this->admin())->put('/admin/config', [
-            'system_name'      => 'Neues System',
+            'system_name' => 'Neues System',
             'client_name_full' => 'Neuer Name',
-            'contact_email'    => 'info@example.com',
-            'calendar_days'    => '5',
-            'registration'     => '1',
-            'maintenance'      => '0',
+            'contact_email' => 'info@example.com',
+            'calendar_days' => '5',
+            'registration' => '1',
+            'maintenance' => '0',
         ])->assertRedirect();
 
         $this->assertSame('Neues System', Option::getValue('service.name'));

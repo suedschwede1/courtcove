@@ -1,5 +1,7 @@
 <?php
+
 declare(strict_types=1);
+
 namespace Tests\Feature\Admin;
 
 use App\Models\Booking;
@@ -13,7 +15,10 @@ class SquareManagementTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function admin(): User { return User::factory()->create(['status' => 'admin']); }
+    private function admin(): User
+    {
+        return User::factory()->create(['status' => 'admin']);
+    }
 
     /** Vollständige, gültige Formular-Eingabe; Overrides per $overrides. */
     private function payload(array $overrides = []): array

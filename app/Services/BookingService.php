@@ -36,20 +36,20 @@ final class BookingService
             $this->assertSingleBookingIsValid($user, $square, $quantity, $dateStart, $dateEnd);
 
             $booking = Booking::create([
-                'uid'            => $user->uid,
-                'sid'            => $square->sid,
-                'status'         => 'single',
+                'uid' => $user->uid,
+                'sid' => $square->sid,
+                'status' => 'single',
                 'status_billing' => 'pending',
-                'visibility'     => 'public',
-                'quantity'       => $quantity,
-                'created'        => now()->format('Y-m-d H:i:s'),
+                'visibility' => 'public',
+                'quantity' => $quantity,
+                'created' => now()->format('Y-m-d H:i:s'),
             ]);
 
             Reservation::create([
-                'bid'        => $booking->bid,
-                'date'       => $dateStart->format('Y-m-d'),
+                'bid' => $booking->bid,
+                'date' => $dateStart->format('Y-m-d'),
                 'time_start' => $dateStart->format('H:i:s'),
-                'time_end'   => $dateEnd->format('H:i:s'),
+                'time_end' => $dateEnd->format('H:i:s'),
             ]);
 
             foreach ($bills as $bill) {
@@ -65,7 +65,7 @@ final class BookingService
     }
 
     /**
-     * @param array<int, string|null> $playerNames
+     * @param  array<int, string|null>  $playerNames
      * @return array<array{key: string, value: string}>
      */
     public function buildPlayerMeta(array $playerNames): array
@@ -79,7 +79,7 @@ final class BookingService
             }
 
             $metaEntries[] = [
-                'name' => 'sb-player-name-' . $index,
+                'name' => 'sb-player-name-'.$index,
                 'value' => $name,
             ];
         }
@@ -110,6 +110,7 @@ final class BookingService
 
         if ($row) {
             $row->update($meta[0]);
+
             return;
         }
 
@@ -119,7 +120,7 @@ final class BookingService
     public function cancelSingle(Booking $booking): void
     {
         $booking->update([
-            'status'         => 'cancelled',
+            'status' => 'cancelled',
             'status_billing' => 'cancelled',
         ]);
     }
@@ -141,13 +142,13 @@ final class BookingService
         }
 
         $reservation = $booking->reservations
-            ->sortBy(fn($reservation): string => (string) $reservation->date . ' ' . (string) $reservation->time_start)
+            ->sortBy(fn ($reservation): string => (string) $reservation->date.' '.(string) $reservation->time_start)
             ->first();
-        if (!$reservation) {
+        if (! $reservation) {
             return true;
         }
 
-        $reservationStart = Carbon::parse($reservation->date . ' ' . $reservation->time_start);
+        $reservationStart = Carbon::parse($reservation->date.' '.$reservation->time_start);
 
         return $reservationStart->greaterThan(Carbon::now()->addSeconds($cancelRange));
     }
@@ -177,11 +178,11 @@ final class BookingService
     ): void {
         $result = $this->validator->validate($square, $user, $quantity, $dateStart, $dateEnd);
 
-        if (!$result->isValid()) {
+        if (! $result->isValid()) {
             throw new BookingValidationException($result->getError());
         }
 
-        if (!$this->hasEnoughCapacity($square, $quantity, $dateStart, $dateEnd)) {
+        if (! $this->hasEnoughCapacity($square, $quantity, $dateStart, $dateEnd)) {
             throw new BookingValidationException(__('booking.messages.slot_occupied'));
         }
 

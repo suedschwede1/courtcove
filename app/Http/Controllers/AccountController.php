@@ -58,15 +58,15 @@ final class AccountController extends Controller
         $user = auth()->user();
 
         $data = $request->validate([
-            'alias'     => ['required', 'string', 'max:128'],
-            'email'     => ['nullable', 'email', 'max:128', 'unique:bs_users,email,' . $user->uid . ',uid'],
+            'alias' => ['required', 'string', 'max:128'],
+            'email' => ['nullable', 'email', 'max:128', 'unique:bs_users,email,'.$user->uid.',uid'],
             'firstname' => ['nullable', 'string', 'max:128'],
-            'lastname'  => ['nullable', 'string', 'max:128'],
-            'phone'     => ['nullable', 'string', 'max:128'],
-            'street'    => ['nullable', 'string', 'max:128'],
-            'zip'       => ['nullable', 'string', 'max:128'],
-            'city'      => ['nullable', 'string', 'max:128'],
-            'gender'    => ['nullable', 'string', 'max:128'],
+            'lastname' => ['nullable', 'string', 'max:128'],
+            'phone' => ['nullable', 'string', 'max:128'],
+            'street' => ['nullable', 'string', 'max:128'],
+            'zip' => ['nullable', 'string', 'max:128'],
+            'city' => ['nullable', 'string', 'max:128'],
+            'gender' => ['nullable', 'string', 'max:128'],
         ]);
 
         $user->update([
@@ -90,10 +90,10 @@ final class AccountController extends Controller
 
         $data = $request->validate([
             'current_password' => ['required', 'string'],
-            'password'         => ['required', 'string', 'min:6', 'confirmed'],
+            'password' => ['required', 'string', 'min:6', 'confirmed'],
         ]);
 
-        if (!Hash::check($data['current_password'], (string) $user->pw)) {
+        if (! Hash::check($data['current_password'], (string) $user->pw)) {
             throw ValidationException::withMessages([
                 'current_password' => __('booking.validation.current_password_incorrect'),
             ]);

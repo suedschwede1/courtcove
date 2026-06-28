@@ -24,17 +24,17 @@ class BookingServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new BookingService(new SquareValidator());
+        $this->service = new BookingService(new SquareValidator);
     }
 
     #[Test]
     public function create_single_persists_booking_and_reservation(): void
     {
-        $user   = User::factory()->create();
+        $user = User::factory()->create();
         $square = Square::factory()->create(['status' => 'enabled', 'time_block_bookable_max' => 0, 'range_book' => 0]);
 
         $dateStart = Carbon::now()->addDay()->setTime(10, 0);
-        $dateEnd   = Carbon::now()->addDay()->setTime(11, 0);
+        $dateEnd = Carbon::now()->addDay()->setTime(11, 0);
 
         $booking = $this->service->createSingle($user, $square, 2, $dateStart, $dateEnd);
 
@@ -52,7 +52,7 @@ class BookingServiceTest extends TestCase
     #[Test]
     public function create_single_throws_when_square_is_disabled(): void
     {
-        $user   = User::factory()->create();
+        $user = User::factory()->create();
         $square = Square::factory()->create(['status' => 'disabled']);
 
         $this->expectException(BookingValidationException::class);
@@ -79,7 +79,7 @@ class BookingServiceTest extends TestCase
     #[Test]
     public function create_single_with_meta_persists_meta(): void
     {
-        $user   = User::factory()->create();
+        $user = User::factory()->create();
         $square = Square::factory()->create(['status' => 'enabled', 'time_block_bookable_max' => 0, 'range_book' => 0]);
 
         $booking = $this->service->createSingle(
@@ -96,9 +96,9 @@ class BookingServiceTest extends TestCase
     #[Test]
     public function create_single_no_orphan_booking_on_validation_failure(): void
     {
-        $user   = User::factory()->create();
+        $user = User::factory()->create();
         $square = Square::factory()->create(['status' => 'disabled']);
-        $count  = Booking::count();
+        $count = Booking::count();
 
         try {
             $this->service->createSingle(
@@ -106,7 +106,8 @@ class BookingServiceTest extends TestCase
                 Carbon::now()->addDay()->setTime(10, 0),
                 Carbon::now()->addDay()->setTime(11, 0),
             );
-        } catch (BookingValidationException) {}
+        } catch (BookingValidationException) {
+        }
 
         $this->assertEquals($count, Booking::count());
     }

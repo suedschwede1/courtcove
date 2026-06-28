@@ -8,7 +8,6 @@ use App\Enums\SquareStatus;
 use App\Models\Booking;
 use App\Models\Square;
 use App\Models\SquareMeta;
-use App\Models\SquareProduct;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;

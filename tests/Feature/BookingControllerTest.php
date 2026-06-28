@@ -24,28 +24,28 @@ class BookingControllerTest extends TestCase
         $square = Square::factory()->create();
 
         $this->post('/bookings', [
-            'sid'        => $square->sid,
-            'date'       => '2026-07-10',
+            'sid' => $square->sid,
+            'date' => '2026-07-10',
             'time_start' => 36000,
-            'time_end'   => 39600,
-            'quantity'   => 2,
+            'time_end' => 39600,
+            'quantity' => 2,
         ])->assertRedirect('/login');
     }
 
     #[Test]
     public function user_can_create_booking_on_available_slot(): void
     {
-        $user   = User::factory()->create();
+        $user = User::factory()->create();
         $square = Square::factory()->create([
             'status' => 'enabled', 'time_block_bookable_max' => 0, 'range_book' => 0,
         ]);
 
         $this->actingAs($user)->post('/bookings', [
-            'sid'           => $square->sid,
-            'date'          => '2026-07-10',
-            'time_start'    => 36000,
-            'time_end'      => 39600,
-            'quantity'      => 2,
+            'sid' => $square->sid,
+            'date' => '2026-07-10',
+            'time_start' => 36000,
+            'time_end' => 39600,
+            'quantity' => 2,
             'player_name_2' => 'Partner Mustermann',
         ])->assertRedirect();
 
@@ -56,15 +56,15 @@ class BookingControllerTest extends TestCase
     #[Test]
     public function user_cannot_create_booking_on_disabled_square(): void
     {
-        $user   = User::factory()->create();
+        $user = User::factory()->create();
         $square = Square::factory()->create(['status' => 'disabled']);
 
         $response = $this->actingAs($user)->post('/bookings', [
-            'sid'        => $square->sid,
-            'date'       => '2026-07-10',
+            'sid' => $square->sid,
+            'date' => '2026-07-10',
             'time_start' => 36000,
-            'time_end'   => 39600,
-            'quantity'   => 2,
+            'time_end' => 39600,
+            'quantity' => 2,
         ]);
 
         $response->assertRedirect();
@@ -162,7 +162,7 @@ class BookingControllerTest extends TestCase
     #[Test]
     public function user_can_cancel_own_booking(): void
     {
-        $user    = User::factory()->create();
+        $user = User::factory()->create();
         $booking = Booking::factory()->create(['uid' => $user->uid, 'status' => 'single']);
 
         $this->actingAs($user)->delete("/bookings/{$booking->bid}")->assertRedirect();
@@ -196,8 +196,8 @@ class BookingControllerTest extends TestCase
     #[Test]
     public function user_cannot_cancel_another_users_booking(): void
     {
-        $owner   = User::factory()->create();
-        $other   = User::factory()->create();
+        $owner = User::factory()->create();
+        $other = User::factory()->create();
         $booking = Booking::factory()->create(['uid' => $owner->uid]);
 
         $this->actingAs($other)->delete("/bookings/{$booking->bid}")->assertForbidden();
@@ -221,7 +221,7 @@ class BookingControllerTest extends TestCase
     #[Test]
     public function booking_creation_validates_quantity_range(): void
     {
-        $user   = User::factory()->create();
+        $user = User::factory()->create();
         $square = Square::factory()->create();
 
         $this->actingAs($user)->post('/bookings', [

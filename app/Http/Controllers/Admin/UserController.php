@@ -1,5 +1,7 @@
 <?php
+
 declare(strict_types=1);
+
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
@@ -14,6 +16,7 @@ final class UserController extends Controller
     public function index(): View
     {
         $users = User::where('status', '!=', 'deleted')->orderBy('alias')->get();
+
         return view('admin.users.index', compact('users'));
     }
 
@@ -25,27 +28,27 @@ final class UserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'alias'        => ['required', 'string', 'max:128'],
-            'email'        => ['nullable', 'email', 'max:128', 'unique:bs_users,email'],
-            'status'       => ['required', 'in:admin,assist,enabled,disabled'],
-            'password'     => ['required', 'string', 'min:6'],
-            'firstname'    => ['nullable', 'string', 'max:128'],
-            'lastname'     => ['nullable', 'string', 'max:128'],
-            'phone'        => ['nullable', 'string', 'max:64'],
-            'privileges'   => ['array'],
-            'privileges.*' => ['in:' . implode(',', User::PRIVILEGES)],
+            'alias' => ['required', 'string', 'max:128'],
+            'email' => ['nullable', 'email', 'max:128', 'unique:bs_users,email'],
+            'status' => ['required', 'in:admin,assist,enabled,disabled'],
+            'password' => ['required', 'string', 'min:6'],
+            'firstname' => ['nullable', 'string', 'max:128'],
+            'lastname' => ['nullable', 'string', 'max:128'],
+            'phone' => ['nullable', 'string', 'max:64'],
+            'privileges' => ['array'],
+            'privileges.*' => ['in:'.implode(',', User::PRIVILEGES)],
         ]);
 
         $user = User::create([
-            'alias'   => $data['alias'],
-            'email'   => $data['email'] ?? null,
-            'status'  => $data['status'],
-            'pw'      => Hash::make($data['password']),
+            'alias' => $data['alias'],
+            'email' => $data['email'] ?? null,
+            'status' => $data['status'],
+            'pw' => Hash::make($data['password']),
             'created' => now(),
         ]);
 
         foreach (['firstname', 'lastname', 'phone'] as $field) {
-            if (!empty($data[$field])) {
+            if (! empty($data[$field])) {
                 $user->setMeta($field, $data[$field]);
             }
         }
@@ -57,13 +60,13 @@ final class UserController extends Controller
     public function edit(User $user): View
     {
         return view('admin.users.edit', [
-            'user'       => $user,
+            'user' => $user,
             'privileges' => User::PRIVILEGES,
-            'granted'    => $user->grantedPrivileges(),
-            'profile'    => [
+            'granted' => $user->grantedPrivileges(),
+            'profile' => [
                 'firstname' => $user->getMeta('firstname'),
-                'lastname'  => $user->getMeta('lastname'),
-                'phone'     => $user->getMeta('phone'),
+                'lastname' => $user->getMeta('lastname'),
+                'phone' => $user->getMeta('phone'),
             ],
         ]);
     }
@@ -71,14 +74,14 @@ final class UserController extends Controller
     public function update(Request $request, User $user): RedirectResponse
     {
         $data = $request->validate([
-            'alias'        => ['required', 'string', 'max:128'],
-            'email'        => ['nullable', 'email', 'max:128', 'unique:bs_users,email,' . $user->uid . ',uid'],
-            'status'       => ['required', 'in:admin,assist,enabled,disabled'],
-            'firstname'    => ['nullable', 'string', 'max:128'],
-            'lastname'     => ['nullable', 'string', 'max:128'],
-            'phone'        => ['nullable', 'string', 'max:64'],
-            'privileges'   => ['array'],
-            'privileges.*' => ['in:' . implode(',', User::PRIVILEGES)],
+            'alias' => ['required', 'string', 'max:128'],
+            'email' => ['nullable', 'email', 'max:128', 'unique:bs_users,email,'.$user->uid.',uid'],
+            'status' => ['required', 'in:admin,assist,enabled,disabled'],
+            'firstname' => ['nullable', 'string', 'max:128'],
+            'lastname' => ['nullable', 'string', 'max:128'],
+            'phone' => ['nullable', 'string', 'max:64'],
+            'privileges' => ['array'],
+            'privileges.*' => ['in:'.implode(',', User::PRIVILEGES)],
         ]);
 
         $user->update(['alias' => $data['alias'], 'email' => $data['email'] ?? null, 'status' => $data['status']]);
@@ -94,12 +97,14 @@ final class UserController extends Controller
     {
         $request->validate(['password' => ['required', 'string', 'min:6']]);
         $user->update(['pw' => Hash::make($request->string('password')->value())]);
+
         return back()->with('success', __('booking.messages.user_password_reset'));
     }
 
     public function destroy(User $user): RedirectResponse
     {
         $user->update(['status' => 'deleted']);
+
         return redirect()->route('admin.users.index')->with('success', __('booking.messages.user_deleted'));
     }
 }

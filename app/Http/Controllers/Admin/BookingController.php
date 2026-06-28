@@ -30,7 +30,7 @@ final class BookingController extends Controller
     {
         return array_combine(
             self::REPEAT_KEYS,
-            array_map(fn (string $k) => __('booking.repeat.' . $k), self::REPEAT_KEYS),
+            array_map(fn (string $k) => __('booking.repeat.'.$k), self::REPEAT_KEYS),
         );
     }
 
@@ -189,7 +189,7 @@ final class BookingController extends Controller
     {
         $firstReservation = $booking->reservations()->orderBy('date')->orderBy('time_start')->first();
 
-        if (!$firstReservation) {
+        if (! $firstReservation) {
             return back()->withErrors(['booking' => __('booking.messages.booking_reservation_missing')]);
         }
 
@@ -301,7 +301,7 @@ final class BookingController extends Controller
             'sid' => ['required', 'integer', 'exists:bs_squares,sid'],
             'date' => ['required', 'date_format:Y-m-d'],
             'date_end' => ['nullable', 'date_format:Y-m-d'],
-            'repeat_type' => ['required', 'in:' . implode(',', self::REPEAT_KEYS)],
+            'repeat_type' => ['required', 'in:'.implode(',', self::REPEAT_KEYS)],
             'time_start' => ['required', 'date_format:H:i'],
             'time_end' => ['required', 'date_format:H:i'],
             'quantity' => ['required', 'integer', 'in:2,4'],
@@ -322,10 +322,10 @@ final class BookingController extends Controller
 
     private function buildBookingTimeline(array $data): array
     {
-        $dateStart = Carbon::createFromFormat('Y-m-d H:i', $data['date'] . ' ' . $data['time_start']);
-        $dateEnd = Carbon::createFromFormat('Y-m-d H:i', $data['date'] . ' ' . $data['time_end']);
+        $dateStart = Carbon::createFromFormat('Y-m-d H:i', $data['date'].' '.$data['time_start']);
+        $dateEnd = Carbon::createFromFormat('Y-m-d H:i', $data['date'].' '.$data['time_end']);
 
-        if (!$dateEnd->greaterThan($dateStart)) {
+        if (! $dateEnd->greaterThan($dateStart)) {
             throw new BookingValidationException(__('booking.validation.end_time_after_start'));
         }
 
@@ -361,6 +361,7 @@ final class BookingController extends Controller
 
         if ($row) {
             $row->update(['value' => $normalized]);
+
             return;
         }
 
@@ -375,7 +376,7 @@ final class BookingController extends Controller
         }
 
         $dates = array_map(
-            static fn(Reservation $reservation): Carbon => Carbon::createFromFormat('Y-m-d', $reservation->date),
+            static fn (Reservation $reservation): Carbon => Carbon::createFromFormat('Y-m-d', $reservation->date),
             $reservations,
         );
 
@@ -386,7 +387,7 @@ final class BookingController extends Controller
             $previous = $dates[$i - 1]->copy();
             $current = $dates[$i]->copy();
             $daySteps[] = $previous->diffInDays($current);
-            if (!$previous->copy()->addMonthNoOverflow()->isSameDay($current)) {
+            if (! $previous->copy()->addMonthNoOverflow()->isSameDay($current)) {
                 $allMonthly = false;
             }
         }
@@ -437,7 +438,7 @@ final class BookingController extends Controller
                 default => null,
             };
 
-            if (!$next || $next->equalTo($cursor)) {
+            if (! $next || $next->equalTo($cursor)) {
                 break;
             }
 

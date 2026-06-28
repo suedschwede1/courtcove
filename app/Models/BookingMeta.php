@@ -12,8 +12,11 @@ class BookingMeta extends Model
 {
     use HasFactory;
 
-    protected $table      = 'bs_bookings_meta';
+    protected $table = 'bs_bookings_meta';
+
     protected $primaryKey = 'bmid';
-    public $timestamps    = false;
-    protected $fillable   = ['bid', 'key', 'value'];
+
+    public $timestamps = false;
+
+    protected $fillable = ['bid', 'key', 'value'];
 }

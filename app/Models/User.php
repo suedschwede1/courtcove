@@ -20,11 +20,11 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
  *
  * Profile fields (firstname, lastname, phone, …) live in bs_users_meta.
  *
- * @property int         $uid
- * @property string      $alias   Display name
- * @property string      $status  admin|assist|enabled|placeholder|disabled|blocked|deleted
+ * @property int $uid
+ * @property string $alias Display name
+ * @property string $status admin|assist|enabled|placeholder|disabled|blocked|deleted
  * @property string|null $email
- * @property string|null $pw      Bcrypt password hash
+ * @property string|null $pw Bcrypt password hash
  */
 class User extends Authenticatable
 {
@@ -38,9 +38,11 @@ class User extends Authenticatable
         'calendar.create-subscription-bookings', 'calendar.cancel-subscription-bookings', 'calendar.delete-subscription-bookings',
     ];
 
-    protected $table      = 'bs_users';
+    protected $table = 'bs_users';
+
     protected $primaryKey = 'uid';
-    public $timestamps    = false;
+
+    public $timestamps = false;
 
     protected $fillable = [
         'alias', 'status', 'email', 'pw', 'login_attempts', 'login_detent', 'last_activity', 'last_ip', 'created',
@@ -91,7 +93,7 @@ class User extends Authenticatable
             return true;
         }
 
-        if ($this->status !== 'assist' || !is_string($privileges)) {
+        if ($this->status !== 'assist' || ! is_string($privileges)) {
             return false;
         }
 
@@ -100,7 +102,7 @@ class User extends Authenticatable
             $matched = 0;
 
             foreach ($andPrivileges as $andPrivilege) {
-                if ($this->getMeta('allow.' . trim($andPrivilege)) === 'true') {
+                if ($this->getMeta('allow.'.trim($andPrivilege)) === 'true') {
                     $matched++;
                 }
             }
@@ -126,6 +128,7 @@ class User extends Authenticatable
     {
         if ($value === null) {
             $this->meta()->where('key', $key)->delete();
+
             return;
         }
         $row = $this->meta()->where('key', $key)->first();
@@ -140,7 +143,7 @@ class User extends Authenticatable
     public function syncPrivileges(array $privileges): void
     {
         foreach (self::PRIVILEGES as $priv) {
-            $this->setMeta('allow.' . $priv, in_array($priv, $privileges, true) ? 'true' : null);
+            $this->setMeta('allow.'.$priv, in_array($priv, $privileges, true) ? 'true' : null);
         }
     }
 

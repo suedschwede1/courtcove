@@ -16,17 +16,17 @@ class SquareProductFactory extends Factory
     public function definition(): array
     {
         return [
-            'sid'         => Square::factory(),
-            'priority'    => 1,
-            'date_start'  => null,
-            'date_end'    => null,
-            'name'        => fake()->words(2, true),
+            'sid' => Square::factory(),
+            'priority' => 1,
+            'date_start' => null,
+            'date_end' => null,
+            'name' => fake()->words(2, true),
             'description' => null,
-            'options'     => '',
-            'price'       => fake()->numberBetween(500, 5000),
-            'rate'        => 20,
-            'gross'       => 1,
-            'locale'      => null,
+            'options' => '',
+            'price' => fake()->numberBetween(500, 5000),
+            'rate' => 20,
+            'gross' => 1,
+            'locale' => null,
         ];
     }
 }

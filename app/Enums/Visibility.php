@@ -7,6 +7,6 @@ namespace App\Enums;
 /** Whether a booking is publicly visible in the calendar grid. */
 enum Visibility: string
 {
-    case Public  = 'public';
+    case Public = 'public';
     case Private = 'private';
 }

@@ -13,7 +13,7 @@ namespace App\Enums;
  */
 enum SquareStatus: string
 {
-    case Enabled  = 'enabled';
+    case Enabled = 'enabled';
     case Disabled = 'disabled';
     case Readonly = 'readonly';
 }

@@ -12,33 +12,45 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * Special event blocking or limiting court availability.
  *
- * @property int    $eid
- * @property int    $sid
+ * @property int $eid
+ * @property int $sid
  * @property string $datetime_start
  * @property string $datetime_end
- * @property int    $capacity
- * @property string $status  'enabled'|'disabled'
+ * @property int $capacity
+ * @property string $status 'enabled'|'disabled'
  */
 class Event extends Model
 {
     use HasFactory;
 
-    protected $table      = 'bs_events';
+    protected $table = 'bs_events';
+
     protected $primaryKey = 'eid';
-    public $timestamps    = false;
-    protected $fillable   = ['sid', 'datetime_start', 'datetime_end', 'capacity', 'status'];
+
+    public $timestamps = false;
+
+    protected $fillable = ['sid', 'datetime_start', 'datetime_end', 'capacity', 'status'];
 
     // Legacy DB stores status as plain string ('enabled'/'disabled') and datetimes as DATETIME columns.
     protected $casts = [
         'datetime_start' => 'datetime',
-        'datetime_end'   => 'datetime',
+        'datetime_end' => 'datetime',
     ];
 
-    public function getRouteKeyName(): string { return 'eid'; }
+    public function getRouteKeyName(): string
+    {
+        return 'eid';
+    }
 
     /** @return BelongsTo<Square, $this> */
-    public function square(): BelongsTo { return $this->belongsTo(Square::class, 'sid', 'sid'); }
+    public function square(): BelongsTo
+    {
+        return $this->belongsTo(Square::class, 'sid', 'sid');
+    }
 
     /** @return HasMany<EventMeta, $this> */
-    public function meta(): HasMany { return $this->hasMany(EventMeta::class, 'eid', 'eid'); }
+    public function meta(): HasMany
+    {
+        return $this->hasMany(EventMeta::class, 'eid', 'eid');
+    }
 }

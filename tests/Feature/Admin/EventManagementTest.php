@@ -1,5 +1,7 @@
 <?php
+
 declare(strict_types=1);
+
 namespace Tests\Feature\Admin;
 
 use App\Models\Event;
@@ -12,7 +14,11 @@ use Tests\TestCase;
 class EventManagementTest extends TestCase
 {
     use RefreshDatabase;
-    private function admin(): User { return User::factory()->create(['status' => 'admin']); }
+
+    private function admin(): User
+    {
+        return User::factory()->create(['status' => 'admin']);
+    }
 
     #[Test]
     public function regular_member_is_forbidden(): void

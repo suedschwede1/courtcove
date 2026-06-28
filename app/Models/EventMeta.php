@@ -12,8 +12,11 @@ class EventMeta extends Model
 {
     use HasFactory;
 
-    protected $table      = 'bs_events_meta';
+    protected $table = 'bs_events_meta';
+
     protected $primaryKey = 'emid';
-    public $timestamps    = false;
-    protected $fillable   = ['eid', 'key', 'value', 'locale'];
+
+    public $timestamps = false;
+
+    protected $fillable = ['eid', 'key', 'value', 'locale'];
 }

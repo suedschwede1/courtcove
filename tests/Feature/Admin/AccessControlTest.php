@@ -1,5 +1,7 @@
 <?php
+
 declare(strict_types=1);
+
 namespace Tests\Feature\Admin;
 
 use App\Models\User;
@@ -40,14 +42,14 @@ class AccessControlTest extends TestCase
     #[Test]
     public function admin_can_open_dashboard(): void
     {
-        $admin = \App\Models\User::factory()->create(['status' => 'admin']);
+        $admin = User::factory()->create(['status' => 'admin']);
         $this->actingAs($admin)->get('/admin')->assertOk()->assertSee('Administration');
     }
 
     #[Test]
     public function regular_member_is_forbidden_from_dashboard(): void
     {
-        $user = \App\Models\User::factory()->create(['status' => 'enabled']);
+        $user = User::factory()->create(['status' => 'enabled']);
         $this->actingAs($user)->get('/admin')->assertForbidden();
     }
 

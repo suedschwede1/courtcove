@@ -26,11 +26,11 @@ final class SquareValidator
         Carbon $dateStart,
         Carbon $dateEnd,
     ): ValidationResult {
-        if (!$dateEnd->greaterThan($dateStart)) {
+        if (! $dateEnd->greaterThan($dateStart)) {
             return ValidationResult::fail('Booking end time must be after start time');
         }
 
-        if (!$dateStart->isSameDay($dateEnd)) {
+        if (! $dateStart->isSameDay($dateEnd)) {
             return ValidationResult::fail('Bookings must start and end on the same day');
         }
 
@@ -38,11 +38,11 @@ final class SquareValidator
             return ValidationResult::fail('Booking quantity must be positive');
         }
 
-        if ($square->status === SquareStatus::Disabled && !$this->canCreateAnyBooking($user)) {
+        if ($square->status === SquareStatus::Disabled && ! $this->canCreateAnyBooking($user)) {
             return ValidationResult::fail('Square is disabled - no bookings allowed');
         }
 
-        if ($square->status === SquareStatus::Readonly && !$this->canCreateAnyBooking($user)) {
+        if ($square->status === SquareStatus::Readonly && ! $this->canCreateAnyBooking($user)) {
             return ValidationResult::fail('Square is readonly - booking requires privilege');
         }
 
@@ -64,21 +64,21 @@ final class SquareValidator
         }
 
         if ($dateStart->lessThan($minimumStart)
-            && !$user->can('calendar.see-past')
-            && !($user->can('calendar.see-data') && $dateEnd->isSameDay($minimumStart))) {
+            && ! $user->can('calendar.see-past')
+            && ! ($user->can('calendar.see-data') && $dateEnd->isSameDay($minimumStart))) {
             return ValidationResult::fail('Booking time is already over');
         }
 
         if ((int) $square->min_range_book > 0
             && $dateStart->lessThan($minimumStart)
-            && !$this->canCreateAnyBooking($user)) {
+            && ! $this->canCreateAnyBooking($user)) {
             return ValidationResult::fail('Booking date is before the minimum advance booking time');
         }
 
         if ((int) $square->range_book > 0) {
             $maxBookableAt = Carbon::now()->addSeconds((int) $square->range_book);
             $sameDayAsMax = $dateStart->isSameDay($maxBookableAt);
-            if ($dateStart->greaterThan($maxBookableAt) && !$sameDayAsMax && !$this->canCreateAnyBooking($user)) {
+            if ($dateStart->greaterThan($maxBookableAt) && ! $sameDayAsMax && ! $this->canCreateAnyBooking($user)) {
                 return ValidationResult::fail('Booking date exceeds the allowed advance booking range');
             }
         }
@@ -92,11 +92,11 @@ final class SquareValidator
             return ValidationResult::fail('Maximum number of active bookings reached');
         }
 
-        if ((int) $square->time_block_bookable_max > 0 && !$this->isShortBooking($dateStart)) {
+        if ((int) $square->time_block_bookable_max > 0 && ! $this->isShortBooking($dateStart)) {
             $dailyUsed = $this->getDailyUsedSeconds($user, $dateStart);
 
             if ($dailyUsed + $durationSeconds > (int) $square->time_block_bookable_max
-                && !$this->canCreateAnyBooking($user)) {
+                && ! $this->canCreateAnyBooking($user)) {
                 return ValidationResult::fail('Daily booking limit exceeded');
             }
         }

@@ -36,7 +36,7 @@ final class ReservationService
                 $from->format('Y-m-d'),
                 $to->format('Y-m-d'),
             ])
-            ->whereHas('booking', fn($query) => $query->whereIn('status', self::ACTIVE_STATUSES))
+            ->whereHas('booking', fn ($query) => $query->whereIn('status', self::ACTIVE_STATUSES))
             ->get();
     }
 
@@ -52,7 +52,7 @@ final class ReservationService
                 $from->format('Y-m-d'),
                 $to->format('Y-m-d'),
             ])
-            ->whereHas('booking', fn($query) => $query
+            ->whereHas('booking', fn ($query) => $query
                 ->whereIn('status', self::ACTIVE_STATUSES)
                 ->where('sid', $square->sid))
             ->get();
@@ -62,7 +62,7 @@ final class ReservationService
      * Calendar-specific reservation query for many courts at once.
      * Loads everything needed by the view in one pass.
      *
-     * @param list<int> $squareIds
+     * @param  list<int>  $squareIds
      * @return Collection<int, Reservation>
      */
     public function getCalendarReservations(array $squareIds, Carbon $from, Carbon $to): Collection
@@ -76,7 +76,7 @@ final class ReservationService
                 $from->format('Y-m-d'),
                 $to->format('Y-m-d'),
             ])
-            ->whereHas('booking', fn($query) => $query
+            ->whereHas('booking', fn ($query) => $query
                 ->whereIn('status', self::ACTIVE_STATUSES)
                 ->whereIn('sid', $squareIds))
             ->orderBy('date')
@@ -90,11 +90,11 @@ final class ReservationService
      * Uses half-open interval logic: [time_start, time_end). Adjacent slots do NOT overlap.
      * Time values use 'HH:MM:SS' string format matching the TIME columns in the legacy DB.
      *
-     * @param Square   $square           Court to check
-     * @param Carbon   $date             Calendar date
-     * @param int      $timeStart        Seconds from midnight (inclusive start)
-     * @param int      $timeEnd          Seconds from midnight (exclusive end)
-     * @param int|null $excludeBookingId Booking ID to exclude (for update scenarios)
+     * @param  Square  $square  Court to check
+     * @param  Carbon  $date  Calendar date
+     * @param  int  $timeStart  Seconds from midnight (inclusive start)
+     * @param  int  $timeEnd  Seconds from midnight (exclusive end)
+     * @param  int|null  $excludeBookingId  Booking ID to exclude (for update scenarios)
      */
     public function hasOverlap(
         Square $square,

@@ -1,5 +1,7 @@
 <?php
+
 declare(strict_types=1);
+
 namespace Tests\Feature\Admin;
 
 use App\Models\User;
@@ -12,7 +14,10 @@ class UserManagementTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function admin(): User { return User::factory()->create(['status' => 'admin']); }
+    private function admin(): User
+    {
+        return User::factory()->create(['status' => 'admin']);
+    }
 
     #[Test]
     public function index_lists_non_deleted_users(): void

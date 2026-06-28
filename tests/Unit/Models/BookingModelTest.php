@@ -20,8 +20,8 @@ class BookingModelTest extends TestCase
     #[Test]
     public function booking_belongs_to_user(): void
     {
-        $user    = User::factory()->create();
-        $square  = Square::factory()->create();
+        $user = User::factory()->create();
+        $square = Square::factory()->create();
         $booking = Booking::factory()->create(['uid' => $user->uid, 'sid' => $square->sid]);
 
         $this->assertInstanceOf(User::class, $booking->user);
@@ -31,7 +31,7 @@ class BookingModelTest extends TestCase
     #[Test]
     public function booking_belongs_to_square(): void
     {
-        $square  = Square::factory()->create();
+        $square = Square::factory()->create();
         $booking = Booking::factory()->create(['sid' => $square->sid]);
 
         $this->assertInstanceOf(Square::class, $booking->square);

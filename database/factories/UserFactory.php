@@ -18,21 +18,21 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'alias'          => fake()->name(),
-            'status'         => 'enabled',
-            'email'          => fake()->unique()->safeEmail(),
-            'pw'             => static::$password ??= Hash::make('password'),
+            'alias' => fake()->name(),
+            'status' => 'enabled',
+            'email' => fake()->unique()->safeEmail(),
+            'pw' => static::$password ??= Hash::make('password'),
             'login_attempts' => null,
-            'login_detent'   => null,
-            'last_activity'  => null,
-            'last_ip'        => null,
-            'created'        => now(),
+            'login_detent' => null,
+            'last_activity' => null,
+            'last_ip' => null,
+            'created' => now(),
         ];
     }
 
     /** Grant a status (e.g. admin / assist) for permission tests. */
     public function status(string $status): static
     {
-        return $this->state(fn() => ['status' => $status]);
+        return $this->state(fn () => ['status' => $status]);
     }
 }

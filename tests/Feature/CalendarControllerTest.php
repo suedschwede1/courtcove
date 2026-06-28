@@ -87,60 +87,60 @@ class CalendarControllerTest extends TestCase
     #[Test]
     public function calendar_shows_booking_owner_name_for_authenticated_user(): void
     {
-        $owner   = User::factory()->create(['alias' => 'Max Mustermann']);
-        $square  = Square::factory()->create();
+        $owner = User::factory()->create(['alias' => 'Max Mustermann']);
+        $square = Square::factory()->create();
         $booking = Booking::factory()->create([
-            'uid'    => $owner->uid,
-            'sid'    => $square->sid,
+            'uid' => $owner->uid,
+            'sid' => $square->sid,
             'status' => 'single',
         ]);
         Reservation::factory()->create([
-            'bid'        => $booking->bid,
-            'date'       => Carbon::today()->toDateString(),
+            'bid' => $booking->bid,
+            'date' => Carbon::today()->toDateString(),
             'time_start' => '10:00:00',
-            'time_end'   => '11:00:00',
+            'time_end' => '11:00:00',
         ]);
 
         $viewer = User::factory()->create();
-        $this->actingAs($viewer)->get('/calendar?date=' . Carbon::today()->format('Y-m-d'))
+        $this->actingAs($viewer)->get('/calendar?date='.Carbon::today()->format('Y-m-d'))
             ->assertSee('Max Mustermann');
     }
 
     #[Test]
     public function calendar_does_not_show_cancelled_bookings(): void
     {
-        $owner   = User::factory()->create(['alias' => 'Storniert User']);
-        $square  = Square::factory()->create();
+        $owner = User::factory()->create(['alias' => 'Storniert User']);
+        $square = Square::factory()->create();
         $booking = Booking::factory()->create([
-            'uid'    => $owner->uid,
-            'sid'    => $square->sid,
+            'uid' => $owner->uid,
+            'sid' => $square->sid,
             'status' => 'cancelled',
         ]);
         Reservation::factory()->create([
-            'bid'        => $booking->bid,
-            'date'       => Carbon::today()->toDateString(),
+            'bid' => $booking->bid,
+            'date' => Carbon::today()->toDateString(),
             'time_start' => '10:00:00',
-            'time_end'   => '11:00:00',
+            'time_end' => '11:00:00',
         ]);
 
         $viewer = User::factory()->create();
-        $this->actingAs($viewer)->get('/calendar?date=' . Carbon::today()->format('Y-m-d'))
+        $this->actingAs($viewer)->get('/calendar?date='.Carbon::today()->format('Y-m-d'))
             ->assertDontSee('Storniert User');
     }
 
     #[Test]
     public function calendar_passes_reservations_keyed_by_square_sid(): void
     {
-        $square  = Square::factory()->create();
+        $square = Square::factory()->create();
         $booking = Booking::factory()->create(['sid' => $square->sid, 'status' => 'single']);
         Reservation::factory()->create([
-            'bid'        => $booking->bid,
-            'date'       => Carbon::today()->toDateString(),
+            'bid' => $booking->bid,
+            'date' => Carbon::today()->toDateString(),
             'time_start' => '10:00:00',
-            'time_end'   => '11:00:00',
+            'time_end' => '11:00:00',
         ]);
 
-        $response = $this->get('/calendar?date=' . Carbon::today()->format('Y-m-d'));
+        $response = $this->get('/calendar?date='.Carbon::today()->format('Y-m-d'));
 
         $reservationsBySquare = $response->viewData('reservationsBySquare');
         $this->assertArrayHasKey($square->sid, $reservationsBySquare);
@@ -192,37 +192,37 @@ class CalendarControllerTest extends TestCase
     #[Test]
     public function calendar_only_shows_reservations_for_requested_date(): void
     {
-        $owner   = User::factory()->create(['alias' => 'Nur Heute']);
-        $square  = Square::factory()->create();
+        $owner = User::factory()->create(['alias' => 'Nur Heute']);
+        $square = Square::factory()->create();
         $booking = Booking::factory()->create(['uid' => $owner->uid, 'sid' => $square->sid, 'status' => 'single']);
 
         Reservation::factory()->create([
-            'bid'        => $booking->bid,
-            'date'       => Carbon::today()->addDays(10)->toDateString(),
+            'bid' => $booking->bid,
+            'date' => Carbon::today()->addDays(10)->toDateString(),
             'time_start' => '10:00:00',
-            'time_end'   => '11:00:00',
+            'time_end' => '11:00:00',
         ]);
 
         $viewer = User::factory()->create();
-        $this->actingAs($viewer)->get('/calendar?date=' . Carbon::today()->format('Y-m-d'))
+        $this->actingAs($viewer)->get('/calendar?date='.Carbon::today()->format('Y-m-d'))
             ->assertDontSee('Nur Heute');
     }
 
     #[Test]
     public function guest_does_not_see_booking_text(): void
     {
-        $owner   = User::factory()->create(['alias' => 'Geheim Mitglied']);
-        $square  = Square::factory()->create();
+        $owner = User::factory()->create(['alias' => 'Geheim Mitglied']);
+        $square = Square::factory()->create();
         $booking = Booking::factory()->create(['uid' => $owner->uid, 'sid' => $square->sid, 'status' => 'single']);
         Reservation::factory()->create([
-            'bid'        => $booking->bid,
-            'date'       => Carbon::today()->toDateString(),
+            'bid' => $booking->bid,
+            'date' => Carbon::today()->toDateString(),
             'time_start' => '10:00:00',
-            'time_end'   => '11:00:00',
+            'time_end' => '11:00:00',
         ]);
 
         // Not authenticated → booking owner name must not appear
-        $this->get('/calendar?date=' . Carbon::today()->format('Y-m-d'))
+        $this->get('/calendar?date='.Carbon::today()->format('Y-m-d'))
             ->assertOk()
             ->assertDontSee('Geheim Mitglied');
     }
@@ -231,15 +231,15 @@ class CalendarControllerTest extends TestCase
     public function guest_sees_events(): void
     {
         $square = Square::factory()->create();
-        $event  = Event::factory()->create([
-            'sid'            => $square->sid,
-            'status'         => 'enabled',
+        $event = Event::factory()->create([
+            'sid' => $square->sid,
+            'status' => 'enabled',
             'datetime_start' => Carbon::today()->setTime(10, 0),
-            'datetime_end'   => Carbon::today()->setTime(11, 0),
+            'datetime_end' => Carbon::today()->setTime(11, 0),
         ]);
         EventMeta::create(['eid' => $event->eid, 'key' => 'name', 'value' => 'Stadtmeisterschaft']);
 
-        $this->get('/calendar?date=' . Carbon::today()->format('Y-m-d'))
+        $this->get('/calendar?date='.Carbon::today()->format('Y-m-d'))
             ->assertOk()
             ->assertSee('Stadtmeisterschaft');
     }

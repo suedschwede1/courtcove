@@ -16,11 +16,11 @@ class EventFactory extends Factory
     public function definition(): array
     {
         return [
-            'sid'            => Square::factory(),
-            'status'         => 'enabled',
+            'sid' => Square::factory(),
+            'status' => 'enabled',
             'datetime_start' => now(),
-            'datetime_end'   => now()->copy()->addHours(2),
-            'capacity'       => null,
+            'datetime_end' => now()->copy()->addHours(2),
+            'capacity' => null,
         ];
     }
 }

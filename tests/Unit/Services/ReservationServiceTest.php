@@ -22,18 +22,18 @@ class ReservationServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new ReservationService();
+        $this->service = new ReservationService;
     }
 
     #[Test]
     public function get_in_range_returns_reservations_within_window(): void
     {
-        $booking    = Booking::factory()->create(['status' => 'single']);
-        $inRange    = Reservation::factory()->create(['bid' => $booking->bid, 'date' => Carbon::today()->toDateString()]);
+        $booking = Booking::factory()->create(['status' => 'single']);
+        $inRange = Reservation::factory()->create(['bid' => $booking->bid, 'date' => Carbon::today()->toDateString()]);
         $outOfRange = Reservation::factory()->create(['bid' => $booking->bid, 'date' => Carbon::today()->addDays(10)->toDateString()]);
 
         $results = $this->service->getInRange(Carbon::today()->subDay(), Carbon::today()->addDay());
-        $rids    = $results->pluck('rid')->toArray();
+        $rids = $results->pluck('rid')->toArray();
 
         $this->assertContains($inRange->rid, $rids);
         $this->assertNotContains($outOfRange->rid, $rids);
@@ -42,7 +42,7 @@ class ReservationServiceTest extends TestCase
     #[Test]
     public function get_in_range_excludes_cancelled_bookings(): void
     {
-        $booking     = Booking::factory()->create(['status' => 'cancelled']);
+        $booking = Booking::factory()->create(['status' => 'cancelled']);
         $reservation = Reservation::factory()->create(['bid' => $booking->bid, 'date' => Carbon::today()->toDateString()]);
 
         $results = $this->service->getInRange(Carbon::today()->subDay(), Carbon::today()->addDay());
@@ -55,13 +55,13 @@ class ReservationServiceTest extends TestCase
     {
         $square1 = Square::factory()->create();
         $square2 = Square::factory()->create();
-        $b1      = Booking::factory()->create(['sid' => $square1->sid, 'status' => 'single']);
-        $b2      = Booking::factory()->create(['sid' => $square2->sid, 'status' => 'single']);
-        $r1      = Reservation::factory()->create(['bid' => $b1->bid, 'date' => Carbon::today()->toDateString()]);
-        $r2      = Reservation::factory()->create(['bid' => $b2->bid, 'date' => Carbon::today()->toDateString()]);
+        $b1 = Booking::factory()->create(['sid' => $square1->sid, 'status' => 'single']);
+        $b2 = Booking::factory()->create(['sid' => $square2->sid, 'status' => 'single']);
+        $r1 = Reservation::factory()->create(['bid' => $b1->bid, 'date' => Carbon::today()->toDateString()]);
+        $r2 = Reservation::factory()->create(['bid' => $b2->bid, 'date' => Carbon::today()->toDateString()]);
 
         $results = $this->service->getInRangeBySquare($square1, Carbon::today()->subDay(), Carbon::today()->addDay());
-        $rids    = $results->pluck('rid')->toArray();
+        $rids = $results->pluck('rid')->toArray();
 
         $this->assertContains($r1->rid, $rids);
         $this->assertNotContains($r2->rid, $rids);

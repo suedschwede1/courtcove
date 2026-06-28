@@ -33,8 +33,7 @@ final class LoginController extends Controller
      * Redirects to /login with errors if the account is disabled or credentials are invalid.
      * On success, regenerates the session and redirects to the intended URL (default: /calendar).
      *
-     * @param Request $request Must contain email and password fields
-     * @return RedirectResponse
+     * @param  Request  $request  Must contain email and password fields
      */
     public function login(Request $request): RedirectResponse
     {
@@ -46,7 +45,7 @@ final class LoginController extends Controller
 
         $user = User::where('email', $credentials['email'])->first();
 
-        if ($user && !$user->isEnabled()) {
+        if ($user && ! $user->isEnabled()) {
             return redirect('/login')->withErrors(['email' => __('booking.auth.disabled')]);
         }
 
@@ -64,15 +63,15 @@ final class LoginController extends Controller
 
     private function normalizeRedirectTarget(?string $redirectTo): string
     {
-        if (!is_string($redirectTo)) {
+        if (! is_string($redirectTo)) {
             return route('calendar.index');
         }
 
         $target = trim($redirectTo);
         if (str_starts_with($target, '/')
-            && !str_starts_with($target, '//')
-            && !str_contains($target, '\\')
-            && !preg_match('/[[:cntrl:]]/', $target)) {
+            && ! str_starts_with($target, '//')
+            && ! str_contains($target, '\\')
+            && ! preg_match('/[[:cntrl:]]/', $target)) {
             return $target;
         }
 

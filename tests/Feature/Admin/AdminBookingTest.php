@@ -1,5 +1,7 @@
 <?php
+
 declare(strict_types=1);
+
 namespace Tests\Feature\Admin;
 
 use App\Models\Booking;
@@ -15,7 +17,11 @@ use Tests\TestCase;
 class AdminBookingTest extends TestCase
 {
     use RefreshDatabase;
-    private function admin(): User { return User::factory()->create(['status' => 'admin']); }
+
+    private function admin(): User
+    {
+        return User::factory()->create(['status' => 'admin']);
+    }
 
     /** A valid create/update payload; pass `booked_for`/`sid`/dates via overrides. */
     private function bookingPayload(array $overrides = []): array

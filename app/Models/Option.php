@@ -10,19 +10,22 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * Global key-value configuration option (optionally per-locale).
  *
- * @property int         $oid
- * @property string      $key
- * @property string      $value
+ * @property int $oid
+ * @property string $key
+ * @property string $value
  * @property string|null $locale
  */
 class Option extends Model
 {
     use HasFactory;
 
-    protected $table      = 'bs_options';
+    protected $table = 'bs_options';
+
     protected $primaryKey = 'oid';
-    public $timestamps    = false;
-    protected $fillable   = ['key', 'value', 'locale'];
+
+    public $timestamps = false;
+
+    protected $fillable = ['key', 'value', 'locale'];
 
     /**
      * Get an option value by key, with optional fallback default.

@@ -12,8 +12,11 @@ class ReservationMeta extends Model
 {
     use HasFactory;
 
-    protected $table      = 'bs_reservations_meta';
+    protected $table = 'bs_reservations_meta';
+
     protected $primaryKey = 'rmid';
-    public $timestamps    = false;
-    protected $fillable   = ['rid', 'key', 'value'];
+
+    public $timestamps = false;
+
+    protected $fillable = ['rid', 'key', 'value'];
 }

@@ -17,13 +17,13 @@ class BookingFactory extends Factory
     public function definition(): array
     {
         return [
-            'uid'            => User::factory(),
-            'sid'            => Square::factory(),
-            'status'         => 'single',
+            'uid' => User::factory(),
+            'sid' => Square::factory(),
+            'status' => 'single',
             'status_billing' => 'pending',
-            'visibility'     => 'public',
-            'quantity'       => fake()->numberBetween(1, 4),
-            'created'        => now(),
+            'visibility' => 'public',
+            'quantity' => fake()->numberBetween(1, 4),
+            'created' => now(),
         ];
     }
 }

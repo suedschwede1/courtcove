@@ -16,8 +16,8 @@ class BookingMetaFactory extends Factory
     public function definition(): array
     {
         return [
-            'bid'   => Booking::factory(),
-            'key'   => 'creator',
+            'bid' => Booking::factory(),
+            'key' => 'creator',
             'value' => fake()->name(),
         ];
     }

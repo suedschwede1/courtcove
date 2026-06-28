@@ -29,7 +29,7 @@ final class CalendarController extends Controller
     /**
      * Render the 3-day calendar view (yesterday, today, tomorrow) for all courts.
      *
-     * @param Request $request Accepts optional ?date=YYYY-MM-DD query parameter; defaults to today
+     * @param  Request  $request  Accepts optional ?date=YYYY-MM-DD query parameter; defaults to today
      * @return View calendar.index with calendar reservation and event data
      */
     public function index(Request $request): View
@@ -39,7 +39,7 @@ final class CalendarController extends Controller
         $dateInput = (string) $request->input('date');
         $date = Carbon::today();
         foreach (['Y-m-d', 'd.m.Y'] as $format) {
-            $parsed = rescue(fn() => Carbon::createFromFormat('!' . $format, $dateInput), null, false);
+            $parsed = rescue(fn () => Carbon::createFromFormat('!'.$format, $dateInput), null, false);
             if ($parsed instanceof Carbon) {
                 $date = $parsed;
                 break;
@@ -58,7 +58,7 @@ final class CalendarController extends Controller
         $rangeStart = $dates[0]->copy()->startOfDay();
         $rangeEnd = end($dates)->copy()->endOfDay();
 
-        $squares = Square::with(['meta' => fn($query) => $query->where('key', 'alias')])
+        $squares = Square::with(['meta' => fn ($query) => $query->where('key', 'alias')])
             ->orderBy('priority')
             ->orderBy('sid')
             ->get();
@@ -71,14 +71,14 @@ final class CalendarController extends Controller
         foreach ($dates as $d) {
             $dateKey = $d->format('Y-m-d');
             $reservationsByDate[$dateKey] = $squares->mapWithKeys(
-                fn(Square $square) => [$square->sid => collect()]
+                fn (Square $square) => [$square->sid => collect()]
             )->all();
         }
 
         foreach ($calendarReservations as $reservation) {
             $dateKey = $reservation->date;
             $sid = $reservation->booking?->sid;
-            if ($sid === null || !isset($reservationsByDate[$dateKey][$sid])) {
+            if ($sid === null || ! isset($reservationsByDate[$dateKey][$sid])) {
                 continue;
             }
 
@@ -91,7 +91,7 @@ final class CalendarController extends Controller
             }
         }
 
-        $events = Event::with(['meta' => fn($query) => $query->where('key', 'name')])
+        $events = Event::with(['meta' => fn ($query) => $query->where('key', 'name')])
             ->where('status', 'enabled')
             ->where('datetime_start', '<', $rangeEnd)
             ->where('datetime_end', '>', $rangeStart)
@@ -109,10 +109,10 @@ final class CalendarController extends Controller
             $coveredSids = $event->sid === null ? $squareIds : [(int) $event->sid];
             $coveredIndices = array_values(array_filter(
                 array_map(
-                    static fn(int $sid): int|false => array_search($sid, $squareIds, true),
+                    static fn (int $sid): int|false => array_search($sid, $squareIds, true),
                     $coveredSids,
                 ),
-                static fn(int|false $index): bool => $index !== false,
+                static fn (int|false $index): bool => $index !== false,
             ));
 
             sort($coveredIndices);
@@ -128,6 +128,7 @@ final class CalendarController extends Controller
                 $current = $coveredIndices[$i];
                 if ($current === $segmentPrev + 1) {
                     $segmentPrev = $current;
+
                     continue;
                 }
 
@@ -145,7 +146,7 @@ final class CalendarController extends Controller
                 $firstHour = null;
                 $rows = 0;
                 for ($h = 8; $h <= 21; $h++) {
-                    $slotStart = Carbon::parse($dateKey . ' ' . sprintf('%02d:00:00', $h));
+                    $slotStart = Carbon::parse($dateKey.' '.sprintf('%02d:00:00', $h));
                     $slotEnd = $slotStart->copy()->addHour();
 
                     if ($eventStart < $slotEnd && $eventEnd > $slotStart) {
