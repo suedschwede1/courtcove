@@ -48,7 +48,7 @@ DB_USERNAME=booking
 DB_PASSWORD=REDACTED
 ```
 
-Logo und feste Anzeigegröße können ebenfalls über `.env` angepasst werden:
+Der sichtbare Name im Header kommt aus der Admin-Konfiguration `client.name.full`. `BOOKING_NAME` ist der Fallback, wenn diese Option leer ist. Logo und feste Anzeigegröße können über `.env` angepasst werden:
 
 ```env
 BOOKING_NAME=ExampleClub-Booking
