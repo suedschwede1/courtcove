@@ -36,6 +36,7 @@
     @endif
 
     @if($isCreateMode)
+
     {{-- Row 1: Platz | Gebucht für --}}
     <div class="abf-row abf-row--top">
         <div class="abf-card abf-card--court">
@@ -57,16 +58,6 @@
     <div class="abf-row abf-row--details">
         {{-- Zeit / Datum --}}
         <div class="abf-card abf-card--time">
-            <div class="abf-row2">
-                <div class="abf-field">
-                    <label class="abf-label" for="time_start">{{ __('booking.admin.bookings.time_start') }}</label>
-                    <input type="time" id="time_start" name="time_start" value="{{ old('time_start', $reservation ? substr((string) $reservation->time_start, 0, 5) : '') }}" class="abf-dateinput">
-                </div>
-                <div class="abf-field">
-                    <label class="abf-label" for="time_end">{{ __('booking.admin.bookings.time_end') }}</label>
-                    <input type="time" id="time_end" name="time_end" value="{{ old('time_end', $reservation ? substr((string) $reservation->time_end, 0, 5) : '') }}" class="abf-dateinput">
-                </div>
-            </div>
             <div class="abf-row2 abf-row2--dates">
                 <div class="abf-field">
                     <label class="abf-label" for="date">{{ __('booking.admin.bookings.date_start') }}</label>
@@ -75,6 +66,16 @@
                 <div class="abf-field">
                     <label class="abf-label" for="admin-booking-date-end">{{ __('booking.admin.bookings.date_end') }}</label>
                     <input type="date" id="admin-booking-date-end" name="date_end" value="{{ old('date_end', $repeatEndDate) }}" class="abf-dateinput">
+                </div>
+            </div>
+            <div class="abf-row2 abf-row2--times">
+                <div class="abf-field">
+                    <label class="abf-label" for="time_start">{{ __('booking.admin.bookings.time_start') }}</label>
+                    <input type="time" id="time_start" name="time_start" value="{{ old('time_start', $reservation ? substr((string) $reservation->time_start, 0, 5) : '') }}" class="abf-dateinput">
+                </div>
+                <div class="abf-field">
+                    <label class="abf-label" for="time_end">{{ __('booking.admin.bookings.time_end') }}</label>
+                    <input type="time" id="time_end" name="time_end" value="{{ old('time_end', $reservation ? substr((string) $reservation->time_end, 0, 5) : '') }}" class="abf-dateinput">
                 </div>
             </div>
             <div class="abf-field abf-field--repeat">
@@ -147,38 +148,6 @@
     </div>
 
     <div class="admin-form__section">
-        <div class="admin-form__section-title">{{ __('booking.admin.bookings.time_section') }}</div>
-        <div class="admin-form__row admin-form__field--flex">
-            <div class="admin-form__inline-group">
-                <label class="admin-form__inline-label" for="time_start">{{ __('booking.admin.bookings.time_start') }}</label>
-                <input type="time" id="time_start" name="time_start" value="{{ old('time_start', $reservation ? substr((string) $reservation->time_start, 0, 5) : '') }}">
-            </div>
-            <div class="admin-form__inline-group">
-                <label class="admin-form__inline-label" for="time_end">{{ __('booking.admin.bookings.time_end') }}</label>
-                <input type="time" id="time_end" name="time_end" value="{{ old('time_end', $reservation ? substr((string) $reservation->time_end, 0, 5) : '') }}">
-            </div>
-            <div class="admin-form__inline-group">
-                <label class="admin-form__inline-label" for="date">{{ __('booking.admin.bookings.date_start') }}</label>
-                <input type="date" id="date" name="date" value="{{ old('date', $reservation?->date) }}">
-            </div>
-            <div class="admin-form__inline-group">
-                <label class="admin-form__inline-label" for="admin-booking-date-end">{{ __('booking.admin.bookings.date_end') }}</label>
-                <input type="date" id="admin-booking-date-end" name="date_end" value="{{ old('date_end', $repeatEndDate) }}">
-            </div>
-        </div>
-        <div class="admin-form__row">
-            <label class="admin-form__label" for="admin-booking-repeat">{{ __('booking.admin.bookings.repeat') }}</label>
-            <div class="admin-form__field">
-                <select name="repeat_type" id="admin-booking-repeat">
-                    @foreach($repeatOptions as $repeatValue => $repeatLabel)
-                        <option value="{{ $repeatValue }}" @selected(old('repeat_type', $repeatType) === $repeatValue)>{{ $repeatLabel }}</option>
-                    @endforeach
-                </select>
-            </div>
-        </div>
-    </div>
-
-    <div class="admin-form__section">
         <div class="admin-form__section-title">{{ __('booking.admin.bookings.booking_section') }}</div>
         <div class="admin-form__row admin-form__field--flex">
             <div class="admin-form__inline-group">
@@ -202,6 +171,38 @@
                     <option value="single" @selected(old('status', $booking->status) === 'single')>{{ __('booking.admin.bookings.status_active') }}</option>
                     <option value="subscription" @selected(old('status', $booking->status) === 'subscription')>{{ __('booking.admin.bookings.status_series') }}</option>
                     <option value="cancelled" @selected(old('status', $booking->status) === 'cancelled')>{{ __('booking.admin.bookings.status_cancelled') }}</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-form__section">
+        <div class="admin-form__section-title">{{ __('booking.admin.bookings.time_section') }}</div>
+        <div class="admin-form__row admin-form__field--flex">
+            <div class="admin-form__inline-group">
+                <label class="admin-form__inline-label" for="date">{{ __('booking.admin.bookings.date_start') }}</label>
+                <input type="date" id="date" name="date" value="{{ old('date', $reservation?->date) }}">
+            </div>
+            <div class="admin-form__inline-group">
+                <label class="admin-form__inline-label" for="admin-booking-date-end">{{ __('booking.admin.bookings.date_end') }}</label>
+                <input type="date" id="admin-booking-date-end" name="date_end" value="{{ old('date_end', $repeatEndDate) }}">
+            </div>
+            <div class="admin-form__inline-group">
+                <label class="admin-form__inline-label" for="time_start">{{ __('booking.admin.bookings.time_start') }}</label>
+                <input type="time" id="time_start" name="time_start" value="{{ old('time_start', $reservation ? substr((string) $reservation->time_start, 0, 5) : '') }}">
+            </div>
+            <div class="admin-form__inline-group">
+                <label class="admin-form__inline-label" for="time_end">{{ __('booking.admin.bookings.time_end') }}</label>
+                <input type="time" id="time_end" name="time_end" value="{{ old('time_end', $reservation ? substr((string) $reservation->time_end, 0, 5) : '') }}">
+            </div>
+        </div>
+        <div class="admin-form__row">
+            <label class="admin-form__label" for="admin-booking-repeat">{{ __('booking.admin.bookings.repeat') }}</label>
+            <div class="admin-form__field">
+                <select name="repeat_type" id="admin-booking-repeat">
+                    @foreach($repeatOptions as $repeatValue => $repeatLabel)
+                        <option value="{{ $repeatValue }}" @selected(old('repeat_type', $repeatType) === $repeatValue)>{{ $repeatLabel }}</option>
+                    @endforeach
                 </select>
             </div>
         </div>
@@ -238,9 +239,7 @@
         </div>
     </div>
     @endif
-
     @if($isCreateMode)
-    {{-- Actions --}}
     <div class="admin-form__actions">
         <button type="submit" class="admin-btn-primary">{{ __('booking.admin.common.save') }}</button>
         <a href="{{ $closeRoute }}" class="default-button">{{ __('booking.admin.common.abort') }}</a>

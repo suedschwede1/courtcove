@@ -279,6 +279,54 @@ class AdminBookingTest extends TestCase
         $this->assertSame('cancelled', $b->fresh()->status);
     }
 
+
+    #[Test]
+    public function popup_edit_page_contains_calendar_redirect(): void
+    {
+        $booking = Booking::factory()->create(['status' => 'single']);
+        Reservation::factory()->create([
+            'bid' => $booking->bid, 'date' => '2026-07-03', 'time_start' => '10:00:00', 'time_end' => '11:00:00',
+        ]);
+
+        $this->actingAs($this->admin())->get("/admin/bookings/{$booking->bid}/edit?popup=1")
+            ->assertOk()
+            ->assertSee('name="redirect_to"', false)
+            ->assertSee('/calendar?date=2026-07-03', false);
+    }
+
+    #[Test]
+    public function popup_update_redirects_back_to_calendar(): void
+    {
+        $admin = $this->admin();
+        $square = Square::factory()->create();
+        $booking = Booking::factory()->create([
+            'uid' => $admin->uid, 'sid' => $square->sid, 'status' => 'single', 'quantity' => 2,
+        ]);
+        Reservation::factory()->create([
+            'bid' => $booking->bid, 'date' => '2026-07-03', 'time_start' => '10:00:00', 'time_end' => '11:00:00',
+        ]);
+
+        $this->actingAs($admin)->put("/admin/bookings/{$booking->bid}", $this->bookingPayload([
+            'booked_for' => $admin->alias,
+            'sid' => $square->sid,
+            'date' => '2026-07-03',
+            'date_end' => '2026-07-03',
+            'redirect_to' => '/calendar?date=2026-07-03',
+        ]))->assertRedirect('/calendar?date=2026-07-03');
+    }
+
+    #[Test]
+    public function popup_cancel_redirects_back_to_calendar(): void
+    {
+        $booking = Booking::factory()->create(['status' => 'single']);
+
+        $this->actingAs($this->admin())->post("/admin/bookings/{$booking->bid}/cancel", [
+            'redirect_to' => '/calendar?date=2026-07-03',
+        ])->assertRedirect('/calendar?date=2026-07-03');
+
+        $this->assertSame('cancelled', $booking->fresh()->status);
+    }
+
     #[Test]
     public function admin_can_delete_a_booking(): void
     {

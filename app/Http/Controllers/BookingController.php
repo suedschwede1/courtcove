@@ -126,6 +126,72 @@ final class BookingController extends Controller
         return response()->json($aliases);
     }
 
+    public function edit(Booking $booking): View
+    {
+        $user = auth()->user();
+
+        if ($booking->uid !== $user?->getAuthIdentifier()) {
+            abort(403);
+        }
+
+        $booking->load(['square', 'reservations', 'meta']);
+        $reservation = $booking->reservations
+            ->sortBy(fn ($reservation): string => (string) $reservation->date.' '.(string) $reservation->time_start)
+            ->first();
+
+        if (! $reservation) {
+            abort(404);
+        }
+
+        $names = $booking->player_names;
+        $playerNames = [
+            2 => $names[0] ?? '',
+            3 => $names[1] ?? '',
+            4 => $names[2] ?? '',
+        ];
+
+        return view('bookings.edit', compact('booking', 'reservation', 'playerNames'));
+    }
+
+    public function update(Request $request, Booking $booking): RedirectResponse
+    {
+        $user = auth()->user();
+
+        if ($booking->uid !== $user?->getAuthIdentifier()) {
+            abort(403);
+        }
+
+        if (! $user || $booking->status !== 'single') {
+            return back()->withErrors(['booking' => __('booking.messages.booking_not_cancellable')]);
+        }
+
+        $data = $request->validate([
+            'quantity' => ['required', 'integer', 'in:2,4'],
+            'player_name_2' => ['required_if:quantity,2,4', 'nullable', 'string', 'max:120'],
+            'player_name_3' => ['required_if:quantity,4', 'nullable', 'string', 'max:120'],
+            'player_name_4' => ['required_if:quantity,4', 'nullable', 'string', 'max:120'],
+        ]);
+
+        if ((int) $data['quantity'] === 2) {
+            $data['player_name_3'] = null;
+            $data['player_name_4'] = null;
+        }
+
+        $booking->update(['quantity' => (int) $data['quantity']]);
+        $this->bookingService->syncPlayerMeta($booking, [
+            2 => $data['player_name_2'] ?? null,
+            3 => $data['player_name_3'] ?? null,
+            4 => $data['player_name_4'] ?? null,
+        ]);
+
+        $reservation = $booking->reservations()
+            ->orderBy('date')
+            ->orderBy('time_start')
+            ->first();
+
+        return redirect()->route('calendar.index', ['date' => $reservation?->date])
+            ->with('success', __('booking.messages.booking_updated'));
+    }
     private function parseTimeToSeconds(string $time): int
     {
         if (str_contains($time, ':')) {
@@ -145,7 +211,7 @@ final class BookingController extends Controller
             abort(403);
         }
 
-        if (! $user || ! $this->bookingService->canUserCancelSingle($user, $booking)) {
+        if (! $user || $booking->status !== 'single') {
             return back()->withErrors(['booking' => __('booking.messages.booking_not_cancellable')]);
         }
 

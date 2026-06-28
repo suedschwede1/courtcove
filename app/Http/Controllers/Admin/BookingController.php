@@ -372,7 +372,7 @@ final class BookingController extends Controller
             throw new BookingValidationException(__('booking.validation.no_valid_repeat'));
         }
 
-        return [$dateStart, $dateEnd, $occurrenceStarts, $dateStart->diffInSeconds($dateEnd)];
+        return [$dateStart, $dateEnd, $occurrenceStarts, (int) $dateStart->diffInSeconds($dateEnd)];
     }
 
     private function syncBookingMeta(Booking $booking, string $key, ?string $value): void

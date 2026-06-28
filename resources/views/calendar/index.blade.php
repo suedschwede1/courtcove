@@ -216,6 +216,8 @@
                                            @if($isAdmin)
                                                data-edit-url="{{ route('admin.bookings.edit', $reservation->booking) }}"
                                                data-delete-url="{{ route('admin.bookings.destroy', $reservation->booking) }}"
+                                           @elseif($isOwn)
+                                               data-edit-url="{{ route('bookings.edit', $reservation->booking) }}"
                                            @endif>
                                             <span class="cc-label-primary">{{ $primaryLabel }}</span>
                                             @if($secondaryLabel)
@@ -363,7 +365,7 @@
     </div>
 </div>
 
-@if(auth()->user()?->can('admin.booking') || auth()->user()?->can('admin.event'))
+@auth
 <div id="admin-booking-modal" class="booking-modal booking-modal--iframe" style="display:none;">
     <div class="booking-modal__viewport booking-modal__viewport--iframe">
         <div class="booking-modal__card booking-modal__card--iframe">
@@ -372,7 +374,7 @@
         </div>
     </div>
 </div>
-@endif
+@endauth
 
 @can('admin.event')
 <div id="event-modal" class="booking-modal" style="display:none;">

@@ -28,6 +28,8 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/bookings/create', [BookingController::class, 'create'])->name('bookings.create');
     Route::get('/bookings/players', [BookingController::class, 'players'])->name('bookings.players');
     Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
+    Route::get('/bookings/{booking}/edit', [BookingController::class, 'edit'])->name('bookings.edit');
+    Route::put('/bookings/{booking}', [BookingController::class, 'update'])->name('bookings.update');
     Route::delete('/bookings/{booking}', [BookingController::class, 'destroy'])->name('bookings.destroy');
 
     Route::get('/meine-buchungen', [AccountController::class, 'bookings'])->name('account.bookings');

@@ -1144,6 +1144,7 @@ a.event-label {
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    height: calc(100vh - 40px);
     max-height: calc(100vh - 40px);
 }
 
@@ -1167,8 +1168,9 @@ a.event-label {
 .booking-modal__iframe {
     border: none;
     width: 100%;
-    flex: 1;
-    min-height: 600px;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
 }
 
 .booking-modal__textarea {
@@ -1663,8 +1665,10 @@ textarea,
 }
 
 .admin-popup-mode .admin-sidebar { display: none; }
-.admin-popup-mode .admin-content-area { padding: 16px; }
+.admin-popup-mode .admin-content-area { padding: 16px; overflow: visible; }
 .admin-popup-mode .admin-flash { margin-bottom: 12px; }
+.admin-popup-mode .admin-shell { min-height: auto; }
+.admin-popup-mode { overflow: auto; }
 
 /* Sidebar */
 .admin-sidebar {
@@ -1953,7 +1957,8 @@ textarea,
     text-align: left;
 }
 
-.booking-confirm-field input {
+.booking-confirm-field input,
+.booking-confirm-field select {
     box-sizing: border-box;
     width: 100%;
     min-width: 0;
@@ -1963,6 +1968,7 @@ textarea,
     padding: 8px 10px;
     font-family: Verdana, sans-serif;
     font-size: 14px;
+    background: #fff;
 }
 
 .booking-confirm-submit {
@@ -2480,6 +2486,27 @@ textarea {
     padding: 22px 18px 18px;
 }
 
+.admin-popup-mode .admin-main,
+.admin-popup-mode .admin-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-popup-mode .admin-form__actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 100;
+    margin: 12px 0 0;
+    padding: 10px 0;
+    background: #f3f0ea;
+    border-top: 1px solid #d8d8d8;
+    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.06);
+}
+.admin-popup-mode .admin-form[hidden],
+.admin-popup-mode #panel-event[hidden] {
+    display: none !important;
+}
+
 .abf-row {
     display: flex;
     gap: 12px;
@@ -2590,7 +2617,7 @@ textarea {
     gap: 10px;
 }
 
-.abf-row2--dates,
+.abf-row2--times,
 .abf-field--repeat {
     margin-top: 10px;
 }
@@ -2630,6 +2657,11 @@ textarea {
 
     .admin-popup-mode .admin-main {
         padding: 14px 12px;
+    }
+
+    .admin-popup-mode .admin-form__actions {
+        margin: 10px 0 0;
+        padding: 10px 0 0;
     }
 
     .abf-row,
@@ -2724,4 +2756,26 @@ textarea {
     .admin-form__field input[type="password"],
     .admin-form__field select,
     .admin-form__field textarea { max-width: 100%; }
+}
+.popup-body-root {
+    margin: 0;
+    background: #f3f0ea;
+    color: #222;
+    font-family: Verdana, sans-serif;
+    font-size: 12px;
+    overflow: auto;
+}
+
+.popup-body-root .booking-confirm-page {
+    padding: 18px 16px 20px;
+}
+
+.popup-body-root .booking-confirm-card {
+    max-width: 460px;
+    padding: 24px 28px 20px;
+    box-shadow: none;
+}
+
+.popup-body-root .booking-confirm-title {
+    margin-bottom: 18px;
 }

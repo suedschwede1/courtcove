@@ -172,6 +172,71 @@ class BookingControllerTest extends TestCase
     }
 
     #[Test]
+    public function user_can_open_own_booking_edit_page(): void
+    {
+        $user = User::factory()->create();
+        $square = Square::factory()->create();
+        $booking = Booking::factory()->create(['uid' => $user->uid, 'sid' => $square->sid, 'status' => 'single']);
+        Reservation::factory()->create([
+            'bid' => $booking->bid,
+            'date' => '2026-07-10',
+            'time_start' => '10:00:00',
+            'time_end' => '11:00:00',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('bookings.edit', $booking))
+            ->assertOk()
+            ->assertSee(__('booking.admin.bookings.edit_title'))
+            ->assertSee($square->name);
+    }
+
+    #[Test]
+    public function user_can_update_own_booking_players(): void
+    {
+        $user = User::factory()->create();
+        $square = Square::factory()->create(['range_cancel' => 0]);
+        $booking = Booking::factory()->create([
+            'uid' => $user->uid,
+            'sid' => $square->sid,
+            'status' => 'single',
+            'quantity' => 2,
+        ]);
+        $date = Carbon::now()->addDays(3)->toDateString();
+        Reservation::factory()->create([
+            'bid' => $booking->bid,
+            'date' => $date,
+            'time_start' => '10:00:00',
+            'time_end' => '11:00:00',
+        ]);
+
+        $response = $this->actingAs($user)
+            ->put(route('bookings.update', $booking), [
+                'quantity' => 4,
+                'player_name_2' => 'Partner Zwei',
+                'player_name_3' => 'Partner Drei',
+                'player_name_4' => 'Partner Vier',
+            ]);
+
+        $response->assertRedirect();
+
+        $booking->refresh()->load('meta');
+        $this->assertSame(4, $booking->quantity);
+        $this->assertSame(['Partner Zwei', 'Partner Drei', 'Partner Vier'], $booking->player_names);
+    }
+
+    #[Test]
+    public function user_cannot_edit_another_users_booking(): void
+    {
+        $owner = User::factory()->create();
+        $other = User::factory()->create();
+        $booking = Booking::factory()->create(['uid' => $owner->uid]);
+
+        $this->actingAs($other)->get(route('bookings.edit', $booking))->assertForbidden();
+        $this->actingAs($other)->put(route('bookings.update', $booking), ['quantity' => 2])->assertForbidden();
+    }
+
+    #[Test]
     public function user_cannot_cancel_own_booking_inside_cancel_range(): void
     {
         $user = User::factory()->create();

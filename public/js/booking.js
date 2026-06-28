@@ -47,6 +47,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var adminBookingModal = document.getElementById('admin-booking-modal');
     var quantitySelect = document.getElementById('modal-quantity');
     var cancelEditLink = document.getElementById('cancel-modal-edit');
+    var deleteForm = document.getElementById('delete-form');
     var createEventButton = document.getElementById('modal-create-event');
     var eventForm = document.getElementById('event-form');
     var eventDateStart = document.getElementById('event-date-start');
@@ -300,6 +301,19 @@ document.addEventListener('DOMContentLoaded', function () {
         openAdminUrlInModal(trigger.getAttribute('data-edit-url') || trigger.href);
     }
 
+    if (cancelEditLink) {
+        cancelEditLink.addEventListener('click', function (event) {
+            var editUrl = cancelEditLink.getAttribute('href');
+            if (!adminBookingModal || !editUrl || editUrl === '#') {
+                return;
+            }
+
+            event.preventDefault();
+            hideModal(cancelModal);
+            openAdminUrlInModal(editUrl);
+        });
+    }
+
     if (adminBookingModal) {
         var abmIframe = document.getElementById('abm-iframe');
         if (abmIframe) {
@@ -307,8 +321,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (adminBookingModal.style.display === 'none') { return; }
                 try {
                     var iframePath = abmIframe.contentWindow.location.pathname;
-                    var isAdminForm = iframePath.indexOf('/admin/bookings') !== -1 || iframePath.indexOf('/admin/events') !== -1;
-                    if (iframePath && !isAdminForm) {
+                    var isAdminBookingForm = iframePath === '/admin/bookings/create' || /^\/admin\/bookings\/[^/]+\/edit$/.test(iframePath);
+                    var isAdminEventForm = iframePath === '/admin/events/create' || /^\/admin\/events\/[^/]+\/edit$/.test(iframePath);
+                    var isPublicBookingForm = /^\/bookings\/[^/]+\/edit$/.test(iframePath);
+                    if (iframePath && !isAdminBookingForm && !isAdminEventForm && !isPublicBookingForm) {
                         closeAllModals();
                         abmIframe.src = 'about:blank';
                         window.location.reload();
@@ -395,7 +411,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (action === 'cancel') {
                 var editUrl = trigger.getAttribute('data-edit-url');
-                if (editUrl && adminBookingModal) {
+                var deleteUrl = trigger.getAttribute('data-delete-url');
+                if (editUrl && deleteUrl && adminBookingModal) {
                     openAdminUrlInModal(editUrl);
                 } else {
                     openCancelModal(trigger);
