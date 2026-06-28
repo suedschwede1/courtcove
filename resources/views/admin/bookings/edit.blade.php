@@ -7,6 +7,8 @@
     $userEmail = $bookingUser?->email ?: 'Keine E-Mail hinterlegt';
     $userPhone = $bookingUser?->getMeta('phone');
     $createdLabel = $booking->created ? \Carbon\Carbon::parse($booking->created)->format('d.m.Y \u\m H:i \U\h\r') : 'Noch nicht gespeichert';
+    $ownerName = trim((string) ($booking->meta->firstWhere('key', 'owner-name')?->value ?? ''));
+    $isMemberOwner = $ownerName === '' && $bookingUser !== null;
     $memberLabel = $bookingUser ? $bookingUser->alias . ' (' . $bookingUser->uid . ')' : '—';
     $isCreateMode = (bool) ($isCreate ?? false);
     $closeRoute = $isCreateMode ? route('calendar.index', ['date' => old('date', $reservation?->date)]) : route('admin.bookings.index');
@@ -27,22 +29,21 @@
             <section class="admin-booking-card admin-booking-card--user">
                 <h2 class="admin-booking-card__title">Gebucht für</h2>
                 <label class="admin-booking-field admin-booking-field--full">
-                    <select name="uid" class="admin-booking-select">
-                        @foreach($users as $user)
-                            <option value="{{ $user->uid }}" @selected(old('uid', $booking->uid) == $user->uid)>{{ $user->alias }}</option>
-                        @endforeach
-                    </select>
+                    <input type="text" name="booked_for" value="{{ old('booked_for', $bookedFor) }}"
+                           list="admin-player-suggestions" maxlength="120" class="admin-booking-input" required>
                 </label>
-                <div class="admin-booking-user-name">{{ $memberLabel }}</div>
-                <div class="admin-booking-user-meta">
-                    <div>Status: {{ $userStatusLabel }}</div>
-                    <div>E-Mail: {{ $userEmail }}</div>
-                    @if($userPhone)
-                        <div>Telefon: {{ $userPhone }}</div>
+                @if($isMemberOwner)
+                    <div class="admin-booking-user-name">{{ $memberLabel }}</div>
+                    <div class="admin-booking-user-meta">
+                        <div>Status: {{ $userStatusLabel }}</div>
+                        <div>E-Mail: {{ $userEmail }}</div>
+                        @if($userPhone)
+                            <div>Telefon: {{ $userPhone }}</div>
+                        @endif
+                    </div>
+                    @if(Route::has('admin.users.edit') && auth()->user()->can('admin.user'))
+                        <a href="{{ route('admin.users.edit', $bookingUser) }}" class="admin-booking-link">Benutzer bearbeiten</a>
                     @endif
-                </div>
-                @if($bookingUser && Route::has('admin.users.edit') && auth()->user()->can('admin.user'))
-                    <a href="{{ route('admin.users.edit', $bookingUser) }}" class="admin-booking-link">Benutzer bearbeiten</a>
                 @endif
             </section>
 
@@ -85,15 +86,6 @@
                             @foreach($squares as $square)
                                 <option value="{{ $square->sid }}" @selected(old('sid', $booking->sid) == $square->sid)>{{ $square->display_name }}</option>
                             @endforeach
-                        </select>
-                    </label>
-
-                    <label class="admin-booking-field">
-                        <span class="admin-booking-field__label">Abrechnungsstatus</span>
-                        <select name="status_billing" class="admin-booking-select">
-                            <option value="pending" @selected(old('status_billing', $booking->status_billing) === 'pending')>Ausstehend</option>
-                            <option value="paid" @selected(old('status_billing', $booking->status_billing) === 'paid')>Bezahlt</option>
-                            <option value="cancelled" @selected(old('status_billing', $booking->status_billing) === 'cancelled')>Storniert</option>
                         </select>
                     </label>
 
