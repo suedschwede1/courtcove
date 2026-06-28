@@ -8,6 +8,7 @@ use App\Enums\SquareStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * A bookable court/square. Real bs_squares schema: opening hours are TIME columns,
@@ -54,6 +55,13 @@ class Square extends Model
     ];
 
     protected $casts = ['status' => SquareStatus::class];
+
+    protected static function booted(): void
+    {
+        $flush = static fn () => Cache::forget('calendar.squares');
+        static::saved($flush);
+        static::deleted($flush);
+    }
 
     /** @return HasMany<Booking, $this> */
     public function bookings(): HasMany

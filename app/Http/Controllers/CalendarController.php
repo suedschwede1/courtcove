@@ -10,6 +10,7 @@ use App\Models\Square;
 use App\Services\ReservationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 /**
@@ -58,10 +59,10 @@ final class CalendarController extends Controller
         $rangeStart = $dates[0]->copy()->startOfDay();
         $rangeEnd = end($dates)->copy()->endOfDay();
 
-        $squares = Square::with(['meta' => fn ($query) => $query->where('key', 'alias')])
+        $squares = Cache::remember('calendar.squares', 300, fn () => Square::with(['meta' => fn ($query) => $query->where('key', 'alias')])
             ->orderBy('priority')
             ->orderBy('sid')
-            ->get();
+            ->get());
         $squareIds = $squares->pluck('sid')->values()->all();
 
         $calendarReservations = $this->reservations->getCalendarReservations($squareIds, $rangeStart, $rangeEnd);
@@ -91,11 +92,12 @@ final class CalendarController extends Controller
             }
         }
 
-        $events = Event::with(['meta' => fn ($query) => $query->where('key', 'name')])
+        $eventsCacheKey = 'calendar.events:'.$rangeStart->format('Y-m-d').':'.$rangeEnd->format('Y-m-d');
+        $events = Cache::remember($eventsCacheKey, 60, fn () => Event::with(['meta' => fn ($query) => $query->where('key', 'name')])
             ->where('status', 'enabled')
             ->where('datetime_start', '<', $rangeEnd)
             ->where('datetime_end', '>', $rangeStart)
-            ->get();
+            ->get());
 
         $eventBlocks = [];
         $eventSkip = [];

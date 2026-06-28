@@ -125,6 +125,76 @@ class ReservationServiceTest extends TestCase
     }
 
     #[Test]
+    public function get_calendar_reservations_returns_only_active_reservations_for_given_courts(): void
+    {
+        $square1 = Square::factory()->create();
+        $square2 = Square::factory()->create();
+        $otherSquare = Square::factory()->create();
+
+        $b1 = Booking::factory()->create(['sid' => $square1->sid, 'status' => 'single']);
+        $b2 = Booking::factory()->create(['sid' => $square2->sid, 'status' => 'subscription']);
+        $bOther = Booking::factory()->create(['sid' => $otherSquare->sid, 'status' => 'single']);
+        $bCancelled = Booking::factory()->create(['sid' => $square1->sid, 'status' => 'cancelled']);
+
+        $today = Carbon::today()->toDateString();
+        $r1 = Reservation::factory()->create(['bid' => $b1->bid, 'date' => $today]);
+        $r2 = Reservation::factory()->create(['bid' => $b2->bid, 'date' => $today]);
+        $rOther = Reservation::factory()->create(['bid' => $bOther->bid, 'date' => $today]);
+        $rCancelled = Reservation::factory()->create(['bid' => $bCancelled->bid, 'date' => $today]);
+
+        $results = $this->service->getCalendarReservations(
+            [$square1->sid, $square2->sid],
+            Carbon::today()->startOfDay(),
+            Carbon::today()->endOfDay(),
+        );
+        $rids = $results->pluck('rid')->toArray();
+
+        $this->assertContains($r1->rid, $rids);
+        $this->assertContains($r2->rid, $rids);
+        $this->assertNotContains($rOther->rid, $rids);
+        $this->assertNotContains($rCancelled->rid, $rids);
+    }
+
+    #[Test]
+    public function get_calendar_reservations_eager_loads_booking_user_and_meta(): void
+    {
+        $square = Square::factory()->create();
+        $booking = Booking::factory()->create(['sid' => $square->sid, 'status' => 'single']);
+        Reservation::factory()->create(['bid' => $booking->bid, 'date' => Carbon::today()->toDateString()]);
+
+        $results = $this->service->getCalendarReservations(
+            [$square->sid],
+            Carbon::today()->startOfDay(),
+            Carbon::today()->endOfDay(),
+        );
+
+        $reservation = $results->first();
+        $this->assertNotNull($reservation);
+        $this->assertTrue($reservation->relationLoaded('booking'));
+        $this->assertTrue($reservation->booking->relationLoaded('user'));
+        $this->assertTrue($reservation->booking->relationLoaded('meta'));
+    }
+
+    #[Test]
+    public function get_calendar_reservations_excludes_out_of_range_dates(): void
+    {
+        $square = Square::factory()->create();
+        $booking = Booking::factory()->create(['sid' => $square->sid, 'status' => 'single']);
+        $inRange = Reservation::factory()->create(['bid' => $booking->bid, 'date' => Carbon::today()->toDateString()]);
+        $outRange = Reservation::factory()->create(['bid' => $booking->bid, 'date' => Carbon::today()->addDays(10)->toDateString()]);
+
+        $results = $this->service->getCalendarReservations(
+            [$square->sid],
+            Carbon::today()->startOfDay(),
+            Carbon::today()->addDays(7)->endOfDay(),
+        );
+        $rids = $results->pluck('rid')->toArray();
+
+        $this->assertContains($inRange->rid, $rids);
+        $this->assertNotContains($outRange->rid, $rids);
+    }
+
+    #[Test]
     public function adjacent_slots_do_not_overlap(): void
     {
         $booking = Booking::factory()->create(['status' => 'single']);
