@@ -43,6 +43,23 @@ class SquareValidatorTest extends TestCase
     }
 
     #[Test]
+    public function disabled_square_allows_privileged_user_like_legacy_system(): void
+    {
+        $square = Square::factory()->create([
+            'status' => 'disabled', 'time_block_bookable_max' => 0, 'range_book' => 0,
+        ]);
+        $user = User::factory()->create(['status' => 'admin']);
+
+        $result = $this->validator->validate(
+            $square, $user, 2,
+            Carbon::now()->addDay()->setTime(10, 0),
+            Carbon::now()->addDay()->setTime(11, 0),
+        );
+
+        $this->assertTrue($result->isValid());
+    }
+
+    #[Test]
     public function readonly_square_blocks_booking_without_privilege(): void
     {
         $square = Square::factory()->create(['status' => 'readonly']);
@@ -111,8 +128,9 @@ class SquareValidatorTest extends TestCase
     public function daily_limit_is_enforced(): void
     {
         $square  = Square::factory()->create(['status' => 'enabled', 'time_block_bookable_max' => 3600]);
+        $otherSquare = Square::factory()->create(['status' => 'enabled']);
         $user    = User::factory()->create();
-        $booking = Booking::factory()->create(['uid' => $user->uid, 'sid' => $square->sid, 'status' => 'single']);
+        $booking = Booking::factory()->create(['uid' => $user->uid, 'sid' => $otherSquare->sid, 'status' => 'single']);
 
         Reservation::factory()->create([
             'bid'        => $booking->bid,
@@ -134,6 +152,8 @@ class SquareValidatorTest extends TestCase
     #[Test]
     public function short_booking_within_30min_ignores_daily_limit(): void
     {
+        Carbon::setTestNow(Carbon::parse('2026-07-10 10:00:00'));
+
         $square = Square::factory()->create(['status' => 'enabled', 'time_block_bookable_max' => 3600]);
         $user   = User::factory()->create();
 
@@ -144,6 +164,8 @@ class SquareValidatorTest extends TestCase
             $dateStart,
             $dateStart->copy()->addHour(),
         );
+
+        Carbon::setTestNow();
 
         $this->assertTrue($result->isValid());
     }

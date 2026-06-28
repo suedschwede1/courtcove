@@ -13,13 +13,7 @@ use Carbon\Carbon;
 
 /**
  * Validates whether a user may create a booking on a given court at a given time.
- *
- * Business rules (ported from module/Square/src/Square/Service/SquareValidator.php):
- * - Disabled squares: nobody can book
- * - Readonly squares: only users with the calendar.create-single-bookings privilege (see User::can())
- * - range_book: max advance window in seconds (0/null = unlimited); cutoff is end-of-day on last allowed day
- * - time_block_bookable_max: per-user per-court per-day limit in seconds (0/null = unlimited)
- * - Short booking exemption: bookings starting within 30 min are exempt from the daily limit
+ * Mirrors the legacy SquareValidator rules from C:\development\booking.
  */
 final class SquareValidator
 {
@@ -32,32 +26,87 @@ final class SquareValidator
         Carbon $dateStart,
         Carbon $dateEnd,
     ): ValidationResult {
-        if ($square->status === SquareStatus::Disabled) {
-            return ValidationResult::fail('Square is disabled — no bookings allowed');
+        if (!$dateEnd->greaterThan($dateStart)) {
+            return ValidationResult::fail('Booking end time must be after start time');
         }
 
-        if ($square->status === SquareStatus::Readonly
-            && !$user->can('calendar.create-single-bookings')) {
-            return ValidationResult::fail('Square is readonly — booking requires privilege');
+        if (!$dateStart->isSameDay($dateEnd)) {
+            return ValidationResult::fail('Bookings must start and end on the same day');
+        }
+
+        if ($quantity < 1) {
+            return ValidationResult::fail('Booking quantity must be positive');
+        }
+
+        if ($square->status === SquareStatus::Disabled && !$this->canCreateAnyBooking($user)) {
+            return ValidationResult::fail('Square is disabled - no bookings allowed');
+        }
+
+        if ($square->status === SquareStatus::Readonly && !$this->canCreateAnyBooking($user)) {
+            return ValidationResult::fail('Square is readonly - booking requires privilege');
+        }
+
+        $startSeconds = $this->timeOfDaySeconds($dateStart);
+        $endSeconds = $this->timeOfDaySeconds($dateEnd);
+        $squareStart = $this->clockTimeToSeconds((string) $square->time_start);
+        $squareEnd = $this->clockTimeToSeconds((string) $square->time_end);
+        $durationSeconds = (int) $dateStart->diffInSeconds($dateEnd);
+
+        if ($startSeconds < $squareStart || $endSeconds > $squareEnd) {
+            return ValidationResult::fail('Booking time is outside square opening hours');
+        }
+
+        $minimumStart = Carbon::now();
+        if ((int) $square->min_range_book === 0) {
+            $minimumStart->subSeconds((int) $square->time_block_bookable / 2);
+        } else {
+            $minimumStart->addSeconds((int) $square->min_range_book);
+        }
+
+        if ($dateStart->lessThan($minimumStart)
+            && !$user->can('calendar.see-past')
+            && !($user->can('calendar.see-data') && $dateEnd->isSameDay($minimumStart))) {
+            return ValidationResult::fail('Booking time is already over');
+        }
+
+        if ((int) $square->min_range_book > 0
+            && $dateStart->lessThan($minimumStart)
+            && !$this->canCreateAnyBooking($user)) {
+            return ValidationResult::fail('Booking date is before the minimum advance booking time');
         }
 
         if ((int) $square->range_book > 0) {
-            $maxBookableAt = Carbon::now()->addSeconds((int) $square->range_book)->endOfDay();
-            if ($dateStart->greaterThan($maxBookableAt)) {
+            $maxBookableAt = Carbon::now()->addSeconds((int) $square->range_book);
+            $sameDayAsMax = $dateStart->isSameDay($maxBookableAt);
+            if ($dateStart->greaterThan($maxBookableAt) && !$sameDayAsMax && !$this->canCreateAnyBooking($user)) {
                 return ValidationResult::fail('Booking date exceeds the allowed advance booking range');
             }
         }
 
-        if ((int) $square->time_block_bookable_max > 0 && !$this->isShortBooking($dateStart)) {
-            $dailyUsed = $this->getDailyUsedSeconds($user, $square, $dateStart);
-            $requested = (int) $dateStart->diffInSeconds($dateEnd);
+        if ((int) $square->time_block_bookable > 0 && $durationSeconds < (int) $square->time_block_bookable) {
+            return ValidationResult::fail('Booking duration is shorter than the minimum bookable time');
+        }
 
-            if ($dailyUsed + $requested > (int) $square->time_block_bookable_max) {
-                return ValidationResult::fail('Daily booking limit exceeded for this square');
+        if ((int) $square->max_active_bookings > 0
+            && $this->getActiveFutureBookingCount($user) >= (int) $square->max_active_bookings) {
+            return ValidationResult::fail('Maximum number of active bookings reached');
+        }
+
+        if ((int) $square->time_block_bookable_max > 0 && !$this->isShortBooking($dateStart)) {
+            $dailyUsed = $this->getDailyUsedSeconds($user, $dateStart);
+
+            if ($dailyUsed + $durationSeconds > (int) $square->time_block_bookable_max
+                && !$this->canCreateAnyBooking($user)) {
+                return ValidationResult::fail('Daily booking limit exceeded');
             }
         }
 
         return ValidationResult::pass();
+    }
+
+    private function canCreateAnyBooking(User $user): bool
+    {
+        return $user->can('calendar.create-single-bookings, calendar.create-subscription-bookings');
     }
 
     /** Whether the booking starts within 30 minutes (short-booking daily-limit exemption). */
@@ -66,16 +115,13 @@ final class SquareValidator
         return Carbon::now()->diffInSeconds($dateStart, absolute: false) <= self::SHORT_BOOKING_THRESHOLD_SECONDS;
     }
 
-    /**
-     * Total booked seconds for this user on this court on the given calendar day.
-     * Computed in PHP (DB-agnostic) from the DATE/TIME columns.
-     */
-    private function getDailyUsedSeconds(User $user, Square $square, Carbon $date): int
+    /** Total booked seconds for this user on the given calendar day across all squares. */
+    private function getDailyUsedSeconds(User $user, Carbon $date): int
     {
         $reservations = Reservation::query()
             ->join('bs_bookings', 'bs_bookings.bid', '=', 'bs_reservations.bid')
             ->where('bs_bookings.uid', $user->uid)
-            ->where('bs_bookings.sid', $square->sid)
+            ->where('bs_bookings.visibility', 'public')
             ->whereIn('bs_bookings.status', Booking::ACTIVE_STATUSES)
             ->where('bs_reservations.date', $date->toDateString())
             ->get(['bs_reservations.time_start', 'bs_reservations.time_end']);
@@ -86,5 +132,29 @@ final class SquareValidator
         }
 
         return $seconds;
+    }
+
+    private function getActiveFutureBookingCount(User $user): int
+    {
+        return Reservation::query()
+            ->join('bs_bookings', 'bs_bookings.bid', '=', 'bs_reservations.bid')
+            ->where('bs_bookings.uid', $user->uid)
+            ->whereIn('bs_bookings.status', Booking::ACTIVE_STATUSES)
+            ->where('bs_reservations.date', '>=', Carbon::today()->toDateString())
+            ->count();
+    }
+
+    private function timeOfDaySeconds(Carbon $time): int
+    {
+        return ((int) $time->format('H')) * 3600
+            + ((int) $time->format('i')) * 60
+            + (int) $time->format('s');
+    }
+
+    private function clockTimeToSeconds(string $time): int
+    {
+        [$hours, $minutes, $seconds] = array_pad(explode(':', $time), 3, 0);
+
+        return (int) $hours * 3600 + (int) $minutes * 60 + (int) $seconds;
     }
 }

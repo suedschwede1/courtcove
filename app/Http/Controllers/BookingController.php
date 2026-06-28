@@ -42,8 +42,8 @@ final class BookingController extends Controller
         $data = $request->validate([
             'sid'           => ['required', 'integer', 'exists:bs_squares,sid'],
             'date'          => ['required', 'date'],
-            'time_start'    => ['required'],
-            'time_end'      => ['required'],
+            'time_start'    => ['required', 'integer', 'min:0', 'max:86399'],
+            'time_end'      => ['required', 'integer', 'min:1', 'max:86400'],
             'quantity'      => ['required', 'integer', 'in:2,4'],
             'player_name_2' => ['required_if:quantity,2,4', 'nullable', 'string', 'max:120'],
             'player_name_3' => ['required_if:quantity,4', 'nullable', 'string', 'max:120'],
@@ -143,6 +143,10 @@ final class BookingController extends Controller
 
         if ($booking->uid !== $user?->getAuthIdentifier() && !$user?->can('admin.booking')) {
             abort(403);
+        }
+
+        if (!$user || !$this->bookingService->canUserCancelSingle($user, $booking)) {
+            return back()->withErrors(['booking' => 'Diese Buchung kann online nicht mehr storniert werden.']);
         }
 
         $this->bookingService->cancelSingle($booking);
