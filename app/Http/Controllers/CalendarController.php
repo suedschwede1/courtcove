@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Models\Event;
 use App\Models\Reservation;
 use App\Models\Square;
+use App\Models\User;
 use App\Services\ReservationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -182,16 +183,21 @@ final class CalendarController extends Controller
             }
         }
 
+        $adminUsers = auth()->check() && auth()->user()->can('admin.booking')
+            ? User::whereNotIn('status', ['deleted', 'placeholder'])->orderBy('alias')->get(['uid', 'alias'])
+            : collect();
+
         return view('calendar.index', [
-            'date' => $date,
-            'dates' => $dates,
-            'squares' => $squares,
+            'date'               => $date,
+            'dates'              => $dates,
+            'squares'            => $squares,
             'reservationsByDate' => $reservationsByDate,
             'reservationsBySquare' => $reservationsByDate[$date->format('Y-m-d')] ?? [],
             'reservationsBySlot' => $reservationsBySlot,
-            'events' => $events,
-            'eventBlocks' => $eventBlocks,
-            'eventSkip' => $eventSkip,
+            'events'             => $events,
+            'eventBlocks'        => $eventBlocks,
+            'eventSkip'          => $eventSkip,
+            'adminUsers'         => $adminUsers,
         ]);
     }
 }

@@ -44,6 +44,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var bookingModal = document.getElementById('booking-modal');
     var cancelModal = document.getElementById('cancel-modal');
     var eventModal = document.getElementById('event-modal');
+    var adminBookingModal = document.getElementById('admin-booking-modal');
     var quantitySelect = document.getElementById('modal-quantity');
     var cancelEditLink = document.getElementById('cancel-modal-edit');
     var createEventButton = document.getElementById('modal-create-event');
@@ -87,6 +88,7 @@ document.addEventListener('DOMContentLoaded', function () {
         hideModal(bookingModal);
         hideModal(cancelModal);
         hideModal(eventModal);
+        hideModal(adminBookingModal);
         closeFeedbackModal();
     }
 
@@ -246,6 +248,83 @@ document.addEventListener('DOMContentLoaded', function () {
         showModal(cancelModal);
     }
 
+    function secondsToHHMM(seconds) {
+        var s = parseInt(seconds, 10) || 0;
+        return padNumber(Math.floor(s / 3600)) + ':' + padNumber(Math.floor((s % 3600) / 60));
+    }
+
+    function syncAbmQuantity() {
+        var qty = document.getElementById('abm-quantity');
+        var isDouble = qty && qty.value === '4';
+        ['abm-p3-field', 'abm-p4-field'].forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el) { el.hidden = !isDouble; }
+        });
+        ['abm-p3', 'abm-p4'].forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el) { el.required = isDouble; if (!isDouble) { el.value = ''; } }
+        });
+    }
+
+    function syncAbmRepeat() {
+        var repeat = document.getElementById('abm-repeat');
+        var dateEndField = document.getElementById('abm-date-end-field');
+        var dateEndInput = document.getElementById('abm-date-end');
+        if (!repeat || !dateEndField) { return; }
+        var isOnce = repeat.value === 'once';
+        dateEndField.hidden = isOnce;
+        if (dateEndInput) { dateEndInput.required = !isOnce; }
+    }
+
+    function openAdminBookingModal(trigger) {
+        var timeStart = secondsToHHMM(trigger.getAttribute('data-time-start'));
+        var timeEnd   = secondsToHHMM(trigger.getAttribute('data-time-end'));
+
+        var title = document.getElementById('abm-title');
+        var meta  = document.getElementById('abm-meta');
+        if (title) { title.textContent = trigger.getAttribute('data-square-name'); }
+        if (meta)  { meta.textContent  = trigger.getAttribute('data-date-label') + ', ' + trigger.getAttribute('data-time-label'); }
+
+        var set = function (id, val) { var el = document.getElementById(id); if (el) { el.value = val; } };
+        set('abm-sid',        trigger.getAttribute('data-sid'));
+        set('abm-date',       trigger.getAttribute('data-date'));
+        set('abm-time-start', timeStart);
+        set('abm-time-end',   timeEnd);
+        set('abm-date-end',   trigger.getAttribute('data-date'));
+        set('abm-booked-for', '');
+        set('abm-p2', '');
+        set('abm-p3', '');
+        set('abm-p4', '');
+
+        var qty = document.getElementById('abm-quantity');
+        if (qty) { qty.value = '2'; }
+        var repeat = document.getElementById('abm-repeat');
+        if (repeat) { repeat.value = 'once'; }
+
+        syncAbmQuantity();
+        syncAbmRepeat();
+        showModal(adminBookingModal);
+        setTimeout(function () {
+            var bf = document.getElementById('abm-booked-for');
+            if (bf) { bf.focus(); }
+        }, 50);
+    }
+
+    if (adminBookingModal) {
+        var abmClose     = document.getElementById('abm-close');
+        var abmCancelBtn = document.getElementById('abm-cancel-btn');
+        var abmQty       = document.getElementById('abm-quantity');
+        var abmRepeat    = document.getElementById('abm-repeat');
+
+        if (abmClose)     { abmClose.addEventListener('click', function (e) { e.preventDefault(); closeAllModals(); }); }
+        if (abmCancelBtn) { abmCancelBtn.addEventListener('click', closeAllModals); }
+        if (abmQty)       { abmQty.addEventListener('change', syncAbmQuantity); }
+        if (abmRepeat)    { abmRepeat.addEventListener('change', syncAbmRepeat); }
+        adminBookingModal.addEventListener('click', function (e) {
+            if (e.target === adminBookingModal) { closeAllModals(); }
+        });
+    }
+
     if (feedbackModal) {
         var feedbackClose = document.getElementById('feedback-modal-close');
         var feedbackOk = document.getElementById('feedback-modal-ok');
@@ -300,6 +379,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (action === 'cancel') {
                 openCancelModal(trigger);
+            } else if (action === 'admin-book' && adminBookingModal) {
+                openAdminBookingModal(trigger);
             } else {
                 openBookingModal(trigger);
             }

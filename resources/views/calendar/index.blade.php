@@ -342,15 +342,92 @@
                 @can('admin.event')
                     <button type="button" id="modal-create-event" class="default-button">{{ __('booking.modal.create_event') }}</button>
                 @endcan
-                @can('admin.booking')
-                    <a id="modal-admin-link" href="#" class="default-button" hidden>{{ __('booking.modal.admin_form') }}</a>
-                @endcan
                 <button type="submit" class="modal-primary-button">{{ __('booking.modal.book_now') }}</button>
                 <button type="button" id="modal-cancel" class="default-button">{{ __('booking.modal.cancel') }}</button>
             </form>
         </div>
     </div>
 </div>
+
+@can('admin.booking')
+<div id="admin-booking-modal" class="booking-modal" style="display:none;">
+    <div class="booking-modal__viewport">
+        <div class="booking-modal__card booking-modal__card--admin">
+            <button id="abm-close" class="booking-modal__close" title="{{ __('booking.feedback.close') }}">&#x2715;</button>
+            <div class="booking-modal__header">
+                <h2 id="abm-title"></h2>
+                <div id="abm-meta" class="booking-modal__meta"></div>
+            </div>
+            <form method="POST" action="{{ route('admin.bookings.store') }}" class="booking-modal__body booking-modal__body--admin" id="admin-booking-form">
+                @csrf
+                <input type="hidden" name="status" value="single">
+                <input type="hidden" name="sid"        id="abm-sid">
+                <input type="hidden" name="date"       id="abm-date">
+                <input type="hidden" name="time_start" id="abm-time-start">
+                <input type="hidden" name="time_end"   id="abm-time-end">
+
+                <label class="booking-modal__field">
+                    <span class="booking-modal__field-label">{{ __('booking.admin.bookings.booked_for') }}</span>
+                    <input type="text" name="booked_for" id="abm-booked-for" class="booking-modal__input"
+                           list="abm-player-suggestions" maxlength="120" required
+                           placeholder="{{ __('booking.modal.player_name_2_placeholder') }}">
+                </label>
+
+                <label class="booking-modal__field">
+                    <span class="booking-modal__field-label">{{ __('booking.admin.bookings.play_type') }}</span>
+                    <select name="quantity" id="abm-quantity" class="booking-modal__select">
+                        <option value="2">{{ __('booking.admin.bookings.single') }}</option>
+                        <option value="4">{{ __('booking.admin.bookings.double') ?? 'Doppel' }}</option>
+                    </select>
+                </label>
+
+                <label class="booking-modal__field" id="abm-p2-field">
+                    <span class="booking-modal__field-label">{{ __('booking.modal.player_name_2') }}</span>
+                    <input type="text" name="player_name_2" id="abm-p2" class="booking-modal__input"
+                           list="abm-player-suggestions" maxlength="120" required>
+                </label>
+
+                <label class="booking-modal__field" id="abm-p3-field" hidden>
+                    <span class="booking-modal__field-label">{{ __('booking.modal.player_name_3') }}</span>
+                    <input type="text" name="player_name_3" id="abm-p3" class="booking-modal__input"
+                           list="abm-player-suggestions" maxlength="120">
+                </label>
+
+                <label class="booking-modal__field" id="abm-p4-field" hidden>
+                    <span class="booking-modal__field-label">{{ __('booking.modal.player_name_4') }}</span>
+                    <input type="text" name="player_name_4" id="abm-p4" class="booking-modal__input"
+                           list="abm-player-suggestions" maxlength="120">
+                </label>
+
+                <label class="booking-modal__field">
+                    <span class="booking-modal__field-label">{{ __('booking.admin.bookings.repeat') }}</span>
+                    <select name="repeat_type" id="abm-repeat" class="booking-modal__select">
+                        @foreach(['once','daily','every_2_days','every_3_days','every_4_days','every_5_days','every_6_days','weekly','every_2_weeks','monthly','custom'] as $rk)
+                            <option value="{{ $rk }}">{{ __('booking.repeat.'.$rk) }}</option>
+                        @endforeach
+                    </select>
+                </label>
+
+                <label class="booking-modal__field" id="abm-date-end-field" hidden>
+                    <span class="booking-modal__field-label">{{ __('booking.admin.bookings.date_end') }}</span>
+                    <input type="date" name="date_end" id="abm-date-end" class="booking-modal__input">
+                </label>
+
+                <datalist id="abm-player-suggestions">
+                    @foreach($adminUsers as $u)
+                        <option value="{{ $u->alias }}"></option>
+                    @endforeach
+                </datalist>
+
+                <div class="booking-modal__actions booking-modal__actions--stacked">
+                    <button type="submit" class="modal-primary-button">{{ __('booking.admin.common.create') }}</button>
+                    <button type="button" id="abm-cancel-btn" class="default-button">{{ __('booking.admin.common.abort') }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endcan
 
 @can('admin.event')
 <div id="event-modal" class="booking-modal" style="display:none;">

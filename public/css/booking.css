@@ -1096,6 +1096,17 @@ a.cc-own:hover {
     max-width: 520px;
 }
 
+.booking-modal__card--admin {
+    max-width: 480px;
+}
+
+.booking-modal__body--admin {
+    display: grid;
+    gap: 12px;
+    padding: 0 20px 18px;
+    text-align: left;
+}
+
 .booking-modal__body--event {
     display: grid;
     gap: 12px;
