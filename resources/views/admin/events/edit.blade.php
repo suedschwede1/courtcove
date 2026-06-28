@@ -5,7 +5,7 @@
 <form method="POST" action="{{ route('admin.events.update', $event) }}" class="admin-form">
     @csrf
     @method('PUT')
-    @include('admin.events._form', ['squares' => $squares, 'event' => $event, 'name' => $name])
+    @include('admin.events._form')
     <div class="admin-form__actions"><button type="submit" class="admin-btn-primary">{{ __('booking.admin.common.save') }}</button></div>
 </form>
 @endsection

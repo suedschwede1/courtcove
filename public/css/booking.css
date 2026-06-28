@@ -2217,6 +2217,65 @@ textarea {
     line-height: 1.4;
 }
 
+.admin-form__lang-hint {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    margin: 0 0 12px;
+    padding: 8px 12px;
+    background: #eef4fb;
+    border: 1px solid #c5d9ef;
+    border-radius: 5px;
+    color: #3a6190;
+    font-size: 11px;
+    line-height: 1.5;
+}
+.admin-form__lang-hint-icon {
+    font-size: 14px;
+    line-height: 1.2;
+    flex-shrink: 0;
+}
+
+.admin-form__field--flex {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.admin-form__inline-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.admin-form__inline-label {
+    font-size: 11px;
+    color: #666;
+    font-weight: bold;
+}
+
+.admin-form__inline-group input[type="date"],
+.admin-form__inline-group input[type="time"],
+.admin-form__inline-group input[type="number"],
+.admin-form__inline-group select {
+    padding: 7px 10px;
+    border: 1px solid #ccc5bb;
+    border-radius: 5px;
+    background: #fff;
+    font-family: Verdana, sans-serif;
+    font-size: 12px;
+    color: #222;
+    box-sizing: border-box;
+}
+
+.admin-form__inline-group input:focus,
+.admin-form__inline-group select:focus {
+    outline: none;
+    border-color: #c75518;
+    box-shadow: 0 0 0 3px rgba(199,85,24,0.12);
+}
+
 .admin-form__actions {
     margin-top: 20px;
     display: flex;
