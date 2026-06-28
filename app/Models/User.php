@@ -97,6 +97,10 @@ class User extends Authenticatable
             return false;
         }
 
+        if (! $this->relationLoaded('meta')) {
+            $this->load('meta');
+        }
+
         foreach (explode(',', $privileges) as $orPrivilege) {
             $andPrivileges = explode('+', $orPrivilege);
             $matched = 0;
