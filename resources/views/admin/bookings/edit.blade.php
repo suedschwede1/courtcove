@@ -17,20 +17,10 @@
 @endphp
 
 @if($isCreateMode)
-<div class="admin-type-switcher">
-    <span class="admin-type-switcher__tab admin-type-switcher__tab--active">{{ __('booking.admin.bookings.type_booking') }}</span>
-    @php
-        $eventUrl = route('admin.events.create', array_filter([
-            'sid'        => old('sid', $booking->sid),
-            'date_start' => old('date', $reservation?->date),
-            'time_start' => old('time_start', $reservation ? substr((string)$reservation->time_start, 0, 5) : ''),
-            'date_end'   => old('date', $reservation?->date),
-            'time_end'   => old('time_end', $reservation ? substr((string)$reservation->time_end, 0, 5) : ''),
-            'popup'      => request('popup') ?: null,
-        ]));
-    @endphp
+<div class="admin-type-switcher" id="type-switcher">
+    <button type="button" class="admin-type-switcher__tab admin-type-switcher__tab--active" data-tab="booking">{{ __('booking.admin.bookings.type_booking') }}</button>
     @can('admin.event')
-    <a href="{{ $eventUrl }}" class="admin-type-switcher__tab">{{ __('booking.admin.bookings.type_event') }}</a>
+    <button type="button" class="admin-type-switcher__tab" data-tab="event">{{ __('booking.admin.bookings.type_event') }}</button>
     @endcan
 </div>
 @endif
@@ -43,8 +33,8 @@
 
     @if($isCreateMode)
     {{-- Row 1: Platz | Gebucht für --}}
-    <div class="abf-row">
-        <div class="abf-card" style="flex:1;">
+    <div class="abf-row abf-row--top">
+        <div class="abf-card abf-card--court">
             <label class="abf-label" for="sid">{{ __('booking.admin.common.court') }}</label>
             <select name="sid" id="sid" class="abf-select">
                 @foreach($squares as $square)
@@ -52,7 +42,7 @@
                 @endforeach
             </select>
         </div>
-        <div class="abf-card" style="flex:2;">
+        <div class="abf-card abf-card--owner">
             <label class="abf-label" for="booked_for">{{ __('booking.admin.bookings.booked_for') }}</label>
             <input type="text" id="booked_for" name="booked_for" value="{{ old('booked_for', $bookedFor) }}"
                    list="admin-player-suggestions" maxlength="120" required class="abf-input">
@@ -60,9 +50,9 @@
     </div>
 
     {{-- Row 2: Zeit + Datum + Wiederholung | Spieleranzahl + Spielernamen --}}
-    <div class="abf-row" style="margin-top:8px;">
+    <div class="abf-row abf-row--details">
         {{-- Zeit / Datum --}}
-        <div class="abf-card" style="flex:2;">
+        <div class="abf-card abf-card--time">
             <div class="abf-row2">
                 <div class="abf-field">
                     <label class="abf-label" for="time_start">{{ __('booking.admin.bookings.time_start') }}</label>
@@ -73,7 +63,7 @@
                     <input type="time" id="time_end" name="time_end" value="{{ old('time_end', $reservation ? substr((string) $reservation->time_end, 0, 5) : '') }}" class="abf-dateinput">
                 </div>
             </div>
-            <div class="abf-row2" style="margin-top:8px;">
+            <div class="abf-row2 abf-row2--dates">
                 <div class="abf-field">
                     <label class="abf-label" for="date">{{ __('booking.admin.bookings.date_start') }}</label>
                     <input type="date" id="date" name="date" value="{{ old('date', $reservation?->date) }}" class="abf-dateinput">
@@ -83,7 +73,7 @@
                     <input type="date" id="admin-booking-date-end" name="date_end" value="{{ old('date_end', $repeatEndDate) }}" class="abf-dateinput">
                 </div>
             </div>
-            <div class="abf-field" style="margin-top:8px;">
+            <div class="abf-field abf-field--repeat">
                 <label class="abf-label" for="admin-booking-repeat">{{ __('booking.admin.bookings.repeat') }}</label>
                 <select name="repeat_type" id="admin-booking-repeat" class="abf-select">
                     @foreach($repeatOptions as $repeatValue => $repeatLabel)
@@ -94,13 +84,13 @@
         </div>
 
         {{-- Spieleranzahl + Spielernamen --}}
-        <div class="abf-card" style="flex:1;">
+        <div class="abf-card abf-card--players">
             <label class="abf-label" for="admin-booking-quantity">{{ __('booking.admin.bookings.player_count') }}</label>
             <select name="quantity" id="admin-booking-quantity" class="abf-select">
                 <option value="2" @selected((int) old('quantity', $booking->quantity) === 2)>2</option>
                 <option value="4" @selected((int) old('quantity', $booking->quantity) === 4)>4</option>
             </select>
-            <div style="margin-top:10px;">
+            <div class="abf-player-fields">
                 <span class="abf-label">{{ __('booking.admin.bookings.player_names') }}</span>
                 <label class="abf-sublabel" for="admin-player2">2.</label>
                 <input type="text" id="admin-player2" name="player_name_2" value="{{ old('player_name_2', $playerNames[2]) }}" list="admin-player-suggestions" maxlength="120" class="abf-input">
@@ -118,8 +108,8 @@
 
     {{-- Row 3: Notizen --}}
     <div class="abf-card abf-card--notes">
-        <div class="abf-row2">
-            <div class="abf-field" style="flex:1;">
+        <div class="abf-row2 abf-row2--notes">
+            <div class="abf-field abf-field--notes">
                 <label class="abf-label" for="admin_note">{{ __('booking.admin.bookings.notes_section') }}</label>
                 <textarea id="admin_note" name="admin_note" rows="3" class="abf-input abf-textarea">{{ old('admin_note', $adminNote) }}</textarea>
             </div>
@@ -266,6 +256,25 @@
     </div>
 </form>
 
+@if($isCreateMode ?? false)
+@can('admin.event')
+<div id="panel-event" hidden>
+    <form method="POST" action="{{ route('admin.events.store') }}" class="admin-form admin-form--compact" id="admin-event-create">
+        @csrf
+        @if(request('popup'))
+        <input type="hidden" name="popup" value="1">
+        <input type="hidden" name="redirect_to" value="{{ route('calendar.index') }}">
+        @endif
+        @include('admin.events._form', array_merge($eventFormData ?? [], ['squares' => $squares]))
+        <div class="admin-form__actions">
+            <button type="submit" class="admin-btn-primary">{{ __('booking.admin.common.create') }}</button>
+            <a href="{{ $closeRoute }}" class="default-button">{{ __('booking.admin.common.abort') }}</a>
+        </div>
+    </form>
+</div>
+@endcan
+@endif
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     var quantity = document.getElementById('admin-booking-quantity');
@@ -327,6 +336,24 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     syncAdminBookingFields();
+
+    // Tab switching (Buchung ↔ Veranstaltung) without page reload
+    var typeSwitcher = document.getElementById('type-switcher');
+    var bookingForm  = document.getElementById('admin-booking-create');
+    var eventPanel   = document.getElementById('panel-event');
+
+    if (typeSwitcher) {
+        typeSwitcher.querySelectorAll('[data-tab]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var tab = btn.getAttribute('data-tab');
+                typeSwitcher.querySelectorAll('[data-tab]').forEach(function (b) {
+                    b.classList.toggle('admin-type-switcher__tab--active', b === btn);
+                });
+                if (bookingForm) { bookingForm.hidden = tab !== 'booking'; }
+                if (eventPanel)  { eventPanel.hidden  = tab !== 'event';   }
+            });
+        });
+    }
 });
 </script>
 @endsection

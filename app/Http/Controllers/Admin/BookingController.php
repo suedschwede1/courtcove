@@ -89,18 +89,30 @@ final class BookingController extends Controller
             'time_end' => sprintf('%02d:%02d:00', intdiv($timeEndSeconds, 3600), intdiv($timeEndSeconds % 3600, 60)),
         ]);
 
+        $squares = Square::orderBy('priority')->orderBy('sid')->get();
+
         return view('admin.bookings.edit', [
-            'booking' => $booking,
-            'users' => User::where('status', '!=', 'deleted')->orderBy('alias')->get(),
-            'squares' => Square::orderBy('priority')->orderBy('sid')->get(),
-            'reservation' => $reservation,
-            'bookedFor' => '',
-            'playerNames' => [2 => '', 3 => '', 4 => ''],
-            'adminNote' => '',
+            'booking'      => $booking,
+            'users'        => User::where('status', '!=', 'deleted')->orderBy('alias')->get(['uid', 'alias']),
+            'squares'      => $squares,
+            'reservation'  => $reservation,
+            'bookedFor'    => '',
+            'playerNames'  => [2 => '', 3 => '', 4 => ''],
+            'adminNote'    => '',
             'repeatOptions' => self::repeatOptions(),
-            'repeatType' => 'once',
+            'repeatType'   => 'once',
             'repeatEndDate' => $date,
-            'isCreate' => true,
+            'isCreate'     => true,
+            'eventFormData' => [
+                'event'       => new Event(['sid' => $square->sid, 'capacity' => 0]),
+                'name'        => '',
+                'description' => '',
+                'notes'       => '',
+                'date_start'  => $date,
+                'time_start'  => substr($reservation->time_start, 0, 5),
+                'date_end'    => $date,
+                'time_end'    => substr($reservation->time_end, 0, 5),
+            ],
         ]);
     }
 
