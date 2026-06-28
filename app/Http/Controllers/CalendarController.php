@@ -184,6 +184,15 @@ final class CalendarController extends Controller
         }
 
         $now         = Carbon::now();
+        $dateLabels = [];
+        foreach ($dates as $d) {
+            $dateLabels[$d->format('Y-m-d')] = [
+                'short' => $d->isoFormat('dddd'),
+                'long'  => $d->isoFormat('D. MMMM YYYY'),
+                'full'  => $d->isoFormat('dddd, D. MMMM YYYY'),
+            ];
+        }
+
         $authUser    = auth()->user();
         $authUserId  = $authUser?->uid;
         $isLoggedIn  = $authUser !== null;
@@ -210,6 +219,7 @@ final class CalendarController extends Controller
             'isAdmin'            => $isAdmin,
             'now'                => $now,
             'today'              => $now->format('Y-m-d'),
+            'dateLabels'         => $dateLabels,
         ]);
     }
 }
