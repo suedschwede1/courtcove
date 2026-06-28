@@ -148,6 +148,10 @@ return [
         'status' => 'Status',
     ],    'admin' => [
         'overview' => 'Übersicht',
+        'search_placeholder' => 'Name oder E-Mail …',
+        'search_status_all'  => 'Alle Status',
+        'no_results'         => 'Keine Ergebnisse.',
+        'search_hint'        => 'Bitte Suchbegriff eingeben.',
         'nav_users' => 'Benutzer',
         'nav_events' => 'Veranstaltungen',
         'nav_bookings' => 'Buchungen',

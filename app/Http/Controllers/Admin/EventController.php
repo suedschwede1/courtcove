@@ -14,11 +14,38 @@ use Illuminate\View\View;
 
 final class EventController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $events = Event::with(['meta', 'square'])->orderByDesc('datetime_start')->get();
+        $searched = $request->hasAny(['q', 'sid', 'date']);
+        $events   = collect();
+        $squares  = Square::orderBy('priority')->get();
 
-        return view('admin.events.index', compact('events'));
+        if ($searched) {
+            $query = Event::with(['meta', 'square'])->orderByDesc('datetime_start');
+
+            if ($request->filled('q')) {
+                $q = '%'.$request->string('q')->trim()->value().'%';
+                $query->whereHas('meta', fn ($m) => $m->where('key', 'name')->where('value', 'like', $q));
+            }
+
+            if ($request->filled('sid')) {
+                $query->where('sid', (int) $request->input('sid'));
+            }
+
+            if ($request->filled('date')) {
+                $date = Carbon::parse($request->input('date'));
+                $query->whereDate('datetime_start', '<=', $date)->whereDate('datetime_end', '>=', $date);
+            }
+
+            $events = $query->get();
+        }
+
+        return view('admin.events.index', [
+            'events'   => $events,
+            'squares'  => $squares,
+            'searched' => $searched,
+            'filters'  => $request->only('q', 'sid', 'date'),
+        ]);
     }
 
     public function create(Request $request): View

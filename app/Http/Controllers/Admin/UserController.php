@@ -13,11 +13,31 @@ use Illuminate\View\View;
 
 final class UserController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $users = User::where('status', '!=', 'deleted')->orderBy('alias')->get();
+        $searched = $request->hasAny(['q', 'status']);
+        $users = collect();
 
-        return view('admin.users.index', compact('users'));
+        if ($searched) {
+            $query = User::where('status', '!=', 'deleted')->orderBy('alias');
+
+            if ($request->filled('q')) {
+                $q = '%'.$request->string('q')->trim()->value().'%';
+                $query->where(fn ($sub) => $sub->where('alias', 'like', $q)->orWhere('email', 'like', $q));
+            }
+
+            if ($request->filled('status')) {
+                $query->where('status', $request->input('status'));
+            }
+
+            $users = $query->get();
+        }
+
+        return view('admin.users.index', [
+            'users'    => $users,
+            'searched' => $searched,
+            'filters'  => $request->only('q', 'status'),
+        ]);
     }
 
     public function create(): View

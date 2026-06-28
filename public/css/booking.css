@@ -1488,6 +1488,61 @@ textarea,
     }
 }
 
+/* ── Admin filter bar ────────────────────────────────────────────────────── */
+.admin-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.admin-filter-bar__input {
+    padding: 7px 10px;
+    border: 1px solid #ccc5bb;
+    border-radius: 5px;
+    font-family: Verdana, sans-serif;
+    font-size: 12px;
+    color: #222;
+    background: #fff;
+    min-width: 180px;
+    transition: border-color 0.12s, box-shadow 0.12s;
+}
+
+.admin-filter-bar__input--date {
+    min-width: 140px;
+}
+
+.admin-filter-bar__input:focus {
+    outline: none;
+    border-color: #c75518;
+    box-shadow: 0 0 0 3px rgba(199, 85, 24, 0.12);
+}
+
+.admin-filter-bar__select {
+    padding: 7px 10px;
+    border: 1px solid #ccc5bb;
+    border-radius: 5px;
+    font-family: Verdana, sans-serif;
+    font-size: 12px;
+    color: #222;
+    background: #fff;
+    cursor: pointer;
+    transition: border-color 0.12s, box-shadow 0.12s;
+}
+
+.admin-filter-bar__select:focus {
+    outline: none;
+    border-color: #c75518;
+    box-shadow: 0 0 0 3px rgba(199, 85, 24, 0.12);
+}
+
+.admin-no-results {
+    color: #888;
+    font-style: italic;
+    margin: 20px 0;
+}
+
 /* ── Admin sidebar layout ─────────────────────────────────────────────────── */
 
 .admin-body-root {
