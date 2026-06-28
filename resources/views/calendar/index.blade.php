@@ -469,8 +469,14 @@
                 </div>
 
                 <label class="booking-modal__field">
+                    <span class="booking-modal__field-label">{{ __('booking.modal.event_description') }}</span>
+                    <textarea name="description" id="event-description" class="booking-modal__input booking-modal__textarea" rows="3" maxlength="4096"></textarea>
+                </label>
+
+                <label class="booking-modal__field">
                     <span class="booking-modal__field-label">{{ __('booking.calendar.court') }}</span>
                     <select name="sid" id="event-sid" class="booking-modal__select">
+                        <option value="">{{ __('booking.admin.events.all_courts') }}</option>
                         @foreach($squares as $square)
                             <option value="{{ $square->sid }}">{{ $square->display_name }}</option>
                         @endforeach

@@ -176,6 +176,11 @@ document.addEventListener('DOMContentLoaded', function () {
         if (eventName && !eventName.value.trim()) {
             eventName.value = slot.getAttribute('data-square-name');
         }
+
+        var eventDescription = document.getElementById('event-description');
+        if (eventDescription) {
+            eventDescription.value = '';
+        }
     }
 
     function syncEventDateTime() {

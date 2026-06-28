@@ -1107,6 +1107,11 @@ a.cc-own:hover {
     text-align: left;
 }
 
+.booking-modal__textarea {
+    resize: vertical;
+    min-height: 64px;
+}
+
 .booking-modal__body--event {
     display: grid;
     gap: 12px;
