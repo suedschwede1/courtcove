@@ -19,13 +19,10 @@ document.addEventListener('DOMContentLoaded', function () {
             window.location.href = dateInput.closest('form').action + '?date=' + dateInput.value;
         });
 
-        dateInput.addEventListener('pointerdown', function () {
-            openPicker();
-        });
-
-        dateInput.addEventListener('focus', function () {
-            openPicker();
-        });
+        var dateLabel = document.getElementById('c-date-label');
+        if (dateLabel) {
+            dateLabel.addEventListener('click', openPicker);
+        }
     }
 
     document.querySelectorAll('[data-panel-toggle]').forEach(function (toggle) {
