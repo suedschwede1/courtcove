@@ -1,10 +1,10 @@
 @extends('layouts.admin')
-@section('admin-title', 'Plätze')
+@section('admin-title', __('booking.admin.squares.title'))
 @section('admin-content')
-    <h1>Plätze</h1>
-    <a href="{{ route('admin.squares.create') }}" class="default-button">Neuer Platz</a>
+    <h1>{{ __('booking.admin.squares.title') }}</h1>
+    <a href="{{ route('admin.squares.create') }}" class="default-button">{{ __('booking.admin.squares.new_square') }}</a>
     <table class="booking-grid">
-        <thead><tr><th>Name</th><th>Anzeigename</th><th>Status</th><th>Zeit</th><th>Zeitblock</th><th></th></tr></thead>
+        <thead><tr><th>{{ __('booking.admin.squares.name') }}</th><th>{{ __('booking.admin.squares.display_name') }}</th><th>{{ __('booking.admin.squares.status') }}</th><th>{{ __('booking.admin.squares.time_column') }}</th><th>{{ __('booking.admin.squares.time_block_column') }}</th><th></th></tr></thead>
         <tbody>
         @foreach($squares as $square)
             <tr>
@@ -14,10 +14,10 @@
                 <td>{{ substr((string) $square->time_start, 0, 5) }}–{{ substr((string) $square->time_end, 0, 5) }} Uhr</td>
                 <td>{{ (int) round($square->time_block / 60) }} Min</td>
                 <td>
-                    <a href="{{ route('admin.squares.edit', $square) }}">Bearbeiten</a>
-                    <form method="POST" action="{{ route('admin.squares.destroy', $square) }}" onsubmit="return confirm('Platz löschen?')" style="display:inline">
+                    <a href="{{ route('admin.squares.edit', $square) }}">{{ __('booking.admin.common.edit') }}</a>
+                    <form method="POST" action="{{ route('admin.squares.destroy', $square) }}" onsubmit="return confirm('{{ __('booking.admin.squares.confirm_delete') }}')" style="display:inline">
                         @method('DELETE') @csrf
-                        <button type="submit" class="abmelden-button default-button">Löschen</button>
+                        <button type="submit" class="abmelden-button default-button">{{ __('booking.admin.common.delete') }}</button>
                     </form>
                 </td>
             </tr>
