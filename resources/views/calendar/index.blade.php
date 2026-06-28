@@ -74,6 +74,14 @@
 <div class="calendar-layout">
     <div class="calendar-wrap">
         <table class="calendar-square-table booking-grid">
+            <colgroup>
+                <col class="calendar-time-col">
+                @foreach($dates as $d)
+                    @foreach($squares as $square)
+                        <col class="calendar-slot-col">
+                    @endforeach
+                @endforeach
+            </colgroup>
             <thead>
                 <tr class="calendar-date-row">
                     <td class="time-spacer">&nbsp;</td>
@@ -159,14 +167,14 @@
                                         } elseif ($isOwn || ($canManageBooking && !$isPastSlot)) {
                                             $cellClass = $isOwn ? 'cc-own' : 'cc-single-future';
                                             $action = 'cancel';
-                                            $primaryLabel = $reservation->booking->user?->name ?? 'Buchung';
+                                            $primaryLabel = $reservation->booking->owner_label;
                                             $cellTitle = $isOwn
                                                 ? 'Buchung auf ' . $squareLabel . ' stornieren'
                                                 : 'Buchung auf ' . $squareLabel . ' bearbeiten';
                                         } else {
                                             $cellClass = 'cc-single-future';
                                             $primaryLabel = auth()->check()
-                                                ? ($reservation->booking?->user?->name ?? 'Belegt')
+                                                ? ($reservation->booking?->owner_label ?? 'Belegt')
                                                 : '';
                                             $cellTitle = $isPastSlot
                                                 ? ($squareLabel . ' – Vergangen')

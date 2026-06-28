@@ -20,7 +20,7 @@
         @foreach($bookings as $b)
             @php($reservation = $b->reservations->sortBy(['date', 'time_start'])->first())
             <tr>
-                <td>{{ $b->user?->alias ?? '—' }}</td>
+                <td>{{ $b->owner_label }}</td>
                 <td>{{ $b->square?->display_name ?? '—' }}</td>
                 <td>{{ $reservation ? \Carbon\Carbon::parse($reservation->date)->format('d.m.Y') : '—' }}</td>
                 <td>{{ $reservation ? substr((string) $reservation->time_start, 0, 5) . ' - ' . substr((string) $reservation->time_end, 0, 5) : '—' }}</td>

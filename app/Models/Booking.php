@@ -99,4 +99,17 @@ class Booking extends Model
 
         return $names !== [] ? implode(', ', $names) : null;
     }
+
+    /**
+     * Display name of who the court is booked for. Admins may book for a non-member
+     * by typing a free-text name, which is stored in booking meta (key 'owner-name').
+     * When no such name is stored the owner is a real member, so fall back to the
+     * member's alias.
+     */
+    public function getOwnerLabelAttribute(): string
+    {
+        $ownerName = trim((string) ($this->meta->firstWhere('key', 'owner-name')?->value ?? ''));
+
+        return $ownerName !== '' ? $ownerName : ($this->user?->alias ?? '—');
+    }
 }

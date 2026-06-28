@@ -4,7 +4,7 @@
     <h1>Buchung #{{ $booking->bid }}</h1>
 
     <dl>
-        <dt>Mitglied</dt><dd>{{ $booking->user?->alias ?? '—' }}</dd>
+        <dt>Gebucht für</dt><dd>{{ $booking->owner_label }}</dd>
         <dt>Platz</dt><dd>{{ $booking->square?->display_name ?? '—' }}</dd>
         <dt>Status</dt><dd>{{ $booking->status }}</dd>
         <dt>Spieler</dt><dd>{{ $booking->player_names !== [] ? implode(', ', $booking->player_names) : '—' }}</dd>
