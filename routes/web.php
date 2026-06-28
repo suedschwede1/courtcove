@@ -52,6 +52,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function (): v
     Route::middleware('can:admin.config')->group(function (): void {
         Route::get('config', [\App\Http\Controllers\Admin\OptionController::class, 'edit'])->name('config.edit');
         Route::put('config', [\App\Http\Controllers\Admin\OptionController::class, 'update'])->name('config.update');
+        Route::resource('squares', \App\Http\Controllers\Admin\SquareController::class)->except(['show']);
     });
 });
 

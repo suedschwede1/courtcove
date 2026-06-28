@@ -14,6 +14,7 @@
             @if(Route::has('admin.users.index'))@can('admin.user')<a href="{{ route('admin.users.index') }}" class="default-button">Benutzer</a>@endcan @endif
             @if(Route::has('admin.events.index'))@can('admin.event')<a href="{{ route('admin.events.index') }}" class="default-button">Veranstaltungen</a>@endcan @endif
             @if(Route::has('admin.bookings.index'))@can('admin.booking')<a href="{{ route('admin.bookings.index') }}" class="default-button">Buchungen</a>@endcan @endif
+            @if(Route::has('admin.squares.index'))@can('admin.config')<a href="{{ route('admin.squares.index') }}" class="default-button">Plätze</a>@endcan @endif
             @if(Route::has('admin.config.edit'))@can('admin.config')<a href="{{ route('admin.config.edit') }}" class="default-button">Konfiguration</a>@endcan @endif
             <a href="{{ route('calendar.index') }}" class="default-button">Zum Kalender</a>
         </nav>
