@@ -1096,15 +1096,50 @@ a.cc-own:hover {
     max-width: 520px;
 }
 
-.booking-modal__card--admin {
-    max-width: 480px;
+.booking-modal--iframe {
+    align-items: stretch;
 }
 
-.booking-modal__body--admin {
-    display: grid;
-    gap: 12px;
-    padding: 0 20px 18px;
-    text-align: left;
+.booking-modal__viewport--iframe {
+    align-items: stretch;
+    padding: 20px;
+}
+
+.booking-modal__card--iframe {
+    position: relative;
+    width: 100%;
+    max-width: 760px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 40px);
+}
+
+.booking-modal__close--iframe {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    z-index: 10;
+    background: rgba(255,255,255,0.9);
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.booking-modal__iframe {
+    border: none;
+    width: 100%;
+    flex: 1;
+    min-height: 600px;
 }
 
 .booking-modal__textarea {
@@ -1597,6 +1632,10 @@ textarea,
     display: flex;
     min-height: 100vh;
 }
+
+.admin-popup-mode .admin-sidebar { display: none; }
+.admin-popup-mode .admin-content-area { padding: 16px; }
+.admin-popup-mode .admin-flash { margin-bottom: 12px; }
 
 /* Sidebar */
 .admin-sidebar {

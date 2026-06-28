@@ -5,7 +5,7 @@
     <title>{{ __('booking.nav.admin') }} – @yield('admin-title', __('booking.admin.overview'))</title>
     <link rel="stylesheet" href="{{ asset('css/booking.css') }}">
 </head>
-<body class="admin-body-root">
+<body class="admin-body-root{{ request('popup') ? ' admin-popup-mode' : '' }}">
 <div class="admin-shell">
 
     <aside class="admin-sidebar">

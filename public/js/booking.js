@@ -258,75 +258,55 @@ document.addEventListener('DOMContentLoaded', function () {
         return padNumber(Math.floor(s / 3600)) + ':' + padNumber(Math.floor((s % 3600) / 60));
     }
 
-    function syncAbmQuantity() {
-        var qty = document.getElementById('abm-quantity');
-        var isDouble = qty && qty.value === '4';
-        ['abm-p3-field', 'abm-p4-field'].forEach(function (id) {
-            var el = document.getElementById(id);
-            if (el) { el.hidden = !isDouble; }
-        });
-        ['abm-p3', 'abm-p4'].forEach(function (id) {
-            var el = document.getElementById(id);
-            if (el) { el.required = isDouble; if (!isDouble) { el.value = ''; } }
-        });
-    }
-
-    function syncAbmRepeat() {
-        var repeat = document.getElementById('abm-repeat');
-        var dateEndField = document.getElementById('abm-date-end-field');
-        var dateEndInput = document.getElementById('abm-date-end');
-        if (!repeat || !dateEndField) { return; }
-        var isOnce = repeat.value === 'once';
-        dateEndField.hidden = isOnce;
-        if (dateEndInput) { dateEndInput.required = !isOnce; }
-    }
-
     function openAdminBookingModal(trigger) {
-        var timeStart = secondsToHHMM(trigger.getAttribute('data-time-start'));
-        var timeEnd   = secondsToHHMM(trigger.getAttribute('data-time-end'));
+        var iframe = document.getElementById('abm-iframe');
+        if (!iframe) { return; }
 
-        var title = document.getElementById('abm-title');
-        var meta  = document.getElementById('abm-meta');
-        if (title) { title.textContent = trigger.getAttribute('data-square-name'); }
-        if (meta)  { meta.textContent  = trigger.getAttribute('data-date-label') + ', ' + trigger.getAttribute('data-time-label'); }
+        var params = new URLSearchParams({
+            sid:        trigger.getAttribute('data-sid') || '',
+            date:       trigger.getAttribute('data-date') || '',
+            time_start: secondsToHHMM(trigger.getAttribute('data-time-start')),
+            time_end:   secondsToHHMM(trigger.getAttribute('data-time-end')),
+        });
 
-        var set = function (id, val) { var el = document.getElementById(id); if (el) { el.value = val; } };
-        set('abm-sid',        trigger.getAttribute('data-sid'));
-        set('abm-date',       trigger.getAttribute('data-date'));
-        set('abm-time-start', timeStart);
-        set('abm-time-end',   timeEnd);
-        set('abm-date-end',   trigger.getAttribute('data-date'));
-        set('abm-booked-for', '');
-        set('abm-p2', '');
-        set('abm-p3', '');
-        set('abm-p4', '');
-
-        var qty = document.getElementById('abm-quantity');
-        if (qty) { qty.value = '2'; }
-        var repeat = document.getElementById('abm-repeat');
-        if (repeat) { repeat.value = 'once'; }
-
-        syncAbmQuantity();
-        syncAbmRepeat();
+        var base = trigger.getAttribute('data-create-url') || '/admin/bookings/create';
+        base = base.split('?')[0];
+        params.set('popup', '1');
+        iframe.src = base + '?' + params.toString();
         showModal(adminBookingModal);
-        setTimeout(function () {
-            var bf = document.getElementById('abm-booked-for');
-            if (bf) { bf.focus(); }
-        }, 50);
     }
 
     if (adminBookingModal) {
-        var abmClose     = document.getElementById('abm-close');
-        var abmCancelBtn = document.getElementById('abm-cancel-btn');
-        var abmQty       = document.getElementById('abm-quantity');
-        var abmRepeat    = document.getElementById('abm-repeat');
-
-        if (abmClose)     { abmClose.addEventListener('click', function (e) { e.preventDefault(); closeAllModals(); }); }
-        if (abmCancelBtn) { abmCancelBtn.addEventListener('click', closeAllModals); }
-        if (abmQty)       { abmQty.addEventListener('change', syncAbmQuantity); }
-        if (abmRepeat)    { abmRepeat.addEventListener('change', syncAbmRepeat); }
+        var abmIframe = document.getElementById('abm-iframe');
+        if (abmIframe) {
+            abmIframe.addEventListener('load', function () {
+                var src = abmIframe.src;
+                if (!src || src === '' || src === 'about:blank') { return; }
+                try {
+                    var iframePath = abmIframe.contentWindow.location.pathname;
+                    if (iframePath && iframePath.indexOf('/admin/bookings') === -1) {
+                        closeAllModals();
+                        abmIframe.src = '';
+                        window.location.reload();
+                    }
+                } catch (e) {}
+            });
+        }
+        var abmClose = document.getElementById('abm-close');
+        if (abmClose) {
+            abmClose.addEventListener('click', function (e) {
+                e.preventDefault();
+                closeAllModals();
+                var iframe = document.getElementById('abm-iframe');
+                if (iframe) { iframe.src = ''; }
+            });
+        }
         adminBookingModal.addEventListener('click', function (e) {
-            if (e.target === adminBookingModal) { closeAllModals(); }
+            if (e.target === adminBookingModal) {
+                closeAllModals();
+                var iframe = document.getElementById('abm-iframe');
+                if (iframe) { iframe.src = ''; }
+            }
         });
     }
 
