@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="format-detection" content="telephone=no">
-    <title>@yield('title', config('app.name', 'ExampleClub-Booking'))</title>
+    <title>@yield('title', config('booking.name'))</title>
     <link rel="stylesheet" href="{{ asset('css/booking.css') }}">
     @stack('head')
 </head>
@@ -13,11 +13,15 @@
     <header class="top-header no-print">
         <div class="brand-card">
             <div class="brand-row">
-                <a href="{{ route('calendar.index') }}" class="brand-logo-link" aria-label="{{ config('app.name', 'ExampleClub-Booking') }}">
-                    <img src="{{ asset('imgs-client/layout/logo2.png') }}" width="120" style="display:block; height:auto;" alt="{{ config('app.name', 'ExampleClub-Booking') }}" class="brand-logo-image">
+                <a href="{{ route('calendar.index') }}" class="brand-logo-link" aria-label="{{ config('booking.name') }}" style="--booking-logo-width: {{ config('booking.logo_width') }}px; --booking-logo-height: {{ config('booking.logo_height') }}px;">
+                    <img src="{{ asset(config('booking.logo_path')) }}"
+                         width="{{ config('booking.logo_width') }}"
+                         height="{{ config('booking.logo_height') }}"
+                         alt="{{ config('booking.name') }}"
+                         class="brand-logo-image">
                 </a>
                 <div class="brand-copy">
-                    <div class="brand-title">{{ config('app.name', 'ExampleClub-Booking') }}</div>
+                    <div class="brand-title">{{ config('booking.name') }}</div>
                     <div class="brand-toolbar">
                         @stack('header-nav')
                     </div>
