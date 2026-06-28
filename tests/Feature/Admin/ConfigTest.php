@@ -51,6 +51,44 @@ class ConfigTest extends TestCase
     }
 
     #[Test]
+    public function client_contact_fields_are_saved(): void
+    {
+        $this->actingAs($this->admin())->put('/admin/config', [
+            'client_name_short'      => 'ASV',
+            'client_phone'           => '666',
+            'client_website'         => 'https://example.test',
+            'client_website_contact' => 'https://example.test/#kontakt',
+            'client_website_imprint' => 'https://example.test/impressum',
+            'client_website_privacy' => 'https://example.test/datenschutz',
+            'client_email_cc'        => '1',
+        ])->assertRedirect();
+
+        $this->assertSame('ASV', Option::getValue('client.name.short'));
+        $this->assertSame('666', Option::getValue('client.contact.phone'));
+        $this->assertSame('https://example.test', Option::getValue('client.website'));
+        $this->assertSame('1', Option::getValue('client.contact.email.user-notifications'));
+    }
+
+    #[Test]
+    public function service_and_subject_fields_are_saved(): void
+    {
+        $this->actingAs($this->admin())->put('/admin/config', [
+            'service_name_short'   => 'BS',
+            'service_description'  => 'Tennisplatz Online Reservierung',
+            'subject_type'         => 'die Anlage',
+            'subject_square_type'  => 'Platz',
+            'subject_square_plural'=> 'Plätze',
+            'subject_unit'         => 'Spieler',
+            'subject_unit_plural'  => 'Spieler',
+        ])->assertRedirect();
+
+        $this->assertSame('BS', Option::getValue('service.name.short'));
+        $this->assertSame('Tennisplatz Online Reservierung', Option::getValue('service.meta.description'));
+        $this->assertSame('Platz', Option::getValue('subject.square.type'));
+        $this->assertSame('Plätze', Option::getValue('subject.square.type.plural'));
+    }
+
+    #[Test]
     public function activation_and_day_exceptions_are_saved(): void
     {
         $this->actingAs($this->admin())->put('/admin/config', [
