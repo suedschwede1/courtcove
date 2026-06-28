@@ -45,4 +45,48 @@ class SquareManagementTest extends TestCase
         $this->actingAs($this->admin())->get('/admin/squares')
             ->assertOk()->assertSee('Plätze')->assertSee('Court B');
     }
+
+    #[Test]
+    public function create_page_renders(): void
+    {
+        $this->actingAs($this->admin())->get('/admin/squares/create')
+            ->assertOk()->assertSee('Anzeigename');
+    }
+
+    #[Test]
+    public function store_creates_square_with_unit_conversions(): void
+    {
+        $this->actingAs($this->admin())->post('/admin/squares', $this->payload())
+            ->assertRedirect(route('admin.squares.index'));
+
+        $square = Square::where('name', 'Center')->firstOrFail();
+        $this->assertSame(3600, (int) $square->time_block);               // 60 Min × 60
+        $this->assertSame(1800, (int) $square->time_block_bookable);      // 30 Min × 60
+        $this->assertSame(10800, (int) $square->time_block_bookable_max); // 180 Min × 60
+        $this->assertSame(56 * 86400, (int) $square->range_book);         // 56 Tage
+        $this->assertSame(86400, (int) $square->range_cancel);            // 24 Std × 3600
+        $this->assertSame('Court B', $square->getMeta('alias'));
+        $this->assertSame('frei', $square->getMeta('label.free'));
+    }
+
+    #[Test]
+    public function store_maps_name_visibility(): void
+    {
+        $this->actingAs($this->admin())->post('/admin/squares', $this->payload(['name' => 'Pub', 'name_visibility' => 'public']));
+        $pub = Square::where('name', 'Pub')->firstOrFail();
+        $this->assertSame('true', $pub->getMeta('private_names'));
+        $this->assertSame('true', $pub->getMeta('public_names'));
+
+        $this->actingAs($this->admin())->post('/admin/squares', $this->payload(['name' => 'None', 'name_visibility' => 'none']));
+        $none = Square::where('name', 'None')->firstOrFail();
+        $this->assertSame('false', $none->getMeta('private_names'));
+        $this->assertSame('false', $none->getMeta('public_names'));
+    }
+
+    #[Test]
+    public function store_requires_name(): void
+    {
+        $this->actingAs($this->admin())->post('/admin/squares', $this->payload(['name' => '']))
+            ->assertSessionHasErrors('name');
+    }
 }
