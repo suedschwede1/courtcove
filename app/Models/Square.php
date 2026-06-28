@@ -41,6 +41,12 @@ class Square extends Model
         '3' => 'Court C',
     ];
 
+    /** Allowed values for the bs_squares_meta 'capacity-ask-names' dropdown. */
+    public const ASK_NAMES_OPTIONS = [
+        '', 'optional-names', 'optional-names-email', 'optional-names-phone', 'optional-names-email-phone',
+        'required-names', 'required-names-email', 'required-names-phone', 'required-names-email-phone',
+    ];
+
     protected $table      = 'bs_squares';
     protected $primaryKey = 'sid';
     public $timestamps    = false;
@@ -80,6 +86,22 @@ class Square extends Model
         $value = $this->meta()->where('key', $key)->value('value');
 
         return $value !== null ? (string) $value : $default;
+    }
+
+    /** Upsert a single meta value (bs_squares_meta key/value, locale=null); null deletes the row. */
+    public function setMeta(string $key, ?string $value): void
+    {
+        if ($value === null) {
+            $this->meta()->where('key', $key)->delete();
+            return;
+        }
+
+        $row = $this->meta()->where('key', $key)->first();
+        if ($row) {
+            $row->update(['value' => $value]);
+        } else {
+            $this->meta()->create(['key' => $key, 'value' => $value, 'locale' => null]);
+        }
     }
 
     /** Court display alias (from meta), without hardcoded fallback. */
