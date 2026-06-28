@@ -48,7 +48,7 @@ DB_USERNAME=booking
 DB_PASSWORD=REDACTED
 ```
 
-Der sichtbare Name im Header kommt aus der Admin-Konfiguration `client.name.full`. `BOOKING_NAME` ist der Fallback, wenn diese Option leer ist. Logo und feste Anzeigegröße können über `.env` angepasst werden:
+Der sichtbare Name im Header kommt aus der Admin-Konfiguration `service.name` (`Name des Systems`). `BOOKING_NAME` ist der Fallback, wenn diese Option leer ist. Logo und feste Anzeigegröße können über `.env` angepasst werden:
 
 ```env
 BOOKING_NAME=ExampleClub-Booking
@@ -139,6 +139,18 @@ Verfügbare Privilegien: siehe `User::PRIVILEGES`
 ---
 
 ## Datenmodell (Legacy-Schema, `bs_*`)
+
+> **Kompatibilität mit dem Altsystem (Pflicht).** Die Laravel-Neufassung läuft
+> gegen **dieselbe produktive Datenbank** wie das alte ZF2-System
+> (`C:\development\booking`). Beide Systeme können parallel auf denselben Daten
+> arbeiten, daher muss das neue System zum bestehenden Schema **abwärtskompatibel**
+> bleiben: bestehende Spalten und Keys dürfen **nicht** umbenannt, umtypisiert oder
+> entfernt werden, und bestehende Werte müssen weiterhin so interpretiert werden wie
+> bisher.
+>
+> **Neue Datenbankfelder sind erlaubt** — solange sie rein **additiv** sind und das
+> Altsystem nicht stören: zusätzliche Spalten (`NULL`-bar oder mit Default) oder neue
+> `*_meta`-Keys. Niemals bestehende Felder verändern, um Neues abzubilden.
 
 Wichtige Eigenheiten der echten Tabellen — Code richtet sich danach, **nicht** nach
 den Beispiel-Migrations:
