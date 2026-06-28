@@ -179,14 +179,14 @@ final class BookingController extends Controller
     public function edit(Booking $booking): View
     {
         $booking->load(['user', 'square', 'reservations', 'meta']);
-        $reservations = $booking->reservations()->orderBy('date')->orderBy('time_start')->get();
+        $reservations = $booking->reservations->sortBy([['date', 'asc'], ['time_start', 'asc']]);
         $reservation = $reservations->first();
         $repeatType = $this->detectRepeatType($reservations->all());
         $repeatEndDate = $reservations->last()?->date ?? $reservation?->date;
 
         return view('admin.bookings.edit', [
             'booking' => $booking,
-            'users' => User::where('status', '!=', 'deleted')->orderBy('alias')->get(),
+            'users' => User::where('status', '!=', 'deleted')->orderBy('alias')->get(['uid', 'alias']),
             'squares' => Square::orderBy('priority')->orderBy('sid')->get(),
             'reservation' => $reservation,
             'bookedFor' => $booking->owner_label,
