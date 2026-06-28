@@ -1128,3 +1128,646 @@ a.cc-own:hover {
         grid-template-columns: 1fr;
     }
 }
+
+/* Responsive usability pass: keep desktop layout intact, make phones/tablets usable. */
+html {
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    overflow-x: hidden;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+    touch-action: manipulation;
+}
+
+input[type="email"],
+input[type="password"],
+input[type="text"],
+input[type="date"],
+input[type="time"],
+select,
+textarea,
+.date-switcher-input,
+.booking-modal__input,
+.booking-modal__select,
+.admin-booking-input,
+.admin-booking-select,
+.admin-booking-textarea {
+    max-width: 100%;
+}
+
+.calendar-wrap {
+    max-width: 100%;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+}
+
+.booking-grid {
+    width: max-content;
+}
+
+.booking-modal {
+    overflow-y: auto;
+}
+
+.booking-modal__viewport {
+    min-height: 100dvh;
+    box-sizing: border-box;
+}
+
+.booking-modal__card {
+    max-height: calc(100dvh - 40px);
+    display: flex;
+    flex-direction: column;
+}
+
+.booking-modal__body,
+.booking-modal__actions,
+.booking-modal__body--event {
+    flex: 0 0 auto;
+}
+
+.booking-modal__body,
+.booking-modal__body--event {
+    overflow-y: auto;
+}
+
+@media screen and (max-width: 900px) {
+    .page-shell {
+        padding: 8px;
+    }
+
+    .top-header {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+        align-items: stretch;
+    }
+
+    .brand-card,
+    .header-actions-card {
+        width: auto;
+        min-width: 0;
+        padding: 8px;
+    }
+
+    .brand-row {
+        align-items: center;
+    }
+
+    .brand-logo-link {
+        width: 82px;
+        height: auto;
+    }
+
+    .brand-logo-image {
+        width: 76px;
+    }
+
+    .brand-copy {
+        min-height: 0;
+        gap: 8px;
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .brand-title {
+        max-width: none;
+        font-size: 16px;
+        overflow-wrap: anywhere;
+    }
+
+    .brand-toolbar,
+    .header-actions {
+        justify-content: flex-start;
+        gap: 6px;
+    }
+
+    .default-button,
+    button.default-button,
+    a.default-button {
+        min-height: 38px;
+        padding: 0 11px;
+    }
+
+    .date-switcher-input {
+        min-height: 38px;
+    }
+
+    .help-panel__grid,
+    .help-panel__grid--single {
+        grid-template-columns: 1fr;
+    }
+
+    .help-card {
+        padding: 14px;
+    }
+
+    .help-card__title {
+        font-size: 22px;
+    }
+
+    .calendar-layout {
+        margin-left: -8px;
+        margin-right: -8px;
+        border-left: 0;
+        border-right: 0;
+    }
+
+    .booking-grid {
+        min-width: 860px;
+    }
+
+    .time-spacer,
+    .time-side-head {
+        width: 66px;
+    }
+
+    .time-main {
+        font-size: 16px;
+    }
+
+    .time-sub {
+        font-size: 10px;
+    }
+
+    .calendar-core-row td {
+        height: 48px;
+    }
+
+    .calendar-cell {
+        min-height: 42px;
+        padding: 5px 4px;
+    }
+
+    .login-page-panel {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media screen and (max-width: 560px) {
+    body {
+        font-size: 13px;
+    }
+
+    .page-shell {
+        padding: 6px;
+    }
+
+    .brand-row {
+        gap: 8px;
+    }
+
+    .brand-logo-link {
+        width: 58px;
+    }
+
+    .brand-logo-image {
+        width: 54px;
+    }
+
+    .brand-title {
+        font-size: 15px;
+        line-height: 1.2;
+    }
+
+    .brand-toolbar,
+    .header-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+    }
+
+    .brand-toolbar .date-switcher-form,
+    .brand-toolbar .date-switcher-input,
+    .header-actions form,
+    .header-actions .default-button,
+    .header-actions button.default-button,
+    .brand-toolbar .default-button {
+        width: 100%;
+    }
+
+    .nav-arrow {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .date-switcher-form {
+        grid-column: span 2;
+    }
+
+    .default-button,
+    button.default-button,
+    a.default-button,
+    .modal-primary-button,
+    .modal-danger-button {
+        min-height: 44px;
+        font-size: 14px;
+    }
+
+    input[type="email"],
+    input[type="password"],
+    input[type="text"],
+    input[type="date"],
+    input[type="time"],
+    select,
+    textarea,
+    .date-switcher-input,
+    .booking-modal__input,
+    .booking-modal__select,
+    .admin-booking-input,
+    .admin-booking-select,
+    .admin-booking-textarea {
+        min-height: 44px;
+        font-size: 16px;
+        padding: 10px 12px;
+    }
+
+    .centered-panel {
+        padding: 16px;
+    }
+
+    .booking-grid {
+        min-width: 760px;
+    }
+
+    .square-head-title {
+        font-size: 13px;
+    }
+
+    .day-header-name,
+    .day-header-date {
+        font-size: 12px;
+    }
+
+    .booking-modal__viewport {
+        align-items: flex-start;
+        padding: 8px;
+    }
+
+    .booking-modal__card {
+        max-width: none;
+        max-height: calc(100dvh - 16px);
+        border-radius: 6px;
+    }
+
+    .booking-modal__header {
+        padding: 16px 44px 8px 16px;
+    }
+
+    .booking-modal__header h2 {
+        margin: 0;
+        font-size: 20px;
+        line-height: 1.2;
+    }
+
+    .booking-modal__body,
+    .booking-modal__body--event {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .booking-modal__actions {
+        display: grid;
+        grid-template-columns: 1fr;
+        padding: 0 16px 16px;
+    }
+
+    .booking-modal__close {
+        top: 8px;
+        right: 8px;
+        width: 36px;
+        height: 36px;
+        font-size: 20px;
+    }
+
+    .booking-modal__event-grid,
+    .admin-booking-layout,
+    .admin-booking-grid--two {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-booking-shell {
+        margin: 0;
+        padding: 18px 12px 14px;
+        border-left: 0;
+        border-right: 0;
+    }
+
+    .admin-booking-actions,
+    .admin-booking-secondary-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .admin-booking-actions__save,
+    .admin-booking-actions .default-button,
+    .admin-booking-actions button,
+    .admin-booking-secondary-actions button {
+        width: 100%;
+        min-width: 0;
+    }
+}
+@media screen and (max-width: 560px) {
+    .booking-modal__body,
+    .booking-modal__body--event {
+        flex: 1 1 auto;
+        min-height: 0;
+    }
+
+    .booking-modal__actions {
+        flex: 0 0 auto;
+        background: #fff;
+    }
+}
+.booking-confirm-page {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 40px 16px;
+}
+
+.booking-confirm-card {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 460px;
+    padding: 32px 36px;
+}
+
+.booking-confirm-title {
+    margin: 0 0 24px;
+    color: #c84b11;
+    font-size: 18px;
+    line-height: 1.25;
+    text-align: center;
+}
+
+.booking-confirm-summary {
+    width: 100%;
+    margin-bottom: 24px;
+    border: 0;
+    border-collapse: collapse;
+}
+
+.booking-confirm-summary td {
+    border: 0;
+    padding: 8px 0;
+    font-size: 13px;
+    line-height: 1.35;
+    vertical-align: top;
+}
+
+.booking-confirm-summary td:first-child {
+    width: 68px;
+    color: #777;
+}
+
+.booking-confirm-summary td:last-child {
+    font-weight: bold;
+}
+
+.booking-confirm-summary__alias {
+    color: #777;
+    font-weight: normal;
+}
+
+.booking-confirm-quote {
+    margin: 0 0 28px;
+    color: #777;
+    font-size: 12px;
+    font-style: italic;
+    line-height: 1.45;
+    text-align: center;
+}
+
+.booking-confirm-error {
+    margin: 0 0 16px;
+    color: #c0392b;
+    font-size: 13px;
+    line-height: 1.35;
+    text-align: center;
+}
+
+.booking-confirm-form {
+    display: grid;
+    gap: 16px;
+}
+
+.booking-confirm-field {
+    display: grid;
+    gap: 6px;
+    color: #777;
+    font-size: 12px;
+    text-align: left;
+}
+
+.booking-confirm-field input {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    min-height: 40px;
+    border: 1px solid #d1cbc0;
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-family: Verdana, sans-serif;
+    font-size: 14px;
+}
+
+.booking-confirm-submit {
+    width: 100%;
+    min-height: 42px;
+    border: 0;
+    border-radius: 8px;
+    background: #c84b11;
+    color: #fff;
+    font-size: 14px;
+}
+
+.booking-confirm-cancel {
+    margin-top: 16px;
+    text-align: center;
+}
+
+.booking-confirm-cancel a {
+    color: #777;
+    font-size: 12px;
+}
+
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"],
+input[type="number"],
+select,
+textarea {
+    box-sizing: border-box;
+    max-width: 100%;
+}
+
+@media screen and (max-width: 560px) {
+    .booking-confirm-page {
+        padding: 8px 0 16px;
+    }
+
+    .booking-confirm-card {
+        max-width: none;
+        padding: 18px 14px;
+        border-left: 0;
+        border-right: 0;
+    }
+
+    .booking-confirm-title {
+        margin-bottom: 18px;
+        font-size: 18px;
+    }
+
+    .booking-confirm-summary {
+        margin-bottom: 20px;
+    }
+
+    .booking-confirm-summary td {
+        display: block;
+        width: 100%;
+        padding: 3px 0;
+        font-size: 14px;
+    }
+
+    .booking-confirm-summary td:first-child {
+        width: 100%;
+        padding-top: 10px;
+    }
+
+    .booking-confirm-field {
+        font-size: 13px;
+    }
+
+    .booking-confirm-field input {
+        min-height: 44px;
+        font-size: 16px;
+        padding: 10px 12px;
+    }
+
+    .booking-confirm-submit {
+        min-height: 46px;
+        font-size: 15px;
+    }
+
+    input[type="datetime-local"],
+    input[type="number"] {
+        min-height: 44px;
+        font-size: 16px;
+    }
+}
+
+/* Calendar grid normalization: desktop and mobile use a fixed, predictable table grid. */
+.calendar-square-table {
+    --calendar-time-col: 94px;
+    --calendar-slot-col: 136px;
+    --calendar-row-height: 56px;
+    width: 1318px;
+    min-width: 1318px;
+    table-layout: fixed;
+}
+
+.calendar-time-col,
+.time-spacer,
+.time-side-head,
+.time-cell {
+    width: var(--calendar-time-col);
+    min-width: var(--calendar-time-col);
+    max-width: var(--calendar-time-col);
+}
+
+.calendar-slot-col,
+.square-head-cell,
+.calendar-core-row td:not(.time-cell) {
+    width: var(--calendar-slot-col);
+    min-width: var(--calendar-slot-col);
+    max-width: var(--calendar-slot-col);
+}
+
+.calendar-date-row td,
+.calendar-square-row td {
+    box-sizing: border-box;
+}
+
+.calendar-core-row {
+    height: var(--calendar-row-height);
+}
+
+.calendar-core-row td {
+    box-sizing: border-box;
+    height: var(--calendar-row-height);
+    padding: 0;
+    overflow: hidden;
+}
+
+.time-cell {
+    padding: 6px 5px 4px;
+}
+
+.calendar-cell {
+    width: calc(100% - 4px);
+    height: calc(var(--calendar-row-height) - 4px);
+    min-height: 0;
+    overflow: hidden;
+}
+
+.cc-label-primary,
+.cc-label-secondary,
+.event-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.event-cell {
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.event-label {
+    height: 100%;
+    min-height: 0;
+    padding: 6px 8px;
+}
+
+@media screen and (max-width: 900px) {
+    .calendar-square-table {
+        --calendar-time-col: 72px;
+        --calendar-slot-col: 104px;
+        --calendar-row-height: 52px;
+        width: 1008px;
+        min-width: 1008px;
+    }
+}
+
+@media screen and (max-width: 560px) {
+    .calendar-square-table {
+        --calendar-time-col: 72px;
+        --calendar-slot-col: 96px;
+        --calendar-row-height: 56px;
+        width: 936px;
+        min-width: 936px;
+    }
+}
+
+/* Configurable logo rendering. The actual size comes from config/booking.php. */
+.brand-logo-link {
+    width: var(--booking-logo-width, 112px);
+    height: var(--booking-logo-height, 108px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.brand-logo-image {
+    width: var(--booking-logo-width, 112px);
+    height: var(--booking-logo-height, 108px);
+    object-fit: contain;
+}

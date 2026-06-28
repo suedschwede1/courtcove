@@ -143,6 +143,7 @@
     <div class="admin-booking-actions">
         <button type="submit" form="{{ $formId }}" class="default-button admin-booking-actions__save">Speichern</button>
         <span class="admin-booking-actions__divider">oder</span>
+        <a href="{{ $closeRoute }}" class="default-button admin-booking-actions__cancel">Abbrechen</a>
         @unless($isCreateMode)
             <form method="POST" action="{{ route('admin.bookings.destroy', $booking) }}" onsubmit="return confirm('Buchung wirklich dauerhaft löschen?')">
                 @csrf

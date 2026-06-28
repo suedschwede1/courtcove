@@ -45,69 +45,71 @@ $timeStartLabel = str_pad((string) $timeStart, 2, '0', STR_PAD_LEFT) . ':00';
 $timeEndLabel   = str_pad((string) $timeEnd,   2, '0', STR_PAD_LEFT) . ':00';
 @endphp
 
-<div style="display:flex; justify-content:center; align-items:flex-start; padding:40px 16px;">
-    <div class="panel" style="max-width:460px; width:100%; padding:32px 36px;">
+<div class="booking-confirm-page">
+    <div class="panel booking-confirm-card">
 
-        <h2 style="margin:0 0 24px 0; font-size:18px; color:#C84B11; text-align:center;">
+        <h2 class="booking-confirm-title">
             {{ $square->name }} buchen
         </h2>
 
-        <table style="width:100%; border:none; margin-bottom:24px; border-collapse:collapse;">
+        <table class="booking-confirm-summary">
             <tr>
-                <td style="border:none; padding:8px 0; color:#888; font-size:13px; width:60px;">Platz</td>
-                <td style="border:none; padding:8px 0; font-size:13px; font-weight:bold;">
+                <td>Platz</td>
+                <td>
                     {{ $square->name }}
                     @if($square->alias)
-                        <span style="font-weight:normal; color:#888;">– {{ $square->alias }}</span>
+                        <span class="booking-confirm-summary__alias">– {{ $square->alias }}</span>
                     @endif
                 </td>
             </tr>
             <tr>
-                <td style="border:none; padding:8px 0; color:#888; font-size:13px;">Datum</td>
-                <td style="border:none; padding:8px 0; font-size:13px;">
+                <td>Datum</td>
+                <td>
                     {{ $date->isoFormat('dddd, D. MMMM YYYY') }}
                 </td>
             </tr>
             <tr>
-                <td style="border:none; padding:8px 0; color:#888; font-size:13px;">Zeit</td>
-                <td style="border:none; padding:8px 0; font-size:13px;">
+                <td>Zeit</td>
+                <td>
                     {{ $timeStartLabel }} – {{ $timeEndLabel }} Uhr
                 </td>
             </tr>
         </table>
 
-        <p style="text-align:center; font-style:italic; color:#999; font-size:12px; margin:0 0 28px 0;">
+        <p class="booking-confirm-quote">
             {{ $spruch }}
         </p>
 
         @if($errors->has('booking'))
-            <p style="color:#c0392b; font-size:13px; margin:0 0 16px 0; text-align:center;">
+            <p class="booking-confirm-error">
                 {{ $errors->first('booking') }}
             </p>
         @endif
 
-        <form method="POST" action="{{ route('bookings.store') }}" style="text-align:center;">
+        <form method="POST" action="{{ route('bookings.store') }}" class="booking-confirm-form">
             @csrf
             <input type="hidden" name="sid"        value="{{ $square->sid }}">
             <input type="hidden" name="date"       value="{{ $date->format('Y-m-d') }}">
             <input type="hidden" name="time_start" value="{{ $timeStartSeconds }}">
             <input type="hidden" name="time_end"   value="{{ $timeEndSeconds }}">
-            <input type="hidden" name="quantity"   value="1">
+            <input type="hidden" name="quantity"   value="2">
 
-            <button type="submit" class="default-button"
-                    style="padding:10px 28px; font-size:14px; cursor:pointer; background:#C84B11; color:#fff; border:none; border-radius:3px;">
+            <label class="booking-confirm-field">
+                2. Spielername
+                <input type="text" name="player_name_2" value="{{ old('player_name_2') }}" maxlength="120" required>
+            </label>
+
+            <button type="submit" class="default-button booking-confirm-submit">
                 Buchung abschließen
             </button>
         </form>
 
-        <div style="text-align:center; margin-top:16px;">
-            <a href="{{ route('calendar.index', ['date' => $date->format('Y-m-d')]) }}"
-               style="font-size:12px; color:#888;">
+        <div class="booking-confirm-cancel">
+            <a href="{{ route('calendar.index', ['date' => $date->format('Y-m-d')]) }}">
                 Abbrechen
             </a>
         </div>
 
     </div>
 </div>
-
 @endsection
