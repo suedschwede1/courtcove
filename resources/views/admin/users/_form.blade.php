@@ -61,7 +61,10 @@
     </div>
 <script>
 const PRIVILEGE_PRESETS = {
-    admin:   ['admin.user','admin.booking','admin.config','admin.see-menu','calendar.see-past','calendar.see-data'],
+    admin:   ['admin.user','admin.booking','admin.event','admin.config','admin.see-menu',
+               'calendar.see-past','calendar.see-data',
+               'calendar.create-single-bookings','calendar.cancel-single-bookings','calendar.delete-single-bookings',
+               'calendar.create-subscription-bookings','calendar.cancel-subscription-bookings','calendar.delete-subscription-bookings'],
     assist:  ['admin.booking','admin.event','admin.see-menu','calendar.see-past','calendar.see-data',
                'calendar.create-single-bookings','calendar.cancel-single-bookings','calendar.delete-single-bookings',
                'calendar.create-subscription-bookings','calendar.cancel-subscription-bookings','calendar.delete-subscription-bookings'],
