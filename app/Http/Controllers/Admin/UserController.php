@@ -87,19 +87,19 @@ final class UserController extends Controller
         }
         $user->syncPrivileges($data['privileges'] ?? []);
 
-        return redirect()->route('admin.users.index')->with('success', 'Benutzer aktualisiert.');
+        return redirect()->route('admin.users.index')->with('success', __('booking.messages.user_updated'));
     }
 
     public function password(Request $request, User $user): RedirectResponse
     {
         $request->validate(['password' => ['required', 'string', 'min:6']]);
         $user->update(['pw' => Hash::make($request->string('password')->value())]);
-        return back()->with('success', 'Passwort zurückgesetzt.');
+        return back()->with('success', __('booking.messages.user_password_reset'));
     }
 
     public function destroy(User $user): RedirectResponse
     {
         $user->update(['status' => 'deleted']);
-        return redirect()->route('admin.users.index')->with('success', 'Benutzer gelöscht.');
+        return redirect()->route('admin.users.index')->with('success', __('booking.messages.user_deleted'));
     }
 }
