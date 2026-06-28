@@ -6,15 +6,15 @@
     <h1 style="font-size:20px; color:#C84B11; margin:0 0 24px 0;">{{ __('booking.account.my_bookings') }}</h1>
 
     @if($bookings->isEmpty())
-        <p style="color:#888;">Sie haben derzeit keine aktiven Buchungen.</p>
+        <p style="color:#888;">{{ __('booking.messages.no_active_bookings') }}</p>
     @else
         <table style="width:100%; border-collapse:collapse;">
             <thead>
                 <tr>
                     <th style="text-align:left; padding:8px; border-bottom:1px solid #ddd;">{{ __('booking.account.court') }}</th>
-                    <th style="text-align:left; padding:8px; border-bottom:1px solid #ddd;">Datum</th>
-                    <th style="text-align:left; padding:8px; border-bottom:1px solid #ddd;">Zeit</th>
-                    <th style="text-align:left; padding:8px; border-bottom:1px solid #ddd;">Status</th>
+                    <th style="text-align:left; padding:8px; border-bottom:1px solid #ddd;">{{ __('booking.account.date') }}</th>
+                    <th style="text-align:left; padding:8px; border-bottom:1px solid #ddd;">{{ __('booking.account.time') }}</th>
+                    <th style="text-align:left; padding:8px; border-bottom:1px solid #ddd;">{{ __('booking.account.status') }}</th>
                     <th style="padding:8px; border-bottom:1px solid #ddd;"></th>
                 </tr>
             </thead>
@@ -34,7 +34,7 @@
                         <td style="padding:8px; border-bottom:1px solid #f0f0f0;">{{ $booking->status }}</td>
                         <td style="padding:8px; border-bottom:1px solid #f0f0f0; text-align:right;">
                             <form method="POST" action="{{ route('bookings.destroy', $booking) }}"
-                                  onsubmit="return confirm('Diese Buchung wirklich stornieren?')" style="margin:0;">
+                                  onsubmit="return confirm('{{ __('booking.messages.confirm_cancel_booking') }}')" style="margin:0;">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="default-button abmelden-button">{{ __('booking.account.cancel') }}</button>
