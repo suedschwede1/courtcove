@@ -40,57 +40,61 @@
     @endunless
 
     @if($isCreateMode)
-    {{-- Compact horizontal layout for create/popup mode --}}
-    <div class="admin-form__compact-grid">
+    {{-- Compact 3-card layout for create/popup mode --}}
+    <div class="abf-row">
 
-        {{-- Col 1: Gebucht für + Spielernamen --}}
-        <div class="admin-form__compact-col">
-            <div class="admin-form__compact-label">{{ __('booking.admin.bookings.booked_for') }}</div>
-            <input type="text" id="booked_for" name="booked_for" value="{{ old('booked_for', $bookedFor) }}"
-                   list="admin-player-suggestions" maxlength="120" required class="admin-form__compact-input">
-
-            <div class="admin-form__compact-label" style="margin-top:10px;">{{ __('booking.admin.bookings.player_names') }}</div>
-            <div class="admin-form__compact-label admin-form__compact-label--sub">2.</div>
-            <input type="text" id="admin-player2" name="player_name_2" value="{{ old('player_name_2', $playerNames[2]) }}"
-                   list="admin-player-suggestions" maxlength="120" class="admin-form__compact-input">
-
-            <div id="admin-player3-field">
-                <div class="admin-form__compact-label admin-form__compact-label--sub">3.</div>
-                <input type="text" id="admin-player3" name="player_name_3" value="{{ old('player_name_3', $playerNames[3]) }}"
-                       list="admin-player-suggestions" maxlength="120" class="admin-form__compact-input">
+        {{-- Card 1: Gebucht für + Spielernamen --}}
+        <div class="abf-card">
+            <div class="abf-field">
+                <label class="abf-label" for="booked_for">{{ __('booking.admin.bookings.booked_for') }}</label>
+                <input type="text" id="booked_for" name="booked_for" value="{{ old('booked_for', $bookedFor) }}"
+                       list="admin-player-suggestions" maxlength="120" required class="abf-input">
             </div>
-            <div id="admin-player4-field">
-                <div class="admin-form__compact-label admin-form__compact-label--sub">4.</div>
+            <div class="abf-field" style="margin-top:10px;">
+                <span class="abf-label">{{ __('booking.admin.bookings.player_names') }}</span>
+            </div>
+            <div class="abf-field">
+                <label class="abf-sublabel" for="admin-player2">2.</label>
+                <input type="text" id="admin-player2" name="player_name_2" value="{{ old('player_name_2', $playerNames[2]) }}"
+                       list="admin-player-suggestions" maxlength="120" class="abf-input">
+            </div>
+            <div class="abf-field" id="admin-player3-field">
+                <label class="abf-sublabel" for="admin-player3">3.</label>
+                <input type="text" id="admin-player3" name="player_name_3" value="{{ old('player_name_3', $playerNames[3]) }}"
+                       list="admin-player-suggestions" maxlength="120" class="abf-input">
+            </div>
+            <div class="abf-field" id="admin-player4-field">
+                <label class="abf-sublabel" for="admin-player4">4.</label>
                 <input type="text" id="admin-player4" name="player_name_4" value="{{ old('player_name_4', $playerNames[4]) }}"
-                       list="admin-player-suggestions" maxlength="120" class="admin-form__compact-input">
+                       list="admin-player-suggestions" maxlength="120" class="abf-input">
             </div>
         </div>
 
-        {{-- Col 2: Zeit + Datum + Wiederholung --}}
-        <div class="admin-form__compact-col">
-            <div class="admin-form__compact-row2">
-                <div>
-                    <div class="admin-form__compact-label">{{ __('booking.admin.bookings.time_start') }}</div>
+        {{-- Card 2: Zeit + Datum + Wiederholung --}}
+        <div class="abf-card">
+            <div class="abf-row2">
+                <div class="abf-field">
+                    <label class="abf-label" for="time_start">{{ __('booking.admin.bookings.time_start') }}</label>
                     <input type="time" id="time_start" name="time_start" value="{{ old('time_start', $reservation ? substr((string) $reservation->time_start, 0, 5) : '') }}">
                 </div>
-                <div>
-                    <div class="admin-form__compact-label">{{ __('booking.admin.bookings.time_end') }}</div>
+                <div class="abf-field">
+                    <label class="abf-label" for="time_end">{{ __('booking.admin.bookings.time_end') }}</label>
                     <input type="time" id="time_end" name="time_end" value="{{ old('time_end', $reservation ? substr((string) $reservation->time_end, 0, 5) : '') }}">
                 </div>
             </div>
-            <div class="admin-form__compact-row2" style="margin-top:6px;">
-                <div>
-                    <div class="admin-form__compact-label">{{ __('booking.admin.bookings.date_start') }}</div>
+            <div class="abf-row2" style="margin-top:8px;">
+                <div class="abf-field">
+                    <label class="abf-label" for="date">{{ __('booking.admin.bookings.date_start') }}</label>
                     <input type="date" id="date" name="date" value="{{ old('date', $reservation?->date) }}">
                 </div>
-                <div>
-                    <div class="admin-form__compact-label">{{ __('booking.admin.bookings.date_end') }}</div>
+                <div class="abf-field">
+                    <label class="abf-label" for="admin-booking-date-end">{{ __('booking.admin.bookings.date_end') }}</label>
                     <input type="date" id="admin-booking-date-end" name="date_end" value="{{ old('date_end', $repeatEndDate) }}">
                 </div>
             </div>
-            <div style="margin-top:6px;">
-                <div class="admin-form__compact-label">{{ __('booking.admin.bookings.repeat') }}</div>
-                <select name="repeat_type" id="admin-booking-repeat">
+            <div class="abf-field" style="margin-top:8px;">
+                <label class="abf-label" for="admin-booking-repeat">{{ __('booking.admin.bookings.repeat') }}</label>
+                <select name="repeat_type" id="admin-booking-repeat" class="abf-select">
                     @foreach($repeatOptions as $repeatValue => $repeatLabel)
                         <option value="{{ $repeatValue }}" @selected(old('repeat_type', $repeatType) === $repeatValue)>{{ $repeatLabel }}</option>
                     @endforeach
@@ -98,26 +102,32 @@
             </div>
         </div>
 
-        {{-- Col 3: Platz + Spieleranzahl --}}
-        <div class="admin-form__compact-col">
-            <div class="admin-form__compact-label">{{ __('booking.admin.common.court') }}</div>
-            <select name="sid" id="sid">
-                @foreach($squares as $square)
-                    <option value="{{ $square->sid }}" @selected(old('sid', $booking->sid) == $square->sid)>{{ $square->display_name }}</option>
-                @endforeach
-            </select>
-            <div class="admin-form__compact-label" style="margin-top:8px;">{{ __('booking.admin.bookings.player_count') }}</div>
-            <select name="quantity" id="admin-booking-quantity">
-                <option value="2" @selected((int) old('quantity', $booking->quantity) === 2)>2</option>
-                <option value="4" @selected((int) old('quantity', $booking->quantity) === 4)>4</option>
-            </select>
+        {{-- Card 3: Platz + Spieleranzahl + Notizen --}}
+        <div class="abf-card">
+            <div class="abf-field">
+                <label class="abf-label" for="sid">{{ __('booking.admin.common.court') }}</label>
+                <select name="sid" id="sid" class="abf-select">
+                    @foreach($squares as $square)
+                        <option value="{{ $square->sid }}" @selected(old('sid', $booking->sid) == $square->sid)>{{ $square->display_name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="abf-field" style="margin-top:8px;">
+                <label class="abf-label" for="admin-booking-quantity">{{ __('booking.admin.bookings.player_count') }}</label>
+                <select name="quantity" id="admin-booking-quantity" class="abf-select">
+                    <option value="2" @selected((int) old('quantity', $booking->quantity) === 2)>2</option>
+                    <option value="4" @selected((int) old('quantity', $booking->quantity) === 4)>4</option>
+                </select>
+            </div>
         </div>
 
-        {{-- Col 4: Notizen --}}
-        <div class="admin-form__compact-col">
-            <div class="admin-form__compact-label">{{ __('booking.admin.bookings.notes_section') }}</div>
-            <textarea id="admin_note" name="admin_note" rows="5" style="width:100%;resize:vertical;">{{ old('admin_note', $adminNote) }}</textarea>
-            <div class="admin-form__hint">{{ __('booking.admin.bookings.note_hint') }}</div>
+        {{-- Card 4: Notizen --}}
+        <div class="abf-card">
+            <div class="abf-field">
+                <label class="abf-label" for="admin_note">{{ __('booking.admin.bookings.notes_section') }}</label>
+                <textarea id="admin_note" name="admin_note" rows="6" class="abf-input abf-textarea">{{ old('admin_note', $adminNote) }}</textarea>
+                <div class="abf-hint">{{ __('booking.admin.bookings.note_hint') }}</div>
+            </div>
         </div>
 
     </div>
