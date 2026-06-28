@@ -84,7 +84,8 @@ Danach im Browser: **http://localhost:8000**
 ### Öffentlicher Kalender (`/calendar`)
 - Zeigt **drei Tage gleichzeitig** (gestern / heute / morgen) und alle Plätze.
 - Zeitraster **08:00–19:00 Uhr**, ein Block = 1 Stunde.
-- Navigation tageweise per Pfeile, „Heute" oder Datumswähler.
+- Navigation tageweise per Pfeile, „Heute" oder Datumswähler (Anzeige immer
+  im deutschen Format `TT.MM.JJJJ`, unabhängig von Browser-Locale).
 - Farbcodierung:
   - **Weiß** – frei und buchbar
   - **Blau** – belegte/eigene Reservierung (Gäste sehen „Belegt")
@@ -108,9 +109,12 @@ Danach im Browser: **http://localhost:8000**
 
 ### Admin-Bereich (`/admin`, rechtegesteuert)
 - **Mitglieder** (`admin.user`)
-- **Buchungen** (`admin.booking`) – anlegen/bearbeiten/stornieren für alle
-- **Veranstaltungen** (`admin.event`) – Plätze sperren/blockieren
-- **Konfiguration** (`admin.config`)
+- **Buchungen** (`admin.booking`) – anlegen/bearbeiten/stornieren für alle; öffnet
+  als **iframe-Popup** direkt aus dem Kalender (kein Seitenwechsel)
+- **Veranstaltungen** (`admin.event`) – Plätze sperren/blockieren; Tab-Wechsel
+  Buchung ↔ Veranstaltung ohne Seitenneuladen
+- **Konfiguration** (`admin.config`) – Aktivierung, Tage verstecken, Namen & Texte
+  (entsprechend Altsystem-Optionen `bs_options`)
 - Dashboard sichtbar ab `admin.see-menu`
 
 ### Bewusst nicht migriert
