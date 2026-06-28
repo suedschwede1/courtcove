@@ -82,34 +82,28 @@
         @endif
     </div>
 
-    {{-- Zeit --}}
+    {{-- Zeit / Datum --}}
     <div class="admin-form__section">
         <div class="admin-form__section-title">{{ __('booking.admin.bookings.time_section') }}</div>
 
-        <div class="admin-form__row">
-            <label class="admin-form__label" for="time_start">{{ __('booking.admin.bookings.time_start') }}</label>
-            <div class="admin-form__field">
+        <div class="admin-form__row admin-form__field--flex">
+            <div class="admin-form__inline-group">
+                <label class="admin-form__inline-label" for="time_start">{{ __('booking.admin.bookings.time_start') }}</label>
                 <input type="time" id="time_start" name="time_start" value="{{ old('time_start', $reservation ? substr((string) $reservation->time_start, 0, 5) : '') }}">
             </div>
-        </div>
-
-        <div class="admin-form__row">
-            <label class="admin-form__label" for="time_end">{{ __('booking.admin.bookings.time_end') }}</label>
-            <div class="admin-form__field">
+            <div class="admin-form__inline-group">
+                <label class="admin-form__inline-label" for="time_end">{{ __('booking.admin.bookings.time_end') }}</label>
                 <input type="time" id="time_end" name="time_end" value="{{ old('time_end', $reservation ? substr((string) $reservation->time_end, 0, 5) : '') }}">
             </div>
         </div>
 
-        <div class="admin-form__row">
-            <label class="admin-form__label" for="date">{{ __('booking.admin.bookings.date_start') }}</label>
-            <div class="admin-form__field">
+        <div class="admin-form__row admin-form__field--flex">
+            <div class="admin-form__inline-group">
+                <label class="admin-form__inline-label" for="date">{{ __('booking.admin.bookings.date_start') }}</label>
                 <input type="date" id="date" name="date" value="{{ old('date', $reservation?->date) }}">
             </div>
-        </div>
-
-        <div class="admin-form__row">
-            <label class="admin-form__label" for="admin-booking-date-end">{{ __('booking.admin.bookings.date_end') }}</label>
-            <div class="admin-form__field">
+            <div class="admin-form__inline-group">
+                <label class="admin-form__inline-label" for="admin-booking-date-end">{{ __('booking.admin.bookings.date_end') }}</label>
                 <input type="date" id="admin-booking-date-end" name="date_end" value="{{ old('date_end', $repeatEndDate) }}">
             </div>
         </div>
@@ -130,20 +124,17 @@
     <div class="admin-form__section">
         <div class="admin-form__section-title">{{ __('booking.admin.bookings.booking_section') }}</div>
 
-        <div class="admin-form__row">
-            <label class="admin-form__label" for="sid">{{ __('booking.admin.common.court') }}</label>
-            <div class="admin-form__field">
+        <div class="admin-form__row admin-form__field--flex">
+            <div class="admin-form__inline-group">
+                <label class="admin-form__inline-label" for="sid">{{ __('booking.admin.common.court') }}</label>
                 <select name="sid" id="sid">
                     @foreach($squares as $square)
                         <option value="{{ $square->sid }}" @selected(old('sid', $booking->sid) == $square->sid)>{{ $square->display_name }}</option>
                     @endforeach
                 </select>
             </div>
-        </div>
-
-        <div class="admin-form__row">
-            <label class="admin-form__label" for="admin-booking-quantity">{{ __('booking.admin.bookings.player_count') }}</label>
-            <div class="admin-form__field">
+            <div class="admin-form__inline-group">
+                <label class="admin-form__inline-label" for="admin-booking-quantity">{{ __('booking.admin.bookings.player_count') }}</label>
                 <select name="quantity" id="admin-booking-quantity">
                     <option value="2" @selected((int) old('quantity', $booking->quantity) === 2)>2</option>
                     <option value="4" @selected((int) old('quantity', $booking->quantity) === 4)>4</option>
