@@ -26,22 +26,112 @@
             'time_start' => old('time_start', $reservation ? substr((string)$reservation->time_start, 0, 5) : ''),
             'date_end'   => old('date', $reservation?->date),
             'time_end'   => old('time_end', $reservation ? substr((string)$reservation->time_end, 0, 5) : ''),
+            'popup'      => request('popup') ?: null,
         ]));
     @endphp
     <a href="{{ $eventUrl }}" class="admin-type-switcher__tab">{{ __('booking.admin.bookings.type_event') }}</a>
 </div>
 @endif
 
-<form method="POST" action="{{ $formAction }}" class="admin-form" id="{{ $formId }}">
+<form method="POST" action="{{ $formAction }}" class="admin-form{{ $isCreateMode ? ' admin-form--compact' : '' }}" id="{{ $formId }}">
     @csrf
     @unless($isCreateMode)
         @method('PUT')
     @endunless
 
-    {{-- Gebucht für --}}
+    @if($isCreateMode)
+    {{-- Compact horizontal layout for create/popup mode --}}
+    <div class="admin-form__compact-grid">
+
+        {{-- Col 1: Gebucht für + Spielernamen --}}
+        <div class="admin-form__compact-col">
+            <div class="admin-form__compact-label">{{ __('booking.admin.bookings.booked_for') }}</div>
+            <input type="text" id="booked_for" name="booked_for" value="{{ old('booked_for', $bookedFor) }}"
+                   list="admin-player-suggestions" maxlength="120" required class="admin-form__compact-input">
+
+            <div class="admin-form__compact-label" style="margin-top:10px;">{{ __('booking.admin.bookings.player_names') }}</div>
+            <div class="admin-form__compact-label admin-form__compact-label--sub">2.</div>
+            <input type="text" id="admin-player2" name="player_name_2" value="{{ old('player_name_2', $playerNames[2]) }}"
+                   list="admin-player-suggestions" maxlength="120" class="admin-form__compact-input">
+
+            <div id="admin-player3-field">
+                <div class="admin-form__compact-label admin-form__compact-label--sub">3.</div>
+                <input type="text" id="admin-player3" name="player_name_3" value="{{ old('player_name_3', $playerNames[3]) }}"
+                       list="admin-player-suggestions" maxlength="120" class="admin-form__compact-input">
+            </div>
+            <div id="admin-player4-field">
+                <div class="admin-form__compact-label admin-form__compact-label--sub">4.</div>
+                <input type="text" id="admin-player4" name="player_name_4" value="{{ old('player_name_4', $playerNames[4]) }}"
+                       list="admin-player-suggestions" maxlength="120" class="admin-form__compact-input">
+            </div>
+        </div>
+
+        {{-- Col 2: Zeit + Datum + Wiederholung --}}
+        <div class="admin-form__compact-col">
+            <div class="admin-form__compact-row2">
+                <div>
+                    <div class="admin-form__compact-label">{{ __('booking.admin.bookings.time_start') }}</div>
+                    <input type="time" id="time_start" name="time_start" value="{{ old('time_start', $reservation ? substr((string) $reservation->time_start, 0, 5) : '') }}">
+                </div>
+                <div>
+                    <div class="admin-form__compact-label">{{ __('booking.admin.bookings.time_end') }}</div>
+                    <input type="time" id="time_end" name="time_end" value="{{ old('time_end', $reservation ? substr((string) $reservation->time_end, 0, 5) : '') }}">
+                </div>
+            </div>
+            <div class="admin-form__compact-row2" style="margin-top:6px;">
+                <div>
+                    <div class="admin-form__compact-label">{{ __('booking.admin.bookings.date_start') }}</div>
+                    <input type="date" id="date" name="date" value="{{ old('date', $reservation?->date) }}">
+                </div>
+                <div>
+                    <div class="admin-form__compact-label">{{ __('booking.admin.bookings.date_end') }}</div>
+                    <input type="date" id="admin-booking-date-end" name="date_end" value="{{ old('date_end', $repeatEndDate) }}">
+                </div>
+            </div>
+            <div style="margin-top:6px;">
+                <div class="admin-form__compact-label">{{ __('booking.admin.bookings.repeat') }}</div>
+                <select name="repeat_type" id="admin-booking-repeat">
+                    @foreach($repeatOptions as $repeatValue => $repeatLabel)
+                        <option value="{{ $repeatValue }}" @selected(old('repeat_type', $repeatType) === $repeatValue)>{{ $repeatLabel }}</option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+
+        {{-- Col 3: Platz + Spieleranzahl --}}
+        <div class="admin-form__compact-col">
+            <div class="admin-form__compact-label">{{ __('booking.admin.common.court') }}</div>
+            <select name="sid" id="sid">
+                @foreach($squares as $square)
+                    <option value="{{ $square->sid }}" @selected(old('sid', $booking->sid) == $square->sid)>{{ $square->display_name }}</option>
+                @endforeach
+            </select>
+            <div class="admin-form__compact-label" style="margin-top:8px;">{{ __('booking.admin.bookings.player_count') }}</div>
+            <select name="quantity" id="admin-booking-quantity">
+                <option value="2" @selected((int) old('quantity', $booking->quantity) === 2)>2</option>
+                <option value="4" @selected((int) old('quantity', $booking->quantity) === 4)>4</option>
+            </select>
+        </div>
+
+        {{-- Col 4: Notizen --}}
+        <div class="admin-form__compact-col">
+            <div class="admin-form__compact-label">{{ __('booking.admin.bookings.notes_section') }}</div>
+            <textarea id="admin_note" name="admin_note" rows="5" style="width:100%;resize:vertical;">{{ old('admin_note', $adminNote) }}</textarea>
+            <div class="admin-form__hint">{{ __('booking.admin.bookings.note_hint') }}</div>
+        </div>
+
+    </div>
+
+    <datalist id="admin-player-suggestions">
+        @foreach($users as $user)
+            <option value="{{ $user->alias }}"></option>
+        @endforeach
+    </datalist>
+
+    @else
+    {{-- Standard vertical layout for edit mode --}}
     <div class="admin-form__section">
         <div class="admin-form__section-title">{{ __('booking.admin.bookings.booked_for') }}</div>
-
         <div class="admin-form__row">
             <label class="admin-form__label" for="booked_for">{{ __('booking.admin.bookings.booked_for') }}</label>
             <div class="admin-form__field">
@@ -49,43 +139,32 @@
                        list="admin-player-suggestions" maxlength="120" required>
             </div>
         </div>
-
         @if($isMemberOwner)
             <div class="admin-form__row">
                 <div class="admin-form__label">{{ __('booking.admin.common.status') }}</div>
-                <div class="admin-form__field">
-                    <span class="admin-form__meta">{{ $memberLabel }} — {{ $userStatusLabel }}</span>
-                </div>
+                <div class="admin-form__field"><span class="admin-form__meta">{{ $memberLabel }} — {{ $userStatusLabel }}</span></div>
             </div>
             <div class="admin-form__row">
                 <div class="admin-form__label">{{ __('booking.admin.bookings.email_label') }}</div>
-                <div class="admin-form__field">
-                    <span class="admin-form__meta">{{ $userEmail }}</span>
-                </div>
+                <div class="admin-form__field"><span class="admin-form__meta">{{ $userEmail }}</span></div>
             </div>
             @if($userPhone)
                 <div class="admin-form__row">
                     <div class="admin-form__label">{{ __('booking.admin.bookings.phone_label') }}</div>
-                    <div class="admin-form__field">
-                        <span class="admin-form__meta">{{ $userPhone }}</span>
-                    </div>
+                    <div class="admin-form__field"><span class="admin-form__meta">{{ $userPhone }}</span></div>
                 </div>
             @endif
             @if(Route::has('admin.users.edit') && auth()->user()->can('admin.user'))
                 <div class="admin-form__row">
                     <div class="admin-form__label"></div>
-                    <div class="admin-form__field">
-                        <a href="{{ route('admin.users.edit', $bookingUser) }}">{{ __('booking.admin.bookings.edit_user') }}</a>
-                    </div>
+                    <div class="admin-form__field"><a href="{{ route('admin.users.edit', $bookingUser) }}">{{ __('booking.admin.bookings.edit_user') }}</a></div>
                 </div>
             @endif
         @endif
     </div>
 
-    {{-- Zeit / Datum --}}
     <div class="admin-form__section">
         <div class="admin-form__section-title">{{ __('booking.admin.bookings.time_section') }}</div>
-
         <div class="admin-form__row admin-form__field--flex">
             <div class="admin-form__inline-group">
                 <label class="admin-form__inline-label" for="time_start">{{ __('booking.admin.bookings.time_start') }}</label>
@@ -96,7 +175,6 @@
                 <input type="time" id="time_end" name="time_end" value="{{ old('time_end', $reservation ? substr((string) $reservation->time_end, 0, 5) : '') }}">
             </div>
         </div>
-
         <div class="admin-form__row admin-form__field--flex">
             <div class="admin-form__inline-group">
                 <label class="admin-form__inline-label" for="date">{{ __('booking.admin.bookings.date_start') }}</label>
@@ -107,7 +185,6 @@
                 <input type="date" id="admin-booking-date-end" name="date_end" value="{{ old('date_end', $repeatEndDate) }}">
             </div>
         </div>
-
         <div class="admin-form__row">
             <label class="admin-form__label" for="admin-booking-repeat">{{ __('booking.admin.bookings.repeat') }}</label>
             <div class="admin-form__field">
@@ -120,10 +197,8 @@
         </div>
     </div>
 
-    {{-- Buchung --}}
     <div class="admin-form__section">
         <div class="admin-form__section-title">{{ __('booking.admin.bookings.booking_section') }}</div>
-
         <div class="admin-form__row admin-form__field--flex">
             <div class="admin-form__inline-group">
                 <label class="admin-form__inline-label" for="sid">{{ __('booking.admin.common.court') }}</label>
@@ -141,8 +216,6 @@
                 </select>
             </div>
         </div>
-
-        @unless($isCreateMode)
         <div class="admin-form__row">
             <label class="admin-form__label" for="status">{{ __('booking.admin.bookings.booking_status') }}</label>
             <div class="admin-form__field">
@@ -153,45 +226,29 @@
                 </select>
             </div>
         </div>
-        @endunless
     </div>
 
-    {{-- Spielernamen --}}
     <div class="admin-form__section">
         <div class="admin-form__section-title">{{ __('booking.admin.bookings.player_names') }}</div>
-
         <div class="admin-form__row">
             <label class="admin-form__label" for="admin-player2">2.</label>
-            <div class="admin-form__field">
-                <input type="text" id="admin-player2" name="player_name_2" value="{{ old('player_name_2', $playerNames[2]) }}" list="admin-player-suggestions" maxlength="120" required>
-            </div>
+            <div class="admin-form__field"><input type="text" id="admin-player2" name="player_name_2" value="{{ old('player_name_2', $playerNames[2]) }}" list="admin-player-suggestions" maxlength="120" required></div>
         </div>
-
         <div class="admin-form__row" id="admin-player3-field">
             <label class="admin-form__label" for="admin-player3">3.</label>
-            <div class="admin-form__field">
-                <input type="text" id="admin-player3" name="player_name_3" value="{{ old('player_name_3', $playerNames[3]) }}" list="admin-player-suggestions" maxlength="120">
-            </div>
+            <div class="admin-form__field"><input type="text" id="admin-player3" name="player_name_3" value="{{ old('player_name_3', $playerNames[3]) }}" list="admin-player-suggestions" maxlength="120"></div>
         </div>
-
         <div class="admin-form__row" id="admin-player4-field">
             <label class="admin-form__label" for="admin-player4">4.</label>
-            <div class="admin-form__field">
-                <input type="text" id="admin-player4" name="player_name_4" value="{{ old('player_name_4', $playerNames[4]) }}" list="admin-player-suggestions" maxlength="120">
-            </div>
+            <div class="admin-form__field"><input type="text" id="admin-player4" name="player_name_4" value="{{ old('player_name_4', $playerNames[4]) }}" list="admin-player-suggestions" maxlength="120"></div>
         </div>
-
         <datalist id="admin-player-suggestions">
-            @foreach($users as $user)
-                <option value="{{ $user->alias }}"></option>
-            @endforeach
+            @foreach($users as $user)<option value="{{ $user->alias }}"></option>@endforeach
         </datalist>
     </div>
 
-    {{-- Notizen --}}
     <div class="admin-form__section">
         <div class="admin-form__section-title">{{ __('booking.admin.bookings.notes_section') }}</div>
-
         <div class="admin-form__row">
             <label class="admin-form__label" for="admin_note">{{ __('booking.admin.bookings.notes_section') }}</label>
             <div class="admin-form__field">
@@ -201,6 +258,7 @@
             </div>
         </div>
     </div>
+    @endif
 
     {{-- Actions --}}
     <div class="admin-form__actions">
@@ -214,7 +272,6 @@
                     <button type="submit" class="default-button">{{ __('booking.admin.bookings.cancel_booking') }}</button>
                 </form>
             @endif
-
             <form method="POST" action="{{ route('admin.bookings.destroy', $booking) }}" onsubmit="return confirm('{{ __('booking.admin.bookings.confirm_delete') }}')">
                 @csrf
                 @method('DELETE')
