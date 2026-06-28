@@ -121,15 +121,17 @@
             </div>
         </div>
 
-        {{-- Card 4: Notizen --}}
-        <div class="abf-card">
-            <div class="abf-field">
-                <label class="abf-label" for="admin_note">{{ __('booking.admin.bookings.notes_section') }}</label>
-                <textarea id="admin_note" name="admin_note" rows="6" class="abf-input abf-textarea">{{ old('admin_note', $adminNote) }}</textarea>
-                <div class="abf-hint">{{ __('booking.admin.bookings.note_hint') }}</div>
-            </div>
-        </div>
+    </div>
 
+    {{-- Notizen below --}}
+    <div class="abf-card abf-card--notes">
+        <div class="abf-row2">
+            <div class="abf-field" style="flex:1;">
+                <label class="abf-label" for="admin_note">{{ __('booking.admin.bookings.notes_section') }}</label>
+                <textarea id="admin_note" name="admin_note" rows="3" class="abf-input abf-textarea">{{ old('admin_note', $adminNote) }}</textarea>
+            </div>
+            <div class="abf-hint abf-hint--side">{{ __('booking.admin.bookings.note_hint') }}</div>
+        </div>
     </div>
 
     <datalist id="admin-player-suggestions">
