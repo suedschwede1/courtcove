@@ -52,7 +52,7 @@ final class UserController extends Controller
         $data = $request->validate([
             'alias' => ['required', 'string', 'max:128'],
             'email' => ['nullable', 'email', 'max:128', 'unique:bs_users,email'],
-            'status' => ['required', 'in:admin,assist,enabled,disabled,blocked'],
+            'status' => ['required', 'in:admin,assist,enabled,disabled,blocked,deleted,placeholder'],
             'password' => ['required', 'string', 'min:6'],
             'firstname' => ['nullable', 'string', 'max:128'],
             'lastname' => ['nullable', 'string', 'max:128'],
@@ -98,7 +98,7 @@ final class UserController extends Controller
         $data = $request->validate([
             'alias' => ['required', 'string', 'max:128'],
             'email' => ['nullable', 'email', 'max:128', 'unique:bs_users,email,'.$user->uid.',uid'],
-            'status' => ['required', 'in:admin,assist,enabled,disabled,blocked'],
+            'status' => ['required', 'in:admin,assist,enabled,disabled,blocked,deleted,placeholder'],
             'firstname' => ['nullable', 'string', 'max:128'],
             'lastname' => ['nullable', 'string', 'max:128'],
             'phone' => ['nullable', 'string', 'max:64'],

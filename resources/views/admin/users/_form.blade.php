@@ -13,7 +13,7 @@
         <label class="admin-form__label" for="uf-status">{{ __('booking.admin.users.status') }}</label>
         <div class="admin-form__field">
             <select id="uf-status" name="status">
-                @foreach(['admin' => 'status_admin', 'assist' => 'status_assist', 'enabled' => 'status_enabled', 'disabled' => 'status_disabled', 'blocked' => 'status_blocked'] as $val => $key)
+                @foreach(['placeholder' => 'status_placeholder', 'deleted' => 'status_deleted', 'blocked' => 'status_blocked', 'enabled' => 'status_enabled', 'disabled' => 'status_disabled', 'assist' => 'status_assist', 'admin' => 'status_admin'] as $val => $key)
                     <option value="{{ $val }}" @selected(old('status', $user->status ?? 'enabled') === $val)>{{ __('booking.admin.users.'.$key) }}</option>
                 @endforeach
             </select>
@@ -65,9 +65,11 @@ const PRIVILEGE_PRESETS = {
     assist:  ['admin.booking','admin.event','admin.see-menu','calendar.see-past','calendar.see-data',
                'calendar.create-single-bookings','calendar.cancel-single-bookings','calendar.delete-single-bookings',
                'calendar.create-subscription-bookings','calendar.cancel-subscription-bookings','calendar.delete-subscription-bookings'],
-    enabled:  [],
-    disabled: [],
-    blocked:  [],
+    enabled:     [],
+    disabled:    [],
+    blocked:     [],
+    deleted:     [],
+    placeholder: [],
 };
 document.getElementById('uf-status').addEventListener('change', function () {
     const preset = PRIVILEGE_PRESETS[this.value];
