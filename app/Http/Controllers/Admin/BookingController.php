@@ -20,19 +20,19 @@ use Illuminate\View\View;
 
 final class BookingController extends Controller
 {
-    private const REPEAT_OPTIONS = [
-        'once' => 'Einmalig',
-        'daily' => 'Täglich',
-        'every_2_days' => 'Alle 2 Tage',
-        'every_3_days' => 'Alle 3 Tage',
-        'every_4_days' => 'Alle 4 Tage',
-        'every_5_days' => 'Alle 5 Tage',
-        'every_6_days' => 'Alle 6 Tage',
-        'weekly' => 'Wöchentlich',
-        'every_2_weeks' => 'Alle 2 Wochen',
-        'monthly' => 'Monatlich',
-        'custom' => 'Individuell',
+    private const REPEAT_KEYS = [
+        'once', 'daily', 'every_2_days', 'every_3_days', 'every_4_days',
+        'every_5_days', 'every_6_days', 'weekly', 'every_2_weeks', 'monthly', 'custom',
     ];
+
+    /** @return array<string,string> */
+    private static function repeatOptions(): array
+    {
+        return array_combine(
+            self::REPEAT_KEYS,
+            array_map(fn (string $k) => __('booking.repeat.' . $k), self::REPEAT_KEYS),
+        );
+    }
 
     public function __construct(private readonly BookingService $bookingService) {}
 
@@ -87,7 +87,7 @@ final class BookingController extends Controller
             'bookedFor' => '',
             'playerNames' => [2 => '', 3 => '', 4 => ''],
             'adminNote' => '',
-            'repeatOptions' => self::REPEAT_OPTIONS,
+            'repeatOptions' => self::repeatOptions(),
             'repeatType' => 'once',
             'repeatEndDate' => $date,
             'isCreate' => true,
@@ -178,7 +178,7 @@ final class BookingController extends Controller
                 4 => $booking->player_names[2] ?? '',
             ],
             'adminNote' => $booking->meta->firstWhere('key', 'admin-note')?->value ?? '',
-            'repeatOptions' => self::REPEAT_OPTIONS,
+            'repeatOptions' => self::repeatOptions(),
             'repeatType' => $repeatType,
             'repeatEndDate' => $repeatEndDate,
             'isCreate' => false,
@@ -301,7 +301,7 @@ final class BookingController extends Controller
             'sid' => ['required', 'integer', 'exists:bs_squares,sid'],
             'date' => ['required', 'date_format:Y-m-d'],
             'date_end' => ['nullable', 'date_format:Y-m-d'],
-            'repeat_type' => ['required', 'in:' . implode(',', array_keys(self::REPEAT_OPTIONS))],
+            'repeat_type' => ['required', 'in:' . implode(',', self::REPEAT_KEYS)],
             'time_start' => ['required', 'date_format:H:i'],
             'time_end' => ['required', 'date_format:H:i'],
             'quantity' => ['required', 'integer', 'in:2,4'],
@@ -326,7 +326,7 @@ final class BookingController extends Controller
         $dateEnd = Carbon::createFromFormat('Y-m-d H:i', $data['date'] . ' ' . $data['time_end']);
 
         if (!$dateEnd->greaterThan($dateStart)) {
-            throw new BookingValidationException('Die Endzeit muss nach der Startzeit liegen.');
+            throw new BookingValidationException(__('booking.validation.end_time_after_start'));
         }
 
         $repeatType = $data['repeat_type'];
@@ -335,12 +335,12 @@ final class BookingController extends Controller
             : Carbon::createFromFormat('Y-m-d', (string) ($data['date_end'] ?: $data['date']));
 
         if ($repeatEndDate->lt($dateStart->copy()->startOfDay())) {
-            throw new BookingValidationException('Das Enddatum der Wiederholung muss am oder nach dem Startdatum liegen.');
+            throw new BookingValidationException(__('booking.validation.repeat_end_date_after_start'));
         }
 
         $occurrenceStarts = $this->buildOccurrenceStarts($dateStart, $repeatType, $repeatEndDate);
         if ($occurrenceStarts === []) {
-            throw new BookingValidationException('Es konnte keine gueltige Wiederholung erzeugt werden.');
+            throw new BookingValidationException(__('booking.validation.no_valid_repeat'));
         }
 
         return [$dateStart, $dateEnd, $occurrenceStarts, $dateStart->diffInSeconds($dateEnd)];

@@ -79,7 +79,7 @@ final class AccountController extends Controller
             $user->setMeta($field, $value === '' ? null : $value);
         }
 
-        return redirect()->route('account.edit')->with('success', 'Profil gespeichert.');
+        return redirect()->route('account.edit')->with('success', __('booking.messages.profile_saved'));
     }
 
     /** Change the authenticated user's password after verifying the current one. */
@@ -95,12 +95,12 @@ final class AccountController extends Controller
 
         if (!Hash::check($data['current_password'], (string) $user->pw)) {
             throw ValidationException::withMessages([
-                'current_password' => 'Das aktuelle Passwort ist nicht korrekt.',
+                'current_password' => __('booking.validation.current_password_incorrect'),
             ]);
         }
 
         $user->update(['pw' => Hash::make($data['password'])]);
 
-        return redirect()->route('account.edit')->with('success', 'Passwort geändert.');
+        return redirect()->route('account.edit')->with('success', __('booking.messages.password_changed'));
     }
 }

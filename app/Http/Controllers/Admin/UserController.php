@@ -51,7 +51,7 @@ final class UserController extends Controller
         }
         $user->syncPrivileges($data['privileges'] ?? []);
 
-        return redirect()->route('admin.users.index')->with('success', 'Benutzer angelegt.');
+        return redirect()->route('admin.users.index')->with('success', __('booking.messages.user_created'));
     }
 
     public function edit(User $user): View
