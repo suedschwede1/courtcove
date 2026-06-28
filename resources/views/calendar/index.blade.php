@@ -9,7 +9,7 @@
 <a href="{{ route('calendar.index') }}" class="default-button">{{ __('booking.nav.today') }}</a>
 
 <form method="GET" action="{{ route('calendar.index') }}" class="date-switcher-form">
-    <input type="date" name="date" id="c-date"
+    <input type="date" name="date" id="c-date" lang="de"
            value="{{ $date->format('Y-m-d') }}"
            class="date-switcher-input date-switcher-input--native"
            aria-label="{{ __('booking.nav.choose_date') }}">
