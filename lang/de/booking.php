@@ -265,6 +265,8 @@ return [
             'to' => 'Bis',
             'status' => 'Status',
             'confirm_delete' => 'Veranstaltung löschen?',
+            'section_event' => 'Veranstaltung',
+            'section_period' => 'Zeitraum',
         ],
         'squares' => [
             'title' => 'Plätze',
