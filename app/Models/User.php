@@ -118,6 +118,12 @@ class User extends Authenticatable
     /** Read a single meta value by key from bs_users_meta. */
     public function getMeta(string $key, ?string $default = null): ?string
     {
+        if ($this->relationLoaded('meta')) {
+            $value = $this->meta->firstWhere('key', $key)?->value;
+
+            return $value !== null ? (string) $value : $default;
+        }
+
         $value = $this->meta()->where('key', $key)->value('value');
 
         return $value !== null ? (string) $value : $default;
@@ -150,9 +156,11 @@ class User extends Authenticatable
     /** Currently granted privilege slugs (from allow.* meta). */
     public function grantedPrivileges(): array
     {
-        return $this->meta()
-            ->where('key', 'like', 'allow.%')
-            ->where('value', 'true')
+        $source = $this->relationLoaded('meta')
+            ? $this->meta->filter(fn ($m) => str_starts_with($m->key, 'allow.') && $m->value === 'true')
+            : $this->meta()->where('key', 'like', 'allow.%')->where('value', 'true')->get();
+
+        return $source
             ->pluck('key')
             ->map(fn (string $k) => substr($k, strlen('allow.')))
             ->all();

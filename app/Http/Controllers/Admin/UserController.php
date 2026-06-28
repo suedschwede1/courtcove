@@ -87,6 +87,8 @@ final class UserController extends Controller
 
     public function edit(User $user): View
     {
+        $user->load('meta');
+
         return view('admin.users.edit', [
             'user' => $user,
             'privileges' => User::PRIVILEGES,

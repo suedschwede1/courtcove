@@ -43,6 +43,7 @@ final class AccountController extends Controller
         /** @var User $user */
         $user = auth()->user();
 
+        $user->load('meta');
         $profile = [];
         foreach (self::PROFILE_FIELDS as $field) {
             $profile[$field] = $user->getMeta($field);

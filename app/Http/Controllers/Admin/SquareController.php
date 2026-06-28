@@ -36,6 +36,8 @@ final class SquareController extends Controller
 
     public function edit(Square $square): View
     {
+        $square->load('meta');
+
         return view('admin.squares.edit', ['square' => $square, 'form' => $this->toForm($square)]);
     }
 
