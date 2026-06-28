@@ -14,22 +14,22 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * priority is a float, and there is NO `alias` column - the court alias and labels
  * live in bs_squares_meta (keys like 'alias', 'label.free', 'public_names', ...).
  *
- * @property int          $sid
- * @property string       $name
+ * @property int $sid
+ * @property string $name
  * @property SquareStatus $status
- * @property float        $priority                Display sort order
- * @property int          $capacity                Max concurrent players
- * @property int          $capacity_heterogenic    Allow mixed player counts (0/1)
- * @property int          $allow_notes             Allow user notes (0/1)
- * @property string       $time_start              Opening time 'H:i:s'
- * @property string       $time_end                Closing time 'H:i:s'
- * @property int          $time_block              Slot size in seconds
- * @property int          $time_block_bookable     Minimum bookable duration in seconds
- * @property int|null     $time_block_bookable_max Max per-user per-day seconds (0/null=unlimited)
- * @property int          $min_range_book          Min advance booking in seconds
- * @property int|null     $range_book              Max advance booking in seconds (0/null=unlimited)
- * @property int          $max_active_bookings     Max concurrent open bookings per user (0=unlimited)
- * @property int|null     $range_cancel            Cancellation deadline in seconds
+ * @property float $priority Display sort order
+ * @property int $capacity Max concurrent players
+ * @property int $capacity_heterogenic Allow mixed player counts (0/1)
+ * @property int $allow_notes Allow user notes (0/1)
+ * @property string $time_start Opening time 'H:i:s'
+ * @property string $time_end Closing time 'H:i:s'
+ * @property int $time_block Slot size in seconds
+ * @property int $time_block_bookable Minimum bookable duration in seconds
+ * @property int|null $time_block_bookable_max Max per-user per-day seconds (0/null=unlimited)
+ * @property int $min_range_book Min advance booking in seconds
+ * @property int|null $range_book Max advance booking in seconds (0/null=unlimited)
+ * @property int $max_active_bookings Max concurrent open bookings per user (0=unlimited)
+ * @property int|null $range_cancel Cancellation deadline in seconds
  */
 class Square extends Model
 {
@@ -47,9 +47,11 @@ class Square extends Model
         'required-names', 'required-names-email', 'required-names-phone', 'required-names-email-phone',
     ];
 
-    protected $table      = 'bs_squares';
+    protected $table = 'bs_squares';
+
     protected $primaryKey = 'sid';
-    public $timestamps    = false;
+
+    public $timestamps = false;
 
     protected $fillable = [
         'name', 'status', 'priority', 'capacity', 'capacity_heterogenic', 'allow_notes',
@@ -60,19 +62,34 @@ class Square extends Model
     protected $casts = ['status' => SquareStatus::class];
 
     /** @return HasMany<Booking, $this> */
-    public function bookings(): HasMany { return $this->hasMany(Booking::class, 'sid', 'sid'); }
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(Booking::class, 'sid', 'sid');
+    }
 
     /** @return HasMany<SquareMeta, $this> */
-    public function meta(): HasMany { return $this->hasMany(SquareMeta::class, 'sid', 'sid'); }
+    public function meta(): HasMany
+    {
+        return $this->hasMany(SquareMeta::class, 'sid', 'sid');
+    }
 
     /** @return HasMany<SquareProduct, $this> */
-    public function products(): HasMany { return $this->hasMany(SquareProduct::class, 'sid', 'sid'); }
+    public function products(): HasMany
+    {
+        return $this->hasMany(SquareProduct::class, 'sid', 'sid');
+    }
 
     /** @return HasMany<SquarePricing, $this> */
-    public function pricing(): HasMany { return $this->hasMany(SquarePricing::class, 'sid', 'sid'); }
+    public function pricing(): HasMany
+    {
+        return $this->hasMany(SquarePricing::class, 'sid', 'sid');
+    }
 
     /** @return HasMany<Event, $this> */
-    public function events(): HasMany { return $this->hasMany(Event::class, 'sid', 'sid'); }
+    public function events(): HasMany
+    {
+        return $this->hasMany(Event::class, 'sid', 'sid');
+    }
 
     /** Read a single meta value by key from bs_squares_meta. */
     public function getMeta(string $key, ?string $default = null): ?string
@@ -93,6 +110,7 @@ class Square extends Model
     {
         if ($value === null) {
             $this->meta()->where('key', $key)->delete();
+
             return;
         }
 
@@ -119,8 +137,14 @@ class Square extends Model
     }
 
     /** Whether public users may book this court. */
-    public function isBookable(): bool { return $this->status === SquareStatus::Enabled; }
+    public function isBookable(): bool
+    {
+        return $this->status === SquareStatus::Enabled;
+    }
 
     /** Whether the court is completely unavailable to everyone. */
-    public function isDisabled(): bool { return $this->status === SquareStatus::Disabled; }
+    public function isDisabled(): bool
+    {
+        return $this->status === SquareStatus::Disabled;
+    }
 }

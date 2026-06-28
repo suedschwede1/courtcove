@@ -128,4 +128,29 @@ class SquareManagementTest extends TestCase
 
         $this->assertNull($square->fresh()->getMeta('alias'));
     }
+
+    #[Test]
+    public function destroy_deletes_square_without_bookings(): void
+    {
+        $square = Square::factory()->create();
+        $square->setMeta('alias', 'Court B');
+
+        $this->actingAs($this->admin())->delete(route('admin.squares.destroy', $square))
+            ->assertRedirect(route('admin.squares.index'));
+
+        $this->assertDatabaseMissing('bs_squares', ['sid' => $square->sid]);
+        $this->assertDatabaseMissing('bs_squares_meta', ['sid' => $square->sid]);
+    }
+
+    #[Test]
+    public function destroy_disables_square_with_bookings(): void
+    {
+        $square = Square::factory()->create(['status' => 'enabled']);
+        Booking::factory()->create(['sid' => $square->sid]);
+
+        $this->actingAs($this->admin())->delete(route('admin.squares.destroy', $square))
+            ->assertRedirect(route('admin.squares.index'));
+
+        $this->assertDatabaseHas('bs_squares', ['sid' => $square->sid, 'status' => 'disabled']);
+    }
 }
