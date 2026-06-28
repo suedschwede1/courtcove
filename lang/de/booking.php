@@ -222,6 +222,8 @@ return [
             'additional_player' => 'Zusätzlicher Spieler',
             'player_name_3' => '3. Spielername',
             'player_name_4' => '4. Spielername',
+            'type_booking' => 'Buchung',
+            'type_event'   => 'Veranstaltung',
             'admin_note' => 'Notizen',
             'note_hint' => 'Nur für die Administration sichtbar',
             'booking_created_at' => 'Buchung erstellt: :date',

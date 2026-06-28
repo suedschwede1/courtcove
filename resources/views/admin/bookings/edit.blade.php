@@ -16,6 +16,22 @@
     $formId = $isCreateMode ? 'admin-booking-create' : 'admin-booking-update';
 @endphp
 
+@if($isCreateMode)
+<div class="admin-type-switcher">
+    <span class="admin-type-switcher__tab admin-type-switcher__tab--active">{{ __('booking.admin.bookings.type_booking') }}</span>
+    @php
+        $eventUrl = route('admin.events.create', array_filter([
+            'sid'        => old('sid', $booking->sid),
+            'date_start' => old('date', $reservation?->date),
+            'time_start' => old('time_start', $reservation ? substr((string)$reservation->time_start, 0, 5) : ''),
+            'date_end'   => old('date', $reservation?->date),
+            'time_end'   => old('time_end', $reservation ? substr((string)$reservation->time_end, 0, 5) : ''),
+        ]));
+    @endphp
+    <a href="{{ $eventUrl }}" class="admin-type-switcher__tab">{{ __('booking.admin.bookings.type_event') }}</a>
+</div>
+@endif
+
 <form method="POST" action="{{ $formAction }}" class="admin-form" id="{{ $formId }}">
     @csrf
     @unless($isCreateMode)

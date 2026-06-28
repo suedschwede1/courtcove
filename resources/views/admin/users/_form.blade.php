@@ -48,10 +48,6 @@
     <div class="admin-form__row">
         <label class="admin-form__label" for="uf-privileges">{{ __('booking.admin.users.privileges_legend') }}</label>
         <div class="admin-form__field">
-            <div class="admin-privilege-presets">
-                <button type="button" class="default-button" onclick="applyPrivilegePreset('mitarbeiter')">{{ __('booking.admin.users.preset_mitarbeiter') }}</button>
-                <button type="button" class="default-button" onclick="applyPrivilegePreset('verwaltung')">{{ __('booking.admin.users.preset_verwaltung') }}</button>
-            </div>
             <select id="uf-privileges" name="privileges[]" multiple size="{{ count($privileges) }}" class="admin-privilege-select">
                 @php $privLabels = __('booking.admin.users.privileges'); @endphp
                 @foreach($privileges as $priv)
@@ -65,21 +61,19 @@
     </div>
 <script>
 const PRIVILEGE_PRESETS = {
-    mitarbeiter: [
-        'admin.booking','admin.event','admin.see-menu',
-        'calendar.see-past','calendar.see-data',
-        'calendar.create-single-bookings','calendar.cancel-single-bookings','calendar.delete-single-bookings',
-        'calendar.create-subscription-bookings','calendar.cancel-subscription-bookings','calendar.delete-subscription-bookings'
-    ],
-    verwaltung: [
-        'admin.user','admin.booking','admin.config','admin.see-menu',
-        'calendar.see-past','calendar.see-data'
-    ]
+    admin:   ['admin.user','admin.booking','admin.config','admin.see-menu','calendar.see-past','calendar.see-data'],
+    assist:  ['admin.booking','admin.event','admin.see-menu','calendar.see-past','calendar.see-data',
+               'calendar.create-single-bookings','calendar.cancel-single-bookings','calendar.delete-single-bookings',
+               'calendar.create-subscription-bookings','calendar.cancel-subscription-bookings','calendar.delete-subscription-bookings'],
+    enabled:  [],
+    disabled: [],
+    blocked:  [],
 };
-function applyPrivilegePreset(name) {
+document.getElementById('uf-status').addEventListener('change', function () {
+    const preset = PRIVILEGE_PRESETS[this.value];
+    if (preset === undefined) return;
     const select = document.getElementById('uf-privileges');
-    const preset = PRIVILEGE_PRESETS[name] || [];
     Array.from(select.options).forEach(o => o.selected = preset.includes(o.value));
-}
+});
 </script>
 </div>

@@ -2284,6 +2284,44 @@ textarea {
 }
 
 /* Primary (filled) button for admin form submits */
+.admin-type-switcher {
+    display: flex;
+    gap: 0;
+    margin-bottom: 16px;
+    border: 1px solid #ccc5bb;
+    border-radius: 6px;
+    overflow: hidden;
+    width: fit-content;
+}
+
+.admin-type-switcher__tab {
+    display: inline-block;
+    padding: 7px 20px;
+    font-size: 12px;
+    font-family: Verdana, sans-serif;
+    color: #555;
+    background: #f5f1ec;
+    border: none;
+    text-decoration: none;
+    cursor: pointer;
+    border-right: 1px solid #ccc5bb;
+}
+
+.admin-type-switcher__tab:last-child {
+    border-right: none;
+}
+
+.admin-type-switcher__tab--active {
+    background: #c75518;
+    color: #fff;
+    font-weight: bold;
+    cursor: default;
+}
+
+.admin-type-switcher__tab:not(.admin-type-switcher__tab--active):hover {
+    background: #ebe6df;
+}
+
 .admin-btn-primary {
     display: inline-flex;
     align-items: center;
