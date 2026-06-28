@@ -34,6 +34,52 @@ final class SquareController extends Controller
         return redirect()->route('admin.squares.index')->with('success', 'Platz angelegt.');
     }
 
+    public function edit(Square $square): View
+    {
+        return view('admin.squares.edit', ['square' => $square, 'form' => $this->toForm($square)]);
+    }
+
+    public function update(Request $request, Square $square): RedirectResponse
+    {
+        $payload = $this->buildPayload($request);
+        $square->update($payload['columns']);
+        $this->applyMeta($square, $payload['meta']);
+
+        return redirect()->route('admin.squares.index')->with('success', 'Platz aktualisiert.');
+    }
+
+    /** Build form values from a square, reversing the unit conversions of buildPayload(). */
+    private function toForm(Square $square): array
+    {
+        $publicNames  = $square->getMeta('public_names') === 'true';
+        $privateNames = $square->getMeta('private_names') === 'true';
+        $visibility   = $publicNames ? 'public' : ($privateNames ? 'private' : 'none');
+
+        return [
+            'name'                    => $square->name,
+            'alias'                   => (string) $square->getMeta('alias'),
+            'status'                  => $square->status->value,
+            'readonly_message'        => (string) $square->getMeta('readonly.message'),
+            'priority'                => $square->priority,
+            'capacity'                => $square->capacity,
+            'capacity_ask_names'      => (string) $square->getMeta('capacity-ask-names', ''),
+            'capacity_heterogenic'    => (bool) $square->capacity_heterogenic,
+            'allow_notes'             => (bool) $square->allow_notes,
+            'name_visibility'         => $visibility,
+            'time_start'              => substr((string) $square->time_start, 0, 5),
+            'time_end'                => substr((string) $square->time_end, 0, 5),
+            'time_block'              => (int) round($square->time_block / 60),
+            'time_block_bookable'     => (int) round($square->time_block_bookable / 60),
+            'pseudo_time_block_bookable' => $square->getMeta('pseudo-time-block-bookable') === 'true',
+            'time_block_bookable_max' => (int) round(((int) $square->time_block_bookable_max) / 60),
+            'min_range_book'          => (int) round($square->min_range_book / 60),
+            'range_book'              => (int) round(((int) $square->range_book) / 86400),
+            'max_active_bookings'     => (int) $square->max_active_bookings,
+            'range_cancel'            => round(((int) $square->range_cancel) / 3600, 2),
+            'label_free'              => (string) $square->getMeta('label.free'),
+        ];
+    }
+
     /** Validate the form and split it into bs_squares columns + bs_squares_meta values. */
     private function buildPayload(Request $request): array
     {

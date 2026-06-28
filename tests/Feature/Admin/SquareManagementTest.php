@@ -89,4 +89,43 @@ class SquareManagementTest extends TestCase
         $this->actingAs($this->admin())->post('/admin/squares', $this->payload(['name' => '']))
             ->assertSessionHasErrors('name');
     }
+
+    #[Test]
+    public function edit_page_reverse_converts_values(): void
+    {
+        $square = Square::factory()->create([
+            'time_block' => 3600, 'range_book' => 56 * 86400, 'range_cancel' => 86400,
+        ]);
+
+        $this->actingAs($this->admin())->get(route('admin.squares.edit', $square))
+            ->assertOk()
+            ->assertSee('value="56"', false);   // range_book 56*86400 Sek ÷ 86400 = 56 Tage
+    }
+
+    #[Test]
+    public function update_changes_columns_and_meta(): void
+    {
+        $square = Square::factory()->create(['name' => 'Alt']);
+
+        $this->actingAs($this->admin())
+            ->put(route('admin.squares.update', $square), $this->payload(['name' => 'Neu', 'alias' => 'Court D']))
+            ->assertRedirect(route('admin.squares.index'));
+
+        $fresh = $square->fresh();
+        $this->assertSame('Neu', $fresh->name);
+        $this->assertSame('Court D', $fresh->getMeta('alias'));
+    }
+
+    #[Test]
+    public function update_with_blank_alias_deletes_meta(): void
+    {
+        $square = Square::factory()->create();
+        $square->setMeta('alias', 'Court B');
+
+        $this->actingAs($this->admin())
+            ->put(route('admin.squares.update', $square), $this->payload(['alias' => '']))
+            ->assertRedirect();
+
+        $this->assertNull($square->fresh()->getMeta('alias'));
+    }
 }
