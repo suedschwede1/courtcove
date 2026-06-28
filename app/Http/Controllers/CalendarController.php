@@ -20,6 +20,8 @@ use Illuminate\View\View;
  */
 final class CalendarController extends Controller
 {
+    private const MAX_DAYS = 8;
+
     public function __construct(
         private readonly ReservationService $reservations,
     ) {}
@@ -44,14 +46,17 @@ final class CalendarController extends Controller
             }
         }
 
-        $dates = [
-            $date->copy()->subDay(),
-            $date->copy(),
-            $date->copy()->addDay(),
-        ];
+        // Render a generous window (yesterday, today, today+1 … today+6); the client
+        // reveals as many day-columns as fit the viewport and hides the rest, so the
+        // count adapts to screen width without a reload. Base 3 (indices 0–2) are
+        // always shown; indices >= 3 are the optional extra days.
+        $dates = [$date->copy()->subDay()];
+        for ($offset = 0; $offset <= self::MAX_DAYS - 2; $offset++) {
+            $dates[] = $date->copy()->addDays($offset);
+        }
 
         $rangeStart = $dates[0]->copy()->startOfDay();
-        $rangeEnd = $dates[2]->copy()->endOfDay();
+        $rangeEnd = end($dates)->copy()->endOfDay();
 
         $squares = Square::with(['meta' => fn($query) => $query->where('key', 'alias')])
             ->orderBy('priority')
