@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="format-detection" content="telephone=no">
     <title>@yield('title', $bookingName)</title>
-    <link rel="stylesheet" href="{{ asset('css/booking.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/booking.css') }}?v={{ filemtime(public_path('css/booking.css')) }}">
     @stack('head')
 </head>
 <body>
@@ -95,7 +95,7 @@
     </main>
 </div>
 
-<script src="{{ asset('js/booking.js') }}"></script>
+<script src="{{ asset('js/booking.js') }}?v={{ filemtime(public_path('js/booking.js')) }}"></script>
 @stack('scripts')
 </body>
 </html>
