@@ -338,11 +338,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (repeat && dateEnd) {
             var isOnce = repeat.value === 'once';
-            // Datum/Zeit-Felder nur bei Serien änderbar
+            // Datum/Zeit-Felder nur bei Serien änderbar — readonly statt disabled (disabled verhindert Submit)
             var dateFields = [dateStart, timeStart, timeEnd];
             dateFields.forEach(function(f) {
                 if (!f) { return; }
-                f.disabled = isOnce;
+                f.readOnly = isOnce;
                 f.classList.toggle('is-disabled', isOnce);
             });
             dateEnd.disabled = isOnce;
