@@ -118,14 +118,12 @@ final class BookingController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        session()->save(); // Session-Lock früh freigeben
-
         try {
             $data = $this->validateBookingData($request);
             $owner = $this->resolveOwner($data['booked_for']);
             [, , $occurrenceStarts, $durationSeconds] = $this->buildBookingTimeline($data);
 
-            if ($data['status'] !== 'cancelled') {
+            if (($data['status'] ?? null) !== 'cancelled') {
                 $conflictError = $this->batchCheckConflicts((int) $data['sid'], $occurrenceStarts, $durationSeconds, null);
                 if ($conflictError !== null) {
                     return back()->withErrors(['booking' => $conflictError])->withInput();
@@ -137,7 +135,7 @@ final class BookingController extends Controller
                     'uid' => $owner['uid'],
                     'sid' => (int) $data['sid'],
                     'quantity' => (int) $data['quantity'],
-                    'status' => $data['status'] === 'cancelled' ? 'cancelled' : (count($occurrenceStarts) > 1 ? 'subscription' : 'single'),
+                    'status' => ($data['status'] ?? null) === 'cancelled' ? 'cancelled' : (count($occurrenceStarts) > 1 ? 'subscription' : 'single'),
                     'status_billing' => 'pending',
                     'visibility' => 'public',
                     'created' => now()->format('Y-m-d H:i:s'),
@@ -211,8 +209,6 @@ final class BookingController extends Controller
 
     public function update(Request $request, Booking $booking): RedirectResponse
     {
-        session()->save(); // Session-Lock früh freigeben
-
         $firstReservation = $booking->reservations()->orderBy('date')->orderBy('time_start')->first();
 
         if (! $firstReservation) {
@@ -224,7 +220,7 @@ final class BookingController extends Controller
             $owner = $this->resolveOwner($data['booked_for']);
             [, , $occurrenceStarts, $durationSeconds] = $this->buildBookingTimeline($data);
 
-            if ($data['status'] !== 'cancelled') {
+            if (($data['status'] ?? null) !== 'cancelled') {
                 $conflictError = $this->batchCheckConflicts((int) $data['sid'], $occurrenceStarts, $durationSeconds, $booking->bid);
                 if ($conflictError !== null) {
                     return back()->withErrors(['booking' => $conflictError])->withInput();
@@ -232,7 +228,7 @@ final class BookingController extends Controller
             }
 
             DB::transaction(function () use ($booking, $data, $owner, $occurrenceStarts, $durationSeconds): void {
-                $effectiveStatus = $data['status'] === 'cancelled'
+                $effectiveStatus = ($data['status'] ?? null) === 'cancelled'
                     ? 'cancelled'
                     : (count($occurrenceStarts) > 1 ? 'subscription' : 'single');
 
