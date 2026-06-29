@@ -27,8 +27,11 @@
         <tr class="calendar-date-row">
             <td class="time-spacer">&nbsp;</td>
             @foreach($dates as $dayIndex => $d)
-                @php($isSelectedDay = $d->format('Y-m-d') === $date->format('Y-m-d'))
-                <td colspan="{{ $squares->count() }}" @class(['day-header-cell', 'day-header-cell--active' => $isSelectedDay, 'cal-extra-day' => $dayIndex >= 3]) data-day="{{ $dayIndex }}">
+                @php
+                    $isSelectedDay = $d->format('Y-m-d') === $date->format('Y-m-d');
+                    $isTodayColumn = $d->format('Y-m-d') === $today;
+                @endphp
+                <td colspan="{{ $squares->count() }}" @class(['day-header-cell', 'day-header-cell--active' => $isSelectedDay, 'day-header-cell--today' => $isTodayColumn, 'cal-extra-day' => $dayIndex >= 3]) data-day="{{ $dayIndex }}">
                     <div class="day-header-inline">
                         <span class="day-header-name">{{ $dateLabels[$d->format('Y-m-d')]['short'] }}</span>
                         <span class="day-header-date">{{ $dateLabels[$d->format('Y-m-d')]['long'] }}</span>
@@ -39,9 +42,12 @@
         <tr class="calendar-square-row">
             <td class="time-side-head">{{ __('booking.calendar.court') }}</td>
             @foreach($dates as $dayIndex => $d)
-                @php($isSelectedDay = $d->format('Y-m-d') === $date->format('Y-m-d'))
+                @php
+                    $isSelectedDay = $d->format('Y-m-d') === $date->format('Y-m-d');
+                    $isTodayColumn = $d->format('Y-m-d') === $today;
+                @endphp
                 @foreach($squares as $square)
-                    <td @class(['square-head-cell', 'square-head-cell--active' => $isSelectedDay, 'cal-extra-day' => $dayIndex >= 3]) data-day="{{ $dayIndex }}">
+                    <td @class(['square-head-cell', 'square-head-cell--active' => $isSelectedDay, 'square-head-cell--today' => $isTodayColumn, 'cal-extra-day' => $dayIndex >= 3]) data-day="{{ $dayIndex }}">
                         <span class="square-head-title">{{ $square->name }}</span>
                         @if($square->display_name !== $square->name)
                             <span class="square-head-alias">{{ $square->display_name }}</span>
@@ -239,9 +245,12 @@
         <tr class="calendar-square-row">
             <td class="time-side-head">{{ __('booking.calendar.court') }}</td>
             @foreach($dates as $dayIndex => $d)
-                @php($isSelectedDay = $d->format('Y-m-d') === $date->format('Y-m-d'))
+                @php
+                    $isSelectedDay = $d->format('Y-m-d') === $date->format('Y-m-d');
+                    $isTodayColumn = $d->format('Y-m-d') === $today;
+                @endphp
                 @foreach($squares as $square)
-                    <td @class(['square-head-cell', 'square-head-cell--active' => $isSelectedDay, 'cal-extra-day' => $dayIndex >= 3]) data-day="{{ $dayIndex }}">
+                    <td @class(['square-head-cell', 'square-head-cell--active' => $isSelectedDay, 'square-head-cell--today' => $isTodayColumn, 'cal-extra-day' => $dayIndex >= 3]) data-day="{{ $dayIndex }}">
                         <span class="square-head-title">{{ $square->name }}</span>
                         @if($square->display_name !== $square->name)
                             <span class="square-head-alias">{{ $square->display_name }}</span>
@@ -253,8 +262,11 @@
         <tr class="calendar-date-row footer-date-row">
             <td class="time-spacer">&nbsp;</td>
             @foreach($dates as $dayIndex => $d)
-                @php($isSelectedDay = $d->format('Y-m-d') === $date->format('Y-m-d'))
-                <td colspan="{{ $squares->count() }}" @class(['day-header-cell', 'day-header-cell--active' => $isSelectedDay, 'cal-extra-day' => $dayIndex >= 3]) data-day="{{ $dayIndex }}">
+                @php
+                    $isSelectedDay = $d->format('Y-m-d') === $date->format('Y-m-d');
+                    $isTodayColumn = $d->format('Y-m-d') === $today;
+                @endphp
+                <td colspan="{{ $squares->count() }}" @class(['day-header-cell', 'day-header-cell--active' => $isSelectedDay, 'day-header-cell--today' => $isTodayColumn, 'cal-extra-day' => $dayIndex >= 3]) data-day="{{ $dayIndex }}">
                     <div class="day-header-inline"><span class="day-header-name">{{ $dateLabels[$d->format('Y-m-d')]['short'] }}</span><span class="day-header-date">{{ $dateLabels[$d->format('Y-m-d')]['long'] }}</span></div>
                 </td>
             @endforeach
