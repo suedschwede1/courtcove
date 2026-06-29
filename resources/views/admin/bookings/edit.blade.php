@@ -57,7 +57,6 @@
                 </div>
 
                 <div>
-                    <p class="mb-3 border-b border-[#ebebeb] pb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#6a6e73]">Zeitraum</p>
                     <div class="grid grid-cols-4 gap-3">
                         <div class="space-y-1">
                             <label class="block text-[13px] font-medium text-[#151515]" for="date">Datum (Beginn)</label>
@@ -87,7 +86,6 @@
                 </div>
 
                 <div>
-                    <p class="mb-3 border-b border-[#ebebeb] pb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#6a6e73]">Spieler</p>
                     <div class="space-y-3">
                         <div class="space-y-1">
                             <label class="block text-[13px] font-medium text-[#151515]" for="admin-booking-quantity">Spieleranzahl</label>
