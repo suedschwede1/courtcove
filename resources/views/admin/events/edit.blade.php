@@ -4,11 +4,6 @@
 
 @section('content')
 <div class="ui-page">
-    <div class="ui-page-header">
-        <h1>{{ __('booking.admin.events.edit_title') }}</h1>
-        <p>Zeitraum, Sichtbarkeit und Platz einer bestehenden Veranstaltung zentral pflegen.</p>
-    </div>
-
     <form method="POST" action="{{ route('admin.events.update', $event) }}" class="ui-form-shell">
         @csrf
         @method('PUT')
@@ -18,7 +13,6 @@
         @endif
 
         <div class="ui-card">
-            <div class="ui-card-header"><h2>{{ __('booking.admin.events.edit_title') }}</h2></div>
             <div class="ui-card-body">
                 @include('admin.events._form')
             </div>
@@ -38,11 +32,6 @@
 
 @section('admin-content')
 <div class="ui-page">
-    <div class="ui-page-header">
-        <h1>{{ __('booking.admin.events.edit_title') }}</h1>
-        <p>Zeitraum, Sichtbarkeit und Platz einer bestehenden Veranstaltung zentral pflegen.</p>
-    </div>
-
     <form method="POST" action="{{ route('admin.events.update', $event) }}" class="ui-form-shell">
         @csrf
         @method('PUT')
@@ -52,7 +41,6 @@
         @endif
 
         <div class="ui-card">
-            <div class="ui-card-header"><h2>{{ __('booking.admin.events.edit_title') }}</h2></div>
             <div class="ui-card-body">
                 @include('admin.events._form')
             </div>

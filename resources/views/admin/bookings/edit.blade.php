@@ -170,7 +170,7 @@
             @endif
 
             <div>
-                <p class="mb-4 border-b border-[#ebebeb] pb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#6a6e73]">Gebucht für</p>
+
                 <div class="grid grid-cols-[minmax(0,1fr)_174px] gap-3 items-end">
                     <div class="space-y-1">
                         <label class="block text-[13px] font-medium text-[#151515]" for="booked_for">Gebucht für</label>
@@ -185,7 +185,7 @@
             </div>
 
             <div>
-                <p class="mb-4 border-b border-[#ebebeb] pb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#6a6e73]">Buchung</p>
+
                 <div class="grid grid-cols-3 gap-3">
                     <div class="space-y-1">
                         <label class="block text-[13px] font-medium text-[#151515]" for="sid">Platz</label>
@@ -214,7 +214,7 @@
             </div>
 
             <div>
-                <p class="mb-4 border-b border-[#ebebeb] pb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#6a6e73]">Zeit</p>
+
                 <div class="grid grid-cols-4 gap-3">
                     <div class="space-y-1">
                         <label class="block text-[13px] font-medium text-[#151515]" for="date">Datum (Beginn)</label>

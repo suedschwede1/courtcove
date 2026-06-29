@@ -327,8 +327,8 @@ return [
         ],
         'events' => [
             'title' => 'Veranstaltungen',
-            'create_title' => 'Veranstaltungs-Verwaltung',
-            'edit_title' => 'Veranstaltungs-Verwaltung',
+            'create_title' => 'Veranstaltung anlegen',
+            'edit_title' => 'Veranstaltung bearbeiten',
             'new_event' => 'Neue Veranstaltung',
             'name' => 'Name',
             'description' => 'Beschreibung',
