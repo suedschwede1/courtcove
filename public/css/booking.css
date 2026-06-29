@@ -317,7 +317,6 @@ input[type="text"] {
     background: #ffffff;
 }
 
-.day-header-cell--active,
 .day-header-cell--today {
     background: #fff8f6 !important;
 }
@@ -347,8 +346,6 @@ input[type="text"] {
     font-family: "Red Hat Text", sans-serif;
 }
 
-.day-header-cell--active .day-header-name,
-.day-header-cell--active .day-header-date,
 .day-header-cell--today .day-header-name,
 .day-header-cell--today .day-header-date {
     color: #bf4316;
@@ -2168,7 +2165,6 @@ textarea {
     background: #ffffff;
 }
 
-.day-header-cell--active,
 .day-header-cell--today {
     background: #fff8f6 !important;
 }
@@ -2198,8 +2194,6 @@ textarea {
     font-family: "Red Hat Text", sans-serif;
 }
 
-.day-header-cell--active .day-header-name,
-.day-header-cell--active .day-header-date,
 .day-header-cell--today .day-header-name,
 .day-header-cell--today .day-header-date {
     color: #bf4316;
