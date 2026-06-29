@@ -169,7 +169,7 @@
                 <div class="flex flex-col gap-1">
                     <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">Mitspieler</label>
                     <input type="text"
-                           name="player2"
+                           name="player_name_2"
                            required
                            placeholder="Name Mitspieler"
                            class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
@@ -179,7 +179,7 @@
                 <div class="flex flex-col gap-1" x-show="quantity == '4'">
                     <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">Mitspieler 3</label>
                     <input type="text"
-                           name="player3"
+                           name="player_name_3"
                            placeholder="Name Mitspieler 3"
                            class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
                 </div>
@@ -188,7 +188,7 @@
                 <div class="flex flex-col gap-1" x-show="quantity == '4'">
                     <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">Mitspieler 4</label>
                     <input type="text"
-                           name="player4"
+                           name="player_name_4"
                            placeholder="Name Mitspieler 4"
                            class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
                 </div>
@@ -382,3 +382,4 @@
     </div>
 </div>
 @endauth
+

@@ -2,73 +2,54 @@
 @section('title', __('booking.account.my_bookings'))
 
 @section('content')
-<div class="max-w-2xl mx-auto px-4 py-8 flex flex-col gap-6">
+<div class="max-w-5xl mx-auto px-4 py-8 ui-page">
+    <div class="ui-page-header">
+        <h1>{{ __('booking.account.my_bookings') }}</h1>
+        <p>Alle kommenden Reservierungen auf einen Blick.</p>
+    </div>
 
-    <h1 class="text-2xl font-bold text-[#151515]"
-        style="font-family: var(--font-display)">{{ __('booking.account.my_bookings') }}</h1>
-
-    {{-- Flash-Meldungen --}}
     @if(session('success'))
-        <div class="bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg px-4 py-3">
-            {{ session('success') }}
-        </div>
+        <div class="ui-flash ui-flash-success">{{ session('success') }}</div>
     @endif
     @if(session('error'))
-        <div class="bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg px-4 py-3">
-            {{ session('error') }}
-        </div>
+        <div class="ui-flash ui-flash-error">{{ session('error') }}</div>
     @endif
 
-    <div class="bg-white rounded-xl border border-[#e0ddd7] shadow-sm overflow-hidden">
-
+    <div class="ui-card">
         @if($bookings->isEmpty())
-            <div class="px-6 py-10 text-center flex flex-col items-center gap-3">
-                <p class="text-sm text-[#6a6e73]">{{ __('booking.messages.no_active_bookings') }}</p>
-                <a href="{{ route('calendar.index') }}"
-                   class="text-sm text-[#bf4316] hover:underline">→ Zum Kalender</a>
+            <div class="ui-card-body text-center">
+                <p class="ui-kpi-meta">{{ __('booking.messages.no_active_bookings') }}</p>
+                <div class="mt-4"><a href="{{ route('calendar.index') }}" class="ui-btn ui-btn-outline">Zum Kalender</a></div>
             </div>
         @else
-            <div class="overflow-x-auto">
-                <table class="w-full">
+            <div class="ui-table-wrap">
+                <table class="ui-table">
                     <thead>
                         <tr>
-                            <th class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73] px-4 py-3 border-b border-[#e0ddd7] text-left whitespace-nowrap">{{ __('booking.account.court') }}</th>
-                            <th class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73] px-4 py-3 border-b border-[#e0ddd7] text-left whitespace-nowrap">{{ __('booking.account.date') }}</th>
-                            <th class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73] px-4 py-3 border-b border-[#e0ddd7] text-left whitespace-nowrap">{{ __('booking.account.time') }}</th>
-                            <th class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73] px-4 py-3 border-b border-[#e0ddd7] text-left whitespace-nowrap">{{ __('booking.account.status') }}</th>
-                            <th class="px-4 py-3 border-b border-[#e0ddd7]"></th>
+                            <th>{{ __('booking.account.court') }}</th>
+                            <th>{{ __('booking.account.date') }}</th>
+                            <th>{{ __('booking.account.time') }}</th>
+                            <th>{{ __('booking.account.status') }}</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($bookings as $booking)
                             @php($reservation = $booking->reservations->first())
-                            <tr class="hover:bg-[#fafaf9]">
-                                <td class="text-sm text-[#151515] px-4 py-3 border-b border-[#f0ede6]">
-                                    {{ $booking->square?->display_name }}
-                                </td>
-                                <td class="text-sm text-[#151515] px-4 py-3 border-b border-[#f0ede6] whitespace-nowrap">
-                                    {{ $reservation?->date }}
-                                </td>
-                                <td class="text-sm text-[#151515] px-4 py-3 border-b border-[#f0ede6] whitespace-nowrap">
+                            <tr>
+                                <td>{{ $booking->square?->display_name }}</td>
+                                <td class="text-[#6a6e73]">{{ $reservation?->date }}</td>
+                                <td class="text-[#6a6e73]">
                                     @if($reservation)
-                                        {{ \Illuminate\Support\Str::of($reservation->time_start)->substr(0, 5) }}–{{ \Illuminate\Support\Str::of($reservation->time_end)->substr(0, 5) }} Uhr
+                                        {{ \Illuminate\Support\Str::of($reservation->time_start)->substr(0, 5) }}-{{ \Illuminate\Support\Str::of($reservation->time_end)->substr(0, 5) }} Uhr
                                     @endif
                                 </td>
-                                <td class="px-4 py-3 border-b border-[#f0ede6]">
-                                    <span class="inline-block bg-green-50 text-green-700 text-xs rounded-full px-2 py-0.5">
-                                        {{ $booking->status }}
-                                    </span>
-                                </td>
-                                <td class="px-4 py-3 border-b border-[#f0ede6] text-right">
-                                    <form method="POST" action="{{ route('bookings.destroy', $booking) }}"
-                                          onsubmit="return confirm({{ Js::from(__('booking.messages.confirm_cancel_booking')) }})"
-                                          class="m-0">
+                                <td><span class="ui-badge ui-badge-success">{{ $booking->status }}</span></td>
+                                <td class="text-right">
+                                    <form method="POST" action="{{ route('bookings.destroy', $booking) }}" onsubmit="return confirm({{ Js::from(__('booking.messages.confirm_cancel_booking')) }})" class="m-0">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit"
-                                                class="text-xs text-red-600 hover:text-red-800 hover:underline transition-colors">
-                                            {{ __('booking.account.cancel') }}
-                                        </button>
+                                        <button type="submit" class="ui-btn ui-btn-danger">{{ __('booking.account.cancel') }}</button>
                                     </form>
                                 </td>
                             </tr>
@@ -77,8 +58,6 @@
                 </table>
             </div>
         @endif
-
     </div>
-
 </div>
 @endsection
