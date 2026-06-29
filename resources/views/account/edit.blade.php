@@ -54,7 +54,7 @@
                         <input type="text" name="firstname"
                                value="{{ old('firstname', $profile['firstname']) }}"
                                maxlength="128"
-                               class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
+                               class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent {{ $errors->has('firstname') ? 'border-red-400' : 'border-[#d1cbc0]' }}">
                         @error('firstname')
                             <p class="text-xs text-red-600">{{ $message }}</p>
                         @enderror
@@ -67,7 +67,7 @@
                         <input type="text" name="lastname"
                                value="{{ old('lastname', $profile['lastname']) }}"
                                maxlength="128"
-                               class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
+                               class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent {{ $errors->has('lastname') ? 'border-red-400' : 'border-[#d1cbc0]' }}">
                         @error('lastname')
                             <p class="text-xs text-red-600">{{ $message }}</p>
                         @enderror
@@ -93,7 +93,7 @@
                         <input type="text" name="phone"
                                value="{{ old('phone', $profile['phone']) }}"
                                maxlength="128"
-                               class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
+                               class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent {{ $errors->has('phone') ? 'border-red-400' : 'border-[#d1cbc0]' }}">
                         @error('phone')
                             <p class="text-xs text-red-600">{{ $message }}</p>
                         @enderror
@@ -106,7 +106,7 @@
                         <input type="text" name="street"
                                value="{{ old('street', $profile['street']) }}"
                                maxlength="128"
-                               class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
+                               class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent {{ $errors->has('street') ? 'border-red-400' : 'border-[#d1cbc0]' }}">
                         @error('street')
                             <p class="text-xs text-red-600">{{ $message }}</p>
                         @enderror
@@ -118,8 +118,8 @@
                         </label>
                         <input type="text" name="zip"
                                value="{{ old('zip', $profile['zip']) }}"
-                               maxlength="128"
-                               class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
+                               maxlength="10"
+                               class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent {{ $errors->has('zip') ? 'border-red-400' : 'border-[#d1cbc0]' }}">
                         @error('zip')
                             <p class="text-xs text-red-600">{{ $message }}</p>
                         @enderror
@@ -132,7 +132,7 @@
                         <input type="text" name="city"
                                value="{{ old('city', $profile['city']) }}"
                                maxlength="128"
-                               class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
+                               class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent {{ $errors->has('city') ? 'border-red-400' : 'border-[#d1cbc0]' }}">
                         @error('city')
                             <p class="text-xs text-red-600">{{ $message }}</p>
                         @enderror
@@ -203,7 +203,10 @@
                     </label>
                     <input type="password" name="password_confirmation"
                            required
-                           class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
+                           class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent {{ $errors->has('password_confirmation') ? 'border-red-400' : 'border-[#d1cbc0]' }}">
+                    @error('password_confirmation')
+                        <p class="text-xs text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
 
             </div>
