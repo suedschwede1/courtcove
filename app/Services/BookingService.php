@@ -66,7 +66,7 @@ final class BookingService
             return $booking->load('reservations', 'bills', 'meta');
         });
 
-        if (!empty($user->email)) {
+        if (!empty($user->email) && $this->isMailConfigured()) {
             $email = $user->email;
             dispatch(function () use ($email, $booking): void {
                 try {
@@ -143,7 +143,7 @@ final class BookingService
         ]);
 
         $email = $booking->user?->email ?? null;
-        if (!empty($email)) {
+        if (!empty($email) && $this->isMailConfigured()) {
             dispatch(function () use ($email, $booking): void {
                 try {
                     Mail::to($email)->send(new BookingCancelled($booking));
@@ -264,5 +264,15 @@ final class BookingService
         }
 
         return $dateStart->copy()->addSeconds($minimumSeconds);
+    }
+
+    private function isMailConfigured(): bool
+    {
+        $mailer = config('mail.default', 'log');
+        if ($mailer === 'log' || $mailer === 'array') {
+            return false;
+        }
+        $host = config('mail.mailers.smtp.host', '');
+        return !in_array($host, ['', 'localhost', '127.0.0.1'], true);
     }
 }
