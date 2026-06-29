@@ -23,6 +23,15 @@
               style="font-family: var(--font-display)">{{ config('booking.name') }}</span>
     </header>
 
+    {{-- Erfolgreich registriert --}}
+    @if(session('registered'))
+        <div class="mx-auto mt-6 max-w-2xl px-4">
+            <div class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+                Ihre Registrierung war erfolgreich. Ihr Konto wird nach Überprüfung durch unsere Administration freigeschaltet. Sie werden dann per E-Mail benachrichtigt.
+            </div>
+        </div>
+    @endif
+
     {{-- Login-Karte --}}
     <main class="flex-1 flex items-center justify-center p-6">
         <div class="w-full max-w-2xl bg-white rounded-xl shadow-sm border border-[#e0ddd7] overflow-hidden grid grid-cols-2">
@@ -102,6 +111,11 @@
                         Anmelden
                     </button>
                 </form>
+
+                <p class="mt-2 text-center text-xs text-[#6a6e73]">
+                    Noch kein Konto?
+                    <a href="{{ route('register') }}" class="text-[#bf4316] hover:underline">Jetzt registrieren</a>
+                </p>
             </div>
 
         </div>
