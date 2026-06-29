@@ -56,3 +56,82 @@
     font-size: 10px;
     color: #bf4316;
 }
+
+/* Buchungszellen — Basis-Layout */
+.calendar-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 4px 6px;
+    overflow: hidden;
+    text-decoration: none;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+/* Freie Zelle — klickbar mit Hover */
+.cc-free {
+    cursor: pointer;
+}
+
+.cc-free:hover {
+    background: #f0f7ff;
+}
+
+/* Vergangene Zelle — nicht klickbar */
+.cc-over {
+    cursor: default;
+}
+
+/* Fremde Buchung — gleiche Farbe wie eigene, nicht klickbar */
+.cc-single-future {
+    background: #eff6ff;
+    cursor: default;
+}
+
+/* Buchungsname in Zelle */
+.cc-label-primary {
+    font-family: 'Red Hat Text', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: #1a3a6b;
+    line-height: 1.3;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    max-width: 100%;
+}
+
+/* Mitspieler-Label */
+.cc-label-secondary {
+    font-family: 'Red Hat Text', sans-serif;
+    font-size: 11px;
+    color: #5a7ab3;
+    line-height: 1.3;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+/* Veranstaltungsname */
+.event-label {
+    font-family: 'Red Hat Text', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: #7f2010;
+    line-height: 1.35;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    text-decoration: none;
+}
+
+.event-label:hover {
+    text-decoration: underline;
+}
