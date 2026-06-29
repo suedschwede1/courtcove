@@ -118,6 +118,8 @@ final class BookingController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        session()->save(); // Session-Lock früh freigeben
+
         try {
             $data = $this->validateBookingData($request);
             $owner = $this->resolveOwner($data['booked_for']);
@@ -209,6 +211,8 @@ final class BookingController extends Controller
 
     public function update(Request $request, Booking $booking): RedirectResponse
     {
+        session()->save(); // Session-Lock früh freigeben
+
         $firstReservation = $booking->reservations()->orderBy('date')->orderBy('time_start')->first();
 
         if (! $firstReservation) {
