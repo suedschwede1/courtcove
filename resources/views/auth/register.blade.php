@@ -27,9 +27,8 @@
         <h1 style="font-family: var(--font-display)" class="text-3xl font-bold text-[#151515] mb-2">Registrierung</h1>
         <p class="text-[#bf4316] font-semibold mb-3">Willkommen zu unserem {{ $bookingName }}</p>
         <p class="text-sm text-[#6a6e73] max-w-xl">
-            Sie haben es sicher schon vermutet: Um unser Angebot nutzen zu können, also um freie Plätze online buchen zu können,
-            müssen Sie sich vorher ein eigenes Benutzerkonto auf Ihren Namen und Ihre E-Mail-Adresse erstellen.
-            Die Registrierung ist natürlich kostenlos und unverbindlich.
+            Die Online-Platzbuchung steht ausschließlich Vereinsmitgliedern zur Verfügung.
+            Um freie Plätze buchen zu können, erstellen Sie bitte ein Benutzerkonto auf Ihren Namen und Ihre E-Mail-Adresse.
         </p>
     </div>
 
