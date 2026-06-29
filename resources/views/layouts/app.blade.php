@@ -18,50 +18,7 @@
 </head>
 <body>
 <div class="page-shell">
-    <header class="top-header no-print">
-        <div class="brand-card">
-            <div class="brand-row">
-                <a href="{{ route('calendar.index') }}" class="brand-logo-link" aria-label="{{ $bookingName }}" style="--booking-logo-width: {{ config('booking.logo_width') }}px; --booking-logo-height: {{ config('booking.logo_height') }}px;">
-                    <img src="{{ asset(config('booking.logo_path')) }}"
-                         width="{{ config('booking.logo_width') }}"
-                         height="{{ config('booking.logo_height') }}"
-                         alt="{{ $bookingName }}"
-                         class="brand-logo-image">
-                </a>
-                <div class="brand-copy">
-                    <div class="brand-title">{{ $bookingName }}</div>
-                    <div class="brand-toolbar">
-                        @stack('header-nav')
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="header-actions-card">
-            <div class="header-actions">
-                @hasSection('calendar-system-info')
-                    <button type="button" class="default-button header-help-toggle" data-panel-toggle="system-info-panel">{{ __('booking.nav.info') }}</button>
-                @endif
-                @hasSection('calendar-help')
-                    <button type="button" class="default-button header-help-toggle" data-panel-toggle="help-panel">{{ __('booking.nav.help') }}</button>
-                @endif
-                @auth
-                    <a href="{{ route('account.bookings') }}" class="default-button">{{ __('booking.nav.my_bookings') }}</a>
-                    <a href="{{ route('account.edit') }}" class="default-button">{{ __('booking.nav.my_account') }}</a>
-                    @can('admin.see-menu')
-                        <a href="{{ route('admin.dashboard') }}" class="default-button">{{ __('booking.nav.admin') }}</a>
-                    @endcan
-                    <form method="POST" action="{{ route('logout') }}" style="display:inline; margin:0;">
-                        @csrf
-                        <button type="submit" class="default-button abmelden-button">{{ __('booking.nav.logout') }}</button>
-                    </form>
-                    <a href="#" class="default-button header-help">?</a>
-                @else
-                    <a href="{{ route('login', ['redirect_to' => url()->full()]) }}" class="default-button">{{ __('booking.nav.login') }}</a>
-                @endauth
-            </div>
-        </div>
-    </header>
+    <x-layout.header />
 
     <main id="content">
         @if(session('success') || session('error'))
