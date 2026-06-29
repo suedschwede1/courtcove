@@ -134,42 +134,82 @@
                             </td>
                         @elseif($action === 'book' || $action === 'admin-book')
                             <td @class(['cal-extra-day' => $extraDay]) data-day="{{ $dayIndex }}">
-                                <a href="#"
-                                   class="calendar-cell {{ $cellClass }}{{ $slotClass }} booking-trigger"
-                                   title="{{ $cellTitle }}"
-                                   data-action="{{ $action }}"
-                                   data-sid="{{ $sid }}"
-                                   data-date="{{ $dateKey }}"
-                                   data-time-start="{{ $h * 3600 }}"
-                                   data-time-end="{{ ($h + 1) * 3600 }}"
-                                   data-square-name="{{ $squareLabel }}"
-                                   data-date-label="{{ $dateLabels[$d->format('Y-m-d')]['full'] }}"
-                                   data-time-label="{{ $timeLabel }} – {{ $nextLabel }} Uhr"
-                                   @if($isAdmin)
-                                       data-create-url="{{ route('admin.bookings.create') }}?sid={{ $sid }}&date={{ $dateKey }}&time_start={{ $h * 3600 }}&time_end={{ ($h + 1) * 3600 }}"
-                                   @endif></a>
+                                @if($action === 'book')
+                                    <a href="#"
+                                       class="calendar-cell {{ $cellClass }}{{ $slotClass }}"
+                                       title="{{ $cellTitle }}"
+                                       @click.prevent="$dispatch('open-booking', {
+                                           sid: {{ $sid }},
+                                           date: @js($dateKey),
+                                           timeStart: {{ $h * 3600 }},
+                                           timeEnd: {{ ($h + 1) * 3600 }},
+                                           timeStartFormatted: @js(str_pad($h, 2, '0', STR_PAD_LEFT) . ':00'),
+                                           timeEndFormatted: @js(str_pad($h + 1, 2, '0', STR_PAD_LEFT) . ':00'),
+                                           squareName: @js($squareLabel),
+                                           dateLabel: @js($dateLabels[$d->format('Y-m-d')]['full']),
+                                           timeLabel: @js($timeLabel . ' – ' . $nextLabel . ' Uhr')
+                                       })"></a>
+                                @else
+                                    {{-- admin-book: bleibt für booking.js --}}
+                                    <a href="#"
+                                       class="calendar-cell {{ $cellClass }}{{ $slotClass }} booking-trigger"
+                                       title="{{ $cellTitle }}"
+                                       data-action="admin-book"
+                                       data-sid="{{ $sid }}"
+                                       data-date="{{ $dateKey }}"
+                                       data-time-start="{{ $h * 3600 }}"
+                                       data-time-end="{{ ($h + 1) * 3600 }}"
+                                       data-square-name="{{ $squareLabel }}"
+                                       data-date-label="{{ $dateLabels[$d->format('Y-m-d')]['full'] }}"
+                                       data-time-label="{{ $timeLabel }} – {{ $nextLabel }} Uhr"
+                                       data-create-url="{{ route('admin.bookings.create') }}?sid={{ $sid }}&date={{ $dateKey }}&time_start={{ $h * 3600 }}&time_end={{ ($h + 1) * 3600 }}"></a>
+                                @endif
                             </td>
                         @elseif($action === 'cancel')
                             <td @class(['cal-extra-day' => $extraDay]) data-day="{{ $dayIndex }}">
-                                <a href="#"
-                                   class="calendar-cell {{ $cellClass }}{{ $slotClass }} booking-trigger"
-                                   title="{{ $cellTitle }}"
-                                   data-action="cancel"
-                                   data-bid="{{ $reservation->booking->bid }}"
-                                   data-square-name="{{ $squareLabel }}"
-                                   data-date-label="{{ $dateLabels[$d->format('Y-m-d')]['full'] }}"
-                                   data-time-label="{{ $timeLabel }} – {{ $nextLabel }} Uhr"
-                                   @if($isAdmin)
+                                @if($isAdmin)
+                                    {{-- Admin: Iframe-Modal via booking.js --}}
+                                    <a href="#"
+                                       class="calendar-cell {{ $cellClass }}{{ $slotClass }} booking-trigger"
+                                       title="{{ $cellTitle }}"
+                                       data-action="cancel"
+                                       data-bid="{{ $reservation->booking->bid }}"
+                                       data-square-name="{{ $squareLabel }}"
+                                       data-date-label="{{ $dateLabels[$d->format('Y-m-d')]['full'] }}"
+                                       data-time-label="{{ $timeLabel }} – {{ $nextLabel }} Uhr"
                                        data-edit-url="{{ route('admin.bookings.edit', $reservation->booking) }}"
-                                       data-delete-url="{{ route('admin.bookings.destroy', $reservation->booking) }}"
-                                   @elseif($isOwn)
-                                       data-edit-url="{{ route('bookings.edit', $reservation->booking) }}?popup=1"
-                                   @endif>
-                                    <span class="cc-label-primary">{{ $primaryLabel }}</span>
-                                    @if($secondaryLabel)
-                                        <span class="cc-label-secondary">{{ $secondaryLabel }}</span>
-                                    @endif
-                                </a>
+                                       data-delete-url="{{ route('admin.bookings.destroy', $reservation->booking) }}">
+                                        <span class="cc-label-primary">{{ $primaryLabel }}</span>
+                                        @if($secondaryLabel)
+                                            <span class="cc-label-secondary">{{ $secondaryLabel }}</span>
+                                        @endif
+                                    </a>
+                                @elseif($isOwn)
+                                    {{-- User: Alpine Cancel Modal --}}
+                                    <a href="#"
+                                       class="calendar-cell {{ $cellClass }}{{ $slotClass }}"
+                                       title="{{ $cellTitle }}"
+                                       @click.prevent="$dispatch('open-cancel', {
+                                           bid: @js((string) $reservation->booking->bid),
+                                           editUrl: @js(route('bookings.edit', $reservation->booking) . '?popup=1'),
+                                           squareName: @js($squareLabel),
+                                           dateLabel: @js($dateLabels[$d->format('Y-m-d')]['full']),
+                                           timeLabel: @js($timeLabel . ' – ' . $nextLabel . ' Uhr')
+                                       })">
+                                        <span class="cc-label-primary">{{ $primaryLabel }}</span>
+                                        @if($secondaryLabel)
+                                            <span class="cc-label-secondary">{{ $secondaryLabel }}</span>
+                                        @endif
+                                    </a>
+                                @else
+                                    {{-- Andere Buchung: sichtbar aber nicht interaktiv --}}
+                                    <span class="calendar-cell {{ $cellClass }}{{ $slotClass }}" title="{{ $cellTitle }}">
+                                        <span class="cc-label-primary">{{ $primaryLabel }}</span>
+                                        @if($secondaryLabel)
+                                            <span class="cc-label-secondary">{{ $secondaryLabel }}</span>
+                                        @endif
+                                    </span>
+                                @endif
                             </td>
                         @elseif($action === 'login')
                             <td @class(['cal-extra-day' => $extraDay]) data-day="{{ $dayIndex }}">
