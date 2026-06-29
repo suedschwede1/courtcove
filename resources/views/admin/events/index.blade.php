@@ -2,13 +2,17 @@
 @section('admin-title', __('booking.admin.events.title'))
 @section('admin-content')
 <div class="ui-page">
-    <div class="ui-page-header">
-        <h1>{{ __('booking.admin.events.title') }}</h1>
-        <p>Suche nach Name, Platz oder Datum und verwalte Sperren und Events zentral.</p>
+    <div class="ui-page-header flex flex-wrap items-start justify-between gap-4">
+        <div>
+            <h1>{{ __('booking.admin.events.title') }}</h1>
+            <p>Suche nach Name, Platz oder Datum und verwalte Sperren und Events zentral.</p>
+        </div>
+        <a href="{{ route('admin.events.create') }}" class="ui-btn ui-btn-primary">{{ __('booking.admin.events.new_event') }}</a>
     </div>
 
-    <div class="ui-card">
-        <div class="ui-card-body">
+    <div class="ui-card ui-card--filter">
+        <div class="ui-card-body ui-stack">
+            <p class="ui-section-label !mb-0">Filter</p>
             <form method="GET" action="{{ route('admin.events.index') }}" class="ui-row">
                 <div class="ui-field min-w-[16rem] flex-1">
                     <label class="ui-label">{{ __('booking.admin.events.name') }}</label>
@@ -28,7 +32,6 @@
                     <input type="date" name="date" value="{{ $filters['date'] ?? '' }}" class="ui-input">
                 </div>
                 <button type="submit" class="ui-btn ui-btn-primary">{{ __('booking.admin.common.filter') }}</button>
-                <a href="{{ route('admin.events.create') }}" class="ui-btn ui-btn-outline">{{ __('booking.admin.events.new_event') }}</a>
             </form>
         </div>
     </div>
@@ -36,8 +39,10 @@
     @if($searched)
         <div class="ui-card">
             <div class="ui-card-header">
-                <h2>Veranstaltungen</h2>
-                <span class="ui-kpi-meta">{{ $events->count() }} Treffer</span>
+                <div>
+                    <h2>Veranstaltungen</h2>
+                    <p class="ui-kpi-meta mt-1">{{ $events->count() }} Treffer</p>
+                </div>
             </div>
             @if($events->isEmpty())
                 <div class="ui-card-body"><p class="ui-kpi-meta">{{ __('booking.admin.no_results') }}</p></div>
@@ -51,19 +56,19 @@
                                 <th>{{ __('booking.admin.events.from') }}</th>
                                 <th>{{ __('booking.admin.events.to') }}</th>
                                 <th>{{ __('booking.admin.events.status') }}</th>
-                                <th></th>
+                                <th class="text-right">Aktionen</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($events as $event)
                                 <tr>
-                                    <td>{{ $event->meta->firstWhere('key', 'name')?->value ?? '—' }}</td>
+                                    <td class="font-medium">{{ $event->meta->firstWhere('key', 'name')?->value ?? '—' }}</td>
                                     <td class="text-[#6a6e73]">{{ $event->square?->display_name ?? __('booking.admin.events.all_courts') }}</td>
                                     <td class="text-[#6a6e73]">{{ $event->datetime_start?->format('d.m.Y H:i') }}</td>
                                     <td class="text-[#6a6e73]">{{ $event->datetime_end?->format('d.m.Y H:i') }}</td>
                                     <td><span class="ui-badge ui-badge-info">{{ $event->status }}</span></td>
                                     <td>
-                                        <div class="flex items-center gap-2 whitespace-nowrap">
+                                        <div class="flex items-center justify-end gap-2 whitespace-nowrap">
                                             <a href="{{ route('admin.events.edit', $event) }}" class="ui-btn ui-btn-ghost">{{ __('booking.admin.common.edit') }}</a>
                                             <form method="POST" action="{{ route('admin.events.destroy', $event) }}" class="inline" onsubmit="return confirm({{ Js::from(__('booking.admin.events.confirm_delete')) }})">
                                                 @method('DELETE')

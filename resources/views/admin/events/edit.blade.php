@@ -1,29 +1,36 @@
-@extends('layouts.admin')
+@extends(request('popup') ? 'layouts.popup' : 'layouts.admin')
+@section('title', __('booking.admin.events.edit_title'))
 @section('admin-title', __('booking.admin.events.edit_title'))
 @section('admin-content')
-<div class="flex flex-col gap-6">
-    @unless(request('popup'))
-    <h1 class="text-2xl font-bold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.admin.events.edit_title') }}</h1>
-    @endunless
-
-    <div class="bg-white rounded-xl border border-[#e0ddd7] shadow-sm overflow-hidden">
-        <div class="px-6 py-4 border-b border-[#f0ede6]">
-            <h2 class="text-base font-semibold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.admin.events.edit_title') }}</h2>
-        </div>
-        <div class="px-6 py-5">
-            <form method="POST" action="{{ route('admin.events.update', $event) }}">
-                @csrf
-                @method('PUT')
-                @if(request('popup'))
-                <input type="hidden" name="popup" value="1">
-                <input type="hidden" name="redirect_to" value="{{ route('calendar.index', ['date' => $date_start ?: now()->format('Y-m-d')]) }}">
-                @endif
-                @include('admin.events._form')
-                <div class="mt-6">
-                    <button type="submit" class="bg-[#bf4316] hover:bg-[#9e3412] text-white text-sm font-medium px-5 py-2 rounded transition-colors">{{ __('booking.admin.common.save') }}</button>
-                </div>
-            </form>
-        </div>
+<div class="ui-page">
+    <div class="ui-page-header">
+        <h1>{{ __('booking.admin.events.edit_title') }}</h1>
+        <p>Zeitraum, Sichtbarkeit und Platz einer bestehenden Veranstaltung zentral pflegen.</p>
     </div>
+
+    <form method="POST" action="{{ route('admin.events.update', $event) }}" class="ui-form-shell">
+        @csrf
+        @method('PUT')
+        @if(request('popup'))
+            <input type="hidden" name="popup" value="1">
+            <input type="hidden" name="redirect_to" value="{{ route('calendar.index', ['date' => $date_start ?: now()->format('Y-m-d')]) }}">
+        @endif
+
+        <div class="ui-card">
+            <div class="ui-card-header"><h2>{{ __('booking.admin.events.edit_title') }}</h2></div>
+            <div class="ui-card-body">
+                @include('admin.events._form')
+            </div>
+        </div>
+
+        <div class="ui-card">
+            <div class="ui-card-body ui-form-actions">
+                <div class="ui-form-actions-group">
+                    <button type="submit" class="ui-btn ui-btn-primary">{{ __('booking.admin.common.save') }}</button>
+                    <a href="{{ route('admin.events.index') }}" class="ui-btn ui-btn-ghost">{{ __('booking.admin.common.abort') }}</a>
+                </div>
+            </div>
+        </div>
+    </form>
 </div>
 @endsection

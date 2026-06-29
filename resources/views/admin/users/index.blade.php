@@ -2,13 +2,17 @@
 @section('admin-title', __('booking.admin.users.title'))
 @section('admin-content')
 <div class="ui-page">
-    <div class="ui-page-header">
-        <h1>{{ __('booking.admin.users.title') }}</h1>
-        <p>Suche nach Alias oder E-Mail und filtere den Status gezielt.</p>
+    <div class="ui-page-header flex flex-wrap items-start justify-between gap-4">
+        <div>
+            <h1>{{ __('booking.admin.users.title') }}</h1>
+            <p>Suche nach Alias oder E-Mail und filtere den Status gezielt.</p>
+        </div>
+        <a href="{{ route('admin.users.create') }}" class="ui-btn ui-btn-primary">{{ __('booking.admin.users.new_user') }}</a>
     </div>
 
-    <div class="ui-card">
-        <div class="ui-card-body">
+    <div class="ui-card ui-card--filter">
+        <div class="ui-card-body ui-stack">
+            <p class="ui-section-label !mb-0">Filter</p>
             <form method="GET" action="{{ route('admin.users.index') }}" class="ui-row">
                 <div class="ui-field min-w-[16rem] flex-1">
                     <label class="ui-label">{{ __('booking.admin.search_placeholder') }}</label>
@@ -24,7 +28,6 @@
                     </select>
                 </div>
                 <button type="submit" class="ui-btn ui-btn-primary">{{ __('booking.admin.common.filter') }}</button>
-                <a href="{{ route('admin.users.create') }}" class="ui-btn ui-btn-outline">{{ __('booking.admin.users.new_user') }}</a>
             </form>
         </div>
     </div>
@@ -32,8 +35,10 @@
     @if($searched)
         <div class="ui-card">
             <div class="ui-card-header">
-                <h2>Mitglieder</h2>
-                <span class="ui-kpi-meta">{{ $users->count() }} Treffer</span>
+                <div>
+                    <h2>Mitglieder</h2>
+                    <p class="ui-kpi-meta mt-1">{{ $users->count() }} Treffer</p>
+                </div>
             </div>
             @if($users->isEmpty())
                 <div class="ui-card-body"><p class="ui-kpi-meta">{{ __('booking.admin.no_results') }}</p></div>
@@ -46,19 +51,23 @@
                                 <th>{{ __('booking.admin.users.email') }}</th>
                                 <th>{{ __('booking.admin.users.status') }}</th>
                                 <th>Buchungen</th>
-                                <th></th>
+                                <th class="text-right">Aktionen</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($users as $u)
                                 <tr>
-                                    <td>{{ $u->alias }}</td>
+                                    <td class="font-medium">{{ $u->alias }}</td>
                                     <td class="text-[#6a6e73]">{{ $u->email ?: '—' }}</td>
                                     <td>
                                         <span class="ui-badge {{ in_array($u->status, ['enabled', 'assist', 'admin'], true) ? 'ui-badge-success' : 'ui-badge-info' }}">{{ $u->status }}</span>
                                     </td>
                                     <td class="text-[#6a6e73]">{{ $u->bookings()->count() }}</td>
-                                    <td><a href="{{ route('admin.users.edit', $u) }}" class="ui-btn ui-btn-ghost">{{ __('booking.admin.common.edit') }}</a></td>
+                                    <td>
+                                        <div class="flex items-center justify-end gap-2 whitespace-nowrap">
+                                            <a href="{{ route('admin.users.edit', $u) }}" class="ui-btn ui-btn-ghost">{{ __('booking.admin.common.edit') }}</a>
+                                        </div>
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>

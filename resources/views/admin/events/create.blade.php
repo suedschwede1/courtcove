@@ -1,10 +1,12 @@
-@extends('layouts.admin')
+@extends(request('popup') ? 'layouts.popup' : 'layouts.admin')
+@section('title', __('booking.admin.events.create_title'))
 @section('admin-title', __('booking.admin.events.create_title'))
 @section('admin-content')
-<div class="flex flex-col gap-6">
-    @unless(request('popup'))
-    <h1 class="text-2xl font-bold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.admin.events.create_title') }}</h1>
-    @endunless
+<div class="ui-page">
+    <div class="ui-page-header">
+        <h1>{{ __('booking.admin.events.create_title') }}</h1>
+        <p>Neue Veranstaltung oder Sperre mit Zeitraum, Platz und Kapazität anlegen.</p>
+    </div>
 
     @php
         $bookingUrl = route('admin.bookings.create', array_filter([
@@ -16,27 +18,36 @@
         ]));
     @endphp
 
-    <div class="flex gap-2 mb-4">
-        <a href="{{ $bookingUrl }}" class="inline-block px-4 py-2 text-sm font-medium border border-[#d1cbc0] text-[#6a6e73] rounded hover:bg-[#f9f8f6] transition-colors">{{ __('booking.admin.bookings.type_booking') }}</a>
-        <span class="inline-block px-4 py-2 text-sm font-medium bg-[#bf4316] text-white rounded">{{ __('booking.admin.bookings.type_event') }}</span>
+    <div class="ui-card">
+        <div class="ui-card-body ui-card-body-compact">
+            <div class="ui-pane-switch">
+                <a href="{{ $bookingUrl }}" class="ui-btn ui-btn-ghost">{{ __('booking.admin.bookings.type_booking') }}</a>
+                <span class="ui-btn ui-btn-primary">{{ __('booking.admin.bookings.type_event') }}</span>
+            </div>
+        </div>
     </div>
 
-    <div class="bg-white rounded-xl border border-[#e0ddd7] shadow-sm overflow-hidden">
-        <div class="px-6 py-4 border-b border-[#f0ede6]">
-            <h2 class="text-base font-semibold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.admin.events.create_title') }}</h2>
-        </div>
-        <div class="px-6 py-5">
-            <form method="POST" action="{{ route('admin.events.store') }}">
-                @if(request('popup'))
-                <input type="hidden" name="popup" value="1">
-                <input type="hidden" name="redirect_to" value="{{ route('calendar.index') }}">
-                @endif
+    <form method="POST" action="{{ route('admin.events.store') }}" class="ui-form-shell">
+        @if(request('popup'))
+            <input type="hidden" name="popup" value="1">
+            <input type="hidden" name="redirect_to" value="{{ route('calendar.index') }}">
+        @endif
+
+        <div class="ui-card">
+            <div class="ui-card-header"><h2>{{ __('booking.admin.events.create_title') }}</h2></div>
+            <div class="ui-card-body">
                 @include('admin.events._form', ['squares' => $squares])
-                <div class="mt-6">
-                    <button type="submit" class="bg-[#bf4316] hover:bg-[#9e3412] text-white text-sm font-medium px-5 py-2 rounded transition-colors">{{ __('booking.admin.common.create') }}</button>
-                </div>
-            </form>
+            </div>
         </div>
-    </div>
+
+        <div class="ui-card">
+            <div class="ui-card-body ui-form-actions">
+                <div class="ui-form-actions-group">
+                    <button type="submit" class="ui-btn ui-btn-primary">{{ __('booking.admin.common.create') }}</button>
+                    <a href="{{ route('admin.events.index') }}" class="ui-btn ui-btn-ghost">{{ __('booking.admin.common.abort') }}</a>
+                </div>
+            </div>
+        </div>
+    </form>
 </div>
 @endsection

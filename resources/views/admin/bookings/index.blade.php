@@ -2,13 +2,17 @@
 @section('admin-title', __('booking.admin.bookings.title'))
 @section('admin-content')
 <div class="ui-page">
-    <div class="ui-page-header">
-        <h1>{{ __('booking.admin.bookings.title') }}</h1>
-        <p>Filtere nach Platz und verwalte laufende oder stornierte Reservierungen.</p>
+    <div class="ui-page-header flex flex-wrap items-start justify-between gap-4">
+        <div>
+            <h1>{{ __('booking.admin.bookings.title') }}</h1>
+            <p>Filtere nach Platz und verwalte laufende oder stornierte Reservierungen.</p>
+        </div>
+        <a href="{{ route('admin.bookings.create') }}" class="ui-btn ui-btn-primary">+ Neue Buchung</a>
     </div>
 
     <div class="ui-card">
-        <div class="ui-card-body">
+        <div class="ui-card-body ui-stack">
+            <p class="ui-section-label !mb-0">Filter</p>
             <form method="GET" action="{{ route('admin.bookings.index') }}" class="ui-row">
                 <div class="ui-field min-w-[14rem]">
                     <label class="ui-label">{{ __('booking.admin.common.court') }}</label>
@@ -26,58 +30,66 @@
 
     <div class="ui-card">
         <div class="ui-card-header">
-            <h2>Alle Buchungen</h2>
-            <span class="ui-kpi-meta">{{ $bookings->total() }} Einträge</span>
+            <div>
+                <h2>Alle Buchungen</h2>
+                <p class="ui-kpi-meta mt-1">{{ $bookings->total() }} Einträge</p>
+            </div>
         </div>
-        <div class="ui-table-wrap">
-            <table class="ui-table">
-                <thead>
-                    <tr>
-                        <th>{{ __('booking.admin.common.member') }}</th>
-                        <th>{{ __('booking.admin.common.court') }}</th>
-                        <th>{{ __('booking.admin.common.date') }}</th>
-                        <th>{{ __('booking.admin.common.time') }}</th>
-                        <th>{{ __('booking.admin.common.player') }}</th>
-                        <th>{{ __('booking.admin.common.status') }}</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($bookings as $b)
-                        @php($reservation = $b->reservations->sortBy(['date', 'time_start'])->first())
+        @if($bookings->isEmpty())
+            <div class="ui-card-body">
+                <p class="ui-kpi-meta">Keine Buchungen für den aktuellen Filter gefunden.</p>
+            </div>
+        @else
+            <div class="ui-table-wrap">
+                <table class="ui-table">
+                    <thead>
                         <tr>
-                            <td>{{ $b->owner_label }}</td>
-                            <td class="text-[#6a6e73]">{{ $b->square?->display_name ?? '—' }}</td>
-                            <td class="text-[#6a6e73]">{{ $reservation ? \Carbon\Carbon::parse($reservation->date)->format('d.m.Y') : '—' }}</td>
-                            <td class="text-[#6a6e73]">{{ $reservation ? substr((string) $reservation->time_start, 0, 5) . ' - ' . substr((string) $reservation->time_end, 0, 5) : '—' }}</td>
-                            <td class="text-[#6a6e73]">{{ $b->player_names !== [] ? implode(', ', $b->player_names) : '—' }}</td>
-                            <td>
-                                <span class="ui-badge {{ $b->status === 'cancelled' ? 'ui-badge-danger' : ($b->status === 'subscription' ? 'ui-badge-info' : 'ui-badge-success') }}">{{ $b->status }}</span>
-                            </td>
-                            <td>
-                                <div class="flex items-center gap-2 whitespace-nowrap">
-                                    <a href="{{ route('admin.bookings.edit', $b) }}" class="ui-btn ui-btn-ghost">{{ __('booking.admin.common.edit') }}</a>
-                                    @if($b->status !== 'cancelled')
-                                        <form method="POST" action="{{ route('admin.bookings.cancel', $b) }}" class="inline" onsubmit="return confirm({{ Js::from(__('booking.admin.bookings.confirm_cancel')) }})">
-                                            @csrf
-                                            <button type="submit" class="ui-btn ui-btn-outline">{{ __('booking.admin.common.cancel') }}</button>
-                                        </form>
-                                    @endif
-                                    <form method="POST" action="{{ route('admin.bookings.destroy', $b) }}" class="inline" onsubmit="return confirm({{ Js::from(__('booking.admin.bookings.confirm_delete')) }})">
-                                        @method('DELETE')
-                                        @csrf
-                                        <button type="submit" class="ui-btn ui-btn-danger">{{ __('booking.admin.common.delete') }}</button>
-                                    </form>
-                                </div>
-                            </td>
+                            <th>{{ __('booking.admin.common.member') }}</th>
+                            <th>{{ __('booking.admin.common.court') }}</th>
+                            <th>{{ __('booking.admin.common.date') }}</th>
+                            <th>{{ __('booking.admin.common.time') }}</th>
+                            <th>{{ __('booking.admin.common.player') }}</th>
+                            <th>{{ __('booking.admin.common.status') }}</th>
+                            <th class="text-right">Aktionen</th>
                         </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-        <div class="ui-card-body">
-            {{ $bookings->links() }}
-        </div>
+                    </thead>
+                    <tbody>
+                        @foreach($bookings as $b)
+                            @php($reservation = $b->reservations->sortBy(['date', 'time_start'])->first())
+                            <tr>
+                                <td class="font-medium">{{ $b->owner_label }}</td>
+                                <td class="text-[#6a6e73]">{{ $b->square?->display_name ?? '—' }}</td>
+                                <td class="text-[#6a6e73]">{{ $reservation ? \Carbon\Carbon::parse($reservation->date)->format('d.m.Y') : '—' }}</td>
+                                <td class="text-[#6a6e73]">{{ $reservation ? substr((string) $reservation->time_start, 0, 5) . ' - ' . substr((string) $reservation->time_end, 0, 5) : '—' }}</td>
+                                <td class="text-[#6a6e73]">{{ $b->player_names !== [] ? implode(', ', $b->player_names) : '—' }}</td>
+                                <td>
+                                    <span class="ui-badge {{ $b->status === 'cancelled' ? 'ui-badge-danger' : ($b->status === 'subscription' ? 'ui-badge-info' : 'ui-badge-success') }}">{{ $b->status }}</span>
+                                </td>
+                                <td>
+                                    <div class="flex items-center justify-end gap-2 whitespace-nowrap">
+                                        <a href="{{ route('admin.bookings.edit', $b) }}" class="ui-btn ui-btn-ghost">{{ __('booking.admin.common.edit') }}</a>
+                                        @if($b->status !== 'cancelled')
+                                            <form method="POST" action="{{ route('admin.bookings.cancel', $b) }}" class="inline" onsubmit="return confirm({{ Js::from(__('booking.admin.bookings.confirm_cancel')) }})">
+                                                @csrf
+                                                <button type="submit" class="ui-btn ui-btn-outline">{{ __('booking.admin.common.cancel') }}</button>
+                                            </form>
+                                        @endif
+                                        <form method="POST" action="{{ route('admin.bookings.destroy', $b) }}" class="inline" onsubmit="return confirm({{ Js::from(__('booking.admin.bookings.confirm_delete')) }})">
+                                            @method('DELETE')
+                                            @csrf
+                                            <button type="submit" class="ui-btn ui-btn-danger">{{ __('booking.admin.common.delete') }}</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            <div class="ui-card-body">
+                {{ $bookings->links() }}
+            </div>
+        @endif
     </div>
 </div>
 @endsection
