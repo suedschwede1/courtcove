@@ -78,6 +78,8 @@ final class BookingController extends Controller
             );
         } catch (BookingValidationException $e) {
             return back()->withErrors(['booking' => $e->getMessage()]);
+        } catch (\Throwable) {
+            return back()->withErrors(['booking' => __('booking.messages.booking_failed')]);
         }
 
         return redirect()->route('calendar.index', ['date' => Carbon::parse($data['date'])->format('Y-m-d')])
@@ -177,12 +179,16 @@ final class BookingController extends Controller
             $data['player_name_4'] = null;
         }
 
-        $booking->update(['quantity' => (int) $data['quantity']]);
-        $this->bookingService->syncPlayerMeta($booking, [
-            2 => $data['player_name_2'] ?? null,
-            3 => $data['player_name_3'] ?? null,
-            4 => $data['player_name_4'] ?? null,
-        ]);
+        try {
+            $booking->update(['quantity' => (int) $data['quantity']]);
+            $this->bookingService->syncPlayerMeta($booking, [
+                2 => $data['player_name_2'] ?? null,
+                3 => $data['player_name_3'] ?? null,
+                4 => $data['player_name_4'] ?? null,
+            ]);
+        } catch (\Throwable) {
+            return back()->withErrors(['booking' => __('booking.messages.booking_failed')]);
+        }
 
         $reservation = $booking->reservations()
             ->orderBy('date')

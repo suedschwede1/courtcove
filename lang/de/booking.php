@@ -433,6 +433,7 @@ return [
         'booking_updated' => 'Buchung aktualisiert.',
         'booking_cancelled' => 'Buchung storniert.',
         'booking_deleted' => 'Buchung gelöscht.',
+        'booking_failed' => 'Die Buchung konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.',
         'booking_not_cancellable' => 'Diese Buchung kann online nicht mehr storniert werden.',
         'booking_reservation_missing' => 'Zu dieser Buchung wurde keine Reservierung gefunden.',
         'repeat_booking_conflict' => 'Mindestens ein Wiederholungstermin kollidiert mit einer anderen Buchung.',
