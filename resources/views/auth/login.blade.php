@@ -48,18 +48,18 @@
 
                     {{-- E-Mail --}}
                     <div class="flex flex-col gap-1">
-                        <label for="alias"
+                        <label for="email"
                                class="text-sm font-medium text-[#151515]">E-Mail-Adresse</label>
                         <input type="email"
-                               id="alias"
-                               name="alias"
-                               value="{{ old('alias') }}"
+                               id="email"
+                               name="email"
+                               value="{{ old('email') }}"
                                required
                                autofocus
                                autocomplete="email"
                                placeholder="ihre@email.at"
-                               class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent {{ $errors->has('alias') ? 'border-red-400' : 'border-[#cccccc]' }}">
-                        @error('alias')
+                               class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent {{ $errors->has('email') ? 'border-red-400' : 'border-[#cccccc]' }}">
+                        @error('email')
                             <p class="text-xs text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
