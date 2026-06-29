@@ -1,0 +1,58 @@
+/* Kalender-Zellfarben nach Design-Guide */
+.cc-free {
+    background: #ffffff;
+}
+
+.cc-own {
+    background: #eff6ff;
+}
+
+.event-cell {
+    background: #fde8e1;
+}
+
+.cc-over {
+    background: #f4f4f4;
+}
+
+/* Zeitspalte — Typografie */
+.time-main {
+    font-family: 'Red Hat Display', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    color: #151515;
+}
+
+.time-sub {
+    font-family: 'Red Hat Text', sans-serif;
+    font-size: 11px;
+    color: #b8b8b8;
+}
+
+/* Tagesköpfe — Typografie */
+.day-header-name {
+    font-family: 'Red Hat Display', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    color: #151515;
+}
+
+.day-header-date {
+    font-family: 'Red Hat Text', sans-serif;
+    font-size: 11px;
+    color: #6a6e73;
+}
+
+/* Platznummern */
+.square-head-title {
+    font-family: 'Red Hat Display', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: #bf4316;
+}
+
+.square-head-alias {
+    font-family: 'Red Hat Text', sans-serif;
+    font-size: 10px;
+    color: #bf4316;
+}
