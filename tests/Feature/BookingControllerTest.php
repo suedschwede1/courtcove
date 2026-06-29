@@ -195,7 +195,7 @@ class BookingControllerTest extends TestCase
     public function user_can_update_own_booking_players(): void
     {
         $user = User::factory()->create();
-        $square = Square::factory()->create(['range_cancel' => 0]);
+        $square = Square::factory()->create(['capacity' => 4, 'range_cancel' => 0]);
         $booking = Booking::factory()->create([
             'uid' => $user->uid,
             'sid' => $square->sid,
@@ -225,6 +225,53 @@ class BookingControllerTest extends TestCase
         $this->assertSame(['Partner Zwei', 'Partner Drei', 'Partner Vier'], $booking->player_names);
     }
 
+    #[Test]
+    public function user_cannot_update_booking_quantity_beyond_remaining_capacity(): void
+    {
+        $user = User::factory()->create();
+        $other = User::factory()->create();
+        $square = Square::factory()->create([
+            'capacity' => 4,
+            'capacity_heterogenic' => 1,
+            'time_block_bookable_max' => 0,
+            'range_book' => 0,
+            'range_cancel' => 0,
+        ]);
+        $booking = Booking::factory()->create([
+            'uid' => $user->uid,
+            'sid' => $square->sid,
+            'status' => 'single',
+            'quantity' => 2,
+        ]);
+        $otherBooking = Booking::factory()->create([
+            'uid' => $other->uid,
+            'sid' => $square->sid,
+            'status' => 'single',
+            'visibility' => 'public',
+            'quantity' => 2,
+        ]);
+        $date = Carbon::now()->addDays(3)->toDateString();
+
+        foreach ([$booking, $otherBooking] as $reservedBooking) {
+            Reservation::factory()->create([
+                'bid' => $reservedBooking->bid,
+                'date' => $date,
+                'time_start' => '10:00:00',
+                'time_end' => '11:00:00',
+            ]);
+        }
+
+        $this->actingAs($user)
+            ->put(route('bookings.update', $booking), [
+                'quantity' => 4,
+                'player_name_2' => 'Partner Zwei',
+                'player_name_3' => 'Partner Drei',
+                'player_name_4' => 'Partner Vier',
+            ])
+            ->assertSessionHasErrors(['booking']);
+
+        $this->assertSame(2, $booking->fresh()->quantity);
+    }
     #[Test]
     public function user_cannot_edit_another_users_booking(): void
     {

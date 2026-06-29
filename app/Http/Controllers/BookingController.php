@@ -195,12 +195,16 @@ final class BookingController extends Controller
         }
 
         try {
-            $booking->update(['quantity' => (int) $data['quantity']]);
-            $this->bookingService->syncPlayerMeta($booking, [
+            $this->bookingService->updateSinglePlayers($booking, $user, (int) $data['quantity'], [
                 2 => $data['player_name_2'] ?? null,
                 3 => $data['player_name_3'] ?? null,
                 4 => $data['player_name_4'] ?? null,
             ]);
+        } catch (BookingValidationException $e) {
+            if ($request->ajax()) {
+                return response()->json(['error' => $e->getMessage()], 422);
+            }
+            return back()->withErrors(['booking' => $e->getMessage()])->with('error', $e->getMessage());
         } catch (\Throwable) {
             $msg = __('booking.messages.booking_failed');
             if ($request->ajax()) {
@@ -240,7 +244,7 @@ final class BookingController extends Controller
             abort(403);
         }
 
-        if (! $user || $booking->status !== 'single') {
+        if (! $user || ! $this->bookingService->canUserCancelSingle($user, $booking)) {
             return back()->withErrors(['booking' => __('booking.messages.booking_not_cancellable')])->with('error', __('booking.messages.booking_not_cancellable'));
         }
 

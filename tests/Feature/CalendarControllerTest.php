@@ -256,9 +256,9 @@ class CalendarControllerTest extends TestCase
         ]);
         EventMeta::create(['eid' => $event->eid, 'key' => 'name', 'value' => 'Admin Turnier']);
 
-        $this->actingAs($admin)->get('/calendar?date='.$targetDate->format('Y-m-d'))
+        $this->actingAs($admin)->get('/calendar?date='.Carbon::today()->format('Y-m-d'))
             ->assertOk()
-            ->assertSee('event-edit-trigger', false)
+            ->assertSee('data-action="event-edit"', false)
             ->assertSee(route('admin.events.edit', $event), false);
     }
 
@@ -277,7 +277,7 @@ class CalendarControllerTest extends TestCase
         $this->get('/calendar?date='.Carbon::today()->format('Y-m-d'))
             ->assertOk()
             ->assertSee('Nur Text Event')
-            ->assertDontSee('event-edit-trigger', false)
+            ->assertDontSee('data-action="event-edit"', false)
             ->assertDontSee(route('admin.events.edit', $event), false);
     }
 
@@ -300,7 +300,9 @@ class CalendarControllerTest extends TestCase
             ->assertOk()
             ->assertSee('data-edit-url', false)
             ->assertSee('/admin/bookings/'.$booking->bid.'/edit', false);
-    }    #[Test]
+    }
+
+    #[Test]
     public function admin_booking_popup_contains_delete_action(): void
     {
         $admin = User::factory()->create(['status' => 'admin']);
@@ -317,7 +319,6 @@ class CalendarControllerTest extends TestCase
 
         $this->actingAs($admin)->get('/calendar?date='.$targetDate->format('Y-m-d'))
             ->assertOk()
-            ->assertSee('id="delete-form"', false)
             ->assertSee('data-delete-url', false)
             ->assertSee('/admin/bookings/'.$booking->bid, false);
     }

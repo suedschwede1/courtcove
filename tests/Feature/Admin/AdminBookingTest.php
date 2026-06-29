@@ -87,6 +87,39 @@ class AdminBookingTest extends TestCase
     }
 
     #[Test]
+    public function admin_can_create_overlapping_booking_when_capacity_allows_it(): void
+    {
+        $owner = User::factory()->create();
+        $square = Square::factory()->create([
+            'capacity' => 4,
+            'capacity_heterogenic' => 1,
+        ]);
+        $existing = Booking::factory()->create([
+            'sid' => $square->sid,
+            'status' => 'single',
+            'visibility' => 'public',
+            'quantity' => 2,
+        ]);
+        Reservation::factory()->create([
+            'bid' => $existing->bid,
+            'date' => '2026-07-02',
+            'time_start' => '10:00:00',
+            'time_end' => '11:00:00',
+        ]);
+
+        $this->actingAs($this->admin())->post('/admin/bookings', $this->bookingPayload([
+            'booked_for' => $owner->alias,
+            'sid' => $square->sid,
+            'quantity' => 2,
+        ]))->assertRedirect();
+
+        $this->assertDatabaseHas('bs_bookings', [
+            'uid' => $owner->uid,
+            'sid' => $square->sid,
+            'quantity' => 2,
+        ]);
+    }
+    #[Test]
     public function store_resolves_booked_for_to_matching_member(): void
     {
         $member = User::factory()->create(['alias' => 'Sabrina Genshofer']);

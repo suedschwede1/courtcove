@@ -125,7 +125,7 @@ final class BookingController extends Controller
             [, , $occurrenceStarts, $durationSeconds] = $this->buildBookingTimeline($data);
 
             if (($data['status'] ?? null) !== 'cancelled') {
-                $conflictError = $this->batchCheckConflicts((int) $data['sid'], $occurrenceStarts, $durationSeconds, null);
+                $conflictError = $this->batchCheckConflicts((int) $data['sid'], $occurrenceStarts, $durationSeconds, (int) $data['quantity'], null);
                 if ($conflictError !== null) {
                     return back()->withErrors(['booking' => $conflictError])->withInput();
                 }
@@ -222,7 +222,7 @@ final class BookingController extends Controller
             [, , $occurrenceStarts, $durationSeconds] = $this->buildBookingTimeline($data);
 
             if (($data['status'] ?? null) !== 'cancelled') {
-                $conflictError = $this->batchCheckConflicts((int) $data['sid'], $occurrenceStarts, $durationSeconds, $booking->bid);
+                $conflictError = $this->batchCheckConflicts((int) $data['sid'], $occurrenceStarts, $durationSeconds, (int) $data['quantity'], $booking->bid);
                 if ($conflictError !== null) {
                     return back()->withErrors(['booking' => $conflictError])->withInput();
                 }
@@ -502,27 +502,34 @@ final class BookingController extends Controller
      *
      * @param Carbon[] $occurrenceStarts
      */
-    private function batchCheckConflicts(int $sid, array $occurrenceStarts, int $durationSeconds, ?int $excludeBookingId): ?string
-    {
+    private function batchCheckConflicts(
+        int $sid,
+        array $occurrenceStarts,
+        int $durationSeconds,
+        int $requestedQuantity,
+        ?int $excludeBookingId,
+    ): ?string {
         if (empty($occurrenceStarts)) {
             return null;
         }
 
+        $square = Square::findOrFail($sid);
         $dateMin = min($occurrenceStarts)->format('Y-m-d');
         $lastEnd = max($occurrenceStarts)->copy()->addSeconds($durationSeconds);
         $dateMax = $lastEnd->format('Y-m-d');
 
-        // One query: all active reservations for this court in the date range
+        // One query: all active reservations for this court in the date range.
         $existingReservations = Reservation::query()
             ->join('bs_bookings', 'bs_bookings.bid', '=', 'bs_reservations.bid')
             ->where('bs_bookings.sid', $sid)
+            ->where('bs_bookings.visibility', 'public')
             ->whereIn('bs_bookings.status', Booking::ACTIVE_STATUSES)
             ->whereBetween('bs_reservations.date', [$dateMin, $dateMax])
             ->when($excludeBookingId !== null, fn ($q) => $q->where('bs_bookings.bid', '!=', $excludeBookingId))
-            ->select(['bs_reservations.date', 'bs_reservations.time_start', 'bs_reservations.time_end'])
+            ->select(['bs_reservations.date', 'bs_reservations.time_start', 'bs_reservations.time_end', 'bs_bookings.quantity'])
             ->get();
 
-        // One query: all enabled events overlapping the range
+        // One query: all enabled events overlapping the range.
         $existingEvents = Event::query()
             ->where('status', 'enabled')
             ->where(fn ($q) => $q->where('sid', $sid)->orWhereNull('sid'))
@@ -538,13 +545,22 @@ final class BookingController extends Controller
             $endTimeStr      = $occurrenceEnd->format('H:i:s');
             $startDatetimeStr = $occurrenceStart->format('Y-m-d H:i:s');
             $endDatetimeStr   = $occurrenceEnd->format('Y-m-d H:i:s');
+            $overlappingQuantity = 0;
 
             foreach ($existingReservations as $res) {
                 if ($res->date === $dateStr
                     && (string) $res->time_start < $endTimeStr
                     && (string) $res->time_end > $startTimeStr) {
-                    return __('booking.messages.repeat_booking_conflict');
+                    $overlappingQuantity += (int) $res->quantity;
                 }
+            }
+
+            if ($overlappingQuantity > 0 && (int) $square->capacity_heterogenic === 0) {
+                return __('booking.messages.repeat_booking_conflict');
+            }
+
+            if ((int) $square->capacity < $overlappingQuantity + $requestedQuantity) {
+                return __('booking.messages.repeat_booking_conflict');
             }
 
             foreach ($existingEvents as $event) {

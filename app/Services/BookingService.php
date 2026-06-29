@@ -133,6 +133,31 @@ final class BookingService
         $booking->meta()->create($meta[0]);
     }
 
+    /** @param array<int, string|null> $playerNames */
+    public function updateSinglePlayers(Booking $booking, User $user, int $quantity, array $playerNames): void
+    {
+        $booking->loadMissing(['square', 'reservations']);
+
+        $square = $booking->square;
+        $reservation = $booking->reservations
+            ->sortBy(fn ($reservation): string => (string) $reservation->date.' '.(string) $reservation->time_start)
+            ->first();
+
+        if (! $square || ! $reservation) {
+            throw new BookingValidationException(__('booking.messages.booking_reservation_missing'));
+        }
+
+        $dateStart = Carbon::parse($reservation->date.' '.$reservation->time_start);
+        $dateEnd = Carbon::parse($reservation->date.' '.$reservation->time_end);
+
+        $this->assertSingleBookingIsValid($user, $square, $quantity, $dateStart, $dateEnd, (int) $booking->bid);
+
+        DB::transaction(function () use ($booking, $quantity, $playerNames): void {
+            $booking->update(['quantity' => $quantity]);
+            $this->syncPlayerMeta($booking, $playerNames);
+        });
+    }
+
     public function cancelSingle(Booking $booking): void
     {
         $booking->loadMissing('user');
@@ -204,6 +229,7 @@ final class BookingService
         int $quantity,
         Carbon $dateStart,
         Carbon $dateEnd,
+        ?int $excludeBookingId = null,
     ): void {
         $result = $this->validator->validate($square, $user, $quantity, $dateStart, $dateEnd);
 
@@ -211,7 +237,7 @@ final class BookingService
             throw new BookingValidationException($result->getError());
         }
 
-        if (! $this->hasEnoughCapacity($square, $quantity, $dateStart, $dateEnd)) {
+        if (! $this->hasEnoughCapacity($square, $quantity, $dateStart, $dateEnd, $excludeBookingId)) {
             throw new BookingValidationException(__('booking.messages.slot_occupied'));
         }
 
@@ -220,17 +246,27 @@ final class BookingService
         }
     }
 
-    private function hasEnoughCapacity(Square $square, int $requestedQuantity, Carbon $start, Carbon $end): bool
-    {
-        $overlappingQuantity = Booking::query()
+    private function hasEnoughCapacity(
+        Square $square,
+        int $requestedQuantity,
+        Carbon $start,
+        Carbon $end,
+        ?int $excludeBookingId = null,
+    ): bool {
+        $query = Booking::query()
             ->join('bs_reservations', 'bs_reservations.bid', '=', 'bs_bookings.bid')
             ->where('bs_bookings.sid', $square->sid)
             ->where('bs_bookings.visibility', 'public')
             ->whereIn('bs_bookings.status', Booking::ACTIVE_STATUSES)
             ->where('bs_reservations.date', $start->format('Y-m-d'))
             ->where('bs_reservations.time_start', '<', $end->format('H:i:s'))
-            ->where('bs_reservations.time_end', '>', $start->format('H:i:s'))
-            ->sum('bs_bookings.quantity');
+            ->where('bs_reservations.time_end', '>', $start->format('H:i:s'));
+
+        if ($excludeBookingId !== null) {
+            $query->where('bs_bookings.bid', '!=', $excludeBookingId);
+        }
+
+        $overlappingQuantity = $query->sum('bs_bookings.quantity');
 
         if ((int) $overlappingQuantity > 0 && (int) $square->capacity_heterogenic === 0) {
             return false;
