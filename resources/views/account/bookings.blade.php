@@ -61,7 +61,7 @@
                                 </td>
                                 <td class="px-4 py-3 border-b border-[#f0ede6] text-right">
                                     <form method="POST" action="{{ route('bookings.destroy', $booking) }}"
-                                          onsubmit="return confirm('{{ __('booking.messages.confirm_cancel_booking') }}')"
+                                          onsubmit="return confirm({{ Js::from(__('booking.messages.confirm_cancel_booking')) }})"
                                           class="m-0">
                                         @csrf
                                         @method('DELETE')
