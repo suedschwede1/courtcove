@@ -9,17 +9,22 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="{{ asset('css/booking.css') }}">
 </head>
-<body class="popup-body-root" style="font-family: var(--font-body)">
-    @if(session('success'))
-        <div class="bg-green-50 border-l-4 border-green-500 text-green-800 px-4 py-2 text-sm mb-2">
-            {{ session('success') }}
+<body class="ui-admin-popup" style="font-family: var(--font-body)">
+    <div class="ui-popup-shell">
+        <div class="ui-popup-header">
+            <h1>@yield('title', config('app.name'))</h1>
+            <button type="button" class="text-[#8a8d90] text-xl leading-none" onclick="window.parent?.postMessage({ type: 'booking-modal-close' }, '*'); window.close();">&times;</button>
         </div>
-    @endif
-    @if($errors->any())
-        <div class="bg-red-50 border-l-4 border-red-500 text-red-800 px-4 py-2 text-sm mb-2">
-            {{ $errors->first() }}
+
+        <div class="ui-popup-body">
+            @if(session('success'))
+                <div class="mb-4 ui-flash ui-flash-success">{{ session('success') }}</div>
+            @endif
+            @if($errors->any())
+                <div class="mb-4 ui-flash ui-flash-error">{{ $errors->first() }}</div>
+            @endif
+            @yield('content')
         </div>
-    @endif
-    @yield('content')
+    </div>
 </body>
 </html>
