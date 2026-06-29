@@ -3,45 +3,33 @@
 <head>
     <meta charset="utf-8">
     <title>{{ __('booking.nav.admin') }} – @yield('admin-title', __('booking.admin.overview'))</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@600;700&family=Red+Hat+Text:wght@400;500;600&display=swap" rel="stylesheet">
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="{{ asset('css/booking.css') }}">
 </head>
-<body class="admin-body-root{{ request('popup') ? ' admin-popup-mode' : '' }}">
-<div class="admin-shell">
+<body class="{{ request('popup') ? 'admin-popup-mode' : '' }}" style="font-family: var(--font-body)">
 
-    <aside class="admin-sidebar">
-        <div class="admin-sidebar__brand">{{ __('booking.nav.admin') }}</div>
-        <nav class="admin-sidebar__nav">
-            <a href="{{ route('admin.dashboard') }}" @class(['admin-sidebar__link', 'is-active' => request()->routeIs('admin.dashboard')])>{{ __('booking.admin.overview') }}</a>
-            @if(Route::has('admin.users.index'))@can('admin.user')
-            <a href="{{ route('admin.users.index') }}" @class(['admin-sidebar__link', 'is-active' => request()->routeIs('admin.users.*')])>{{ __('booking.admin.nav_users') }}</a>
-            @endcan @endif
-            @if(Route::has('admin.events.index'))@can('admin.event')
-            <a href="{{ route('admin.events.index') }}" @class(['admin-sidebar__link', 'is-active' => request()->routeIs('admin.events.*')])>{{ __('booking.admin.nav_events') }}</a>
-            @endcan @endif
-            @if(Route::has('admin.bookings.index'))@can('admin.booking')
-            <a href="{{ route('admin.bookings.index') }}" @class(['admin-sidebar__link', 'is-active' => request()->routeIs('admin.bookings.*')])>{{ __('booking.admin.nav_bookings') }}</a>
-            @endcan @endif
-            @if(Route::has('admin.squares.index'))@can('admin.config')
-            <a href="{{ route('admin.squares.index') }}" @class(['admin-sidebar__link', 'is-active' => request()->routeIs('admin.squares.*')])>{{ __('booking.admin.nav_courts') }}</a>
-            @endcan @endif
-            @if(Route::has('admin.config.edit'))@can('admin.config')
-            <a href="{{ route('admin.config.edit') }}" @class(['admin-sidebar__link', 'is-active' => request()->routeIs('admin.config.*')])>{{ __('booking.admin.config') }}</a>
-            @endcan @endif
-            @if(Route::has('admin.testmail.index'))@can('admin.config')
-            <a href="{{ route('admin.testmail.index') }}" @class(['admin-sidebar__link', 'is-active' => request()->routeIs('admin.testmail.*')])>Testmail</a>
-            @endcan @endif
-        </nav>
-        <div class="admin-sidebar__footer">
-            <a href="{{ route('calendar.index') }}" class="admin-sidebar__link admin-sidebar__link--muted">← {{ __('booking.admin.to_calendar') }}</a>
-        </div>
-    </aside>
+<div class="flex min-h-screen">
+    @unless(request('popup'))
+        <x-layout.admin-sidebar />
+    @endunless
 
-    <div class="admin-content-area">
-        @if(session('success'))<div class="admin-flash admin-flash--success">{{ session('success') }}</div>@endif
-        @if($errors->any())<div class="admin-flash admin-flash--error">{{ $errors->first() }}</div>@endif
-        <main class="admin-main">@yield('admin-content')</main>
+    <div class="flex-1 bg-[#fafafa] flex flex-col">
+        @if(session('success'))
+            <div class="bg-green-50 border-l-4 border-green-500 text-green-800 px-6 py-3 text-sm">
+                {{ session('success') }}
+            </div>
+        @endif
+        @if($errors->any())
+            <div class="bg-red-50 border-l-4 border-red-500 text-red-800 px-6 py-3 text-sm">
+                {{ $errors->first() }}
+            </div>
+        @endif
+        <main class="p-6 flex-1">@yield('admin-content')</main>
     </div>
-
 </div>
+
 </body>
 </html>
