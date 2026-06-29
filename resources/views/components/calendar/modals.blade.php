@@ -180,9 +180,9 @@
             <input type="hidden" name="time_start" x-bind:value="timeStart">
             <input type="hidden" name="time_end" x-bind:value="timeEnd">
 
-            <div class="px-6 py-5">
-                <div class="space-y-5">
-                    <div class="grid grid-cols-2 gap-4">
+            <div class="px-6 py-4">
+                <div class="space-y-3">
+                    <div class="grid grid-cols-2 gap-3">
                         <div class="ui-field">
                             <label class="ui-label text-[#151515]">Platz</label>
                             <input type="text" x-bind:value="squareName" readonly class="ui-input bg-[#fafafa] text-[#151515]">
@@ -191,57 +191,48 @@
                             <label class="ui-label text-[#151515]">Gebucht für</label>
                             <input type="text" value="{{ auth()->user()->name }}" readonly class="ui-input bg-[#fafafa] text-[#151515]">
                         </div>
-                    </div>
-
-                    <div class="ui-form-divider">
-                        <div class="ui-section-label">Zeitraum</div>
-                        <input type="hidden" name="date" x-bind:value="date">
-                        <div class="grid grid-cols-2 gap-3">
-                            <div class="ui-field">
-                                <span class="ui-label text-[#151515]">Datum</span>
-                                <p class="ui-input bg-[#fafafa] text-[#151515]" x-text="dateLabel"></p>
-                            </div>
-                            <div class="ui-field">
-                                <span class="ui-label text-[#151515]">Uhrzeit</span>
-                                <p class="ui-input bg-[#fafafa] text-[#151515]" x-text="timeLabel"></p>
-                            </div>
+                        <div class="ui-field">
+                            <label class="ui-label text-[#151515]">Datum</label>
+                            <p class="ui-input bg-[#fafafa] text-[#151515] m-0" x-text="dateLabel"></p>
+                        </div>
+                        <div class="ui-field">
+                            <label class="ui-label text-[#151515]">Uhrzeit</label>
+                            <p class="ui-input bg-[#fafafa] text-[#151515] m-0" x-text="timeLabel"></p>
                         </div>
                     </div>
+                    <input type="hidden" name="date" x-bind:value="date">
 
-                    <div class="ui-form-divider">
-                        <div class="ui-section-label">Spieler</div>
-                        <div class="ui-field">
-                            <label class="ui-label text-[#151515]">Spieleranzahl</label>
-                            <select name="quantity" x-model="quantity" class="ui-select">
+                    <div class="ui-field">
+                        <label class="ui-label text-[#151515]">Spieleranzahl</label>
+                        <select name="quantity" x-model="quantity" class="ui-select">
                                 <option value="2">2 (Einzel)</option>
                                 <option value="4">4 (Doppel)</option>
                             </select>
                         </div>
 
-                        <div class="ui-field">
-                            <label class="ui-label text-[#151515]">2. Spielername</label>
-                            <input type="text"
-                                   name="player_name_2"
-                                   required
-                                   placeholder="Mitspielername suchen ..."
-                                   class="ui-input placeholder:text-[#b8b8b8]">
-                        </div>
+                    <div class="ui-field">
+                        <label class="ui-label text-[#151515]">2. Spielername</label>
+                        <input type="text"
+                               name="player_name_2"
+                               required
+                               placeholder="Mitspielername suchen ..."
+                               class="ui-input placeholder:text-[#b8b8b8]">
+                    </div>
 
-                        <div class="ui-field" x-show="quantity == '4'">
-                            <label class="ui-label text-[#151515]">3. Spielername</label>
-                            <input type="text"
-                                   name="player_name_3"
-                                   placeholder="Mitspielername suchen ..."
-                                   class="ui-input placeholder:text-[#b8b8b8]">
-                        </div>
+                    <div class="ui-field" x-show="quantity == '4'">
+                        <label class="ui-label text-[#151515]">3. Spielername</label>
+                        <input type="text"
+                               name="player_name_3"
+                               placeholder="Mitspielername suchen ..."
+                               class="ui-input placeholder:text-[#b8b8b8]">
+                    </div>
 
-                        <div class="ui-field" x-show="quantity == '4'">
-                            <label class="ui-label text-[#151515]">4. Spielername</label>
-                            <input type="text"
-                                   name="player_name_4"
-                                   placeholder="Mitspielername suchen ..."
-                                   class="ui-input placeholder:text-[#b8b8b8]">
-                        </div>
+                    <div class="ui-field" x-show="quantity == '4'">
+                        <label class="ui-label text-[#151515]">4. Spielername</label>
+                        <input type="text"
+                               name="player_name_4"
+                               placeholder="Mitspielername suchen ..."
+                               class="ui-input placeholder:text-[#b8b8b8]">
                     </div>
                 </div>
             </div>
