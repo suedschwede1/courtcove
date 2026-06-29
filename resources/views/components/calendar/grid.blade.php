@@ -124,7 +124,7 @@
                                     $cellClass = 'cc-single-future';
                                     $primaryLabel = $isLoggedIn
                                         ? ($reservation->booking?->owner_label ?? __('booking.calendar.occupied'))
-                                        : '';
+                                        : __('booking.calendar.occupied');
                                     $cellTitle = $isPastSlot
                                         ? ($squareLabel . ' – ' . __('booking.calendar.past'))
                                         : ($squareLabel . ' – ' . __('booking.calendar.occupied'));

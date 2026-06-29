@@ -135,3 +135,133 @@
 .event-label:hover {
     text-decoration: underline;
 }
+/* Quiet calendar refinements: subtle states, better mobile scanning. */
+.calendar-wrap {
+    position: relative;
+    scrollbar-gutter: stable both-edges;
+    scroll-snap-type: x proximity;
+}
+
+.calendar-cell {
+    border-radius: 3px;
+    transition: background-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.cc-free:hover,
+.cc-free:focus-visible {
+    background: #ffffff;
+    box-shadow: inset 0 0 0 1px rgba(21, 21, 21, 0.08);
+}
+
+.cc-own {
+    background: #d8e9fb;
+    box-shadow: inset 3px 0 0 rgba(26, 103, 179, 0.45);
+}
+
+.cc-own:hover,
+.cc-own:focus-visible {
+    background: #cfe1f4;
+}
+
+.cc-single-future {
+    background: #dbe8f6;
+}
+
+.booking-trigger.cc-single-future:hover,
+.booking-trigger.cc-single-future:focus-visible {
+    background: #d2e0ef;
+}
+
+.cc-over,
+.slot-cell--past {
+    background: #f4f4f4;
+    color: #8a8d90;
+}
+
+.event-cell {
+    background: #fde8e1;
+    box-shadow: inset 3px 0 0 rgba(191, 67, 22, 0.55);
+}
+
+.event-cell--editable:hover,
+.event-cell--editable:focus-within {
+    background: #fbded5;
+}
+
+.calendar-cell:focus-visible,
+.event-label:focus-visible {
+    outline: 2px solid #151515;
+    outline-offset: -2px;
+}
+
+@media screen and (max-width: 900px) {
+    .calendar-wrap {
+        margin: 0;
+        padding-bottom: 6px;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-x: contain;
+    }
+
+    .calendar-square-table {
+        --calendar-time-col: 58px;
+        --calendar-slot-col: 112px;
+    }
+
+    .calendar-time-col,
+    .time-spacer,
+    .time-side-head,
+    .time-cell {
+        position: sticky;
+        left: 0;
+        z-index: 18;
+        background: #ffffff;
+        box-shadow: 1px 0 0 #d8d0c4, 8px 0 14px -14px rgba(21, 21, 21, 0.45);
+    }
+
+    .time-spacer,
+    .time-side-head {
+        z-index: 26;
+    }
+
+    .cc-label-primary {
+        font-size: 11px;
+        line-height: 1.2;
+    }
+
+    .cc-label-secondary,
+    .event-label {
+        font-size: 10px;
+        line-height: 1.2;
+    }
+}
+
+@media screen and (max-width: 560px) {
+    .calendar-square-table {
+        --calendar-time-col: 54px;
+        --calendar-slot-col: 104px;
+    }
+
+    .time-main {
+        font-size: 13px;
+    }
+
+    .time-sub {
+        display: none;
+    }
+
+    .day-header-name {
+        font-size: 12px;
+    }
+
+    .day-header-date {
+        font-size: 10px;
+    }
+
+    .square-head-title {
+        font-size: 11px;
+    }
+
+    .square-head-alias {
+        font-size: 9px;
+    }
+}

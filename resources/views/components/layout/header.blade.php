@@ -48,7 +48,7 @@
                     </form>
                 @else
                     <a href="{{ route('login', ['redirect_to' => url()->full()]) }}"
-                       class="inline-flex h-8 items-center rounded-[6px] bg-[#bf4316] px-4 text-[13px] font-semibold text-white transition-colors hover:bg-[#9e3412]">{{ __('booking.nav.login') }}</a>
+                       class="header-login-button inline-flex h-8 items-center rounded-[6px] bg-[#bf4316] px-4 text-[13px] font-semibold text-white transition-colors hover:bg-[#9e3412]">{{ __('booking.nav.login') }}</a>
                 @endauth
             </div>
         </div>

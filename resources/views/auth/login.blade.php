@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Anmelden – {{ config('booking.name') }}</title>
+    <title>Anmelden – {{ $bookingName }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@600;700&family=Red+Hat+Text:wght@400;500;600&display=swap" rel="stylesheet">
@@ -16,11 +16,11 @@
     <header class="bg-white border-b border-[#e0ddd7] px-6 h-14 flex items-center gap-3">
         @if(config('booking.logo_path') && file_exists(public_path(config('booking.logo_path'))))
             <img src="{{ asset(config('booking.logo_path')) }}"
-                 alt="{{ config('booking.name') }}"
+                 alt="{{ $bookingName }}"
                  class="h-9 w-auto object-contain">
         @endif
         <span class="font-semibold text-[#151515] text-sm"
-              style="font-family: var(--font-display)">{{ config('booking.name') }}</span>
+              style="font-family: var(--font-display)">{{ $bookingName }}</span>
     </header>
 
     {{-- Erfolgreich registriert --}}

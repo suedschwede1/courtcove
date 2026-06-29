@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Registrierung – {{ config('booking.name') }}</title>
+    <title>Registrierung – {{ $bookingName }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@600;700&family=Red+Hat+Text:wght@400;500;600&display=swap" rel="stylesheet">
@@ -20,9 +20,9 @@
             <img src="{{ asset(config('booking.logo_path')) }}"
                  width="{{ config('booking.logo_width') }}"
                  height="{{ config('booking.logo_height') }}"
-                 alt="{{ config('booking.name') }}"
+                 alt="{{ $bookingName }}"
                  class="block">
-            <span style="font-family: var(--font-display)" class="font-bold text-lg text-[#151515]">{{ config('booking.name') }}</span>
+            <span style="font-family: var(--font-display)" class="font-bold text-lg text-[#151515]">{{ $bookingName }}</span>
         </a>
         <h1 style="font-family: var(--font-display)" class="text-3xl font-bold text-[#151515] mb-2">Registrierung</h1>
         <p class="text-[#bf4316] font-semibold mb-3">Willkommen zu unserem {{ $bookingName }}</p>
