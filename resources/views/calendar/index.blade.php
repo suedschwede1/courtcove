@@ -15,7 +15,8 @@
         <input type="date" name="date" id="c-date"
                value="{{ $date->format('Y-m-d') }}"
                class="ui-calendar-date-input"
-               aria-label="{{ __('booking.nav.choose_date') }}">
+               aria-label="{{ __('booking.nav.choose_date') }}"
+               onchange="this.form.submit()">
     </div>
 </form>
 

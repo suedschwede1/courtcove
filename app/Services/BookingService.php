@@ -67,7 +67,10 @@ final class BookingService
         });
 
         if (!empty($user->email)) {
-            Mail::to($user->email)->queue(new BookingConfirmed($booking));
+            $email = $user->email;
+            dispatch(function () use ($email, $booking): void {
+                Mail::to($email)->send(new BookingConfirmed($booking));
+            })->afterResponse();
         }
 
         return $booking;
@@ -137,7 +140,9 @@ final class BookingService
 
         $email = $booking->user?->email ?? null;
         if (!empty($email)) {
-            Mail::to($email)->queue(new BookingCancelled($booking));
+            dispatch(function () use ($email, $booking): void {
+                Mail::to($email)->send(new BookingCancelled($booking));
+            })->afterResponse();
         }
     }
 
