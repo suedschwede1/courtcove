@@ -199,10 +199,13 @@
                                        title="{{ $cellTitle }}"
                                        @click.prevent="$dispatch('open-cancel', {
                                            bid: @js((string) $reservation->booking->bid),
-                                           editUrl: @js(route('bookings.edit', $reservation->booking) . '?popup=1'),
                                            squareName: @js($squareLabel),
                                            dateLabel: @js($dateLabels[$d->format('Y-m-d')]['full']),
-                                           timeLabel: @js($timeLabel . ' – ' . $nextLabel . ' Uhr')
+                                           timeLabel: @js($timeLabel . ' – ' . $nextLabel . ' Uhr'),
+                                           quantity: @js((string) $reservation->booking->quantity),
+                                           playerName2: @js($reservation->booking->player_names[0] ?? ''),
+                                           playerName3: @js($reservation->booking->player_names[1] ?? ''),
+                                           playerName4: @js($reservation->booking->player_names[2] ?? '')
                                        })">
                                         <span class="cc-label-primary">{{ $primaryLabel }}</span>
                                         @if($secondaryLabel)

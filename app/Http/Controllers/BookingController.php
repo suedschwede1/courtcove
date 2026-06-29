@@ -166,7 +166,7 @@ final class BookingController extends Controller
         return view('bookings.edit', compact('booking', 'reservation', 'playerNames'));
     }
 
-    public function update(Request $request, Booking $booking): RedirectResponse
+    public function update(Request $request, Booking $booking): RedirectResponse|JsonResponse
     {
         $user = auth()->user();
 
@@ -175,7 +175,11 @@ final class BookingController extends Controller
         }
 
         if (! $user || $booking->status !== 'single') {
-            return back()->withErrors(['booking' => __('booking.messages.booking_not_cancellable')])->with('error', __('booking.messages.booking_not_cancellable'));
+            $msg = __('booking.messages.booking_not_cancellable');
+            if ($request->ajax()) {
+                return response()->json(['error' => $msg], 422);
+            }
+            return back()->withErrors(['booking' => $msg])->with('error', $msg);
         }
 
         $data = $request->validate([
@@ -198,13 +202,21 @@ final class BookingController extends Controller
                 4 => $data['player_name_4'] ?? null,
             ]);
         } catch (\Throwable) {
-            return back()->withErrors(['booking' => __('booking.messages.booking_failed')])->with('error', __('booking.messages.booking_failed'));
+            $msg = __('booking.messages.booking_failed');
+            if ($request->ajax()) {
+                return response()->json(['error' => $msg], 422);
+            }
+            return back()->withErrors(['booking' => $msg])->with('error', $msg);
         }
 
         $reservation = $booking->reservations()
             ->orderBy('date')
             ->orderBy('time_start')
             ->first();
+
+        if ($request->ajax()) {
+            return response()->json(['redirect' => route('calendar.index', ['date' => $reservation?->date])]);
+        }
 
         return redirect()->route('calendar.index', ['date' => $reservation?->date])
             ->with('success', __('booking.messages.booking_updated'));

@@ -34,6 +34,13 @@
             @endif
 
             <div class="p-5 space-y-5">
+                @if($errors->any())
+                    <div class="rounded-[6px] bg-red-50 border border-red-200 px-4 py-3">
+                        @foreach($errors->all() as $error)
+                            <p class="text-sm text-red-700">{{ $error }}</p>
+                        @endforeach
+                    </div>
+                @endif
                 <div class="grid grid-cols-2 gap-3">
                     <div class="space-y-1">
                         <label class="block text-[13px] font-medium text-[#151515]" for="sid">Platz</label>
@@ -156,6 +163,14 @@
         @endif
 
         <div class="p-6 space-y-6">
+            @if($errors->any())
+                <div class="rounded-[6px] bg-red-50 border border-red-200 px-4 py-3">
+                    @foreach($errors->all() as $error)
+                        <p class="text-sm text-red-700">{{ $error }}</p>
+                    @endforeach
+                </div>
+            @endif
+
             <div>
                 <p class="mb-4 border-b border-[#ebebeb] pb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#6a6e73]">Gebucht für</p>
                 <div class="grid grid-cols-[minmax(0,1fr)_174px] gap-3 items-end">
@@ -318,8 +333,18 @@ document.addEventListener('DOMContentLoaded', function () {
             if (player4Input) { player4Input.required = isDouble; if (!isDouble) { player4Input.value = ''; } }
         }
 
+        var timeStart = document.getElementById('time_start');
+        var timeEnd = document.getElementById('time_end');
+
         if (repeat && dateEnd) {
             var isOnce = repeat.value === 'once';
+            // Datum/Zeit-Felder nur bei Serien änderbar
+            var dateFields = [dateStart, timeStart, timeEnd];
+            dateFields.forEach(function(f) {
+                if (!f) { return; }
+                f.disabled = isOnce;
+                f.classList.toggle('is-disabled', isOnce);
+            });
             dateEnd.disabled = isOnce;
             dateEnd.classList.toggle('is-disabled', isOnce);
             if (isOnce && dateStart) { dateEnd.value = dateStart.value; }

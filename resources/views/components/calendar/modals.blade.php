@@ -34,16 +34,22 @@
 <div x-data="{
         open: false,
         bid: null,
-        editUrl: '',
         squareName: '',
         dateLabel: '',
         timeLabel: '',
+        quantity: '2',
+        playerName2: '',
+        playerName3: '',
+        playerName4: '',
         openCancel(detail) {
-            this.bid        = detail.bid;
-            this.editUrl    = detail.editUrl   || '';
-            this.squareName = detail.squareName;
-            this.dateLabel  = detail.dateLabel;
-            this.timeLabel  = detail.timeLabel;
+            this.bid         = detail.bid;
+            this.squareName  = detail.squareName;
+            this.dateLabel   = detail.dateLabel;
+            this.timeLabel   = detail.timeLabel;
+            this.quantity    = detail.quantity    || '2';
+            this.playerName2 = detail.playerName2 || '';
+            this.playerName3 = detail.playerName3 || '';
+            this.playerName4 = detail.playerName4 || '';
             this.open = true;
         }
      }"
@@ -70,12 +76,11 @@
         </div>
 
         <div class="px-6 pb-5 flex flex-col gap-2">
-            <template x-if="editUrl">
-                <a x-bind:href="editUrl"
-                   class="w-full text-center text-sm border border-[#d1cbc0] text-[#6a6e73] py-2 rounded hover:bg-[#f9f8f6] transition-colors block">
-                    Buchung bearbeiten
-                </a>
-            </template>
+            <button type="button"
+                    @click="open = false; $dispatch('open-edit-booking', {bid, squareName, dateLabel, timeLabel, quantity, playerName2, playerName3, playerName4})"
+                    class="w-full text-sm border border-[#d1cbc0] text-[#6a6e73] py-2 rounded hover:bg-[#f9f8f6] transition-colors">
+                Buchung bearbeiten
+            </button>
             <form method="POST" x-bind:action="'/bookings/' + bid">
                 @csrf
                 @method('DELETE')
@@ -93,6 +98,139 @@
 
         <button type="button"
                 @click="open = false"
+                class="absolute top-3 right-4 text-[#9a9a9a] hover:text-[#151515] text-lg leading-none">✕</button>
+    </div>
+</div>
+@endauth
+
+{{-- ═══════════════════════════════════════════════════════
+     EDIT BOOKING MODAL — Eigene Buchung bearbeiten
+     ═══════════════════════════════════════════════════════ --}}
+@auth
+<div x-data="{
+        open: false,
+        bid: null,
+        squareName: '',
+        dateLabel: '',
+        timeLabel: '',
+        quantity: '2',
+        playerName2: '',
+        playerName3: '',
+        playerName4: '',
+        error: null,
+        loading: false,
+        openEdit(detail) {
+            this.bid         = detail.bid;
+            this.squareName  = detail.squareName;
+            this.dateLabel   = detail.dateLabel;
+            this.timeLabel   = detail.timeLabel;
+            this.quantity    = detail.quantity    || '2';
+            this.playerName2 = detail.playerName2 || '';
+            this.playerName3 = detail.playerName3 || '';
+            this.playerName4 = detail.playerName4 || '';
+            this.error = null;
+            this.open = true;
+        },
+        async submitEdit(form) {
+            this.loading = true;
+            this.error = null;
+            try {
+                const data = new FormData(form);
+                const res = await fetch(form.action, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    body: data,
+                });
+                const json = await res.json();
+                if (res.ok && json.redirect) {
+                    window.location.href = json.redirect;
+                } else {
+                    this.error = json.error ?? '{{ __('booking.messages.booking_failed') }}';
+                }
+            } catch {
+                this.error = '{{ __('booking.messages.booking_failed') }}';
+            } finally {
+                this.loading = false;
+            }
+        }
+     }"
+     @open-edit-booking.window="openEdit($event.detail)"
+     x-show="open"
+     x-transition.opacity
+     @keydown.escape.window="open = false"
+     @click.self="open = false"
+     class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"
+     style="display: none;">
+    <div class="relative w-full max-w-[480px] overflow-hidden rounded-[8px] border border-[#e8e8e8] bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
+        <div class="border-b border-[#ebebeb] bg-white px-6 pt-3 pb-0">
+            <div class="flex items-start justify-between gap-4">
+                <p class="mb-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#6a6e73]">Buchung bearbeiten</p>
+                <button type="button" @click="open = false" class="text-[20px] leading-none text-[#8a8d90] transition-colors hover:text-[#151515]">×</button>
+            </div>
+        </div>
+
+        <form x-bind:action="'/bookings/' + bid" method="POST" @submit.prevent="submitEdit($el)">
+            @csrf
+            <input type="hidden" name="_method" value="PUT">
+
+            <div class="px-6 py-4 space-y-3">
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="ui-field">
+                        <label class="ui-label text-[#151515]">Platz</label>
+                        <p class="ui-input bg-[#fafafa] text-[#151515] m-0" x-text="squareName"></p>
+                    </div>
+                    <div class="ui-field">
+                        <label class="ui-label text-[#151515]">Datum</label>
+                        <p class="ui-input bg-[#fafafa] text-[#151515] m-0" x-text="dateLabel"></p>
+                    </div>
+                    <div class="ui-field col-span-2">
+                        <label class="ui-label text-[#151515]">Uhrzeit</label>
+                        <p class="ui-input bg-[#fafafa] text-[#151515] m-0" x-text="timeLabel"></p>
+                    </div>
+                </div>
+
+                <div class="ui-field">
+                    <label class="ui-label text-[#151515]">Spieleranzahl</label>
+                    <select name="quantity" x-model="quantity" class="ui-select">
+                        <option value="2">2 (Einzel)</option>
+                        <option value="4">4 (Doppel)</option>
+                    </select>
+                </div>
+
+                <div class="ui-field">
+                    <label class="ui-label text-[#151515]">2. Spielername</label>
+                    <input type="text" name="player_name_2" x-model="playerName2" maxlength="120" required
+                           placeholder="Mitspielername ..."
+                           class="ui-input placeholder:text-[#b8b8b8]">
+                </div>
+
+                <div class="ui-field" x-show="quantity == '4'">
+                    <label class="ui-label text-[#151515]">3. Spielername</label>
+                    <input type="text" name="player_name_3" x-model="playerName3" maxlength="120"
+                           placeholder="Mitspielername ..."
+                           class="ui-input placeholder:text-[#b8b8b8]">
+                </div>
+
+                <div class="ui-field" x-show="quantity == '4'">
+                    <label class="ui-label text-[#151515]">4. Spielername</label>
+                    <input type="text" name="player_name_4" x-model="playerName4" maxlength="120"
+                           placeholder="Mitspielername ..."
+                           class="ui-input placeholder:text-[#b8b8b8]">
+                </div>
+            </div>
+
+            <div class="border-t border-[#ebebeb] bg-[#fafafa] px-6 py-4">
+                <template x-if="error">
+                    <p class="mb-3 text-sm text-red-600" x-text="error"></p>
+                </template>
+                <div class="flex flex-wrap items-center gap-3">
+                    <button type="submit" class="ui-btn ui-btn-primary px-[19px]" :disabled="loading" x-text="loading ? 'Speichern …' : 'Speichern'"></button>
+                    <button type="button" @click="open = false" class="ui-btn ui-btn-ghost border border-[#d1cbc0] bg-white px-[19px] text-[#151515] hover:bg-[#f7f7f7]">Abbrechen</button>
+                </div>
+            </div>
+        </form>
+
+        <button type="button" @click="open = false"
                 class="absolute top-3 right-4 text-[#9a9a9a] hover:text-[#151515] text-lg leading-none">✕</button>
     </div>
 </div>
