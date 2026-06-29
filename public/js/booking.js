@@ -1,6 +1,16 @@
 (function () {
     'use strict';
 
+    // ─── Panel-Toggle (Infos / Hinweise) ───────────────────────────────────────
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-panel-toggle]');
+        if (!btn) { return; }
+        var panelId = btn.getAttribute('data-panel-toggle');
+        var panel = document.getElementById(panelId);
+        if (!panel) { return; }
+        panel.hidden = !panel.hidden;
+    });
+
     // ─── Helpers ───────────────────────────────────────────────────────────────
 
     function showModal(modal) {
