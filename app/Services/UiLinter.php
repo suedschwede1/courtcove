@@ -26,7 +26,7 @@ class UiLinter
             $lines = file($file, FILE_IGNORE_NEW_LINES) ?: [];
 
             foreach ($this->rules as $rule) {
-                if ($this->isExcluded($relativePath, $rule['exclude'])) {
+                if ($this->isExcluded($relativePath, $rule['exclude'] ?? [])) {
                     continue;
                 }
 
@@ -125,7 +125,7 @@ class UiLinter
     private function applyContextRule(array $rule, array $lines, string $relativePath): array
     {
         $findings = [];
-        $require  = $rule['context_require'];
+        $require  = $rule['context_require'] ?? '';
 
         foreach ($lines as $i => $line) {
             if (!preg_match($rule['pattern'], $line)) {
