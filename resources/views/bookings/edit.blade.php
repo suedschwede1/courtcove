@@ -28,7 +28,7 @@
         </table>
 
         @if($errors->has('booking'))
-            <p class="booking-confirm-error">{{ $errors->first('booking') }}</p>
+            <p class="ui-error">{{ $errors->first('booking') }}</p>
         @endif
 
         <form method="POST" action="{{ route('bookings.update', $booking) }}" class="booking-confirm-form" id="booking-edit-form">

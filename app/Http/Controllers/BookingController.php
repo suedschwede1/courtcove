@@ -37,7 +37,7 @@ final class BookingController extends Controller
         return view('bookings.create', compact('square', 'date', 'timeStart', 'timeEnd'));
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|JsonResponse
     {
         $data = $request->validate([
             'sid' => ['required', 'integer', 'exists:bs_squares,sid'],
@@ -77,9 +77,20 @@ final class BookingController extends Controller
                 meta: $meta,
             );
         } catch (BookingValidationException $e) {
-            return back()->withErrors(['booking' => $e->getMessage()]);
+            if ($request->ajax()) {
+                return response()->json(['error' => $e->getMessage()], 422);
+            }
+            return back()->withErrors(['booking' => $e->getMessage()])->with('error', $e->getMessage());
         } catch (\Throwable) {
-            return back()->withErrors(['booking' => __('booking.messages.booking_failed')]);
+            $msg = __('booking.messages.booking_failed');
+            if ($request->ajax()) {
+                return response()->json(['error' => $msg], 422);
+            }
+            return back()->withErrors(['booking' => $msg])->with('error', $msg);
+        }
+
+        if ($request->ajax()) {
+            return response()->json(['redirect' => route('calendar.index', ['date' => Carbon::parse($data['date'])->format('Y-m-d')])]);
         }
 
         return redirect()->route('calendar.index', ['date' => Carbon::parse($data['date'])->format('Y-m-d')])
@@ -164,7 +175,7 @@ final class BookingController extends Controller
         }
 
         if (! $user || $booking->status !== 'single') {
-            return back()->withErrors(['booking' => __('booking.messages.booking_not_cancellable')]);
+            return back()->withErrors(['booking' => __('booking.messages.booking_not_cancellable')])->with('error', __('booking.messages.booking_not_cancellable'));
         }
 
         $data = $request->validate([
@@ -187,7 +198,7 @@ final class BookingController extends Controller
                 4 => $data['player_name_4'] ?? null,
             ]);
         } catch (\Throwable) {
-            return back()->withErrors(['booking' => __('booking.messages.booking_failed')]);
+            return back()->withErrors(['booking' => __('booking.messages.booking_failed')])->with('error', __('booking.messages.booking_failed'));
         }
 
         $reservation = $booking->reservations()
@@ -218,7 +229,7 @@ final class BookingController extends Controller
         }
 
         if (! $user || $booking->status !== 'single') {
-            return back()->withErrors(['booking' => __('booking.messages.booking_not_cancellable')]);
+            return back()->withErrors(['booking' => __('booking.messages.booking_not_cancellable')])->with('error', __('booking.messages.booking_not_cancellable'));
         }
 
         $this->bookingService->cancelSingle($booking);

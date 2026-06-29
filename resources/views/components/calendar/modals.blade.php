@@ -114,6 +114,8 @@
         timeStartFormatted: '',
         timeEndFormatted: '',
         quantity: '2',
+        error: null,
+        loading: false,
         openBooking(detail) {
             this.sid                = detail.sid;
             this.date               = detail.date;
@@ -125,7 +127,30 @@
             this.timeStartFormatted = detail.timeStartFormatted;
             this.timeEndFormatted   = detail.timeEndFormatted;
             this.quantity = '2';
+            this.error = null;
             this.open = true;
+        },
+        async submitBooking(form) {
+            this.loading = true;
+            this.error = null;
+            try {
+                const data = new FormData(form);
+                const res = await fetch(form.action, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    body: data,
+                });
+                const json = await res.json();
+                if (res.ok && json.redirect) {
+                    window.location.href = json.redirect;
+                } else {
+                    this.error = json.error ?? '{{ __('booking.messages.booking_failed') }}';
+                }
+            } catch {
+                this.error = '{{ __('booking.messages.booking_failed') }}';
+            } finally {
+                this.loading = false;
+            }
         }
      }"
      @open-booking.window="openBooking($event.detail)"
@@ -148,7 +173,7 @@
             </div>
         </div>
 
-        <form method="POST" action="{{ route('bookings.store') }}">
+        <form method="POST" action="{{ route('bookings.store') }}" @submit.prevent="submitBooking($el)">
             @csrf
             <input type="hidden" name="sid" x-bind:value="sid">
             
@@ -229,8 +254,11 @@
             </div>
 
             <div class="border-t border-[#ebebeb] bg-[#fafafa] px-6 py-4">
+                <template x-if="error">
+                    <p class="mb-3 text-sm text-red-600" x-text="error"></p>
+                </template>
                 <div class="flex flex-wrap items-center gap-3">
-                    <button type="submit" class="ui-btn ui-btn-primary px-[19px]">Speichern</button>
+                    <button type="submit" class="ui-btn ui-btn-primary px-[19px]" :disabled="loading" x-text="loading ? 'Speichern …' : 'Speichern'"></button>
                     <button type="button" @click="open = false" class="ui-btn ui-btn-ghost border border-[#d1cbc0] bg-white px-[19px] text-[#151515] hover:bg-[#f7f7f7]">Abbrechen</button>
                 </div>
             </div>

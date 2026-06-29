@@ -50,7 +50,7 @@ $timeEndLabel   = str_pad((string) $timeEnd,   2, '0', STR_PAD_LEFT) . ':00';
         </p>
 
         @if($errors->has('booking'))
-            <p class="booking-confirm-error">
+            <p class="ui-error">
                 {{ $errors->first('booking') }}
             </p>
         @endif
