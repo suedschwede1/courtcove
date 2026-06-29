@@ -15,6 +15,7 @@ use App\Services\BookingService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
@@ -116,7 +117,7 @@ final class BookingController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|Response
     {
         try {
             $data = $this->validateBookingData($request);
@@ -207,7 +208,7 @@ final class BookingController extends Controller
         ]);
     }
 
-    public function update(Request $request, Booking $booking): RedirectResponse
+    public function update(Request $request, Booking $booking): RedirectResponse|Response
     {
         $firstReservation = $booking->reservations()->orderBy('date')->orderBy('time_start')->first();
 
@@ -281,7 +282,7 @@ final class BookingController extends Controller
         return redirect()->route('admin.bookings.index')->with('success', __('booking.messages.booking_updated'));
     }
 
-    public function cancel(Request $request, Booking $booking): RedirectResponse
+    public function cancel(Request $request, Booking $booking): RedirectResponse|Response
     {
         $this->bookingService->cancelSingle($booking);
 
@@ -297,7 +298,7 @@ final class BookingController extends Controller
         return redirect()->route('admin.bookings.index')->with('success', __('booking.messages.booking_cancelled'));
     }
 
-    public function destroy(Request $request, Booking $booking): RedirectResponse
+    public function destroy(Request $request, Booking $booking): RedirectResponse|Response
     {
         $this->bookingService->deleteSingle($booking);
 
