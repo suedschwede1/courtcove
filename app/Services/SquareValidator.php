@@ -56,23 +56,18 @@ final class SquareValidator
             return ValidationResult::fail('Booking time is outside square opening hours');
         }
 
-        $minimumStart = Carbon::now();
-        if ((int) $square->min_range_book === 0) {
-            $minimumStart->subSeconds((int) $square->time_block_bookable / 2);
-        } else {
-            $minimumStart->addSeconds((int) $square->min_range_book);
+        // Vergangene Slots sperren: Buchung nicht erlaubt wenn die Slot-Zeit komplett vorbei ist.
+        // Die laufende Stunde bleibt buchbar ($dateEnd liegt noch in der Zukunft).
+        if ($dateEnd->lessThanOrEqualTo(Carbon::now())
+            && ! $user->can('calendar.see-past')) {
+            return ValidationResult::fail(__('booking.messages.booking_in_past'));
         }
 
-        if ($dateStart->lessThan($minimumStart)
-            && ! $user->can('calendar.see-past')
-            && ! ($user->can('calendar.see-data') && $dateEnd->isSameDay($minimumStart))) {
-            return ValidationResult::fail('Booking time is already over');
-        }
-
-        if ((int) $square->min_range_book > 0
-            && $dateStart->lessThan($minimumStart)
-            && ! $this->canCreateAnyBooking($user)) {
-            return ValidationResult::fail('Booking date is before the minimum advance booking time');
+        if ((int) $square->min_range_book > 0) {
+            $minimumStart = Carbon::now()->addSeconds((int) $square->min_range_book);
+            if ($dateStart->lessThan($minimumStart) && ! $this->canCreateAnyBooking($user)) {
+                return ValidationResult::fail(__('booking.messages.booking_too_early'));
+            }
         }
 
         if ((int) $square->range_book > 0) {

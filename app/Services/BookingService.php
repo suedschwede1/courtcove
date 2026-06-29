@@ -69,7 +69,11 @@ final class BookingService
         if (!empty($user->email)) {
             $email = $user->email;
             dispatch(function () use ($email, $booking): void {
-                Mail::to($email)->send(new BookingConfirmed($booking));
+                try {
+                    Mail::to($email)->send(new BookingConfirmed($booking));
+                } catch (\Throwable) {
+                    // Mail-Fehler dürfen die gesendete Response nicht beeinflussen
+                }
             })->afterResponse();
         }
 
@@ -141,7 +145,11 @@ final class BookingService
         $email = $booking->user?->email ?? null;
         if (!empty($email)) {
             dispatch(function () use ($email, $booking): void {
-                Mail::to($email)->send(new BookingCancelled($booking));
+                try {
+                    Mail::to($email)->send(new BookingCancelled($booking));
+                } catch (\Throwable) {
+                    // Mail-Fehler dürfen die gesendete Response nicht beeinflussen
+                }
             })->afterResponse();
         }
     }

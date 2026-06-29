@@ -441,6 +441,8 @@ return [
         'booking_duration_too_short' => 'Die Buchungsdauer ist kürzer als die minimal buchbare Zeit.',
         'max_active_bookings_reached' => 'Sie haben die maximale Anzahl aktiver Buchungen erreicht.',
         'daily_booking_limit_exceeded' => 'Das tägliche Buchungslimit wurde erreicht.',
+        'booking_in_past' => 'Dieser Zeitraum liegt in der Vergangenheit und kann nicht mehr gebucht werden.',
+        'booking_too_early' => 'Der gewählte Termin liegt zu weit in der Zukunft und kann noch nicht gebucht werden.',
         'slot_occupied' => 'Der gewählte Zeitraum ist bereits belegt.',
         'slot_blocked_by_event' => 'Der gewählte Zeitraum ist durch eine Veranstaltung gesperrt.',
         'event_created' => 'Veranstaltung angelegt.',
