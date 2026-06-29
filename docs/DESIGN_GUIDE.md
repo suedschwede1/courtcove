@@ -97,6 +97,10 @@ padding-bottom: 8–10px;
 margin-bottom: 14–16px;
 ```
 
+> **Popup-Formulare**: Section-Header werden in Popup-Dialogen **nicht** verwendet —
+> der Platz ist begrenzt und der Kontext ergibt sich aus dem Popup-Titel.
+> Felder folgen direkt aufeinander mit `space-y-4`/`gap-3`.
+
 ---
 
 ## Abstände
@@ -435,6 +439,56 @@ Admin-Inputs (Legacy-CSS) zeigen bei Fokus einen orangen Ring:
 border-color: #c75518;
 box-shadow: 0 0 0 3px rgba(199, 85, 24, 0.12);
 ```
+
+---
+
+## Popup-Layout-Pattern
+
+Admin-Views die sowohl als Vollseite (Admin-Layout) als auch als iframe-Popup erscheinen:
+
+```blade
+@extends(request('popup') ? 'layouts.popup' : 'layouts.admin')
+
+{{-- Für Popup-Layout (yields 'content'): --}}
+@section('content')
+    <div class="ui-page">...</div>
+@endsection
+
+{{-- Für Admin-Layout (yields 'admin-content'): --}}
+@section('admin-content')
+    <div class="ui-page">...</div>
+@endsection
+```
+
+Beide Sections enthalten denselben Inhalt — Laravel rendert nur die, die das aktive Layout
+yieldet. `layouts.popup` yieldet `content`, `layouts.admin` yieldet `admin-content`.
+
+Controller-Methoden die Popup-Responses zurückgeben, brauchen einen Union-Return-Typ:
+
+```php
+public function store(Request $request): RedirectResponse|Response
+{
+    // ...
+    if ($request->boolean('popup')) {
+        return response('<script>window.parent.location.reload();</script>')
+            ->header('Content-Type', 'text/html');
+    }
+    return redirect()->route(...);
+}
+```
+
+Formulare in Popups senden `<input type="hidden" name="popup" value="1">` mit.
+
+### Formular-Includes mit `popup_mode`
+
+Der `admin.events._form`-Partial hat zwei Layout-Zweige:
+
+```blade
+@include('admin.events._form', ['popup_mode' => request('popup')])
+```
+
+- `popup_mode = true` → kompaktes Tailwind-Layout (4-spaltig für Datum/Zeit, kein Section-Header)
+- `popup_mode = false/null` → Legacy-UI-Klassen (`.ui-form-shell`, `.ui-form-divider` etc.)
 
 ---
 

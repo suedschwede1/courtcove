@@ -1,6 +1,6 @@
 # Tennis-Booking
 
-> ⚠️ **Work in Progress** — die Migration ist noch nicht abgeschlossen. Dieses Repository befindet sich aktiv in Entwicklung.
+> ⚠️ **Work in Progress** — Kernfunktionen (Kalender, Buchen, Admin-Buchungen, Veranstaltungen) sind produktiv einsetzbar. Offene Punkte: Registrierung, einige Admin-Seiten.
 
 Online-Platzreservierung für Tennisvereine — eine **Laravel-13-Neufassung** des
 Open-Source-Systems [ep3-bs](https://github.com/tkrebs/ep3-bs) (Zend Framework 2),
@@ -102,6 +102,12 @@ Danach im Browser: **http://localhost:8000**
 - Validierung beim Anlegen: Platzstatus, Buchungsfenster/-vorlauf, Tageslimit,
   Slot-Überschneidung und Veranstaltungs-Sperren (`SquareValidator` +
   `BookingService`, doppelt geprüft innerhalb einer DB-Transaktion).
+- **Vergangenheitsschutz**: normale Benutzer können keine vergangenen Slots buchen.
+  Die laufende Stunde ist noch buchbar (`dateEnd > now`). Admins können
+  Vergangenheit buchen (`calendar.see-past`).
+- **Mail nach Buchung/Stornierung**: wird nur gesendet wenn ein echter SMTP-Host
+  konfiguriert ist (`MAIL_MAILER` ≠ `log`/`array`, kein `localhost`). Kein
+  SMTP-Timeout-Hänger wenn Mail nicht konfiguriert.
 
 ### Mein Bereich (angemeldet)
 - `/meine-buchungen` – eigene Reservierungen
@@ -110,9 +116,11 @@ Danach im Browser: **http://localhost:8000**
 ### Admin-Bereich (`/admin`, rechtegesteuert)
 - **Mitglieder** (`admin.user`)
 - **Buchungen** (`admin.booking`) – anlegen/bearbeiten/stornieren für alle; öffnet
-  als **iframe-Popup** direkt aus dem Kalender (kein Seitenwechsel)
+  als **iframe-Popup** direkt aus dem Kalender (kein Seitenwechsel). Admin kann
+  auch in der Vergangenheit buchen und `status = cancelled` direkt setzen.
 - **Veranstaltungen** (`admin.event`) – Plätze sperren/blockieren; Tab-Wechsel
-  Buchung ↔ Veranstaltung ohne Seitenneuladen
+  Buchung ↔ Veranstaltung ohne Seitenneuladen. Klick auf bestehende Veranstaltung
+  im Kalender öffnet das **Bearbeiten-Popup** direkt.
 - **Konfiguration** (`admin.config`) – Aktivierung, Tage verstecken, Namen & Texte
   (entsprechend Altsystem-Optionen `bs_options`)
 - Dashboard sichtbar ab `admin.see-menu`
