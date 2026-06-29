@@ -3,24 +3,25 @@
 
 @push('header-nav')
 <a href="{{ route('calendar.index', ['date' => $date->copy()->subDay()->format('Y-m-d')]) }}"
-   class="default-button nav-arrow"
-   title="{{ __('booking.nav.previous_day') }}">&#9664;</a>
+   class="ui-calendar-nav-btn ui-calendar-nav-btn--arrow"
+   title="{{ __('booking.nav.previous_day') }}">&#8249;</a>
 
-<a href="{{ route('calendar.index') }}" class="default-button">{{ __('booking.nav.today') }}</a>
+<a href="{{ route('calendar.index') }}"
+   class="ui-calendar-nav-btn ui-calendar-nav-btn--today">{{ __('booking.nav.today') }}</a>
 
-<form method="GET" action="{{ route('calendar.index') }}" class="date-switcher-form">
-    <div class="date-picker-wrap">
-        <span class="date-picker-label" id="c-date-label">{{ $date->format('d.m.Y') }}</span>
+<form method="GET" action="{{ route('calendar.index') }}" class="ui-calendar-date-form">
+    <label for="c-date" class="sr-only">{{ __('booking.nav.choose_date') }}</label>
+    <div class="relative">
         <input type="date" name="date" id="c-date"
                value="{{ $date->format('Y-m-d') }}"
-               class="date-switcher-input date-switcher-input--native date-switcher-input--overlay"
+               class="ui-calendar-date-input"
                aria-label="{{ __('booking.nav.choose_date') }}">
     </div>
 </form>
 
 <a href="{{ route('calendar.index', ['date' => $date->copy()->addDay()->format('Y-m-d')]) }}"
-   class="default-button nav-arrow"
-   title="{{ __('booking.nav.next_day') }}">&#9654;</a>
+   class="ui-calendar-nav-btn ui-calendar-nav-btn--arrow"
+   title="{{ __('booking.nav.next_day') }}">&#8250;</a>
 @endpush
 
 @section('calendar-system-info')
@@ -69,7 +70,7 @@
 @endsection
 
 @section('content')
-<div class="calendar-layout">
+<div class="calendar-layout" x-data="{}">
     <div class="calendar-wrap">
         <x-calendar.grid
             :dates="$dates"
@@ -91,3 +92,5 @@
 
 <x-calendar.modals :date="$date" :squares="$squares" />
 @endsection
+
+

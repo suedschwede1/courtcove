@@ -135,93 +135,109 @@
      @click.self="open = false"
      class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"
      style="display: none;">
-    <div class="relative w-full max-w-md bg-white rounded-xl shadow-xl border border-[#e0ddd7]">
-
-        <div class="px-6 pt-5 pb-3 border-b border-[#f0ede6]">
-            <h2 class="text-base font-semibold text-[#151515]"
-                style="font-family: var(--font-display)"
-                x-text="squareName"></h2>
-            <p class="text-sm text-[#6a6e73] mt-0.5"
-               x-text="dateLabel + ' · ' + timeLabel"></p>
+    <div class="relative w-full max-w-[580px] overflow-hidden rounded-[8px] border border-[#e8e8e8] bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
+        <div class="border-b border-[#ebebeb] bg-white px-6 pt-3 pb-0">
+            <div class="flex items-start justify-between gap-4">
+                <p class="mb-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#6a6e73]">Neue Buchung</p>
+                <button type="button"
+                        @click="open = false"
+                        class="text-[20px] leading-none text-[#8a8d90] transition-colors hover:text-[#151515]">×</button>
+            </div>
+            <div class="flex gap-6 border-b border-[#ebebeb]">
+                <span class="border-b-2 border-[#bf4316] px-0 pb-3 text-sm font-semibold text-[#bf4316]">Buchung</span>
+            </div>
         </div>
 
         <form method="POST" action="{{ route('bookings.store') }}">
             @csrf
-            <input type="hidden" name="sid"        x-bind:value="sid">
-            <input type="hidden" name="date"       x-bind:value="date">
+            <input type="hidden" name="sid" x-bind:value="sid">
+            
             <input type="hidden" name="time_start" x-bind:value="timeStart">
-            <input type="hidden" name="time_end"   x-bind:value="timeEnd">
+            <input type="hidden" name="time_end" x-bind:value="timeEnd">
 
-            <div class="px-6 py-4 flex flex-col gap-4">
+            <div class="px-6 py-5">
+                <div class="space-y-5">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="ui-field">
+                            <label class="ui-label text-[#151515]">Platz</label>
+                            <input type="text" x-bind:value="squareName" readonly class="ui-input bg-[#fafafa] text-[#151515]">
+                        </div>
+                        <div class="ui-field">
+                            <label class="ui-label text-[#151515]">Gebucht für</label>
+                            <input type="text" value="{{ auth()->user()->name }}" readonly class="ui-input bg-[#fafafa] text-[#151515]">
+                        </div>
+                    </div>
 
-                {{-- Anzahl Spieler --}}
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">Anzahl Spieler</label>
-                    <select name="quantity"
-                            x-model="quantity"
-                            class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                        <option value="2">Einzel (2 Spieler)</option>
-                        <option value="4">Doppel (4 Spieler)</option>
-                    </select>
+                    <div class="ui-form-divider">
+                        <div class="ui-section-label">Zeitraum</div>
+                        <div class="grid grid-cols-4 gap-3">
+                            <div class="ui-field">
+                                <label class="ui-label text-[#151515]">Datum (Beginn)</label>
+                                <input type="date" name="date" x-model="date" class="ui-input ui-date-input">
+                            </div>
+                            <div class="ui-field">
+                                <label class="ui-label text-[#151515]">Zeit (Beginn)</label>
+                                <input type="text" x-bind:value="timeStartFormatted" readonly class="ui-input bg-[#fafafa] text-[#151515]">
+                            </div>
+                            <div class="ui-field">
+                                <label class="ui-label text-[#151515]">Datum (Ende)</label>
+                                <input type="date" x-model="date" class="ui-input ui-date-input">
+                            </div>
+                            <div class="ui-field">
+                                <label class="ui-label text-[#151515]">Zeit (Ende)</label>
+                                <input type="text" x-bind:value="timeEndFormatted" readonly class="ui-input bg-[#fafafa] text-[#151515]">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ui-form-divider">
+                        <div class="ui-section-label">Spieler</div>
+                        <div class="ui-field">
+                            <label class="ui-label text-[#151515]">Spieleranzahl</label>
+                            <select name="quantity" x-model="quantity" class="ui-select">
+                                <option value="2">2 (Einzel)</option>
+                                <option value="4">4 (Doppel)</option>
+                            </select>
+                        </div>
+
+                        <div class="ui-field">
+                            <label class="ui-label text-[#151515]">2. Spielername</label>
+                            <input type="text"
+                                   name="player_name_2"
+                                   required
+                                   placeholder="Mitspielername suchen ..."
+                                   class="ui-input placeholder:text-[#b8b8b8]">
+                        </div>
+
+                        <div class="ui-field" x-show="quantity == '4'">
+                            <label class="ui-label text-[#151515]">3. Spielername</label>
+                            <input type="text"
+                                   name="player_name_3"
+                                   placeholder="Mitspielername suchen ..."
+                                   class="ui-input placeholder:text-[#b8b8b8]">
+                        </div>
+
+                        <div class="ui-field" x-show="quantity == '4'">
+                            <label class="ui-label text-[#151515]">4. Spielername</label>
+                            <input type="text"
+                                   name="player_name_4"
+                                   placeholder="Mitspielername suchen ..."
+                                   class="ui-input placeholder:text-[#b8b8b8]">
+                        </div>
+                    </div>
                 </div>
-
-                {{-- Spieler 2 — immer sichtbar, required --}}
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">Mitspieler</label>
-                    <input type="text"
-                           name="player_name_2"
-                           required
-                           placeholder="Name Mitspieler"
-                           class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                </div>
-
-                {{-- Spieler 3 — nur Doppel --}}
-                <div class="flex flex-col gap-1" x-show="quantity == '4'">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">Mitspieler 3</label>
-                    <input type="text"
-                           name="player_name_3"
-                           placeholder="Name Mitspieler 3"
-                           class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                </div>
-
-                {{-- Spieler 4 — nur Doppel --}}
-                <div class="flex flex-col gap-1" x-show="quantity == '4'">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">Mitspieler 4</label>
-                    <input type="text"
-                           name="player_name_4"
-                           placeholder="Name Mitspieler 4"
-                           class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                </div>
-
             </div>
 
-            <div class="px-6 pb-5 flex flex-col gap-2">
-                @can('admin.event')
-                <button type="button"
-                        @click="open = false; $dispatch('open-event', {sid, date, timeStart, timeEnd, timeStartFormatted, timeEndFormatted, squareName, dateLabel, timeLabel})"
-                        class="w-full text-center text-sm text-[#bf4316] hover:underline py-1">
-                    Veranstaltung anlegen
-                </button>
-                @endcan
-                <button type="submit"
-                        class="w-full bg-[#bf4316] hover:bg-[#9e3412] text-white text-sm font-medium py-2 rounded transition-colors">
-                    Jetzt buchen
-                </button>
-                <button type="button"
-                        @click="open = false"
-                        class="w-full border border-[#d1cbc0] text-[#6a6e73] text-sm py-2 rounded hover:bg-[#f9f8f6] transition-colors">
-                    Abbrechen
-                </button>
+            <div class="border-t border-[#ebebeb] bg-[#fafafa] px-6 py-4">
+                <div class="flex flex-wrap items-center gap-3">
+                    <button type="submit" class="ui-btn ui-btn-primary px-[19px]">Speichern</button>
+                    <button type="button" @click="open = false" class="ui-btn ui-btn-ghost border border-[#d1cbc0] bg-white px-[19px] text-[#151515] hover:bg-[#f7f7f7]">Abbrechen</button>
+                </div>
             </div>
         </form>
-
-        <button type="button"
-                @click="open = false"
-                class="absolute top-3 right-4 text-[#9a9a9a] hover:text-[#151515] text-lg leading-none">✕</button>
     </div>
 </div>
 @endauth
-
 {{-- ═══════════════════════════════════════════════════════
      EVENT MODAL — Veranstaltung anlegen (nur Admin)
      ═══════════════════════════════════════════════════════ --}}
@@ -382,4 +398,6 @@
     </div>
 </div>
 @endauth
+
+
 

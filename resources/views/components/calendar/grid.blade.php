@@ -138,7 +138,7 @@
                             @endphp
                             <td rowspan="{{ $evBlock['rows'] }}" colspan="{{ $evBlock['cols'] }}" @class(['event-cell', 'event-cell--editable' => $canAdminEvents, 'cal-extra-day' => $extraDay]) data-day="{{ $dayIndex }}" title="{{ $evBlock['name'] }}">
                                 @if($eventEditUrl)
-                                    <a href="{{ $eventEditUrl }}" class="event-label event-edit-trigger" data-edit-url="{{ $eventEditUrl }}">{{ $evBlock['name'] }}</a>
+                                    <a href="{{ $eventEditUrl }}" class="event-label booking-trigger" data-action="event-edit" data-edit-url="{{ $eventEditUrl }}">{{ $evBlock['name'] }}</a>
                                 @else
                                     <span class="event-label">{{ $evBlock['name'] }}</span>
                                 @endif
