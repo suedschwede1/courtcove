@@ -33,9 +33,10 @@ class LintUiCommand extends Command
         $linter   = new UiLinter($viewsPath, $rules);
         $findings = $linter->run();
 
-        $fileCount = iterator_count(
-            new RecursiveIteratorIterator(new RecursiveDirectoryIterator($viewsPath))
-        );
+        $fileCount = count(array_filter(
+            iterator_to_array(new RecursiveIteratorIterator(new RecursiveDirectoryIterator($viewsPath))),
+            fn($f) => $f->isFile() && str_ends_with($f->getFilename(), '.blade.php')
+        ));
 
         if (!$this->option('summary')) {
             foreach ($findings as $f) {
