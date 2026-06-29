@@ -195,22 +195,15 @@
 
                     <div class="ui-form-divider">
                         <div class="ui-section-label">Zeitraum</div>
-                        <div class="grid gap-3" style="grid-template-columns: 2fr 1fr 2fr 1fr;">
+                        <input type="hidden" name="date" x-bind:value="date">
+                        <div class="grid grid-cols-2 gap-3">
                             <div class="ui-field">
-                                <label class="ui-label text-[#151515]">Datum (Beginn)</label>
-                                <input type="date" name="date" x-model="date" class="ui-input ui-date-input">
+                                <span class="ui-label text-[#151515]">Datum</span>
+                                <p class="ui-input bg-[#fafafa] text-[#151515]" x-text="dateLabel"></p>
                             </div>
                             <div class="ui-field">
-                                <label class="ui-label text-[#151515]">Zeit (Beginn)</label>
-                                <input type="text" x-bind:value="timeStartFormatted" readonly class="ui-input bg-[#fafafa] text-[#151515]">
-                            </div>
-                            <div class="ui-field">
-                                <label class="ui-label text-[#151515]">Datum (Ende)</label>
-                                <input type="date" x-model="date" class="ui-input ui-date-input">
-                            </div>
-                            <div class="ui-field">
-                                <label class="ui-label text-[#151515]">Zeit (Ende)</label>
-                                <input type="text" x-bind:value="timeEndFormatted" readonly class="ui-input bg-[#fafafa] text-[#151515]">
+                                <span class="ui-label text-[#151515]">Uhrzeit</span>
+                                <p class="ui-input bg-[#fafafa] text-[#151515]" x-text="timeLabel"></p>
                             </div>
                         </div>
                     </div>
