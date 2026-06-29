@@ -87,7 +87,8 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-[#f0ede6]">
-                        @foreach($bookingsToday->sortBy(fn($b) => $b->reservations->first()?->time_start) as $booking)
+                        @php $sortedBookings = $bookingsToday->sortBy(fn($b) => $b->reservations->first()?->time_start); @endphp
+                        @foreach($sortedBookings as $booking)
                             @php
                                 $res = $booking->reservations->first();
                                 $timeStart = $res ? substr($res->time_start, 0, 5) : '—';
