@@ -42,7 +42,7 @@ body {
 .ui-page {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1.35rem;
 }
 
 .ui-page-header h1 {
@@ -53,8 +53,9 @@ body {
 }
 
 .ui-page-header p {
-    margin-top: 0.25rem;
-    font-size: 0.875rem;
+    margin-top: 0.35rem;
+    max-width: 46rem;
+    font-size: 0.9rem;
     color: var(--ui-text-secondary);
 }
 
@@ -62,7 +63,7 @@ body {
     background: var(--ui-surface);
     border: 1px solid var(--ui-border);
     border-radius: 8px;
-    box-shadow: var(--ui-shadow);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
     overflow: hidden;
 }
 
@@ -71,20 +72,74 @@ body {
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
-    padding: 1rem 1.25rem;
+    padding: 0.95rem 1.25rem;
     border-bottom: 1px solid #ebebeb;
+    background: linear-gradient(180deg, #ffffff 0%, #fcfcfc 100%);
 }
 
 .ui-card-header h2,
 .ui-card-header h3 {
     font-family: var(--font-display);
-    font-size: 1rem;
+    font-size: 0.98rem;
     font-weight: 700;
     color: var(--ui-text);
 }
 
 .ui-card-body {
-    padding: 1.25rem;
+    padding: 1.125rem 1.25rem;
+}
+
+
+.ui-card-body-compact {
+    padding: 0.85rem 1.1rem;
+}
+
+.ui-form-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.ui-form-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+}
+
+.ui-form-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.ui-form-actions-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.ui-pane-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.ui-pane-switch .ui-btn {
+    min-width: 8.5rem;
+}
+
+.ui-note {
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--ui-text-secondary);
+}
+
+.ui-form-divider {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
 .ui-grid-2,
@@ -109,22 +164,22 @@ body {
 .ui-stack {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 0.9rem;
 }
 
 .ui-row {
     display: flex;
     flex-wrap: wrap;
     align-items: end;
-    gap: 0.875rem;
+    gap: 0.75rem;
 }
 
 .ui-section-label {
-    padding-bottom: 0.55rem;
-    margin-bottom: 0.9rem;
+    padding-bottom: 0.6rem;
+    margin-bottom: 1rem;
     border-bottom: 1px solid #ebebeb;
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--ui-text-secondary);
@@ -133,7 +188,7 @@ body {
 .ui-field {
     display: flex;
     flex-direction: column;
-    gap: 0.35rem;
+    gap: 0.32rem;
     min-width: 0;
 }
 
@@ -166,13 +221,13 @@ body {
 
 .ui-input,
 .ui-select {
-    height: 36px;
+    height: 38px;
     padding: 0 12px;
 }
 
 .ui-textarea {
-    min-height: 88px;
-    padding: 8px 12px;
+    min-height: 96px;
+    padding: 9px 12px;
     line-height: 1.5;
     resize: vertical;
 }
@@ -185,17 +240,63 @@ body {
     border-color: #d4d4d4;
 }
 
+.ui-input:disabled,
+.ui-select:disabled,
+.ui-textarea:disabled,
+.ui-input.is-disabled {
+    background: #f3f1ec;
+    color: #8a8d90;
+    border-color: #d8d2c8;
+    cursor: not-allowed;
+}
+
+.ui-date-input,
+.ui-input[type="date"],
+input[type="date"] {
+    color-scheme: light;
+    padding-left: 12px;
+    padding-right: 2.85rem;
+    position: relative;
+    font-variant-numeric: tabular-nums;
+}
+
+.ui-date-input::-webkit-calendar-picker-indicator,
+.ui-input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="date"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.9;
+    margin-left: 0;
+    padding: 0;
+    width: 1.125rem;
+    min-width: 1.125rem;
+    position: absolute;
+    right: 0.75rem;
+}
+
+.ui-date-input::-webkit-datetime-edit,
+.ui-input[type="date"]::-webkit-datetime-edit,
+input[type="date"]::-webkit-datetime-edit {
+    padding: 0;
+    min-width: 100%;
+}
+
+.ui-date-input::-webkit-datetime-edit-fields-wrapper,
+.ui-input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+input[type="date"]::-webkit-datetime-edit-fields-wrapper {
+    padding-right: 0.55rem;
+}
+
 .ui-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 36px;
-    padding: 0 14px;
+    min-height: 38px;
+    padding: 0 16px;
     border-radius: 6px;
     font-size: 13px;
     font-weight: 600;
     text-decoration: none;
-    transition: background-color 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+    transition: background-color 0.12s ease, color 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
     cursor: pointer;
 }
 
@@ -274,27 +375,27 @@ body {
 }
 
 .ui-table th {
-    padding: 10px 16px;
+    padding: 11px 16px;
     border-bottom: 1px solid #ebebeb;
     text-align: left;
     font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.04em;
+    font-weight: 700;
+    letter-spacing: 0.045em;
     text-transform: uppercase;
     color: var(--ui-text-secondary);
     white-space: nowrap;
 }
 
 .ui-table td {
-    padding: 12px 16px;
-    border-bottom: 1px solid #f5f5f5;
+    padding: 13px 16px;
+    border-bottom: 1px solid #f2f2f2;
     font-size: 13px;
     color: var(--ui-text);
-    vertical-align: top;
+    vertical-align: middle;
 }
 
 .ui-table tbody tr:hover {
-    background: var(--ui-bg);
+    background: #fcfcfc;
 }
 
 .ui-badge {
@@ -403,3 +504,101 @@ body {
 }
 
 @import './calendar-grid.css';
+
+
+.ui-table td:last-child,
+.ui-table th:last-child {
+    text-align: right;
+}
+
+.ui-table .ui-btn-ghost,
+.ui-table .ui-btn-outline,
+.ui-table .ui-btn-danger {
+    min-height: 34px;
+}
+
+.ui-card--filter .ui-card-body {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+.ui-select[multiple] {
+    min-height: 220px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.ui-select[multiple] option {
+    padding: 4px 6px;
+}
+
+
+.ui-calendar-nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+}
+
+.ui-calendar-nav-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    min-width: 32px;
+    padding: 0 12px;
+    border: 1px solid #d8d2c8;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #151515;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1;
+    text-decoration: none;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    transition: border-color 0.12s ease, color 0.12s ease, background-color 0.12s ease;
+}
+
+.ui-calendar-nav-btn:hover {
+    border-color: #bf4316;
+    color: #bf4316;
+}
+
+.ui-calendar-nav-btn--today {
+    min-width: 58px;
+    color: #151515;
+}
+
+.ui-calendar-nav-btn--arrow {
+    width: 32px;
+    padding: 0;
+    font-size: 11px;
+}
+
+.ui-calendar-date-form {
+    margin: 0;
+}
+
+.ui-calendar-date-input {
+    height: 32px;
+    min-width: 96px;
+    border: 1px solid #e0a38b;
+    border-radius: 6px;
+    background: #fff8f6;
+    color: #bf4316;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.35);
+}
+
+.ui-calendar-date-input:focus {
+    outline: none;
+    border-color: #bf4316;
+    box-shadow: 0 0 0 2px rgba(191, 67, 22, 0.12);
+}
+
+
+
+
+
+

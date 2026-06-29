@@ -98,6 +98,8 @@
             if (editUrl) {
                 openAdminUrlInModal(editUrl);
             }
+        } else if (action === 'event-edit' && editUrl) {
+            openAdminUrlInModal(editUrl);
         }
     });
 
