@@ -136,6 +136,24 @@ final class UserController extends Controller
         return back()->with('success', __('booking.messages.user_password_reset'));
     }
 
+    public function bulkUpdate(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'uids'   => ['required', 'array', 'min:1'],
+            'uids.*' => ['integer'],
+            'action' => ['required', 'in:blocked,enabled,disabled'],
+        ]);
+
+        $authId = auth()->id();
+
+        User::whereIn('uid', $data['uids'])
+            ->where('uid', '!=', $authId)
+            ->where('status', '!=', 'admin')
+            ->update(['status' => $data['action']]);
+
+        return back()->with('success', count($data['uids']).' Benutzer aktualisiert.');
+    }
+
     public function destroy(User $user): RedirectResponse
     {
         $user->update(['status' => 'deleted']);

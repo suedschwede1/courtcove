@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 @section('admin-title', __('booking.admin.users.title'))
 @section('admin-content')
-<div class="ui-page">
+<div class="ui-page" x-data="{ selected: [] }">
     <div class="ui-page-header flex flex-wrap items-start justify-between gap-4">
         <div>
             <h1>{{ __('booking.admin.users.title') }}</h1>
@@ -43,10 +43,40 @@
             @if($users->isEmpty())
                 <div class="ui-card-body"><p class="ui-kpi-meta">{{ __('booking.admin.no_results') }}</p></div>
             @else
+                {{-- Bulk-Toolbar --}}
+                <div x-show="selected.length > 0" x-cloak
+                     class="flex items-center gap-3 px-5 py-3 bg-[#fff8f6] border-b border-[#ebebeb]">
+                    <span class="text-sm text-[#6a6e73]" x-text="selected.length + ' ausgewählt'"></span>
+                    <form method="POST" action="{{ route('admin.users.bulk') }}" class="flex items-center gap-2">
+                        @csrf
+                        <template x-for="uid in selected" :key="uid">
+                            <input type="hidden" name="uids[]" :value="uid">
+                        </template>
+                        <button type="submit" name="action" value="blocked"
+                                class="ui-btn ui-btn-ghost text-[#c9190b] border border-[#c9190b] hover:bg-[#fff0f0]"
+                                onclick="return confirm('Ausgewählte Benutzer sperren?')">
+                            Sperren
+                        </button>
+                        <button type="submit" name="action" value="enabled"
+                                class="ui-btn ui-btn-ghost"
+                                onclick="return confirm('Ausgewählte Benutzer aktivieren?')">
+                            Aktivieren
+                        </button>
+                    </form>
+                    <button type="button" class="text-sm text-[#6a6e73] hover:text-[#151515] ml-auto"
+                            @click="selected = []">Auswahl aufheben</button>
+                </div>
+
                 <div class="ui-table-wrap">
                     <table class="ui-table">
                         <thead>
                             <tr>
+                                <th class="w-10">
+                                    <input type="checkbox"
+                                           @change="selected = $event.target.checked ? {{ json_encode($users->pluck('uid')->all()) }}.map(Number) : []"
+                                           :checked="selected.length === {{ $users->count() }} && {{ $users->count() }} > 0"
+                                           class="cursor-pointer">
+                                </th>
                                 <th>{{ __('booking.admin.users.name') }}</th>
                                 <th>{{ __('booking.admin.users.email') }}</th>
                                 <th>{{ __('booking.admin.users.status') }}</th>
@@ -56,7 +86,13 @@
                         </thead>
                         <tbody>
                             @foreach($users as $u)
-                                <tr>
+                                <tr :class="selected.includes({{ $u->uid }}) ? 'bg-[#fff8f6]' : ''">
+                                    <td>
+                                        <input type="checkbox"
+                                               :value="{{ $u->uid }}"
+                                               x-model.number="selected"
+                                               class="cursor-pointer">
+                                    </td>
                                     <td class="font-medium">{{ $u->alias }}</td>
                                     <td class="text-[#6a6e73]">{{ $u->email ?: '—' }}</td>
                                     <td>
