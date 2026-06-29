@@ -67,7 +67,7 @@
             <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.users.privileges_ctrl_hint') }}</p>
         </div>
     </div>
-<script>
+    <script>
 const PRIVILEGE_PRESETS = {
     admin:   ['admin.user','admin.booking','admin.event','admin.config','admin.see-menu',
                'calendar.see-past','calendar.see-data',
@@ -88,5 +88,5 @@ document.getElementById('uf-status').addEventListener('change', function () {
     const select = document.getElementById('uf-privileges');
     Array.from(select.options).forEach(o => o.selected = preset.includes(o.value));
 });
-</script>
+    </script>
 </div>

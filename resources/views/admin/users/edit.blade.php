@@ -31,7 +31,8 @@
 
     <form method="POST" action="{{ route('admin.users.destroy', $user) }}"
           onsubmit="return confirm({{ Js::from(__('booking.admin.users.confirm_delete')) }})">
-        @method('DELETE') @csrf
+        @method('DELETE')
+        @csrf
         <div class="flex gap-3 items-center pt-2">
             <button type="submit" class="bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-2 rounded transition-colors">{{ __('booking.admin.users.delete_user') }}</button>
         </div>
