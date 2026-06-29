@@ -186,4 +186,253 @@ class SquareValidatorTest extends TestCase
 
         $this->assertTrue($result->isValid());
     }
+
+    // --- Basic validation ---
+
+    #[Test]
+    public function end_before_start_is_rejected(): void
+    {
+        $square = Square::factory()->create();
+        $user = User::factory()->create();
+
+        $result = $this->validator->validate(
+            $square, $user, 2,
+            Carbon::now()->addDay()->setTime(11, 0),
+            Carbon::now()->addDay()->setTime(10, 0),
+        );
+
+        $this->assertFalse($result->isValid());
+    }
+
+    #[Test]
+    public function booking_spanning_midnight_is_rejected(): void
+    {
+        $square = Square::factory()->create(['time_end' => '23:59:59']);
+        $user = User::factory()->create();
+
+        $result = $this->validator->validate(
+            $square, $user, 2,
+            Carbon::now()->addDay()->setTime(23, 0),
+            Carbon::now()->addDays(2)->setTime(1, 0),
+        );
+
+        $this->assertFalse($result->isValid());
+    }
+
+    #[Test]
+    public function quantity_less_than_one_is_rejected(): void
+    {
+        $square = Square::factory()->create();
+        $user = User::factory()->create();
+
+        $result = $this->validator->validate(
+            $square, $user, 0,
+            Carbon::now()->addDay()->setTime(10, 0),
+            Carbon::now()->addDay()->setTime(11, 0),
+        );
+
+        $this->assertFalse($result->isValid());
+    }
+
+    // --- Opening hours ---
+
+    #[Test]
+    public function booking_before_opening_time_is_rejected(): void
+    {
+        $square = Square::factory()->create(['time_start' => '10:00:00', 'time_end' => '22:00:00']);
+        $user = User::factory()->create();
+
+        $result = $this->validator->validate(
+            $square, $user, 2,
+            Carbon::now()->addDay()->setTime(8, 0),
+            Carbon::now()->addDay()->setTime(9, 0),
+        );
+
+        $this->assertFalse($result->isValid());
+        $this->assertStringContainsStringIgnoringCase('opening hours', $result->getError());
+    }
+
+    #[Test]
+    public function booking_after_closing_time_is_rejected(): void
+    {
+        $square = Square::factory()->create(['time_start' => '08:00:00', 'time_end' => '20:00:00']);
+        $user = User::factory()->create();
+
+        $result = $this->validator->validate(
+            $square, $user, 2,
+            Carbon::now()->addDay()->setTime(21, 0),
+            Carbon::now()->addDay()->setTime(22, 0),
+        );
+
+        $this->assertFalse($result->isValid());
+        $this->assertStringContainsStringIgnoringCase('opening hours', $result->getError());
+    }
+
+    #[Test]
+    public function booking_within_opening_hours_is_accepted(): void
+    {
+        $square = Square::factory()->create([
+            'time_start' => '08:00:00', 'time_end' => '22:00:00',
+            'time_block_bookable_max' => 0, 'range_book' => 0,
+        ]);
+        $user = User::factory()->create();
+
+        $result = $this->validator->validate(
+            $square, $user, 2,
+            Carbon::now()->addDay()->setTime(10, 0),
+            Carbon::now()->addDay()->setTime(11, 0),
+        );
+
+        $this->assertTrue($result->isValid());
+    }
+
+    // --- min_range_book ---
+
+    #[Test]
+    public function booking_too_soon_violates_min_range_book(): void
+    {
+        $square = Square::factory()->create([
+            'min_range_book' => 2 * 3600,
+        ]);
+        $user = User::factory()->create();
+
+        $result = $this->validator->validate(
+            $square, $user, 2,
+            Carbon::now()->addMinutes(30)->setSeconds(0),
+            Carbon::now()->addMinutes(90)->setSeconds(0),
+        );
+
+        $this->assertFalse($result->isValid());
+    }
+
+    #[Test]
+    public function booking_after_min_range_book_is_accepted(): void
+    {
+        $square = Square::factory()->create([
+            'min_range_book' => 2 * 3600,
+            'time_block_bookable_max' => 0, 'range_book' => 0,
+        ]);
+        $user = User::factory()->create();
+
+        $result = $this->validator->validate(
+            $square, $user, 2,
+            Carbon::now()->addHours(3)->setSeconds(0),
+            Carbon::now()->addHours(4)->setSeconds(0),
+        );
+
+        $this->assertTrue($result->isValid());
+    }
+
+    // --- time_block_bookable (minimum duration) ---
+
+    #[Test]
+    public function booking_shorter_than_minimum_duration_is_rejected(): void
+    {
+        $square = Square::factory()->create(['time_block_bookable' => 3600]);
+        $user = User::factory()->create();
+
+        $result = $this->validator->validate(
+            $square, $user, 2,
+            Carbon::now()->addDay()->setTime(10, 0),
+            Carbon::now()->addDay()->setTime(10, 30),
+        );
+
+        $this->assertFalse($result->isValid());
+        $this->assertStringContainsStringIgnoringCase('minimum', $result->getError());
+    }
+
+    #[Test]
+    public function booking_equal_to_minimum_duration_is_accepted(): void
+    {
+        $square = Square::factory()->create([
+            'time_block_bookable' => 3600,
+            'time_block_bookable_max' => 0, 'range_book' => 0,
+        ]);
+        $user = User::factory()->create();
+
+        $result = $this->validator->validate(
+            $square, $user, 2,
+            Carbon::now()->addDay()->setTime(10, 0),
+            Carbon::now()->addDay()->setTime(11, 0),
+        );
+
+        $this->assertTrue($result->isValid());
+    }
+
+    // --- max_active_bookings ---
+
+    #[Test]
+    public function max_active_bookings_limit_blocks_new_booking(): void
+    {
+        $square = Square::factory()->create(['status' => 'enabled', 'max_active_bookings' => 2]);
+        $user = User::factory()->create();
+
+        for ($i = 1; $i <= 2; $i++) {
+            $booking = Booking::factory()->create(['uid' => $user->uid, 'sid' => $square->sid, 'status' => 'single']);
+            Reservation::factory()->create([
+                'bid' => $booking->bid,
+                'date' => Carbon::now()->addDays($i + 5)->toDateString(),
+                'time_start' => '10:00:00',
+                'time_end' => '11:00:00',
+            ]);
+        }
+
+        $result = $this->validator->validate(
+            $square, $user, 2,
+            Carbon::now()->addDays(10)->setTime(10, 0),
+            Carbon::now()->addDays(10)->setTime(11, 0),
+        );
+
+        $this->assertFalse($result->isValid());
+        $this->assertStringContainsStringIgnoringCase('active bookings', $result->getError());
+    }
+
+    #[Test]
+    public function max_active_bookings_zero_means_unlimited(): void
+    {
+        $square = Square::factory()->create([
+            'status' => 'enabled', 'max_active_bookings' => 0,
+            'time_block_bookable_max' => 0, 'range_book' => 0,
+        ]);
+        $user = User::factory()->create();
+
+        for ($i = 1; $i <= 5; $i++) {
+            $booking = Booking::factory()->create(['uid' => $user->uid, 'sid' => $square->sid, 'status' => 'single']);
+            Reservation::factory()->create([
+                'bid' => $booking->bid,
+                'date' => Carbon::now()->addDays($i + 5)->toDateString(),
+                'time_start' => '10:00:00',
+                'time_end' => '11:00:00',
+            ]);
+        }
+
+        $result = $this->validator->validate(
+            $square, $user, 2,
+            Carbon::now()->addDays(15)->setTime(10, 0),
+            Carbon::now()->addDays(15)->setTime(11, 0),
+        );
+
+        $this->assertTrue($result->isValid());
+    }
+
+    // --- range_book same-day exemption ---
+
+    #[Test]
+    public function booking_on_same_day_as_range_book_boundary_is_accepted(): void
+    {
+        $square = Square::factory()->create([
+            'status' => 'enabled',
+            'range_book' => 7 * 86400,
+            'time_block_bookable_max' => 0,
+        ]);
+        $user = User::factory()->create();
+
+        $result = $this->validator->validate(
+            $square, $user, 2,
+            Carbon::now()->addDays(7)->setTime(10, 0),
+            Carbon::now()->addDays(7)->setTime(11, 0),
+        );
+
+        $this->assertTrue($result->isValid());
+    }
 }
