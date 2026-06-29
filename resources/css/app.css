@@ -1,0 +1,22 @@
+@import 'tailwindcss';
+
+@theme {
+    /* Club-Orange Palette */
+    --color-accent-50:  oklch(97%   0.012 35);
+    --color-accent-100: oklch(93%   0.030 35);
+    --color-accent-200: oklch(86%   0.060 35);
+    --color-accent-300: oklch(76%   0.100 35);
+    --color-accent-400: oklch(64%   0.150 35);
+    --color-accent-500: oklch(57%   0.178 35);
+    --color-accent-600: oklch(51%   0.190 35);
+    --color-accent-700: oklch(43%   0.168 35);
+    --color-accent-800: oklch(35%   0.138 35);
+    --color-accent-900: oklch(28%   0.100 35);
+    --color-accent-950: oklch(20%   0.070 35);
+
+    /* Typografie */
+    --font-display: 'Red Hat Display', sans-serif;
+    --font-body:    'Red Hat Text', sans-serif;
+}
+
+@import './calendar-grid.css';
