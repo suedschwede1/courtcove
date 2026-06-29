@@ -27,22 +27,24 @@
         <tr class="calendar-date-row">
             <td class="time-spacer">&nbsp;</td>
             @foreach($dates as $dayIndex => $d)
-                <td colspan="{{ $squares->count() }}" @class(['day-header-cell', 'cal-extra-day' => $dayIndex >= 3]) data-day="{{ $dayIndex }}">
-                    <div class="day-header-inline"><span class="day-header-name">{{ $dateLabels[$d->format('Y-m-d')]['short'] }}</span><span class="day-header-date">{{ $dateLabels[$d->format('Y-m-d')]['long'] }}</span></div>
+                @php($isSelectedDay = $d->format('Y-m-d') === $date->format('Y-m-d'))
+                <td colspan="{{ $squares->count() }}" @class(['day-header-cell', 'day-header-cell--active' => $isSelectedDay, 'cal-extra-day' => $dayIndex >= 3]) data-day="{{ $dayIndex }}">
+                    <div class="day-header-inline">
+                        <span class="day-header-name">{{ $dateLabels[$d->format('Y-m-d')]['short'] }}</span>
+                        <span class="day-header-date">{{ $dateLabels[$d->format('Y-m-d')]['long'] }}</span>
+                    </div>
                 </td>
             @endforeach
         </tr>
         <tr class="calendar-square-row">
             <td class="time-side-head">{{ __('booking.calendar.court') }}</td>
             @foreach($dates as $dayIndex => $d)
+                @php($isSelectedDay = $d->format('Y-m-d') === $date->format('Y-m-d'))
                 @foreach($squares as $square)
-                    @php
-                        $squareAlias = $square->display_name !== $square->name ? $square->display_name : null;
-                    @endphp
-                    <td @class(['square-head-cell', 'cal-extra-day' => $dayIndex >= 3]) data-day="{{ $dayIndex }}">
+                    <td @class(['square-head-cell', 'square-head-cell--active' => $isSelectedDay, 'cal-extra-day' => $dayIndex >= 3]) data-day="{{ $dayIndex }}">
                         <span class="square-head-title">{{ $square->name }}</span>
-                        @if($squareAlias)
-                            <span class="square-head-alias">{{ $squareAlias }}</span>
+                        @if($square->display_name !== $square->name)
+                            <span class="square-head-alias">{{ $square->display_name }}</span>
                         @endif
                     </td>
                 @endforeach
@@ -71,9 +73,12 @@
                         @php
                             $sid = $square->sid;
                             $squareLabel = $square->display_name;
+                            $skipSlot = !empty($eventSkip[$dateKey][$sid][$h]);
+                        @endphp
 
-                            if (!empty($eventSkip[$dateKey][$sid][$h])) { continue; }
+                        @continue($skipSlot)
 
+                        @php
                             $evBlock = $eventBlocks[$dateKey][$sid][$h] ?? null;
                             $reservation = $reservationsBySlot[$dateKey][$sid][$h] ?? null;
 
@@ -150,7 +155,6 @@
                                            timeLabel: @js($timeLabel . ' – ' . $nextLabel . ' Uhr')
                                        })"></a>
                                 @else
-                                    {{-- admin-book: bleibt für booking.js --}}
                                     <a href="#"
                                        class="calendar-cell {{ $cellClass }}{{ $slotClass }} booking-trigger"
                                        title="{{ $cellTitle }}"
@@ -168,7 +172,6 @@
                         @elseif($action === 'cancel')
                             <td @class(['cal-extra-day' => $extraDay]) data-day="{{ $dayIndex }}">
                                 @if($isAdmin)
-                                    {{-- Admin: Iframe-Modal via booking.js --}}
                                     <a href="#"
                                        class="calendar-cell {{ $cellClass }}{{ $slotClass }} booking-trigger"
                                        title="{{ $cellTitle }}"
@@ -185,7 +188,6 @@
                                         @endif
                                     </a>
                                 @elseif($isOwn)
-                                    {{-- User: Alpine Cancel Modal --}}
                                     <a href="#"
                                        class="calendar-cell {{ $cellClass }}{{ $slotClass }}"
                                        title="{{ $cellTitle }}"
@@ -202,7 +204,6 @@
                                         @endif
                                     </a>
                                 @else
-                                    {{-- Andere Buchung: sichtbar aber nicht interaktiv --}}
                                     <span class="calendar-cell {{ $cellClass }}{{ $slotClass }}" title="{{ $cellTitle }}">
                                         <span class="cc-label-primary">{{ $primaryLabel }}</span>
                                         @if($secondaryLabel)
@@ -238,14 +239,12 @@
         <tr class="calendar-square-row">
             <td class="time-side-head">{{ __('booking.calendar.court') }}</td>
             @foreach($dates as $dayIndex => $d)
+                @php($isSelectedDay = $d->format('Y-m-d') === $date->format('Y-m-d'))
                 @foreach($squares as $square)
-                    @php
-                        $squareAlias = $square->display_name !== $square->name ? $square->display_name : null;
-                    @endphp
-                    <td @class(['square-head-cell', 'cal-extra-day' => $dayIndex >= 3]) data-day="{{ $dayIndex }}">
+                    <td @class(['square-head-cell', 'square-head-cell--active' => $isSelectedDay, 'cal-extra-day' => $dayIndex >= 3]) data-day="{{ $dayIndex }}">
                         <span class="square-head-title">{{ $square->name }}</span>
-                        @if($squareAlias)
-                            <span class="square-head-alias">{{ $squareAlias }}</span>
+                        @if($square->display_name !== $square->name)
+                            <span class="square-head-alias">{{ $square->display_name }}</span>
                         @endif
                     </td>
                 @endforeach
@@ -254,7 +253,8 @@
         <tr class="calendar-date-row footer-date-row">
             <td class="time-spacer">&nbsp;</td>
             @foreach($dates as $dayIndex => $d)
-                <td colspan="{{ $squares->count() }}" @class(['day-header-cell', 'cal-extra-day' => $dayIndex >= 3]) data-day="{{ $dayIndex }}">
+                @php($isSelectedDay = $d->format('Y-m-d') === $date->format('Y-m-d'))
+                <td colspan="{{ $squares->count() }}" @class(['day-header-cell', 'day-header-cell--active' => $isSelectedDay, 'cal-extra-day' => $dayIndex >= 3]) data-day="{{ $dayIndex }}">
                     <div class="day-header-inline"><span class="day-header-name">{{ $dateLabels[$d->format('Y-m-d')]['short'] }}</span><span class="day-header-date">{{ $dateLabels[$d->format('Y-m-d')]['long'] }}</span></div>
                 </td>
             @endforeach
