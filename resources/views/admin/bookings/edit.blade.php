@@ -351,7 +351,7 @@
 @if($isCreateMode ?? false)
 @can('admin.event')
 <div id="panel-event" hidden>
-    <form method="POST" action="{{ route('admin.events.store') }}" class="admin-form admin-form--compact" id="admin-event-create">
+    <form method="POST" action="{{ route('admin.events.store') }}" class="flex flex-col gap-4" id="admin-event-create">
         @csrf
         @if(request('popup'))
         <input type="hidden" name="popup" value="1">
