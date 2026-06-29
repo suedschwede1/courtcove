@@ -1,93 +1,100 @@
-<div class="admin-form__section">
-    <h3 class="admin-form__section-title">{{ __('booking.admin.common.booking') ?? 'Buchung' }}</h3>
+<div class="flex flex-col gap-6">
 
-    <div class="admin-form__row">
-        <label class="admin-form__label">{{ __('booking.admin.common.member') }}</label>
-        <div class="admin-form__field">
-            <select name="uid">
-                @foreach($users as $user)
-                    <option value="{{ $user->uid }}" @selected(old('uid', $booking->uid) == $user->uid)>{{ $user->alias }}</option>
-                @endforeach
-            </select>
+    {{-- Buchungsdetails --}}
+    <div class="bg-white rounded-xl border border-[#e0ddd7] shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-[#f0ede6]">
+            <h2 class="text-base font-semibold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.admin.common.booking') ?? 'Buchung' }}</h2>
+        </div>
+        <div class="px-6 py-5 flex flex-col gap-4">
+
+            <div class="flex flex-col gap-1">
+                <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">{{ __('booking.admin.common.member') }}</label>
+                <select name="uid" class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
+                    @foreach($users as $user)
+                        <option value="{{ $user->uid }}" @selected(old('uid', $booking->uid) == $user->uid)>{{ $user->alias }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="flex flex-col gap-1">
+                <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">{{ __('booking.admin.common.court') }}</label>
+                <select name="sid" class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
+                    @foreach($squares as $square)
+                        <option value="{{ $square->sid }}" @selected(old('sid', $booking->sid) == $square->sid)>{{ $square->display_name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">{{ __('booking.admin.common.date') }}</label>
+                    <input type="date" name="date" value="{{ old('date', $reservation?->date) }}"
+                           class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">{{ __('booking.admin.bookings.player_count') }}</label>
+                    <select name="quantity" id="admin-booking-quantity" class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
+                        <option value="2" @selected((int) old('quantity', $booking->quantity) === 2)>{{ __('booking.admin.bookings.single') }}</option>
+                        <option value="4" @selected((int) old('quantity', $booking->quantity) === 4)>{{ __('booking.admin.bookings.double') }}</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">{{ __('booking.admin.common.from') }}</label>
+                    <input type="time" name="time_start" value="{{ old('time_start', $reservation ? substr((string) $reservation->time_start, 0, 5) : '') }}"
+                           class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">{{ __('booking.admin.common.to') }}</label>
+                    <input type="time" name="time_end" value="{{ old('time_end', $reservation ? substr((string) $reservation->time_end, 0, 5) : '') }}"
+                           class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-1">
+                <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">{{ __('booking.admin.common.status') }}</label>
+                <select name="status" class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
+                    <option value="single" @selected(old('status', $booking->status) === 'single')>{{ __('booking.admin.bookings.status_active') }}</option>
+                    <option value="cancelled" @selected(old('status', $booking->status) === 'cancelled')>{{ __('booking.admin.bookings.status_cancelled') }}</option>
+                </select>
+            </div>
+
         </div>
     </div>
 
-    <div class="admin-form__row">
-        <label class="admin-form__label">{{ __('booking.admin.common.court') }}</label>
-        <div class="admin-form__field">
-            <select name="sid">
-                @foreach($squares as $square)
-                    <option value="{{ $square->sid }}" @selected(old('sid', $booking->sid) == $square->sid)>{{ $square->display_name }}</option>
-                @endforeach
-            </select>
+    {{-- Spielernamen --}}
+    <div class="bg-white rounded-xl border border-[#e0ddd7] shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-[#f0ede6]">
+            <h2 class="text-base font-semibold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.admin.bookings.player_names') ?? 'Spielernamen' }}</h2>
+        </div>
+        <div class="px-6 py-5 flex flex-col gap-4">
+
+            <div class="flex flex-col gap-1">
+                <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="admin-player2">{{ __('booking.admin.bookings.additional_player') }}</label>
+                <input type="text" id="admin-player2" name="player_name_2" value="{{ old('player_name_2', $playerNames[2]) }}"
+                       list="admin-player-suggestions" maxlength="120" required
+                       class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
+            </div>
+
+            <div class="flex flex-col gap-1" id="admin-player3-field">
+                <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="admin-player3">{{ __('booking.admin.bookings.player_name_3') }}</label>
+                <input type="text" id="admin-player3" name="player_name_3" value="{{ old('player_name_3', $playerNames[3]) }}"
+                       list="admin-player-suggestions" maxlength="120"
+                       class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
+            </div>
+
+            <div class="flex flex-col gap-1" id="admin-player4-field">
+                <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="admin-player4">{{ __('booking.admin.bookings.player_name_4') }}</label>
+                <input type="text" id="admin-player4" name="player_name_4" value="{{ old('player_name_4', $playerNames[4]) }}"
+                       list="admin-player-suggestions" maxlength="120"
+                       class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
+            </div>
+
         </div>
     </div>
 
-    <div class="admin-form__row">
-        <label class="admin-form__label">{{ __('booking.admin.common.date') }}</label>
-        <div class="admin-form__field">
-            <input type="date" name="date" value="{{ old('date', $reservation?->date) }}">
-        </div>
-    </div>
-
-    <div class="admin-form__row">
-        <label class="admin-form__label">{{ __('booking.admin.common.from') }}</label>
-        <div class="admin-form__field">
-            <input type="time" name="time_start" value="{{ old('time_start', $reservation ? substr((string) $reservation->time_start, 0, 5) : '') }}">
-        </div>
-    </div>
-
-    <div class="admin-form__row">
-        <label class="admin-form__label">{{ __('booking.admin.common.to') }}</label>
-        <div class="admin-form__field">
-            <input type="time" name="time_end" value="{{ old('time_end', $reservation ? substr((string) $reservation->time_end, 0, 5) : '') }}">
-        </div>
-    </div>
-
-    <div class="admin-form__row">
-        <label class="admin-form__label">{{ __('booking.admin.bookings.play_type') }}</label>
-        <div class="admin-form__field">
-            <select name="quantity" id="admin-booking-quantity">
-                <option value="2" @selected((int) old('quantity', $booking->quantity) === 2)>{{ __('booking.admin.bookings.single') }}</option>
-                <option value="4" @selected((int) old('quantity', $booking->quantity) === 4)>{{ __('booking.admin.bookings.double') }}</option>
-            </select>
-        </div>
-    </div>
-
-    <div class="admin-form__row">
-        <label class="admin-form__label">{{ __('booking.admin.common.status') }}</label>
-        <div class="admin-form__field">
-            <select name="status">
-                <option value="single" @selected(old('status', $booking->status) === 'single')>{{ __('booking.admin.bookings.status_active') }}</option>
-                <option value="cancelled" @selected(old('status', $booking->status) === 'cancelled')>{{ __('booking.admin.bookings.status_cancelled') }}</option>
-            </select>
-        </div>
-    </div>
-</div>
-
-<div class="admin-form__section">
-    <h3 class="admin-form__section-title">{{ __('booking.admin.bookings.player_names') ?? 'Spielernamen' }}</h3>
-
-    <div class="admin-form__row">
-        <label class="admin-form__label" for="admin-player2">{{ __('booking.admin.bookings.additional_player') }}</label>
-        <div class="admin-form__field">
-            <input type="text" id="admin-player2" name="player_name_2" value="{{ old('player_name_2', $playerNames[2]) }}" list="admin-player-suggestions" maxlength="120" required>
-        </div>
-    </div>
-
-    <div class="admin-form__row">
-        <label class="admin-form__label" for="admin-player3">{{ __('booking.admin.bookings.player_name_3') }}</label>
-        <div class="admin-form__field">
-            <input type="text" id="admin-player3" name="player_name_3" value="{{ old('player_name_3', $playerNames[3]) }}" list="admin-player-suggestions" maxlength="120">
-        </div>
-    </div>
-
-    <div class="admin-form__row">
-        <label class="admin-form__label" for="admin-player4">{{ __('booking.admin.bookings.player_name_4') }}</label>
-        <div class="admin-form__field">
-            <input type="text" id="admin-player4" name="player_name_4" value="{{ old('player_name_4', $playerNames[4]) }}" list="admin-player-suggestions" maxlength="120">
-        </div>
-    </div>
 </div>
 
 <datalist id="admin-player-suggestions">
