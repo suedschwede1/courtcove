@@ -237,8 +237,12 @@
         squareName: '',
         dateLabel: '',
         timeLabel: '',
+        dateStartVal: '',
+        timeStartVal: '',
+        dateEndVal: '',
+        timeEndVal: '',
         openEvent(detail) {
-            this.sid                = detail.sid;
+            this.sid                = String(detail.sid);
             this.date               = detail.date;
             this.timeStart          = detail.timeStart;
             this.timeEnd            = detail.timeEnd;
@@ -247,6 +251,10 @@
             this.squareName         = detail.squareName;
             this.dateLabel          = detail.dateLabel;
             this.timeLabel          = detail.timeLabel;
+            this.dateStartVal = detail.date;
+            this.dateEndVal   = detail.date;
+            this.timeStartVal = detail.timeStartFormatted;
+            this.timeEndVal   = detail.timeEndFormatted;
             this.open = true;
         }
      }"
@@ -289,7 +297,7 @@
                         <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">Datum Start</label>
                         <input type="date"
                                name="date_start"
-                               x-bind:value="date"
+                               x-model="dateStartVal"
                                required
                                class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
                     </div>
@@ -297,7 +305,7 @@
                         <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">Zeit Start</label>
                         <input type="time"
                                name="time_start"
-                               x-bind:value="timeStartFormatted"
+                               x-model="timeStartVal"
                                required
                                class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
                     </div>
@@ -305,7 +313,7 @@
                         <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">Datum Ende</label>
                         <input type="date"
                                name="date_end"
-                               x-bind:value="date"
+                               x-model="dateEndVal"
                                required
                                class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
                     </div>
@@ -313,7 +321,7 @@
                         <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">Zeit Ende</label>
                         <input type="time"
                                name="time_end"
-                               x-bind:value="timeEndFormatted"
+                               x-model="timeEndVal"
                                required
                                class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
                     </div>
@@ -323,7 +331,7 @@
                 <div class="flex flex-col gap-1">
                     <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">Platz</label>
                     <select name="sid"
-                            x-bind:value="sid"
+                            x-model="sid"
                             class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
                         @foreach($squares as $square)
                             <option value="{{ $square->sid }}">{{ $square->display_name }}</option>
