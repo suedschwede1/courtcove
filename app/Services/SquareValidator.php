@@ -84,12 +84,12 @@ final class SquareValidator
         }
 
         if ((int) $square->time_block_bookable > 0 && $durationSeconds < (int) $square->time_block_bookable) {
-            return ValidationResult::fail('Booking duration is shorter than the minimum bookable time');
+            return ValidationResult::fail(__('booking.messages.booking_duration_too_short'));
         }
 
         if ((int) $square->max_active_bookings > 0
             && $this->getActiveFutureBookingCount($user) >= (int) $square->max_active_bookings) {
-            return ValidationResult::fail('Maximum number of active bookings reached');
+            return ValidationResult::fail(__('booking.messages.max_active_bookings_reached'));
         }
 
         if ((int) $square->time_block_bookable_max > 0 && ! $this->isShortBooking($dateStart)) {
@@ -97,7 +97,7 @@ final class SquareValidator
 
             if ($dailyUsed + $durationSeconds > (int) $square->time_block_bookable_max
                 && ! $this->canCreateAnyBooking($user)) {
-                return ValidationResult::fail('Daily booking limit exceeded');
+                return ValidationResult::fail(__('booking.messages.daily_booking_limit_exceeded'));
             }
         }
 
