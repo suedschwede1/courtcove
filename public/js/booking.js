@@ -1,517 +1,104 @@
-document.addEventListener('DOMContentLoaded', function () {
-    var dateInput = document.getElementById('c-date');
-    if (dateInput) {
-        var openPicker = function () {
-            if (typeof dateInput.showPicker === 'function') {
-                dateInput.showPicker();
-            }
-        };
+(function () {
+    'use strict';
 
-        dateInput.addEventListener('change', function () {
-            if (!dateInput.value) {
-                return;
-            }
+    // ─── Helpers ───────────────────────────────────────────────────────────────
 
-            var parts = dateInput.value.split('-');
-            var label = document.getElementById('c-date-label');
-            if (label) { label.textContent = parts[2] + '.' + parts[1] + '.' + parts[0]; }
-
-            window.location.href = dateInput.closest('form').action + '?date=' + dateInput.value;
-        });
-
-        var dateLabel = document.getElementById('c-date-label');
-        if (dateLabel) {
-            dateLabel.addEventListener('click', openPicker);
-        }
-    }
-
-    document.querySelectorAll('[data-panel-toggle]').forEach(function (toggle) {
-        toggle.addEventListener('click', function () {
-            var panelId = toggle.getAttribute('data-panel-toggle');
-            var panel = document.getElementById(panelId);
-            if (!panel) {
-                return;
-            }
-
-            if (panel.hasAttribute('hidden')) {
-                panel.removeAttribute('hidden');
-            } else {
-                panel.setAttribute('hidden', '');
-            }
-        });
-    });
-
-    var feedbackModal = document.getElementById('feedback-modal');
-    var bookingModal = document.getElementById('booking-modal');
-    var cancelModal = document.getElementById('cancel-modal');
-    var eventModal = document.getElementById('event-modal');
-    var adminBookingModal = document.getElementById('admin-booking-modal');
-    var quantitySelect = document.getElementById('modal-quantity');
-    var cancelEditLink = document.getElementById('cancel-modal-edit');
-    var deleteForm = document.getElementById('delete-form');
-    var createEventButton = document.getElementById('modal-create-event');
-    var eventForm = document.getElementById('event-form');
-    var eventDateStart = document.getElementById('event-date-start');
-    var eventTimeStart = document.getElementById('event-time-start');
-    var eventDateEnd = document.getElementById('event-date-end');
-    var eventTimeEnd = document.getElementById('event-time-end');
-    var eventDatetimeStart = document.getElementById('event-datetime-start');
-    var eventDatetimeEnd = document.getElementById('event-datetime-end');
-    var eventSid = document.getElementById('event-sid');
-    var eventName = document.getElementById('event-name');
-    var activeSlot = null;
-    var playerFields = [2, 3, 4].map(function (index) {
-        return {
-            index: index,
-            field: document.getElementById('modal-player' + index + '-field'),
-            input: document.getElementById('modal-player' + index),
-        };
-    });
-
-    function closeFeedbackModal() {
-        if (feedbackModal) {
-            feedbackModal.style.display = 'none';
-        }
+    function showModal(modal) {
+        if (modal) { modal.style.display = 'block'; }
     }
 
     function hideModal(modal) {
-        if (modal) {
-            modal.style.display = 'none';
-        }
+        if (modal) { modal.style.display = 'none'; }
     }
 
-    function showModal(modal) {
-        if (modal) {
-            modal.style.display = 'block';
-        }
+    function closeIframeModal() {
+        var modal  = document.getElementById('admin-booking-modal');
+        var iframe = document.getElementById('abm-iframe');
+        if (iframe) { iframe.src = ''; }
+        hideModal(modal);
     }
 
-    function closeAllModals() {
-        hideModal(bookingModal);
-        hideModal(cancelModal);
-        hideModal(eventModal);
-        hideModal(adminBookingModal);
-        closeFeedbackModal();
-    }
+    // ─── Admin Iframe Modal ─────────────────────────────────────────────────────
 
-    function padNumber(value) {
-        return String(value).padStart(2, '0');
-    }
+    function openAdminBookingModal(element) {
+        var modal  = document.getElementById('admin-booking-modal');
+        var iframe = document.getElementById('abm-iframe');
+        if (!modal || !iframe) { return; }
 
-    function secondsToTime(seconds) {
-        var totalMinutes = Math.floor(Number(seconds || 0) / 60);
-        var hours = Math.floor(totalMinutes / 60);
-        var minutes = totalMinutes % 60;
+        var createUrl = element.dataset.createUrl;
+        if (!createUrl) { return; }
 
-        return padNumber(hours) + ':' + padNumber(minutes);
-    }
-
-    function syncBookingFields() {
-        if (!quantitySelect) {
-            return;
-        }
-
-        var quantity = quantitySelect.value;
-        playerFields.forEach(function (player) {
-            if (!player.field || !player.input) {
-                return;
-            }
-
-            var shouldShow = quantity === '4' ? true : (quantity === '2' && player.index === 2);
-            if (shouldShow) {
-                player.field.removeAttribute('hidden');
-                player.input.required = true;
-                if (!player.input.placeholder) {
-                    player.input.placeholder = player.index === 2 ? 'Mitglied auswählen oder frei eingeben' : 'Mitglied auswählen oder frei eingeben';
-                }
-            } else {
-                player.field.setAttribute('hidden', '');
-                player.input.required = false;
-                player.input.value = '';
-            }
-        });
-    }
-
-    function resetBookingFields() {
-        if (quantitySelect) {
-            quantitySelect.value = '2';
-        }
-
-        playerFields.forEach(function (player) {
-            if (player.input) {
-                player.input.value = '';
-            }
-        });
-
-        syncBookingFields();
-    }
-
-    function fillEventFieldsFromSlot(slot) {
-        if (!slot) {
-            return;
-        }
-
-        var slotDate = slot.getAttribute('data-date');
-        var timeStart = secondsToTime(slot.getAttribute('data-time-start'));
-        var timeEnd = secondsToTime(slot.getAttribute('data-time-end'));
-
-        if (eventDateStart) {
-            eventDateStart.value = slotDate;
-        }
-
-        if (eventTimeStart) {
-            eventTimeStart.value = timeStart;
-        }
-
-        if (eventDateEnd) {
-            eventDateEnd.value = slotDate;
-        }
-
-        if (eventTimeEnd) {
-            eventTimeEnd.value = timeEnd;
-        }
-
-        if (eventSid) {
-            eventSid.value = slot.getAttribute('data-sid');
-        }
-
-        if (eventName && !eventName.value.trim()) {
-            eventName.value = slot.getAttribute('data-square-name');
-        }
-
-        var eventDescription = document.getElementById('event-description');
-        if (eventDescription) {
-            eventDescription.value = '';
-        }
-    }
-
-    function syncEventDateTime() {
-        if (!eventDatetimeStart || !eventDatetimeEnd || !eventDateStart || !eventTimeStart || !eventDateEnd || !eventTimeEnd) {
-            return;
-        }
-
-        eventDatetimeStart.value = eventDateStart.value && eventTimeStart.value ? eventDateStart.value + ' ' + eventTimeStart.value : '';
-        eventDatetimeEnd.value = eventDateEnd.value && eventTimeEnd.value ? eventDateEnd.value + ' ' + eventTimeEnd.value : '';
-    }
-
-    function openBookingModal(trigger) {
-        activeSlot = trigger;
-        var slotDate = trigger.getAttribute('data-date');
-        var timeStart = trigger.getAttribute('data-time-start');
-        var timeEnd = trigger.getAttribute('data-time-end');
-
-        document.getElementById('modal-title').textContent = trigger.getAttribute('data-square-name') + ' buchen';
-        document.getElementById('modal-date').textContent = trigger.getAttribute('data-date-label');
-        document.getElementById('modal-time').textContent = trigger.getAttribute('data-time-label');
-        document.getElementById('modal-sid').value = trigger.getAttribute('data-sid');
-        document.getElementById('modal-date-input').value = slotDate;
-        document.getElementById('modal-ts').value = timeStart;
-        document.getElementById('modal-te').value = timeEnd;
-
-        if (createEventButton) {
-            createEventButton.hidden = false;
-        }
-
-        var adminLink = document.getElementById('modal-admin-link');
-        if (adminLink) {
-            var createUrl = trigger.getAttribute('data-create-url');
-            if (createUrl) {
-                adminLink.href = createUrl;
-                adminLink.hidden = false;
-            } else {
-                adminLink.hidden = true;
-            }
-        }
-
-        resetBookingFields();
-        showModal(bookingModal);
-    }
-
-    function openEventModal() {
-        fillEventFieldsFromSlot(activeSlot);
-        syncEventDateTime();
-        hideModal(bookingModal);
-        showModal(eventModal);
-    }
-
-    function openCancelModal(trigger) {
-        var bid = trigger.getAttribute('data-bid');
-        var editUrl = trigger.getAttribute('data-edit-url');
-        var deleteUrl = trigger.getAttribute('data-delete-url');
-        document.getElementById('cancel-modal-title').textContent = trigger.getAttribute('data-square-name');
-        document.getElementById('cancel-modal-date').textContent = trigger.getAttribute('data-date-label');
-        document.getElementById('cancel-modal-time').textContent = trigger.getAttribute('data-time-label');
-        document.getElementById('cancel-form').action = '/bookings/' + bid;
-
-        if (cancelEditLink) {
-            if (editUrl) {
-                cancelEditLink.href = editUrl;
-                cancelEditLink.hidden = false;
-            } else {
-                cancelEditLink.hidden = true;
-                cancelEditLink.href = '#';
-            }
-        }
-
-        if (deleteForm) {
-            if (deleteUrl) {
-                deleteForm.action = deleteUrl;
-                deleteForm.hidden = false;
-            } else {
-                deleteForm.action = '';
-                deleteForm.hidden = true;
-            }
-        }
-
-        showModal(cancelModal);
-    }
-
-    function secondsToHHMM(seconds) {
-        var s = parseInt(seconds, 10) || 0;
-        return padNumber(Math.floor(s / 3600)) + ':' + padNumber(Math.floor((s % 3600) / 60));
+        iframe.src = createUrl + (createUrl.includes('?') ? '&' : '?') + 'popup=1';
+        showModal(modal);
     }
 
     function openAdminUrlInModal(url) {
+        var modal  = document.getElementById('admin-booking-modal');
         var iframe = document.getElementById('abm-iframe');
-        if (!iframe || !url) { return; }
+        if (!modal || !iframe) { return; }
 
-        var target = new URL(url, window.location.origin);
-        target.searchParams.set('popup', '1');
-        iframe.src = target.pathname + '?' + target.searchParams.toString();
-        showModal(adminBookingModal);
+        iframe.src = url + (url.includes('?') ? '&' : '?') + 'popup=1';
+        showModal(modal);
     }
 
-    function openAdminBookingModal(trigger) {
-        var iframe = document.getElementById('abm-iframe');
-        if (!iframe) { return; }
-
-        var params = new URLSearchParams({
-            sid:        trigger.getAttribute('data-sid') || '',
-            date:       trigger.getAttribute('data-date') || '',
-            time_start: secondsToHHMM(trigger.getAttribute('data-time-start')),
-            time_end:   secondsToHHMM(trigger.getAttribute('data-time-end')),
-        });
-
-        var base = trigger.getAttribute('data-create-url') || '/admin/bookings/create';
-        base = base.split('?')[0];
-        params.set('popup', '1');
-        openAdminUrlInModal(base + '?' + params.toString());
+    // Schließen via Close-Button
+    var abmClose = document.getElementById('abm-close');
+    if (abmClose) {
+        abmClose.addEventListener('click', closeIframeModal);
     }
 
-    function openAdminEventEditModal(trigger) {
-        openAdminUrlInModal(trigger.getAttribute('data-edit-url') || trigger.href);
-    }
-
-    if (cancelEditLink) {
-        cancelEditLink.addEventListener('click', function (event) {
-            var editUrl = cancelEditLink.getAttribute('href');
-            if (!adminBookingModal || !editUrl || editUrl === '#') {
-                return;
-            }
-
-            event.preventDefault();
-            hideModal(cancelModal);
-            openAdminUrlInModal(editUrl);
-        });
-    }
-
-    if (adminBookingModal) {
-        var abmIframe = document.getElementById('abm-iframe');
-        if (abmIframe) {
-            abmIframe.addEventListener('load', function () {
-                if (adminBookingModal.style.display === 'none') { return; }
-                try {
-                    var iframePath = abmIframe.contentWindow.location.pathname;
-                    var isAdminBookingForm = iframePath === '/admin/bookings/create' || /^\/admin\/bookings\/[^/]+\/edit$/.test(iframePath);
-                    var isAdminEventForm = iframePath === '/admin/events/create' || /^\/admin\/events\/[^/]+\/edit$/.test(iframePath);
-                    var isPublicBookingForm = /^\/bookings\/[^/]+\/edit$/.test(iframePath);
-                    if (iframePath && !isAdminBookingForm && !isAdminEventForm && !isPublicBookingForm) {
-                        closeAllModals();
-                        abmIframe.src = 'about:blank';
-                        window.location.reload();
-                    }
-                } catch (e) {}
-            });
-        }
-        var abmClose = document.getElementById('abm-close');
-        if (abmClose) {
-            abmClose.addEventListener('click', function (e) {
-                e.preventDefault();
-                closeAllModals();
-                var iframe = document.getElementById('abm-iframe');
-                if (iframe) { iframe.src = 'about:blank'; }
-            });
-        }
-        adminBookingModal.addEventListener('click', function (e) {
-            if (e.target === adminBookingModal) {
-                closeAllModals();
-                var iframe = document.getElementById('abm-iframe');
-                if (iframe) { iframe.src = 'about:blank'; }
+    // Schließen via Backdrop-Klick
+    var abmModal = document.getElementById('admin-booking-modal');
+    if (abmModal) {
+        abmModal.addEventListener('click', function (e) {
+            if (e.target === abmModal ||
+                e.target.classList.contains('booking-modal__viewport')) {
+                closeIframeModal();
             }
         });
     }
 
-    if (feedbackModal) {
-        var feedbackClose = document.getElementById('feedback-modal-close');
-        var feedbackOk = document.getElementById('feedback-modal-ok');
-
-        if (feedbackClose) {
-            feedbackClose.addEventListener('click', function (event) {
-                event.preventDefault();
-                closeFeedbackModal();
-            });
-        }
-
-        if (feedbackOk) {
-            feedbackOk.addEventListener('click', closeFeedbackModal);
-        }
-
-        feedbackModal.addEventListener('click', function (event) {
-            if (event.target === feedbackModal) {
-                closeFeedbackModal();
-            }
-        });
-    }
-
-    if (quantitySelect) {
-        quantitySelect.addEventListener('change', syncBookingFields);
-        syncBookingFields();
-    }
-
-    [eventDateStart, eventTimeStart, eventDateEnd, eventTimeEnd].forEach(function (input) {
-        if (input) {
-            input.addEventListener('input', syncEventDateTime);
-            input.addEventListener('change', syncEventDateTime);
-        }
+    // Escape-Key (nur Iframe-Modal — Alpine handelt die anderen)
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { closeIframeModal(); }
     });
 
-    if (eventForm) {
-        eventForm.addEventListener('submit', function () {
-            syncEventDateTime();
-        });
-    }
-
-    if (createEventButton) {
-        createEventButton.addEventListener('click', function () {
-            openEventModal();
-        });
-    }
-
-    document.addEventListener('click', function (event) {
-        var eventEditTrigger = event.target.closest('.event-edit-trigger');
-        if (eventEditTrigger && adminBookingModal) {
-            event.preventDefault();
-            openAdminEventEditModal(eventEditTrigger);
-            return;
-        }
-
-        var trigger = event.target.closest('.booking-trigger');
-        if (trigger) {
-            event.preventDefault();
-            var action = trigger.getAttribute('data-action');
-
-            if (action === 'cancel') {
-                var editUrl = trigger.getAttribute('data-edit-url');
-                var deleteUrl = trigger.getAttribute('data-delete-url');
-                if (editUrl && deleteUrl && adminBookingModal) {
-                    openAdminUrlInModal(editUrl);
-                } else {
-                    openCancelModal(trigger);
+    // Iframe-Navigation-Monitor: Seite neuladen wenn Form erfolgreich submitted
+    var abmIframe = document.getElementById('abm-iframe');
+    if (abmIframe) {
+        abmIframe.addEventListener('load', function () {
+            try {
+                var loc = abmIframe.contentWindow.location.href;
+                if (loc && loc !== 'about:blank' && !loc.includes('popup=1')) {
+                    closeIframeModal();
+                    window.location.reload();
                 }
-            } else if (action === 'admin-book' && adminBookingModal) {
-                openAdminBookingModal(trigger);
-            } else {
-                openBookingModal(trigger);
+            } catch (_) {
+                // Cross-origin: ignorieren
             }
-            return;
-        }
-
-        if (event.target === bookingModal || event.target === cancelModal || event.target === eventModal) {
-            closeAllModals();
-        }
-    });
-
-    var modalClose = document.getElementById('modal-close');
-    var modalCancel = document.getElementById('modal-cancel');
-    var cancelClose = document.getElementById('cancel-modal-close');
-    var cancelAbort = document.getElementById('cancel-modal-abort');
-    var eventClose = document.getElementById('event-modal-close');
-    var eventCancel = document.getElementById('event-modal-cancel');
-
-    if (modalClose) {
-        modalClose.addEventListener('click', function (event) {
-            event.preventDefault();
-            closeAllModals();
         });
     }
 
-    if (modalCancel) {
-        modalCancel.addEventListener('click', closeAllModals);
-    }
+    // ─── Event-Delegation für Admin-Trigger (.booking-trigger) ─────────────────
 
-    if (cancelClose) {
-        cancelClose.addEventListener('click', function (event) {
-            event.preventDefault();
-            closeAllModals();
-        });
-    }
+    document.addEventListener('click', function (e) {
+        var trigger = e.target.closest('.booking-trigger');
+        if (!trigger) { return; }
 
-    if (cancelAbort) {
-        cancelAbort.addEventListener('click', closeAllModals);
-    }
+        e.preventDefault();
 
-    if (eventClose) {
-        eventClose.addEventListener('click', function (event) {
-            event.preventDefault();
-            closeAllModals();
-        });
-    }
+        var action    = trigger.dataset.action;
+        var deleteUrl = trigger.dataset.deleteUrl;
+        var editUrl   = trigger.dataset.editUrl;
 
-    if (eventCancel) {
-        eventCancel.addEventListener('click', closeAllModals);
-    }
-
-    document.addEventListener('keydown', function (event) {
-        if (event.key === 'Escape') {
-            closeAllModals();
+        if (action === 'admin-book') {
+            openAdminBookingModal(trigger);
+        } else if (action === 'cancel' && deleteUrl) {
+            // Admin-Cancel: Edit-Formular im Iframe
+            if (editUrl) {
+                openAdminUrlInModal(editUrl);
+            }
         }
     });
-});
 
-document.addEventListener('DOMContentLoaded', function () {
-    var datalist = document.getElementById('player-suggestions');
-    if (!datalist) {
-        return;
-    }
-
-    var timer = null;
-
-    function refresh(value) {
-        var q = value.trim();
-        if (q.length < 2) {
-            datalist.innerHTML = '';
-            return;
-        }
-
-        fetch('/bookings/players?q=' + encodeURIComponent(q), { headers: { 'Accept': 'application/json' } })
-            .then(function (r) { return r.ok ? r.json() : []; })
-            .then(function (list) {
-                datalist.innerHTML = '';
-                (list || []).forEach(function (alias) {
-                    var opt = document.createElement('option');
-                    opt.value = alias;
-                    datalist.appendChild(opt);
-                });
-            })
-            .catch(function () {});
-    }
-
-    document.querySelectorAll('input[list="player-suggestions"]').forEach(function (input) {
-        input.addEventListener('input', function (event) {
-            clearTimeout(timer);
-            var value = event.target.value;
-            timer = setTimeout(function () { refresh(value); }, 200);
-        });
-    });
-});
-
+})();
