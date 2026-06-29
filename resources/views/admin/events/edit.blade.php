@@ -14,7 +14,7 @@
 
         <div class="ui-card">
             <div class="ui-card-body">
-                @include('admin.events._form')
+                @include('admin.events._form', ['popup_mode' => request('popup')])
             </div>
         </div>
 
@@ -42,7 +42,7 @@
 
         <div class="ui-card">
             <div class="ui-card-body">
-                @include('admin.events._form')
+                @include('admin.events._form', ['popup_mode' => request('popup')])
             </div>
         </div>
 
