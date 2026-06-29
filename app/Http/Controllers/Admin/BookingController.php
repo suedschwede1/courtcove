@@ -165,6 +165,10 @@ final class BookingController extends Controller
             return back()->withErrors(['booking' => $e->getMessage()])->withInput();
         }
 
+        if ($request->boolean('popup')) {
+            return response('<script>window.parent.location.reload();</script>')->header('Content-Type', 'text/html');
+        }
+
         return redirect()->route('calendar.index', ['date' => Carbon::parse($data['date'])->format('Y-m-d')])
             ->with('success', __('booking.messages.booking_created'));
     }
@@ -265,6 +269,10 @@ final class BookingController extends Controller
             return back()->withErrors(['booking' => $e->getMessage()])->withInput();
         }
 
+        if ($request->boolean('popup')) {
+            return response('<script>window.parent.location.reload();</script>')->header('Content-Type', 'text/html');
+        }
+
         $redirectTo = $request->string('redirect_to')->trim()->value();
         if ($redirectTo !== '') {
             return redirect()->to($redirectTo)->with('success', __('booking.messages.booking_updated'));
@@ -277,6 +285,10 @@ final class BookingController extends Controller
     {
         $this->bookingService->cancelSingle($booking);
 
+        if ($request->boolean('popup')) {
+            return response('<script>window.parent.location.reload();</script>')->header('Content-Type', 'text/html');
+        }
+
         $redirectTo = $request->string('redirect_to')->trim()->value();
         if ($redirectTo !== '') {
             return redirect()->to($redirectTo)->with('success', __('booking.messages.booking_cancelled'));
@@ -288,6 +300,10 @@ final class BookingController extends Controller
     public function destroy(Request $request, Booking $booking): RedirectResponse
     {
         $this->bookingService->deleteSingle($booking);
+
+        if ($request->boolean('popup')) {
+            return response('<script>window.parent.location.reload();</script>')->header('Content-Type', 'text/html');
+        }
 
         $redirectTo = $request->string('redirect_to')->trim()->value();
         if ($redirectTo !== '') {
