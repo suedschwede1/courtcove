@@ -334,7 +334,7 @@ final class BookingController extends Controller
             'time_start' => ['required', 'date_format:H:i'],
             'time_end' => ['required', 'date_format:H:i'],
             'quantity' => ['required', 'integer', 'in:2,4'],
-            'status' => ['required', 'in:single,subscription,cancelled'],
+            'status' => ['nullable', 'in:single,subscription,cancelled'],
             'player_name_2' => ['required_if:quantity,2,4', 'nullable', 'string', 'max:120'],
             'player_name_3' => ['required_if:quantity,4', 'nullable', 'string', 'max:120'],
             'player_name_4' => ['required_if:quantity,4', 'nullable', 'string', 'max:120'],
