@@ -322,9 +322,6 @@
                         @click="open = false"
                         class="text-[20px] leading-none text-[#8a8d90] transition-colors hover:text-[#151515]">×</button>
             </div>
-            <div class="flex gap-6 border-b border-[#ebebeb]">
-                <span class="border-b-2 border-[#bf4316] px-0 pb-3 text-sm font-semibold text-[#bf4316]">Buchung</span>
-            </div>
         </div>
 
         <form method="POST" action="{{ route('bookings.store') }}" @submit.prevent="submitBooking($el)" class="flex min-h-0 flex-1 flex-col overflow-hidden">
