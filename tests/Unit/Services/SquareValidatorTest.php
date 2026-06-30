@@ -499,7 +499,7 @@ class SquareValidatorTest extends TestCase
         );
 
         $this->assertFalse($result->isValid());
-        $this->assertStringContainsString('Stoßzeiten', $result->getError());
+        $this->assertSame(__('booking.messages.peak_limit_reached'), $result->getError());
     }
 
     #[Test]
