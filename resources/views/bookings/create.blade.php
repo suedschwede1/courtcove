@@ -64,8 +64,8 @@ $timeEndLabel   = str_pad((string) $timeEnd,   2, '0', STR_PAD_LEFT) . ':00';
             <input type="hidden" name="quantity"   value="2">
 
             <label class="booking-confirm-field">
-                {{ __('booking.modal.player_name_2') }}
-                <input type="text" name="player_name_2" value="{{ old('player_name_2') }}" maxlength="120" required>
+                Mitspieler
+                <input type="text" name="mitspieler" value="{{ old('mitspieler') }}" maxlength="255" placeholder="z.B. Müller, Huber, Schmidt">
             </label>
 
             <button type="submit" class="default-button booking-confirm-submit">

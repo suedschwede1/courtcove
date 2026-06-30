@@ -72,23 +72,9 @@
         <div class="px-6 py-5 flex flex-col gap-4">
 
             <div class="flex flex-col gap-1">
-                <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="admin-player2">{{ __('booking.admin.bookings.additional_player') }}</label>
-                <input type="text" id="admin-player2" name="player_name_2" value="{{ old('player_name_2', $playerNames[2]) }}"
-                       list="admin-player-suggestions" maxlength="120" required
-                       class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-            </div>
-
-            <div class="flex flex-col gap-1" id="admin-player3-field">
-                <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="admin-player3">{{ __('booking.admin.bookings.player_name_3') }}</label>
-                <input type="text" id="admin-player3" name="player_name_3" value="{{ old('player_name_3', $playerNames[3]) }}"
-                       list="admin-player-suggestions" maxlength="120"
-                       class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-            </div>
-
-            <div class="flex flex-col gap-1" id="admin-player4-field">
-                <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="admin-player4">{{ __('booking.admin.bookings.player_name_4') }}</label>
-                <input type="text" id="admin-player4" name="player_name_4" value="{{ old('player_name_4', $playerNames[4]) }}"
-                       list="admin-player-suggestions" maxlength="120"
+                <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="admin-mitspieler">Mitspieler</label>
+                <input type="text" id="admin-mitspieler" name="mitspieler" value="{{ old('mitspieler', $playerNames[2]) }}"
+                       maxlength="255" placeholder="z.B. Müller, Huber, Schmidt"
                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
             </div>
 

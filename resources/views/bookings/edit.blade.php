@@ -43,22 +43,10 @@
                 </select>
             </label>
 
-            <label class="booking-confirm-field" data-player-field="2">
-                {{ __('booking.modal.player_name_2') }}
-                <input type="text" name="player_name_2" value="{{ old('player_name_2', $playerNames[2]) }}" maxlength="120" list="player-suggestions" required>
+            <label class="booking-confirm-field">
+                Mitspieler
+                <input type="text" name="mitspieler" value="{{ old('mitspieler', $playerNames[2]) }}" maxlength="255" placeholder="z.B. Müller, Huber, Schmidt">
             </label>
-
-            <label class="booking-confirm-field" data-player-field="3">
-                {{ __('booking.modal.player_name_3') }}
-                <input type="text" name="player_name_3" value="{{ old('player_name_3', $playerNames[3]) }}" maxlength="120" list="player-suggestions">
-            </label>
-
-            <label class="booking-confirm-field" data-player-field="4">
-                {{ __('booking.modal.player_name_4') }}
-                <input type="text" name="player_name_4" value="{{ old('player_name_4', $playerNames[4]) }}" maxlength="120" list="player-suggestions">
-            </label>
-
-            <datalist id="player-suggestions"></datalist>
 
             <button type="submit" class="default-button booking-confirm-submit">
                 {{ __('booking.admin.common.save') }}

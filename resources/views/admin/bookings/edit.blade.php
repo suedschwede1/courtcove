@@ -94,17 +94,9 @@
                                 <option value="4" @selected((int) old('quantity', $booking->quantity) === 4)>4 (Doppel)</option>
                             </select>
                         </div>
-                        <div class="grid grid-cols-[26px_1fr] items-center gap-3">
-                            <label class="text-[13px] font-medium text-[#6a6e73] text-right" for="admin-player2">2.</label>
-                            <input type="text" id="admin-player2" name="player_name_2" value="{{ old('player_name_2', $playerNames[2]) }}" list="admin-player-suggestions" maxlength="120" placeholder="Mitspielername suchen ..." class="w-full h-9 rounded-[6px] border border-[#c7c7c7] bg-white px-3 text-sm text-[#151515] outline-none placeholder:text-[#b8b8b8] focus:border-[#151515]">
-                        </div>
-                        <div id="admin-player3-field" class="grid grid-cols-[26px_1fr] items-center gap-3">
-                            <label class="text-[13px] font-medium text-[#6a6e73] text-right" for="admin-player3">3.</label>
-                            <input type="text" id="admin-player3" name="player_name_3" value="{{ old('player_name_3', $playerNames[3]) }}" list="admin-player-suggestions" maxlength="120" placeholder="Mitspielername suchen ..." class="w-full h-9 rounded-[6px] border border-[#c7c7c7] bg-white px-3 text-sm text-[#151515] outline-none placeholder:text-[#b8b8b8] focus:border-[#151515]">
-                        </div>
-                        <div id="admin-player4-field" class="grid grid-cols-[26px_1fr] items-center gap-3">
-                            <label class="text-[13px] font-medium text-[#6a6e73] text-right" for="admin-player4">4.</label>
-                            <input type="text" id="admin-player4" name="player_name_4" value="{{ old('player_name_4', $playerNames[4]) }}" list="admin-player-suggestions" maxlength="120" placeholder="Mitspielername suchen ..." class="w-full h-9 rounded-[6px] border border-[#c7c7c7] bg-white px-3 text-sm text-[#151515] outline-none placeholder:text-[#b8b8b8] focus:border-[#151515]">
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[13px] font-medium text-[#6a6e73]" for="admin-mitspieler">Mitspieler</label>
+                            <input type="text" id="admin-mitspieler" name="mitspieler" value="{{ old('mitspieler', $playerNames[2]) }}" maxlength="255" placeholder="z.B. Müller, Huber, Schmidt" class="w-full h-9 rounded-[6px] border border-[#c7c7c7] bg-white px-3 text-sm text-[#151515] outline-none placeholder:text-[#b8b8b8] focus:border-[#151515]">
                         </div>
                     </div>
                 </div>

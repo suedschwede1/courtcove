@@ -38,18 +38,14 @@
         dateLabel: '',
         timeLabel: '',
         quantity: '2',
-        playerName2: '',
-        playerName3: '',
-        playerName4: '',
+        mitspieler: '',
         openCancel(detail) {
-            this.bid         = detail.bid;
-            this.squareName  = detail.squareName;
-            this.dateLabel   = detail.dateLabel;
-            this.timeLabel   = detail.timeLabel;
-            this.quantity    = detail.quantity    || '2';
-            this.playerName2 = detail.playerName2 || '';
-            this.playerName3 = detail.playerName3 || '';
-            this.playerName4 = detail.playerName4 || '';
+            this.bid        = detail.bid;
+            this.squareName = detail.squareName;
+            this.dateLabel  = detail.dateLabel;
+            this.timeLabel  = detail.timeLabel;
+            this.quantity   = detail.quantity   || '2';
+            this.mitspieler = detail.mitspieler || '';
             this.open = true;
         }
      }"
@@ -77,7 +73,7 @@
 
         <div class="px-6 pb-5 flex flex-col gap-2">
             <button type="button"
-                    @click="open = false; $dispatch('open-edit-booking', {bid, squareName, dateLabel, timeLabel, quantity, playerName2, playerName3, playerName4})"
+                    @click="open = false; $dispatch('open-edit-booking', {bid, squareName, dateLabel, timeLabel, quantity, mitspieler})"
                     class="w-full text-sm border border-[#d1cbc0] text-[#6a6e73] py-2 rounded hover:bg-[#f9f8f6] transition-colors">
                 Buchung bearbeiten
             </button>
@@ -114,20 +110,16 @@
         dateLabel: '',
         timeLabel: '',
         quantity: '2',
-        playerName2: '',
-        playerName3: '',
-        playerName4: '',
+        mitspieler: '',
         error: null,
         loading: false,
         openEdit(detail) {
-            this.bid         = detail.bid;
-            this.squareName  = detail.squareName;
-            this.dateLabel   = detail.dateLabel;
-            this.timeLabel   = detail.timeLabel;
-            this.quantity    = detail.quantity    || '2';
-            this.playerName2 = detail.playerName2 || '';
-            this.playerName3 = detail.playerName3 || '';
-            this.playerName4 = detail.playerName4 || '';
+            this.bid        = detail.bid;
+            this.squareName = detail.squareName;
+            this.dateLabel  = detail.dateLabel;
+            this.timeLabel  = detail.timeLabel;
+            this.quantity   = String(detail.quantity ?? 2);
+            this.mitspieler = detail.mitspieler ?? '';
             this.error = null;
             this.open = true;
         },

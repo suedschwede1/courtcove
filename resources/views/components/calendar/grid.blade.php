@@ -203,9 +203,7 @@
                                            dateLabel: @js($dateLabels[$d->format('Y-m-d')]['full']),
                                            timeLabel: @js($timeLabel . ' – ' . $nextLabel . ' Uhr'),
                                            quantity: @js((string) $reservation->booking->quantity),
-                                           playerName2: @js($reservation->booking->player_names[0] ?? ''),
-                                           playerName3: @js($reservation->booking->player_names[1] ?? ''),
-                                           playerName4: @js($reservation->booking->player_names[2] ?? '')
+                                           mitspieler: @js($reservation->booking->player_names[0] ?? '')
                                        })">
                                         <span class="cc-label-primary">{{ $primaryLabel }}</span>
                                         @if($secondaryLabel)
