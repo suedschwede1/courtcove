@@ -165,7 +165,7 @@
             @csrf
             <input type="hidden" name="_method" value="PUT">
 
-            <div class="booking-mobile-dialog__body px-6 py-4">
+            <div class="booking-mobile-dialog__body min-h-0 flex-1 overflow-y-auto px-6 py-4">
                 <div class="space-y-3">
                     <div class="booking-mobile-dialog__summary-grid grid grid-cols-2 gap-3">
                         <div class="ui-field">
@@ -298,7 +298,7 @@
             <input type="hidden" name="time_start" x-bind:value="timeStart">
             <input type="hidden" name="time_end" x-bind:value="timeEnd">
 
-            <div class="booking-mobile-dialog__body px-6 py-4">
+            <div class="booking-mobile-dialog__body min-h-0 flex-1 overflow-y-auto px-6 py-4">
                 <div class="space-y-3">
                     <div class="booking-mobile-dialog__summary-grid grid grid-cols-2 gap-3">
                         <div class="ui-field">
@@ -336,9 +336,6 @@
                                placeholder="z.B. Müller, Huber, Schmidt"
                                class="ui-input placeholder:text-[#b8b8b8]">
                     </div>
-                </div>
-            </div>
-
                 </div>
             </div>
 
