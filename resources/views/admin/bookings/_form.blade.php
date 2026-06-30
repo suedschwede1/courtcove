@@ -71,20 +71,39 @@
         </div>
         <div class="px-6 py-5 flex flex-col gap-4">
 
-            <div class="flex flex-col gap-1">
+            <div class="flex flex-col gap-1"
+                 x-data="{
+                     quantity: '{{ (int) old('quantity', $booking->quantity) }}',
+                     acResults: [],
+                     acOpen: false,
+                     async fetchAc(v) {
+                         if (this.quantity !== '2' || v.length < 2) { this.acResults = []; this.acOpen = false; return; }
+                         const r = await fetch('/bookings/players?q=' + encodeURIComponent(v));
+                         this.acResults = await r.json();
+                         this.acOpen = this.acResults.length > 0;
+                     }
+                 }"
+                 @change.document="if($event.target.id==='admin-booking-quantity') quantity=$event.target.value"
+                 @click.outside="acOpen=false">
                 <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="admin-mitspieler">Mitspieler</label>
                 <input type="text" id="admin-mitspieler" name="mitspieler" value="{{ old('mitspieler', $playerNames[2]) }}"
-                       maxlength="255" placeholder="z.B. Müller, Huber, Schmidt"
+                       maxlength="255"
+                       :placeholder="quantity==='2' ? 'Name suchen …' : 'z.B. Müller, Huber, Schmidt'"
+                       autocomplete="off"
+                       @input.debounce.300ms="fetchAc($event.target.value)"
+                       @focus="fetchAc($event.target.value)"
                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
+                <ul x-show="acOpen"
+                    class="mt-1 w-full overflow-hidden rounded border border-[#e0dbd4] bg-white shadow-md">
+                    <template x-for="r in acResults" :key="r">
+                        <li @mousedown.prevent="$el.closest('div').querySelector('#admin-mitspieler').value=r; acResults=[]; acOpen=false"
+                            x-text="r"
+                            class="cursor-pointer px-3 py-2 text-sm hover:bg-[#f7f5f2]"></li>
+                    </template>
+                </ul>
             </div>
 
         </div>
     </div>
 
 </div>
-
-<datalist id="admin-player-suggestions">
-    @foreach($users as $user)
-        <option value="{{ $user->alias }}"></option>
-    @endforeach
-</datalist>

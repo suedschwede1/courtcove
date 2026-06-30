@@ -94,9 +94,36 @@
                                 <option value="4" @selected((int) old('quantity', $booking->quantity) === 4)>4 (Doppel)</option>
                             </select>
                         </div>
-                        <div class="flex flex-col gap-1">
+                        <div class="flex flex-col gap-1"
+                             x-data="{
+                                 quantity: '{{ (int) old('quantity', $booking->quantity) }}',
+                                 acResults: [],
+                                 acOpen: false,
+                                 async fetchAc(v) {
+                                     if (this.quantity !== '2' || v.length < 2) { this.acResults = []; this.acOpen = false; return; }
+                                     const r = await fetch('/bookings/players?q=' + encodeURIComponent(v));
+                                     this.acResults = await r.json();
+                                     this.acOpen = this.acResults.length > 0;
+                                 }
+                             }"
+                             @change.document="if($event.target.id==='admin-booking-quantity') quantity=$event.target.value"
+                             @click.outside="acOpen=false">
                             <label class="text-[13px] font-medium text-[#6a6e73]" for="admin-mitspieler">Mitspieler</label>
-                            <input type="text" id="admin-mitspieler" name="mitspieler" value="{{ old('mitspieler', $playerNames[2]) }}" maxlength="255" placeholder="z.B. Müller, Huber, Schmidt" class="w-full h-9 rounded-[6px] border border-[#c7c7c7] bg-white px-3 text-sm text-[#151515] outline-none placeholder:text-[#b8b8b8] focus:border-[#151515]">
+                            <input type="text" id="admin-mitspieler" name="mitspieler" value="{{ old('mitspieler', $playerNames[2]) }}"
+                                   maxlength="255"
+                                   :placeholder="quantity==='2' ? 'Name suchen …' : 'z.B. Müller, Huber, Schmidt'"
+                                   autocomplete="off"
+                                   @input.debounce.300ms="fetchAc($event.target.value)"
+                                   @focus="fetchAc($event.target.value)"
+                                   class="w-full h-9 rounded-[6px] border border-[#c7c7c7] bg-white px-3 text-sm text-[#151515] outline-none placeholder:text-[#b8b8b8] focus:border-[#151515]">
+                            <ul x-show="acOpen"
+                                class="mt-1 w-full overflow-hidden rounded border border-[#e0dbd4] bg-white shadow-md">
+                                <template x-for="r in acResults" :key="r">
+                                    <li @mousedown.prevent="$el.closest('div').querySelector('#admin-mitspieler').value=r; acResults=[]; acOpen=false"
+                                        x-text="r"
+                                        class="cursor-pointer px-3 py-2 text-sm hover:bg-[#f7f5f2]"></li>
+                                </template>
+                            </ul>
                         </div>
                     </div>
                 </div>
