@@ -45,9 +45,7 @@ final class BookingController extends Controller
             'time_start' => ['required', 'integer', 'min:0', 'max:86399'],
             'time_end' => ['required', 'integer', 'min:1', 'max:86400'],
             'quantity' => ['required', 'integer', 'in:2,4'],
-            'player_name_2' => ['required_if:quantity,2,4', 'nullable', 'string', 'max:120'],
-            'player_name_3' => ['required_if:quantity,4', 'nullable', 'string', 'max:120'],
-            'player_name_4' => ['required_if:quantity,4', 'nullable', 'string', 'max:120'],
+            'mitspieler' => ['nullable', 'string', 'max:255'],
         ]);
 
         $square = Square::findOrFail((int) $data['sid']);
@@ -56,15 +54,8 @@ final class BookingController extends Controller
         $dateEnd = Carbon::parse($data['date'])->startOfDay()
             ->addSeconds($this->parseTimeToSeconds((string) $data['time_end']));
 
-        if ((int) $data['quantity'] === 2) {
-            $data['player_name_3'] = null;
-            $data['player_name_4'] = null;
-        }
-
         $meta = $this->bookingService->buildPlayerMeta([
-            2 => $data['player_name_2'] ?? null,
-            3 => $data['player_name_3'] ?? null,
-            4 => $data['player_name_4'] ?? null,
+            2 => $data['mitspieler'] ?? null,
         ]);
 
         try {
@@ -184,21 +175,12 @@ final class BookingController extends Controller
 
         $data = $request->validate([
             'quantity' => ['required', 'integer', 'in:2,4'],
-            'player_name_2' => ['required_if:quantity,2,4', 'nullable', 'string', 'max:120'],
-            'player_name_3' => ['required_if:quantity,4', 'nullable', 'string', 'max:120'],
-            'player_name_4' => ['required_if:quantity,4', 'nullable', 'string', 'max:120'],
+            'mitspieler' => ['nullable', 'string', 'max:255'],
         ]);
-
-        if ((int) $data['quantity'] === 2) {
-            $data['player_name_3'] = null;
-            $data['player_name_4'] = null;
-        }
 
         try {
             $this->bookingService->updateSinglePlayers($booking, $user, (int) $data['quantity'], [
-                2 => $data['player_name_2'] ?? null,
-                3 => $data['player_name_3'] ?? null,
-                4 => $data['player_name_4'] ?? null,
+                2 => $data['mitspieler'] ?? null,
             ]);
         } catch (BookingValidationException $e) {
             if ($request->ajax()) {

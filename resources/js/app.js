@@ -7,12 +7,23 @@ function openDatePicker(input) {
         return
     }
 
-    input.showPicker()
+    try {
+        input.showPicker()
+    } catch (_error) {
+    }
+}
+
+function getHeaderDateInput(target) {
+    return target.closest('.ui-calendar-date-input')
 }
 
 document.addEventListener('pointerdown', (event) => {
-    const input = event.target.closest('input[type="date"]')
+    const input = getHeaderDateInput(event.target)
     if (!input) {
+        return
+    }
+
+    if (event.pointerType && event.pointerType !== 'mouse') {
         return
     }
 
@@ -21,8 +32,18 @@ document.addEventListener('pointerdown', (event) => {
     openDatePicker(input)
 })
 
+document.addEventListener('click', (event) => {
+    const input = getHeaderDateInput(event.target)
+    if (!input) {
+        return
+    }
+
+    input.focus()
+    openDatePicker(input)
+})
+
 document.addEventListener('focusin', (event) => {
-    const input = event.target.closest('input[type="date"]')
+    const input = getHeaderDateInput(event.target)
     if (!input) {
         return
     }

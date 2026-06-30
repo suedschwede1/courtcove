@@ -71,7 +71,7 @@
 @endsection
 
 @section('content')
-<div class="calendar-layout" x-data="{}">
+<div class="calendar-layout calendar-layout--mobile-safe" x-data="{}">
     <div class="calendar-wrap">
         <x-calendar.grid
             :dates="$dates"
@@ -93,5 +93,6 @@
 
 <x-calendar.modals :date="$date" :squares="$squares" />
 @endsection
+
 
 

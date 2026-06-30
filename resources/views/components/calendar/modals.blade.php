@@ -65,7 +65,7 @@
                x-text="squareName + ' · ' + dateLabel + ' · ' + timeLabel"></p>
         </div>
 
-        <div class="px-6 py-4">
+        <div class="booking-mobile-dialog__body px-6 py-4">
             <p class="text-sm text-[#6a6e73]">
                 Möchten Sie diese Buchung wirklich stornieren? Diese Aktion kann nicht rückgängig gemacht werden.
             </p>
@@ -153,7 +153,7 @@
      @click.self="open = false"
      class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"
      style="display: none;">
-    <div class="relative w-full max-w-[480px] overflow-hidden rounded-[8px] border border-[#e8e8e8] bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
+    <div class="booking-mobile-dialog relative flex max-h-[calc(100dvh-16px)] w-full max-w-[480px] flex-col overflow-hidden rounded-[8px] border border-[#e8e8e8] bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
         <div class="border-b border-[#ebebeb] bg-white px-6 pt-3 pb-0">
             <div class="flex items-start justify-between gap-4">
                 <p class="mb-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#6a6e73]">Buchung bearbeiten</p>
@@ -161,57 +161,45 @@
             </div>
         </div>
 
-        <form x-bind:action="'/bookings/' + bid" method="POST" @submit.prevent="submitEdit($el)">
+        <form x-bind:action="'/bookings/' + bid" method="POST" @submit.prevent="submitEdit($el)" class="flex min-h-0 flex-1 flex-col overflow-hidden">
             @csrf
             <input type="hidden" name="_method" value="PUT">
 
-            <div class="px-6 py-4 space-y-3">
-                <div class="grid grid-cols-2 gap-3">
+            <div class="booking-mobile-dialog__body px-6 py-4">
+                <div class="space-y-3">
+                    <div class="booking-mobile-dialog__summary-grid grid grid-cols-2 gap-3">
+                        <div class="ui-field">
+                            <label class="ui-label text-[#151515]">Platz</label>
+                            <p class="ui-input bg-[#fafafa] text-[#151515] m-0" x-text="squareName"></p>
+                        </div>
+                        <div class="ui-field">
+                            <label class="ui-label text-[#151515]">Datum</label>
+                            <p class="ui-input bg-[#fafafa] text-[#151515] m-0" x-text="dateLabel"></p>
+                        </div>
+                        <div class="ui-field col-span-2">
+                            <label class="ui-label text-[#151515]">Uhrzeit</label>
+                            <p class="ui-input bg-[#fafafa] text-[#151515] m-0" x-text="timeLabel"></p>
+                        </div>
+                    </div>
+
                     <div class="ui-field">
-                        <label class="ui-label text-[#151515]">Platz</label>
-                        <p class="ui-input bg-[#fafafa] text-[#151515] m-0" x-text="squareName"></p>
+                        <label class="ui-label text-[#151515]">Spieleranzahl</label>
+                        <select name="quantity" x-model="quantity" class="ui-select">
+                            <option value="2">2 (Einzel)</option>
+                            <option value="4">4 (Doppel)</option>
+                        </select>
                     </div>
+
                     <div class="ui-field">
-                        <label class="ui-label text-[#151515]">Datum</label>
-                        <p class="ui-input bg-[#fafafa] text-[#151515] m-0" x-text="dateLabel"></p>
+                        <label class="ui-label text-[#151515]">Mitspieler</label>
+                        <input type="text" name="mitspieler" x-model="mitspieler" maxlength="255"
+                               placeholder="z.B. Müller, Huber, Schmidt"
+                               class="ui-input placeholder:text-[#b8b8b8]">
                     </div>
-                    <div class="ui-field col-span-2">
-                        <label class="ui-label text-[#151515]">Uhrzeit</label>
-                        <p class="ui-input bg-[#fafafa] text-[#151515] m-0" x-text="timeLabel"></p>
-                    </div>
-                </div>
-
-                <div class="ui-field">
-                    <label class="ui-label text-[#151515]">Spieleranzahl</label>
-                    <select name="quantity" x-model="quantity" class="ui-select">
-                        <option value="2">2 (Einzel)</option>
-                        <option value="4">4 (Doppel)</option>
-                    </select>
-                </div>
-
-                <div class="ui-field">
-                    <label class="ui-label text-[#151515]">2. Spielername</label>
-                    <input type="text" name="player_name_2" x-model="playerName2" maxlength="120" required
-                           placeholder="Mitspielername ..."
-                           class="ui-input placeholder:text-[#b8b8b8]">
-                </div>
-
-                <div class="ui-field" x-show="quantity == '4'">
-                    <label class="ui-label text-[#151515]">3. Spielername</label>
-                    <input type="text" name="player_name_3" x-model="playerName3" maxlength="120"
-                           placeholder="Mitspielername ..."
-                           class="ui-input placeholder:text-[#b8b8b8]">
-                </div>
-
-                <div class="ui-field" x-show="quantity == '4'">
-                    <label class="ui-label text-[#151515]">4. Spielername</label>
-                    <input type="text" name="player_name_4" x-model="playerName4" maxlength="120"
-                           placeholder="Mitspielername ..."
-                           class="ui-input placeholder:text-[#b8b8b8]">
                 </div>
             </div>
 
-            <div class="border-t border-[#ebebeb] bg-[#fafafa] px-6 py-4">
+            <div class="booking-mobile-dialog__actions border-t border-[#ebebeb] bg-[#fafafa] px-6 py-4">
                 <template x-if="error">
                     <p class="mb-3 text-sm text-red-600" x-text="error"></p>
                 </template>
@@ -290,7 +278,7 @@
      @click.self="open = false"
      class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"
      style="display: none;">
-    <div class="relative w-full max-w-[580px] overflow-hidden rounded-[8px] border border-[#e8e8e8] bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
+    <div class="booking-mobile-dialog relative flex max-h-[calc(100dvh-16px)] w-full max-w-[580px] flex-col overflow-hidden rounded-[8px] border border-[#e8e8e8] bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
         <div class="border-b border-[#ebebeb] bg-white px-6 pt-3 pb-0">
             <div class="flex items-start justify-between gap-4">
                 <p class="mb-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#6a6e73]">Neue Buchung</p>
@@ -303,16 +291,16 @@
             </div>
         </div>
 
-        <form method="POST" action="{{ route('bookings.store') }}" @submit.prevent="submitBooking($el)">
+        <form method="POST" action="{{ route('bookings.store') }}" @submit.prevent="submitBooking($el)" class="flex min-h-0 flex-1 flex-col overflow-hidden">
             @csrf
             <input type="hidden" name="sid" x-bind:value="sid">
             
             <input type="hidden" name="time_start" x-bind:value="timeStart">
             <input type="hidden" name="time_end" x-bind:value="timeEnd">
 
-            <div class="px-6 py-4">
+            <div class="booking-mobile-dialog__body px-6 py-4">
                 <div class="space-y-3">
-                    <div class="grid grid-cols-2 gap-3">
+                    <div class="booking-mobile-dialog__summary-grid grid grid-cols-2 gap-3">
                         <div class="ui-field">
                             <label class="ui-label text-[#151515]">Platz</label>
                             <input type="text" x-bind:value="squareName" readonly class="ui-input bg-[#fafafa] text-[#151515]">
@@ -341,33 +329,20 @@
                         </div>
 
                     <div class="ui-field">
-                        <label class="ui-label text-[#151515]">2. Spielername</label>
+                        <label class="ui-label text-[#151515]">Mitspieler</label>
                         <input type="text"
-                               name="player_name_2"
-                               required
-                               placeholder="Mitspielername suchen ..."
-                               class="ui-input placeholder:text-[#b8b8b8]">
-                    </div>
-
-                    <div class="ui-field" x-show="quantity == '4'">
-                        <label class="ui-label text-[#151515]">3. Spielername</label>
-                        <input type="text"
-                               name="player_name_3"
-                               placeholder="Mitspielername suchen ..."
-                               class="ui-input placeholder:text-[#b8b8b8]">
-                    </div>
-
-                    <div class="ui-field" x-show="quantity == '4'">
-                        <label class="ui-label text-[#151515]">4. Spielername</label>
-                        <input type="text"
-                               name="player_name_4"
-                               placeholder="Mitspielername suchen ..."
+                               name="mitspieler"
+                               maxlength="255"
+                               placeholder="z.B. Müller, Huber, Schmidt"
                                class="ui-input placeholder:text-[#b8b8b8]">
                     </div>
                 </div>
             </div>
 
-            <div class="border-t border-[#ebebeb] bg-[#fafafa] px-6 py-4">
+                </div>
+            </div>
+
+            <div class="booking-mobile-dialog__actions border-t border-[#ebebeb] bg-[#fafafa] px-6 py-4">
                 <template x-if="error">
                     <p class="mb-3 text-sm text-red-600" x-text="error"></p>
                 </template>
@@ -450,7 +425,7 @@
                 </div>
 
                 {{-- Datum/Zeit Start + Ende (2-Spalten-Grid) --}}
-                <div class="grid grid-cols-2 gap-3">
+                <div class="booking-mobile-dialog__summary-grid grid grid-cols-2 gap-3">
                     <div class="flex flex-col gap-1">
                         <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">Datum Start</label>
                         <input type="date"
@@ -540,6 +515,13 @@
     </div>
 </div>
 @endauth
+
+
+
+
+
+
+
 
 
 

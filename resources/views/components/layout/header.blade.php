@@ -2,25 +2,68 @@
     $bookingName = trim((string) \App\Models\Option::getValue('service.name', config('booking.name')));
     $bookingName = $bookingName !== '' ? $bookingName : config('booking.name');
 @endphp
-<header class="no-print bg-[#eae8e2] px-3 py-3">
-    <div class="rounded-[6px] border border-[#d8d2c8] bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
-        <div class="flex items-center gap-6 px-5 py-4">
-            <a href="{{ route('calendar.index') }}" aria-label="{{ $bookingName }}" class="flex min-w-0 shrink-0 items-center gap-4">
-                <img src="{{ asset(config('booking.logo_path')) }}"
-                     width="{{ config('booking.logo_width') }}"
-                     height="{{ config('booking.logo_height') }}"
-                     alt="{{ $bookingName }}"
-                     class="block shrink-0 object-contain">
-                <span class="text-[18px] font-bold leading-tight text-[#151515]" style="font-family: var(--font-display)">{{ $bookingName }}</span>
+<header x-data="{ mobileMenuOpen: false }" class="app-header no-print bg-[#eae8e2] px-3 py-3">
+    <div class="app-header__card rounded-[6px] border border-[#d8d2c8] bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
+        <div class="app-header__inner flex items-center gap-6 px-5 py-4">
+            <a href="{{ route('calendar.index') }}" aria-label="{{ $bookingName }}" class="app-header__brand flex min-w-0 shrink-0 items-center gap-4">
+                @if(config('booking.logo_path') && file_exists(public_path(config('booking.logo_path'))))
+                    <img src="{{ asset(config('booking.logo_path')) }}"
+                         width="{{ config('booking.logo_width') }}"
+                         height="{{ config('booking.logo_height') }}"
+                         alt="{{ $bookingName }}"
+                         class="app-header__logo object-contain"
+                         style="width: {{ config('booking.logo_width') }}px; height: {{ config('booking.logo_height') }}px;">
+                @endif
+                <span class="app-header__title text-[18px] font-bold leading-tight text-[#151515]" style="font-family: var(--font-display)">{{ $bookingName }}</span>
             </a>
 
-            <div class="flex flex-1 justify-center">
-                <div class="ui-calendar-nav" id="calendar-header-nav">
+            <div class="app-header__nav-wrap flex flex-1 justify-center">
+                <div class="app-header__nav ui-calendar-nav" id="calendar-header-nav">
                     @stack('header-nav')
                 </div>
             </div>
 
-            <div class="ml-auto flex shrink-0 items-center gap-2">
+            <div class="app-header__mobile-controls">
+                @guest
+                    <a href="{{ route('login', ['redirect_to' => url()->full()]) }}"
+                       class="app-header__auth-short header-login-button"
+                       aria-label="{{ __('booking.nav.login') }}"
+                       title="{{ __('booking.nav.login') }}">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21a8 8 0 0 0-16 0" />
+                            <circle cx="12" cy="8" r="4" />
+                        </svg>
+                    </a>
+                @endguest
+
+                @auth
+                    <form method="POST" action="{{ route('logout') }}" class="m-0 inline app-header__auth-short-form">
+                        @csrf
+                        <button type="submit"
+                                class="app-header__auth-short"
+                                aria-label="{{ __('booking.nav.logout') }}"
+                                title="{{ __('booking.nav.logout') }}">
+                            <svg viewBox="0 0 24 24" aria-hidden="true" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 7l5 5-5 5" />
+                                <path d="M19 12H9" />
+                                <path d="M5 5h5v14H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z" />
+                            </svg>
+                        </button>
+                    </form>
+                @endauth
+
+                @can('admin.see-menu')
+                    <button type="button"
+                            class="app-header__action-trigger"
+                            @click="mobileMenuOpen = !mobileMenuOpen"
+                            :aria-expanded="mobileMenuOpen ? 'true' : 'false'"
+                            aria-controls="app-header-actions"
+                            aria-label="Mehr Aktionen"
+                            title="Mehr Aktionen">...</button>
+                @endcan
+            </div>
+
+            <div id="app-header-actions" class="app-header__actions ml-auto flex shrink-0 items-center gap-2" :class="{ 'is-open': mobileMenuOpen }">
                 @hasSection('calendar-system-info')
                     <button type="button"
                             class="inline-flex h-8 items-center rounded-[6px] border border-[#d4cec3] bg-white px-4 text-[13px] font-medium text-[#6a6e73] transition-colors hover:border-[#bf4316] hover:text-[#bf4316]"
@@ -41,7 +84,7 @@
                         <a href="{{ route('admin.dashboard') }}"
                            class="inline-flex h-8 items-center rounded-[6px] border border-[#d4cec3] bg-white px-4 text-[13px] font-medium text-[#6a6e73] transition-colors hover:border-[#bf4316] hover:text-[#bf4316]">{{ __('booking.nav.admin') }}</a>
                     @endcan
-                    <form method="POST" action="{{ route('logout') }}" class="m-0 inline">
+                    <form method="POST" action="{{ route('logout') }}" class="m-0 inline app-header__desktop-logout">
                         @csrf
                         <button type="submit"
                                 class="inline-flex h-8 items-center rounded-[6px] border border-[#d4cec3] bg-white px-4 text-[13px] font-medium text-[#6a6e73] transition-colors hover:border-[#bf4316] hover:text-[#bf4316]">{{ __('booking.nav.logout') }}</button>

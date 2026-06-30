@@ -177,6 +177,51 @@
             </div>
         </div>
 
+
+        {{-- Registrierungstexte --}}
+        <div class="bg-white rounded-xl border border-[#e0ddd7] shadow-sm overflow-hidden mb-6">
+            <div class="px-6 py-4 border-b border-[#f0ede6]">
+                <h2 class="text-base font-semibold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.admin.cfg.section_registration_content') }}</h2>
+            </div>
+            <div class="px-6 py-5 flex flex-col gap-4">
+
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-registration-heading">{{ __('booking.admin.cfg.registration_heading') }}</label>
+                    <input id="cf-registration-heading" type="text" name="registration_heading" value="{{ $values['registration_heading'] }}"
+                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
+                    <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.cfg.registration_heading_hint') }}</p>
+                </div>
+
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-registration-welcome">{{ __('booking.admin.cfg.registration_welcome') }}</label>
+                    <input id="cf-registration-welcome" type="text" name="registration_welcome" value="{{ $values['registration_welcome'] }}"
+                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
+                    <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.cfg.registration_system_placeholder_hint') }}</p>
+                </div>
+
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-registration-intro">{{ __('booking.admin.cfg.registration_intro') }}</label>
+                    <textarea id="cf-registration-intro" name="registration_intro" rows="4"
+                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">{{ $values['registration_intro'] }}</textarea>
+                    <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.cfg.registration_system_placeholder_hint') }}</p>
+                </div>
+
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-registration-privacy">{{ __('booking.admin.cfg.registration_privacy') }}</label>
+                    <textarea id="cf-registration-privacy" name="registration_privacy" rows="3"
+                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">{{ $values['registration_privacy'] }}</textarea>
+                    <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.cfg.registration_privacy_placeholder_hint') }}</p>
+                </div>
+
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-registration-success">{{ __('booking.admin.cfg.registration_success') }}</label>
+                    <textarea id="cf-registration-success" name="registration_success" rows="3"
+                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">{{ $values['registration_success'] }}</textarea>
+                    <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.cfg.registration_system_placeholder_hint') }}</p>
+                </div>
+
+            </div>
+        </div>
         {{-- Betrieb --}}
         <div class="bg-white rounded-xl border border-[#e0ddd7] shadow-sm overflow-hidden mb-6">
             <div class="px-6 py-4 border-b border-[#f0ede6]">
@@ -269,3 +314,4 @@
 
 </div>
 @endsection
+

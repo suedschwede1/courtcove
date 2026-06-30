@@ -284,8 +284,17 @@
     var wrap = grid.closest('.calendar-wrap') || grid.parentElement;
     var squares = parseInt(grid.dataset.squares, 10) || 1;
     var maxDays = parseInt(grid.dataset.maxDays, 10) || 3;
-    var BASE_DAYS = 3;
-    var extras = grid.querySelectorAll('.cal-extra-day');
+    var dayCells = grid.querySelectorAll('[data-day]');
+    var activeDayCell = grid.querySelector('.day-header-cell--active[data-day]');
+    var selectedDay = activeDayCell ? (parseInt(activeDayCell.getAttribute('data-day'), 10) || 0) : 0;
+
+    function baseDays() {
+        if (window.matchMedia('(max-width: 900px)').matches) {
+            return 1;
+        }
+
+        return 3;
+    }
 
     function cssPx(name, fallback) {
         var value = parseFloat(getComputedStyle(grid).getPropertyValue(name));
@@ -293,18 +302,35 @@
     }
 
     function visibleDayCount() {
+        var minimumDays = baseDays();
         var dayWidth = squares * cssPx('--calendar-slot-col', 136);
-        if (dayWidth <= 0) { return BASE_DAYS; }
+        if (dayWidth <= 0) { return minimumDays; }
 
         var fits = Math.floor((wrap.clientWidth - cssPx('--calendar-time-col', 94)) / dayWidth);
-        return Math.max(BASE_DAYS, Math.min(maxDays, fits));
+        return Math.max(minimumDays, Math.min(maxDays, fits));
     }
 
     function applyVisibleDays() {
         var count = visibleDayCount();
-        extras.forEach(function (el) {
-            el.classList.toggle('is-visible', parseInt(el.getAttribute('data-day'), 10) < count);
+        var timeWidth = cssPx('--calendar-time-col', 94);
+        var dayWidth = squares * cssPx('--calendar-slot-col', 136);
+        var mobileOnlyOneDay = window.matchMedia('(max-width: 900px)').matches;
+        var firstVisibleDay = mobileOnlyOneDay ? selectedDay : 0;
+        var lastVisibleDay = firstVisibleDay + count;
+
+        dayCells.forEach(function (el) {
+            var dayIndex = parseInt(el.getAttribute('data-day'), 10);
+            el.classList.toggle('is-visible', dayIndex >= firstVisibleDay && dayIndex < lastVisibleDay);
         });
+
+        grid.dataset.visibleDays = String(count);
+        wrap.dataset.visibleDays = String(count);
+
+        if (mobileOnlyOneDay) {
+            grid.style.minWidth = (timeWidth + (count * dayWidth)) + 'px';
+        } else {
+            grid.style.minWidth = '';
+        }
     }
 
     var timer;
@@ -317,3 +343,11 @@
 })();
 </script>
 @endpush
+
+
+
+
+
+
+
+
