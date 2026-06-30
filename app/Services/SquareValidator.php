@@ -9,6 +9,7 @@ use App\Models\Booking;
 use App\Models\Reservation;
 use App\Models\Square;
 use App\Models\User;
+use App\Services\PeakLimitService;
 use Carbon\Carbon;
 
 /**
@@ -17,7 +18,9 @@ use Carbon\Carbon;
  */
 final class SquareValidator
 {
-    private const SHORT_BOOKING_THRESHOLD_SECONDS = 1800;
+    public function __construct(
+        private readonly PeakLimitService $peakLimitService = new PeakLimitService,
+    ) {}
 
     public function validate(
         Square $square,
@@ -51,6 +54,7 @@ final class SquareValidator
         $squareStart = $this->clockTimeToSeconds((string) $square->time_start);
         $squareEnd = $this->clockTimeToSeconds((string) $square->time_end);
         $durationSeconds = (int) $dateStart->diffInSeconds($dateEnd);
+        $shortTermOverrideActive = $this->isShortTermLimitOverrideActive($square, $dateStart);
 
         if ($startSeconds < $squareStart || $endSeconds > $squareEnd) {
             return ValidationResult::fail('Booking time is outside square opening hours');
@@ -65,7 +69,7 @@ final class SquareValidator
 
         if ((int) $square->min_range_book > 0) {
             $minimumStart = Carbon::now()->addSeconds((int) $square->min_range_book);
-            if ($dateStart->lessThan($minimumStart) && ! $this->canCreateAnyBooking($user)) {
+            if ($dateStart->lessThan($minimumStart) && ! $shortTermOverrideActive && ! $this->canCreateAnyBooking($user)) {
                 return ValidationResult::fail(__('booking.messages.booking_too_early'));
             }
         }
@@ -73,7 +77,7 @@ final class SquareValidator
         if ((int) $square->range_book > 0) {
             $maxBookableAt = Carbon::now()->addSeconds((int) $square->range_book);
             $sameDayAsMax = $dateStart->isSameDay($maxBookableAt);
-            if ($dateStart->greaterThan($maxBookableAt) && ! $sameDayAsMax && ! $this->canCreateAnyBooking($user)) {
+            if ($dateStart->greaterThan($maxBookableAt) && ! $sameDayAsMax && ! $shortTermOverrideActive && ! $this->canCreateAnyBooking($user)) {
                 return ValidationResult::fail('Booking date exceeds the allowed advance booking range');
             }
         }
@@ -82,15 +86,30 @@ final class SquareValidator
             return ValidationResult::fail(__('booking.messages.booking_duration_too_short'));
         }
 
-        if ((int) $square->max_active_bookings > 0
-            && $this->getActiveFutureBookingCount($user) >= (int) $square->max_active_bookings) {
-            return ValidationResult::fail(__('booking.messages.max_active_bookings_reached'));
+        if ((int) $square->max_active_bookings > 0 && ! $shortTermOverrideActive) {
+            $peakActive = $this->peakLimitService->isEnabled()
+                && $square->getMeta('peak_limit_enabled') === '1';
+
+            if ($peakActive) {
+                if ($this->peakLimitService->isPeakTime($dateStart)) {
+                    $count = $this->getPeakActiveFutureBookingCount(
+                        $user,
+                        $this->peakLimitService->windows(),
+                    );
+                    if ($count >= (int) $square->max_active_bookings) {
+                        return ValidationResult::fail(__('booking.messages.peak_limit_reached'));
+                    }
+                }
+            } elseif ($this->getActiveFutureBookingCount($user) >= (int) $square->max_active_bookings) {
+                return ValidationResult::fail(__('booking.messages.max_active_bookings_reached'));
+            }
         }
 
-        if ((int) $square->time_block_bookable_max > 0 && ! $this->isShortBooking($dateStart)) {
+        if ((int) $square->time_block_bookable_max > 0) {
             $dailyUsed = $this->getDailyUsedSeconds($user, $dateStart);
 
             if ($dailyUsed + $durationSeconds > (int) $square->time_block_bookable_max
+                && ! $shortTermOverrideActive
                 && ! $this->canCreateAnyBooking($user)) {
                 return ValidationResult::fail(__('booking.messages.daily_booking_limit_exceeded'));
             }
@@ -104,10 +123,15 @@ final class SquareValidator
         return $user->can('calendar.create-single-bookings, calendar.create-subscription-bookings');
     }
 
-    /** Whether the booking starts within 30 minutes (short-booking daily-limit exemption). */
-    private function isShortBooking(Carbon $dateStart): bool
+    /** Whether the booking starts within the per-square short-term override window. */
+    private function isShortTermLimitOverrideActive(Square $square, Carbon $dateStart): bool
     {
-        return Carbon::now()->diffInSeconds($dateStart, absolute: false) <= self::SHORT_BOOKING_THRESHOLD_SECONDS;
+        $windowSeconds = (int) $square->short_booking_window;
+        if ($windowSeconds <= 0) {
+            return false;
+        }
+
+        return Carbon::now()->diffInSeconds($dateStart, absolute: false) <= $windowSeconds;
     }
 
     /** Total booked seconds for this user on the given calendar day across all squares. */
@@ -136,6 +160,25 @@ final class SquareValidator
             ->where('bs_bookings.uid', $user->uid)
             ->whereIn('bs_bookings.status', Booking::ACTIVE_STATUSES)
             ->where('bs_reservations.date', '>=', Carbon::today()->toDateString())
+            ->count();
+    }
+
+    /** @param list<array{start: string, end: string}> $windows */
+    private function getPeakActiveFutureBookingCount(User $user, array $windows): int
+    {
+        return Reservation::query()
+            ->join('bs_bookings', 'bs_bookings.bid', '=', 'bs_reservations.bid')
+            ->where('bs_bookings.uid', $user->uid)
+            ->whereIn('bs_bookings.status', Booking::ACTIVE_STATUSES)
+            ->where('bs_reservations.date', '>=', Carbon::today()->toDateString())
+            ->where(function ($query) use ($windows): void {
+                foreach ($windows as $window) {
+                    $query->orWhere(function ($q) use ($window): void {
+                        $q->where('bs_reservations.time_start', '>=', $window['start'].':00')
+                          ->where('bs_reservations.time_start', '<',  $window['end'].':00');
+                    });
+                }
+            })
             ->count();
     }
 
