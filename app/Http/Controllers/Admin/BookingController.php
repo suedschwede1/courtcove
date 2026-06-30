@@ -348,7 +348,7 @@ final class BookingController extends Controller
             'time_end' => ['required', 'date_format:H:i'],
             'quantity' => ['required', 'integer', 'in:2,4'],
             'status' => ['nullable', 'in:single,subscription,cancelled'],
-            'mitspieler' => ['nullable', 'string', 'max:255'],
+            'mitspieler' => ['required', 'string', 'max:255'],
             'admin_note' => ['nullable', 'string', 'max:2000'],
         ]);
 

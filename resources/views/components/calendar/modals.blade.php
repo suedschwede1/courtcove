@@ -203,6 +203,7 @@
                                    maxlength="255"
                                    :placeholder="quantity==='2' ? 'Name suchen …' : 'z.B. Müller, Huber, Schmidt'"
                                    autocomplete="off"
+                                   required
                                    class="ui-input placeholder:text-[#b8b8b8]">
                             <ul x-show="acOpen && quantity==='2'"
                                 x-cloak
@@ -361,6 +362,7 @@
                                    maxlength="255"
                                    :placeholder="quantity==='2' ? 'Name suchen …' : 'z.B. Müller, Huber, Schmidt'"
                                    autocomplete="off"
+                                   required
                                    class="ui-input placeholder:text-[#b8b8b8]">
                             <ul x-show="acOpen && quantity==='2'"
                                 x-cloak

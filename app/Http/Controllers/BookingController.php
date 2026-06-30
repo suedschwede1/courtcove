@@ -45,7 +45,7 @@ final class BookingController extends Controller
             'time_start' => ['required', 'integer', 'min:0', 'max:86399'],
             'time_end' => ['required', 'integer', 'min:1', 'max:86400'],
             'quantity' => ['required', 'integer', 'in:2,4'],
-            'mitspieler' => ['nullable', 'string', 'max:255'],
+            'mitspieler' => ['required', 'string', 'max:255'],
         ]);
 
         $square = Square::findOrFail((int) $data['sid']);
@@ -175,7 +175,7 @@ final class BookingController extends Controller
 
         $data = $request->validate([
             'quantity' => ['required', 'integer', 'in:2,4'],
-            'mitspieler' => ['nullable', 'string', 'max:255'],
+            'mitspieler' => ['required', 'string', 'max:255'],
         ]);
 
         try {
