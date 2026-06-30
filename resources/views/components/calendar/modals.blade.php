@@ -163,7 +163,7 @@
      @click.self="open = false"
      class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"
      style="display: none;">
-    <div class="booking-mobile-dialog relative flex max-h-[calc(100dvh-16px)] w-full max-w-[660px] flex-col overflow-hidden rounded-[8px] border border-[#e8e8e8] bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
+    <div class="booking-mobile-dialog relative flex max-h-[calc(100dvh-16px)] w-full max-w-[520px] flex-col overflow-hidden rounded-[8px] border border-[#e8e8e8] bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
         <div class="border-b border-[#ebebeb] bg-white px-6 pt-3 pb-0">
             <div class="flex items-start justify-between gap-4">
                 <p class="mb-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#6a6e73]">Buchung bearbeiten</p>
@@ -175,7 +175,7 @@
             @csrf
             <input type="hidden" name="_method" value="PUT">
 
-            <div class="booking-mobile-dialog__body min-h-0 flex-1 overflow-y-auto px-6 py-4" :class="acOpen ? 'pb-36' : ''">
+            <div class="booking-mobile-dialog__body min-h-0 flex-1 overflow-y-auto px-6 py-4">
                 <div class="space-y-3">
                     <div class="booking-mobile-dialog__summary-grid grid grid-cols-2 gap-3">
                         <div class="ui-field">
@@ -202,26 +202,24 @@
 
                     <div class="ui-field" @click.outside="acOpen=false">
                         <label class="ui-label text-[#151515]">Mitspieler</label>
-                        <div class="relative">
-                            <input type="text"
-                                   name="mitspieler"
-                                   x-model="mitspieler"
-                                   @input.debounce.300ms="fetchAc($event.target.value)"
-                                   @focus="fetchAc(mitspieler)"
-                                   maxlength="255"
-                                   :placeholder="quantity==='2' ? 'Name suchen …' : 'z.B. Müller, Huber, Schmidt'"
-                                   autocomplete="off"
-                                   required
-                                   class="ui-input placeholder:text-[#b8b8b8]">
-                            <ul x-show="acOpen"
-                                class="absolute z-50 mt-1 w-full overflow-hidden rounded border border-[#e0dbd4] bg-white shadow-md">
-                                <template x-for="r in acResults" :key="r">
-                                    <li @mousedown.prevent="mitspieler=r; acResults=[]; acOpen=false"
-                                        x-text="r"
-                                        class="cursor-pointer px-3 py-2 text-sm hover:bg-[#f7f5f2]"></li>
-                                </template>
-                            </ul>
-                        </div>
+                        <input type="text"
+                               name="mitspieler"
+                               x-model="mitspieler"
+                               @input.debounce.300ms="fetchAc($event.target.value)"
+                               @focus="fetchAc(mitspieler)"
+                               maxlength="255"
+                               :placeholder="quantity==='2' ? 'Name suchen …' : 'z.B. Müller, Huber, Schmidt'"
+                               autocomplete="off"
+                               required
+                               class="ui-input placeholder:text-[#b8b8b8]">
+                        <ul x-show="acOpen"
+                            class="mt-1 w-full overflow-hidden rounded border border-[#e0dbd4] bg-white shadow-md">
+                            <template x-for="r in acResults" :key="r">
+                                <li @mousedown.prevent="mitspieler=r; acResults=[]; acOpen=false"
+                                    x-text="r"
+                                    class="cursor-pointer px-3 py-2 text-sm hover:bg-[#f7f5f2]"></li>
+                            </template>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -314,7 +312,7 @@
      @click.self="open = false"
      class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"
      style="display: none;">
-    <div class="booking-mobile-dialog relative flex max-h-[calc(100dvh-16px)] w-full max-w-[660px] flex-col overflow-hidden rounded-[8px] border border-[#e8e8e8] bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
+    <div class="booking-mobile-dialog relative flex max-h-[calc(100dvh-16px)] w-full max-w-[520px] flex-col overflow-hidden rounded-[8px] border border-[#e8e8e8] bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
         <div class="border-b border-[#ebebeb] bg-white px-6 pt-3 pb-0">
             <div class="flex items-start justify-between gap-4">
                 <p class="mb-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#6a6e73]">Neue Buchung</p>
@@ -331,7 +329,7 @@
             <input type="hidden" name="time_start" x-bind:value="timeStart">
             <input type="hidden" name="time_end" x-bind:value="timeEnd">
 
-            <div class="booking-mobile-dialog__body min-h-0 flex-1 overflow-y-auto px-6 py-4" :class="acOpen ? 'pb-36' : ''">
+            <div class="booking-mobile-dialog__body min-h-0 flex-1 overflow-y-auto px-6 py-4">
                 <div class="space-y-3">
                     <div class="booking-mobile-dialog__summary-grid grid grid-cols-2 gap-3">
                         <div class="ui-field">
@@ -363,26 +361,24 @@
 
                     <div class="ui-field" @click.outside="acOpen=false">
                         <label class="ui-label text-[#151515]">Mitspieler</label>
-                        <div class="relative">
-                            <input type="text"
-                                   name="mitspieler"
-                                   x-model="mitspieler"
-                                   @input.debounce.300ms="fetchAc($event.target.value)"
-                                   @focus="fetchAc(mitspieler)"
-                                   maxlength="255"
-                                   :placeholder="quantity==='2' ? 'Name suchen …' : 'z.B. Müller, Huber, Schmidt'"
-                                   autocomplete="off"
-                                   required
-                                   class="ui-input placeholder:text-[#b8b8b8]">
-                            <ul x-show="acOpen"
-                                class="absolute z-50 mt-1 w-full overflow-hidden rounded border border-[#e0dbd4] bg-white shadow-md">
-                                <template x-for="r in acResults" :key="r">
-                                    <li @mousedown.prevent="mitspieler=r; acResults=[]; acOpen=false"
-                                        x-text="r"
-                                        class="cursor-pointer px-3 py-2 text-sm hover:bg-[#f7f5f2]"></li>
-                                </template>
-                            </ul>
-                        </div>
+                        <input type="text"
+                               name="mitspieler"
+                               x-model="mitspieler"
+                               @input.debounce.300ms="fetchAc($event.target.value)"
+                               @focus="fetchAc(mitspieler)"
+                               maxlength="255"
+                               :placeholder="quantity==='2' ? 'Name suchen …' : 'z.B. Müller, Huber, Schmidt'"
+                               autocomplete="off"
+                               required
+                               class="ui-input placeholder:text-[#b8b8b8]">
+                        <ul x-show="acOpen"
+                            class="mt-1 w-full overflow-hidden rounded border border-[#e0dbd4] bg-white shadow-md">
+                            <template x-for="r in acResults" :key="r">
+                                <li @mousedown.prevent="mitspieler=r; acResults=[]; acOpen=false"
+                                    x-text="r"
+                                    class="cursor-pointer px-3 py-2 text-sm hover:bg-[#f7f5f2]"></li>
+                            </template>
+                        </ul>
                     </div>
                 </div>
             </div>
