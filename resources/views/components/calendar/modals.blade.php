@@ -183,8 +183,12 @@
                             <p class="ui-input bg-[#fafafa] text-[#151515] m-0" x-text="squareName"></p>
                         </div>
                         <div class="ui-field">
-                            <label class="ui-label text-[#151515]">Datum &amp; Uhrzeit</label>
-                            <p class="ui-input bg-[#fafafa] text-[#151515] m-0" x-text="dateLabel + ', ' + timeLabel"></p>
+                            <label class="ui-label text-[#151515]">Datum</label>
+                            <p class="ui-input bg-[#fafafa] text-[#151515] m-0" x-text="dateLabel"></p>
+                        </div>
+                        <div class="ui-field col-span-2">
+                            <label class="ui-label text-[#151515]">Uhrzeit</label>
+                            <p class="ui-input bg-[#fafafa] text-[#151515] m-0" x-text="timeLabel"></p>
                         </div>
                     </div>
 
