@@ -42,6 +42,12 @@ final class OptionController extends Controller
         'registration'           => 'service.user.registration',
         'activation'             => 'service.user.activation',
         'maintenance'            => 'service.maintenance',
+        // Stoßzeiten
+        'peak_limit_enabled'  => 'peak_limit.enabled',
+        'peak_limit_w1_start' => 'peak_limit.window_1_start',
+        'peak_limit_w1_end'   => 'peak_limit.window_1_end',
+        'peak_limit_w2_start' => 'peak_limit.window_2_start',
+        'peak_limit_w2_end'   => 'peak_limit.window_2_end',
     ];
 
     public function edit(): View
@@ -49,6 +55,19 @@ final class OptionController extends Controller
         $values = [];
         foreach (self::MAP as $field => $key) {
             $values[$field] = Option::getValue($key, '');
+        }
+
+        // Peak-Limit: Config-Defaults wenn noch keine Option gespeichert
+        $peakDefaults = [
+            'peak_limit_w1_start' => config('booking.peak_limit.window_1_start', '08:00'),
+            'peak_limit_w1_end'   => config('booking.peak_limit.window_1_end',   '12:00'),
+            'peak_limit_w2_start' => config('booking.peak_limit.window_2_start', '17:00'),
+            'peak_limit_w2_end'   => config('booking.peak_limit.window_2_end',   '21:00'),
+        ];
+        foreach ($peakDefaults as $field => $default) {
+            if ($values[$field] === '') {
+                $values[$field] = $default;
+            }
         }
 
         return view('admin.config.edit', compact('values'));
@@ -79,6 +98,11 @@ final class OptionController extends Controller
             'registration'           => ['nullable', 'in:0,1'],
             'activation'             => ['nullable', 'in:immediate,manual,manual-email,email'],
             'maintenance'            => ['nullable', 'in:0,1'],
+            'peak_limit_enabled'  => ['nullable', 'in:0,1'],
+            'peak_limit_w1_start' => ['nullable', 'regex:/^\d{2}:\d{2}$/'],
+            'peak_limit_w1_end'   => ['nullable', 'regex:/^\d{2}:\d{2}$/'],
+            'peak_limit_w2_start' => ['nullable', 'regex:/^\d{2}:\d{2}$/'],
+            'peak_limit_w2_end'   => ['nullable', 'regex:/^\d{2}:\d{2}$/'],
         ]);
 
         foreach (self::MAP as $field => $key) {

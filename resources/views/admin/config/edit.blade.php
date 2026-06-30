@@ -217,6 +217,50 @@
             </div>
         </div>
 
+        {{-- Stoßzeiten --}}
+        <div class="bg-white rounded-xl border border-[#e0ddd7] shadow-sm overflow-hidden mb-6">
+            <div class="px-6 py-4 border-b border-[#f0ede6]">
+                <h2 class="text-base font-semibold text-[#151515]" style="font-family: var(--font-display)">Stoßzeiten-Limit</h2>
+            </div>
+            <div class="px-6 py-5 flex flex-col gap-4">
+
+                <label class="flex items-center gap-2 text-sm text-[#151515] cursor-pointer">
+                    <input type="checkbox" name="peak_limit_enabled" value="1"
+                        @checked(old('peak_limit_enabled', $values['peak_limit_enabled']) == '1')>
+                    Stoßzeiten-Limit global aktivieren
+                </label>
+                <p class="text-xs text-[#6a6e73] -mt-2">Wenn aktiv, zählen nur Buchungen in Stoßzeiten gegen das Buchungslimit. Pro Platz muss das Limit zusätzlich aktiviert werden.</p>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">Fenster 1 von</label>
+                        <input type="time" name="peak_limit_w1_start"
+                            value="{{ old('peak_limit_w1_start', $values['peak_limit_w1_start']) }}"
+                            class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">bis</label>
+                        <input type="time" name="peak_limit_w1_end"
+                            value="{{ old('peak_limit_w1_end', $values['peak_limit_w1_end']) }}"
+                            class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">Fenster 2 von</label>
+                        <input type="time" name="peak_limit_w2_start"
+                            value="{{ old('peak_limit_w2_start', $values['peak_limit_w2_start']) }}"
+                            class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">bis</label>
+                        <input type="time" name="peak_limit_w2_end"
+                            value="{{ old('peak_limit_w2_end', $values['peak_limit_w2_end']) }}"
+                            class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
         <div class="flex justify-end pt-2">
             <button type="submit" class="bg-[#bf4316] hover:bg-[#9e3412] text-white text-sm font-medium px-5 py-2 rounded transition-colors">{{ __('booking.admin.save') }}</button>
         </div>
