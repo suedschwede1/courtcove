@@ -13,7 +13,7 @@
         <div class="flex flex-col gap-1">
             <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="sf-alias">{{ __('booking.admin.squares.display_name') }}</label>
             <input id="sf-alias" type="text" name="alias" value="{{ old('alias', $form['alias']) }}" class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-            <p class="text-xs text-[#6a6e73] mt-1">Sichtbarer Name im Kalender (z. B. Court B). Leer lassen, um nur die Nummer anzuzeigen.</p>
+            <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.squares.display_name_hint', ['example' => 'Platz1']) }}</p>
         </div>
         <div class="flex flex-col gap-1">
             <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="sf-status">{{ __('booking.admin.squares.status') }}</label>
@@ -26,7 +26,7 @@
         <div class="flex flex-col gap-1">
             <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="sf-readonly-msg">{{ __('booking.admin.squares.readonly_message') }}</label>
             <input id="sf-readonly-msg" type="text" name="readonly_message" value="{{ old('readonly_message', $form['readonly_message']) }}" class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-            <p class="text-xs text-[#6a6e73] mt-1">Nachricht, die angezeigt wird, wenn der Platz gesperrt ist.</p>
+            <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.squares.readonly_message_hint') }}</p>
         </div>
         <div class="flex flex-col gap-1">
             <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="sf-priority">{{ __('booking.admin.squares.priority') }}</label>
@@ -42,11 +42,6 @@
     </div>
     <div class="px-6 py-5 flex flex-col gap-4">
         <div class="flex flex-col gap-1">
-            <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="sf-capacity">{{ __('booking.admin.squares.capacity') }}</label>
-            <input id="sf-capacity" type="number" min="0" name="capacity" value="{{ old('capacity', $form['capacity']) }}" class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-            <p class="text-xs text-[#6a6e73] mt-1">Wieviele Spieler passen auf einen Platz?</p>
-        </div>
-        <div class="flex flex-col gap-1">
             <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="sf-ask-names">{{ __('booking.admin.squares.ask_names') }}</label>
             @php $askLabels = ['' => __('booking.admin.squares.ask_names_none'), 'optional-names' => __('booking.admin.squares.ask_names_optional'), 'optional-names-email' => __('booking.admin.squares.ask_names_optional_email'), 'optional-names-phone' => __('booking.admin.squares.ask_names_optional_phone'), 'optional-names-email-phone' => __('booking.admin.squares.ask_names_optional_email_phone'), 'required-names' => __('booking.admin.squares.ask_names_required'), 'required-names-email' => __('booking.admin.squares.ask_names_required_email'), 'required-names-phone' => __('booking.admin.squares.ask_names_required_phone'), 'required-names-email-phone' => __('booking.admin.squares.ask_names_required_email_phone')]; @endphp
             <select id="sf-ask-names" name="capacity_ask_names" class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
@@ -56,11 +51,15 @@
             </select>
         </div>
         <label class="flex items-center gap-2 text-sm text-[#151515] cursor-pointer">
-            <input type="checkbox" name="capacity_heterogenic" value="1" @checked(old('capacity_heterogenic', $form['capacity_heterogenic']))> {{ __('booking.admin.squares.heterogenic') }}
-        </label>
-        <label class="flex items-center gap-2 text-sm text-[#151515] cursor-pointer">
             <input type="checkbox" name="allow_notes" value="1" @checked(old('allow_notes', $form['allow_notes']))> {{ __('booking.admin.squares.allow_notes') }}
         </label>
+        @if($peakLimitGlobal ?? false)
+        <label class="flex items-center gap-2 text-sm text-[#151515] cursor-pointer">
+            <input type="checkbox" name="peak_limit_enabled" value="1"
+                @checked(old('peak_limit_enabled', $form['peak_limit_enabled']))>
+            Stoßzeiten-Limit für diesen Platz aktivieren
+        </label>
+        @endif
         <div class="flex flex-col gap-1">
             <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="sf-name-visibility">{{ __('booking.admin.squares.name_visibility') }}</label>
             <select id="sf-name-visibility" name="name_visibility" class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
@@ -108,17 +107,22 @@
         <div class="flex flex-col gap-1">
             <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="sf-range-book">{{ __('booking.admin.squares.range_book') }}</label>
             <input id="sf-range-book" type="number" min="0" name="range_book" value="{{ old('range_book', $form['range_book']) }}" class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-            <p class="text-xs text-[#6a6e73] mt-1">Wie viele Tage im Voraus kann max. gebucht werden?</p>
+            <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.squares.range_book_hint') }}</p>
+        </div>
+        <div class="flex flex-col gap-1">
+            <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="sf-short-booking-window">{{ __('booking.admin.squares.short_booking_window') }}</label>
+            <input id="sf-short-booking-window" type="number" min="0" name="short_booking_window" value="{{ old('short_booking_window', $form['short_booking_window']) }}" class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
+            <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.squares.short_booking_window_hint') }}</p>
         </div>
         <div class="flex flex-col gap-1">
             <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="sf-max-bookings">{{ __('booking.admin.squares.max_active_bookings') }}</label>
             <input id="sf-max-bookings" type="number" min="0" name="max_active_bookings" value="{{ old('max_active_bookings', $form['max_active_bookings']) }}" class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-            <p class="text-xs text-[#6a6e73] mt-1">Auf 0 setzen, um beliebig viele Buchungen zu erlauben.</p>
+            <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.squares.max_active_bookings_hint') }}</p>
         </div>
         <div class="flex flex-col gap-1">
             <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="sf-range-cancel">{{ __('booking.admin.squares.range_cancel') }}</label>
             <input id="sf-range-cancel" type="number" step="0.01" min="0" name="range_cancel" value="{{ old('range_cancel', $form['range_cancel']) }}" class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-            <p class="text-xs text-[#6a6e73] mt-1">Bis wann darf spätestens storniert werden? 0 = nie stornieren, 0,01 = praktisch immer.</p>
+            <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.squares.range_cancel_hint') }}</p>
         </div>
     </div>
 </div>
@@ -132,7 +136,8 @@
         <div class="flex flex-col gap-1">
             <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="sf-label-free">{{ __('booking.admin.squares.label_free') }}</label>
             <input id="sf-label-free" type="text" name="label_free" value="{{ old('label_free', $form['label_free']) }}" class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-            <p class="text-xs text-[#6a6e73] mt-1">Individuelle Bezeichnung freier Plätze; Standard ist „Frei".</p>
+            <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.squares.label_free_hint') }}</p>
         </div>
     </div>
 </div>
+
