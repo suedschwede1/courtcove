@@ -163,7 +163,7 @@
      @click.self="open = false"
      class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"
      style="display: none;">
-    <div class="booking-mobile-dialog relative flex max-h-[calc(100dvh-16px)] w-full max-w-[480px] flex-col overflow-hidden rounded-[8px] border border-[#e8e8e8] bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
+    <div class="booking-mobile-dialog relative flex max-h-[calc(100dvh-16px)] w-full max-w-[660px] flex-col overflow-hidden rounded-[8px] border border-[#e8e8e8] bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
         <div class="border-b border-[#ebebeb] bg-white px-6 pt-3 pb-0">
             <div class="flex items-start justify-between gap-4">
                 <p class="mb-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#6a6e73]">Buchung bearbeiten</p>
@@ -175,7 +175,7 @@
             @csrf
             <input type="hidden" name="_method" value="PUT">
 
-            <div class="booking-mobile-dialog__body min-h-0 flex-1 overflow-y-auto px-6 py-4">
+            <div class="booking-mobile-dialog__body min-h-0 flex-1 overflow-y-auto px-6 py-4" :class="acOpen ? 'pb-36' : ''">
                 <div class="space-y-3">
                     <div class="booking-mobile-dialog__summary-grid grid grid-cols-2 gap-3">
                         <div class="ui-field">
@@ -314,7 +314,7 @@
      @click.self="open = false"
      class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"
      style="display: none;">
-    <div class="booking-mobile-dialog relative flex max-h-[calc(100dvh-16px)] w-full max-w-[580px] flex-col overflow-hidden rounded-[8px] border border-[#e8e8e8] bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
+    <div class="booking-mobile-dialog relative flex max-h-[calc(100dvh-16px)] w-full max-w-[660px] flex-col overflow-hidden rounded-[8px] border border-[#e8e8e8] bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
         <div class="border-b border-[#ebebeb] bg-white px-6 pt-3 pb-0">
             <div class="flex items-start justify-between gap-4">
                 <p class="mb-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#6a6e73]">Neue Buchung</p>
@@ -331,7 +331,7 @@
             <input type="hidden" name="time_start" x-bind:value="timeStart">
             <input type="hidden" name="time_end" x-bind:value="timeEnd">
 
-            <div class="booking-mobile-dialog__body min-h-0 flex-1 overflow-y-auto px-6 py-4">
+            <div class="booking-mobile-dialog__body min-h-0 flex-1 overflow-y-auto px-6 py-4" :class="acOpen ? 'pb-36' : ''">
                 <div class="space-y-3">
                     <div class="booking-mobile-dialog__summary-grid grid grid-cols-2 gap-3">
                         <div class="ui-field">
