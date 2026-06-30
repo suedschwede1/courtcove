@@ -236,9 +236,6 @@
                 </div>
             </div>
         </form>
-
-        <button type="button" @click="open = false"
-                class="absolute top-3 right-4 text-[#9a9a9a] hover:text-[#151515] text-lg leading-none">✕</button>
     </div>
 </div>
 @endauth
