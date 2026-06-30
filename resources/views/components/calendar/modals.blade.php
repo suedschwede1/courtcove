@@ -338,7 +338,7 @@
                         </div>
                         <div class="ui-field">
                             <label class="ui-label text-[#151515]">Datum &amp; Uhrzeit</label>
-                            <p class="ui-input bg-[#fafafa] text-[#151515] m-0" x-text="dateLabel + ', ' + timeLabel"></p>
+                            <p class="ui-input bg-[#fafafa] text-[#151515] m-0" x-text="dateLabel + ', ' + timeLabel.replace(' Uhr', '')"></p>
                         </div>
                     </div>
                     <input type="hidden" name="date" x-bind:value="date">

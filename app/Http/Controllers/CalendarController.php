@@ -196,7 +196,7 @@ final class CalendarController extends Controller
             $dateLabels[$d->format('Y-m-d')] = [
                 'short' => $d->isoFormat('dddd'),
                 'long'  => $d->isoFormat('D. MMMM YYYY'),
-                'full'  => $d->isoFormat('D. MMMM YYYY'),
+                'full'  => $d->isoFormat('D. MMM YYYY'),
             ];
         }
 
