@@ -337,10 +337,6 @@
                             <input type="text" x-bind:value="squareName" readonly class="ui-input bg-[#fafafa] text-[#151515]">
                         </div>
                         <div class="ui-field">
-                            <label class="ui-label text-[#151515]">Gebucht für</label>
-                            <input type="text" value="{{ auth()->user()->name }}" readonly class="ui-input bg-[#fafafa] text-[#151515]">
-                        </div>
-                        <div class="ui-field">
                             <label class="ui-label text-[#151515]">Datum</label>
                             <p class="ui-input bg-[#fafafa] text-[#151515] m-0" x-text="dateLabel"></p>
                         </div>
