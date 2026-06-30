@@ -190,11 +190,29 @@
                         </select>
                     </div>
 
-                    <div class="ui-field">
+                    <div class="ui-field"
+                         x-data="{ acResults: [], acOpen: false, fetchAc(v){ if(v.length<2){this.acResults=[];this.acOpen=false;return;} fetch('/bookings/players?q='+encodeURIComponent(v)).then(r=>r.json()).then(d=>{this.acResults=d;this.acOpen=d.length>0}); }, pick(v){ mitspieler=v; this.acResults=[]; this.acOpen=false; } }"
+                         @click.outside="acOpen=false">
                         <label class="ui-label text-[#151515]">Mitspieler</label>
-                        <input type="text" name="mitspieler" x-model="mitspieler" maxlength="255"
-                               placeholder="z.B. Müller, Huber, Schmidt"
-                               class="ui-input placeholder:text-[#b8b8b8]">
+                        <div class="relative">
+                            <input type="text"
+                                   name="mitspieler"
+                                   x-model="mitspieler"
+                                   @input.debounce.300ms="quantity==='2' && fetchAc($event.target.value)"
+                                   @focus="quantity==='2' && mitspieler.length>=2 && fetchAc(mitspieler)"
+                                   maxlength="255"
+                                   :placeholder="quantity==='2' ? 'Name suchen …' : 'z.B. Müller, Huber, Schmidt'"
+                                   autocomplete="off"
+                                   class="ui-input placeholder:text-[#b8b8b8]">
+                            <ul x-show="acOpen && quantity==='2'"
+                                x-cloak
+                                class="absolute z-50 mt-1 w-full overflow-hidden rounded border border-[#e0dbd4] bg-white shadow-md">
+                                <template x-for="r in acResults" :key="r">
+                                    <li @click="pick(r)" x-text="r"
+                                        class="cursor-pointer px-3 py-2 text-sm hover:bg-[#f7f5f2]"></li>
+                                </template>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -232,6 +250,7 @@
         timeStartFormatted: '',
         timeEndFormatted: '',
         quantity: '2',
+        mitspieler: '',
         error: null,
         loading: false,
         openBooking(detail) {
@@ -245,6 +264,7 @@
             this.timeStartFormatted = detail.timeStartFormatted;
             this.timeEndFormatted   = detail.timeEndFormatted;
             this.quantity = '2';
+            this.mitspieler = '';
             this.error = null;
             this.open = true;
         },
@@ -328,13 +348,29 @@
                             </select>
                         </div>
 
-                    <div class="ui-field">
+                    <div class="ui-field"
+                         x-data="{ acResults: [], acOpen: false, fetchAc(v){ if(v.length<2){this.acResults=[];this.acOpen=false;return;} fetch('/bookings/players?q='+encodeURIComponent(v)).then(r=>r.json()).then(d=>{this.acResults=d;this.acOpen=d.length>0}); }, pick(v){ mitspieler=v; this.acResults=[]; this.acOpen=false; } }"
+                         @click.outside="acOpen=false">
                         <label class="ui-label text-[#151515]">Mitspieler</label>
-                        <input type="text"
-                               name="mitspieler"
-                               maxlength="255"
-                               placeholder="z.B. Müller, Huber, Schmidt"
-                               class="ui-input placeholder:text-[#b8b8b8]">
+                        <div class="relative">
+                            <input type="text"
+                                   name="mitspieler"
+                                   x-model="mitspieler"
+                                   @input.debounce.300ms="quantity==='2' && fetchAc($event.target.value)"
+                                   @focus="quantity==='2' && mitspieler.length>=2 && fetchAc(mitspieler)"
+                                   maxlength="255"
+                                   :placeholder="quantity==='2' ? 'Name suchen …' : 'z.B. Müller, Huber, Schmidt'"
+                                   autocomplete="off"
+                                   class="ui-input placeholder:text-[#b8b8b8]">
+                            <ul x-show="acOpen && quantity==='2'"
+                                x-cloak
+                                class="absolute z-50 mt-1 w-full overflow-hidden rounded border border-[#e0dbd4] bg-white shadow-md">
+                                <template x-for="r in acResults" :key="r">
+                                    <li @click="pick(r)" x-text="r"
+                                        class="cursor-pointer px-3 py-2 text-sm hover:bg-[#f7f5f2]"></li>
+                                </template>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
