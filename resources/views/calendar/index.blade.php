@@ -37,7 +37,7 @@
         'privacy' => trim((string) \App\Models\Option::getValue('client.website.privacy', '')),
     ];
 @endphp
-<div class="help-panel__grid help-panel__grid--single">
+<div class="help-panel__grid">
     <section class="help-card">
         <p class="help-card__eyebrow">{{ __('booking.calendar.system_eyebrow') }}</p>
         <h2 class="help-card__title">{{ __('booking.calendar.information') }}</h2>
@@ -49,11 +49,13 @@
                 <li>{{ $item }}</li>
             @endforeach
         </ul>
+    </section>
 
-        @if(collect($operator)->contains(fn ($value) => $value !== ''))
-            <p class="help-card__eyebrow" style="margin-top: 1.5rem;">{{ __('booking.calendar.operator_eyebrow') }}</p>
+    @if(collect($operator)->contains(fn ($value) => $value !== ''))
+        <section class="help-card">
+            <p class="help-card__eyebrow">{{ __('booking.calendar.operator_eyebrow') }}</p>
             @if($operator['name'] !== '')
-                <h3 class="help-card__title" style="font-size: 1.5rem; margin-top: 0.35rem;">{{ $operator['name'] }}</h3>
+                <h2 class="help-card__title">{{ $operator['name'] }}</h2>
             @endif
             <ul class="help-card__list">
                 @if($operator['email'] !== '')
@@ -75,8 +77,8 @@
                     <li>{{ __('booking.calendar.operator_privacy') }}: <a href="{{ $operator['privacy'] }}" target="_blank" rel="noreferrer">{{ __('booking.calendar.operator_privacy_link') }}</a></li>
                 @endif
             </ul>
-        @endif
-    </section>
+        </section>
+    @endif
 </div>
 @endsection
 
