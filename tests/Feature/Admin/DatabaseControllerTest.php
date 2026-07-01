@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Tests\Feature\Admin;
 
 use App\Models\User;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -56,5 +58,21 @@ class DatabaseControllerTest extends TestCase
         $this->actingAs(User::factory()->create(['status' => 'enabled']))
             ->post('/admin/database/migrate')
             ->assertForbidden();
+    }
+
+    #[Test]
+    public function database_status_page_shows_a_missing_column_when_schema_drifts(): void
+    {
+        $admin = $this->admin();
+
+        Schema::table('bs_users', function (Blueprint $table): void {
+            $table->dropColumn('last_ip');
+        });
+
+        $this->actingAs($admin)
+            ->get('/admin/database')
+            ->assertOk()
+            ->assertSee('bs_users')
+            ->assertSee('last_ip');
     }
 }

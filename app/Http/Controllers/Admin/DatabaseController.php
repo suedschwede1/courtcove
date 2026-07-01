@@ -9,6 +9,7 @@ use App\Services\DatabaseSchemaChecker;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\View\View;
+use Throwable;
 
 final class DatabaseController extends Controller
 {
@@ -27,7 +28,14 @@ final class DatabaseController extends Controller
 
     public function migrate(): RedirectResponse
     {
-        Artisan::call('migrate', ['--force' => true]);
+        try {
+            Artisan::call('migrate', ['--force' => true]);
+        } catch (Throwable $e) {
+            report($e);
+
+            return redirect()->route('admin.database.index')
+                ->with('error', __('booking.admin.database.migrate_failed'));
+        }
 
         return redirect()->route('admin.database.index')
             ->with('success', __('booking.admin.database.migrate_ran'));

@@ -33,6 +33,7 @@ return [
             'migrate_button' => 'Run pending migrations',
             'migrate_confirm' => 'This will run pending database migrations against the live database. Continue?',
             'migrate_ran' => 'Migrations executed.',
+            'migrate_failed' => 'Running migrations failed. Check the server logs for details.',
             'tables_heading' => 'Tables',
             'table_name' => 'Table',
             'table_exists' => 'Exists',

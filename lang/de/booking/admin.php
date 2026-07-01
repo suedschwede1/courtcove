@@ -33,6 +33,7 @@ return [
             'migrate_button' => 'Ausstehende Migrationen ausführen',
             'migrate_confirm' => 'Dies führt ausstehende Datenbank-Migrationen gegen die Live-Datenbank aus. Fortfahren?',
             'migrate_ran' => 'Migrationen ausgeführt.',
+            'migrate_failed' => 'Die Migration ist fehlgeschlagen. Details siehe Server-Logs.',
             'tables_heading' => 'Tabellen',
             'table_name' => 'Tabelle',
             'table_exists' => 'Vorhanden',
