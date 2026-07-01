@@ -223,11 +223,14 @@ body {
     border-radius: 6px;
     background: #fff;
     color: var(--ui-text);
+    font-family: var(--font-body);
     font-size: 14px;
 }
 
 .ui-input,
 .ui-select {
+    display: flex;
+    align-items: center;
     height: 38px;
     padding: 0 12px;
 }
