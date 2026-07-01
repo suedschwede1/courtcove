@@ -198,6 +198,14 @@ class LoginTest extends TestCase
         $this->actingAs($user)->get('/calendar')->assertOk();
     }
 
+    #[Test]
+    public function login_page_reflects_the_active_locale(): void
+    {
+        $this->withUnencryptedCookie('locale', 'en')
+            ->get('/login')
+            ->assertSee('lang="en"', false);
+    }
+
     private function throttleKey(string $email): string
     {
         return strtolower(trim($email)).'|127.0.0.1';
