@@ -296,11 +296,13 @@
     }
 
     function availableCalendarWidth() {
-        // wrap's own clientWidth is the ground truth: it already reflects every real
-        // constraint (page layout, borders, any reserved scrollbar gutter) because
-        // .calendar-layout is clamped to it via max-width:100% whenever the grid is
-        // wider than the page allows. A viewport-based estimate can't see those.
-        return wrap.clientWidth;
+        // Must be independent of the grid's own current width: .calendar-layout is
+        // sized FROM the grid (via --calendar-visible-width), so once the grid no
+        // longer needs clamping, wrap.clientWidth just mirrors the grid's own size
+        // and can no longer report how much real room is actually available.
+        var rect = wrap.getBoundingClientRect();
+        var viewportWidth = document.documentElement.clientWidth || window.innerWidth;
+        return Math.max(0, viewportWidth - rect.left - 12);
     }
 
     function applyDayWindow(count) {
