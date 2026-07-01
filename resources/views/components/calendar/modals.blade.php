@@ -1,30 +1,5 @@
 @props(['date', 'squares'])
 
-@if(session()->has('success') || session()->has('error'))
-<div x-data="{ open: true }"
-     x-init="setTimeout(() => open = false, 4000)"
-     x-show="open"
-     x-transition.opacity
-     @keydown.escape.window="open = false"
-     @click.self="open = false"
-     class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"
-     style="display: none;">
-    <div class="relative w-full max-w-sm bg-white rounded-xl shadow-xl border border-[#e0ddd7] px-6 py-5">
-        @if(session('success'))
-            <p class="text-sm font-medium text-green-700">{{ session('success') }}</p>
-            @if(session('booking_quote'))
-                <p class="mt-2 text-sm italic text-gray-500">{{ session('booking_quote') }}</p>
-            @endif
-        @else
-            <p class="text-sm font-medium text-red-600">{{ session('error') }}</p>
-        @endif
-        <button type="button" @click="open = false" class="mt-4 w-full border border-[#d1cbc0] text-[#6a6e73] text-sm py-2 rounded hover:bg-[#f9f8f6] transition-colors">
-            {{ __('booking.feedback.close') }}
-        </button>
-    </div>
-</div>
-@endif
-
 @auth
 <div x-data="{
         open: false,

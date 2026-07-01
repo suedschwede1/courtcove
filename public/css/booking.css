@@ -859,6 +859,14 @@ a.event-label {
     line-height: 1.4;
 }
 
+.booking-modal__quote {
+    margin: 10px 0 0;
+    font-size: 13px;
+    font-style: italic;
+    color: #6a6e73;
+    line-height: 1.4;
+}
+
 
 .admin-booking-form {
     margin-top: 8px;
@@ -4048,7 +4056,83 @@ textarea {
         display: none;
     }
 }
+/* Medium desktop header: keep action buttons visible instead of overflowing. */
+@media screen and (min-width: 901px) and (max-width: 1540px) {
+    .app-header__inner {
+        display: grid !important;
+        grid-template-columns: minmax(260px, max-content) minmax(300px, 1fr);
+        grid-template-areas:
+            "brand nav"
+            "actions actions";
+        align-items: center;
+        gap: 12px 18px;
+    }
 
+    .app-header__brand {
+        grid-area: brand;
+        min-width: 0;
+    }
 
+    .app-header__logo {
+        width: 88px !important;
+        height: 84px !important;
+    }
 
+    .app-header__title {
+        max-width: 280px;
+        font-size: 16px;
+    }
+
+    .app-header__nav-wrap {
+        grid-area: nav;
+        min-width: 0;
+        justify-content: flex-end;
+    }
+
+    .app-header__actions {
+        grid-area: actions;
+        display: flex !important;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 8px;
+        width: 100%;
+        max-width: 100%;
+        margin-left: 0 !important;
+        overflow: visible;
+    }
+
+    .app-header__actions > a,
+    .app-header__actions > button,
+    .app-header__actions > form {
+        flex: 0 1 auto;
+        min-width: 0;
+    }
+
+    .app-header__actions > a,
+    .app-header__actions > button,
+    .app-header__actions > form > button {
+        white-space: nowrap;
+    }
+}
+
+@media screen and (min-width: 901px) and (max-width: 1120px) {
+    .app-header__inner {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas:
+            "brand"
+            "nav"
+            "actions";
+    }
+
+    .app-header__brand,
+    .app-header__nav-wrap,
+    .app-header__actions {
+        justify-content: center;
+    }
+
+    .app-header__title {
+        max-width: min(520px, 70vw);
+        text-align: left;
+    }
+}
 

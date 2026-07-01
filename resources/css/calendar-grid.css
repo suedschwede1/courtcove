@@ -105,14 +105,19 @@
     max-width: 100%;
 }
 
-/* Series booking badge */
-.cc-label-series {
-    font-family: 'Red Hat Text', sans-serif;
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--cal-series-label, #7f2010);
-    line-height: 1.3;
-    margin-top: 2px;
+/* Series booking marker — colored left bar (per mobile-view-stable design) */
+.cc-series {
+    position: relative;
+    padding-left: 10px;
+}
+
+.cc-series::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 4px;
+    background: var(--cal-series-accent, rgba(26, 103, 179, 0.45));
+    border-radius: 3px 0 0 3px;
 }
 
 /* Teammate label */
@@ -275,3 +280,4 @@
         font-size: 9px;
     }
 }
+

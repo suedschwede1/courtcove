@@ -48,6 +48,9 @@
                         </div>
                         <div class="booking-modal__body">
                             <p class="{{ session('success') ? 'booking-modal__success' : 'booking-modal__warning' }} booking-modal__flash">{{ session('success') ?? session('error') }}</p>
+                            @if(session('booking_quote'))
+                                <p class="booking-modal__quote">{{ session('booking_quote') }}</p>
+                            @endif
                         </div>
                         <div class="booking-modal__actions">
                             <button type="button" id="feedback-modal-ok" class="default-button">{{ __('booking.feedback.close') }}</button>
