@@ -12,6 +12,9 @@
     <div class="relative w-full max-w-sm bg-white rounded-xl shadow-xl border border-[#e0ddd7] px-6 py-5">
         @if(session('success'))
             <p class="text-sm font-medium text-green-700">{{ session('success') }}</p>
+            @if(session('booking_quote'))
+                <p class="mt-2 text-sm italic text-gray-500">{{ session('booking_quote') }}</p>
+            @endif
         @else
             <p class="text-sm font-medium text-red-600">{{ session('error') }}</p>
         @endif

@@ -46,6 +46,16 @@
                     </select>
                 </div>
 
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-quotes">{{ __('booking.admin.quotes_enabled') }}</label>
+                    <select id="cf-quotes" name="quotes_enabled"
+                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
+                        <option value="0" @selected((string) $values['quotes_enabled'] === '0')>{{ __('booking.admin.off') }}</option>
+                        <option value="1" @selected((string) $values['quotes_enabled'] === '1')>{{ __('booking.admin.on') }}</option>
+                    </select>
+                    <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.quotes_enabled_hint') }}</p>
+                </div>
+
             </div>
         </div>
 

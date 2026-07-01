@@ -30,6 +30,8 @@ return [
         'calendar_days' => 'Kalendertage',
         'registration' => 'Registrierung',
         'maintenance' => 'Wartungsmodus',
+        'quotes_enabled' => 'Sprüche nach Buchung',
+        'quotes_enabled_hint' => 'Zeigt Mitgliedern nach einer erfolgreichen Buchung einen zufälligen, launigen Spruch an.',
         'cfg' => [
             'section_client'          => 'Ihr Betrieb',
             'section_system'          => 'System',

@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Exceptions\BookingValidationException;
 use App\Models\Booking;
+use App\Models\Option;
 use App\Models\Square;
 use App\Models\User;
 use App\Services\BookingService;
@@ -80,7 +81,25 @@ final class BookingController extends Controller
             return back()->withErrors(['booking' => $msg])->with('error', $msg);
         }
 
+        if (Option::getValue('service.quotes.enabled', '1') === '1') {
+            $pool = __('booking.quotes');
+
+            // quotes_named only exists for German; app.fallback_locale is 'de',
+            // so a plain __() lookup would silently leak German quotes into
+            // other locales — guard explicitly instead.
+            if (app()->getLocale() === 'de') {
+                $namedQuotes = __('booking.quotes_named');
+                if (is_array($namedQuotes)) {
+                    $pool = array_merge($pool, $namedQuotes);
+                }
+            }
+
+            $quote = str_replace(':name', (string) auth()->user()?->alias, $pool[array_rand($pool)]);
+            session()->flash('booking_quote', $quote);
+        }
+
         if ($request->ajax()) {
+            session()->flash('success', __('booking.messages.booking_created_public'));
             return response()->json(['redirect' => route('calendar.index', ['date' => Carbon::parse($data['date'])->format('Y-m-d')])]);
         }
 

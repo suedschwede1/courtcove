@@ -44,6 +44,7 @@ final class OptionController extends Controller
         'registration'        => 'service.user.registration',
         'activation'          => 'service.user.activation',
         'maintenance'         => 'service.maintenance',
+        'quotes_enabled'      => 'service.quotes.enabled',
         'calendar_days'       => 'service.calendar.days',
         'calendar_hide'       => 'service.calendar.day-exceptions',
         'peak_limit_enabled'  => 'peak_limit.enabled',
@@ -80,8 +81,14 @@ final class OptionController extends Controller
 
     public function editBehavior(): View
     {
+        $values = $this->loadValues(self::BEHAVIOR_MAP, true);
+
+        if ($values['quotes_enabled'] === '') {
+            $values['quotes_enabled'] = '1';
+        }
+
         return view('admin.config.behavior', [
-            'values' => $this->loadValues(self::BEHAVIOR_MAP, true),
+            'values' => $values,
         ]);
     }
 
@@ -166,6 +173,7 @@ final class OptionController extends Controller
             'registration'        => ['nullable', 'in:0,1'],
             'activation'          => ['nullable', 'in:immediate,manual,manual-email,email'],
             'maintenance'         => ['nullable', 'in:0,1'],
+            'quotes_enabled'      => ['nullable', 'in:0,1'],
             'calendar_days'       => ['nullable', 'integer', 'min:1', 'max:31'],
             'calendar_hide'       => ['nullable', 'string', 'max:4096'],
             'peak_limit_enabled'  => ['nullable', 'in:0,1'],

@@ -30,6 +30,8 @@ return [
         'calendar_days' => 'Calendar Days',
         'registration' => 'Registration',
         'maintenance' => 'Maintenance Mode',
+        'quotes_enabled' => 'Quotes After Booking',
+        'quotes_enabled_hint' => 'Shows members a random, playful quote after a successful booking.',
         'cfg' => [
             'section_client' => 'Your Organization',
             'section_system' => 'System',
