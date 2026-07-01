@@ -82,6 +82,19 @@ return [
 
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'de'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Available Locales
+    |--------------------------------------------------------------------------
+    |
+    | The set of locales the language switcher (App\Http\Middleware\SetLocale,
+    | App\Http\Controllers\LocaleController) will accept. Any locale not in
+    | this list is rejected and the app falls back to the default 'locale'.
+    |
+    */
+
+    'available_locales' => ['de', 'en'],
+
     'faker_locale' => env('APP_FAKER_LOCALE', 'de_AT'),
 
     /*
