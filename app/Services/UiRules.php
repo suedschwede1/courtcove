@@ -22,7 +22,7 @@ class UiRules
             // --- Farben ---
             [
                 'id'      => 'CLR-01',
-                'warn'    => 'Hex-Farbe %s nicht im Design Guide — Palette in docs/DESIGN_GUIDE.md prüfen',
+                'warn'    => 'Hex-Farbe %s nicht im Design Guide — Palette in docs/DESIGN.md prüfen',
                 'pattern' => '/#([0-9a-fA-F]{6})\b/i',
                 'exclude' => ['emails/'],
                 'context' => false,
