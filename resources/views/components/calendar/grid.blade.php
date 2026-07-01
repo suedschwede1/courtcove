@@ -98,10 +98,10 @@
                             $isSeriesBooking = $reservation?->booking?->isSubscription() ?? false;
 
                             $secondaryLabel = $isLoggedIn ? $reservation?->booking?->player_names_label : null;
-                            $seriesBadge = $isAdmin && $isSeriesBooking ? __('booking.calendar.series_badge') : null;
 
                             $cellClass = 'cc-over';
                             $slotClass = $isPastSlot ? ' slot-cell--past' : '';
+                            $seriesClass = $isSeriesBooking ? ' cc-series' : '';
                             $primaryLabel = '';
                             $action = null;
                             $cellTitle = $squareLabel . ' – ' . __('booking.calendar.past');
@@ -182,7 +182,7 @@
                             <td @class(['cal-extra-day' => $extraDay]) data-day="{{ $dayIndex }}">
                                 @if($isAdmin)
                                     <a href="#"
-                                       class="calendar-cell {{ $cellClass }}{{ $slotClass }} booking-trigger"
+                                       class="calendar-cell {{ $cellClass }}{{ $slotClass }}{{ $seriesClass }} booking-trigger"
                                        title="{{ $cellTitle }}"
                                        data-action="cancel"
                                        data-bid="{{ $reservation->booking->bid }}"
@@ -192,16 +192,13 @@
                                        data-edit-url="{{ route('admin.bookings.edit', $reservation->booking) }}"
                                        data-delete-url="{{ route('admin.bookings.destroy', $reservation->booking) }}">
                                         <span class="cc-label-primary">{{ $primaryLabel }}</span>
-                                        @if($seriesBadge)
-                                            <span class="cc-label-series">{{ $seriesBadge }}</span>
-                                        @endif
                                         @if($secondaryLabel)
                                             <span class="cc-label-secondary">{{ $secondaryLabel }}</span>
                                         @endif
                                     </a>
                                 @elseif($isOwn)
                                     <a href="#"
-                                       class="calendar-cell {{ $cellClass }}{{ $slotClass }}"
+                                       class="calendar-cell {{ $cellClass }}{{ $slotClass }}{{ $seriesClass }}"
                                        title="{{ $cellTitle }}"
                                        @click.prevent="$dispatch('open-cancel', {
                                            bid: @js((string) $reservation->booking->bid),
@@ -212,19 +209,13 @@
                                            mitspieler: @js($reservation->booking->player_names[0] ?? '')
                                        })">
                                         <span class="cc-label-primary">{{ $primaryLabel }}</span>
-                                        @if($seriesBadge)
-                                            <span class="cc-label-series">{{ $seriesBadge }}</span>
-                                        @endif
                                         @if($secondaryLabel)
                                             <span class="cc-label-secondary">{{ $secondaryLabel }}</span>
                                         @endif
                                     </a>
                                 @else
-                                    <span class="calendar-cell {{ $cellClass }}{{ $slotClass }}" title="{{ $cellTitle }}">
+                                    <span class="calendar-cell {{ $cellClass }}{{ $slotClass }}{{ $seriesClass }}" title="{{ $cellTitle }}">
                                         <span class="cc-label-primary">{{ $primaryLabel }}</span>
-                                        @if($seriesBadge)
-                                            <span class="cc-label-series">{{ $seriesBadge }}</span>
-                                        @endif
                                         @if($secondaryLabel)
                                             <span class="cc-label-secondary">{{ $secondaryLabel }}</span>
                                         @endif
@@ -239,7 +230,7 @@
                             </td>
                         @else
                             <td @class(['cal-extra-day' => $extraDay]) data-day="{{ $dayIndex }}">
-                                <span class="calendar-cell {{ $cellClass }}{{ $slotClass }}" title="{{ $cellTitle }}">
+                                <span class="calendar-cell {{ $cellClass }}{{ $slotClass }}{{ $seriesClass }}" title="{{ $cellTitle }}">
                                     @if($primaryLabel)
                                         <span class="cc-label-primary">{{ $primaryLabel }}</span>
                                     @endif
