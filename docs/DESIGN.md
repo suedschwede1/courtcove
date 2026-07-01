@@ -1,37 +1,37 @@
-# Design-Dokumentation
+# Design Documentation
 
-**Layout-Referenz:** Git-Tag `mobile-view-stable`
+**Layout reference:** Git tag `mobile-view-stable`
 
-## Farben
+## Colors
 
-| Variable | Wert | Verwendung |
+| Variable | Value | Usage |
 |---|---|---|
-| Primär | `#bf4316` | Buttons, Akzente, aktive Navigation |
-| Primär dark | `#9e3412` | Hover-Zustand Primär |
-| Hintergrund | `#eae8e2` | App-Hintergrund |
-| Karte | `#ffffff` | Header-Karte, Modals |
-| Border | `#d8d2c8` | Karten-Rahmen |
-| Text | `#151515` | Haupttext |
-| Text sekundär | `#6a6e73` | Labels, Icons |
-| Text placeholder | `#b8b8b8` | Input-Platzhalter |
+| Primary | `#bf4316` | Buttons, accents, active navigation |
+| Primary dark | `#9e3412` | Hover state for primary |
+| Background | `#eae8e2` | App background |
+| Card | `#ffffff` | Header card, modals |
+| Border | `#d8d2c8` | Card borders |
+| Text | `#151515` | Main text |
+| Text secondary | `#6a6e73` | Labels, icons |
+| Text placeholder | `#b8b8b8` | Input placeholders |
 
 ## Header
 
-**Datei:** `resources/views/components/layout/header.blade.php`  
-**CSS:** `public/css/booking.css` ab Zeile 1350
+**File:** `resources/views/components/layout/header.blade.php`
+**CSS:** `public/css/booking.css` from line 1350
 
 ### Desktop (> 900px)
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│ [Logo] Example Club    < 30.06.2026 >    [Nav-Links] │
+│ [Logo] Example Club    < 30.06.2026 >    [Nav links] │
 └─────────────────────────────────────────────────────┘
 ```
 
-- Hintergrund: `#eae8e2` mit weißer Karte (`rounded-[6px]`, `shadow`)
-- Logo: konfigurierbar über `booking.logo_path`
-- Titel: 18px, fett, `var(--font-display)`
-- Nav-Links: `h-8`, `border`, `rounded-[6px]`, hover `#bf4316`
+- Background: `#eae8e2` with a white card (`rounded-[6px]`, `shadow`)
+- Logo: configurable via `booking.logo_path`
+- Title: 18px, bold, `var(--font-display)`
+- Nav links: `h-8`, `border`, `rounded-[6px]`, hover `#bf4316`
 
 ### Mobile (≤ 900px)
 
@@ -42,86 +42,86 @@
 └──────────────────────────────────┘
 ```
 
-- Grid-Layout: 2 Spalten (Titel | Icons), Datums-Nav in Zeile 2
+- Grid layout: 2 columns (title | icons), date nav in row 2
 - Logo: max 44px
-- Titel: 15px
-- Auth-Icons: Login/Logout als SVG-Icon-Button
-- Admin-Menü: `...`-Button öffnet Dropdown (`is-open`)
+- Title: 15px
+- Auth icons: login/logout as an SVG icon button
+- Admin menu: `...` button opens a dropdown (`is-open`)
 
-## Kalender-Grid
+## Calendar grid
 
-**Datei:** `resources/views/components/calendar/grid.blade.php`  
+**File:** `resources/views/components/calendar/grid.blade.php`
 **CSS:** `resources/css/calendar-grid.css`
 
-### Zellen-Farben
+### Cell colors
 
-| Klasse | Farbe | Bedeutung |
+| Class | Color | Meaning |
 |---|---|---|
-| `cc-free` | `#EEE` grau | Freier Slot |
-| `cc-own` | `#8BB243` grün | Eigene Buchung |
-| `cc-single-future` | `#2596be` blau | Fremde Buchung (Zukunft) |
-| `cc-single` | `#808D96` grau-blau | Vergangene Buchung |
-| `cc-blocked` | — | Gesperrter Slot |
+| `cc-free` | `#EEE` grey | Free slot |
+| `cc-own` | `#8BB243` green | Own booking |
+| `cc-single-future` | `#2596be` blue | Someone else's booking (future) |
+| `cc-single` | `#808D96` grey-blue | Past booking |
+| `cc-blocked` | — | Blocked slot |
 
-## Buchungs-Modals
+## Booking modals
 
-**Datei:** `resources/views/components/calendar/modals.blade.php`
+**File:** `resources/views/components/calendar/modals.blade.php`
 
-### Neue Buchung (normaler User)
+### New booking (regular user)
 
-- Felder: Platz (readonly), Gebucht für (readonly), Datum, Uhrzeit, Spieleranzahl, Mitspieler
-- **Einzel (2):** Mitspieler-Feld mit User-Autocomplete (`/bookings/players?q=`), Pflichtfeld
-- **Doppel (4):** Mitspieler-Feld als Freitext (z.B. "Müller, Huber, Schmidt"), Pflichtfeld
-- Buttons: nur **Speichern** (kein Abbrechen — schließen via ✕ oder Escape)
+- Fields: court (readonly), booked for (readonly), date, time, number of players, teammates
+- **Singles (2):** teammate field with user autocomplete (`/bookings/players?q=`), required field
+- **Doubles (4):** teammate field as free text (e.g. "Müller, Huber, Schmidt"), required field
+- Buttons: only **Save** (no Cancel — close via ✕ or Escape)
 
-### Buchung bearbeiten
+### Edit booking
 
-- Felder: Platz, Datum, Uhrzeit (alle readonly), Spieleranzahl, Mitspieler
-- Gleiche Autocomplete-Logik wie Neue Buchung
-- Buttons: **Speichern** + **Abbrechen**
+- Fields: court, date, time (all readonly), number of players, teammates
+- Same autocomplete logic as new booking
+- Buttons: **Save** + **Cancel**
 
-### Stornierung (eigene Buchung)
+### Cancellation (own booking)
 
-- Anzeige: Buchungsdetails, Platz, Datum, Uhrzeit
-- Buttons: Buchung bearbeiten, Buchung stornieren (rot), Abbrechen
+- Display: booking details, court, date, time
+- Buttons: edit booking, cancel booking (red), cancel
 
-## Formular-Komponenten
+## Form components
 
 ```css
-.ui-input   /* Standard-Textfeld: border, rounded-[6px], h-9, px-3 */
-.ui-select  /* Dropdown: gleiche Basis wie ui-input */
+.ui-input   /* Standard text field: border, rounded-[6px], h-9, px-3 */
+.ui-select  /* Dropdown: same base as ui-input */
 .ui-label   /* Label: text-[13px], font-medium */
-.ui-btn     /* Button-Basis */
-.ui-btn-primary   /* Rot (#bf4316), weiße Schrift */
+.ui-btn     /* Button base */
+.ui-btn-primary   /* Red (#bf4316), white text */
 .ui-btn-ghost     /* Transparent, border */
 ```
 
-## Stoßzeiten-Feature
+## Peak-time feature
 
-Admin kann Stoßzeiten mit Spieler-Limit definieren.  
-**Service:** `app/Services/PeakLimitService.php`  
-**Admin:** Einstellungen unter Admin → Konfiguration
+Admin can define peak times with a player limit.
+**Service:** `app/Services/PeakLimitService.php`
+**Admin:** settings under Admin → Configuration
 
-## Texte und Lokalisierung
+## Texts and localization
 
-Die UI-Texte sind pro Sprache thematisch aufgeteilt und nicht mehr in einer einzelnen großen Datei gesammelt.
+The UI texts are split by topic per language and no longer collected in a single large file.
 
 - Loader: `lang/{locale}/booking.php`
-- Teil-Dateien: `lang/{locale}/booking/*.php`
-- Aktive Sprachen: `de`, `en`
+- Partial files: `lang/{locale}/booking/*.php`
+- Active languages: `de`, `en`
 
-Die bestehenden Translation-Keys bleiben bewusst stabil, zum Beispiel:
+The existing translation keys deliberately stay stable, for example:
 
 - `booking.nav.login`
 - `booking.account.my_bookings`
 - `booking.admin.peak_limit.title`
 
-Für neue UI-Elemente gilt:
+For new UI elements:
 
-- Keine Hardcoded-Texte in Views oder Komponenten
-- Immer bestehende Key-Bereiche wiederverwenden
-- Admin-Texte unter `booking/admin.php`, öffentliche Texte unter `booking/public.php`
+- No hardcoded texts in views or components
+- Always reuse existing key areas
+- Admin texts under `booking/admin.php`, public texts under `booking/public.php`
 
-## Schriften
+## Fonts
 
-`var(--font-display)` für Überschriften/Titel (konfiguriert in `app.css`/Tailwind).
+`var(--font-display)` for headings/titles (configured in `app.css`/Tailwind).

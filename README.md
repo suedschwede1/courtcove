@@ -1,30 +1,30 @@
-# Example Club – Reservierungssystem (bookingnew)
+# Example Club – Booking System (bookingnew)
 
-Laravel-basiertes Platzbuchungssystem für den Example Club Tennisclub.  
-Ersetzt das alte Zend/Laminas-System (`booking`).
+Laravel-based court booking system for the Example Club tennis club.
+Replaces the old Zend/Laminas system (`booking`).
 
 ## Stack
 
-| Komponente | Version |
+| Component | Version |
 |---|---|
 | PHP | 8.3 |
 | Laravel | 13.x |
-| Datenbank | MySQL (`booking_local`) |
+| Database | MySQL (`booking_local`) |
 | Frontend | Tailwind CSS, Alpine.js, Vite |
-| Deployment | Shared Hosting hosting.example.test, FTP |
+| Deployment | Shared hosting hosting.example.test, FTP |
 
-## Lokale Entwicklung
+## Local development
 
 ```bash
-# Abhängigkeiten
+# Dependencies
 composer install
 npm install
 
-# .env konfigurieren (DB: booking_local)
+# Configure .env (DB: booking_local)
 cp .env.example .env
 php artisan key:generate
 
-# Dev-Server
+# Dev server
 php artisan serve       # http://localhost:8001
 npm run dev             # Vite HMR
 
@@ -32,77 +32,77 @@ npm run dev             # Vite HMR
 php artisan test
 ```
 
-> **Wichtig:** `php`/`composer` immer via WSL ausführen, nie direkt in PowerShell.
+> **Important:** always run `php`/`composer` via WSL, never directly in PowerShell.
 
 ## Deployment (hosting.example.test)
 
-1. `npm run build` lokal ausführen
-2. `public/build/` committen
-3. Geänderte Dateien per FTP auf den Server übertragen
+1. Run `npm run build` locally
+2. Commit `public/build/`
+3. Transfer changed files to the server via FTP
 
-Kein Node.js auf dem Server — Vite-Build muss lokal gebaut und committed werden.
+No Node.js on the server — the Vite build must be built and committed locally.
 
-## Layout-Referenz
+## Layout reference
 
-Das stabile UI-Layout ist mit dem Git-Tag **`mobile-view-stable`** markiert.  
-Siehe [docs/DESIGN.md](docs/DESIGN.md) für Details zum Design-System.
+The stable UI layout is marked with the Git tag **`mobile-view-stable`**.
+See [docs/DESIGN.md](docs/DESIGN.md) for details on the design system.
 
 ```bash
-# Zum stabilen Layout-Stand zurücksetzen (einzelne Dateien)
+# Reset to the stable layout state (individual files)
 git checkout mobile-view-stable -- public/css/booking.css
 git checkout mobile-view-stable -- resources/views/components/layout/header.blade.php
 ```
 
-## Wichtige Dateien
+## Key files
 
-| Datei | Zweck |
+| File | Purpose |
 |---|---|
-| `public/css/booking.css` | Haupt-CSS inkl. Mobile-Responsive-Styles |
-| `resources/css/calendar-grid.css` | Kalender-Grid-Layout |
-| `resources/views/components/layout/header.blade.php` | App-Header (Desktop + Mobile) |
-| `resources/views/components/calendar/grid.blade.php` | Kalender-Raster |
-| `resources/views/components/calendar/modals.blade.php` | Buchungs-Modals (Alpine.js) |
-| `resources/views/admin/` | Admin-Bereich |
-| `app/Http/Controllers/BookingController.php` | Buchungs-Logik (User) |
-| `app/Http/Controllers/Admin/BookingController.php` | Buchungs-Logik (Admin) |
-| `app/Services/PeakLimitService.php` | Stoßzeiten-Limitierung |
+| `public/css/booking.css` | Main CSS incl. mobile-responsive styles |
+| `resources/css/calendar-grid.css` | Calendar grid layout |
+| `resources/views/components/layout/header.blade.php` | App header (desktop + mobile) |
+| `resources/views/components/calendar/grid.blade.php` | Calendar grid |
+| `resources/views/components/calendar/modals.blade.php` | Booking modals (Alpine.js) |
+| `resources/views/admin/` | Admin area |
+| `app/Http/Controllers/BookingController.php` | Booking logic (user) |
+| `app/Http/Controllers/Admin/BookingController.php` | Booking logic (admin) |
+| `app/Services/PeakLimitService.php` | Peak-time limiting |
 
-## Übersetzungen
+## Translations
 
-Die Anwendung ist für Mehrsprachigkeit vorbereitet.
+The application is set up for multiple languages.
 
-- Deutsche Texte liegen unter `lang/de/`
-- Englische Texte liegen unter `lang/en/`
-- Die Datei `lang/{locale}/booking.php` ist jeweils nur noch ein Loader
-- Die eigentlichen Texte sind thematisch ausgelagert unter `lang/{locale}/booking/`
+- German texts live under `lang/de/`
+- English texts live under `lang/en/`
+- The file `lang/{locale}/booking.php` is now just a loader
+- The actual texts are split by topic under `lang/{locale}/booking/`
 
-Aktuelle Aufteilung:
+Current split:
 
-- `public.php` für öffentliche UI-Texte, Navigation, Auth, Registrierung, Kalender und Modals
-- `account.php` für Konto-Bereich
-- `admin.php` für Admin-Oberfläche inkl. Peak-Limit-Konfiguration
-- `repeat.php` für Wiederholungsoptionen
-- `mail.php` für E-Mail-Texte
-- `validation.php` für Validierungsfehler
-- `messages.php` für Flash- und Statusmeldungen
+- `public.php` for public UI texts, navigation, auth, registration, calendar and modals
+- `account.php` for the account area
+- `admin.php` for the admin UI incl. peak-limit configuration
+- `repeat.php` for repeat options
+- `mail.php` for email texts
+- `validation.php` for validation errors
+- `messages.php` for flash and status messages
 
-Wichtig:
+Important:
 
-- Im Code weiterhin `__('booking...')` verwenden
-- Neue Texte immer zuerst in `lang/de/booking/...` und `lang/en/booking/...` ergänzen
-- Keine neuen Hardcoded-UI-Texte in Blade-Dateien einführen
+- Keep using `__('booking...')` in code
+- Always add new texts to `lang/de/booking/...` and `lang/en/booking/...` first
+- Do not introduce new hardcoded UI texts in Blade files
 
-## Berechtigungsmodell
+## Permission model
 
-Keine Roles-Tabelle. Steuerung über `bs_users.status`:
+No roles table. Controlled via `bs_users.status`:
 
-| Status | Rechte |
+| Status | Permissions |
 |---|---|
-| `admin` | Alles |
-| `assist` | Laut `bs_users_meta` `allow.*`-Flags |
-| `enabled` | Normale Buchungen |
+| `admin` | Everything |
+| `assist` | According to `bs_users_meta` `allow.*` flags |
+| `enabled` | Regular bookings |
 
-## Buchungsmodi
+## Booking modes
 
-- **Einzel** (2 Spieler): Mitspieler per User-Suche auswählen (Pflichtfeld)
-- **Doppel** (4 Spieler): Mitspieler als Freitext eingeben (Pflichtfeld)
+- **Singles** (2 players): select teammate via user search (required field)
+- **Doubles** (4 players): enter teammates as free text (required field)
