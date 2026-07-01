@@ -21,6 +21,7 @@ return [
         'confirmed_body' => 'wir freuen uns auf Ihren Besuch!',
         'cancelled_body' => 'falls Sie Fragen haben, wenden Sie sich bitte an uns.',
         'auto_footer' => 'Diese E-Mail wurde automatisch generiert. Bitte antworten Sie nicht auf diese Nachricht.',
+        'activated_heading' => 'Willkommen, :name!',
         'activated_subheading' => 'Ihr Konto wurde aktiviert.',
         'username' => 'Benutzername',
         'email' => 'E-Mail',
@@ -28,6 +29,7 @@ return [
         'test_heading' => 'Test-E-Mail',
         'test_body_1' => 'Dies ist eine Test-E-Mail.',
         'test_body_2' => 'Wenn Sie diese Nachricht erhalten haben, funktioniert der E-Mail-Versand korrekt.',
+        'test_footer' => 'Diese Test-E-Mail wurde von :system am :date gesendet.',
     ],
 ];
 

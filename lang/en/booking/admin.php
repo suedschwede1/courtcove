@@ -190,6 +190,7 @@ return [
             'intro_create' => 'Create a new user and assign permissions.',
             'intro_edit' => 'Edit user data and permissions.',
             'filter_heading' => 'Filter',
+            'results_count' => ':count results',
             'members' => 'Members',
             'bookings_count' => 'Bookings',
             'actions' => 'Actions',
@@ -247,6 +248,7 @@ return [
         'events' => [
             'title' => 'Events',
             'intro_index' => 'Manage events and blocks.',
+            'results_count' => ':count results',
             'actions' => 'Actions',
             'status_enabled' => 'Active',
             'create_title' => 'Create Event',
@@ -363,6 +365,7 @@ return [
             'court' => 'Court',
             'time' => 'Time',
             'status' => 'Status',
+            'next_event_from' => ':name on :date',
         ],
     ],
 ];

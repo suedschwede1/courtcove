@@ -190,6 +190,7 @@ return [
             'intro_create' => 'Neuen Benutzer anlegen und Berechtigungen zuweisen.',
             'intro_edit' => 'Benutzerdaten und Berechtigungen bearbeiten.',
             'filter_heading' => 'Filter',
+            'results_count' => ':count Ergebnisse',
             'members' => 'Mitglieder',
             'bookings_count' => 'Buchungen',
             'actions' => 'Aktionen',
@@ -247,6 +248,7 @@ return [
         'events' => [
             'title' => 'Veranstaltungen',
             'intro_index' => 'Veranstaltungen und Sperren verwalten.',
+            'results_count' => ':count Ergebnisse',
             'actions' => 'Aktionen',
             'status_enabled' => 'Aktiv',
             'create_title' => 'Veranstaltung anlegen',
@@ -363,6 +365,7 @@ return [
             'court' => 'Platz',
             'time' => 'Zeit',
             'status' => 'Status',
+            'next_event_from' => ':name am :date',
         ],
     ],
 ];
