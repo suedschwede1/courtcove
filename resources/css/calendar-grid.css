@@ -153,7 +153,6 @@
 /* Quiet calendar refinements: subtle states, better mobile scanning. */
 .calendar-wrap {
     position: relative;
-    scrollbar-gutter: stable both-edges;
     scroll-snap-type: x proximity;
 }
 

@@ -3047,7 +3047,10 @@ textarea {
 /* Quiet calendar refinements: subtle states, better mobile scanning. */
 .calendar-wrap {
     position: relative;
-    scrollbar-gutter: stable both-edges;
+    /* Override the Vite-bundled calendar-grid.css: this container only scrolls
+       horizontally, so reserving a gutter on both edges just wastes width and
+       causes the last visible day/column to be clipped. */
+    scrollbar-gutter: auto;
     scroll-snap-type: x proximity;
 }
 
@@ -4443,24 +4446,10 @@ textarea {
     max-width: 100%;
 }
 
-/* Event labels should wrap inside narrow calendar cells instead of being clipped. */
+/* Event labels should wrap inside narrow calendar cells instead of being clipped.
+   overflow must stay visible so the (rowspan) row grows to fit long labels. */
 .event-cell {
     overflow: visible;
-}
-
-.event-label {
-    overflow: visible !important;
-    text-overflow: clip !important;
-    white-space: normal !important;
-    word-break: normal;
-    overflow-wrap: anywhere;
-    hyphens: auto;
-    line-height: 1.18;
-}
-
-/* Keep event cells exactly on the calendar grid while fitting long labels inside. */
-.event-cell {
-    overflow: hidden !important;
     box-sizing: border-box;
 }
 
@@ -4469,7 +4458,7 @@ textarea {
     width: 100%;
     max-width: 100%;
     min-width: 0;
-    overflow: hidden !important;
+    overflow: visible !important;
     text-overflow: clip !important;
     white-space: normal !important;
     word-break: break-word;
@@ -4477,5 +4466,5 @@ textarea {
     hyphens: auto;
     padding: 4px 6px !important;
     font-size: 12px !important;
-    line-height: 1.15 !important;
+    line-height: 1.18 !important;
 }
