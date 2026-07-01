@@ -339,5 +339,14 @@ class CalendarControllerTest extends TestCase
             ->assertSee('data-delete-url', false)
             ->assertSee('/admin/bookings/'.$booking->bid, false);
     }
+
+    #[Test]
+    public function calendar_header_shows_locale_switch_links(): void
+    {
+        $this->get('/calendar')
+            ->assertOk()
+            ->assertSee('href="'.route('lang.switch', ['locale' => 'en']).'"', false)
+            ->assertDontSee('href="'.route('lang.switch', ['locale' => 'de']).'"', false);
+    }
 }
 
