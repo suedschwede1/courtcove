@@ -33,4 +33,21 @@ class StatisticsControllerTest extends TestCase
             ->get('/admin/statistics')
             ->assertOk();
     }
+
+    #[Test]
+    public function shows_total_single_and_double_counts_per_user_excluding_cancelled(): void
+    {
+        $user = User::factory()->create(['alias' => 'Heinz Mayer', 'status' => 'enabled']);
+        \App\Models\Booking::factory()->count(2)->create(['uid' => $user->uid, 'status' => 'single', 'quantity' => 2]);
+        \App\Models\Booking::factory()->create(['uid' => $user->uid, 'status' => 'single', 'quantity' => 4]);
+        \App\Models\Booking::factory()->create(['uid' => $user->uid, 'status' => 'cancelled', 'quantity' => 2]);
+
+        $response = $this->actingAs($this->admin())->get('/admin/statistics');
+
+        $response->assertOk()
+            ->assertSeeInOrder(['Heinz Mayer'])
+            ->assertSee('3') // total active bookings (2 singles + 1 double, cancelled excluded)
+            ->assertSee('2') // single count
+            ->assertSee('1'); // double count
+    }
 }
