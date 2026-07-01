@@ -46,7 +46,7 @@
                         <label class="block text-[13px] font-medium text-[#151515]" for="sid">{{ __('booking.admin.common.court') }}</label>
                         <select name="sid" id="sid" class="w-full h-9 rounded-[6px] border border-[#c7c7c7] bg-white px-3 text-sm text-[#151515] outline-none focus:border-[#151515]">
                             @foreach($squares as $square)
-                                <option value="{{ $square->sid }}" @selected(old('sid', $booking->sid) == $square->sid)>{{ $square->display_name }}</option>
+                                <option value="{{ $square->sid }}" @selected(old('sid', $booking->sid) == $square->sid)>{{ $square->name }} {{ $square->display_name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -205,7 +205,7 @@
                         <label class="block text-[13px] font-medium text-[#151515]" for="sid">{{ __('booking.admin.common.court') }}</label>
                         <select name="sid" id="sid" class="w-full h-9 rounded-[6px] border border-[#c7c7c7] bg-white px-3 text-sm text-[#151515] outline-none focus:border-[#151515]">
                             @foreach($squares as $square)
-                                <option value="{{ $square->sid }}" @selected(old('sid', $booking->sid) == $square->sid)>{{ $square->display_name }}</option>
+                                <option value="{{ $square->sid }}" @selected(old('sid', $booking->sid) == $square->sid)>{{ $square->name }} {{ $square->display_name }}</option>
                             @endforeach
                         </select>
                     </div>

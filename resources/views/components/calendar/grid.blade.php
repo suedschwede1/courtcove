@@ -80,6 +80,7 @@
                         @php
                             $sid = $square->sid;
                             $squareLabel = $square->display_name;
+                            $squareFullLabel = $square->name.' '.$square->display_name;
                             $skipSlot = !empty($eventSkip[$dateKey][$sid][$h]);
                         @endphp
 
@@ -159,7 +160,7 @@
                                            timeEnd: {{ ($h + 1) * 3600 }},
                                            timeStartFormatted: @js(str_pad($h, 2, '0', STR_PAD_LEFT) . ':00'),
                                            timeEndFormatted: @js(str_pad($h + 1, 2, '0', STR_PAD_LEFT) . ':00'),
-                                           squareName: @js($squareLabel),
+                                           squareName: @js($squareFullLabel),
                                            dateLabel: @js($dateLabels[$d->format('Y-m-d')]['full']),
                                            timeLabel: @js($timeRangeLabel)
                                        })"></a>
@@ -172,7 +173,7 @@
                                        data-date="{{ $dateKey }}"
                                        data-time-start="{{ $h * 3600 }}"
                                        data-time-end="{{ ($h + 1) * 3600 }}"
-                                       data-square-name="{{ $squareLabel }}"
+                                       data-square-name="{{ $squareFullLabel }}"
                                        data-date-label="{{ $dateLabels[$d->format('Y-m-d')]['full'] }}"
                                        data-time-label="{{ $timeRangeLabel }}"
                                        data-create-url="{{ route('admin.bookings.create') }}?sid={{ $sid }}&date={{ $dateKey }}&time_start={{ $h * 3600 }}&time_end={{ ($h + 1) * 3600 }}"></a>
@@ -186,7 +187,7 @@
                                        title="{{ $cellTitle }}"
                                        data-action="cancel"
                                        data-bid="{{ $reservation->booking->bid }}"
-                                       data-square-name="{{ $squareLabel }}"
+                                       data-square-name="{{ $squareFullLabel }}"
                                        data-date-label="{{ $dateLabels[$d->format('Y-m-d')]['full'] }}"
                                        data-time-label="{{ $timeRangeLabel }}"
                                        data-edit-url="{{ route('admin.bookings.edit', $reservation->booking) }}"
@@ -202,7 +203,7 @@
                                        title="{{ $cellTitle }}"
                                        @click.prevent="$dispatch('open-cancel', {
                                            bid: @js((string) $reservation->booking->bid),
-                                           squareName: @js($squareLabel),
+                                           squareName: @js($squareFullLabel),
                                            dateLabel: @js($dateLabels[$d->format('Y-m-d')]['full']),
                                            timeLabel: @js($timeRangeLabel),
                                            quantity: @js((string) $reservation->booking->quantity),
