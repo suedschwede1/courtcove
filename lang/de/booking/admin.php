@@ -14,6 +14,7 @@ return [
         'nav_bookings' => 'Buchungen',
         'nav_courts' => 'Plätze',
         'config' => 'Infos',
+        'texts' => 'Texte',
         'behavior' => 'Verhalten',
         'to_calendar' => 'Zum Kalender',
         'system_name' => 'Name des Systems',
@@ -330,5 +331,6 @@ return [
         ],
     ],
 ];
+
 
 

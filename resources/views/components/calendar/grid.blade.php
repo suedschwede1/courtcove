@@ -95,8 +95,10 @@
                                 && $reservation->booking->user->uid === $authUserId;
 
                             $canManageBooking = $reservation && $isAdmin;
+                            $isSeriesBooking = $reservation?->booking?->isSubscription() ?? false;
 
                             $secondaryLabel = $isLoggedIn ? $reservation?->booking?->player_names_label : null;
+                            $seriesBadge = $isAdmin && $isSeriesBooking ? __('booking.calendar.series_badge') : null;
 
                             $cellClass = 'cc-over';
                             $slotClass = $isPastSlot ? ' slot-cell--past' : '';
@@ -190,6 +192,9 @@
                                        data-edit-url="{{ route('admin.bookings.edit', $reservation->booking) }}"
                                        data-delete-url="{{ route('admin.bookings.destroy', $reservation->booking) }}">
                                         <span class="cc-label-primary">{{ $primaryLabel }}</span>
+                                        @if($seriesBadge)
+                                            <span class="cc-label-secondary">{{ $seriesBadge }}</span>
+                                        @endif
                                         @if($secondaryLabel)
                                             <span class="cc-label-secondary">{{ $secondaryLabel }}</span>
                                         @endif
@@ -207,6 +212,9 @@
                                            mitspieler: @js($reservation->booking->player_names[0] ?? '')
                                        })">
                                         <span class="cc-label-primary">{{ $primaryLabel }}</span>
+                                        @if($seriesBadge)
+                                            <span class="cc-label-secondary">{{ $seriesBadge }}</span>
+                                        @endif
                                         @if($secondaryLabel)
                                             <span class="cc-label-secondary">{{ $secondaryLabel }}</span>
                                         @endif
@@ -214,6 +222,9 @@
                                 @else
                                     <span class="calendar-cell {{ $cellClass }}{{ $slotClass }}" title="{{ $cellTitle }}">
                                         <span class="cc-label-primary">{{ $primaryLabel }}</span>
+                                        @if($seriesBadge)
+                                            <span class="cc-label-secondary">{{ $seriesBadge }}</span>
+                                        @endif
                                         @if($secondaryLabel)
                                             <span class="cc-label-secondary">{{ $secondaryLabel }}</span>
                                         @endif
@@ -344,6 +355,8 @@
 })();
 </script>
 @endpush
+
+
 
 
 

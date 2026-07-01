@@ -1,9 +1,9 @@
 @extends('layouts.admin')
-@section('admin-title', __('booking.admin.config'))
+@section('admin-title', __('booking.admin.texts'))
 @section('admin-content')
 <div class="flex flex-col gap-6">
 
-    <h1 class="text-2xl font-bold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.admin.config') }}</h1>
+    <h1 class="text-2xl font-bold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.admin.texts') }}</h1>
 
     <form method="POST" action="{{ route('admin.config.update') }}">
         @method('PUT')
@@ -244,6 +244,7 @@
 
 </div>
 @endsection
+
 
 
 

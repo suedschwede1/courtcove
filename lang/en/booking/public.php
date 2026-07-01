@@ -96,6 +96,16 @@ return [
             'Pink blocks indicate events or closures.',
             'Navigation at the top switches between the displayed days.',
         ],
+        'operator_eyebrow' => 'Your Organization',
+        'operator_email' => 'Email',
+        'operator_phone' => 'Phone',
+        'operator_website' => 'Website',
+        'operator_contact' => 'Contact',
+        'operator_contact_link' => 'Contact page',
+        'operator_imprint' => 'Imprint',
+        'operator_imprint_link' => 'View imprint',
+        'operator_privacy' => 'Privacy',
+        'operator_privacy_link' => 'View privacy policy',
         'court' => 'Court',
         'past' => 'Past',
         'book_title' => 'Book :court at :time',
@@ -106,6 +116,7 @@ return [
         'cancel_title' => 'Cancel booking on :court',
         'edit_title' => 'Edit booking on :court',
         'occupied' => 'Occupied',
+        'series_badge' => 'Series',
         'to_time' => 'until :time',
     ],
     'modal' => [
@@ -185,3 +196,4 @@ return [
         '😇 May the wind always be at your back!',
     ],
 ];
+

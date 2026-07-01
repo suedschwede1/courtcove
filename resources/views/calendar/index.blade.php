@@ -26,11 +26,22 @@
 @endpush
 
 @section('calendar-system-info')
+@php
+    $operator = [
+        'name' => trim((string) \App\Models\Option::getValue('client.name.full', '')),
+        'email' => trim((string) \App\Models\Option::getValue('client.contact.email', '')),
+        'phone' => trim((string) \App\Models\Option::getValue('client.contact.phone', '')),
+        'website' => trim((string) \App\Models\Option::getValue('client.website', '')),
+        'contact' => trim((string) \App\Models\Option::getValue('client.website.contact', '')),
+        'imprint' => trim((string) \App\Models\Option::getValue('client.website.imprint', '')),
+        'privacy' => trim((string) \App\Models\Option::getValue('client.website.privacy', '')),
+    ];
+@endphp
 <div class="help-panel__grid help-panel__grid--single">
     <section class="help-card">
         <p class="help-card__eyebrow">{{ __('booking.calendar.system_eyebrow') }}</p>
         <h2 class="help-card__title">{{ __('booking.calendar.information') }}</h2>
-                <p class="help-card__text">
+        <p class="help-card__text">
             {{ __('booking.calendar.system_text') }}
         </p>
         <ul class="help-card__list">
@@ -38,6 +49,33 @@
                 <li>{{ $item }}</li>
             @endforeach
         </ul>
+
+        @if(collect($operator)->contains(fn ($value) => $value !== ''))
+            <p class="help-card__eyebrow" style="margin-top: 1.5rem;">{{ __('booking.calendar.operator_eyebrow') }}</p>
+            @if($operator['name'] !== '')
+                <h3 class="help-card__title" style="font-size: 1.5rem; margin-top: 0.35rem;">{{ $operator['name'] }}</h3>
+            @endif
+            <ul class="help-card__list">
+                @if($operator['email'] !== '')
+                    <li>{{ __('booking.calendar.operator_email') }}: <a href="mailto:{{ $operator['email'] }}">{{ $operator['email'] }}</a></li>
+                @endif
+                @if($operator['phone'] !== '')
+                    <li>{{ __('booking.calendar.operator_phone') }}: {{ $operator['phone'] }}</li>
+                @endif
+                @if($operator['website'] !== '')
+                    <li>{{ __('booking.calendar.operator_website') }}: <a href="{{ $operator['website'] }}" target="_blank" rel="noreferrer">{{ $operator['website'] }}</a></li>
+                @endif
+                @if($operator['contact'] !== '')
+                    <li>{{ __('booking.calendar.operator_contact') }}: <a href="{{ $operator['contact'] }}" target="_blank" rel="noreferrer">{{ __('booking.calendar.operator_contact_link') }}</a></li>
+                @endif
+                @if($operator['imprint'] !== '')
+                    <li>{{ __('booking.calendar.operator_imprint') }}: <a href="{{ $operator['imprint'] }}" target="_blank" rel="noreferrer">{{ __('booking.calendar.operator_imprint_link') }}</a></li>
+                @endif
+                @if($operator['privacy'] !== '')
+                    <li>{{ __('booking.calendar.operator_privacy') }}: <a href="{{ $operator['privacy'] }}" target="_blank" rel="noreferrer">{{ __('booking.calendar.operator_privacy_link') }}</a></li>
+                @endif
+            </ul>
+        @endif
     </section>
 </div>
 @endsection
@@ -93,6 +131,7 @@
 
 <x-calendar.modals :date="$date" :squares="$squares" />
 @endsection
+
 
 
 

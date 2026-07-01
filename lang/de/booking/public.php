@@ -96,6 +96,16 @@ return [
             'Rosafarbene Blöcke kennzeichnen Veranstaltungen oder Sperren.',
             'Navigation oben wechselt zwischen den angezeigten Tagen.',
         ],
+        'operator_eyebrow' => 'Ihr Betrieb',
+        'operator_email' => 'E-Mail',
+        'operator_phone' => 'Telefon',
+        'operator_website' => 'Webseite',
+        'operator_contact' => 'Kontakt',
+        'operator_contact_link' => 'Kontaktseite',
+        'operator_imprint' => 'Impressum',
+        'operator_imprint_link' => 'Impressum ansehen',
+        'operator_privacy' => 'Datenschutz',
+        'operator_privacy_link' => 'Datenschutzerklärung ansehen',
         'court' => 'Platz',
         'past' => 'Vergangen',
         'book_title' => ':court um :time buchen',
@@ -106,6 +116,7 @@ return [
         'cancel_title' => 'Buchung auf :court stornieren',
         'edit_title' => 'Buchung auf :court bearbeiten',
         'occupied' => 'Belegt',
+        'series_badge' => 'Serie',
         'to_time' => 'bis :time Uhr',
     ],
 'modal' => [
@@ -185,4 +196,5 @@ return [
         '😇 Möge der Wind immer in deinem Rücken sein!',
     ],
 ];
+
 

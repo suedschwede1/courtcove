@@ -6,6 +6,7 @@ namespace Tests\Feature;
 
 use App\Models\Booking;
 use App\Models\Event;
+use App\Models\Option;
 use App\Models\EventMeta;
 use App\Models\Reservation;
 use App\Models\Square;
@@ -26,6 +27,22 @@ class CalendarControllerTest extends TestCase
         $this->get('/calendar')
             ->assertOk()
             ->assertViewIs('calendar.index');
+    }
+
+    #[Test]
+    public function calendar_shows_operator_information_in_info_panel(): void
+    {
+        Option::create(['key' => 'client.name.full', 'value' => 'Example Tennis Club', 'locale' => null]);
+        Option::create(['key' => 'client.contact.email', 'value' => 'info@example.com', 'locale' => null]);
+        Option::create(['key' => 'client.contact.phone', 'value' => '+43 123 4567', 'locale' => null]);
+        Option::create(['key' => 'client.website', 'value' => 'https://example.com', 'locale' => null]);
+
+        $this->get('/calendar')
+            ->assertOk()
+            ->assertSee('Example Tennis Club')
+            ->assertSee('info@example.com')
+            ->assertSee('+43 123 4567')
+            ->assertSee('https://example.com');
     }
 
     #[Test]
@@ -323,3 +340,4 @@ class CalendarControllerTest extends TestCase
             ->assertSee('/admin/bookings/'.$booking->bid, false);
     }
 }
+

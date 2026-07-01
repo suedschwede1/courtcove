@@ -32,8 +32,6 @@ final class OptionController extends Controller
         'subject_square_plural'   => 'subject.square.type.plural',
         'subject_unit'            => 'subject.square.unit',
         'subject_unit_plural'     => 'subject.square.unit.plural',
-        'calendar_days'           => 'service.calendar.days',
-        'calendar_hide'           => 'service.calendar.day-exceptions',
         'registration_heading'    => 'service.user.registration.heading',
         'registration_welcome'    => 'service.user.registration.welcome',
         'registration_intro'      => 'service.user.registration.intro',
@@ -46,6 +44,8 @@ final class OptionController extends Controller
         'registration'        => 'service.user.registration',
         'activation'          => 'service.user.activation',
         'maintenance'         => 'service.maintenance',
+        'calendar_days'       => 'service.calendar.days',
+        'calendar_hide'       => 'service.calendar.day-exceptions',
         'peak_limit_enabled'  => 'peak_limit.enabled',
         'peak_limit_w1_start' => 'peak_limit.window_1_start',
         'peak_limit_w1_end'   => 'peak_limit.window_1_end',
@@ -60,6 +60,8 @@ final class OptionController extends Controller
                 'registration' => '',
                 'activation' => '',
                 'maintenance' => '',
+                'calendar_days' => '',
+                'calendar_hide' => '',
                 'peak_limit_enabled' => '',
                 'peak_limit_w1_start' => '',
                 'peak_limit_w1_end' => '',
@@ -151,8 +153,6 @@ final class OptionController extends Controller
             'subject_square_plural'   => ['nullable', 'string', 'max:64'],
             'subject_unit'            => ['nullable', 'string', 'max:64'],
             'subject_unit_plural'     => ['nullable', 'string', 'max:64'],
-            'calendar_days'           => ['nullable', 'integer', 'min:1', 'max:31'],
-            'calendar_hide'           => ['nullable', 'string', 'max:4096'],
             'registration_heading'    => ['nullable', 'string', 'max:255'],
             'registration_welcome'    => ['nullable', 'string', 'max:255'],
             'registration_intro'      => ['nullable', 'string', 'max:2000'],
@@ -168,6 +168,8 @@ final class OptionController extends Controller
             'registration'        => ['nullable', 'in:0,1'],
             'activation'          => ['nullable', 'in:immediate,manual,manual-email,email'],
             'maintenance'         => ['nullable', 'in:0,1'],
+            'calendar_days'       => ['nullable', 'integer', 'min:1', 'max:31'],
+            'calendar_hide'       => ['nullable', 'string', 'max:4096'],
             'peak_limit_enabled'  => ['nullable', 'in:0,1'],
             'peak_limit_w1_start' => ['nullable', 'regex:/^\d{2}:\d{2}$/'],
             'peak_limit_w1_end'   => ['nullable', 'regex:/^\d{2}:\d{2}$/'],
@@ -186,3 +188,4 @@ final class OptionController extends Controller
         ];
     }
 }
+
