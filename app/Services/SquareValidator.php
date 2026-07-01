@@ -60,8 +60,8 @@ final class SquareValidator
             return ValidationResult::fail('Booking time is outside square opening hours');
         }
 
-        // Vergangene Slots sperren: Buchung nicht erlaubt wenn die Slot-Zeit komplett vorbei ist.
-        // Die laufende Stunde bleibt buchbar ($dateEnd liegt noch in der Zukunft).
+        // Block past slots: booking not allowed once the slot time has fully passed.
+        // The current hour remains bookable ($dateEnd is still in the future).
         if ($dateEnd->lessThanOrEqualTo(Carbon::now())
             && ! $user->can('calendar.see-past')) {
             return ValidationResult::fail(__('booking.messages.booking_in_past'));

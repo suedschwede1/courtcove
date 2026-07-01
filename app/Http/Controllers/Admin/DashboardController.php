@@ -22,7 +22,7 @@ final class DashboardController extends Controller
         $startOfLastWeek = Carbon::now()->subWeek()->startOfWeek();
         $endOfLastWeek = Carbon::now()->subWeek()->endOfWeek();
 
-        // Buchungen heute – via Reservations (date = heute), nicht-storniert
+        // Bookings today – via reservations (date = today), non-cancelled
         $bookingsToday = Booking::whereIn('status', Booking::ACTIVE_STATUSES)
             ->whereHas('reservations', fn ($q) => $q->where('date', $today->toDateString()))
             ->with([
@@ -34,17 +34,17 @@ final class DashboardController extends Controller
 
         $bookingsTodayCount = $bookingsToday->count();
 
-        // Buchungen heute gruppiert nach Platz-Name
+        // Bookings today grouped by court name
         $bookingsTodayBySquare = $bookingsToday
             ->groupBy(fn (Booking $b) => $b->square?->display_name ?? $b->square?->name ?? '—')
             ->map(fn (Collection $group) => $group->count())
             ->all();
 
-        // Aktive Mitglieder
+        // Active members
         $activeMembersCount = User::whereIn('status', ['enabled', 'assist', 'admin'])->count();
         $adminCount = User::where('status', 'admin')->count();
 
-        // Buchungen diese Woche und letzte Woche (via Reservations)
+        // Bookings this week and last week (via reservations)
         $bookingsThisWeek = Booking::whereIn('status', Booking::ACTIVE_STATUSES)
             ->whereHas('reservations', fn ($q) => $q->whereBetween('date', [
                 $startOfWeek->toDateString(),
@@ -59,7 +59,7 @@ final class DashboardController extends Controller
             ]))
             ->count();
 
-        // Veranstaltungen
+        // Events
         $now = Carbon::now();
         $upcomingEventsCount = Event::where('status', 'enabled')
             ->where('datetime_end', '>=', $now)

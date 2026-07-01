@@ -535,7 +535,7 @@ class SquareValidatorTest extends TestCase
         Option::create(['key' => 'peak_limit.enabled', 'value' => '1', 'locale' => null]);
 
         $square = Square::factory()->create(['max_active_bookings' => 1, 'time_block_bookable_max' => 0, 'range_book' => 0]);
-        // peak_limit_enabled NICHT gesetzt
+        // peak_limit_enabled NOT set
 
         $user = User::factory()->create(['status' => 'enabled']);
 

@@ -1,7 +1,7 @@
 (function () {
     'use strict';
 
-    // ─── Feedback-Modal (Erfolg / Fehler nach Redirect) ────────────────────────
+    // ─── Feedback modal (success / error after redirect) ────────────────────────
     var feedbackModal = document.getElementById('feedback-modal');
     if (feedbackModal) {
         function closeFeedbackModal() { feedbackModal.style.display = 'none'; }
@@ -16,7 +16,7 @@
         });
     }
 
-    // ─── Panel-Toggle (Infos / Hinweise) ───────────────────────────────────────
+    // ─── Panel toggle (Infos / Hints) ───────────────────────────────────────
     document.addEventListener('click', function (e) {
         var btn = e.target.closest('[data-panel-toggle]');
         if (!btn) { return; }
@@ -66,13 +66,13 @@
         showModal(modal);
     }
 
-    // Schließen via Close-Button
+    // Close via close button
     var abmClose = document.getElementById('abm-close');
     if (abmClose) {
         abmClose.addEventListener('click', closeIframeModal);
     }
 
-    // Schließen via Backdrop-Klick
+    // Close via backdrop click
     var abmModal = document.getElementById('admin-booking-modal');
     if (abmModal) {
         abmModal.addEventListener('click', function (e) {
@@ -83,12 +83,12 @@
         });
     }
 
-    // Escape-Key (nur Iframe-Modal — Alpine handelt die anderen)
+    // Escape key (iframe modal only — Alpine handles the others)
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') { closeIframeModal(); }
     });
 
-    // Iframe-Navigation-Monitor: Seite neuladen wenn Form erfolgreich submitted
+    // Iframe navigation monitor: reload the page once the form submits successfully
     var abmIframe = document.getElementById('abm-iframe');
     if (abmIframe) {
         abmIframe.addEventListener('load', function () {
@@ -99,12 +99,12 @@
                     window.location.reload();
                 }
             } catch (_) {
-                // Cross-origin: ignorieren
+                // Cross-origin: ignore
             }
         });
     }
 
-    // ─── Event-Delegation für Admin-Trigger (.booking-trigger) ─────────────────
+    // ─── Event delegation for admin triggers (.booking-trigger) ─────────────────
 
     document.addEventListener('click', function (e) {
         var trigger = e.target.closest('.booking-trigger');
@@ -119,7 +119,7 @@
         if (action === 'admin-book') {
             openAdminBookingModal(trigger);
         } else if (action === 'cancel' && deleteUrl) {
-            // Admin-Cancel: Edit-Formular im Iframe
+            // Admin cancel: edit form inside the iframe
             if (editUrl) {
                 openAdminUrlInModal(editUrl);
             }

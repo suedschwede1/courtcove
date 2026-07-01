@@ -25,7 +25,7 @@ abstract class DuskTestCase extends BaseTestCase
     public static function tearDownAfterClass(): void
     {
         parent::tearDownAfterClass();
-        // Config-Cache nach Dusk leeren, damit der normale Server wieder booking_local verwendet
+        // Clear the config cache after Dusk so the normal server uses booking_local again
         exec('php ' . base_path('artisan') . ' config:clear 2>/dev/null');
     }
 

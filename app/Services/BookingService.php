@@ -72,7 +72,7 @@ final class BookingService
                 try {
                     Mail::to($email)->send(new BookingConfirmed($booking));
                 } catch (\Throwable) {
-                    // Mail-Fehler dürfen die gesendete Response nicht beeinflussen
+                    // Mail errors must not affect the response already sent
                 }
             })->afterResponse();
         }
@@ -173,7 +173,7 @@ final class BookingService
                 try {
                     Mail::to($email)->send(new BookingCancelled($booking));
                 } catch (\Throwable) {
-                    // Mail-Fehler dürfen die gesendete Response nicht beeinflussen
+                    // Mail errors must not affect the response already sent
                 }
             })->afterResponse();
         }

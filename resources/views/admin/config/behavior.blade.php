@@ -9,7 +9,7 @@
         @method('PUT')
         @csrf
 
-        {{-- Betrieb --}}
+        {{-- Operation --}}
         <div class="bg-white rounded-xl border border-[#e0ddd7] shadow-sm overflow-hidden mb-6">
             <div class="px-6 py-4 border-b border-[#f0ede6]">
                 <h2 class="text-base font-semibold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.admin.cfg.section_operation') }}</h2>
@@ -49,7 +49,7 @@
             </div>
         </div>
 
-        {{-- Buchungsplan --}}
+        {{-- Booking schedule --}}
         <div class="bg-white rounded-xl border border-[#e0ddd7] shadow-sm overflow-hidden mb-6">
             <div class="px-6 py-4 border-b border-[#f0ede6]">
                 <h2 class="text-base font-semibold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.admin.cfg.section_calendar') }}</h2>
@@ -72,7 +72,7 @@
             </div>
         </div>
 
-        {{-- Stoßzeiten --}}
+        {{-- Peak times --}}
         <div class="bg-white rounded-xl border border-[#e0ddd7] shadow-sm overflow-hidden mb-6">
             <div class="px-6 py-4 border-b border-[#f0ede6]">
                 <h2 class="text-base font-semibold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.admin.peak_limit.title') }}</h2>

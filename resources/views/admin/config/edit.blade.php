@@ -9,7 +9,7 @@
         @method('PUT')
         @csrf
 
-        {{-- Betreiber --}}
+        {{-- Operator --}}
         <div class="bg-white rounded-xl border border-[#e0ddd7] shadow-sm overflow-hidden mb-6">
             <div class="px-6 py-4 border-b border-[#f0ede6]">
                 <h2 class="text-base font-semibold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.admin.cfg.section_client') }}</h2>
@@ -112,7 +112,7 @@
             </div>
         </div>
 
-        {{-- Bezeichnungen --}}
+        {{-- Labels --}}
         <div class="bg-white rounded-xl border border-[#e0ddd7] shadow-sm overflow-hidden mb-6">
             <div class="px-6 py-4 border-b border-[#f0ede6]">
                 <h2 class="text-base font-semibold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.admin.cfg.section_labels') }}</h2>
@@ -161,7 +161,7 @@
             </div>
         </div>
 
-        {{-- Registrierungstexte --}}
+        {{-- Registration texts --}}
         <div class="bg-white rounded-xl border border-[#e0ddd7] shadow-sm overflow-hidden mb-6">
             <div class="px-6 py-4 border-b border-[#f0ede6]">
                 <h2 class="text-base font-semibold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.admin.cfg.section_registration_content') }}</h2>

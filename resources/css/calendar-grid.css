@@ -1,4 +1,4 @@
-/* Kalender-Zellfarben nach Design-Guide — Werte kommen aus config/calendar.php */
+/* Calendar cell colors per the design guide — values come from config/calendar.php */
 .cc-free {
     background: var(--cal-free-bg, #ffffff);
 }
@@ -15,7 +15,7 @@
     background: var(--cal-past-bg, #f4f4f4);
 }
 
-/* Zeitspalte — Typografie */
+/* Time column — typography */
 .time-main {
     font-family: 'Red Hat Display', sans-serif;
     font-size: 17px;
@@ -29,7 +29,7 @@
     color: #b8b8b8;
 }
 
-/* Tagesköpfe — Typografie */
+/* Day headers — typography */
 .day-header-name {
     font-family: 'Red Hat Display', sans-serif;
     font-weight: 700;
@@ -43,7 +43,7 @@
     color: #6a6e73;
 }
 
-/* Platznummern */
+/* Court numbers */
 .square-head-title {
     font-family: 'Red Hat Display', sans-serif;
     font-size: 12px;
@@ -57,7 +57,7 @@
     color: #bf4316;
 }
 
-/* Buchungszellen — Basis-Layout */
+/* Booking cells — base layout */
 .calendar-cell {
     display: flex;
     flex-direction: column;
@@ -71,7 +71,7 @@
     box-sizing: border-box;
 }
 
-/* Freie Zelle — klickbar mit Hover */
+/* Free cell — clickable with hover */
 .cc-free {
     cursor: pointer;
 }
@@ -80,18 +80,18 @@
     background: var(--cal-free-bg-hover, #f0f7ff);
 }
 
-/* Vergangene Zelle — nicht klickbar */
+/* Past cell — not clickable */
 .cc-over {
     cursor: default;
 }
 
-/* Fremde Buchung — gleiche Farbe wie eigene, nicht klickbar */
+/* Someone else's booking — same color as own, not clickable */
 .cc-single-future {
     background: var(--cal-single-future-bg, #eff6ff);
     cursor: default;
 }
 
-/* Buchungsname in Zelle */
+/* Booking name in cell */
 .cc-label-primary {
     font-family: 'Red Hat Text', sans-serif;
     font-size: 12px;
@@ -105,7 +105,7 @@
     max-width: 100%;
 }
 
-/* Serien-Buchung-Badge */
+/* Series booking badge */
 .cc-label-series {
     font-family: 'Red Hat Text', sans-serif;
     font-size: 11px;
@@ -115,7 +115,7 @@
     margin-top: 2px;
 }
 
-/* Mitspieler-Label */
+/* Teammate label */
 .cc-label-secondary {
     font-family: 'Red Hat Text', sans-serif;
     font-size: 11px;
@@ -128,7 +128,7 @@
     max-width: 100%;
 }
 
-/* Veranstaltungsname */
+/* Event name */
 .event-label {
     font-family: 'Red Hat Text', sans-serif;
     font-size: 12px;
