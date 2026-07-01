@@ -37,6 +37,12 @@
         @endcan
 
         @can('admin.config')
+            <a href="{{ route('admin.database.index') }}" onmouseover="if (!this.dataset.active) { this.style.background='#26292e'; this.style.color='#ffffff'; }" onmouseout="if (!this.dataset.active) { this.style.background='transparent'; this.style.color='#b2b6bd'; }" data-active="{{ request()->routeIs('admin.database.*') ? '1' : '' }}" style="display:block; padding:12px 14px 12px {{ request()->routeIs('admin.database.*') ? '11px' : '17px' }}; font-family:var(--font-body); font-size:14px; text-decoration:none; transition:background 0.15s ease, color 0.15s ease; color:{{ request()->routeIs('admin.database.*') ? '#ffffff' : '#b2b6bd' }}; font-weight:{{ request()->routeIs('admin.database.*') ? '700' : '400' }}; background:{{ request()->routeIs('admin.database.*') ? '#34363b' : 'transparent' }}; border-left:{{ request()->routeIs('admin.database.*') ? '3px solid #bf4316' : '3px solid transparent' }};">
+                {{ __('booking.admin.database.title') }}
+            </a>
+        @endcan
+
+        @can('admin.config')
             <a href="{{ route('admin.config.edit') }}" onmouseover="if (!this.dataset.active) { this.style.background='#26292e'; this.style.color='#ffffff'; }" onmouseout="if (!this.dataset.active) { this.style.background='transparent'; this.style.color='#b2b6bd'; }" data-active="{{ request()->routeIs('admin.config.edit') || request()->routeIs('admin.config.update') ? '1' : '' }}" style="display:block; padding:12px 14px 12px {{ request()->routeIs('admin.config.edit') || request()->routeIs('admin.config.update') ? '11px' : '17px' }}; font-family:var(--font-body); font-size:14px; text-decoration:none; transition:background 0.15s ease, color 0.15s ease; color:{{ request()->routeIs('admin.config.edit') || request()->routeIs('admin.config.update') ? '#ffffff' : '#b2b6bd' }}; font-weight:{{ request()->routeIs('admin.config.edit') || request()->routeIs('admin.config.update') ? '700' : '400' }}; background:{{ request()->routeIs('admin.config.edit') || request()->routeIs('admin.config.update') ? '#34363b' : 'transparent' }}; border-left:{{ request()->routeIs('admin.config.edit') || request()->routeIs('admin.config.update') ? '3px solid #bf4316' : '3px solid transparent' }};">
                 {{ __('booking.admin.texts') }}
             </a>

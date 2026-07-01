@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\DatabaseController;
 use App\Http\Controllers\Admin\EventController;
 use App\Http\Controllers\Admin\OptionController;
 use App\Http\Controllers\Admin\SquareController;
@@ -70,6 +71,8 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function (): v
         Route::resource('squares', SquareController::class)->except(['show']);
         Route::get('testmail', [TestMailController::class, 'index'])->name('testmail.index');
         Route::post('testmail', [TestMailController::class, 'send'])->name('testmail.send');
+        Route::get('database', [DatabaseController::class, 'index'])->name('database.index');
+        Route::post('database/migrate', [DatabaseController::class, 'migrate'])->name('database.migrate');
     });
 });
 
