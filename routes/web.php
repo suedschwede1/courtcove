@@ -15,6 +15,7 @@ use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\CalendarController;
+use App\Http\Controllers\LocaleController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/login', [LoginController::class, 'showForm'])->name('login');
@@ -23,6 +24,8 @@ Route::post('/logout', [LogoutController::class, 'logout'])->name('logout');
 
 Route::get('/register', [RegisterController::class, 'showForm'])->name('register');
 Route::post('/register', [RegisterController::class, 'register']);
+
+Route::get('/lang/{locale}', [LocaleController::class, 'switch'])->name('lang.switch');
 
 Route::get('/', static fn () => redirect()->route('calendar.index'));
 Route::get('/booking', static fn () => redirect()->route('calendar.index'));
