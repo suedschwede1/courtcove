@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@section('body-class', 'has-calendar-layout')
 @section('title', __('booking.calendar.title', ['date' => $date->format('d.m.Y')]))
 
 @push('header-nav')

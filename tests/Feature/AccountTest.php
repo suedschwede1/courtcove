@@ -37,12 +37,46 @@ class AccountTest extends TestCase
         Reservation::factory()->create(['bid' => $theirs->bid, 'date' => Carbon::today()->toDateString()]);
         $cancelled = Booking::factory()->create(['uid' => $me->uid, 'sid' => $sq->sid, 'status' => 'cancelled']);
 
-        $resp = $this->actingAs($me)->get('/my-bookings')->assertOk();
+        $resp = $this->actingAs($me)->get('/my-bookings?searched=1')->assertOk();
         $bookings = $resp->viewData('bookings');
         $ids = collect($bookings)->pluck('bid')->all();
         $this->assertContains($mine->bid, $ids);
         $this->assertNotContains($theirs->bid, $ids);
         $this->assertNotContains($cancelled->bid, $ids);
+    }
+
+    #[Test]
+    public function my_bookings_waits_for_explicit_search(): void
+    {
+        $me = User::factory()->create();
+        $sq = Square::factory()->create();
+        $booking = Booking::factory()->create(['uid' => $me->uid, 'sid' => $sq->sid, 'status' => 'single']);
+        Reservation::factory()->create(['bid' => $booking->bid, 'date' => Carbon::today()->addDay()->toDateString()]);
+
+        $response = $this->actingAs($me)->get('/my-bookings')->assertOk();
+
+        $this->assertFalse($response->viewData('searched'));
+        $this->assertCount(0, $response->viewData('bookings'));
+        $response->assertSee('Suchen');
+    }
+
+    #[Test]
+    public function past_bookings_show_disabled_cancel_button(): void
+    {
+        $me = User::factory()->create();
+        $sq = Square::factory()->create(['range_cancel' => 3600]);
+        $booking = Booking::factory()->create(['uid' => $me->uid, 'sid' => $sq->sid, 'status' => 'single']);
+        Reservation::factory()->create([
+            'bid' => $booking->bid,
+            'date' => Carbon::today()->subDay()->toDateString(),
+            'time_start' => '10:00:00',
+            'time_end' => '11:00:00',
+        ]);
+
+        $response = $this->actingAs($me)->get('/my-bookings?searched=1')->assertOk();
+
+        $response->assertSee('disabled', false);
+        $response->assertDontSee(route('bookings.destroy', $booking), false);
     }
 
     #[Test]

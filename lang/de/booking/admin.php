@@ -46,7 +46,6 @@ return [
         'system_name' => 'Name des Systems',
         'client_name_full' => 'Vollständiger Vereinsname',
         'contact_email' => 'Kontakt-E-Mail',
-        'calendar_days' => 'Kalendertage',
         'registration' => 'Registrierung',
         'maintenance' => 'Wartungsmodus',
         'quotes_enabled' => 'Sprüche nach Buchung',

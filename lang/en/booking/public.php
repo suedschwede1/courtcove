@@ -11,6 +11,7 @@ return [
         'admin' => 'Administration',
         'logout' => 'Log Out',
         'actions' => 'Actions',
+        'more_actions' => 'More actions',
         'login' => 'Log In',
         'today' => 'Today',
         'previous_day' => 'Previous Day',
@@ -77,7 +78,7 @@ return [
         'title' => 'Booking Schedule - :date',
         'system_eyebrow' => 'Booking System',
         'information' => 'Information',
-        'system_text' => 'The reservation system always shows three days at a time and all three courts in full. Available times can be selected directly in the schedule.',
+        'system_text' => 'The reservation system automatically shows as many days as fit into the window. On narrower screens, the schedule can be scrolled horizontally.',
         'system_items' => [
             'White fields can be booked immediately.',
             'Blue fields are your own or existing reservations.',

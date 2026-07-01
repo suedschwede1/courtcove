@@ -61,14 +61,12 @@ class ConfigTest extends TestCase
             'system_name' => 'Neues System',
             'client_name_full' => 'Neuer Name',
             'contact_email' => 'info@example.com',
-            'calendar_days' => '5',
             'registration_email_help' => 'Mit dieser Adresse melden Sie sich an',
             'logo_path' => 'imgs-client/layout/custom-logo.png',
         ])->assertRedirect();
 
         $this->assertSame('Neues System', Option::getValue('service.name'));
         $this->assertSame('Neuer Name', Option::getValue('client.name.full'));
-        $this->assertSame('5', Option::getValue('service.calendar.days'));
         $this->assertSame('Mit dieser Adresse melden Sie sich an', Option::getValue('service.user.registration.email_help'));
         $this->assertSame('imgs-client/layout/custom-logo.png', Option::getValue('service.brand.logo_path'));
     }
@@ -147,7 +145,6 @@ class ConfigTest extends TestCase
 
         $this->get('/calendar')
             ->assertOk()
-            ->assertSee('Reservierungssystem')
-            ->assertDontSee('Vereinsname');
+            ->assertSee('aria-label="Reservierungssystem"', false);
     }
 }

@@ -19,7 +19,7 @@
         <col class="calendar-time-col">
         @foreach($dates as $dayIndex => $d)
             @foreach($squares as $square)
-                <col @class(['calendar-slot-col', 'cal-extra-day' => $dayIndex >= 3]) data-day="{{ $dayIndex }}">
+                <col @class(['calendar-slot-col', 'cal-extra-day' => $dayIndex >= 1]) data-day="{{ $dayIndex }}">
             @endforeach
         @endforeach
     </colgroup>
@@ -31,7 +31,7 @@
                     $isSelectedDay = $d->format('Y-m-d') === $date->format('Y-m-d');
                     $isTodayColumn = $d->format('Y-m-d') === $today;
                 @endphp
-                <td colspan="{{ $squares->count() }}" @class(['day-header-cell', 'day-header-cell--active' => $isSelectedDay, 'day-header-cell--today' => $isTodayColumn, 'cal-extra-day' => $dayIndex >= 3]) data-day="{{ $dayIndex }}">
+                <td colspan="{{ $squares->count() }}" @class(['day-header-cell', 'day-header-cell--active' => $isSelectedDay, 'day-header-cell--today' => $isTodayColumn, 'cal-extra-day' => $dayIndex >= 1]) data-day="{{ $dayIndex }}">
                     <div class="day-header-inline">
                         <span class="day-header-name">{{ $dateLabels[$d->format('Y-m-d')]['short'] }}</span>
                         <span class="day-header-date">{{ $dateLabels[$d->format('Y-m-d')]['long'] }}</span>
@@ -47,7 +47,7 @@
                     $isTodayColumn = $d->format('Y-m-d') === $today;
                 @endphp
                 @foreach($squares as $square)
-                    <td @class(['square-head-cell', 'square-head-cell--active' => $isSelectedDay, 'square-head-cell--today' => $isTodayColumn, 'cal-extra-day' => $dayIndex >= 3]) data-day="{{ $dayIndex }}">
+                    <td @class(['square-head-cell', 'square-head-cell--active' => $isSelectedDay, 'square-head-cell--today' => $isTodayColumn, 'cal-extra-day' => $dayIndex >= 1]) data-day="{{ $dayIndex }}">
                         <span class="square-head-title">{{ $square->name }}</span>
                         @if($square->display_name !== $square->name)
                             <span class="square-head-alias">{{ $square->display_name }}</span>
@@ -74,7 +74,7 @@
                     @php
                         $dateKey = $d->format('Y-m-d');
                         $isPastSlot = $dateKey < $today || ($dateKey === $today && ($h + 1) <= $now->hour);
-                        $extraDay = $dayIndex >= 3;
+                        $extraDay = $dayIndex >= 1;
                     @endphp
                     @foreach($squares as $square)
                         @php
@@ -254,7 +254,7 @@
                     $isTodayColumn = $d->format('Y-m-d') === $today;
                 @endphp
                 @foreach($squares as $square)
-                    <td @class(['square-head-cell', 'square-head-cell--active' => $isSelectedDay, 'square-head-cell--today' => $isTodayColumn, 'cal-extra-day' => $dayIndex >= 3]) data-day="{{ $dayIndex }}">
+                    <td @class(['square-head-cell', 'square-head-cell--active' => $isSelectedDay, 'square-head-cell--today' => $isTodayColumn, 'cal-extra-day' => $dayIndex >= 1]) data-day="{{ $dayIndex }}">
                         <span class="square-head-title">{{ $square->name }}</span>
                         @if($square->display_name !== $square->name)
                             <span class="square-head-alias">{{ $square->display_name }}</span>
@@ -270,7 +270,7 @@
                     $isSelectedDay = $d->format('Y-m-d') === $date->format('Y-m-d');
                     $isTodayColumn = $d->format('Y-m-d') === $today;
                 @endphp
-                <td colspan="{{ $squares->count() }}" @class(['day-header-cell', 'day-header-cell--active' => $isSelectedDay, 'day-header-cell--today' => $isTodayColumn, 'cal-extra-day' => $dayIndex >= 3]) data-day="{{ $dayIndex }}">
+                <td colspan="{{ $squares->count() }}" @class(['day-header-cell', 'day-header-cell--active' => $isSelectedDay, 'day-header-cell--today' => $isTodayColumn, 'cal-extra-day' => $dayIndex >= 1]) data-day="{{ $dayIndex }}">
                     <div class="day-header-inline"><span class="day-header-name">{{ $dateLabels[$d->format('Y-m-d')]['short'] }}</span><span class="day-header-date">{{ $dateLabels[$d->format('Y-m-d')]['long'] }}</span></div>
                 </td>
             @endforeach
@@ -290,35 +290,19 @@
     var dayCells = grid.querySelectorAll('[data-day]');
     var activeDayCell = grid.querySelector('.day-header-cell--active[data-day]');
     var selectedDay = activeDayCell ? (parseInt(activeDayCell.getAttribute('data-day'), 10) || 0) : 0;
-
-    function baseDays() {
-        if (window.matchMedia('(max-width: 900px)').matches) {
-            return 1;
-        }
-
-        return 3;
-    }
-
     function cssPx(name, fallback) {
         var value = parseFloat(getComputedStyle(grid).getPropertyValue(name));
         return isNaN(value) ? fallback : value;
     }
 
-    function visibleDayCount() {
-        var minimumDays = baseDays();
-        var dayWidth = squares * cssPx('--calendar-slot-col', 136);
-        if (dayWidth <= 0) { return minimumDays; }
-
-        var fits = Math.floor((wrap.clientWidth - cssPx('--calendar-time-col', 94)) / dayWidth);
-        return Math.max(minimumDays, Math.min(maxDays, fits));
+    function availableCalendarWidth() {
+        var rect = wrap.getBoundingClientRect();
+        var viewportWidth = document.documentElement.clientWidth || window.innerWidth;
+        return Math.max(0, viewportWidth - rect.left - 12);
     }
 
-    function applyVisibleDays() {
-        var count = visibleDayCount();
-        var timeWidth = cssPx('--calendar-time-col', 94);
-        var dayWidth = squares * cssPx('--calendar-slot-col', 136);
-        var mobileOnlyOneDay = window.matchMedia('(max-width: 900px)').matches;
-        var firstVisibleDay = mobileOnlyOneDay ? selectedDay : 0;
+    function applyDayWindow(count) {
+        var firstVisibleDay = count === 1 ? selectedDay : 0;
         var lastVisibleDay = firstVisibleDay + count;
 
         dayCells.forEach(function (el) {
@@ -328,11 +312,19 @@
 
         grid.dataset.visibleDays = String(count);
         wrap.dataset.visibleDays = String(count);
+        grid.style.minWidth = '';
 
-        if (mobileOnlyOneDay) {
-            grid.style.minWidth = (timeWidth + (count * dayWidth)) + 'px';
-        } else {
-            grid.style.minWidth = '';
+        var renderedWidth = Math.ceil(grid.getBoundingClientRect().width);
+        document.documentElement.style.setProperty('--calendar-visible-width', renderedWidth + 'px');
+    }
+
+    function applyVisibleDays() {
+        var count = maxDays;
+        applyDayWindow(count);
+
+        while (count > 1 && Math.ceil(grid.getBoundingClientRect().width) > availableCalendarWidth()) {
+            count--;
+            applyDayWindow(count);
         }
     }
 

@@ -33,7 +33,7 @@
     </style>
     @stack('head')
 </head>
-<body>
+<body @hasSection('body-class') class="@yield('body-class')" @endif>
 <div class="page-shell">
     <x-layout.header />
 

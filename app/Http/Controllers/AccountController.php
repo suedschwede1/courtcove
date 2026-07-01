@@ -5,11 +5,15 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\Booking;
+use App\Models\Square;
 use App\Models\User;
+use App\Services\BookingService;
+use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -22,19 +26,94 @@ final class AccountController extends Controller
     /** Profile fields stored in bs_users_meta. */
     private const PROFILE_FIELDS = ['firstname', 'lastname', 'phone', 'street', 'zip', 'city', 'gender'];
 
-    /** List the authenticated user's own active bookings, newest first. */
-    public function bookings(): View
+    /** List the authenticated user's bookings only after an explicit search. */
+    public function bookings(Request $request, BookingService $bookingService): View
     {
         /** @var User $user */
         $user = auth()->user();
 
-        $bookings = $user->bookings()
-            ->whereIn('status', Booking::ACTIVE_STATUSES)
-            ->with(['square', 'reservations'])
-            ->orderByDesc('bid')
+        $searched = $request->boolean('searched');
+        $filters = [
+            'q' => trim((string) $request->query('q', '')),
+            'sid' => (string) $request->query('sid', ''),
+            'status' => (string) $request->query('status', 'active'),
+            'date_from' => (string) $request->query('date_from', ''),
+            'date_to' => (string) $request->query('date_to', ''),
+        ];
+
+        $squares = Square::with(['meta' => fn ($query) => $query->where('key', 'alias')])
+            ->orderBy('priority')
+            ->orderBy('sid')
             ->get();
 
-        return view('account.bookings', compact('bookings'));
+        $bookings = collect();
+        $cancellableBookingIds = [];
+
+        if ($searched) {
+            $query = $user->bookings()
+                ->with(['square.meta', 'reservations', 'meta', 'user'])
+                ->orderByDesc('bid');
+
+            if ($filters['sid'] !== '') {
+                $query->where('sid', (int) $filters['sid']);
+            }
+
+            match ($filters['status']) {
+                'single', 'subscription', 'cancelled' => $query->where('status', $filters['status']),
+                'all' => null,
+                default => $query->whereIn('status', Booking::ACTIVE_STATUSES),
+            };
+
+            if ($filters['date_from'] !== '') {
+                $query->whereHas('reservations', fn ($reservationQuery) => $reservationQuery->where('date', '>=', $filters['date_from']));
+            }
+
+            if ($filters['date_to'] !== '') {
+                $query->whereHas('reservations', fn ($reservationQuery) => $reservationQuery->where('date', '<=', $filters['date_to']));
+            }
+
+            $bookings = $query->get();
+
+            if ($filters['q'] !== '') {
+                $needle = Str::lower($filters['q']);
+                $bookings = $bookings->filter(function (Booking $booking) use ($needle): bool {
+                    $haystack = collect([
+                        $booking->square?->name,
+                        $booking->square?->display_name,
+                        $booking->owner_label,
+                        $booking->player_names_label,
+                    ])->filter()->map(fn (string $value): string => Str::lower($value))->implode(' ');
+
+                    return Str::contains($haystack, $needle);
+                })->values();
+            }
+
+            $bookings = $bookings
+                ->sortByDesc(function (Booking $booking): string {
+                    $reservation = $booking->reservations
+                        ->sortBy(fn ($reservation): string => (string) $reservation->date.' '.(string) $reservation->time_start)
+                        ->first();
+
+                    return (string) $reservation?->date.' '.(string) $reservation?->time_start;
+                })
+                ->values();
+            $cancellableBookingIds = $bookings
+                ->filter(function (Booking $booking) use ($bookingService, $user): bool {
+                    $reservation = $booking->reservations
+                        ->sortBy(fn ($reservation): string => (string) $reservation->date.' '.(string) $reservation->time_start)
+                        ->first();
+
+                    if (! $reservation || ! Carbon::parse($reservation->date.' '.$reservation->time_start)->isFuture()) {
+                        return false;
+                    }
+
+                    return $bookingService->canUserCancelSingle($user, $booking);
+                })
+                ->pluck('bid')
+                ->all();
+        }
+
+        return view('account.bookings', compact('bookings', 'cancellableBookingIds', 'filters', 'searched', 'squares'));
     }
 
     /** Show the profile + password forms for the authenticated user. */

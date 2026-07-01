@@ -188,12 +188,12 @@ class CalendarControllerTest extends TestCase
     }
 
     #[Test]
-    public function calendar_marks_extra_days_as_hidden_by_default(): void
+    public function calendar_marks_optional_days_as_hidden_by_default(): void
     {
         $this->get('/calendar?date=2026-07-10')
             ->assertOk()
             ->assertSee('cal-extra-day', false)
-            ->assertSee('data-day="3"', false);
+            ->assertSee('data-day="1"', false);
     }
 
     #[Test]

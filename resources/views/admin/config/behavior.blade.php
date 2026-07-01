@@ -66,11 +66,6 @@
             </div>
             <div class="px-6 py-5 flex flex-col gap-4">
 
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-days">{{ __('booking.admin.calendar_days') }}</label>
-                    <input id="cf-days" type="number" name="calendar_days" min="1" max="31" value="{{ old('calendar_days', $values['calendar_days']) }}"
-                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                </div>
 
                 <div class="flex flex-col gap-1">
                     <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-hide">{{ __('booking.admin.calendar_hide') }}</label>

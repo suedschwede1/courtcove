@@ -11,6 +11,7 @@ return [
         'admin' => 'Administration',
         'logout' => 'Abmelden',
         'actions' => 'Aktionen',
+        'more_actions' => 'Mehr Aktionen',
         'login' => 'Anmelden',
         'today' => 'Heute',
         'previous_day' => 'Vorheriger Tag',
@@ -77,7 +78,7 @@ return [
         'title' => 'Buchungsplan – :date',
         'system_eyebrow' => 'Buchungssystem',
         'information' => 'Informationen',
-        'system_text' => 'Das Reservierungssystem zeigt immer drei Tage gleichzeitig und alle drei Plätze vollständig an. Freie Zeiten können direkt im Plan gewählt werden.',
+        'system_text' => 'Das Reservierungssystem zeigt automatisch so viele Tage an, wie in das Fenster passen. Bei schmaleren Ansichten kann der Plan horizontal gescrollt werden.',
         'system_items' => [
             'Weiße Felder sind sofort buchbar.',
             'Blaue Felder sind eigene oder bestehende Reservierungen.',

@@ -14,7 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 /**
- * CalendarController - displays the 3-day booking calendar (yesterday/today/tomorrow).
+ * CalendarController - displays the responsive booking calendar window.
  *
  * Routes: GET /calendar
  * Auth: public view, auth required for booking actions only
@@ -28,7 +28,7 @@ final class CalendarController extends Controller
     ) {}
 
     /**
-     * Render the 3-day calendar view (yesterday, today, tomorrow) for all courts.
+     * Render the responsive calendar data window for all courts.
      *
      * @param  Request  $request  Accepts optional ?date=YYYY-MM-DD query parameter; defaults to today
      * @return View calendar.index with calendar reservation and event data
@@ -88,10 +88,10 @@ final class CalendarController extends Controller
             }
         }
 
-        $authUser    = auth()->user();
-        $authUserId  = $authUser?->uid;
-        $isLoggedIn  = $authUser !== null;
-        $isAdmin     = $isLoggedIn && $authUser->can('admin.booking');
+        $authUser = auth()->user();
+        $authUserId = $authUser?->uid;
+        $isLoggedIn = $authUser !== null;
+        $isAdmin = $isLoggedIn && $authUser->can('admin.booking');
         $canAdminEvents = $isLoggedIn && $authUser->can('admin.event');
 
         $events = Event::with(['meta' => fn ($query) => $query->where('key', 'name')])
@@ -186,13 +186,57 @@ final class CalendarController extends Controller
             }
         }
 
-        $now         = Carbon::now();
+        foreach ($dates as $d) {
+            $dateKey = $d->format('Y-m-d');
+            for ($h = 8; $h <= 21; $h++) {
+                for ($index = 0, $count = count($squareIds); $index < $count; $index++) {
+                    $sid = $squareIds[$index];
+                    $block = $eventBlocks[$dateKey][$sid][$h] ?? null;
+                    if (! $block || ($block['cols'] ?? 1) !== 1) {
+                        continue;
+                    }
+
+                    $mergedCols = 1;
+                    for ($nextIndex = $index + 1; $nextIndex < $count; $nextIndex++) {
+                        $nextSid = $squareIds[$nextIndex];
+                        $nextBlock = $eventBlocks[$dateKey][$nextSid][$h] ?? null;
+                        if (! $nextBlock || ($nextBlock['cols'] ?? 1) !== 1) {
+                            break;
+                        }
+
+                        $sameLabel = $nextBlock['name'] === $block['name'];
+                        $sameRows = $nextBlock['rows'] === $block['rows'];
+                        $sameStart = $nextBlock['event']->datetime_start == $block['event']->datetime_start;
+                        $sameEnd = $nextBlock['event']->datetime_end == $block['event']->datetime_end;
+                        if (! $sameLabel || ! $sameRows || ! $sameStart || ! $sameEnd) {
+                            break;
+                        }
+
+                        $mergedCols++;
+                    }
+
+                    if ($mergedCols <= 1) {
+                        continue;
+                    }
+
+                    $eventBlocks[$dateKey][$sid][$h]['cols'] = $mergedCols;
+                    for ($mergeIndex = $index + 1; $mergeIndex < $index + $mergedCols; $mergeIndex++) {
+                        $mergedSid = $squareIds[$mergeIndex];
+                        for ($row = $h; $row < $h + $block['rows']; $row++) {
+                            $eventSkip[$dateKey][$mergedSid][$row] = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        $now = Carbon::now();
         $dateLabels = [];
         foreach ($dates as $d) {
             $dateLabels[$d->format('Y-m-d')] = [
                 'short' => $d->isoFormat('dddd'),
-                'long'  => $d->isoFormat('D. MMMM YYYY'),
-                'full'  => $d->isoFormat('D. MMM YYYY'),
+                'long' => $d->isoFormat('D. MMMM YYYY'),
+                'full' => $d->isoFormat('D. MMM YYYY'),
             ];
         }
 
@@ -201,24 +245,24 @@ final class CalendarController extends Controller
             : collect();
 
         return view('calendar.index', [
-            'date'               => $date,
-            'dates'              => $dates,
-            'squares'            => $squares,
+            'date' => $date,
+            'dates' => $dates,
+            'squares' => $squares,
             'reservationsByDate' => $reservationsByDate,
             'reservationsBySquare' => $reservationsByDate[$date->format('Y-m-d')] ?? [],
             'reservationsBySlot' => $reservationsBySlot,
-            'events'             => $events,
-            'eventBlocks'        => $eventBlocks,
-            'eventSkip'          => $eventSkip,
-            'adminUsers'         => $adminUsers,
-            'authUser'           => $authUser,
-            'authUserId'         => $authUserId,
-            'isLoggedIn'         => $isLoggedIn,
-            'isAdmin'            => $isAdmin,
-            'canAdminEvents'     => $canAdminEvents,
-            'now'                => $now,
-            'today'              => $now->format('Y-m-d'),
-            'dateLabels'         => $dateLabels,
+            'events' => $events,
+            'eventBlocks' => $eventBlocks,
+            'eventSkip' => $eventSkip,
+            'adminUsers' => $adminUsers,
+            'authUser' => $authUser,
+            'authUserId' => $authUserId,
+            'isLoggedIn' => $isLoggedIn,
+            'isAdmin' => $isAdmin,
+            'canAdminEvents' => $canAdminEvents,
+            'now' => $now,
+            'today' => $now->format('Y-m-d'),
+            'dateLabels' => $dateLabels,
         ]);
     }
 }

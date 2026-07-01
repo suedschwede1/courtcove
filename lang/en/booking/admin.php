@@ -46,7 +46,6 @@ return [
         'system_name' => 'System Name',
         'client_name_full' => 'Full Club Name',
         'contact_email' => 'Contact Email',
-        'calendar_days' => 'Calendar Days',
         'registration' => 'Registration',
         'maintenance' => 'Maintenance Mode',
         'quotes_enabled' => 'Quotes After Booking',
