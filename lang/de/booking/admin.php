@@ -232,6 +232,9 @@ return [
             'section_account' => 'Konto',
             'section_profile' => 'Profil',
             'section_access'  => 'Zugang',
+            'quote_group' => 'Spruch-Gruppe',
+            'quote_group_none' => 'Keine',
+            'quote_group_hint' => 'Wird beim Anzeigen von Sprüchen nach der Buchung bevorzugt berücksichtigt.',
             'privileges' => [
                 'admin.user'                          => 'Darf Benutzer verwalten',
                 'admin.booking'                       => 'Darf Buchungen verwalten',

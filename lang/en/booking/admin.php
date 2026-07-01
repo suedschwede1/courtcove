@@ -232,6 +232,9 @@ return [
             'section_account' => 'Account',
             'section_profile' => 'Profile',
             'section_access' => 'Access',
+            'quote_group' => 'Quote Group',
+            'quote_group_none' => 'None',
+            'quote_group_hint' => 'Preferred when picking a quote to show after a booking.',
             'privileges' => [
                 'admin.user' => 'May manage users',
                 'admin.booking' => 'May manage bookings',

@@ -28,3 +28,6 @@ Thumbs.db
 /config/calendar.local.php
 /lang/de/booking/local.php
 /lang/en/booking/local.php
+/lang/de/booking/quote_groups.php
+/lang/de/booking/quotes.local.php
+/lang/en/booking/quotes.local.php

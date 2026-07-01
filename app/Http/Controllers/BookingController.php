@@ -10,6 +10,7 @@ use App\Models\Option;
 use App\Models\Square;
 use App\Models\User;
 use App\Services\BookingService;
+use App\Services\QuoteGroups;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
@@ -82,15 +83,24 @@ final class BookingController extends Controller
         }
 
         if (Option::getValue('service.quotes.enabled', '1') === '1') {
-            $pool = __('booking.quotes');
+            $locale = app()->getLocale();
+            $pool = QuoteGroups::baseQuotes($locale, __('booking.quotes'));
 
-            // quotes_named only exists for German; app.fallback_locale is 'de',
-            // so a plain __() lookup would silently leak German quotes into
+            // quotes_named and quote groups only exist for German; app.fallback_locale
+            // is 'de', so an unguarded lookup would silently leak German quotes into
             // other locales — guard explicitly instead.
-            if (app()->getLocale() === 'de') {
+            if ($locale === 'de') {
                 $namedQuotes = __('booking.quotes_named');
                 if (is_array($namedQuotes)) {
                     $pool = array_merge($pool, $namedQuotes);
+                }
+
+                // A member's assigned quote group (private, not tracked in git)
+                // is weighted in twice so it dominates the random pick while
+                // still leaving room for the generic pool.
+                $groupQuotes = QuoteGroups::quotesFor(auth()->user()?->getMeta('quote_group'));
+                if ($groupQuotes !== []) {
+                    $pool = array_merge($pool, $groupQuotes, $groupQuotes);
                 }
             }
 

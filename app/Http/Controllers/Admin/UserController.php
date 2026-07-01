@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Mail\UserActivated;
 use App\Models\User;
+use App\Services\QuoteGroups;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -46,7 +47,10 @@ final class UserController extends Controller
 
     public function create(): View
     {
-        return view('admin.users.create', ['privileges' => User::PRIVILEGES]);
+        return view('admin.users.create', [
+            'privileges' => User::PRIVILEGES,
+            'quoteGroups' => QuoteGroups::all(),
+        ]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -59,6 +63,7 @@ final class UserController extends Controller
             'firstname' => ['nullable', 'string', 'max:128'],
             'lastname' => ['nullable', 'string', 'max:128'],
             'phone' => ['nullable', 'string', 'max:64'],
+            'quote_group' => ['nullable', 'string', 'in:'.implode(',', array_keys(QuoteGroups::all()))],
             'privileges' => ['array'],
             'privileges.*' => ['in:'.implode(',', User::PRIVILEGES)],
         ]);
@@ -71,7 +76,7 @@ final class UserController extends Controller
             'created' => now(),
         ]);
 
-        foreach (['firstname', 'lastname', 'phone'] as $field) {
+        foreach (['firstname', 'lastname', 'phone', 'quote_group'] as $field) {
             if (! empty($data[$field])) {
                 $user->setMeta($field, $data[$field]);
             }
@@ -92,11 +97,13 @@ final class UserController extends Controller
         return view('admin.users.edit', [
             'user' => $user,
             'privileges' => User::PRIVILEGES,
+            'quoteGroups' => QuoteGroups::all(),
             'granted' => $user->grantedPrivileges(),
             'profile' => [
                 'firstname' => $user->getMeta('firstname'),
                 'lastname' => $user->getMeta('lastname'),
                 'phone' => $user->getMeta('phone'),
+                'quote_group' => $user->getMeta('quote_group'),
             ],
         ]);
     }
@@ -110,13 +117,14 @@ final class UserController extends Controller
             'firstname' => ['nullable', 'string', 'max:128'],
             'lastname' => ['nullable', 'string', 'max:128'],
             'phone' => ['nullable', 'string', 'max:64'],
+            'quote_group' => ['nullable', 'string', 'in:'.implode(',', array_keys(QuoteGroups::all()))],
             'privileges' => ['array'],
             'privileges.*' => ['in:'.implode(',', User::PRIVILEGES)],
         ]);
 
         $wasEnabled = $user->status === 'enabled';
         $user->update(['alias' => $data['alias'], 'email' => $data['email'] ?? null, 'status' => $data['status']]);
-        foreach (['firstname', 'lastname', 'phone'] as $field) {
+        foreach (['firstname', 'lastname', 'phone', 'quote_group'] as $field) {
             $user->setMeta($field, $data[$field] ?? null);
         }
         $user->syncPrivileges($data['privileges'] ?? []);

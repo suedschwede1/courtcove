@@ -54,6 +54,37 @@ class BookingControllerTest extends TestCase
     }
 
     #[Test]
+    public function booking_quote_stays_in_locale_even_with_a_german_only_quote_group(): void
+    {
+        app()->setLocale('en');
+
+        $user = User::factory()->create();
+        $user->setMeta('quote_group', 'balldrescher');
+
+        $square = Square::factory()->create([
+            'status' => 'enabled', 'time_block_bookable_max' => 0, 'range_book' => 0,
+        ]);
+
+        $this->actingAs($user)->post('/bookings', [
+            'sid' => $square->sid,
+            'date' => '2026-07-10',
+            'time_start' => 36000,
+            'time_end' => 39600,
+            'quantity' => 2,
+            'mitspieler' => 'Partner Mustermann',
+        ])->assertRedirect();
+
+        $quote = session('booking_quote');
+        $this->assertNotNull($quote);
+
+        $englishPool = array_map(
+            fn (string $q) => str_replace(':name', (string) $user->alias, $q),
+            __('booking.quotes'),
+        );
+        $this->assertContains($quote, $englishPool);
+    }
+
+    #[Test]
     public function user_cannot_create_booking_on_disabled_square(): void
     {
         $user = User::factory()->create();
