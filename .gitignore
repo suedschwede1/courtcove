@@ -25,3 +25,6 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 /database/dusk.sqlite
+/config/calendar.local.php
+/lang/de/booking/local.php
+/lang/en/booking/local.php
