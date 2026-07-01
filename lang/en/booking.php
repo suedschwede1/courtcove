@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 $translations = array_merge(
     require __DIR__ . '/booking/public.php',
+    require __DIR__ . '/booking/quotes.php',
     require __DIR__ . '/booking/account.php',
     require __DIR__ . '/booking/admin.php',
     require __DIR__ . '/booking/repeat.php',
