@@ -15,6 +15,10 @@ namespace App\Services;
  * - Base quotes override (per locale): lang/{locale}/booking/quotes.local.php
  *   (not tracked in git — see quotes.local.example.php). Fully replaces
  *   the built-in booking.quotes list for that locale when present.
+ * - Named quotes override (per locale): lang/{locale}/booking/quotes_named.local.php
+ *   (not tracked in git — see quotes_named.local.example.php). Fully
+ *   replaces the built-in booking.quotes_named list for that locale
+ *   when present.
  */
 final class QuoteGroups
 {
@@ -47,7 +51,30 @@ final class QuoteGroups
      */
     public static function baseQuotes(string $locale, array $default): array
     {
-        $file = __DIR__."/../../lang/{$locale}/booking/quotes.local.php";
+        return self::localOverride($locale, 'quotes.local.php', $default);
+    }
+
+    /**
+     * Reads the optional, per-installation named-quotes override from
+     * lang/{locale}/booking/quotes_named.local.php (not tracked in git —
+     * see quotes_named.local.example.php). When present and non-empty, it
+     * fully replaces $default instead of merging with it.
+     *
+     * @param array<int, string> $default
+     * @return array<int, string>
+     */
+    public static function namedQuotes(string $locale, array $default): array
+    {
+        return self::localOverride($locale, 'quotes_named.local.php', $default);
+    }
+
+    /**
+     * @param array<int, string> $default
+     * @return array<int, string>
+     */
+    private static function localOverride(string $locale, string $filename, array $default): array
+    {
+        $file = __DIR__."/../../lang/{$locale}/booking/{$filename}";
 
         if (! file_exists($file)) {
             return $default;

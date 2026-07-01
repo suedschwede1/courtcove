@@ -90,7 +90,8 @@ final class BookingController extends Controller
             // booking/quotes.php), so this merge is locale-safe without a
             // guard: __() resolves it from the current locale's own file.
             $namedQuotes = __('booking.quotes_named');
-            if (is_array($namedQuotes)) {
+            $namedQuotes = QuoteGroups::namedQuotes($locale, is_array($namedQuotes) ? $namedQuotes : []);
+            if ($namedQuotes !== []) {
                 $pool = array_merge($pool, $namedQuotes);
             }
 
