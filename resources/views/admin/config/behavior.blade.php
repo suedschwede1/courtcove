@@ -49,6 +49,29 @@
             </div>
         </div>
 
+        {{-- Buchungsplan --}}
+        <div class="bg-white rounded-xl border border-[#e0ddd7] shadow-sm overflow-hidden mb-6">
+            <div class="px-6 py-4 border-b border-[#f0ede6]">
+                <h2 class="text-base font-semibold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.admin.cfg.section_calendar') }}</h2>
+            </div>
+            <div class="px-6 py-5 flex flex-col gap-4">
+
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-days">{{ __('booking.admin.calendar_days') }}</label>
+                    <input id="cf-days" type="number" name="calendar_days" min="1" max="31" value="{{ old('calendar_days', $values['calendar_days']) }}"
+                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
+                </div>
+
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-hide">{{ __('booking.admin.calendar_hide') }}</label>
+                    <textarea id="cf-hide" name="calendar_hide" rows="5"
+                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">{{ old('calendar_hide', $values['calendar_hide']) }}</textarea>
+                    <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.calendar_hide_hint') }}</p>
+                </div>
+
+            </div>
+        </div>
+
         {{-- Stoßzeiten --}}
         <div class="bg-white rounded-xl border border-[#e0ddd7] shadow-sm overflow-hidden mb-6">
             <div class="px-6 py-4 border-b border-[#f0ede6]">

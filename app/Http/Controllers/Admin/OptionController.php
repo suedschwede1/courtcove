@@ -60,8 +60,6 @@ final class OptionController extends Controller
                 'registration' => '',
                 'activation' => '',
                 'maintenance' => '',
-                'calendar_days' => '',
-                'calendar_hide' => '',
                 'peak_limit_enabled' => '',
                 'peak_limit_w1_start' => '',
                 'peak_limit_w1_end' => '',
