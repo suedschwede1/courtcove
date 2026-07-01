@@ -20,7 +20,7 @@ class SquareManagementTest extends TestCase
         return User::factory()->create(['status' => 'admin']);
     }
 
-    /** Vollständige, gültige Formular-Eingabe; Overrides per $overrides. */
+    /** Complete, valid form input; override via $overrides. */
     private function payload(array $overrides = []): array
     {
         return array_merge([
@@ -65,11 +65,11 @@ class SquareManagementTest extends TestCase
             ->assertRedirect(route('admin.squares.index'));
 
         $square = Square::where('name', 'Center')->firstOrFail();
-        $this->assertSame(3600, (int) $square->time_block);               // 60 Min × 60
-        $this->assertSame(1800, (int) $square->time_block_bookable);      // 30 Min × 60
-        $this->assertSame(10800, (int) $square->time_block_bookable_max); // 180 Min × 60
-        $this->assertSame(56 * 86400, (int) $square->range_book);         // 56 Tage
-        $this->assertSame(86400, (int) $square->range_cancel);            // 24 Std × 3600
+        $this->assertSame(3600, (int) $square->time_block);               // 60 min × 60
+        $this->assertSame(1800, (int) $square->time_block_bookable);      // 30 min × 60
+        $this->assertSame(10800, (int) $square->time_block_bookable_max); // 180 min × 60
+        $this->assertSame(56 * 86400, (int) $square->range_book);         // 56 days
+        $this->assertSame(86400, (int) $square->range_cancel);            // 24 h × 3600
         $this->assertSame('Court B', $square->getMeta('alias'));
         $this->assertSame('frei', $square->getMeta('label.free'));
     }
@@ -104,7 +104,7 @@ class SquareManagementTest extends TestCase
 
         $this->actingAs($this->admin())->get(route('admin.squares.edit', $square))
             ->assertOk()
-            ->assertSee('value="56"', false);   // range_book 56*86400 Sek ÷ 86400 = 56 Tage
+            ->assertSee('value="56"', false);   // range_book 56*86400 sec ÷ 86400 = 56 days
     }
 
     #[Test]
