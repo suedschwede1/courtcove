@@ -193,7 +193,7 @@
                                        data-delete-url="{{ route('admin.bookings.destroy', $reservation->booking) }}">
                                         <span class="cc-label-primary">{{ $primaryLabel }}</span>
                                         @if($seriesBadge)
-                                            <span class="cc-label-secondary">{{ $seriesBadge }}</span>
+                                            <span class="cc-label-series">{{ $seriesBadge }}</span>
                                         @endif
                                         @if($secondaryLabel)
                                             <span class="cc-label-secondary">{{ $secondaryLabel }}</span>
@@ -213,7 +213,7 @@
                                        })">
                                         <span class="cc-label-primary">{{ $primaryLabel }}</span>
                                         @if($seriesBadge)
-                                            <span class="cc-label-secondary">{{ $seriesBadge }}</span>
+                                            <span class="cc-label-series">{{ $seriesBadge }}</span>
                                         @endif
                                         @if($secondaryLabel)
                                             <span class="cc-label-secondary">{{ $secondaryLabel }}</span>
@@ -223,7 +223,7 @@
                                     <span class="calendar-cell {{ $cellClass }}{{ $slotClass }}" title="{{ $cellTitle }}">
                                         <span class="cc-label-primary">{{ $primaryLabel }}</span>
                                         @if($seriesBadge)
-                                            <span class="cc-label-secondary">{{ $seriesBadge }}</span>
+                                            <span class="cc-label-series">{{ $seriesBadge }}</span>
                                         @endif
                                         @if($secondaryLabel)
                                             <span class="cc-label-secondary">{{ $secondaryLabel }}</span>

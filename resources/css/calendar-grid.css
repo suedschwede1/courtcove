@@ -1,18 +1,18 @@
-/* Kalender-Zellfarben nach Design-Guide */
+/* Kalender-Zellfarben nach Design-Guide — Werte kommen aus config/calendar.php */
 .cc-free {
-    background: #ffffff;
+    background: var(--cal-free-bg, #ffffff);
 }
 
 .cc-own {
-    background: #eff6ff;
+    background: var(--cal-own-bg, #eff6ff);
 }
 
 .event-cell {
-    background: #fde8e1;
+    background: var(--cal-event-bg, #fde8e1);
 }
 
 .cc-over {
-    background: #f4f4f4;
+    background: var(--cal-past-bg, #f4f4f4);
 }
 
 /* Zeitspalte — Typografie */
@@ -77,7 +77,7 @@
 }
 
 .cc-free:hover {
-    background: #f0f7ff;
+    background: var(--cal-free-bg-hover, #f0f7ff);
 }
 
 /* Vergangene Zelle — nicht klickbar */
@@ -87,7 +87,7 @@
 
 /* Fremde Buchung — gleiche Farbe wie eigene, nicht klickbar */
 .cc-single-future {
-    background: #eff6ff;
+    background: var(--cal-single-future-bg, #eff6ff);
     cursor: default;
 }
 
@@ -96,7 +96,7 @@
     font-family: 'Red Hat Text', sans-serif;
     font-size: 12px;
     font-weight: 600;
-    color: #1a3a6b;
+    color: var(--cal-own-label, #1a3a6b);
     line-height: 1.3;
     overflow: hidden;
     display: -webkit-box;
@@ -105,11 +105,21 @@
     max-width: 100%;
 }
 
+/* Serien-Buchung-Badge */
+.cc-label-series {
+    font-family: 'Red Hat Text', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--cal-series-label, #7f2010);
+    line-height: 1.3;
+    margin-top: 2px;
+}
+
 /* Mitspieler-Label */
 .cc-label-secondary {
     font-family: 'Red Hat Text', sans-serif;
     font-size: 11px;
-    color: #5a7ab3;
+    color: var(--cal-own-label-secondary, #5a7ab3);
     line-height: 1.3;
     margin-top: 2px;
     white-space: nowrap;
@@ -123,7 +133,7 @@
     font-family: 'Red Hat Text', sans-serif;
     font-size: 12px;
     font-weight: 600;
-    color: #7f2010;
+    color: var(--cal-event-label, #7f2010);
     line-height: 1.35;
     overflow: hidden;
     display: -webkit-box;
@@ -149,43 +159,43 @@
 
 .cc-free:hover,
 .cc-free:focus-visible {
-    background: #ffffff;
+    background: var(--cal-free-bg, #ffffff);
     box-shadow: inset 0 0 0 1px rgba(21, 21, 21, 0.08);
 }
 
 .cc-own {
-    background: #d8e9fb;
-    box-shadow: inset 3px 0 0 rgba(26, 103, 179, 0.45);
+    background: var(--cal-own-bg, #d8e9fb);
+    box-shadow: inset 3px 0 0 var(--cal-own-accent, rgba(26, 103, 179, 0.45));
 }
 
 .cc-own:hover,
 .cc-own:focus-visible {
-    background: #cfe1f4;
+    background: var(--cal-own-bg-hover, #cfe1f4);
 }
 
 .cc-single-future {
-    background: #dbe8f6;
+    background: var(--cal-single-future-bg, #dbe8f6);
 }
 
 .booking-trigger.cc-single-future:hover,
 .booking-trigger.cc-single-future:focus-visible {
-    background: #d2e0ef;
+    background: var(--cal-single-future-bg-hover, #d2e0ef);
 }
 
 .cc-over,
 .slot-cell--past {
-    background: #f4f4f4;
-    color: #8a8d90;
+    background: var(--cal-past-bg, #f4f4f4);
+    color: var(--cal-past-label, #8a8d90);
 }
 
 .event-cell {
-    background: #fde8e1;
-    box-shadow: inset 3px 0 0 rgba(191, 67, 22, 0.55);
+    background: var(--cal-event-bg, #fde8e1);
+    box-shadow: inset 3px 0 0 var(--cal-event-accent, rgba(191, 67, 22, 0.55));
 }
 
 .event-cell--editable:hover,
 .event-cell--editable:focus-within {
-    background: #fbded5;
+    background: var(--cal-event-bg-hover, #fbded5);
 }
 
 .calendar-cell:focus-visible,
