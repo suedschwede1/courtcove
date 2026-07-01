@@ -21,8 +21,8 @@ class AccountTest extends TestCase
     #[Test]
     public function guest_cannot_access_account_pages(): void
     {
-        $this->get('/meine-buchungen')->assertRedirect('/login');
-        $this->get('/mein-konto')->assertRedirect('/login');
+        $this->get('/my-bookings')->assertRedirect('/login');
+        $this->get('/my-account')->assertRedirect('/login');
     }
 
     #[Test]
@@ -37,7 +37,7 @@ class AccountTest extends TestCase
         Reservation::factory()->create(['bid' => $theirs->bid, 'date' => Carbon::today()->toDateString()]);
         $cancelled = Booking::factory()->create(['uid' => $me->uid, 'sid' => $sq->sid, 'status' => 'cancelled']);
 
-        $resp = $this->actingAs($me)->get('/meine-buchungen')->assertOk();
+        $resp = $this->actingAs($me)->get('/my-bookings')->assertOk();
         $bookings = $resp->viewData('bookings');
         $ids = collect($bookings)->pluck('bid')->all();
         $this->assertContains($mine->bid, $ids);
@@ -50,14 +50,14 @@ class AccountTest extends TestCase
     {
         $u = User::factory()->create(['alias' => 'Max Mustermann']);
         $u->setMeta('phone', '+43123');
-        $this->actingAs($u)->get('/mein-konto')->assertOk()->assertSee('Max Mustermann')->assertSee('+43123');
+        $this->actingAs($u)->get('/my-account')->assertOk()->assertSee('Max Mustermann')->assertSee('+43123');
     }
 
     #[Test]
     public function account_update_saves_alias_email_and_profile(): void
     {
         $u = User::factory()->create();
-        $this->actingAs($u)->put('/mein-konto', [
+        $this->actingAs($u)->put('/my-account', [
             'alias' => 'Neuer Name', 'email' => 'neu@example.com',
             'firstname' => 'Neu', 'phone' => '+4399', 'city' => 'Graz',
         ])->assertRedirect(route('account.edit'));
@@ -75,13 +75,13 @@ class AccountTest extends TestCase
         $u = User::factory()->create(['pw' => Hash::make('altpass1')]);
 
         // wrong current password -> error, unchanged
-        $this->actingAs($u)->put('/mein-konto/passwort', [
+        $this->actingAs($u)->put('/my-account/password', [
             'current_password' => 'falsch', 'password' => 'neupass1', 'password_confirmation' => 'neupass1',
         ])->assertSessionHasErrors('current_password');
         $this->assertTrue(Hash::check('altpass1', $u->fresh()->pw));
 
         // correct current password -> changed
-        $this->actingAs($u)->put('/mein-konto/passwort', [
+        $this->actingAs($u)->put('/my-account/password', [
             'current_password' => 'altpass1', 'password' => 'neupass1', 'password_confirmation' => 'neupass1',
         ])->assertRedirect();
         $this->assertTrue(Hash::check('neupass1', $u->fresh()->pw));

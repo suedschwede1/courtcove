@@ -36,10 +36,10 @@ Route::middleware('auth')->group(function (): void {
     Route::put('/bookings/{booking}', [BookingController::class, 'update'])->name('bookings.update');
     Route::delete('/bookings/{booking}', [BookingController::class, 'destroy'])->name('bookings.destroy');
 
-    Route::get('/meine-buchungen', [AccountController::class, 'bookings'])->name('account.bookings');
-    Route::get('/mein-konto', [AccountController::class, 'edit'])->name('account.edit');
-    Route::put('/mein-konto', [AccountController::class, 'update'])->name('account.update');
-    Route::put('/mein-konto/passwort', [AccountController::class, 'password'])->name('account.password');
+    Route::get('/my-bookings', [AccountController::class, 'bookings'])->name('account.bookings');
+    Route::get('/my-account', [AccountController::class, 'edit'])->name('account.edit');
+    Route::put('/my-account', [AccountController::class, 'update'])->name('account.update');
+    Route::put('/my-account/password', [AccountController::class, 'password'])->name('account.password');
 });
 
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function (): void {
