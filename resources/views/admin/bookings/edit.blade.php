@@ -100,8 +100,8 @@
                                  acResults: [],
                                  acOpen: false,
                                  async fetchAc(v) {
-                                     if (this.quantity !== '2' || v.length < 2) { this.acResults = []; this.acOpen = false; return; }
-                                     const r = await fetch('/bookings/players?q=' + encodeURIComponent(v));
+                                     if (v.length < 2) { this.acResults = []; this.acOpen = false; return; }
+                                     const r = await fetch('/bookings/players?q=' + encodeURIComponent(v) + '&quantity=' + encodeURIComponent(this.quantity));
                                      this.acResults = await r.json();
                                      this.acOpen = this.acResults.length > 0;
                                  }

@@ -123,6 +123,7 @@ final class BookingController extends Controller
     public function players(Request $request): JsonResponse
     {
         $q = trim((string) $request->query('q', ''));
+        $quantity = (string) $request->query('quantity', '2');
 
         if (mb_strlen($q) < 2) {
             return response()->json([]);
@@ -138,7 +139,13 @@ final class BookingController extends Controller
                 $join->on('lastnames.uid', '=', 'bs_users.uid')
                     ->where('lastnames.key', '=', 'lastname');
             })
-            ->where('bs_users.status', '!=', 'deleted')
+            ->when($quantity === '4', function ($query): void {
+                // Doubles: only suggest placeholder names, never real user accounts.
+                $query->where('bs_users.status', 'placeholder');
+            }, function ($query): void {
+                // Singles: look up all real users.
+                $query->where('bs_users.status', '!=', 'deleted');
+            })
             ->where(function ($query) use ($q): void {
                 $query->where('bs_users.alias', 'like', '%'.$q.'%')
                     ->orWhere('firstnames.value', 'like', '%'.$q.'%')

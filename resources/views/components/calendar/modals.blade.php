@@ -47,9 +47,6 @@
                     {{ __('booking.modal.cancel_booking') }}
                 </button>
             </form>
-            <button type="button" @click="open = false" class="w-full border border-[#d1cbc0] text-[#6a6e73] text-sm py-2 rounded hover:bg-[#f9f8f6] transition-colors">
-                {{ __('booking.modal.cancel') }}
-            </button>
         </div>
 
         <button type="button" @click="open = false" class="absolute top-3 right-4 text-[#9a9a9a] hover:text-[#151515] text-lg leading-none">✕</button>
@@ -71,8 +68,8 @@
         error: null,
         loading: false,
         async fetchAc(v) {
-            if (this.quantity !== '2' || v.length < 2) { this.acResults = []; this.acOpen = false; return; }
-            const r = await fetch('/bookings/players?q=' + encodeURIComponent(v));
+            if (v.length < 2) { this.acResults = []; this.acOpen = false; return; }
+            const r = await fetch('/bookings/players?q=' + encodeURIComponent(v) + '&quantity=' + encodeURIComponent(this.quantity));
             this.acResults = await r.json();
             this.acOpen = this.acResults.length > 0;
         },
@@ -200,8 +197,8 @@
         error: null,
         loading: false,
         async fetchAc(v) {
-            if (this.quantity !== '2' || v.length < 2) { this.acResults = []; this.acOpen = false; return; }
-            const r = await fetch('/bookings/players?q=' + encodeURIComponent(v));
+            if (v.length < 2) { this.acResults = []; this.acOpen = false; return; }
+            const r = await fetch('/bookings/players?q=' + encodeURIComponent(v) + '&quantity=' + encodeURIComponent(this.quantity));
             this.acResults = await r.json();
             this.acOpen = this.acResults.length > 0;
         },
