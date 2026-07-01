@@ -21,5 +21,12 @@ return [
         'confirmed_body' => 'we look forward to your visit!',
         'cancelled_body' => 'if you have any questions, please contact us.',
         'auto_footer' => 'This email was generated automatically. Please do not reply to this message.',
+        'activated_subheading' => 'Your account has been activated.',
+        'username' => 'Username',
+        'email' => 'Email',
+        'login_now' => 'Log in now',
+        'test_heading' => 'Test Email',
+        'test_body_1' => 'This is a test email.',
+        'test_body_2' => 'If you received this message, email sending is working correctly.',
     ],
 ];
