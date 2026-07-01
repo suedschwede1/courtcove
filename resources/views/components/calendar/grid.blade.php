@@ -101,7 +101,7 @@
 
                             $cellClass = 'cc-over';
                             $slotClass = $isPastSlot ? ' slot-cell--past' : '';
-                            $seriesClass = $isAdmin && $isSeriesBooking ? ' cc-series' : '';
+                            $seriesClass = $isSeriesBooking ? ' cc-series' : '';
                             $primaryLabel = '';
                             $action = null;
                             $cellTitle = $squareLabel . ' – ' . __('booking.calendar.past');
