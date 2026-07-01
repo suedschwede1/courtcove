@@ -79,9 +79,10 @@ class BookingControllerTest extends TestCase
 
         $englishPool = array_map(
             fn (string $q) => str_replace(':name', (string) $user->alias, $q),
-            __('booking.quotes'),
+            array_merge(__('booking.quotes'), __('booking.quotes_named')),
         );
         $this->assertContains($quote, $englishPool);
+        $this->assertStringNotContainsString('Besenbesen', $quote);
     }
 
     #[Test]

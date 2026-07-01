@@ -86,18 +86,20 @@ final class BookingController extends Controller
             $locale = app()->getLocale();
             $pool = QuoteGroups::baseQuotes($locale, __('booking.quotes'));
 
-            // quotes_named and quote groups only exist for German; app.fallback_locale
-            // is 'de', so an unguarded lookup would silently leak German quotes into
-            // other locales — guard explicitly instead.
-            if ($locale === 'de') {
-                $namedQuotes = __('booking.quotes_named');
-                if (is_array($namedQuotes)) {
-                    $pool = array_merge($pool, $namedQuotes);
-                }
+            // Every locale now ships its own quotes_named (see lang/{locale}/
+            // booking/quotes.php), so this merge is locale-safe without a
+            // guard: __() resolves it from the current locale's own file.
+            $namedQuotes = __('booking.quotes_named');
+            if (is_array($namedQuotes)) {
+                $pool = array_merge($pool, $namedQuotes);
+            }
 
-                // A member's assigned quote group (private, not tracked in git)
-                // is weighted in twice so it dominates the random pick while
-                // still leaving room for the generic pool.
+            // Quote groups (private, not tracked in git) are only defined at
+            // a hardcoded German path — app.fallback_locale is 'de', so an
+            // unguarded lookup would leak German quotes into other locales.
+            // A member's assigned group is weighted in twice so it dominates
+            // the random pick while still leaving room for the generic pool.
+            if ($locale === 'de') {
                 $groupQuotes = QuoteGroups::quotesFor(auth()->user()?->getMeta('quote_group'));
                 if ($groupQuotes !== []) {
                     $pool = array_merge($pool, $groupQuotes, $groupQuotes);
