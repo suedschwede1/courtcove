@@ -2,6 +2,8 @@
 
 **Layout reference:** Git tag `mobile-view-stable`
 
+**Development language:** English. All code, comments, commit messages and internal docs are written in English — only the `lang/` translation files contain German (and English) UI text.
+
 ## Colors
 
 | Variable | Value | Usage |

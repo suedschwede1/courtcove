@@ -1,35 +1,35 @@
-# Entwicklungsumgebung einrichten
+# Setting up the development environment
 
-## Voraussetzungen
+## Prerequisites
 
-| Tool | Version | Installationsort |
+| Tool | Version | Install location |
 |------|---------|-----------------|
 | Windows 11 | — | Host |
-| WSL 2 (Ubuntu) | — | Windows-Feature |
+| WSL 2 (Ubuntu) | — | Windows feature |
 | PHP | 8.3 | WSL |
 | Composer | 2.x | WSL |
-| Node.js | 20+ | Windows (nativ) |
-| npm | 10+ | Windows (nativ) |
-| MySQL | 8.x | Windows oder WSL |
+| Node.js | 20+ | Windows (native) |
+| npm | 10+ | Windows (native) |
+| MySQL | 8.x | Windows or WSL |
 | Git | — | Windows |
 
-> **Wichtig:** PHP und Composer werden **ausschließlich über WSL** ausgeführt, nie direkt in PowerShell.
+> **Important:** PHP and Composer run **exclusively via WSL**, never directly in PowerShell.
 
 ---
 
-## 1. WSL einrichten
+## 1. Set up WSL
 
 ```powershell
-# PowerShell als Administrator
+# PowerShell as administrator
 wsl --install -d Ubuntu
 ```
 
-Nach dem Neustart Ubuntu öffnen und PHP + Composer installieren:
+After the restart, open Ubuntu and install PHP + Composer:
 
 ```bash
 sudo apt update && sudo apt upgrade -y
 
-# PHP 8.3 + benötigte Extensions
+# PHP 8.3 + required extensions
 sudo add-apt-repository ppa:ondrej/php
 sudo apt install -y php8.3 php8.3-cli php8.3-mbstring php8.3-xml \
   php8.3-curl php8.3-mysql php8.3-zip php8.3-bcmath
@@ -38,55 +38,55 @@ sudo apt install -y php8.3 php8.3-cli php8.3-mbstring php8.3-xml \
 curl -sS https://getcomposer.org/installer | php
 sudo mv composer.phar /usr/local/bin/composer
 
-# Prüfen
+# Verify
 php -v
 composer --version
 ```
 
 ---
 
-## 2. Repository klonen
+## 2. Clone the repository
 
 ```bash
-# In PowerShell oder Git Bash
+# In PowerShell or Git Bash
 git clone <repo-url> C:\development\bookingnew
 cd C:\development\bookingnew
 ```
 
 ---
 
-## 3. PHP-Abhängigkeiten installieren
+## 3. Install PHP dependencies
 
 ```powershell
-# In PowerShell — Befehle laufen via WSL
+# In PowerShell — commands run via WSL
 wsl composer install
 ```
 
 ---
 
-## 4. Node-Abhängigkeiten installieren
+## 4. Install Node dependencies
 
 ```powershell
-# In PowerShell (Node läuft nativ)
+# In PowerShell (Node runs natively)
 npm install
 ```
 
 ---
 
-## 5. Umgebungskonfiguration
+## 5. Environment configuration
 
 ```powershell
-# .env erstellen
-copy .env.example .env   # oder manuell anlegen
+# Create .env
+copy .env.example .env   # or create it manually
 
-# App-Key generieren
+# Generate the app key
 wsl php artisan key:generate
 ```
 
-`.env` anpassen:
+Adjust `.env`:
 
 ```env
-APP_NAME="Tennisclub Buchung"
+APP_NAME="Tennis Club Booking"
 APP_ENV=local
 APP_DEBUG=true
 APP_URL=http://localhost
@@ -101,63 +101,63 @@ DB_PASSWORD=REDACTED
 
 ---
 
-## 6. Datenbank einrichten
+## 6. Set up the database
 
-Die App läuft gegen die **echte Legacy-Datenbank** `booking_local` — keine Migrations ausführen, die das Schema verändern.
+The app runs against the **real legacy database** `booking_local` — do not run migrations that change the schema.
 
 ```sql
--- In MySQL: Datenbank anlegen falls nicht vorhanden
+-- In MySQL: create the database if it doesn't exist
 CREATE DATABASE booking_local CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
-Dann ein DB-Dump einspielen (vom Server oder Kollegen).
+Then import a DB dump (from the server or a colleague).
 
 ---
 
-## 7. Frontend bauen
+## 7. Build the frontend
 
 ```powershell
-# Entwicklung (mit Hot-Reload)
+# Development (with hot reload)
 npm run dev
 
-# Produktion (für Deployment)
+# Production (for deployment)
 npm run build
 ```
 
 ---
 
-## 8. Funktionsprüfung
+## 8. Sanity check
 
 ```powershell
-# Tests laufen lassen
+# Run the tests
 wsl php artisan test
 
-# Konfiguration prüfen
+# Check the configuration
 wsl php artisan about
 ```
 
 ---
 
-## Täglicher Workflow
+## Daily workflow
 
 ```powershell
-# Frontend-Watcher starten (läuft im Hintergrund)
+# Start the frontend watcher (runs in the background)
 npm run dev
 
-# Tests nach Änderungen
+# Run tests after changes
 wsl php artisan test
 
-# Vor Deployment: Produktion bauen und committen
+# Before deployment: build production assets and commit them
 npm run build
 git add public/build
-git commit -m "build: Frontend aktualisiert"
+git commit -m "build: update frontend assets"
 ```
 
 ---
 
-## Bekannte Eigenheiten
+## Known quirks
 
-- **PHP nie direkt in PowerShell** — immer `wsl php artisan ...`
-- **`public/build/` ist committed** — nach `npm run build` die Build-Dateien committen (Deployment via FTP auf hosting.example.test)
-- **Keine Schema-Migrations** — die App nutzt das Legacy-Schema von `booking_local`; Migrations in `database/migrations/` dienen nur als Referenz, nicht zur Ausführung
-- **Deployment** — Vite-Build lokal bauen, gesamtes Projekt per FTP hochladen
+- **Never run PHP directly in PowerShell** — always `wsl php artisan ...`
+- **`public/build/` is committed** — commit the build files after `npm run build` (deployment via FTP to hosting.example.test)
+- **No schema migrations** — the app uses the legacy schema of `booking_local`; migrations in `database/migrations/` are for reference only, not for execution
+- **Deployment** — build the Vite assets locally, upload the whole project via FTP

@@ -1,50 +1,50 @@
-# Laravel Update-Anleitung
+# Laravel update guide
 
-## Überblick
+## Overview
 
-Diese App läuft auf **Laravel 13** mit **PHP 8.3**. Updates folgen diesem Ablauf:
+This app runs on **Laravel 13** with **PHP 8.3**. Updates follow this process:
 
-1. Backup & Branch
-2. Composer-Update
-3. Breaking Changes prüfen & beheben
+1. Backup & branch
+2. Composer update
+3. Check & fix breaking changes
 4. Tests
 5. Deployment
 
 ---
 
-## Vor dem Update
+## Before the update
 
-### 1. Branch anlegen
+### 1. Create a branch
 
 ```bash
 git checkout -b update/laravel-XX
 ```
 
-### 2. Aktuellen Stand sichern
+### 2. Save the current state
 
 ```powershell
-# Alle Änderungen committen
+# Commit all changes
 git add -A
-git commit -m "chore: vor Laravel-Update"
+git commit -m "chore: before Laravel update"
 ```
 
-### 3. Upgrade Guide lesen
+### 3. Read the upgrade guide
 
-Vor jedem Major-Update den offiziellen Upgrade Guide lesen:
+Read the official upgrade guide before every major update:
 - Laravel 13 → 14: https://laravel.com/docs/14.x/upgrade
 - Laravel 14 → 15: https://laravel.com/docs/15.x/upgrade
 
 ---
 
-## Minor-Update (z.B. 13.8 → 13.12)
+## Minor update (e.g. 13.8 → 13.12)
 
-Minor-Updates sind in der Regel sicher und brechen keine öffentliche API.
+Minor updates are generally safe and don't break the public API.
 
 ```powershell
-# composer.json anpassen (falls nötig)
-# "laravel/framework": "^13.8"  →  bleibt, ^ erlaubt Minor-Updates automatisch
+# Adjust composer.json if needed
+# "laravel/framework": "^13.8"  →  stays, ^ allows minor updates automatically
 
-# Update durchführen
+# Run the update
 wsl composer update laravel/framework
 
 # Tests
@@ -53,14 +53,14 @@ wsl php artisan test
 
 ---
 
-## Major-Update (z.B. Laravel 13 → 14)
+## Major update (e.g. Laravel 13 → 14)
 
-### Schritt 1: PHP-Version prüfen
+### Step 1: Check the PHP version
 
-Laravel 14 erfordert mindestens PHP 8.3 — bereits erfüllt.
-Neue Major-Versionen können höhere PHP-Versionen erfordern — immer im Upgrade Guide nachsehen.
+Laravel 14 requires at least PHP 8.3 — already satisfied.
+New major versions may require higher PHP versions — always check the upgrade guide.
 
-### Schritt 2: `composer.json` anpassen
+### Step 2: Adjust `composer.json`
 
 ```json
 {
@@ -71,120 +71,120 @@ Neue Major-Versionen können höhere PHP-Versionen erfordern — immer im Upgrad
 }
 ```
 
-Auch Abhängigkeiten anpassen, die Laravel-Versionen voraussetzen (z.B. `laravel/tinker`, `larastan/larastan`).
+Also adjust dependencies that require specific Laravel versions (e.g. `laravel/tinker`, `larastan/larastan`).
 
-### Schritt 3: Update durchführen
+### Step 3: Run the update
 
 ```powershell
 wsl composer update
 ```
 
-Bei Konflikten einzeln lösen:
+Resolve conflicts individually if needed:
 
 ```powershell
-# Einzelnes Paket aktualisieren
+# Update a single package
 wsl composer require laravel/framework:^14.0
 
-# Alle auf einmal, mit Abhängigkeiten
+# Update everything at once, with dependencies
 wsl composer update --with-all-dependencies
 ```
 
-### Schritt 4: Konfigurationsdateien prüfen
+### Step 4: Check configuration files
 
-Laravel veröffentlicht manchmal neue Konfigurationsdefaults. Diff mit dem offiziellen Skeleton vergleichen:
+Laravel sometimes publishes new config defaults. Diff against the official skeleton:
 
 ```powershell
-# Welche Config-Dateien haben sich geändert?
-# Manuell: https://github.com/laravel/laravel/compare/v13.0.0...v14.0.0
+# Which config files changed?
+# Manually: https://github.com/laravel/laravel/compare/v13.0.0...v14.0.0
 ```
 
-Wichtige Dateien die sich häufig ändern:
+Important files that change frequently:
 - `config/app.php`
 - `bootstrap/app.php`
-- `app/Http/Kernel.php` (falls vorhanden)
+- `app/Http/Kernel.php` (if present)
 
-### Schritt 5: Breaking Changes beheben
+### Step 5: Fix breaking changes
 
-Häufige Breaking Changes und wo sie auftreten:
+Common breaking changes and where they show up:
 
-| Bereich | Was prüfen |
+| Area | What to check |
 |---------|-----------|
-| Middleware | `bootstrap/app.php` — Middleware-Registrierung |
-| Eloquent | Geänderte Model-Methoden oder Cast-Verhalten |
-| Validation | Neue oder geänderte Validierungsregeln |
-| Collections | Geänderte Methoden-Signaturen |
-| Routing | Geänderte Route-Definitionen |
+| Middleware | `bootstrap/app.php` — middleware registration |
+| Eloquent | Changed model methods or cast behavior |
+| Validation | New or changed validation rules |
+| Collections | Changed method signatures |
+| Routing | Changed route definitions |
 
-### Schritt 6: Statische Analyse
+### Step 6: Static analysis
 
 ```powershell
 wsl vendor/bin/phpstan analyse
 ```
 
-Fehler beheben bevor Tests laufen.
+Fix errors before running tests.
 
-### Schritt 7: Tests
+### Step 7: Tests
 
 ```powershell
 wsl php artisan test
 ```
 
-Alle Tests müssen grün sein (außer bekannte pre-existing Failures).
+All tests must pass (except known pre-existing failures).
 
-### Schritt 8: App starten und manuell prüfen
+### Step 8: Start the app and check manually
 
 ```powershell
 npm run dev
 ```
 
-Kritische Seiten im Browser prüfen:
+Check critical pages in the browser:
 - [ ] Login
-- [ ] Kalender-Ansicht
-- [ ] Buchungs-Modal öffnen
-- [ ] Buchung anlegen (Singles + Doppel)
-- [ ] Admin-Bereich
+- [ ] Calendar view
+- [ ] Open booking modal
+- [ ] Create a booking (singles + doubles)
+- [ ] Admin area
 
 ---
 
-## Nach dem Update
+## After the update
 
-### Frontend neu bauen
+### Rebuild the frontend
 
 ```powershell
 npm run build
 git add public/build
-git commit -m "build: Frontend nach Laravel-Update neu gebaut"
+git commit -m "build: rebuild frontend after Laravel update"
 ```
 
-### Merge & Deployment
+### Merge & deployment
 
 ```bash
 git checkout master
 git merge update/laravel-XX
 ```
 
-Dann normales Deployment per FTP auf hosting.example.test.
+Then a normal deployment via FTP to hosting.example.test.
 
 ---
 
 ## Rollback
 
-Falls etwas nicht funktioniert:
+If something doesn't work:
 
 ```bash
-# Branch verwerfen
+# Discard the branch
 git checkout master
 git branch -D update/laravel-XX
 
-# Oder: Composer auf alte Version zurücksetzen
+# Or: reset Composer to the old version
 wsl composer require laravel/framework:^13.0
 wsl composer update laravel/framework
 ```
 
 ---
 
-## Bekannte Einschränkungen
+## Known limitations
 
-- **Kein `php artisan migrate`** auf der Produktions-DB — die App nutzt das Legacy-Schema `booking_local`
-- **Deployment manuell via FTP** — kein `git pull` auf dem Server (hosting.example.test Shared Hosting)
-- **PHP via WSL** — alle `php`/`composer`-Befehle über WSL, nie direkt in PowerShell
+- **No `php artisan migrate`** on the production DB — the app uses the legacy schema `booking_local`
+- **Deployment is manual via FTP** — no `git pull` on the server (hosting.example.test shared hosting)
+- **PHP via WSL** — all `php`/`composer` commands run via WSL, never directly in PowerShell
