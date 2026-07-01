@@ -4116,28 +4116,6 @@ textarea {
     }
 }
 
-@media screen and (min-width: 901px) and (max-width: 1120px) {
-    .app-header__inner {
-        grid-template-columns: minmax(0, 1fr);
-        grid-template-areas:
-            "brand"
-            "nav"
-            "actions";
-    }
-
-    .app-header__brand,
-    .app-header__nav-wrap,
-    .app-header__actions {
-        justify-content: center;
-    }
-
-    .app-header__title {
-        max-width: min(520px, 70vw);
-        text-align: left;
-    }
-}
-
-
 /* Global header action menu: keep navigation visible while moving secondary actions into one compact trigger. */
 .app-header__card {
     position: relative;
