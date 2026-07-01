@@ -18,6 +18,7 @@ final class StatisticsController extends Controller
             ->orderBy('alias')
             ->get(['uid', 'alias']);
 
+        // NOTE: add ->with(['reservations', 'square']) once topCourt/lastMonth start using those relations.
         $bookings = Booking::whereIn('uid', $users->pluck('uid'))
             ->get();
 
@@ -42,7 +43,7 @@ final class StatisticsController extends Controller
     /** @param Collection<int, Booking> $userBookings */
     private function statsForUser(User $user, Collection $userBookings): array
     {
-        $active = $userBookings->where('status', '!=', 'cancelled');
+        $active = $userBookings->whereIn('status', Booking::ACTIVE_STATUSES);
         $cancelledCount = $userBookings->where('status', 'cancelled')->count();
 
         return [
