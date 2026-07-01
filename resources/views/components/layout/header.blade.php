@@ -64,18 +64,6 @@
             </div>
 
             <div id="app-header-actions" class="app-header__actions ml-auto flex shrink-0 items-center gap-2" :class="{ 'is-open': mobileMenuOpen }">
-                <div class="app-header__locale flex items-center gap-1 text-[13px] font-medium text-[#6a6e73]">
-                    @foreach(config('app.available_locales') as $loc)
-                        @if(! $loop->first)
-                            <span aria-hidden="true">|</span>
-                        @endif
-                        @if($loc === app()->getLocale())
-                            <span class="font-bold text-[#151515]">{{ strtoupper($loc) }}</span>
-                        @else
-                            <a href="{{ route('lang.switch', ['locale' => $loc]) }}" class="hover:text-[#bf4316]">{{ strtoupper($loc) }}</a>
-                        @endif
-                    @endforeach
-                </div>
                 @hasSection('calendar-system-info')
                     <button type="button"
                             class="inline-flex h-8 items-center rounded-[6px] border border-[#d4cec3] bg-white px-4 text-[13px] font-medium text-[#6a6e73] transition-colors hover:border-[#bf4316] hover:text-[#bf4316]"
@@ -105,6 +93,19 @@
                     <a href="{{ route('login', ['redirect_to' => url()->full()]) }}"
                        class="header-login-button inline-flex h-8 items-center rounded-[6px] bg-[#bf4316] px-4 text-[13px] font-semibold text-white transition-colors hover:bg-[#9e3412]">{{ __('booking.nav.login') }}</a>
                 @endauth
+
+                <div class="app-header__locale flex items-center gap-1 text-[13px] font-medium text-[#6a6e73]">
+                    @foreach(config('app.available_locales') as $loc)
+                        @if(! $loop->first)
+                            <span aria-hidden="true">|</span>
+                        @endif
+                        @if($loc === app()->getLocale())
+                            <span class="font-bold text-[#151515]">{{ strtoupper($loc) }}</span>
+                        @else
+                            <a href="{{ route('lang.switch', ['locale' => $loc]) }}" class="hover:text-[#bf4316]">{{ strtoupper($loc) }}</a>
+                        @endif
+                    @endforeach
+                </div>
             </div>
         </div>
     </div>
