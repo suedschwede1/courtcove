@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Tests\Unit\Services;
 
 use App\Services\DatabaseSchemaChecker;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -61,5 +63,38 @@ class DatabaseSchemaCheckerTest extends TestCase
     public function has_pending_migrations_is_false_when_everything_ran(): void
     {
         $this->assertFalse($this->checker->hasPendingMigrations());
+    }
+
+    #[Test]
+    public function check_tables_reports_no_missing_columns_after_a_normal_migration(): void
+    {
+        foreach ($this->checker->checkTables() as $table) {
+            $this->assertTrue($table['exists'], "{$table['table']} should exist");
+            $this->assertSame([], $table['missing_columns'], "{$table['table']} should have no missing columns");
+        }
+    }
+
+    #[Test]
+    public function check_tables_flags_a_column_that_was_dropped(): void
+    {
+        Schema::table('bs_users', function (Blueprint $table): void {
+            $table->dropColumn('last_ip');
+        });
+
+        $result = collect($this->checker->checkTables())->firstWhere('table', 'bs_users');
+
+        $this->assertTrue($result['exists']);
+        $this->assertSame(['last_ip'], $result['missing_columns']);
+    }
+
+    #[Test]
+    public function check_tables_flags_a_table_that_does_not_exist(): void
+    {
+        Schema::drop('bs_events_meta');
+
+        $result = collect($this->checker->checkTables())->firstWhere('table', 'bs_events_meta');
+
+        $this->assertFalse($result['exists']);
+        $this->assertSame(['emid', 'eid', 'key', 'value', 'locale'], $result['missing_columns']);
     }
 }
