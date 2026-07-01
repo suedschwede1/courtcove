@@ -254,6 +254,7 @@ return [
             'quote_group' => 'Quote Group',
             'quote_group_none' => 'None',
             'quote_group_hint' => 'Preferred when picking a quote to show after a booking.',
+            'quote_group_unknown' => ':group (no longer defined)',
             'privileges' => [
                 'admin.user' => 'May manage users',
                 'admin.booking' => 'May manage bookings',

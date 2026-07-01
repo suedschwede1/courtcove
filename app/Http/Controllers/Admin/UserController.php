@@ -110,6 +110,15 @@ final class UserController extends Controller
 
     public function update(Request $request, User $user): RedirectResponse
     {
+        // Allow the user's current quote_group even if it's no longer defined
+        // in quote_groups.php (renamed/removed group, or the file is gone) —
+        // otherwise leaving the field untouched on save would 422 instead of
+        // just keeping the stale value.
+        $allowedQuoteGroups = array_unique(array_filter(array_merge(
+            array_keys(QuoteGroups::all()),
+            [$user->getMeta('quote_group')],
+        )));
+
         $data = $request->validate([
             'alias' => ['required', 'string', 'max:128'],
             'email' => ['nullable', 'email', 'max:128', 'unique:bs_users,email,'.$user->uid.',uid'],
@@ -117,15 +126,21 @@ final class UserController extends Controller
             'firstname' => ['nullable', 'string', 'max:128'],
             'lastname' => ['nullable', 'string', 'max:128'],
             'phone' => ['nullable', 'string', 'max:64'],
-            'quote_group' => ['nullable', 'string', 'in:'.implode(',', array_keys(QuoteGroups::all()))],
+            'quote_group' => ['nullable', 'string', 'in:'.implode(',', $allowedQuoteGroups)],
             'privileges' => ['array'],
             'privileges.*' => ['in:'.implode(',', User::PRIVILEGES)],
         ]);
 
         $wasEnabled = $user->status === 'enabled';
         $user->update(['alias' => $data['alias'], 'email' => $data['email'] ?? null, 'status' => $data['status']]);
-        foreach (['firstname', 'lastname', 'phone', 'quote_group'] as $field) {
+        foreach (['firstname', 'lastname', 'phone'] as $field) {
             $user->setMeta($field, $data[$field] ?? null);
+        }
+        // The quote_group field is hidden entirely when no groups are
+        // configured and the user has none assigned — don't wipe an
+        // existing value just because the field wasn't part of this submit.
+        if ($request->has('quote_group')) {
+            $user->setMeta('quote_group', $data['quote_group'] ?? null);
         }
         $user->syncPrivileges($data['privileges'] ?? []);
 

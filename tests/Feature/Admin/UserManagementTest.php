@@ -104,4 +104,43 @@ class UserManagementTest extends TestCase
             'alias' => 'Self', 'email' => 'self@example.com', 'status' => 'enabled',
         ])->assertRedirect(route('admin.users.index')); // own email allowed
     }
+
+    #[Test]
+    public function update_leaves_quote_group_untouched_when_field_is_absent(): void
+    {
+        $u = User::factory()->create();
+        $u->setMeta('quote_group', 'a_group_that_no_longer_exists');
+
+        $this->actingAs($this->admin())->put("/admin/users/{$u->uid}", [
+            'alias' => $u->alias, 'status' => 'enabled',
+        ])->assertRedirect(route('admin.users.index'));
+
+        $this->assertSame('a_group_that_no_longer_exists', $u->fresh()->getMeta('quote_group'));
+    }
+
+    #[Test]
+    public function update_accepts_resubmitting_a_stale_quote_group_value(): void
+    {
+        $u = User::factory()->create();
+        $u->setMeta('quote_group', 'a_group_that_no_longer_exists');
+
+        $this->actingAs($this->admin())->put("/admin/users/{$u->uid}", [
+            'alias' => $u->alias, 'status' => 'enabled', 'quote_group' => 'a_group_that_no_longer_exists',
+        ])->assertSessionHasNoErrors()->assertRedirect(route('admin.users.index'));
+
+        $this->assertSame('a_group_that_no_longer_exists', $u->fresh()->getMeta('quote_group'));
+    }
+
+    #[Test]
+    public function update_clears_quote_group_when_explicitly_submitted_empty(): void
+    {
+        $u = User::factory()->create();
+        $u->setMeta('quote_group', 'a_group_that_no_longer_exists');
+
+        $this->actingAs($this->admin())->put("/admin/users/{$u->uid}", [
+            'alias' => $u->alias, 'status' => 'enabled', 'quote_group' => '',
+        ])->assertRedirect(route('admin.users.index'));
+
+        $this->assertNull($u->fresh()->getMeta('quote_group'));
+    }
 }

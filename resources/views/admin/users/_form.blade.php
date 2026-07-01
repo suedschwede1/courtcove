@@ -41,14 +41,18 @@
                 <label class="ui-label" for="uf-phone">{{ __('booking.admin.users.phone') }}</label>
                 <input id="uf-phone" type="text" name="phone" value="{{ old('phone', $profile['phone'] ?? '') }}" class="ui-input">
             </div>
-            @if(!empty($quoteGroups))
+            @php $currentQuoteGroup = old('quote_group', $profile['quote_group'] ?? ''); @endphp
+            @if(!empty($quoteGroups) || $currentQuoteGroup !== '')
                 <div class="ui-field">
                     <label class="ui-label" for="uf-quote-group">{{ __('booking.admin.users.quote_group') }}</label>
                     <select id="uf-quote-group" name="quote_group" class="ui-select">
                         <option value="">{{ __('booking.admin.users.quote_group_none') }}</option>
                         @foreach($quoteGroups as $key => $group)
-                            <option value="{{ $key }}" @selected(old('quote_group', $profile['quote_group'] ?? '') === $key)>{{ $group['label'] ?? $key }}</option>
+                            <option value="{{ $key }}" @selected($currentQuoteGroup === $key)>{{ $group['label'] ?? $key }}</option>
                         @endforeach
+                        @if($currentQuoteGroup !== '' && !array_key_exists($currentQuoteGroup, $quoteGroups))
+                            <option value="{{ $currentQuoteGroup }}" selected>{{ __('booking.admin.users.quote_group_unknown', ['group' => $currentQuoteGroup]) }}</option>
+                        @endif
                     </select>
                     <p class="ui-help">{{ __('booking.admin.users.quote_group_hint') }}</p>
                 </div>
