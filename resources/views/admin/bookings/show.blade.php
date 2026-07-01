@@ -17,15 +17,15 @@
                 </div>
                 <div class="flex py-3 gap-4">
                     <dt class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73] w-32 shrink-0">{{ __('booking.admin.common.court') }}</dt>
-                    <dd class="text-sm text-[#151515]">{{ $booking->square?->display_name ?? '—' }}</dd>
+                    <dd class="text-sm text-[#151515]">{{ $booking->square?->display_name ?? __('booking.account.empty_option') }}</dd>
                 </div>
                 <div class="flex py-3 gap-4">
                     <dt class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73] w-32 shrink-0">{{ __('booking.admin.common.status') }}</dt>
-                    <dd class="text-sm text-[#151515]">{{ $booking->status }}</dd>
+                    <dd class="text-sm text-[#151515]">{{ $booking->status === 'cancelled' ? __('booking.admin.bookings.status_cancelled') : ($booking->status === 'subscription' ? __('booking.admin.bookings.status_series') : __('booking.admin.bookings.status_active')) }}</dd>
                 </div>
                 <div class="flex py-3 gap-4">
                     <dt class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73] w-32 shrink-0">{{ __('booking.admin.common.player') }}</dt>
-                    <dd class="text-sm text-[#151515]">{{ $booking->player_names !== [] ? implode(', ', $booking->player_names) : '—' }}</dd>
+                    <dd class="text-sm text-[#151515]">{{ $booking->player_names !== [] ? implode(', ', $booking->player_names) : __('booking.account.empty_option') }}</dd>
                 </div>
             </dl>
         </div>

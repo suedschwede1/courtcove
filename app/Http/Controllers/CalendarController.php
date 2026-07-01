@@ -35,7 +35,7 @@ final class CalendarController extends Controller
      */
     public function index(Request $request): View
     {
-        Carbon::setLocale('de');
+        Carbon::setLocale(app()->getLocale());
 
         $dateInput = (string) $request->input('date');
         $date = Carbon::today();
@@ -47,10 +47,6 @@ final class CalendarController extends Controller
             }
         }
 
-        // Render a generous window (yesterday, today, today+1 … today+6); the client
-        // reveals as many day-columns as fit the viewport and hides the rest, so the
-        // count adapts to screen width without a reload. Base 3 (indices 0–2) are
-        // always shown; indices >= 3 are the optional extra days.
         $dates = [$date->copy()->subDay()];
         for ($offset = 0; $offset <= self::MAX_DAYS - 2; $offset++) {
             $dates[] = $date->copy()->addDays($offset);
@@ -112,7 +108,7 @@ final class CalendarController extends Controller
                 continue;
             }
 
-            $eventName = $event->meta->first()?->value ?? 'Veranstaltung';
+            $eventName = $event->meta->first()?->value ?? __('booking.messages.event_default_name');
             $coveredSids = $event->sid === null ? $squareIds : [(int) $event->sid];
             $coveredIndices = array_values(array_filter(
                 array_map(

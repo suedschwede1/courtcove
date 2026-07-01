@@ -1,8 +1,5 @@
 @props(['date', 'squares'])
 
-{{-- ═══════════════════════════════════════════════════════
-     FEEDBACK MODAL — auto-close nach 4s
-     ═══════════════════════════════════════════════════════ --}}
 @if(session()->has('success') || session()->has('error'))
 <div x-data="{ open: true }"
      x-init="setTimeout(() => open = false, 4000)"
@@ -18,18 +15,13 @@
         @else
             <p class="text-sm font-medium text-red-600">{{ session('error') }}</p>
         @endif
-        <button type="button"
-                @click="open = false"
-                class="mt-4 w-full border border-[#d1cbc0] text-[#6a6e73] text-sm py-2 rounded hover:bg-[#f9f8f6] transition-colors">
-            Schließen
+        <button type="button" @click="open = false" class="mt-4 w-full border border-[#d1cbc0] text-[#6a6e73] text-sm py-2 rounded hover:bg-[#f9f8f6] transition-colors">
+            {{ __('booking.feedback.close') }}
         </button>
     </div>
 </div>
 @endif
 
-{{-- ═══════════════════════════════════════════════════════
-     CANCEL MODAL — Buchung stornieren (nur eigene)
-     ═══════════════════════════════════════════════════════ --}}
 @auth
 <div x-data="{
         open: false,
@@ -57,51 +49,36 @@
      class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"
      style="display: none;">
     <div class="relative w-full max-w-md bg-white rounded-xl shadow-xl border border-[#e0ddd7]">
-
         <div class="px-6 pt-5 pb-3 border-b border-[#f0ede6]">
-            <h2 class="text-base font-semibold text-[#151515]"
-                style="font-family: var(--font-display)">Buchung stornieren</h2>
-            <p class="text-sm text-[#6a6e73] mt-0.5"
-               x-text="squareName + ' · ' + dateLabel + ' · ' + timeLabel"></p>
+            <h2 class="text-base font-semibold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.modal.cancel_heading') }}</h2>
+            <p class="text-sm text-[#6a6e73] mt-0.5" x-text="squareName + ' · ' + dateLabel + ' · ' + timeLabel"></p>
         </div>
 
         <div class="booking-mobile-dialog__body px-6 py-4">
-            <p class="text-sm text-[#6a6e73]">
-                Möchten Sie diese Buchung wirklich stornieren? Diese Aktion kann nicht rückgängig gemacht werden.
-            </p>
+            <p class="text-sm text-[#6a6e73]">{{ __('booking.modal.cancel_message') }}</p>
         </div>
 
         <div class="px-6 pb-5 flex flex-col gap-2">
-            <button type="button"
-                    @click="open = false; $dispatch('open-edit-booking', {bid, squareName, dateLabel, timeLabel, quantity, mitspieler})"
-                    class="w-full text-sm border border-[#d1cbc0] text-[#6a6e73] py-2 rounded hover:bg-[#f9f8f6] transition-colors">
-                Buchung bearbeiten
+            <button type="button" @click="open = false; $dispatch('open-edit-booking', {bid, squareName, dateLabel, timeLabel, quantity, mitspieler})" class="w-full text-sm border border-[#d1cbc0] text-[#6a6e73] py-2 rounded hover:bg-[#f9f8f6] transition-colors">
+                {{ __('booking.modal.edit_booking') }}
             </button>
             <form method="POST" x-bind:action="'/bookings/' + bid">
                 @csrf
                 @method('DELETE')
-                <button type="submit"
-                        class="w-full bg-red-600 hover:bg-red-700 text-white text-sm font-medium py-2 rounded transition-colors">
-                    Buchung stornieren
+                <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white text-sm font-medium py-2 rounded transition-colors">
+                    {{ __('booking.modal.cancel_booking') }}
                 </button>
             </form>
-            <button type="button"
-                    @click="open = false"
-                    class="w-full border border-[#d1cbc0] text-[#6a6e73] text-sm py-2 rounded hover:bg-[#f9f8f6] transition-colors">
-                Abbrechen
+            <button type="button" @click="open = false" class="w-full border border-[#d1cbc0] text-[#6a6e73] text-sm py-2 rounded hover:bg-[#f9f8f6] transition-colors">
+                {{ __('booking.modal.cancel') }}
             </button>
         </div>
 
-        <button type="button"
-                @click="open = false"
-                class="absolute top-3 right-4 text-[#9a9a9a] hover:text-[#151515] text-lg leading-none">✕</button>
+        <button type="button" @click="open = false" class="absolute top-3 right-4 text-[#9a9a9a] hover:text-[#151515] text-lg leading-none">✕</button>
     </div>
 </div>
 @endauth
 
-{{-- ═══════════════════════════════════════════════════════
-     EDIT BOOKING MODAL — Eigene Buchung bearbeiten
-     ═══════════════════════════════════════════════════════ --}}
 @auth
 <div x-data="{
         open: false,
@@ -166,7 +143,7 @@
     <div class="booking-mobile-dialog relative flex max-h-[calc(100dvh-16px)] w-full max-w-[480px] flex-col overflow-hidden rounded-[8px] border border-[#e8e8e8] bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
         <div class="border-b border-[#ebebeb] bg-white px-6 pt-3 pb-0">
             <div class="flex items-start justify-between gap-4">
-                <p class="mb-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#6a6e73]">Buchung bearbeiten</p>
+                <p class="mb-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#6a6e73]">{{ __('booking.modal.edit_booking_heading') }}</p>
                 <button type="button" @click="open = false" class="text-[20px] leading-none text-[#8a8d90] transition-colors hover:text-[#151515]">×</button>
             </div>
         </div>
@@ -179,45 +156,33 @@
                 <div class="space-y-3">
                     <div class="booking-mobile-dialog__summary-grid grid grid-cols-2 gap-3">
                         <div class="ui-field">
-                            <label class="ui-label text-[#151515]">Platz</label>
+                            <label class="ui-label text-[#151515]">{{ __('booking.calendar.court') }}</label>
                             <p class="ui-input bg-[#fafafa] text-[#151515] m-0" x-text="squareName"></p>
                         </div>
                         <div class="ui-field">
-                            <label class="ui-label text-[#151515]">Datum</label>
+                            <label class="ui-label text-[#151515]">{{ __('booking.calendar.date') }}</label>
                             <p class="ui-input bg-[#fafafa] text-[#151515] m-0" x-text="dateLabel"></p>
                         </div>
                         <div class="ui-field col-span-2">
-                            <label class="ui-label text-[#151515]">Uhrzeit</label>
+                            <label class="ui-label text-[#151515]">{{ __('booking.calendar.time') }}</label>
                             <p class="ui-input bg-[#fafafa] text-[#151515] m-0" x-text="timeLabel"></p>
                         </div>
                     </div>
 
                     <div class="ui-field">
-                        <label class="ui-label text-[#151515]">Spieleranzahl</label>
+                        <label class="ui-label text-[#151515]">{{ __('booking.modal.player_count') }}</label>
                         <select name="quantity" x-model="quantity" class="ui-select">
-                            <option value="2">2 (Einzel)</option>
-                            <option value="4">4 (Doppel)</option>
+                            <option value="2">{{ __('booking.modal.single_option') }}</option>
+                            <option value="4">{{ __('booking.modal.double_option') }}</option>
                         </select>
                     </div>
 
                     <div class="ui-field" @click.outside="acOpen=false">
-                        <label class="ui-label text-[#151515]">Mitspieler</label>
-                        <input type="text"
-                               name="mitspieler"
-                               x-model="mitspieler"
-                               @input.debounce.300ms="fetchAc($event.target.value)"
-                               @focus="fetchAc(mitspieler)"
-                               maxlength="255"
-                               :placeholder="quantity==='2' ? 'Name suchen …' : 'z.B. Müller, Huber, Schmidt'"
-                               autocomplete="off"
-                               required
-                               class="ui-input placeholder:text-[#b8b8b8]">
-                        <ul x-show="acOpen"
-                            class="mt-1 w-full overflow-hidden rounded border border-[#e0dbd4] bg-white shadow-md">
+                        <label class="ui-label text-[#151515]">{{ __('booking.admin.bookings.teammates') }}</label>
+                        <input type="text" name="mitspieler" x-model="mitspieler" @input.debounce.300ms="fetchAc($event.target.value)" @focus="fetchAc(mitspieler)" maxlength="255" :placeholder="quantity==='2' ? '{{ __('booking.modal.player_search_placeholder') }}' : '{{ __('booking.admin.bookings.teammates_examples') }}'" autocomplete="off" required class="ui-input placeholder:text-[#b8b8b8]">
+                        <ul x-show="acOpen" class="mt-1 w-full overflow-hidden rounded border border-[#e0dbd4] bg-white shadow-md">
                             <template x-for="r in acResults" :key="r">
-                                <li @mousedown.prevent="mitspieler=r; acResults=[]; acOpen=false"
-                                    x-text="r"
-                                    class="cursor-pointer px-3 py-2 text-sm hover:bg-[#f7f5f2]"></li>
+                                <li @mousedown.prevent="mitspieler=r; acResults=[]; acOpen=false" x-text="r" class="cursor-pointer px-3 py-2 text-sm hover:bg-[#f7f5f2]"></li>
                             </template>
                         </ul>
                     </div>
@@ -229,8 +194,8 @@
                     <p class="mb-3 text-sm text-red-600" x-text="error"></p>
                 </template>
                 <div class="flex flex-wrap items-center gap-3">
-                    <button type="submit" class="ui-btn ui-btn-primary px-[19px]" :disabled="loading" x-text="loading ? 'Speichern …' : 'Speichern'"></button>
-                    <button type="button" @click="open = false" class="ui-btn ui-btn-ghost border border-[#d1cbc0] bg-white px-[19px] text-[#151515] hover:bg-[#f7f7f7]">Abbrechen</button>
+                    <button type="submit" class="ui-btn ui-btn-primary px-[19px]" :disabled="loading" x-text="loading ? '{{ __('booking.modal.saving') }}' : '{{ __('booking.admin.bookings.save_action') }}'"></button>
+                    <button type="button" @click="open = false" class="ui-btn ui-btn-ghost border border-[#d1cbc0] bg-white px-[19px] text-[#151515] hover:bg-[#f7f7f7]">{{ __('booking.modal.cancel') }}</button>
                 </div>
             </div>
         </form>
@@ -238,9 +203,6 @@
 </div>
 @endauth
 
-{{-- ═══════════════════════════════════════════════════════
-     BOOKING MODAL — Neue Buchung
-     ═══════════════════════════════════════════════════════ --}}
 @auth
 <div x-data="{
         open: false,
@@ -315,17 +277,14 @@
     <div class="booking-mobile-dialog relative flex max-h-[calc(100dvh-16px)] w-full max-w-[480px] flex-col overflow-hidden rounded-[8px] border border-[#e8e8e8] bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
         <div class="border-b border-[#ebebeb] bg-white px-6 pt-3 pb-0">
             <div class="flex items-start justify-between gap-4">
-                <p class="mb-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#6a6e73]">Neue Buchung</p>
-                <button type="button"
-                        @click="open = false"
-                        class="text-[20px] leading-none text-[#8a8d90] transition-colors hover:text-[#151515]">×</button>
+                <p class="mb-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#6a6e73]">{{ __('booking.modal.new_booking') }}</p>
+                <button type="button" @click="open = false" class="text-[20px] leading-none text-[#8a8d90] transition-colors hover:text-[#151515]">×</button>
             </div>
         </div>
 
         <form method="POST" action="{{ route('bookings.store') }}" @submit.prevent="submitBooking($el)" class="flex min-h-0 flex-1 flex-col overflow-hidden">
             @csrf
             <input type="hidden" name="sid" x-bind:value="sid">
-            
             <input type="hidden" name="time_start" x-bind:value="timeStart">
             <input type="hidden" name="time_end" x-bind:value="timeEnd">
 
@@ -333,42 +292,30 @@
                 <div class="space-y-3">
                     <div class="booking-mobile-dialog__summary-grid flex flex-col gap-3">
                         <div class="ui-field">
-                            <label class="ui-label text-[#151515]">Platz</label>
+                            <label class="ui-label text-[#151515]">{{ __('booking.calendar.court') }}</label>
                             <input type="text" x-bind:value="squareName" readonly class="ui-input bg-[#fafafa] text-[#151515]">
                         </div>
                         <div class="ui-field">
-                            <label class="ui-label text-[#151515]">Datum &amp; Uhrzeit</label>
-                            <p class="ui-input bg-[#fafafa] text-[#151515] m-0" x-text="dateLabel + ', ' + timeLabel.replace(' Uhr', '')"></p>
+                            <label class="ui-label text-[#151515]">{{ __('booking.calendar.date') }} &amp; {{ __('booking.calendar.time') }}</label>
+                            <p class="ui-input bg-[#fafafa] text-[#151515] m-0" x-text="dateLabel + ', ' + timeLabel.replace(' {{ __('booking.admin.common.clock_suffix') }}', '')"></p>
                         </div>
                     </div>
                     <input type="hidden" name="date" x-bind:value="date">
 
                     <div class="ui-field">
-                        <label class="ui-label text-[#151515]">Spieleranzahl</label>
+                        <label class="ui-label text-[#151515]">{{ __('booking.modal.player_count') }}</label>
                         <select name="quantity" x-model="quantity" class="ui-select">
-                                <option value="2">2 (Einzel)</option>
-                                <option value="4">4 (Doppel)</option>
-                            </select>
-                        </div>
+                            <option value="2">{{ __('booking.modal.single_option') }}</option>
+                            <option value="4">{{ __('booking.modal.double_option') }}</option>
+                        </select>
+                    </div>
 
                     <div class="ui-field" @click.outside="acOpen=false">
-                        <label class="ui-label text-[#151515]">Mitspieler</label>
-                        <input type="text"
-                               name="mitspieler"
-                               x-model="mitspieler"
-                               @input.debounce.300ms="fetchAc($event.target.value)"
-                               @focus="fetchAc(mitspieler)"
-                               maxlength="255"
-                               :placeholder="quantity==='2' ? 'Name suchen …' : 'z.B. Müller, Huber, Schmidt'"
-                               autocomplete="off"
-                               required
-                               class="ui-input placeholder:text-[#b8b8b8]">
-                        <ul x-show="acOpen"
-                            class="mt-1 w-full overflow-hidden rounded border border-[#e0dbd4] bg-white shadow-md">
+                        <label class="ui-label text-[#151515]">{{ __('booking.admin.bookings.teammates') }}</label>
+                        <input type="text" name="mitspieler" x-model="mitspieler" @input.debounce.300ms="fetchAc($event.target.value)" @focus="fetchAc(mitspieler)" maxlength="255" :placeholder="quantity==='2' ? '{{ __('booking.modal.player_search_placeholder') }}' : '{{ __('booking.admin.bookings.teammates_examples') }}'" autocomplete="off" required class="ui-input placeholder:text-[#b8b8b8]">
+                        <ul x-show="acOpen" class="mt-1 w-full overflow-hidden rounded border border-[#e0dbd4] bg-white shadow-md">
                             <template x-for="r in acResults" :key="r">
-                                <li @mousedown.prevent="mitspieler=r; acResults=[]; acOpen=false"
-                                    x-text="r"
-                                    class="cursor-pointer px-3 py-2 text-sm hover:bg-[#f7f5f2]"></li>
+                                <li @mousedown.prevent="mitspieler=r; acResults=[]; acOpen=false" x-text="r" class="cursor-pointer px-3 py-2 text-sm hover:bg-[#f7f5f2]"></li>
                             </template>
                         </ul>
                     </div>
@@ -380,16 +327,14 @@
                     <p class="mb-3 text-sm text-red-600" x-text="error"></p>
                 </template>
                 <div class="flex flex-wrap items-center gap-3">
-                    <button type="submit" class="ui-btn ui-btn-primary px-[19px]" :disabled="loading" x-text="loading ? 'Speichern …' : 'Speichern'"></button>
+                    <button type="submit" class="ui-btn ui-btn-primary px-[19px]" :disabled="loading" x-text="loading ? '{{ __('booking.modal.saving') }}' : '{{ __('booking.admin.bookings.save_action') }}'"></button>
                 </div>
             </div>
         </form>
     </div>
 </div>
 @endauth
-{{-- ═══════════════════════════════════════════════════════
-     EVENT MODAL — Veranstaltung anlegen (nur Admin)
-     ═══════════════════════════════════════════════════════ --}}
+
 @can('admin.event')
 <div x-data="{
         open: false,
@@ -431,112 +376,67 @@
      class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"
      style="display: none;">
     <div class="relative w-full max-w-lg bg-white rounded-xl shadow-xl border border-[#e0ddd7]">
-
         <div class="px-6 pt-5 pb-3 border-b border-[#f0ede6]">
-            <h2 class="text-base font-semibold text-[#151515]"
-                style="font-family: var(--font-display)">Veranstaltung anlegen</h2>
-            <p class="text-sm text-[#6a6e73] mt-0.5"
-               x-text="squareName + ' · ' + dateLabel + ' · ' + timeLabel"></p>
+            <h2 class="text-base font-semibold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.modal.create_event') }}</h2>
+            <p class="text-sm text-[#6a6e73] mt-0.5" x-text="squareName + ' · ' + dateLabel + ' · ' + timeLabel"></p>
         </div>
 
         <form method="POST" action="{{ route('admin.events.store') }}">
             @csrf
-            <input type="hidden" name="status"      value="enabled">
+            <input type="hidden" name="status" value="enabled">
             <input type="hidden" name="redirect_to" value="{{ url('/') }}">
 
             <div class="px-6 py-4 flex flex-col gap-4">
-
-                {{-- Veranstaltungsname --}}
                 <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">Veranstaltungsname</label>
-                    <input type="text"
-                           name="name"
-                           required
-                           placeholder="z.B. Vereinsturnier"
-                           class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
+                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">{{ __('booking.modal.event_name_label') }}</label>
+                    <input type="text" name="name" required placeholder="{{ __('booking.modal.event_name_placeholder') }}" class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
                 </div>
 
-                {{-- Datum/Zeit Start + Ende (2-Spalten-Grid) --}}
                 <div class="booking-mobile-dialog__summary-grid grid grid-cols-2 gap-3">
                     <div class="flex flex-col gap-1">
-                        <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">Datum Start</label>
-                        <input type="date"
-                               name="date_start"
-                               x-model="dateStartVal"
-                               required
-                               class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
+                        <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">{{ __('booking.modal.date_start') }}</label>
+                        <input type="date" name="date_start" x-model="dateStartVal" required class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
                     </div>
                     <div class="flex flex-col gap-1">
-                        <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">Zeit Start</label>
-                        <input type="time"
-                               name="time_start"
-                               x-model="timeStartVal"
-                               required
-                               class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
+                        <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">{{ __('booking.modal.time_start') }}</label>
+                        <input type="time" name="time_start" x-model="timeStartVal" required class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
                     </div>
                     <div class="flex flex-col gap-1">
-                        <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">Datum Ende</label>
-                        <input type="date"
-                               name="date_end"
-                               x-model="dateEndVal"
-                               required
-                               class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
+                        <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">{{ __('booking.modal.date_end') }}</label>
+                        <input type="date" name="date_end" x-model="dateEndVal" required class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
                     </div>
                     <div class="flex flex-col gap-1">
-                        <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">Zeit Ende</label>
-                        <input type="time"
-                               name="time_end"
-                               x-model="timeEndVal"
-                               required
-                               class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
+                        <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">{{ __('booking.modal.time_end') }}</label>
+                        <input type="time" name="time_end" x-model="timeEndVal" required class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
                     </div>
                 </div>
 
-                {{-- Platz --}}
                 <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">Platz</label>
-                    <select name="sid"
-                            x-model="sid"
-                            class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
+                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">{{ __('booking.calendar.court') }}</label>
+                    <select name="sid" x-model="sid" class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
                         @foreach($squares as $square)
                             <option value="{{ $square->sid }}">{{ $square->display_name }}</option>
                         @endforeach
                     </select>
                 </div>
 
-                {{-- Beschreibung (optional) --}}
                 <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">Beschreibung (optional)</label>
-                    <textarea name="description"
-                              rows="2"
-                              class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent resize-none"></textarea>
+                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">{{ __('booking.modal.event_description_optional') }}</label>
+                    <textarea name="description" rows="2" class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent resize-none"></textarea>
                 </div>
-
             </div>
 
             <div class="px-6 pb-5 flex flex-col gap-2">
-                <button type="submit"
-                        class="w-full bg-[#bf4316] hover:bg-[#9e3412] text-white text-sm font-medium py-2 rounded transition-colors">
-                    Veranstaltung speichern
-                </button>
-                <button type="button"
-                        @click="open = false"
-                        class="w-full border border-[#d1cbc0] text-[#6a6e73] text-sm py-2 rounded hover:bg-[#f9f8f6] transition-colors">
-                    Abbrechen
-                </button>
+                <button type="submit" class="w-full bg-[#bf4316] hover:bg-[#9e3412] text-white text-sm font-medium py-2 rounded transition-colors">{{ __('booking.modal.save_event') }}</button>
+                <button type="button" @click="open = false" class="w-full border border-[#d1cbc0] text-[#6a6e73] text-sm py-2 rounded hover:bg-[#f9f8f6] transition-colors">{{ __('booking.modal.cancel') }}</button>
             </div>
         </form>
 
-        <button type="button"
-                @click="open = false"
-                class="absolute top-3 right-4 text-[#9a9a9a] hover:text-[#151515] text-lg leading-none">✕</button>
+        <button type="button" @click="open = false" class="absolute top-3 right-4 text-[#9a9a9a] hover:text-[#151515] text-lg leading-none">✕</button>
     </div>
 </div>
 @endcan
 
-{{-- ═══════════════════════════════════════════════════════
-     ADMIN IFRAME MODAL — bleibt für booking.js
-     ═══════════════════════════════════════════════════════ --}}
 @auth
 <div id="admin-booking-modal" class="booking-modal booking-modal--iframe" style="display:none;">
     <div class="booking-modal__viewport booking-modal--iframe">
@@ -547,13 +447,4 @@
     </div>
 </div>
 @endauth
-
-
-
-
-
-
-
-
-
 

@@ -4,7 +4,7 @@
 <div class="ui-page">
     <div class="ui-page-header">
         <h1>{{ __('booking.admin.users.create_title') }}</h1>
-        <p>Neues Mitglied mit Konto, Profil und Rechten anlegen.</p>
+        <p>{{ __('booking.admin.users.intro_create') }}</p>
     </div>
 
     <form method="POST" action="{{ route('admin.users.store') }}" class="ui-form-shell">

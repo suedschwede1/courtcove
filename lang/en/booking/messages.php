@@ -1,0 +1,43 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    'messages' => [
+        'booking_created_public' => 'Your booking was completed successfully!',
+        'booking_created' => 'Booking created.',
+        'booking_updated' => 'Booking updated.',
+        'booking_cancelled' => 'Booking canceled.',
+        'booking_deleted' => 'Booking deleted.',
+        'booking_failed' => 'The booking could not be saved. Please try again.',
+        'booking_not_cancellable' => 'This booking can no longer be canceled online.',
+        'booking_reservation_missing' => 'No reservation was found for this booking.',
+        'repeat_booking_conflict' => 'At least one repeated date conflicts with another booking.',
+        'repeat_event_conflict' => 'At least one repeated date conflicts with an event.',
+        'booking_duration_too_short' => 'The booking duration is shorter than the minimum bookable time.',
+        'max_active_bookings_reached' => 'You have reached the maximum number of active bookings.',
+        'peak_limit_reached' => 'You have reached the booking limit for peak times.',
+        'daily_booking_limit_exceeded' => 'The daily booking limit has been reached.',
+        'booking_in_past' => 'This time slot is in the past and can no longer be booked.',
+        'booking_too_early' => 'The selected date is too far in the future and cannot be booked yet.',
+        'slot_occupied' => 'The selected time slot is already occupied.',
+        'slot_blocked_by_event' => 'The selected time slot is blocked by an event.',
+        'event_created' => 'Event created.',
+        'event_updated' => 'Event updated.',
+        'event_deleted' => 'Event deleted.',
+        'square_created' => 'Court created.',
+        'square_updated' => 'Court updated.',
+        'square_disabled_instead_deleted' => 'The court has bookings and was disabled instead of deleted.',
+        'square_deleted' => 'Court deleted.',
+        'config_saved' => 'Configuration saved.',
+        'user_created' => 'User created.',
+        'user_updated' => 'User updated.',
+        'user_deleted' => 'User deleted.',
+        'user_password_reset' => 'Password reset.',
+        'profile_saved' => 'Profile saved.',
+        'password_changed' => 'Password changed.',
+        'no_active_bookings' => 'You currently have no active bookings.',
+        'confirm_cancel_booking' => 'Really cancel this booking?',
+        'event_default_name' => 'Event',
+    ],
+];

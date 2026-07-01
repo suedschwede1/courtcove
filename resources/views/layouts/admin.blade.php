@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="de">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -25,7 +25,7 @@
         @unless(request('popup'))
             <header class="flex items-center justify-between border-b border-[#e7e3da] bg-white px-6 py-4">
                 <div>
-                    <p class="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#6a6e73]">Administration</p>
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#6a6e73]">{{ __('booking.admin.common.administration') }}</p>
                     <h1 class="mt-1 text-lg font-bold text-[#151515]" style="font-family: var(--font-display)">{{ $serviceName }}</h1>
                 </div>
                 <div class="flex items-center gap-4 text-sm text-[#6a6e73]">
@@ -33,7 +33,7 @@
                         <span>{{ auth()->user()->alias }}</span>
                         <form method="POST" action="{{ route('logout') }}" class="m-0">
                             @csrf
-                            <button type="submit" class="ui-btn ui-btn-outline">Abmelden</button>
+                            <button type="submit" class="ui-btn ui-btn-outline">{{ __('booking.nav.logout') }}</button>
                         </form>
                     @endauth
                 </div>

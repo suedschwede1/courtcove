@@ -40,7 +40,7 @@ $timeEndLabel   = str_pad((string) $timeEnd,   2, '0', STR_PAD_LEFT) . ':00';
             <tr>
                 <td>{{ __('booking.calendar.time') }}</td>
                 <td>
-                    {{ $timeStartLabel }} – {{ $timeEndLabel }} Uhr
+                    {{ $timeStartLabel }} – {{ $timeEndLabel }} {{ __('booking.admin.common.clock_suffix') }}
                 </td>
             </tr>
         </table>
@@ -64,8 +64,8 @@ $timeEndLabel   = str_pad((string) $timeEnd,   2, '0', STR_PAD_LEFT) . ':00';
             <input type="hidden" name="quantity"   value="2">
 
             <label class="booking-confirm-field">
-                Mitspieler
-                <input type="text" name="mitspieler" value="{{ old('mitspieler') }}" maxlength="255" placeholder="z.B. Müller, Huber, Schmidt">
+                {{ __('booking.admin.bookings.teammates') }}
+                <input type="text" name="mitspieler" value="{{ old('mitspieler') }}" maxlength="255" placeholder="{{ __('booking.admin.bookings.teammates_examples') }}">
             </label>
 
             <button type="submit" class="default-button booking-confirm-submit">

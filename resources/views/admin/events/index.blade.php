@@ -5,14 +5,14 @@
     <div class="ui-page-header flex flex-wrap items-start justify-between gap-4">
         <div>
             <h1>{{ __('booking.admin.events.title') }}</h1>
-            <p>Suche nach Name, Platz oder Datum und verwalte Sperren und Events zentral.</p>
+            <p>{{ __('booking.admin.events.intro_index') }}</p>
         </div>
         <a href="{{ route('admin.events.create') }}" class="ui-btn ui-btn-primary">{{ __('booking.admin.events.new_event') }}</a>
     </div>
 
     <div class="ui-card ui-card--filter">
         <div class="ui-card-body ui-stack">
-            <p class="ui-section-label !mb-0">Filter</p>
+            <p class="ui-section-label !mb-0">{{ __('booking.admin.users.filter_heading') }}</p>
             <form method="GET" action="{{ route('admin.events.index') }}" class="ui-row">
                 <div class="ui-field min-w-[16rem] flex-1">
                     <label class="ui-label">{{ __('booking.admin.events.name') }}</label>
@@ -40,8 +40,8 @@
         <div class="ui-card">
             <div class="ui-card-header">
                 <div>
-                    <h2>Veranstaltungen</h2>
-                    <p class="ui-kpi-meta mt-1">{{ $events->count() }} Treffer</p>
+                    <h2>{{ __('booking.admin.events.title') }}</h2>
+                    <p class="ui-kpi-meta mt-1">{{ __('booking.admin.events.results_count', ['count' => $events->count()]) }}</p>
                 </div>
             </div>
             @if($events->isEmpty())
@@ -56,17 +56,17 @@
                                 <th>{{ __('booking.admin.events.from') }}</th>
                                 <th>{{ __('booking.admin.events.to') }}</th>
                                 <th>{{ __('booking.admin.events.status') }}</th>
-                                <th class="text-right">Aktionen</th>
+                                <th class="text-right">{{ __('booking.admin.events.actions') }}</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($events as $event)
                                 <tr>
-                                    <td class="font-medium">{{ $event->meta->firstWhere('key', 'name')?->value ?? '—' }}</td>
+                                    <td class="font-medium">{{ $event->meta->firstWhere('key', 'name')?->value ?? __('booking.account.empty_option') }}</td>
                                     <td class="text-[#6a6e73]">{{ $event->square?->display_name ?? __('booking.admin.events.all_courts') }}</td>
                                     <td class="text-[#6a6e73]">{{ $event->datetime_start?->format('d.m.Y H:i') }}</td>
                                     <td class="text-[#6a6e73]">{{ $event->datetime_end?->format('d.m.Y H:i') }}</td>
-                                    <td><span class="ui-badge ui-badge-info">{{ $event->status }}</span></td>
+                                    <td><span class="ui-badge ui-badge-info">{{ $event->status === 'enabled' ? __('booking.admin.events.status_enabled') : $event->status }}</span></td>
                                     <td>
                                         <div class="flex items-center justify-end gap-2 whitespace-nowrap">
                                             <a href="{{ route('admin.events.edit', $event) }}" class="ui-btn ui-btn-ghost">{{ __('booking.admin.common.edit') }}</a>

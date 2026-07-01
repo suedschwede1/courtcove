@@ -32,6 +32,14 @@ class AppServiceProvider extends ServiceProvider
             });
         }, (string) config('booking.name'), report: false));
 
+        View::share('bookingLogoPath', rescue(function (): string {
+            return Cache::remember('booking.logo_path', 300, function (): string {
+                $path = trim((string) Option::getValue('service.brand.logo_path', config('booking.logo_path')));
+
+                return $path !== '' ? $path : (string) config('booking.logo_path');
+            });
+        }, (string) config('booking.logo_path'), report: false));
+
         View::share('registrationContent', rescue(function (): array {
             $locale = app()->getLocale();
 
@@ -39,6 +47,7 @@ class AppServiceProvider extends ServiceProvider
                 'heading' => trim((string) Option::getValue('service.user.registration.heading', __('booking.register.heading'), $locale)) ?: __('booking.register.heading'),
                 'welcome' => trim((string) Option::getValue('service.user.registration.welcome', __('booking.register.welcome'), $locale)) ?: __('booking.register.welcome'),
                 'intro' => trim((string) Option::getValue('service.user.registration.intro', __('booking.register.intro'), $locale)) ?: __('booking.register.intro'),
+                'email_help' => trim((string) Option::getValue('service.user.registration.email_help', __('booking.register.email_help'), $locale)) ?: __('booking.register.email_help'),
                 'privacy' => trim((string) Option::getValue('service.user.registration.privacy', __('booking.register.privacy_text'), $locale)) ?: __('booking.register.privacy_text'),
                 'success' => trim((string) Option::getValue('service.user.registration.success', __('booking.register.success_message'), $locale)) ?: __('booking.register.success_message'),
             ];
@@ -46,6 +55,7 @@ class AppServiceProvider extends ServiceProvider
             'heading' => __('booking.register.heading'),
             'welcome' => __('booking.register.welcome'),
             'intro' => __('booking.register.intro'),
+            'email_help' => __('booking.register.email_help'),
             'privacy' => __('booking.register.privacy_text'),
             'success' => __('booking.register.success_message'),
         ], report: false));

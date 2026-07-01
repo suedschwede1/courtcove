@@ -98,9 +98,29 @@
 
 ## Stoßzeiten-Feature
 
-Admin kann pro Platz Stoßzeiten mit Spieler-Limit definieren.  
+Admin kann Stoßzeiten mit Spieler-Limit definieren.  
 **Service:** `app/Services/PeakLimitService.php`  
-**Admin:** Einstellungen unter Admin → Konfiguration → Plätze
+**Admin:** Einstellungen unter Admin → Konfiguration
+
+## Texte und Lokalisierung
+
+Die UI-Texte sind pro Sprache thematisch aufgeteilt und nicht mehr in einer einzelnen großen Datei gesammelt.
+
+- Loader: `lang/{locale}/booking.php`
+- Teil-Dateien: `lang/{locale}/booking/*.php`
+- Aktive Sprachen: `de`, `en`
+
+Die bestehenden Translation-Keys bleiben bewusst stabil, zum Beispiel:
+
+- `booking.nav.login`
+- `booking.account.my_bookings`
+- `booking.admin.peak_limit.title`
+
+Für neue UI-Elemente gilt:
+
+- Keine Hardcoded-Texte in Views oder Komponenten
+- Immer bestehende Key-Bereiche wiederverwenden
+- Admin-Texte unter `booking/admin.php`, öffentliche Texte unter `booking/public.php`
 
 ## Schriften
 

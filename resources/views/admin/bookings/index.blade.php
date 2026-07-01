@@ -5,14 +5,14 @@
     <div class="ui-page-header flex flex-wrap items-start justify-between gap-4">
         <div>
             <h1>{{ __('booking.admin.bookings.title') }}</h1>
-            <p>Filtere nach Platz und verwalte laufende oder stornierte Reservierungen.</p>
+            <p>{{ __('booking.admin.bookings.filter_intro') }}</p>
         </div>
-        <a href="{{ route('admin.bookings.create') }}" class="ui-btn ui-btn-primary">+ Neue Buchung</a>
+        <a href="{{ route('admin.bookings.create') }}" class="ui-btn ui-btn-primary">{{ __('booking.admin.bookings.create_title') }}</a>
     </div>
 
     <div class="ui-card">
         <div class="ui-card-body ui-stack">
-            <p class="ui-section-label !mb-0">Filter</p>
+            <p class="ui-section-label !mb-0">{{ __('booking.admin.bookings.filter_heading') }}</p>
             <form method="GET" action="{{ route('admin.bookings.index') }}" class="ui-row">
                 <div class="ui-field min-w-[14rem]">
                     <label class="ui-label">{{ __('booking.admin.common.court') }}</label>
@@ -31,13 +31,13 @@
     <div class="ui-card">
         <div class="ui-card-header">
             <div>
-                <h2>Alle Buchungen</h2>
-                <p class="ui-kpi-meta mt-1">{{ $bookings->total() }} Einträge</p>
+                <h2>{{ __('booking.admin.bookings.all_bookings') }}</h2>
+                <p class="ui-kpi-meta mt-1">{{ __('booking.admin.bookings.entries_count', ['count' => $bookings->total()]) }}</p>
             </div>
         </div>
         @if($bookings->isEmpty())
             <div class="ui-card-body">
-                <p class="ui-kpi-meta">Keine Buchungen für den aktuellen Filter gefunden.</p>
+                <p class="ui-kpi-meta">{{ __('booking.admin.bookings.no_results_filtered') }}</p>
             </div>
         @else
             <div class="ui-table-wrap">
@@ -50,7 +50,7 @@
                             <th>{{ __('booking.admin.common.time') }}</th>
                             <th>{{ __('booking.admin.common.player') }}</th>
                             <th>{{ __('booking.admin.common.status') }}</th>
-                            <th class="text-right">Aktionen</th>
+                            <th class="text-right">{{ __('booking.admin.bookings.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -58,12 +58,12 @@
                             @php($reservation = $b->reservations->sortBy(['date', 'time_start'])->first())
                             <tr>
                                 <td class="font-medium">{{ $b->owner_label }}</td>
-                                <td class="text-[#6a6e73]">{{ $b->square?->display_name ?? '—' }}</td>
-                                <td class="text-[#6a6e73]">{{ $reservation ? \Carbon\Carbon::parse($reservation->date)->format('d.m.Y') : '—' }}</td>
-                                <td class="text-[#6a6e73]">{{ $reservation ? substr((string) $reservation->time_start, 0, 5) . ' - ' . substr((string) $reservation->time_end, 0, 5) : '—' }}</td>
-                                <td class="text-[#6a6e73]">{{ $b->player_names !== [] ? implode(', ', $b->player_names) : '—' }}</td>
+                                <td class="text-[#6a6e73]">{{ $b->square?->display_name ?? __('booking.account.empty_option') }}</td>
+                                <td class="text-[#6a6e73]">{{ $reservation ? \Carbon\Carbon::parse($reservation->date)->format('d.m.Y') : __('booking.account.empty_option') }}</td>
+                                <td class="text-[#6a6e73]">{{ $reservation ? substr((string) $reservation->time_start, 0, 5) . ' - ' . substr((string) $reservation->time_end, 0, 5) : __('booking.account.empty_option') }}</td>
+                                <td class="text-[#6a6e73]">{{ $b->player_names !== [] ? implode(', ', $b->player_names) : __('booking.account.empty_option') }}</td>
                                 <td>
-                                    <span class="ui-badge {{ $b->status === 'cancelled' ? 'ui-badge-danger' : ($b->status === 'subscription' ? 'ui-badge-info' : 'ui-badge-success') }}">{{ $b->status }}</span>
+                                    <span class="ui-badge {{ $b->status === 'cancelled' ? 'ui-badge-danger' : ($b->status === 'subscription' ? 'ui-badge-info' : 'ui-badge-success') }}">{{ $b->status === 'cancelled' ? __('booking.admin.bookings.status_cancelled') : ($b->status === 'subscription' ? __('booking.admin.bookings.status_series') : __('booking.admin.bookings.status_active')) }}</span>
                                 </td>
                                 <td>
                                     <div class="flex items-center justify-end gap-2 whitespace-nowrap">

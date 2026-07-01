@@ -5,7 +5,7 @@
 <div class="max-w-5xl mx-auto px-4 py-8 ui-page">
     <div class="ui-page-header">
         <h1>{{ __('booking.account.my_account') }}</h1>
-        <p>Profil- und Zugangsdaten im Mitgliedsbereich verwalten.</p>
+        <p>{{ __('booking.account.intro') }}</p>
     </div>
 
     @if(session('success'))
@@ -16,7 +16,7 @@
     @endif
 
     <div class="ui-card">
-        <div class="ui-card-header"><h2>Profil</h2></div>
+        <div class="ui-card-header"><h2>{{ __('booking.account.profile') }}</h2></div>
         <form method="POST" action="{{ route('account.update') }}">
             @csrf
             @method('PUT')
@@ -38,7 +38,7 @@
                         <label class="ui-label">{{ __('booking.account.gender') }}</label>
                         <select name="gender" class="ui-select">
                             @php($gender = old('gender', $profile['gender']))
-                            <option value="" @selected($gender === null || $gender === '')>–</option>
+                            <option value="" @selected($gender === null || $gender === '')>{{ __('booking.account.empty_option') }}</option>
                             <option value="male" @selected($gender === 'male')>{{ __('booking.account.male') }}</option>
                             <option value="female" @selected($gender === 'female')>{{ __('booking.account.female') }}</option>
                         </select>

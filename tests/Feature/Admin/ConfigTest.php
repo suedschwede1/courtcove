@@ -22,7 +22,10 @@ class ConfigTest extends TestCase
     #[Test]
     public function regular_member_is_forbidden(): void
     {
-        $this->actingAs(User::factory()->create(['status' => 'enabled']))->get('/admin/config')->assertForbidden();
+        $member = User::factory()->create(['status' => 'enabled']);
+
+        $this->actingAs($member)->get('/admin/config')->assertForbidden();
+        $this->actingAs($member)->get('/admin/config/verhalten')->assertForbidden();
     }
 
     #[Test]
@@ -30,24 +33,44 @@ class ConfigTest extends TestCase
     {
         Option::create(['key' => 'service.name', 'value' => 'Buchungssystem', 'locale' => null]);
         Option::create(['key' => 'client.name.full', 'value' => 'Tennis-Booking', 'locale' => null]);
-        $this->actingAs($this->admin())->get('/admin/config')->assertOk()->assertSee('Buchungssystem')->assertSee('Tennis-Booking');
+
+        $this->actingAs($this->admin())
+            ->get('/admin/config')
+            ->assertOk()
+            ->assertSee('Buchungssystem')
+            ->assertSee('Tennis-Booking');
     }
 
     #[Test]
-    public function update_writes_default_locale_rows(): void
+    public function behavior_edit_shows_current_values(): void
+    {
+        Option::create(['key' => 'service.user.activation', 'value' => 'manual', 'locale' => null]);
+        Option::create(['key' => 'peak_limit.enabled', 'value' => '1', 'locale' => null]);
+
+        $this->actingAs($this->admin())
+            ->get('/admin/config/verhalten')
+            ->assertOk()
+            ->assertSee('Stoßzeiten-Limit')
+            ->assertSee('manual');
+    }
+
+    #[Test]
+    public function update_writes_general_configuration_rows(): void
     {
         $this->actingAs($this->admin())->put('/admin/config', [
             'system_name' => 'Neues System',
             'client_name_full' => 'Neuer Name',
             'contact_email' => 'info@example.com',
             'calendar_days' => '5',
-            'registration' => '1',
-            'maintenance' => '0',
+            'registration_email_help' => 'Mit dieser Adresse melden Sie sich an',
+            'logo_path' => 'imgs-client/layout/custom-logo.png',
         ])->assertRedirect();
 
         $this->assertSame('Neues System', Option::getValue('service.name'));
         $this->assertSame('Neuer Name', Option::getValue('client.name.full'));
         $this->assertSame('5', Option::getValue('service.calendar.days'));
+        $this->assertSame('Mit dieser Adresse melden Sie sich an', Option::getValue('service.user.registration.email_help'));
+        $this->assertSame('imgs-client/layout/custom-logo.png', Option::getValue('service.brand.logo_path'));
     }
 
     #[Test]
@@ -73,13 +96,13 @@ class ConfigTest extends TestCase
     public function service_and_subject_fields_are_saved(): void
     {
         $this->actingAs($this->admin())->put('/admin/config', [
-            'service_name_short'   => 'BS',
-            'service_description'  => 'Tennisplatz Online Reservierung',
-            'subject_type'         => 'die Anlage',
-            'subject_square_type'  => 'Platz',
-            'subject_square_plural'=> 'Plätze',
-            'subject_unit'         => 'Spieler',
-            'subject_unit_plural'  => 'Spieler',
+            'service_name_short'    => 'BS',
+            'service_description'   => 'Tennisplatz Online Reservierung',
+            'subject_type'          => 'die Anlage',
+            'subject_square_type'   => 'Platz',
+            'subject_square_plural' => 'Plätze',
+            'subject_unit'          => 'Spieler',
+            'subject_unit_plural'   => 'Spieler',
         ])->assertRedirect();
 
         $this->assertSame('BS', Option::getValue('service.name.short'));
@@ -89,21 +112,29 @@ class ConfigTest extends TestCase
     }
 
     #[Test]
-    public function activation_and_day_exceptions_are_saved(): void
+    public function behavior_fields_are_saved(): void
     {
-        $this->actingAs($this->admin())->put('/admin/config', [
-            'activation'   => 'manual',
-            'calendar_hide' => "Sunday\n2026-12-25",
+        $this->actingAs($this->admin())->put('/admin/config/verhalten', [
+            'registration'        => '1',
+            'activation'          => 'manual',
+            'maintenance'         => '0',
+            'peak_limit_enabled'  => '1',
+            'peak_limit_w1_start' => '08:00',
+            'peak_limit_w1_end'   => '12:00',
+            'peak_limit_w2_start' => '17:00',
+            'peak_limit_w2_end'   => '21:00',
         ])->assertRedirect();
 
+        $this->assertSame('1', Option::getValue('service.user.registration'));
         $this->assertSame('manual', Option::getValue('service.user.activation'));
-        $this->assertSame("Sunday\n2026-12-25", Option::getValue('service.calendar.day-exceptions'));
+        $this->assertSame('1', Option::getValue('peak_limit.enabled'));
+        $this->assertSame('08:00', Option::getValue('peak_limit.window_1_start'));
     }
 
     #[Test]
     public function activation_rejects_invalid_value(): void
     {
-        $this->actingAs($this->admin())->put('/admin/config', [
+        $this->actingAs($this->admin())->put('/admin/config/verhalten', [
             'activation' => 'bogus',
         ])->assertSessionHasErrors('activation');
     }

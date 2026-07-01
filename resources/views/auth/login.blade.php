@@ -12,8 +12,8 @@
 </head>
 <body class="min-h-screen bg-[#f0ede6] flex flex-col" style="font-family: var(--font-body)">
     <header class="bg-white border-b border-[#e0ddd7] px-4 sm:px-6 py-3 sm:h-14 flex items-center gap-3">
-        @if(config('booking.logo_path') && file_exists(public_path(config('booking.logo_path'))))
-            <img src="{{ asset(config('booking.logo_path')) }}" alt="{{ $bookingName }}" class="h-9 w-auto object-contain">
+        @if($bookingLogoPath && file_exists(public_path($bookingLogoPath)))
+            <img src="{{ asset($bookingLogoPath) }}" alt="{{ $bookingName }}" class="h-9 w-auto object-contain">
         @endif
         <span class="font-semibold text-[#151515] text-sm" style="font-family: var(--font-display)">{{ $bookingName }}</span>
     </header>

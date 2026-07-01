@@ -5,7 +5,7 @@
 <div class="ui-page">
     <div class="ui-page-header">
         <h1>{{ __('booking.admin.events.create_title') }}</h1>
-        <p>Neue Veranstaltung oder Sperre mit Zeitraum, Platz und Kapazität anlegen.</p>
+        <p>{{ __('booking.admin.events.create_intro') }}</p>
     </div>
 
     @php

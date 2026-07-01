@@ -62,6 +62,7 @@
             @php
                 $timeLabel = str_pad((string) $h, 2, '0', STR_PAD_LEFT) . ':00';
                 $nextLabel = str_pad((string) ($h + 1), 2, '0', STR_PAD_LEFT) . ':00';
+                $timeRangeLabel = $timeLabel . ' – ' . $nextLabel . ' ' . __('booking.admin.common.clock_suffix');
             @endphp
             <tr class="calendar-core-row">
                 <td class="time-cell">
@@ -158,7 +159,7 @@
                                            timeEndFormatted: @js(str_pad($h + 1, 2, '0', STR_PAD_LEFT) . ':00'),
                                            squareName: @js($squareLabel),
                                            dateLabel: @js($dateLabels[$d->format('Y-m-d')]['full']),
-                                           timeLabel: @js($timeLabel . ' – ' . $nextLabel . ' Uhr')
+                                           timeLabel: @js($timeRangeLabel)
                                        })"></a>
                                 @else
                                     <a href="#"
@@ -171,7 +172,7 @@
                                        data-time-end="{{ ($h + 1) * 3600 }}"
                                        data-square-name="{{ $squareLabel }}"
                                        data-date-label="{{ $dateLabels[$d->format('Y-m-d')]['full'] }}"
-                                       data-time-label="{{ $timeLabel }} – {{ $nextLabel }} Uhr"
+                                       data-time-label="{{ $timeRangeLabel }}"
                                        data-create-url="{{ route('admin.bookings.create') }}?sid={{ $sid }}&date={{ $dateKey }}&time_start={{ $h * 3600 }}&time_end={{ ($h + 1) * 3600 }}"></a>
                                 @endif
                             </td>
@@ -185,7 +186,7 @@
                                        data-bid="{{ $reservation->booking->bid }}"
                                        data-square-name="{{ $squareLabel }}"
                                        data-date-label="{{ $dateLabels[$d->format('Y-m-d')]['full'] }}"
-                                       data-time-label="{{ $timeLabel }} – {{ $nextLabel }} Uhr"
+                                       data-time-label="{{ $timeRangeLabel }}"
                                        data-edit-url="{{ route('admin.bookings.edit', $reservation->booking) }}"
                                        data-delete-url="{{ route('admin.bookings.destroy', $reservation->booking) }}">
                                         <span class="cc-label-primary">{{ $primaryLabel }}</span>
@@ -201,7 +202,7 @@
                                            bid: @js((string) $reservation->booking->bid),
                                            squareName: @js($squareLabel),
                                            dateLabel: @js($dateLabels[$d->format('Y-m-d')]['full']),
-                                           timeLabel: @js($timeLabel . ' – ' . $nextLabel . ' Uhr'),
+                                           timeLabel: @js($timeRangeLabel),
                                            quantity: @js((string) $reservation->booking->quantity),
                                            mitspieler: @js($reservation->booking->player_names[0] ?? '')
                                        })">
@@ -343,6 +344,8 @@
 })();
 </script>
 @endpush
+
+
 
 
 

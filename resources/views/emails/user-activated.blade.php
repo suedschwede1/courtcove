@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
 <meta charset="utf-8">
 <style>
@@ -13,18 +13,18 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>Willkommen, {{ $user->alias }}!</h1>
-  <p class="sub">Ihr Konto wurde aktiviert. Sie können sich ab sofort mit Ihrer E-Mail-Adresse anmelden.</p>
+  <h1>{{ __('booking.mail.activated_heading', ['name' => $user->alias]) }}</h1>
+  <p class="sub">{{ __('booking.mail.activated_subheading') }}</p>
 
   <p>
-    <strong>Benutzername:</strong> {{ $user->alias }}<br>
-    <strong>E-Mail:</strong> {{ $user->email }}
+    <strong>{{ __('booking.mail.username') }}:</strong> {{ $user->alias }}<br>
+    <strong>{{ __('booking.mail.email') }}:</strong> {{ $user->email }}
   </p>
 
-  <a href="{{ url('/login') }}" class="btn">Jetzt anmelden</a>
+  <a href="{{ url('/login') }}" class="btn">{{ __('booking.mail.login_now') }}</a>
 
   <div class="footer">
-    Diese E-Mail wurde automatisch generiert. Bitte antworten Sie nicht auf diese Nachricht.
+    {{ __('booking.mail.auto_footer') }}
   </div>
 </div>
 </body>

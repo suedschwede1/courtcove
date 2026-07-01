@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Auth;
 
+use App\Models\Option;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -17,6 +20,20 @@ class LoginTest extends TestCase
     public function login_page_renders(): void
     {
         $this->get('/login')->assertOk()->assertViewIs('auth.login');
+    }
+
+    #[Test]
+    public function register_page_renders_configurable_registration_text(): void
+    {
+        Option::create(['key' => 'service.name', 'value' => 'ASV Buchung', 'locale' => null]);
+        Option::create(['key' => 'service.user.registration.intro', 'value' => 'Nur Mitglieder duerfen sich registrieren.', 'locale' => null]);
+        Option::create(['key' => 'service.user.registration.email_help', 'value' => 'Mit dieser Adresse melden Sie sich an.', 'locale' => null]);
+
+        $this->get('/register')
+            ->assertOk()
+            ->assertViewIs('auth.register')
+            ->assertSee('Nur Mitglieder duerfen sich registrieren.')
+            ->assertSee('Mit dieser Adresse melden Sie sich an.');
     }
 
     #[Test]
@@ -72,12 +89,66 @@ class LoginTest extends TestCase
         User::factory()->create([
             'email' => 'test@example.com',
             'pw' => bcrypt('secret123'),
+            'status' => 'enabled',
         ]);
 
         $this->post('/login', ['email' => 'test@example.com', 'password' => 'wrong'])
             ->assertRedirect('/login');
 
         $this->assertGuest();
+    }
+
+    #[Test]
+    public function login_is_rate_limited_after_too_many_failed_attempts(): void
+    {
+        User::factory()->create([
+            'email' => 'test@example.com',
+            'pw' => bcrypt('secret123'),
+            'status' => 'enabled',
+        ]);
+
+        $key = $this->throttleKey('test@example.com');
+        RateLimiter::clear($key);
+
+        for ($i = 0; $i < 5; $i++) {
+            $this->post('/login', ['email' => 'test@example.com', 'password' => 'wrong'])
+                ->assertRedirect('/login');
+        }
+
+        $this->post('/login', ['email' => 'test@example.com', 'password' => 'wrong'])
+            ->assertRedirect('/login')
+            ->assertSessionHasErrors('email');
+
+        $this->assertGreaterThan(0, RateLimiter::availableIn($key));
+        $this->assertGuest();
+    }
+
+    #[Test]
+    public function successful_login_clears_rate_limit_counter(): void
+    {
+        User::factory()->create([
+            'email' => 'test@example.com',
+            'pw' => bcrypt('secret123'),
+            'status' => 'enabled',
+        ]);
+
+        $key = $this->throttleKey('test@example.com');
+        RateLimiter::clear($key);
+
+        $this->post('/login', ['email' => 'test@example.com', 'password' => 'wrong'])
+            ->assertRedirect('/login');
+
+        $this->post('/login', ['email' => 'test@example.com', 'password' => 'secret123'])
+            ->assertRedirect('/calendar');
+
+        Auth::logout();
+
+        $this->assertSame(0, RateLimiter::attempts($key));
+
+        $this->post('/login', ['email' => 'test@example.com', 'password' => 'wrong'])
+            ->assertRedirect('/login');
+
+        $this->assertSame(1, RateLimiter::attempts($key));
     }
 
     #[Test]
@@ -125,5 +196,10 @@ class LoginTest extends TestCase
     {
         $user = User::factory()->create();
         $this->actingAs($user)->get('/calendar')->assertOk();
+    }
+
+    private function throttleKey(string $email): string
+    {
+        return strtolower(trim($email)).'|127.0.0.1';
     }
 }

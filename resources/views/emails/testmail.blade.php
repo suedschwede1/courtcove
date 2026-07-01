@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
 <meta charset="utf-8">
 <style>
@@ -11,11 +11,11 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>Testmail</h1>
-  <p>Diese E-Mail bestätigt, dass der E-Mail-Versand korrekt konfiguriert ist.</p>
-  <p>Wenn Sie diese Nachricht erhalten haben, funktioniert alles einwandfrei.</p>
+  <h1>{{ __('booking.mail.test_heading') }}</h1>
+  <p>{{ __('booking.mail.test_body_1') }}</p>
+  <p>{{ __('booking.mail.test_body_2') }}</p>
   <div class="footer">
-    Gesendet von {{ config('booking.name', config('app.name')) }} – {{ now()->format('d.m.Y H:i') }} Uhr
+    {{ __('booking.mail.test_footer', ['system' => config('booking.name', config('app.name')), 'date' => now()->format('d.m.Y H:i')]) }}
   </div>
 </div>
 </body>

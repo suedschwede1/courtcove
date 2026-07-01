@@ -26,7 +26,7 @@
                     <tr class="hover:bg-[#fafaf9]">
                         <td class="text-sm text-[#151515] px-4 py-3 border-b border-[#f0ede6]">{{ $square->name }}</td>
                         <td class="text-sm text-[#151515] px-4 py-3 border-b border-[#f0ede6]">{{ $square->display_name }}</td>
-                        <td class="text-sm text-[#151515] px-4 py-3 border-b border-[#f0ede6]">{{ $square->status->value }}</td>
+                        <td class="text-sm text-[#151515] px-4 py-3 border-b border-[#f0ede6]">{{ __('booking.admin.squares.status_' . $square->status->value) }}</td>
                         <td class="text-sm text-[#151515] px-4 py-3 border-b border-[#f0ede6]">{{ substr((string) $square->time_start, 0, 5) }}–{{ substr((string) $square->time_end, 0, 5) }} {{ __('booking.admin.common.clock_suffix') }}</td>
                         <td class="text-sm text-[#151515] px-4 py-3 border-b border-[#f0ede6]">{{ (int) round($square->time_block / 60) }} {{ __('booking.admin.common.minutes_suffix') }}</td>
                         <td class="text-sm text-[#151515] px-4 py-3 border-b border-[#f0ede6] whitespace-nowrap">

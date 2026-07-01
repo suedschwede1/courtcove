@@ -57,7 +57,7 @@
         <label class="flex items-center gap-2 text-sm text-[#151515] cursor-pointer">
             <input type="checkbox" name="peak_limit_enabled" value="1"
                 @checked(old('peak_limit_enabled', $form['peak_limit_enabled']))>
-            Stoßzeiten-Limit für diesen Platz aktivieren
+            {{ __('booking.admin.squares.peak_limit_enabled') }}
         </label>
         @endif
         <div class="flex flex-col gap-1">
@@ -140,4 +140,5 @@
         </div>
     </div>
 </div>
+
 

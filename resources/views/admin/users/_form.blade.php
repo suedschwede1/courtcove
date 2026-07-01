@@ -2,7 +2,7 @@
 <div class="ui-card">
     <div class="ui-card-header"><h2>{{ __('booking.admin.users.section_account') }}</h2></div>
     <div class="ui-card-body ui-stack">
-        <p class="ui-section-label !mb-0">Konto</p>
+        <p class="ui-section-label !mb-0">{{ __('booking.admin.users.section_account') }}</p>
         <div class="ui-grid-3 ui-form-panel">
             <div class="ui-field">
                 <label class="ui-label" for="uf-alias">{{ __('booking.admin.users.name') }}</label>
@@ -27,7 +27,7 @@
 <div class="ui-card">
     <div class="ui-card-header"><h2>{{ __('booking.admin.users.section_profile') }}</h2></div>
     <div class="ui-card-body ui-stack">
-        <p class="ui-section-label !mb-0">Profil</p>
+        <p class="ui-section-label !mb-0">{{ __('booking.admin.users.section_profile') }}</p>
         <div class="ui-grid-3 ui-form-panel">
             <div class="ui-field">
                 <label class="ui-label" for="uf-fn">{{ __('booking.admin.users.firstname') }}</label>
@@ -48,7 +48,7 @@
 <div class="ui-card">
     <div class="ui-card-header"><h2>{{ __('booking.admin.users.section_access') }}</h2></div>
     <div class="ui-card-body ui-stack">
-        <p class="ui-section-label !mb-0">Zugriff</p>
+        <p class="ui-section-label !mb-0">{{ __('booking.admin.users.section_access') }}</p>
         @if(!isset($user))
             <div class="ui-field max-w-md">
                 <label class="ui-label" for="uf-pw">{{ __('booking.admin.users.password') }}</label>

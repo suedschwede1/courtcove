@@ -67,6 +67,31 @@ git checkout mobile-view-stable -- resources/views/components/layout/header.blad
 | `app/Http/Controllers/Admin/BookingController.php` | Buchungs-Logik (Admin) |
 | `app/Services/PeakLimitService.php` | Stoßzeiten-Limitierung |
 
+## Übersetzungen
+
+Die Anwendung ist für Mehrsprachigkeit vorbereitet.
+
+- Deutsche Texte liegen unter `lang/de/`
+- Englische Texte liegen unter `lang/en/`
+- Die Datei `lang/{locale}/booking.php` ist jeweils nur noch ein Loader
+- Die eigentlichen Texte sind thematisch ausgelagert unter `lang/{locale}/booking/`
+
+Aktuelle Aufteilung:
+
+- `public.php` für öffentliche UI-Texte, Navigation, Auth, Registrierung, Kalender und Modals
+- `account.php` für Konto-Bereich
+- `admin.php` für Admin-Oberfläche inkl. Peak-Limit-Konfiguration
+- `repeat.php` für Wiederholungsoptionen
+- `mail.php` für E-Mail-Texte
+- `validation.php` für Validierungsfehler
+- `messages.php` für Flash- und Statusmeldungen
+
+Wichtig:
+
+- Im Code weiterhin `__('booking...')` verwenden
+- Neue Texte immer zuerst in `lang/de/booking/...` und `lang/en/booking/...` ergänzen
+- Keine neuen Hardcoded-UI-Texte in Blade-Dateien einführen
+
 ## Berechtigungsmodell
 
 Keine Roles-Tabelle. Steuerung über `bs_users.status`:

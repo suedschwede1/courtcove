@@ -1,26 +1,26 @@
 @extends('layouts.admin')
 
-@section('admin-title', 'Testmail')
+@section('admin-title', __('booking.admin.testmail.title'))
 
 @section('admin-content')
 <div class="flex flex-col gap-6">
 
-    <h1 class="text-2xl font-bold text-[#151515]" style="font-family: var(--font-display)">Testmail</h1>
+    <h1 class="text-2xl font-bold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.admin.testmail.title') }}</h1>
 
     <div class="bg-white rounded-xl border border-[#e0ddd7] shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-[#f0ede6]">
-            <h2 class="text-base font-semibold text-[#151515]" style="font-family: var(--font-display)">Testmail senden</h2>
+            <h2 class="text-base font-semibold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.admin.testmail.send_title') }}</h2>
         </div>
         <div class="px-6 py-5 flex flex-col gap-4">
 
-            <p class="text-sm text-[#6a6e73]">Sendet eine Test-E-Mail um zu prüfen ob der E-Mail-Versand korrekt konfiguriert ist.</p>
+            <p class="text-sm text-[#6a6e73]">{{ __('booking.admin.testmail.intro') }}</p>
 
             <form method="POST" action="{{ route('admin.testmail.send') }}">
                 @csrf
                 <div class="flex flex-col gap-4">
 
                     <div class="flex flex-col gap-1">
-                        <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="email">Empfänger-Adresse</label>
+                        <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="email">{{ __('booking.admin.testmail.recipient') }}</label>
                         <input
                             id="email"
                             type="email"
@@ -36,7 +36,7 @@
                     </div>
 
                     <div class="flex justify-end pt-2">
-                        <button type="submit" class="bg-[#bf4316] hover:bg-[#9e3412] text-white text-sm font-medium px-5 py-2 rounded transition-colors">Testmail senden</button>
+                        <button type="submit" class="bg-[#bf4316] hover:bg-[#9e3412] text-white text-sm font-medium px-5 py-2 rounded transition-colors">{{ __('booking.admin.testmail.submit') }}</button>
                     </div>
 
                 </div>

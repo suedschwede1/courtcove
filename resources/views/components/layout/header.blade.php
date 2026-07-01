@@ -6,13 +6,13 @@
     <div class="app-header__card rounded-[6px] border border-[#d8d2c8] bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
         <div class="app-header__inner flex items-center gap-6 px-5 py-4">
             <a href="{{ route('calendar.index') }}" aria-label="{{ $bookingName }}" class="app-header__brand flex min-w-0 shrink-0 items-center gap-4">
-                @if(config('booking.logo_path') && file_exists(public_path(config('booking.logo_path'))))
-                    <img src="{{ asset(config('booking.logo_path')) }}"
-                         width="{{ config('booking.logo_width') }}"
-                         height="{{ config('booking.logo_height') }}"
+                @if($bookingLogoPath && file_exists(public_path($bookingLogoPath)))
+                    <img src="{{ asset($bookingLogoPath) }}"
+                         width="112"
+                         height="108"
                          alt="{{ $bookingName }}"
                          class="app-header__logo object-contain"
-                         style="width: {{ config('booking.logo_width') }}px; height: {{ config('booking.logo_height') }}px;">
+                         style="width: 112px; height: 108px;">
                 @endif
                 <span class="app-header__title text-[18px] font-bold leading-tight text-[#151515]" style="font-family: var(--font-display)">{{ $bookingName }}</span>
             </a>

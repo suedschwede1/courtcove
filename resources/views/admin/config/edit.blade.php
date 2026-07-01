@@ -17,7 +17,7 @@
             <div class="px-6 py-5 flex flex-col gap-4">
 
                 <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-client-full">{{ __('booking.admin.cfg.client_name_full') }}</label>
+                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-client-full">{{ __('booking.admin.client_name_full') }}</label>
                     <input id="cf-client-full" type="text" name="client_name_full" value="{{ $values['client_name_full'] }}"
                         class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
                     <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.cfg.client_name_full_hint') }}</p>
@@ -31,7 +31,7 @@
                 </div>
 
                 <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-email">{{ __('booking.admin.cfg.contact_email') }}</label>
+                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-email">{{ __('booking.admin.contact_email') }}</label>
                     <input id="cf-email" type="email" name="contact_email" value="{{ $values['contact_email'] }}"
                         class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
                     <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.cfg.contact_email_hint') }}</p>
@@ -72,6 +72,13 @@
                         class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
                 </div>
 
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-logo-path">{{ __('booking.admin.cfg.logo_path') }}</label>
+                    <input id="cf-logo-path" type="text" name="logo_path" value="{{ $values['logo_path'] }}"
+                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
+                    <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.cfg.logo_path_hint') }}</p>
+                </div>
+
             </div>
         </div>
 
@@ -83,7 +90,7 @@
             <div class="px-6 py-5 flex flex-col gap-4">
 
                 <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-system-name">{{ __('booking.admin.cfg.system_name') }}</label>
+                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-system-name">{{ __('booking.admin.system_name') }}</label>
                     <input id="cf-system-name" type="text" name="system_name" value="{{ $values['system_name'] }}"
                         class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
                     <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.cfg.system_name_hint') }}</p>
@@ -207,6 +214,13 @@
                 </div>
 
                 <div class="flex flex-col gap-1">
+                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-registration-email-help">{{ __('booking.admin.cfg.registration_email_help') }}</label>
+                    <input id="cf-registration-email-help" type="text" name="registration_email_help" value="{{ $values['registration_email_help'] }}"
+                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
+                    <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.cfg.registration_system_placeholder_hint') }}</p>
+                </div>
+
+                <div class="flex flex-col gap-1">
                     <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-registration-privacy">{{ __('booking.admin.cfg.registration_privacy') }}</label>
                     <textarea id="cf-registration-privacy" name="registration_privacy" rows="3"
                         class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">{{ $values['registration_privacy'] }}</textarea>
@@ -222,90 +236,6 @@
 
             </div>
         </div>
-        {{-- Betrieb --}}
-        <div class="bg-white rounded-xl border border-[#e0ddd7] shadow-sm overflow-hidden mb-6">
-            <div class="px-6 py-4 border-b border-[#f0ede6]">
-                <h2 class="text-base font-semibold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.admin.cfg.section_operation') }}</h2>
-            </div>
-            <div class="px-6 py-5 flex flex-col gap-4">
-
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-reg">{{ __('booking.admin.registration') }}</label>
-                    <select id="cf-reg" name="registration"
-                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                        <option value="0" @selected((string) $values['registration'] === '0')>{{ __('booking.admin.no') }}</option>
-                        <option value="1" @selected((string) $values['registration'] === '1')>{{ __('booking.admin.yes') }}</option>
-                    </select>
-                </div>
-
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-activation">{{ __('booking.admin.activation') }}</label>
-                    <select id="cf-activation" name="activation"
-                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                        <option value="immediate" @selected(($values['activation'] ?? 'immediate') === 'immediate')>{{ __('booking.admin.activation_immediate') }}</option>
-                        <option value="manual"       @selected(($values['activation'] ?? '') === 'manual')>{{ __('booking.admin.activation_manual') }}</option>
-                        <option value="manual-email" @selected(($values['activation'] ?? '') === 'manual-email')>{{ __('booking.admin.activation_manual_email') }}</option>
-                        <option value="email"        @selected(($values['activation'] ?? '') === 'email')>{{ __('booking.admin.activation_email') }}</option>
-                    </select>
-                    <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.activation_hint') }}</p>
-                </div>
-
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-maint">{{ __('booking.admin.maintenance') }}</label>
-                    <select id="cf-maint" name="maintenance"
-                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                        <option value="0" @selected((string) $values['maintenance'] === '0')>{{ __('booking.admin.off') }}</option>
-                        <option value="1" @selected((string) $values['maintenance'] === '1')>{{ __('booking.admin.on') }}</option>
-                    </select>
-                </div>
-
-            </div>
-        </div>
-
-        {{-- Stoßzeiten --}}
-        <div class="bg-white rounded-xl border border-[#e0ddd7] shadow-sm overflow-hidden mb-6">
-            <div class="px-6 py-4 border-b border-[#f0ede6]">
-                <h2 class="text-base font-semibold text-[#151515]" style="font-family: var(--font-display)">Stoßzeiten-Limit</h2>
-            </div>
-            <div class="px-6 py-5 flex flex-col gap-4">
-
-                <label class="flex items-center gap-2 text-sm text-[#151515] cursor-pointer">
-                    <input type="checkbox" name="peak_limit_enabled" value="1"
-                        @checked(old('peak_limit_enabled', $values['peak_limit_enabled']) == '1')>
-                    Stoßzeiten-Limit global aktivieren
-                </label>
-                <p class="text-xs text-[#6a6e73] -mt-2">Wenn aktiv, zählen nur Buchungen in Stoßzeiten gegen das Buchungslimit. Pro Platz muss das Limit zusätzlich aktiviert werden.</p>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="flex flex-col gap-1">
-                        <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">Fenster 1 von</label>
-                        <input type="time" name="peak_limit_w1_start"
-                            value="{{ old('peak_limit_w1_start', $values['peak_limit_w1_start']) }}"
-                            class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                    </div>
-                    <div class="flex flex-col gap-1">
-                        <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">bis</label>
-                        <input type="time" name="peak_limit_w1_end"
-                            value="{{ old('peak_limit_w1_end', $values['peak_limit_w1_end']) }}"
-                            class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                    </div>
-                    <div class="flex flex-col gap-1">
-                        <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">Fenster 2 von</label>
-                        <input type="time" name="peak_limit_w2_start"
-                            value="{{ old('peak_limit_w2_start', $values['peak_limit_w2_start']) }}"
-                            class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                    </div>
-                    <div class="flex flex-col gap-1">
-                        <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">bis</label>
-                        <input type="time" name="peak_limit_w2_end"
-                            value="{{ old('peak_limit_w2_end', $values['peak_limit_w2_end']) }}"
-                            class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
         <div class="flex justify-end pt-2">
             <button type="submit" class="bg-[#bf4316] hover:bg-[#9e3412] text-white text-sm font-medium px-5 py-2 rounded transition-colors">{{ __('booking.admin.save') }}</button>
         </div>
@@ -314,4 +244,6 @@
 
 </div>
 @endsection
+
+
 

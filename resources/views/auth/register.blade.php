@@ -15,6 +15,7 @@
     $registrationHeading = str_replace(':system', $bookingName, $registrationContent['heading']);
     $registrationWelcome = str_replace(':system', $bookingName, $registrationContent['welcome']);
     $registrationIntro = str_replace(':system', $bookingName, $registrationContent['intro']);
+    $registrationEmailHelp = str_replace(':system', $bookingName, $registrationContent['email_help']);
     $privacyUrl = trim((string) \App\Models\Option::getValue('client.website.privacy', '#'));
     $privacyLink = '<a href="'.e($privacyUrl !== '' ? $privacyUrl : '#').'" class="text-[#bf4316] underline" target="_blank" rel="noopener noreferrer">'.e(__('booking.register.privacy_link')).'</a>';
     $registrationPrivacy = str_replace([':system', ':privacy_policy'], [$bookingName, $privacyLink], $registrationContent['privacy']);
@@ -23,11 +24,13 @@
 <div class="max-w-3xl mx-auto px-4 py-6 sm:py-10">
     <div class="mb-6 sm:mb-8">
         <a href="{{ route('calendar.index') }}" class="flex items-center gap-3 mb-4 sm:mb-6 w-fit min-w-0">
-            <img src="{{ asset(config('booking.logo_path')) }}"
-                 width="{{ config('booking.logo_width') }}"
-                 height="{{ config('booking.logo_height') }}"
-                 alt="{{ $bookingName }}"
-                 class="block h-10 sm:h-auto w-auto">
+            @if($bookingLogoPath && file_exists(public_path($bookingLogoPath)))
+                <img src="{{ asset($bookingLogoPath) }}"
+                     width="88"
+                     height="88"
+                     alt="{{ $bookingName }}"
+                     class="block h-14 sm:h-16 w-auto max-w-[72px] sm:max-w-[88px] object-contain shrink-0">
+            @endif
             <span style="font-family: var(--font-display)" class="font-bold text-lg text-[#151515]">{{ $bookingName }}</span>
         </a>
         <h1 style="font-family: var(--font-display)" class="text-2xl sm:text-3xl font-bold text-[#151515] mb-2">{{ $registrationHeading }}</h1>
@@ -51,7 +54,7 @@
                         {{ __('booking.register.email') }}
                     </label>
                     <input type="email" name="email" value="{{ old('email') }}" autocomplete="email" class="ui-input {{ $errors->has('email') ? 'border-red-400' : '' }}">
-                    <p class="ui-help">{{ __('booking.register.email_help') }}</p>
+                    <p class="ui-help">{{ $registrationEmailHelp }}</p>
                     @error('email')<p class="ui-error">{{ $message }}</p>@enderror
                 </div>
 

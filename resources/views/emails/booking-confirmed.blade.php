@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
 <meta charset="utf-8">
 <style>
@@ -15,38 +15,39 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>Buchungsbestätigung</h1>
-  <p class="sub">Ihre Buchung wurde erfolgreich gespeichert.</p>
+  <h1>{{ __('booking.mail.confirmed_heading') }}</h1>
+  <p class="sub">{{ __('booking.mail.confirmed_subheading') }}</p>
 
   <table>
     @if($square)
-    <tr><td>Platz</td><td>{{ $square->display_name }}</td></tr>
+    <tr><td>{{ __('booking.mail.court') }}</td><td>{{ $square->display_name }}</td></tr>
     @endif
     @if($reservation)
     <tr>
-      <td>Datum</td>
+      <td>{{ __('booking.mail.date') }}</td>
       <td>{{ \Carbon\Carbon::parse($reservation->date)->isoFormat('dddd, D. MMMM Y') }}</td>
     </tr>
     <tr>
-      <td>Zeit</td>
+      <td>{{ __('booking.mail.time') }}</td>
       <td>
         {{ substr((string) $reservation->time_start, 0, 5) }} –
-        {{ substr((string) $reservation->time_end, 0, 5) }} Uhr
+        {{ substr((string) $reservation->time_end, 0, 5) }} {{ __('booking.admin.common.clock_suffix') }}
       </td>
     </tr>
     @endif
-    <tr><td>Spieler</td><td>{{ $booking->quantity }}</td></tr>
-    <tr><td>Buchungs-Nr.</td><td>#{{ $booking->bid }}</td></tr>
+    <tr><td>{{ __('booking.mail.players') }}</td><td>{{ $booking->quantity }}</td></tr>
+    <tr><td>{{ __('booking.mail.booking_number') }}</td><td>#{{ $booking->bid }}</td></tr>
   </table>
 
   @if($user)
-  <p>Hallo {{ $user->alias }},<br>
-  wir freuen uns auf Ihren Besuch!</p>
+  <p>{{ __('booking.mail.greeting_confirmed', ['name' => $user->alias]) }}<br>
+  {{ __('booking.mail.confirmed_body') }}</p>
   @endif
 
   <div class="footer">
-    Diese E-Mail wurde automatisch generiert. Bitte antworten Sie nicht auf diese Nachricht.
+    {{ __('booking.mail.auto_footer') }}
   </div>
 </div>
 </body>
 </html>
+
