@@ -14,6 +14,7 @@
         <div class="ui-card-body ui-stack">
             <p class="ui-section-label !mb-0">{{ __('booking.admin.bookings.filter_heading') }}</p>
             <form method="GET" action="{{ route('admin.bookings.index') }}" class="ui-row">
+                <input type="hidden" name="searched" value="1">
                 <div class="ui-field min-w-[14rem]">
                     <label class="ui-label">{{ __('booking.admin.common.court') }}</label>
                     <select name="sid" class="ui-select">
@@ -28,6 +29,13 @@
         </div>
     </div>
 
+    @if(!$searched)
+        <div class="ui-card">
+            <div class="ui-card-body">
+                <p class="ui-kpi-meta">{{ __('booking.admin.bookings.search_hint') }}</p>
+            </div>
+        </div>
+    @else
     <div class="ui-card">
         <div class="ui-card-header">
             <div>
@@ -91,5 +99,6 @@
             </div>
         @endif
     </div>
+    @endif
 </div>
 @endsection

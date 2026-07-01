@@ -39,21 +39,27 @@ final class BookingController extends Controller
 
     public function index(Request $request): View
     {
-        $query = Booking::with(['user', 'square', 'reservations', 'meta'])
-            ->whereIn('status', Booking::ACTIVE_STATUSES);
+        $searched = $request->boolean('searched');
+        $bookings = null;
 
-        if ($request->filled('sid')) {
-            $query->where('sid', (int) $request->input('sid'));
+        if ($searched) {
+            $query = Booking::with(['user', 'square', 'reservations', 'meta'])
+                ->whereIn('status', Booking::ACTIVE_STATUSES);
+
+            if ($request->filled('sid')) {
+                $query->where('sid', (int) $request->input('sid'));
+            }
+
+            if ($request->filled('uid')) {
+                $query->where('uid', (int) $request->input('uid'));
+            }
+
+            $bookings = $query->orderByDesc('bid')->paginate(50)->withQueryString();
         }
 
-        if ($request->filled('uid')) {
-            $query->where('uid', (int) $request->input('uid'));
-        }
-
-        $bookings = $query->orderByDesc('bid')->paginate(50);
         $squares = Square::orderBy('priority')->get();
 
-        return view('admin.bookings.index', compact('bookings', 'squares'));
+        return view('admin.bookings.index', compact('bookings', 'squares', 'searched'));
     }
 
     public function create(Request $request): View
