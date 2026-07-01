@@ -4158,7 +4158,7 @@ textarea {
 .app-header__nav-wrap {
     grid-area: nav;
     min-width: 0;
-    justify-content: center;
+    justify-content: flex-end;
 }
 
 .app-header__mobile-controls {

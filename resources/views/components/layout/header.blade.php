@@ -17,7 +17,7 @@
                 <span class="app-header__title text-[18px] font-bold leading-tight text-[#151515]" style="font-family: var(--font-display)">{{ $bookingName }}</span>
             </a>
 
-            <div class="app-header__nav-wrap flex flex-1 justify-center">
+            <div class="app-header__nav-wrap flex flex-1 justify-end">
                 <div class="app-header__nav ui-calendar-nav" id="calendar-header-nav">
                     @stack('header-nav')
                 </div>
