@@ -47,4 +47,12 @@ return [
         'amount' => 'Amount (€)',
         'rates_for' => 'Rates per fiscal year',
     ],
+    'dues' => [
+        'title' => 'Dues',
+        'generate' => 'Generate dues for this fiscal year',
+        'generated' => ':count due(s) created.',
+        'status' => 'Status',
+        'status_paid' => 'Paid',
+        'status_open' => 'Open',
+    ],
 ];

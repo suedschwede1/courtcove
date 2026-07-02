@@ -47,4 +47,12 @@ return [
         'amount' => 'Betrag (€)',
         'rates_for' => 'Beitragssätze pro Fiskaljahr',
     ],
+    'dues' => [
+        'title' => 'Beiträge',
+        'generate' => 'Beiträge für dieses Fiskaljahr generieren',
+        'generated' => ':count Beitrag/Beiträge erzeugt.',
+        'status' => 'Status',
+        'status_paid' => 'Bezahlt',
+        'status_open' => 'Offen',
+    ],
 ];
