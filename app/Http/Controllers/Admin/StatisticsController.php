@@ -67,6 +67,7 @@ final class StatisticsController extends Controller
         $topCourt = null;
         $topCourtCount = -1;
         foreach ($active->groupBy('sid') as $sid => $group) {
+            $sid = (int) $sid;
             $count = $group->count();
             if ($count > $topCourtCount || ($count === $topCourtCount && $sid < $topCourt?->sid)) {
                 $topCourtCount = $count;
