@@ -13,6 +13,7 @@ return [
         'nav_events' => 'Events',
         'nav_bookings' => 'Bookings',
         'nav_courts' => 'Courts',
+        'nav_members' => 'Members',
         'config' => 'Configuration',
         'texts' => 'Texts',
         'testmail' => [
