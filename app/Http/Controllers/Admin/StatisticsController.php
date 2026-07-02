@@ -16,6 +16,12 @@ final class StatisticsController extends Controller
 {
     public function index(): View
     {
+        $searched = request()->boolean('search');
+
+        if (! $searched) {
+            return view('admin.statistics.index', ['searched' => false, 'stats' => null, 'summary' => null]);
+        }
+
         $users = User::whereIn('status', ['enabled', 'assist', 'admin'])
             ->orderBy('alias')
             ->get(['uid', 'alias']);
@@ -42,7 +48,7 @@ final class StatisticsController extends Controller
             ),
         ];
 
-        return view('admin.statistics.index', compact('stats', 'summary'));
+        return view('admin.statistics.index', ['searched' => true, 'stats' => $stats, 'summary' => $summary]);
     }
 
     /** @param Collection<int, Booking> $userBookings */
