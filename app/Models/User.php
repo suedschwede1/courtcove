@@ -32,7 +32,7 @@ class User extends Authenticatable
 
     /** All assignable privileges (ported from ZF2 User::$privileges). */
     public const PRIVILEGES = [
-        'admin.user', 'admin.booking', 'admin.event', 'admin.config', 'admin.see-menu',
+        'admin.user', 'admin.booking', 'admin.event', 'admin.config', 'admin.see-menu', 'admin.members',
         'calendar.see-past', 'calendar.see-data',
         'calendar.create-single-bookings', 'calendar.cancel-single-bookings', 'calendar.delete-single-bookings',
         'calendar.create-subscription-bookings', 'calendar.cancel-subscription-bookings', 'calendar.delete-subscription-bookings',
