@@ -46,6 +46,7 @@ class StatisticsControllerTest extends TestCase
 
         $response->assertOk()->assertDontSee('Nicht Gesucht');
         $this->assertNull($response->viewData('stats'));
+        $this->assertNotNull($response->viewData('summary'));
     }
 
     #[Test]
@@ -138,7 +139,7 @@ class StatisticsControllerTest extends TestCase
         Booking::factory()->create(['uid' => $userB->uid, 'status' => 'single', 'quantity' => 4]);
         Booking::factory()->create(['uid' => $userB->uid, 'status' => 'cancelled', 'quantity' => 2]);
 
-        $response = $this->actingAs($this->admin())->get('/admin/statistics?search=1');
+        $response = $this->actingAs($this->admin())->get('/admin/statistics');
 
         $summary = $response->viewData('summary');
         $this->assertSame(2, $summary['total']);

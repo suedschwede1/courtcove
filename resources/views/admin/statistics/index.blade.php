@@ -15,29 +15,29 @@
         </div>
     </div>
 
-    @if($searched)
-        <div class="ui-grid-4">
-            <div class="ui-card ui-kpi">
-                <div class="ui-card-body ui-stack">
-                    <p class="ui-kpi-label">{{ __('booking.admin.statistics.summary_total') }}</p>
-                    <p class="ui-kpi-value">{{ $summary['total'] }}</p>
-                    <p class="ui-kpi-meta">{{ $summary['single'] }} {{ __('booking.admin.bookings.single') }} · {{ $summary['double'] }} {{ __('booking.admin.bookings.double') }}</p>
-                </div>
-            </div>
-            <div class="ui-card">
-                <div class="ui-card-body ui-stack">
-                    <p class="ui-kpi-label">{{ __('booking.admin.statistics.summary_last_month') }}</p>
-                    <p class="ui-kpi-value">{{ $summary['lastMonth'] }}</p>
-                </div>
-            </div>
-            <div class="ui-card">
-                <div class="ui-card-body ui-stack">
-                    <p class="ui-kpi-label">{{ __('booking.admin.statistics.summary_cancellation_rate') }}</p>
-                    <p class="ui-kpi-value">{{ number_format($summary['cancellationRate'], 1) }}%</p>
-                </div>
+    <div class="ui-grid-4">
+        <div class="ui-card ui-kpi">
+            <div class="ui-card-body ui-stack">
+                <p class="ui-kpi-label">{{ __('booking.admin.statistics.summary_total') }}</p>
+                <p class="ui-kpi-value">{{ $summary['total'] }}</p>
+                <p class="ui-kpi-meta">{{ $summary['single'] }} {{ __('booking.admin.bookings.single') }} · {{ $summary['double'] }} {{ __('booking.admin.bookings.double') }}</p>
             </div>
         </div>
+        <div class="ui-card">
+            <div class="ui-card-body ui-stack">
+                <p class="ui-kpi-label">{{ __('booking.admin.statistics.summary_last_month') }}</p>
+                <p class="ui-kpi-value">{{ $summary['lastMonth'] }}</p>
+            </div>
+        </div>
+        <div class="ui-card">
+            <div class="ui-card-body ui-stack">
+                <p class="ui-kpi-label">{{ __('booking.admin.statistics.summary_cancellation_rate') }}</p>
+                <p class="ui-kpi-value">{{ number_format($summary['cancellationRate'], 1) }}%</p>
+            </div>
+        </div>
+    </div>
 
+    @if($searched)
         <div class="ui-card">
             <div class="ui-table-wrap">
                 @if($stats->isEmpty())
