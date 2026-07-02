@@ -40,4 +40,11 @@ return [
         'starts_on' => 'Starts on',
         'ends_on' => 'Ends on',
     ],
+    'fee_categories' => [
+        'title' => 'Fee categories',
+        'new_category' => 'New category',
+        'name' => 'Name',
+        'amount' => 'Amount (€)',
+        'rates_for' => 'Rates per fiscal year',
+    ],
 ];

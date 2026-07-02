@@ -40,4 +40,11 @@ return [
         'starts_on' => 'Beginn',
         'ends_on' => 'Ende',
     ],
+    'fee_categories' => [
+        'title' => 'Beitragskategorien',
+        'new_category' => 'Neue Kategorie',
+        'name' => 'Bezeichnung',
+        'amount' => 'Betrag (€)',
+        'rates_for' => 'Beitragssätze pro Fiskaljahr',
+    ],
 ];
