@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
+use App\Models\Reservation;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -23,8 +24,11 @@ final class StatisticsController extends Controller
             ->whereIn('uid', $users->pluck('uid'))
             ->get();
 
-        $stats = $users->map(function (User $user) use ($bookings): array {
-            return $this->statsForUser($user, $bookings->where('uid', $user->uid));
+        $lastMonthStart = Carbon::now()->subMonthNoOverflow()->startOfMonth();
+        $lastMonthEnd = Carbon::now()->subMonthNoOverflow()->endOfMonth();
+
+        $stats = $users->map(function (User $user) use ($bookings, $lastMonthStart, $lastMonthEnd): array {
+            return $this->statsForUser($user, $bookings->where('uid', $user->uid), $lastMonthStart, $lastMonthEnd);
         });
 
         $summary = [
@@ -42,17 +46,14 @@ final class StatisticsController extends Controller
     }
 
     /** @param Collection<int, Booking> $userBookings */
-    private function statsForUser(User $user, Collection $userBookings): array
+    private function statsForUser(User $user, Collection $userBookings, Carbon $lastMonthStart, Carbon $lastMonthEnd): array
     {
         $active = $userBookings->whereIn('status', Booking::ACTIVE_STATUSES);
         $cancelledCount = $userBookings->where('status', 'cancelled')->count();
 
-        $lastMonthStart = Carbon::now()->subMonthNoOverflow()->startOfMonth();
-        $lastMonthEnd = Carbon::now()->subMonthNoOverflow()->endOfMonth();
-
         $lastMonthCount = $active->filter(function (Booking $booking) use ($lastMonthStart, $lastMonthEnd): bool {
             return $booking->reservations->contains(
-                fn ($reservation) => Carbon::parse($reservation->date)->between($lastMonthStart, $lastMonthEnd),
+                fn (Reservation $reservation) => Carbon::parse($reservation->date)->between($lastMonthStart, $lastMonthEnd),
             );
         })->count();
 
