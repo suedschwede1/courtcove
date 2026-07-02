@@ -80,6 +80,12 @@ class User extends Authenticatable
         return in_array($this->status, ['enabled', 'assist', 'admin'], true);
     }
 
+    /** Privileged users should use shorter-lived sessions and no persistent login cookie. */
+    public function isPrivileged(): bool
+    {
+        return in_array($this->status, ['assist', 'admin'], true);
+    }
+
     /**
      * Whether the user holds the given privilege(s).
      *
