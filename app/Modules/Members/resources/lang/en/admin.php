@@ -33,4 +33,11 @@ return [
         'edit' => 'Edit',
         'actions' => 'Actions',
     ],
+    'fiscal_years' => [
+        'title' => 'Fiscal years',
+        'new' => 'New fiscal year',
+        'name' => 'Name',
+        'starts_on' => 'Starts on',
+        'ends_on' => 'Ends on',
+    ],
 ];

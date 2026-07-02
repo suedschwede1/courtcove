@@ -33,4 +33,11 @@ return [
         'edit' => 'Bearbeiten',
         'actions' => 'Aktionen',
     ],
+    'fiscal_years' => [
+        'title' => 'Fiskaljahre',
+        'new' => 'Neues Fiskaljahr',
+        'name' => 'Bezeichnung',
+        'starts_on' => 'Beginn',
+        'ends_on' => 'Ende',
+    ],
 ];
