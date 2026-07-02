@@ -16,7 +16,15 @@ class MakeModuleCommand extends Command
 
     public function handle(): int
     {
-        $name = Str::studly($this->argument('name'));
+        $rawName = (string) $this->argument('name');
+
+        if (! preg_match('/^[A-Za-z][A-Za-z0-9]*$/', $rawName)) {
+            $this->error("Invalid module name [{$rawName}]. Use only letters and digits, starting with a letter (e.g. Members) — no slashes, dots, or other path characters.");
+
+            return self::FAILURE;
+        }
+
+        $name = Str::studly($rawName);
         $lowerName = Str::lower($name);
         $modulePath = base_path("app/Modules/{$name}");
 
