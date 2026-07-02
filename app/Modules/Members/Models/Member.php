@@ -54,4 +54,14 @@ class Member extends Model
     {
         return (int) (static::query()->max('member_number') ?? 0) + 1;
     }
+
+    public function paidUntil(): ?\Carbon\Carbon
+    {
+        return $this->dues()
+            ->get()
+            ->filter(fn (MemberDue $due) => $due->isPaid())
+            ->map(fn (MemberDue $due) => $due->fiscalYear->ends_on)
+            ->sort()
+            ->last();
+    }
 }
