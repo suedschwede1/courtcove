@@ -13,6 +13,8 @@ return [
         'actions' => 'Aktionen',
         'more_actions' => 'Mehr Aktionen',
         'login' => 'Anmelden',
+        'admin_mode_on' => 'Admin-Modus einschalten',
+        'admin_mode_off' => 'Admin-Modus ausschalten',
         'today' => 'Heute',
         'previous_day' => 'Vorheriger Tag',
         'next_day' => 'Nächster Tag',

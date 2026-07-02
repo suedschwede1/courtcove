@@ -13,6 +13,8 @@ return [
         'actions' => 'Actions',
         'more_actions' => 'More actions',
         'login' => 'Log In',
+        'admin_mode_on' => 'Turn on admin mode',
+        'admin_mode_off' => 'Turn off admin mode',
         'today' => 'Today',
         'previous_day' => 'Previous Day',
         'next_day' => 'Next Day',

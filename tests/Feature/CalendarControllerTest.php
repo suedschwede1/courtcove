@@ -377,6 +377,21 @@ class CalendarControllerTest extends TestCase
     }
 
     #[Test]
+    public function admin_mode_toggle_button_shown_only_to_admins(): void
+    {
+        $admin = User::factory()->create(['status' => 'admin']);
+        $member = User::factory()->create(['status' => 'enabled']);
+
+        $this->actingAs($admin)->get('/calendar')
+            ->assertOk()
+            ->assertSee(route('admin-mode.set', ['state' => 'on']), false);
+
+        $this->actingAs($member)->get('/calendar')
+            ->assertOk()
+            ->assertDontSee('admin-mode', false);
+    }
+
+    #[Test]
     public function calendar_header_shows_locale_switch_links(): void
     {
         $this->get('/calendar')
