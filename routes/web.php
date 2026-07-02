@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\AdminModeController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DatabaseController;
 use App\Http\Controllers\Admin\EventController;
@@ -26,6 +27,11 @@ Route::get('/register', [RegisterController::class, 'showForm'])->name('register
 Route::post('/register', [RegisterController::class, 'register']);
 
 Route::get('/lang/{locale}', [LocaleController::class, 'switch'])->name('lang.switch');
+
+Route::get('/admin-mode/{state}', [AdminModeController::class, 'set'])
+    ->whereIn('state', ['on', 'off'])
+    ->middleware(['auth', 'can:admin.booking'])
+    ->name('admin-mode.set');
 
 Route::get('/', static fn () => redirect()->route('calendar.index'));
 Route::get('/booking', static fn () => redirect()->route('calendar.index'));
