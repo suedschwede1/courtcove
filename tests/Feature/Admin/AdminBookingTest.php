@@ -34,7 +34,7 @@ class AdminBookingTest extends TestCase
             'time_end' => '11:00',
             'quantity' => 2,
             'status' => 'single',
-            'player_name_2' => 'Partner Mustermann',
+            'mitspieler' => 'Partner Mustermann',
         ], $overrides);
     }
 

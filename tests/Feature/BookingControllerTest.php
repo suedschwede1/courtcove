@@ -46,7 +46,7 @@ class BookingControllerTest extends TestCase
             'time_start' => 36000,
             'time_end' => 39600,
             'quantity' => 2,
-            'player_name_2' => 'Partner Mustermann',
+            'mitspieler' => 'Partner Mustermann',
         ])->assertRedirect();
 
         $this->assertDatabaseHas('bs_bookings', ['uid' => $user->uid, 'sid' => $square->sid, 'status' => 'single']);
@@ -124,7 +124,7 @@ class BookingControllerTest extends TestCase
             'time_start' => 36000,
             'time_end' => 39600,
             'quantity' => 2,
-            'player_name_2' => 'Partner Mustermann',
+            'mitspieler' => 'Partner Mustermann',
         ])->assertSessionHasErrors(['booking']);
 
         $this->assertDatabaseMissing('bs_bookings', ['uid' => $user->uid, 'sid' => $square->sid]);
@@ -159,7 +159,7 @@ class BookingControllerTest extends TestCase
             'time_start' => 36000,
             'time_end' => 39600,
             'quantity' => 2,
-            'player_name_2' => 'Partner Mustermann',
+            'mitspieler' => 'Partner Mustermann',
         ])->assertRedirect();
 
         $this->assertDatabaseHas('bs_bookings', ['uid' => $user->uid, 'sid' => $square->sid]);
@@ -185,7 +185,7 @@ class BookingControllerTest extends TestCase
             'time_start' => 36000,
             'time_end' => 39600,
             'quantity' => 2,
-            'player_name_2' => 'Partner Mustermann',
+            'mitspieler' => 'Partner Mustermann',
         ])->assertSessionHasErrors(['booking']);
 
         $this->assertDatabaseMissing('bs_bookings', ['uid' => $user->uid, 'sid' => $square->sid]);
@@ -245,16 +245,14 @@ class BookingControllerTest extends TestCase
         $response = $this->actingAs($user)
             ->put(route('bookings.update', $booking), [
                 'quantity' => 4,
-                'player_name_2' => 'Partner Zwei',
-                'player_name_3' => 'Partner Drei',
-                'player_name_4' => 'Partner Vier',
+                'mitspieler' => 'Partner Zwei',
             ]);
 
         $response->assertRedirect();
 
         $booking->refresh()->load('meta');
         $this->assertSame(4, $booking->quantity);
-        $this->assertSame(['Partner Zwei', 'Partner Drei', 'Partner Vier'], $booking->player_names);
+        $this->assertSame(['Partner Zwei'], $booking->player_names);
     }
 
     #[Test]
@@ -296,9 +294,7 @@ class BookingControllerTest extends TestCase
         $this->actingAs($user)
             ->put(route('bookings.update', $booking), [
                 'quantity' => 4,
-                'player_name_2' => 'Partner Zwei',
-                'player_name_3' => 'Partner Drei',
-                'player_name_4' => 'Partner Vier',
+                'mitspieler' => 'Partner Zwei',
             ])
             ->assertSessionHasErrors(['booking']);
 
