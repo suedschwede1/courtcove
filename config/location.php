@@ -1,9 +1,5 @@
 <?php
 
-use Stevebauman\Location\Drivers\GeoPlugin;
-use Stevebauman\Location\Drivers\Ip2locationio;
-use Stevebauman\Location\Drivers\IpApi;
-use Stevebauman\Location\Drivers\IpInfo;
 use Stevebauman\Location\Drivers\MaxMind;
 use Stevebauman\Location\Position;
 
@@ -18,7 +14,7 @@ return [
     |
     */
 
-    'driver' => IpApi::class,
+    'driver' => MaxMind::class,
 
     /*
     |--------------------------------------------------------------------------
@@ -32,12 +28,7 @@ return [
     |
     */
 
-    'fallbacks' => [
-        Ip2locationio::class,
-        IpInfo::class,
-        GeoPlugin::class,
-        MaxMind::class,
-    ],
+    'fallbacks' => [],
 
     /*
     |--------------------------------------------------------------------------
@@ -110,9 +101,9 @@ return [
         ],
 
         'local' => [
-            'type' => 'city',
-            'path' => database_path('maxmind/GeoLite2-City.mmdb'),
-            'url' => sprintf('https://download.maxmind.com/app/geoip_download_by_token?edition_id=GeoLite2-City&license_key=%s&suffix=tar.gz', env('MAXMIND_LICENSE_KEY')),
+            'type' => 'country',
+            'path' => env('GEOIP_DATABASE_PATH', storage_path('app/geoip/GeoLite2-Country.mmdb')),
+            'url' => sprintf('https://download.maxmind.com/app/geoip_download_by_token?edition_id=GeoLite2-Country&license_key=%s&suffix=tar.gz', env('MAXMIND_LICENSE_KEY')),
         ],
     ],
 
