@@ -32,6 +32,10 @@ return [
             'no_pending' => 'No pending migrations.',
             'migrate_button' => 'Run pending migrations',
             'migrate_confirm' => 'This will run pending database migrations against the live database. Continue?',
+            'migrate_confirmation_label' => 'Confirmation',
+            'migrate_confirmation_help' => 'Type :value exactly to confirm.',
+            'migrate_confirmation_placeholder' => 'Enter confirmation',
+            'migrate_confirmation_invalid' => 'Please type :value exactly to confirm.',
             'migrate_ran' => 'Migrations executed.',
             'migrate_failed' => 'Running migrations failed. Check the server logs for details.',
             'tables_heading' => 'Tables',
@@ -394,4 +398,5 @@ return [
         ],
     ],
 ];
+
 

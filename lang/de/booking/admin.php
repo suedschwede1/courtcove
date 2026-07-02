@@ -32,6 +32,10 @@ return [
             'no_pending' => 'Keine ausstehenden Migrationen.',
             'migrate_button' => 'Ausstehende Migrationen ausführen',
             'migrate_confirm' => 'Dies führt ausstehende Datenbank-Migrationen gegen die Live-Datenbank aus. Fortfahren?',
+            'migrate_confirmation_label' => 'Bestätigung',
+            'migrate_confirmation_help' => 'Geben Sie zur Bestätigung exakt :value ein.',
+            'migrate_confirmation_placeholder' => 'Bestätigung eingeben',
+            'migrate_confirmation_invalid' => 'Bitte geben Sie zur Bestätigung exakt :value ein.',
             'migrate_ran' => 'Migrationen ausgeführt.',
             'migrate_failed' => 'Die Migration ist fehlgeschlagen. Details siehe Server-Logs.',
             'tables_heading' => 'Tabellen',
@@ -394,6 +398,7 @@ return [
         ],
     ],
 ];
+
 
 
 
