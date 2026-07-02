@@ -11,7 +11,7 @@ use App\Modules\Members\Http\Controllers\MemberExportController;
 use App\Modules\Members\Http\Controllers\PaymentController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['web', 'auth', 'can:admin.members'])
+Route::middleware(['auth', 'can:admin.members'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function (): void {
