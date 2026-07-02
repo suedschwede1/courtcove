@@ -57,6 +57,16 @@ final class StatisticsController extends Controller
             );
         })->count();
 
+        $topCourt = null;
+        $topCourtCount = -1;
+        foreach ($active->groupBy('sid') as $sid => $group) {
+            $count = $group->count();
+            if ($count > $topCourtCount || ($count === $topCourtCount && $sid < $topCourt?->sid)) {
+                $topCourtCount = $count;
+                $topCourt = $group->first()->square;
+            }
+        }
+
         return [
             'uid' => $user->uid,
             'alias' => $user->alias,
@@ -64,7 +74,7 @@ final class StatisticsController extends Controller
             'single' => $active->where('quantity', 2)->count(),
             'double' => $active->where('quantity', 4)->count(),
             'lastMonth' => $lastMonthCount,
-            'topCourt' => null,
+            'topCourt' => $topCourt?->display_name,
             'cancelled' => $cancelledCount,
             'cancellationRate' => $this->cancellationRate($cancelledCount, $cancelledCount + $active->count()),
         ];

@@ -71,4 +71,20 @@ class StatisticsControllerTest extends TestCase
         $row = $rows->firstWhere('uid', $user->uid);
         $this->assertSame(1, $row['lastMonth']);
     }
+
+    #[Test]
+    public function shows_the_most_booked_court_per_user(): void
+    {
+        $user = User::factory()->create(['alias' => 'Sandra Wenigwieser', 'status' => 'enabled']);
+        $courtA = \App\Models\Square::factory()->create(['name' => '1']);
+        $courtB = \App\Models\Square::factory()->create(['name' => '2']);
+
+        \App\Models\Booking::factory()->count(2)->create(['uid' => $user->uid, 'sid' => $courtA->sid, 'status' => 'single']);
+        \App\Models\Booking::factory()->create(['uid' => $user->uid, 'sid' => $courtB->sid, 'status' => 'single']);
+
+        $response = $this->actingAs($this->admin())->get('/admin/statistics');
+
+        $row = $response->viewData('stats')->firstWhere('uid', $user->uid);
+        $this->assertSame($courtA->display_name, $row['topCourt']);
+    }
 }
