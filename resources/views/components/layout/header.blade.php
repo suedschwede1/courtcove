@@ -67,7 +67,15 @@
                 @can('admin.booking')
                     @php $adminModeOn = request()->cookie('admin_mode') === '1'; @endphp
                     <a href="{{ route('admin-mode.set', ['state' => $adminModeOn ? 'off' : 'on']) }}"
-                       class="inline-flex h-8 items-center rounded-[6px] border border-[#d4cec3] bg-white px-4 text-[13px] font-medium text-[#6a6e73] transition-colors hover:border-[#bf4316] hover:text-[#bf4316]">{{ $adminModeOn ? __('booking.nav.admin_mode_off') : __('booking.nav.admin_mode_on') }}</a>
+                       role="switch"
+                       aria-checked="{{ $adminModeOn ? 'true' : 'false' }}"
+                       aria-label="{{ $adminModeOn ? __('booking.nav.admin_mode_off') : __('booking.nav.admin_mode_on') }}"
+                       class="inline-flex h-8 items-center gap-2 rounded-[6px] border border-[#d4cec3] bg-white px-4 text-[13px] font-medium text-[#6a6e73] transition-colors hover:border-[#bf4316] hover:text-[#bf4316]">
+                        <span>{{ __('booking.nav.admin_mode') }}</span>
+                        <span aria-hidden="true" class="relative inline-flex h-[18px] w-8 shrink-0 items-center rounded-full transition-colors {{ $adminModeOn ? 'bg-[#bf4316]' : 'bg-[#d4cec3]' }}">
+                            <span class="inline-block h-[14px] w-[14px] transform rounded-full bg-white shadow transition-transform {{ $adminModeOn ? 'translate-x-[16px]' : 'translate-x-[2px]' }}"></span>
+                        </span>
+                    </a>
                 @endcan
 
                 <div class="app-header__locale flex items-center gap-1 text-[13px] font-medium text-[#6a6e73]">
