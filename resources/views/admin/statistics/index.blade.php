@@ -20,6 +20,7 @@
                             <th>{{ __('booking.admin.statistics.double') }}</th>
                             <th>{{ __('booking.admin.statistics.last_month') }}</th>
                             <th>{{ __('booking.admin.statistics.top_court') }}</th>
+                            <th>{{ __('booking.admin.statistics.cancellation_rate') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -31,6 +32,7 @@
                                 <td>{{ $row['double'] }}</td>
                                 <td>{{ $row['lastMonth'] }}</td>
                                 <td>{{ $row['topCourt'] ?? '—' }}</td>
+                                <td>{{ number_format($row['cancellationRate'], 1) }}%</td>
                             </tr>
                         @endforeach
                     </tbody>

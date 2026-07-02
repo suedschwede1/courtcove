@@ -87,4 +87,20 @@ class StatisticsControllerTest extends TestCase
         $row = $response->viewData('stats')->firstWhere('uid', $user->uid);
         $this->assertSame($courtA->display_name, $row['topCourt']);
     }
+
+    #[Test]
+    public function shows_cancellation_rate_per_user(): void
+    {
+        $user = User::factory()->create(['alias' => 'Gerhard Bichlwagner', 'status' => 'enabled']);
+        \App\Models\Booking::factory()->create(['uid' => $user->uid, 'status' => 'single']);
+        \App\Models\Booking::factory()->create(['uid' => $user->uid, 'status' => 'cancelled']);
+        \App\Models\Booking::factory()->create(['uid' => $user->uid, 'status' => 'cancelled']);
+
+        $response = $this->actingAs($this->admin())->get('/admin/statistics');
+
+        $row = $response->viewData('stats')->firstWhere('uid', $user->uid);
+        // 2 cancelled out of 3 total bookings = 66.7%
+        $this->assertSame(66.7, $row['cancellationRate']);
+        $response->assertSee('66.7');
+    }
 }
