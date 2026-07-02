@@ -43,16 +43,16 @@
                 @if($stats->isEmpty())
                     <div class="ui-card-body"><p class="ui-kpi-meta">{{ __('booking.admin.no_results') }}</p></div>
                 @else
-                    <table class="ui-table">
+                    <table class="ui-table" id="statistics-table">
                         <thead>
                             <tr>
-                                <th>{{ __('booking.admin.statistics.member') }}</th>
-                                <th>{{ __('booking.admin.statistics.total') }}</th>
-                                <th>{{ __('booking.admin.statistics.single') }}</th>
-                                <th>{{ __('booking.admin.statistics.double') }}</th>
-                                <th>{{ __('booking.admin.statistics.last_month') }}</th>
-                                <th>{{ __('booking.admin.statistics.top_court') }}</th>
-                                <th>{{ __('booking.admin.statistics.cancellation_rate') }}</th>
+                                <th data-sort="text">{{ __('booking.admin.statistics.member') }}</th>
+                                <th data-sort="number">{{ __('booking.admin.statistics.total') }}</th>
+                                <th data-sort="number">{{ __('booking.admin.statistics.single') }}</th>
+                                <th data-sort="number">{{ __('booking.admin.statistics.double') }}</th>
+                                <th data-sort="number">{{ __('booking.admin.statistics.last_month') }}</th>
+                                <th data-sort="text">{{ __('booking.admin.statistics.top_court') }}</th>
+                                <th data-sort="number">{{ __('booking.admin.statistics.cancellation_rate') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -76,4 +76,38 @@
         <div class="ui-card"><div class="ui-card-body"><p class="ui-kpi-meta">{{ __('booking.admin.search_hint') }}</p></div></div>
     @endif
 </div>
+
+<script>
+(function () {
+    var table = document.getElementById('statistics-table');
+    if (!table) { return; }
+
+    var headers = table.querySelectorAll('thead th');
+    var currentSort = { index: -1, dir: 1 };
+
+    headers.forEach(function (th, index) {
+        th.style.cursor = 'pointer';
+        th.addEventListener('click', function () {
+            var type = th.getAttribute('data-sort');
+            var dir = currentSort.index === index ? -currentSort.dir : 1;
+            currentSort = { index: index, dir: dir };
+
+            var rows = Array.prototype.slice.call(table.querySelectorAll('tbody tr'));
+            rows.sort(function (a, b) {
+                var aText = a.children[index].textContent.trim();
+                var bText = b.children[index].textContent.trim();
+                if (type === 'number') {
+                    var aVal = parseFloat(aText.replace('%', '').replace('—', '-1')) || 0;
+                    var bVal = parseFloat(bText.replace('%', '').replace('—', '-1')) || 0;
+                    return (aVal - bVal) * dir;
+                }
+                return aText.localeCompare(bText) * dir;
+            });
+
+            var tbody = table.querySelector('tbody');
+            rows.forEach(function (row) { tbody.appendChild(row); });
+        });
+    });
+})();
+</script>
 @endsection
