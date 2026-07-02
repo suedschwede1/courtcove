@@ -9,14 +9,15 @@ use App\Models\Booking;
 use App\Models\Reservation;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 final class StatisticsController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $searched = request()->boolean('search');
+        $searched = $request->boolean('searched');
 
         $users = User::whereIn('status', ['enabled', 'assist', 'admin'])
             ->orderBy('alias')

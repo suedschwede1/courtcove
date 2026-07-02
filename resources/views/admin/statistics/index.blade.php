@@ -9,7 +9,7 @@
     <div class="ui-card ui-card--filter">
         <div class="ui-card-body ui-stack">
             <form method="GET" action="{{ route('admin.statistics.index') }}" class="ui-row">
-                <input type="hidden" name="search" value="1">
+                <input type="hidden" name="searched" value="1">
                 <button type="submit" class="ui-btn ui-btn-primary">{{ __('booking.admin.common.filter') }}</button>
             </form>
         </div>

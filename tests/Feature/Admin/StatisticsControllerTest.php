@@ -54,7 +54,7 @@ class StatisticsControllerTest extends TestCase
     {
         $user = User::factory()->create(['alias' => 'Gesucht Gefunden', 'status' => 'enabled']);
 
-        $response = $this->actingAs($this->admin())->get('/admin/statistics?search=1');
+        $response = $this->actingAs($this->admin())->get('/admin/statistics?searched=1');
 
         $response->assertOk()->assertSee('Gesucht Gefunden');
         $this->assertNotNull($response->viewData('stats'));
@@ -68,7 +68,7 @@ class StatisticsControllerTest extends TestCase
         Booking::factory()->create(['uid' => $user->uid, 'status' => 'single', 'quantity' => 4]);
         Booking::factory()->create(['uid' => $user->uid, 'status' => 'cancelled', 'quantity' => 2]);
 
-        $response = $this->actingAs($this->admin())->get('/admin/statistics?search=1');
+        $response = $this->actingAs($this->admin())->get('/admin/statistics?searched=1');
 
         $response->assertOk()
             ->assertSeeInOrder(['Heinz Mayer'])
@@ -90,7 +90,7 @@ class StatisticsControllerTest extends TestCase
         $thisMonthBooking = Booking::factory()->create(['uid' => $user->uid, 'status' => 'single']);
         Reservation::factory()->create(['bid' => $thisMonthBooking->bid, 'date' => $thisMonthDate]);
 
-        $response = $this->actingAs($this->admin())->get('/admin/statistics?search=1');
+        $response = $this->actingAs($this->admin())->get('/admin/statistics?searched=1');
 
         $response->assertOk();
         $rows = $response->viewData('stats');
@@ -108,7 +108,7 @@ class StatisticsControllerTest extends TestCase
         Booking::factory()->count(2)->create(['uid' => $user->uid, 'sid' => $courtA->sid, 'status' => 'single']);
         Booking::factory()->create(['uid' => $user->uid, 'sid' => $courtB->sid, 'status' => 'single']);
 
-        $response = $this->actingAs($this->admin())->get('/admin/statistics?search=1');
+        $response = $this->actingAs($this->admin())->get('/admin/statistics?searched=1');
 
         $row = $response->viewData('stats')->firstWhere('uid', $user->uid);
         $this->assertSame($courtA->display_name, $row['topCourt']);
@@ -122,7 +122,7 @@ class StatisticsControllerTest extends TestCase
         Booking::factory()->create(['uid' => $user->uid, 'status' => 'cancelled']);
         Booking::factory()->create(['uid' => $user->uid, 'status' => 'cancelled']);
 
-        $response = $this->actingAs($this->admin())->get('/admin/statistics?search=1');
+        $response = $this->actingAs($this->admin())->get('/admin/statistics?searched=1');
 
         $row = $response->viewData('stats')->firstWhere('uid', $user->uid);
         // 2 cancelled out of 3 total bookings = 66.7%
