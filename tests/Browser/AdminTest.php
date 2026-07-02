@@ -4,75 +4,88 @@ declare(strict_types=1);
 
 namespace Tests\Browser;
 
+use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Laravel\Dusk\Browser;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\Browser\Support\CreatesTestData;
 use Tests\DuskTestCase;
 
 final class AdminTest extends DuskTestCase
 {
     use CreatesTestData;
+    use DatabaseMigrations;
 
-    public function test_admin_can_access_admin_area(): void
+    #[Test]
+    public function admin_can_access_admin_area(): void
     {
         $admin = $this->createAdminUser('dusk_admin');
 
         try {
-            $this->browse(function (Browser $b) use ($admin): void {
-                $b->loginAs($admin)
-                  ->visit('/admin')
-                  ->assertPathBeginsWith('/admin');
+            $this->browse(function (Browser $browser) use ($admin): void {
+                $browser->loginAs($admin)
+                    ->visit('/admin')
+                    ->assertPathIs('/admin')
+                    ->assertPresent('.ui-grid-4');
             });
         } finally {
             $this->deleteTestUser('dusk_admin');
         }
     }
 
-    public function test_regular_user_cannot_access_admin_area(): void
+    #[Test]
+    public function regular_user_does_not_see_admin_navigation(): void
     {
         $user = $this->createTestUser('dusk_noadmin');
+        $this->createSquare(alias: 'Court One');
 
         try {
-            $this->browse(function (Browser $b) use ($user): void {
-                $b->loginAs($user)
-                  ->visit('/admin')
-                  ->assertPathIsNot('/admin/dashboard');
+            $this->browse(function (Browser $browser) use ($user): void {
+                $browser->loginAs($user)
+                    ->visit('/calendar')
+                    ->assertDontSeeLink('Administration');
             });
         } finally {
             $this->deleteTestUser('dusk_noadmin');
         }
     }
 
-    public function test_admin_users_list_renders(): void
+    #[Test]
+    public function admin_users_list_renders_after_search(): void
     {
         $admin = $this->createAdminUser('dusk_ulist');
 
         try {
-            $this->browse(function (Browser $b) use ($admin): void {
-                $b->loginAs($admin)
-                  ->visit('/admin/users')
-                  ->assertPresent('table')
-                  ->assertPresent('input[type="checkbox"]');
+            $this->browse(function (Browser $browser) use ($admin): void {
+                $browser->loginAs($admin)
+                    ->visit('/admin/users?q=dusk_ulist')
+                    ->assertPresent('table.ui-table')
+                    ->assertSee('dusk_ulist');
             });
         } finally {
             $this->deleteTestUser('dusk_ulist');
         }
     }
 
-    public function test_bulk_user_action_blocks_user(): void
+    #[Test]
+    public function bulk_user_action_blocks_the_selected_user(): void
     {
-        $admin  = $this->createAdminUser('dusk_bulk_adm');
+        $admin = $this->createAdminUser('dusk_bulk_adm');
         $target = $this->createTestUser('dusk_bulk_tgt');
 
         try {
-            $this->browse(function (Browser $b) use ($admin, $target): void {
-                $b->loginAs($admin)
-                  ->visit('/admin/users')
-                  ->check('uids[]')
-                  ->waitFor('[data-bulk-action]', 3)
-                  ->press('Sperren')
-                  ->waitForText('aktualisiert')
-                  ->assertSee('aktualisiert');
+            $this->browse(function (Browser $browser) use ($admin): void {
+                $browser->loginAs($admin)
+                    ->visit('/admin/users?q=dusk_bulk_tgt')
+                    ->script([
+                        'window.confirm = () => true;',
+                        'document.querySelector("tbody input[type=checkbox]")?.click();',
+                    ]);
+
+                $browser->waitFor('button[name="action"][value="blocked"]', 3)
+                    ->click('button[name="action"][value="blocked"]');
             });
+
+            $this->assertSame('blocked', $target->fresh()?->status);
         } finally {
             $this->deleteTestUser('dusk_bulk_adm');
             $this->deleteTestUser('dusk_bulk_tgt');
