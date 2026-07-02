@@ -24,6 +24,10 @@
             </div>
 
             <div class="app-header__mobile-controls">
+                @guest
+                    <a href="{{ route('login', ['redirect_to' => url()->full()]) }}"
+                       class="header-login-button inline-flex h-8 items-center rounded-[6px] bg-[#bf4316] px-4 text-[13px] font-semibold text-white transition-colors hover:bg-[#9e3412]">{{ __('booking.nav.login') }}</a>
+                @endguest
                 <button type="button"
                         class="app-header__action-trigger"
                         @click="actionsOpen = !actionsOpen"
@@ -59,9 +63,7 @@
                         <button type="submit"
                                 class="inline-flex h-8 items-center rounded-[6px] border border-[#d4cec3] bg-white px-4 text-[13px] font-medium text-[#6a6e73] transition-colors hover:border-[#bf4316] hover:text-[#bf4316]">{{ __('booking.nav.logout') }}</button>
                     </form>
-                @else
-                    <a href="{{ route('login', ['redirect_to' => url()->full()]) }}"
-                       class="header-login-button inline-flex h-8 items-center rounded-[6px] bg-[#bf4316] px-4 text-[13px] font-semibold text-white transition-colors hover:bg-[#9e3412]">{{ __('booking.nav.login') }}</a>
+
                 @endauth
 
                 @can('admin.booking')
