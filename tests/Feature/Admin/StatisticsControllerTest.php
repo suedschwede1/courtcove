@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Admin;
 
+use App\Models\Booking;
+use App\Models\Reservation;
+use App\Models\Square;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
@@ -38,9 +41,9 @@ class StatisticsControllerTest extends TestCase
     public function shows_total_single_and_double_counts_per_user_excluding_cancelled(): void
     {
         $user = User::factory()->create(['alias' => 'Heinz Mayer', 'status' => 'enabled']);
-        \App\Models\Booking::factory()->count(2)->create(['uid' => $user->uid, 'status' => 'single', 'quantity' => 2]);
-        \App\Models\Booking::factory()->create(['uid' => $user->uid, 'status' => 'single', 'quantity' => 4]);
-        \App\Models\Booking::factory()->create(['uid' => $user->uid, 'status' => 'cancelled', 'quantity' => 2]);
+        Booking::factory()->count(2)->create(['uid' => $user->uid, 'status' => 'single', 'quantity' => 2]);
+        Booking::factory()->create(['uid' => $user->uid, 'status' => 'single', 'quantity' => 4]);
+        Booking::factory()->create(['uid' => $user->uid, 'status' => 'cancelled', 'quantity' => 2]);
 
         $response = $this->actingAs($this->admin())->get('/admin/statistics');
 
@@ -58,11 +61,11 @@ class StatisticsControllerTest extends TestCase
         $lastMonthDate = now()->subMonthNoOverflow()->startOfMonth()->addDays(3)->toDateString();
         $thisMonthDate = now()->startOfMonth()->addDays(3)->toDateString();
 
-        $lastMonthBooking = \App\Models\Booking::factory()->create(['uid' => $user->uid, 'status' => 'single']);
-        \App\Models\Reservation::factory()->create(['bid' => $lastMonthBooking->bid, 'date' => $lastMonthDate]);
+        $lastMonthBooking = Booking::factory()->create(['uid' => $user->uid, 'status' => 'single']);
+        Reservation::factory()->create(['bid' => $lastMonthBooking->bid, 'date' => $lastMonthDate]);
 
-        $thisMonthBooking = \App\Models\Booking::factory()->create(['uid' => $user->uid, 'status' => 'single']);
-        \App\Models\Reservation::factory()->create(['bid' => $thisMonthBooking->bid, 'date' => $thisMonthDate]);
+        $thisMonthBooking = Booking::factory()->create(['uid' => $user->uid, 'status' => 'single']);
+        Reservation::factory()->create(['bid' => $thisMonthBooking->bid, 'date' => $thisMonthDate]);
 
         $response = $this->actingAs($this->admin())->get('/admin/statistics');
 
@@ -76,11 +79,11 @@ class StatisticsControllerTest extends TestCase
     public function shows_the_most_booked_court_per_user(): void
     {
         $user = User::factory()->create(['alias' => 'Sandra Wenigwieser', 'status' => 'enabled']);
-        $courtA = \App\Models\Square::factory()->create(['name' => '1']);
-        $courtB = \App\Models\Square::factory()->create(['name' => '2']);
+        $courtA = Square::factory()->create(['name' => '1']);
+        $courtB = Square::factory()->create(['name' => '2']);
 
-        \App\Models\Booking::factory()->count(2)->create(['uid' => $user->uid, 'sid' => $courtA->sid, 'status' => 'single']);
-        \App\Models\Booking::factory()->create(['uid' => $user->uid, 'sid' => $courtB->sid, 'status' => 'single']);
+        Booking::factory()->count(2)->create(['uid' => $user->uid, 'sid' => $courtA->sid, 'status' => 'single']);
+        Booking::factory()->create(['uid' => $user->uid, 'sid' => $courtB->sid, 'status' => 'single']);
 
         $response = $this->actingAs($this->admin())->get('/admin/statistics');
 
@@ -92,9 +95,9 @@ class StatisticsControllerTest extends TestCase
     public function shows_cancellation_rate_per_user(): void
     {
         $user = User::factory()->create(['alias' => 'Gerhard Bichlwagner', 'status' => 'enabled']);
-        \App\Models\Booking::factory()->create(['uid' => $user->uid, 'status' => 'single']);
-        \App\Models\Booking::factory()->create(['uid' => $user->uid, 'status' => 'cancelled']);
-        \App\Models\Booking::factory()->create(['uid' => $user->uid, 'status' => 'cancelled']);
+        Booking::factory()->create(['uid' => $user->uid, 'status' => 'single']);
+        Booking::factory()->create(['uid' => $user->uid, 'status' => 'cancelled']);
+        Booking::factory()->create(['uid' => $user->uid, 'status' => 'cancelled']);
 
         $response = $this->actingAs($this->admin())->get('/admin/statistics');
 
@@ -102,5 +105,23 @@ class StatisticsControllerTest extends TestCase
         // 2 cancelled out of 3 total bookings = 66.7%
         $this->assertSame(66.7, $row['cancellationRate']);
         $response->assertSee('66.7');
+    }
+
+    #[Test]
+    public function shows_club_wide_summary_totals(): void
+    {
+        $userA = User::factory()->create(['status' => 'enabled']);
+        $userB = User::factory()->create(['status' => 'enabled']);
+        Booking::factory()->create(['uid' => $userA->uid, 'status' => 'single', 'quantity' => 2]);
+        Booking::factory()->create(['uid' => $userB->uid, 'status' => 'single', 'quantity' => 4]);
+        Booking::factory()->create(['uid' => $userB->uid, 'status' => 'cancelled', 'quantity' => 2]);
+
+        $response = $this->actingAs($this->admin())->get('/admin/statistics');
+
+        $summary = $response->viewData('summary');
+        $this->assertSame(2, $summary['total']);
+        $this->assertSame(1, $summary['single']);
+        $this->assertSame(1, $summary['double']);
+        $response->assertSee(__('booking.admin.statistics.summary_total'));
     }
 }
