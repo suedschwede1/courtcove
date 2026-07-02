@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
@@ -18,8 +19,8 @@ final class StatisticsController extends Controller
             ->orderBy('alias')
             ->get(['uid', 'alias']);
 
-        // NOTE: add ->with(['reservations', 'square']) once topCourt/lastMonth start using those relations.
-        $bookings = Booking::whereIn('uid', $users->pluck('uid'))
+        $bookings = Booking::with(['reservations', 'square'])
+            ->whereIn('uid', $users->pluck('uid'))
             ->get();
 
         $stats = $users->map(function (User $user) use ($bookings): array {
@@ -46,13 +47,22 @@ final class StatisticsController extends Controller
         $active = $userBookings->whereIn('status', Booking::ACTIVE_STATUSES);
         $cancelledCount = $userBookings->where('status', 'cancelled')->count();
 
+        $lastMonthStart = Carbon::now()->subMonthNoOverflow()->startOfMonth();
+        $lastMonthEnd = Carbon::now()->subMonthNoOverflow()->endOfMonth();
+
+        $lastMonthCount = $active->filter(function (Booking $booking) use ($lastMonthStart, $lastMonthEnd): bool {
+            return $booking->reservations->contains(
+                fn ($reservation) => Carbon::parse($reservation->date)->between($lastMonthStart, $lastMonthEnd),
+            );
+        })->count();
+
         return [
             'uid' => $user->uid,
             'alias' => $user->alias,
             'total' => $active->count(),
             'single' => $active->where('quantity', 2)->count(),
             'double' => $active->where('quantity', 4)->count(),
-            'lastMonth' => 0,
+            'lastMonth' => $lastMonthCount,
             'topCourt' => null,
             'cancelled' => $cancelledCount,
             'cancellationRate' => $this->cancellationRate($cancelledCount, $cancelledCount + $active->count()),

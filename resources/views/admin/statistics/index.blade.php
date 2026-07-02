@@ -18,6 +18,7 @@
                             <th>{{ __('booking.admin.statistics.total') }}</th>
                             <th>{{ __('booking.admin.statistics.single') }}</th>
                             <th>{{ __('booking.admin.statistics.double') }}</th>
+                            <th>{{ __('booking.admin.statistics.last_month') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -27,6 +28,7 @@
                                 <td>{{ $row['total'] }}</td>
                                 <td>{{ $row['single'] }}</td>
                                 <td>{{ $row['double'] }}</td>
+                                <td>{{ $row['lastMonth'] }}</td>
                             </tr>
                         @endforeach
                     </tbody>

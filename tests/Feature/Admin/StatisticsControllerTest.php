@@ -50,4 +50,25 @@ class StatisticsControllerTest extends TestCase
             ->assertSee('2') // single count
             ->assertSee('1'); // double count
     }
+
+    #[Test]
+    public function shows_bookings_from_last_calendar_month_via_reservation_dates(): void
+    {
+        $user = User::factory()->create(['alias' => 'Helga Miglbauer', 'status' => 'enabled']);
+        $lastMonthDate = now()->subMonthNoOverflow()->startOfMonth()->addDays(3)->toDateString();
+        $thisMonthDate = now()->startOfMonth()->addDays(3)->toDateString();
+
+        $lastMonthBooking = \App\Models\Booking::factory()->create(['uid' => $user->uid, 'status' => 'single']);
+        \App\Models\Reservation::factory()->create(['bid' => $lastMonthBooking->bid, 'date' => $lastMonthDate]);
+
+        $thisMonthBooking = \App\Models\Booking::factory()->create(['uid' => $user->uid, 'status' => 'single']);
+        \App\Models\Reservation::factory()->create(['bid' => $thisMonthBooking->bid, 'date' => $thisMonthDate]);
+
+        $response = $this->actingAs($this->admin())->get('/admin/statistics');
+
+        $response->assertOk();
+        $rows = $response->viewData('stats');
+        $row = $rows->firstWhere('uid', $user->uid);
+        $this->assertSame(1, $row['lastMonth']);
+    }
 }
