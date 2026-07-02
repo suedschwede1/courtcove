@@ -40,12 +40,27 @@ class DatabaseControllerTest extends TestCase
     }
 
     #[Test]
-    public function admin_can_run_pending_migrations(): void
+    public function admin_must_confirm_before_running_pending_migrations(): void
+    {
+        DB::table('migrations')->where('migration', '2026_06_28_155630_create_jobs_table')->delete();
+
+        $this->from('/admin/database')
+            ->actingAs($this->admin())
+            ->post('/admin/database/migrate', ['confirmation' => 'wrong'])
+            ->assertRedirect('/admin/database')
+            ->assertSessionHasErrors('confirmation')
+            ->assertSessionHasInput('confirmation', 'wrong');
+
+        $this->assertDatabaseMissing('migrations', ['migration' => '2026_06_28_155630_create_jobs_table']);
+    }
+
+    #[Test]
+    public function admin_can_run_pending_migrations_with_valid_confirmation(): void
     {
         DB::table('migrations')->where('migration', '2026_06_28_155630_create_jobs_table')->delete();
 
         $this->actingAs($this->admin())
-            ->post('/admin/database/migrate')
+            ->post('/admin/database/migrate', ['confirmation' => 'MIGRATE'])
             ->assertRedirect('/admin/database')
             ->assertSessionHas('success');
 
@@ -56,7 +71,7 @@ class DatabaseControllerTest extends TestCase
     public function regular_member_cannot_run_migrations(): void
     {
         $this->actingAs(User::factory()->create(['status' => 'enabled']))
-            ->post('/admin/database/migrate')
+            ->post('/admin/database/migrate', ['confirmation' => 'MIGRATE'])
             ->assertForbidden();
     }
 

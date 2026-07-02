@@ -6,12 +6,30 @@
     <h1 class="text-2xl font-bold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.admin.database.title') }}</h1>
 
     <div class="bg-white rounded-xl border border-[#e0ddd7] shadow-sm overflow-hidden">
-        <div class="px-6 py-4 border-b border-[#f0ede6] flex items-center justify-between">
+        <div class="px-6 py-4 border-b border-[#f0ede6] flex items-start justify-between gap-4">
             <h2 class="text-base font-semibold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.admin.database.migrations_heading') }}</h2>
             @if($hasPending)
-                <form method="POST" action="{{ route('admin.database.migrate') }}" onsubmit="return confirm({{ Js::from(__('booking.admin.database.migrate_confirm')) }})">
+                <form method="POST" action="{{ route('admin.database.migrate') }}" class="flex w-full max-w-md flex-col gap-3" onsubmit="return confirm({{ Js::from(__('booking.admin.database.migrate_confirm')) }})">
                     @csrf
-                    <button type="submit" class="bg-[#bf4316] hover:bg-[#9e3412] text-white text-sm font-medium px-4 py-2 rounded transition-colors">{{ __('booking.admin.database.migrate_button') }}</button>
+                    <div class="ui-field">
+                        <label for="db-migrate-confirmation" class="ui-label">{{ __('booking.admin.database.migrate_confirmation_label') }}</label>
+                        <input
+                            id="db-migrate-confirmation"
+                            type="text"
+                            name="confirmation"
+                            value="{{ old('confirmation') }}"
+                            placeholder="{{ __('booking.admin.database.migrate_confirmation_placeholder') }}"
+                            class="ui-input {{ $errors->has('confirmation') ? 'border-red-400 focus:ring-red-500' : '' }}"
+                            autocomplete="off"
+                            spellcheck="false">
+                        <p class="text-xs text-[#6a6e73]">{{ __('booking.admin.database.migrate_confirmation_help', ['value' => $migrationConfirmationValue]) }}</p>
+                        @error('confirmation')
+                            <p class="text-xs text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    <div class="flex justify-end">
+                        <button type="submit" class="bg-[#bf4316] hover:bg-[#9e3412] text-white text-sm font-medium px-4 py-2 rounded transition-colors">{{ __('booking.admin.database.migrate_button') }}</button>
+                    </div>
                 </form>
             @endif
         </div>
