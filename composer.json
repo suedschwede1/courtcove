@@ -51,8 +51,8 @@
             "@php artisan config:clear --ansi @no_additional_args",
             "@php artisan test"
         ],
-        "dusk": "@php artisan dusk",
-        "dusk:visual": "@php artisan dusk --filter VisualRegressionTest",
+        "dusk": "@php vendor/bin/phpunit -c phpunit.dusk.xml",
+        "dusk:visual": "@php vendor/bin/phpunit -c phpunit.dusk.xml --filter VisualRegressionTest",
         "analyse": "@php vendor/bin/phpstan analyse --no-progress",
         "lint": [
             "@php vendor/bin/pint --test",

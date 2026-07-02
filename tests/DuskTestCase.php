@@ -22,13 +22,6 @@ abstract class DuskTestCase extends BaseTestCase
         }
     }
 
-    public static function tearDownAfterClass(): void
-    {
-        parent::tearDownAfterClass();
-        // Clear the config cache after Dusk so the normal server uses booking_local again
-        exec('php ' . base_path('artisan') . ' config:clear 2>/dev/null');
-    }
-
     /**
      * Create the RemoteWebDriver instance.
      */
@@ -48,9 +41,11 @@ abstract class DuskTestCase extends BaseTestCase
         })->all());
 
         $binary = $_ENV['DUSK_CHROME_BINARY'] ?? env('DUSK_CHROME_BINARY');
+
         if (! $binary && is_executable('/snap/bin/chromium')) {
             $binary = '/snap/bin/chromium';
         }
+
         if ($binary) {
             $options->setBinary($binary);
         }
@@ -58,8 +53,9 @@ abstract class DuskTestCase extends BaseTestCase
         return RemoteWebDriver::create(
             $_ENV['DUSK_DRIVER_URL'] ?? env('DUSK_DRIVER_URL') ?? 'http://localhost:9515',
             DesiredCapabilities::chrome()->setCapability(
-                ChromeOptions::CAPABILITY, $options
-            )
+                ChromeOptions::CAPABILITY,
+                $options,
+            ),
         );
     }
 }
