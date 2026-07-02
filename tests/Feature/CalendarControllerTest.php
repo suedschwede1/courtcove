@@ -313,7 +313,7 @@ class CalendarControllerTest extends TestCase
             'time_end' => '11:00:00',
         ]);
 
-        $this->actingAs($admin)->get('/calendar?date='.$targetDate->format('Y-m-d'))
+        $this->actingAs($admin)->withUnencryptedCookie('admin_mode', '1')->get('/calendar?date='.$targetDate->format('Y-m-d'))
             ->assertOk()
             ->assertSee('data-edit-url', false)
             ->assertSee('/admin/bookings/'.$booking->bid.'/edit', false);
@@ -334,10 +334,46 @@ class CalendarControllerTest extends TestCase
             'time_end' => '11:00:00',
         ]);
 
-        $this->actingAs($admin)->get('/calendar?date='.$targetDate->format('Y-m-d'))
+        $this->actingAs($admin)->withUnencryptedCookie('admin_mode', '1')->get('/calendar?date='.$targetDate->format('Y-m-d'))
             ->assertOk()
             ->assertSee('data-delete-url', false)
             ->assertSee('/admin/bookings/'.$booking->bid, false);
+    }
+
+    #[Test]
+    public function admin_without_admin_mode_cookie_sees_normal_booking_form_trigger(): void
+    {
+        $admin = User::factory()->create(['status' => 'admin']);
+        $square = Square::factory()->create();
+
+        $this->actingAs($admin)->get('/calendar?date='.Carbon::tomorrow()->format('Y-m-d'))
+            ->assertOk()
+            ->assertDontSee('data-action="admin-book"', false)
+            ->assertDontSee(route('admin.bookings.create'), false);
+    }
+
+    #[Test]
+    public function admin_with_admin_mode_cookie_sees_admin_booking_form_trigger(): void
+    {
+        $admin = User::factory()->create(['status' => 'admin']);
+        $square = Square::factory()->create();
+
+        $this->actingAs($admin)->withUnencryptedCookie('admin_mode', '1')
+            ->get('/calendar?date='.Carbon::tomorrow()->format('Y-m-d'))
+            ->assertOk()
+            ->assertSee('data-action="admin-book"', false);
+    }
+
+    #[Test]
+    public function non_admin_cannot_bypass_permission_via_admin_mode_cookie(): void
+    {
+        $member = User::factory()->create(['status' => 'enabled']);
+        $square = Square::factory()->create();
+
+        $this->actingAs($member)->withUnencryptedCookie('admin_mode', '1')
+            ->get('/calendar?date='.Carbon::tomorrow()->format('Y-m-d'))
+            ->assertOk()
+            ->assertDontSee('data-action="admin-book"', false);
     }
 
     #[Test]

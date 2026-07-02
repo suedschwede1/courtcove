@@ -91,7 +91,7 @@ final class CalendarController extends Controller
         $authUser = auth()->user();
         $authUserId = $authUser?->uid;
         $isLoggedIn = $authUser !== null;
-        $isAdmin = $isLoggedIn && $authUser->can('admin.booking');
+        $isAdmin = $isLoggedIn && $authUser->can('admin.booking') && $request->cookie('admin_mode') === '1';
         $canAdminEvents = $isLoggedIn && $authUser->can('admin.event');
 
         $events = Event::with(['meta' => fn ($query) => $query->where('key', 'name')])
