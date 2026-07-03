@@ -15,6 +15,7 @@ class MemberExportController
 
         return response()->streamDownload(function () use ($members) {
             $handle = fopen('php://output', 'w');
+            fwrite($handle, "\xEF\xBB\xBF");
             fputcsv($handle, ['Vorname', 'Nachname', 'E-Mail', 'Eingetreten', 'Ausgetreten']);
 
             foreach ($members as $member) {

@@ -30,6 +30,7 @@ class MemberExportTest extends TestCase
         $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
 
         $content = $response->streamedContent();
+        $this->assertStringStartsWith("\xEF\xBB\xBF", $content);
         $this->assertStringContainsString('Erika', $content);
         $this->assertStringContainsString('Musterfrau', $content);
         $this->assertStringContainsString('erika@example.com', $content);
