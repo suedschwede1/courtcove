@@ -29,6 +29,7 @@ return [
         'paid_at' => 'Payment date',
         'note' => 'Note',
         'covers' => 'Covers the following dues',
+        'due_already_paid' => 'One of the selected dues has already been paid.',
     ],
     'common' => [
         'all' => 'All',

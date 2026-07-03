@@ -30,7 +30,20 @@ class PaymentController
             'paid_at' => ['required', 'date'],
             'note' => ['nullable', 'string', 'max:255'],
             'member_due_ids' => ['required', 'array', 'min:1'],
-            'member_due_ids.*' => ['integer', 'exists:member_dues,id'],
+            'member_due_ids.*' => [
+                'integer',
+                'exists:member_dues,id,member_id,'.$member->id,
+                function (string $attribute, mixed $value, callable $fail): void {
+                    $isAlreadyPaid = MemberDue::query()
+                        ->whereKey($value)
+                        ->whereHas('payments')
+                        ->exists();
+
+                    if ($isAlreadyPaid) {
+                        $fail(__('members::admin.payments.due_already_paid'));
+                    }
+                },
+            ],
         ]);
 
         $payment = Payment::create([

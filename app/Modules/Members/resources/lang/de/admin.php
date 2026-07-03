@@ -29,6 +29,7 @@ return [
         'paid_at' => 'Zahlungsdatum',
         'note' => 'Notiz',
         'covers' => 'Deckt folgende Beiträge ab',
+        'due_already_paid' => 'Einer der ausgewählten Beiträge wurde bereits bezahlt.',
     ],
     'common' => [
         'all' => 'Alle',

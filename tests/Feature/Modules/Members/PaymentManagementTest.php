@@ -42,4 +42,49 @@ class PaymentManagementTest extends TestCase
         $this->assertTrue($due2->fresh()->isPaid());
         $this->assertSame('2027-08-31', $member->fresh()->paidUntil()->format('Y-m-d'));
     }
+
+    #[Test]
+    public function payment_cannot_attach_a_due_belonging_to_another_member(): void
+    {
+        $member = Member::factory()->create();
+        $otherMember = Member::factory()->create();
+        $category = FeeCategory::create(['name' => 'Vollmitglied']);
+        $fy = FiscalYear::create(['name' => '2025/26', 'starts_on' => '2025-09-01', 'ends_on' => '2026-08-31']);
+        $foreignDue = MemberDue::create(['member_id' => $otherMember->id, 'fiscal_year_id' => $fy->id, 'fee_category_id' => $category->id, 'amount' => 120]);
+
+        $this->actingAs($this->admin())->post("/admin/members/{$member->id}/payments", [
+            'amount' => 120,
+            'paid_at' => '2025-09-10',
+            'member_due_ids' => [$foreignDue->id],
+        ])->assertSessionHasErrors('member_due_ids.0');
+
+        $this->assertDatabaseCount('payments', 0);
+        $this->assertFalse($foreignDue->fresh()->isPaid());
+    }
+
+    #[Test]
+    public function payment_cannot_attach_a_due_that_is_already_paid(): void
+    {
+        $member = Member::factory()->create();
+        $category = FeeCategory::create(['name' => 'Vollmitglied']);
+        $fy = FiscalYear::create(['name' => '2025/26', 'starts_on' => '2025-09-01', 'ends_on' => '2026-08-31']);
+        $due = MemberDue::create(['member_id' => $member->id, 'fiscal_year_id' => $fy->id, 'fee_category_id' => $category->id, 'amount' => 120]);
+
+        $this->actingAs($this->admin())->post("/admin/members/{$member->id}/payments", [
+            'amount' => 120,
+            'paid_at' => '2025-09-10',
+            'member_due_ids' => [$due->id],
+        ])->assertRedirect(route('admin.members.edit', $member));
+
+        $this->assertTrue($due->fresh()->isPaid());
+
+        $this->actingAs($this->admin())->post("/admin/members/{$member->id}/payments", [
+            'amount' => 120,
+            'paid_at' => '2025-09-11',
+            'member_due_ids' => [$due->id],
+        ])->assertSessionHasErrors('member_due_ids.0');
+
+        $this->assertDatabaseCount('payments', 1);
+        $this->assertSame(1, $due->fresh()->payments()->count());
+    }
 }
