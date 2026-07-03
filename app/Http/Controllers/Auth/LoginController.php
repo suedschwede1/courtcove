@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use Stevebauman\Location\Facades\Location;
 
 /**
  * LoginController — handles login form display and credential authentication.
@@ -56,6 +57,18 @@ final class LoginController extends Controller
 
         $email = Str::lower(trim($credentials['email']));
         $ip = (string) $request->ip();
+
+        if ($this->isLoginBlockedByCountry($ip)) {
+            Log::warning('Login blocked by country', [
+                'email' => $email,
+                'ip' => $ip,
+            ]);
+
+            return redirect('/login')->withErrors([
+                'email' => __('booking.auth.invalid'),
+            ])->withInput($request->except('password'));
+        }
+
         $user = User::where('email', $credentials['email'])->first();
         $throttleKeys = $this->throttleKeys($email, $ip, $user);
 
@@ -109,6 +122,23 @@ final class LoginController extends Controller
         }
 
         return redirect()->to($this->normalizeRedirectTarget($credentials['redirect_to'] ?? null));
+    }
+
+    private function isLoginBlockedByCountry(string $ip): bool
+    {
+        $blockedCountries = config('booking.blocked_login_countries', []);
+
+        if ($blockedCountries === []) {
+            return false;
+        }
+
+        $position = Location::get($ip);
+
+        if (! $position || ! $position->countryCode) {
+            return false;
+        }
+
+        return in_array($position->countryCode, $blockedCountries, true);
     }
 
     /** @return array<string, int> */

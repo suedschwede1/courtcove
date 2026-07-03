@@ -10,6 +10,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use PHPUnit\Framework\Attributes\Test;
+use Stevebauman\Location\Facades\Location;
+use Stevebauman\Location\Position;
 use Symfony\Component\HttpFoundation\Cookie;
 use Tests\TestCase;
 
@@ -181,6 +183,82 @@ class LoginTest extends TestCase
             ->assertSessionHasErrors(['email' => __('booking.auth.invalid')]);
 
         $this->assertGuest();
+    }
+
+    #[Test]
+    public function login_is_blocked_when_the_request_country_is_configured_as_blocked(): void
+    {
+        config(['booking.blocked_login_countries' => ['RU']]);
+        Location::fake(['127.0.0.1' => Position::make(['countryCode' => 'RU'])]);
+
+        User::factory()->create([
+            'email' => 'test@example.com',
+            'pw' => bcrypt('secret123'),
+            'status' => 'enabled',
+        ]);
+
+        $this->post('/login', ['email' => 'test@example.com', 'password' => 'secret123'])
+            ->assertRedirect('/login')
+            ->assertSessionHasErrors(['email' => __('booking.auth.invalid')]);
+
+        $this->assertGuest();
+    }
+
+    #[Test]
+    public function login_succeeds_when_the_request_country_is_not_blocked(): void
+    {
+        config(['booking.blocked_login_countries' => ['RU']]);
+        Location::fake(['127.0.0.1' => Position::make(['countryCode' => 'US'])]);
+
+        User::factory()->create([
+            'email' => 'test@example.com',
+            'pw' => bcrypt('secret123'),
+            'status' => 'enabled',
+        ]);
+
+        $this->post('/login', ['email' => 'test@example.com', 'password' => 'secret123'])
+            ->assertRedirect('/calendar');
+
+        $this->assertAuthenticated();
+    }
+
+    #[Test]
+    public function login_is_not_blocked_when_the_location_lookup_cannot_resolve_a_country(): void
+    {
+        config(['booking.blocked_login_countries' => ['RU']]);
+        Location::fake([]);
+
+        User::factory()->create([
+            'email' => 'test@example.com',
+            'pw' => bcrypt('secret123'),
+            'status' => 'enabled',
+        ]);
+
+        $this->post('/login', ['email' => 'test@example.com', 'password' => 'secret123'])
+            ->assertRedirect('/calendar');
+
+        $this->assertAuthenticated();
+    }
+
+    #[Test]
+    public function login_blocked_by_country_does_not_count_against_the_rate_limiter(): void
+    {
+        config(['booking.blocked_login_countries' => ['RU']]);
+        Location::fake(['127.0.0.1' => Position::make(['countryCode' => 'RU'])]);
+
+        User::factory()->create([
+            'email' => 'test@example.com',
+            'pw' => bcrypt('secret123'),
+            'status' => 'enabled',
+        ]);
+
+        $key = $this->emailIpThrottleKey('test@example.com');
+        RateLimiter::clear($key);
+
+        $this->post('/login', ['email' => 'test@example.com', 'password' => 'secret123'])
+            ->assertRedirect('/login');
+
+        $this->assertSame(0, RateLimiter::attempts($key));
     }
 
     #[Test]
