@@ -10,6 +10,7 @@ return [
         'my_account' => 'My Account',
         'admin' => 'Administration',
         'members' => 'Members',
+        'back_to_calendar' => 'Back to calendar',
         'logout' => 'Log Out',
         'actions' => 'Actions',
         'more_actions' => 'More actions',

@@ -44,7 +44,10 @@
             <div class="flex items-center gap-4 text-sm text-[#6a6e73]">
                 @auth
                     <span>{{ auth()->user()->alias }}</span>
-                    <a href="{{ route('calendar.index') }}" class="ui-btn ui-btn-outline">{{ __('booking.nav.admin') }}</a>
+                    <a href="{{ route('calendar.index') }}" class="ui-btn ui-btn-outline">{{ __('booking.nav.back_to_calendar') }}</a>
+                    @can('admin.see-menu')
+                        <a href="{{ route('admin.dashboard') }}" class="ui-btn ui-btn-outline">{{ __('booking.nav.admin') }}</a>
+                    @endcan
                     <form method="POST" action="{{ route('logout') }}" class="m-0">
                         @csrf
                         <button type="submit" class="ui-btn ui-btn-outline">{{ __('booking.nav.logout') }}</button>
