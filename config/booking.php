@@ -16,5 +16,9 @@ return [
         'window_2_start' => '17:00',
         'window_2_end'   => '21:00',
     ],
+    'blocked_login_countries' => array_values(array_filter(array_map(
+        static fn (string $code): string => strtoupper(trim($code)),
+        explode(',', (string) env('BOOKING_BLOCKED_LOGIN_COUNTRIES', ''))
+    ))),
 ];
 
