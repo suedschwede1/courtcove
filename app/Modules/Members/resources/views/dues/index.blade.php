@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('members::layout')
 @section('admin-title', __('members::admin.dues.title'))
 @section('admin-content')
 <div class="ui-page">
@@ -10,7 +10,7 @@
 
     <div class="ui-card">
         <div class="ui-card-body ui-stack">
-            <form method="GET" action="{{ route('admin.members.dues.index') }}" class="ui-row">
+            <form method="GET" action="{{ route('members.dues.index') }}" class="ui-row">
                 <div class="ui-field min-w-[12rem]">
                     <select name="fiscal_year_id" class="ui-select" onchange="this.form.submit()">
                         @foreach($fiscalYears as $fiscalYear)
@@ -19,7 +19,7 @@
                     </select>
                 </div>
             </form>
-            <form method="POST" action="{{ route('admin.members.dues.generate') }}">
+            <form method="POST" action="{{ route('members.dues.generate') }}">
                 @csrf
                 <input type="hidden" name="fiscal_year_id" value="{{ $selectedFiscalYearId }}">
                 <button type="submit" class="ui-btn ui-btn-primary">{{ __('members::admin.dues.generate') }}</button>

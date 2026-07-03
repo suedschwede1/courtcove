@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('members::layout')
 @section('admin-title', __('members::admin.members.title'))
 @section('admin-content')
 <div class="ui-page">
@@ -6,12 +6,12 @@
         <div>
             <h1>{{ __('members::admin.members.title') }}</h1>
         </div>
-        <a href="{{ route('admin.members.create') }}" class="ui-btn ui-btn-primary">{{ __('members::admin.members.new_member') }}</a>
+        <a href="{{ route('members.create') }}" class="ui-btn ui-btn-primary">{{ __('members::admin.members.new_member') }}</a>
     </div>
 
     <div class="ui-card">
         <div class="ui-card-body ui-stack">
-            <form method="GET" action="{{ route('admin.members.index') }}" class="ui-row">
+            <form method="GET" action="{{ route('members.index') }}" class="ui-row">
                 <div class="ui-field min-w-[12rem]">
                     <label class="ui-label">{{ __('members::admin.members.status') }}</label>
                     <select name="status" class="ui-select">
@@ -46,8 +46,8 @@
                             <td class="text-[#6a6e73]">{{ $member->joined_at->format('d.m.Y') }}</td>
                             <td>
                                 <div class="flex items-center justify-end gap-2 whitespace-nowrap">
-                                    <a href="{{ route('admin.members.edit', $member) }}" class="ui-btn ui-btn-ghost">{{ __('members::admin.common.edit') }}</a>
-                                    <form method="POST" action="{{ route('admin.members.destroy', $member) }}" onsubmit="return confirm({{ Js::from(__('members::admin.members.confirm_leave')) }})">
+                                    <a href="{{ route('members.edit', $member) }}" class="ui-btn ui-btn-ghost">{{ __('members::admin.common.edit') }}</a>
+                                    <form method="POST" action="{{ route('members.destroy', $member) }}" onsubmit="return confirm({{ Js::from(__('members::admin.members.confirm_leave')) }})">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="ui-btn ui-btn-ghost">{{ __('members::admin.members.mark_departed') }}</button>

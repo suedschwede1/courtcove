@@ -32,7 +32,7 @@ class DashboardTest extends TestCase
         $fiscalYear = FiscalYear::create(['name' => '2025/26', 'starts_on' => '2025-09-01', 'ends_on' => '2026-08-31']);
         MemberDue::create(['member_id' => Member::query()->active()->first()->id, 'fiscal_year_id' => $fiscalYear->id, 'fee_category_id' => $category->id, 'amount' => 120]);
 
-        $this->actingAs($this->admin())->get('/admin/members/dashboard')
+        $this->actingAs($this->admin())->get('/members/dashboard')
             ->assertOk()
             ->assertSee('1') // active member count
             ->assertSee('120');

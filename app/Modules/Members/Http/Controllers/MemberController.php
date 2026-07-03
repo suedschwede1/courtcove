@@ -49,7 +49,7 @@ class MemberController
 
         Member::create($validated);
 
-        return redirect()->route('admin.members.index');
+        return redirect()->route('members.index');
     }
 
     public function edit(Member $member): View
@@ -72,13 +72,13 @@ class MemberController
 
         $member->update($validated);
 
-        return redirect()->route('admin.members.index');
+        return redirect()->route('members.index');
     }
 
     public function destroy(Member $member): RedirectResponse
     {
         $member->update(['left_at' => $member->left_at ?? now()->toDateString()]);
 
-        return redirect()->route('admin.members.index');
+        return redirect()->route('members.index');
     }
 }

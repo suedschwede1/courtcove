@@ -24,7 +24,7 @@ class MemberExportTest extends TestCase
     {
         Member::factory()->create(['firstname' => 'Erika', 'lastname' => 'Musterfrau', 'email' => 'erika@example.com']);
 
-        $response = $this->actingAs($this->admin())->get('/admin/members/export');
+        $response = $this->actingAs($this->admin())->get('/members/export');
 
         $response->assertOk();
         $response->assertHeader('content-type', 'text/csv; charset=UTF-8');

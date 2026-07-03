@@ -55,7 +55,7 @@ class PaymentController
 
         $payment->dues()->attach($validated['member_due_ids']);
 
-        return redirect()->route('admin.members.edit', $member)
+        return redirect()->route('members.edit', $member)
             ->with('status', __('members::admin.payments.created'));
     }
 }

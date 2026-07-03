@@ -21,11 +21,11 @@ class FiscalYearManagementTest extends TestCase
     #[Test]
     public function admin_can_create_a_fiscal_year(): void
     {
-        $this->actingAs($this->admin())->post('/admin/members/fiscal-years', [
+        $this->actingAs($this->admin())->post('/members/fiscal-years', [
             'name' => '2025/26',
             'starts_on' => '2025-09-01',
             'ends_on' => '2026-08-31',
-        ])->assertRedirect(route('admin.members.fiscal-years.index'));
+        ])->assertRedirect(route('members.fiscal-years.index'));
 
         $this->assertDatabaseHas('fiscal_years', ['name' => '2025/26']);
     }
@@ -37,11 +37,11 @@ class FiscalYearManagementTest extends TestCase
             'name' => '2025/26', 'starts_on' => '2025-09-01', 'ends_on' => '2026-08-31',
         ]);
 
-        $this->actingAs($this->admin())->put("/admin/members/fiscal-years/{$fiscalYear->id}", [
+        $this->actingAs($this->admin())->put("/members/fiscal-years/{$fiscalYear->id}", [
             'name' => '2025/2026 (korrigiert)',
             'starts_on' => '2025-09-01',
             'ends_on' => '2026-08-31',
-        ])->assertRedirect(route('admin.members.fiscal-years.index'));
+        ])->assertRedirect(route('members.fiscal-years.index'));
 
         $this->assertSame('2025/2026 (korrigiert)', $fiscalYear->fresh()->name);
     }
@@ -52,7 +52,7 @@ class FiscalYearManagementTest extends TestCase
         \App\Modules\Members\Models\FiscalYear::create(['name' => '2026/27', 'starts_on' => '2026-09-01', 'ends_on' => '2027-08-31']);
         \App\Modules\Members\Models\FiscalYear::create(['name' => '2025/26', 'starts_on' => '2025-09-01', 'ends_on' => '2026-08-31']);
 
-        $this->actingAs($this->admin())->get('/admin/members/fiscal-years')
+        $this->actingAs($this->admin())->get('/members/fiscal-years')
             ->assertOk()->assertSeeInOrder(['2025/26', '2026/27']);
     }
 }

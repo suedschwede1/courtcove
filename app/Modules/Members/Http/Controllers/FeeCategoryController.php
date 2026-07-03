@@ -41,7 +41,7 @@ class FeeCategoryController
 
         FeeCategory::create($validated);
 
-        return redirect()->route('admin.members.fee-categories.index');
+        return redirect()->route('members.fee-categories.index');
     }
 
     public function storeRates(Request $request): RedirectResponse
@@ -63,6 +63,6 @@ class FeeCategoryController
             );
         }
 
-        return redirect()->route('admin.members.fee-categories.index', ['fiscal_year_id' => $validated['fiscal_year_id']]);
+        return redirect()->route('members.fee-categories.index', ['fiscal_year_id' => $validated['fiscal_year_id']]);
     }
 }

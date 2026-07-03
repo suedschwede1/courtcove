@@ -32,11 +32,11 @@ class PaymentManagementTest extends TestCase
         $due1 = MemberDue::create(['member_id' => $member->id, 'fiscal_year_id' => $fy1->id, 'fee_category_id' => $category->id, 'amount' => 120]);
         $due2 = MemberDue::create(['member_id' => $member->id, 'fiscal_year_id' => $fy2->id, 'fee_category_id' => $category->id, 'amount' => 130]);
 
-        $this->actingAs($this->admin())->post("/admin/members/{$member->id}/payments", [
+        $this->actingAs($this->admin())->post("/members/{$member->id}/payments", [
             'amount' => 250,
             'paid_at' => '2025-09-10',
             'member_due_ids' => [$due1->id, $due2->id],
-        ])->assertRedirect(route('admin.members.edit', $member));
+        ])->assertRedirect(route('members.edit', $member));
 
         $this->assertTrue($due1->fresh()->isPaid());
         $this->assertTrue($due2->fresh()->isPaid());
@@ -52,7 +52,7 @@ class PaymentManagementTest extends TestCase
         $fy = FiscalYear::create(['name' => '2025/26', 'starts_on' => '2025-09-01', 'ends_on' => '2026-08-31']);
         $foreignDue = MemberDue::create(['member_id' => $otherMember->id, 'fiscal_year_id' => $fy->id, 'fee_category_id' => $category->id, 'amount' => 120]);
 
-        $this->actingAs($this->admin())->post("/admin/members/{$member->id}/payments", [
+        $this->actingAs($this->admin())->post("/members/{$member->id}/payments", [
             'amount' => 120,
             'paid_at' => '2025-09-10',
             'member_due_ids' => [$foreignDue->id],
@@ -70,15 +70,15 @@ class PaymentManagementTest extends TestCase
         $fy = FiscalYear::create(['name' => '2025/26', 'starts_on' => '2025-09-01', 'ends_on' => '2026-08-31']);
         $due = MemberDue::create(['member_id' => $member->id, 'fiscal_year_id' => $fy->id, 'fee_category_id' => $category->id, 'amount' => 120]);
 
-        $this->actingAs($this->admin())->post("/admin/members/{$member->id}/payments", [
+        $this->actingAs($this->admin())->post("/members/{$member->id}/payments", [
             'amount' => 120,
             'paid_at' => '2025-09-10',
             'member_due_ids' => [$due->id],
-        ])->assertRedirect(route('admin.members.edit', $member));
+        ])->assertRedirect(route('members.edit', $member));
 
         $this->assertTrue($due->fresh()->isPaid());
 
-        $this->actingAs($this->admin())->post("/admin/members/{$member->id}/payments", [
+        $this->actingAs($this->admin())->post("/members/{$member->id}/payments", [
             'amount' => 120,
             'paid_at' => '2025-09-11',
             'member_due_ids' => [$due->id],

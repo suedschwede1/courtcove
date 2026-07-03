@@ -1,10 +1,10 @@
-@extends('layouts.admin')
+@extends('members::layout')
 @section('admin-title', __('members::admin.fiscal_years.title'))
 @section('admin-content')
 <div class="ui-page">
     <div class="ui-page-header flex flex-wrap items-start justify-between gap-4">
         <h1>{{ __('members::admin.fiscal_years.title') }}</h1>
-        <a href="{{ route('admin.members.fiscal-years.create') }}" class="ui-btn ui-btn-primary">{{ __('members::admin.fiscal_years.new') }}</a>
+        <a href="{{ route('members.fiscal-years.create') }}" class="ui-btn ui-btn-primary">{{ __('members::admin.fiscal_years.new') }}</a>
     </div>
     <div class="ui-card">
         <div class="ui-table-wrap">
@@ -23,7 +23,7 @@
                             <td class="font-medium">{{ $fiscalYear->name }}</td>
                             <td>{{ $fiscalYear->starts_on->format('d.m.Y') }}</td>
                             <td>{{ $fiscalYear->ends_on->format('d.m.Y') }}</td>
-                            <td class="text-right"><a href="{{ route('admin.members.fiscal-years.edit', $fiscalYear) }}" class="ui-btn ui-btn-ghost">{{ __('members::admin.common.edit') }}</a></td>
+                            <td class="text-right"><a href="{{ route('members.fiscal-years.edit', $fiscalYear) }}" class="ui-btn ui-btn-ghost">{{ __('members::admin.common.edit') }}</a></td>
                         </tr>
                     @endforeach
                 </tbody>

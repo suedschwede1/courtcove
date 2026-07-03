@@ -1,10 +1,10 @@
-@extends('layouts.admin')
+@extends('members::layout')
 @section('admin-title', __('members::admin.payments.new_payment'))
 @section('admin-content')
 <div class="ui-page">
     <div class="ui-page-header"><h1>{{ __('members::admin.payments.new_payment') }} — {{ $member->fullName() }}</h1></div>
 
-    <form method="POST" action="{{ route('admin.members.payments.store', $member) }}" class="ui-form-shell">
+    <form method="POST" action="{{ route('members.payments.store', $member) }}" class="ui-form-shell">
         @csrf
         <div class="ui-card">
             <div class="ui-card-body ui-stack">
@@ -33,7 +33,7 @@
             </div>
         </div>
         <div class="ui-form-actions">
-            <a href="{{ route('admin.members.edit', $member) }}" class="ui-btn ui-btn-ghost">{{ __('members::admin.common.cancel') }}</a>
+            <a href="{{ route('members.edit', $member) }}" class="ui-btn ui-btn-ghost">{{ __('members::admin.common.cancel') }}</a>
             <button type="submit" class="ui-btn ui-btn-primary">{{ __('members::admin.common.save') }}</button>
         </div>
     </form>

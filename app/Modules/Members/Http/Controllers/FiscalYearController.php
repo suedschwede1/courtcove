@@ -33,7 +33,7 @@ class FiscalYearController
 
         FiscalYear::create($validated);
 
-        return redirect()->route('admin.members.fiscal-years.index');
+        return redirect()->route('members.fiscal-years.index');
     }
 
     public function edit(FiscalYear $fiscalYear): View
@@ -51,6 +51,6 @@ class FiscalYearController
 
         $fiscalYear->update($validated);
 
-        return redirect()->route('admin.members.fiscal-years.index');
+        return redirect()->route('members.fiscal-years.index');
     }
 }

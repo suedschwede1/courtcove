@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('members::layout')
 @section('admin-title', __('members::admin.dashboard.title'))
 @section('admin-content')
 <div class="ui-page">

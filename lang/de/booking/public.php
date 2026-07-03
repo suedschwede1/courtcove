@@ -9,6 +9,7 @@ return [
         'my_bookings' => 'Meine Buchungen',
         'my_account' => 'Mein Konto',
         'admin' => 'Administration',
+        'members' => 'Mitglieder',
         'logout' => 'Abmelden',
         'actions' => 'Aktionen',
         'more_actions' => 'Mehr Aktionen',

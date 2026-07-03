@@ -23,9 +23,9 @@ class FeeCategoryManagementTest extends TestCase
     #[Test]
     public function admin_can_create_a_fee_category(): void
     {
-        $this->actingAs($this->admin())->post('/admin/members/fee-categories', [
+        $this->actingAs($this->admin())->post('/members/fee-categories', [
             'name' => 'Vollmitglied',
-        ])->assertRedirect(route('admin.members.fee-categories.index'));
+        ])->assertRedirect(route('members.fee-categories.index'));
 
         $this->assertDatabaseHas('fee_categories', ['name' => 'Vollmitglied']);
     }
@@ -36,7 +36,7 @@ class FeeCategoryManagementTest extends TestCase
         $category = FeeCategory::create(['name' => 'Vollmitglied']);
         $fiscalYear = FiscalYear::create(['name' => '2025/26', 'starts_on' => '2025-09-01', 'ends_on' => '2026-08-31']);
 
-        $this->actingAs($this->admin())->post('/admin/members/fee-categories/rates', [
+        $this->actingAs($this->admin())->post('/members/fee-categories/rates', [
             'fiscal_year_id' => $fiscalYear->id,
             'rates' => [$category->id => '120.00'],
         ])->assertRedirect();
@@ -54,11 +54,11 @@ class FeeCategoryManagementTest extends TestCase
         $category = FeeCategory::create(['name' => 'Vollmitglied']);
         $fiscalYear = FiscalYear::create(['name' => '2025/26', 'starts_on' => '2025-09-01', 'ends_on' => '2026-08-31']);
 
-        $this->actingAs($this->admin())->post('/admin/members/fee-categories/rates', [
+        $this->actingAs($this->admin())->post('/members/fee-categories/rates', [
             'fiscal_year_id' => $fiscalYear->id,
             'rates' => [$category->id => '120.00'],
         ]);
-        $this->actingAs($this->admin())->post('/admin/members/fee-categories/rates', [
+        $this->actingAs($this->admin())->post('/members/fee-categories/rates', [
             'fiscal_year_id' => $fiscalYear->id,
             'rates' => [$category->id => '130.00'],
         ]);

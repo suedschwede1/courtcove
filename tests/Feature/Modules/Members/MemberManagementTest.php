@@ -43,7 +43,7 @@ class MemberManagementTest extends TestCase
     {
         $user = User::factory()->create(['status' => 'enabled']);
 
-        $this->actingAs($user)->get('/admin/members')->assertForbidden();
+        $this->actingAs($user)->get('/members')->assertForbidden();
     }
 
     #[Test]
@@ -52,20 +52,20 @@ class MemberManagementTest extends TestCase
         \App\Modules\Members\Models\Member::factory()->create(['firstname' => 'Aktiv', 'lastname' => 'Mitglied']);
         \App\Modules\Members\Models\Member::factory()->create(['firstname' => 'Ausgetreten', 'lastname' => 'Mitglied', 'left_at' => '2025-01-01']);
 
-        $this->actingAs($this->admin())->get('/admin/members')
+        $this->actingAs($this->admin())->get('/members')
             ->assertOk()->assertSee('Aktiv Mitglied')->assertDontSee('Ausgetreten Mitglied');
     }
 
     #[Test]
     public function admin_can_create_a_member(): void
     {
-        $this->actingAs($this->admin())->post('/admin/members', [
+        $this->actingAs($this->admin())->post('/members', [
             'member_number' => 1,
             'firstname' => 'Neu',
             'lastname' => 'Mitglied',
             'email' => 'neu@example.com',
             'joined_at' => '2026-01-01',
-        ])->assertRedirect(route('admin.members.index'));
+        ])->assertRedirect(route('members.index'));
 
         $this->assertDatabaseHas('members', ['member_number' => 1, 'firstname' => 'Neu', 'lastname' => 'Mitglied']);
     }
@@ -75,7 +75,7 @@ class MemberManagementTest extends TestCase
     {
         \App\Modules\Members\Models\Member::factory()->create(['member_number' => 5]);
 
-        $this->actingAs($this->admin())->get('/admin/members/create')
+        $this->actingAs($this->admin())->get('/members/create')
             ->assertOk()->assertSee('value="6"', false);
     }
 
@@ -84,7 +84,7 @@ class MemberManagementTest extends TestCase
     {
         \App\Modules\Members\Models\Member::factory()->create(['member_number' => 7]);
 
-        $this->actingAs($this->admin())->post('/admin/members', [
+        $this->actingAs($this->admin())->post('/members', [
             'member_number' => 7,
             'firstname' => 'Doppelt',
             'lastname' => 'Vergeben',
@@ -97,8 +97,8 @@ class MemberManagementTest extends TestCase
     {
         $member = \App\Modules\Members\Models\Member::factory()->create();
 
-        $this->actingAs($this->admin())->delete("/admin/members/{$member->id}")
-            ->assertRedirect(route('admin.members.index'));
+        $this->actingAs($this->admin())->delete("/members/{$member->id}")
+            ->assertRedirect(route('members.index'));
 
         $this->assertNotNull($member->fresh()->left_at);
     }

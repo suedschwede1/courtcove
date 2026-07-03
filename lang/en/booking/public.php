@@ -9,6 +9,7 @@ return [
         'my_bookings' => 'My Bookings',
         'my_account' => 'My Account',
         'admin' => 'Administration',
+        'members' => 'Members',
         'logout' => 'Log Out',
         'actions' => 'Actions',
         'more_actions' => 'More actions',

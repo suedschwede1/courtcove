@@ -13,7 +13,6 @@ return [
         'nav_events' => 'Veranstaltungen',
         'nav_bookings' => 'Buchungen',
         'nav_courts' => 'Plätze',
-        'nav_members' => 'Mitglieder',
         'config' => 'Infos',
         'texts' => 'Texte',
         'testmail' => [

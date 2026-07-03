@@ -72,7 +72,7 @@ class MemberDueController
                 $created++;
             });
 
-        return redirect()->route('admin.members.dues.index', ['fiscal_year_id' => $fiscalYearId])
+        return redirect()->route('members.dues.index', ['fiscal_year_id' => $fiscalYearId])
             ->with('status', __('members::admin.dues.generated', ['count' => $created]));
     }
 }

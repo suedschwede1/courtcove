@@ -37,7 +37,7 @@ class MemberDueGenerationTest extends TestCase
         $departedMember = Member::factory()->create(['left_at' => '2026-01-01']);
         MemberDue::create(['member_id' => $departedMember->id, 'fiscal_year_id' => $lastYear->id, 'fee_category_id' => $category->id, 'amount' => 120]);
 
-        $this->actingAs($this->admin())->post('/admin/members/dues/generate', [
+        $this->actingAs($this->admin())->post('/members/dues/generate', [
             'fiscal_year_id' => $newYear->id,
         ])->assertRedirect();
 
@@ -64,8 +64,8 @@ class MemberDueGenerationTest extends TestCase
         $member = Member::factory()->create();
         MemberDue::create(['member_id' => $member->id, 'fiscal_year_id' => $lastYear->id, 'fee_category_id' => $category->id, 'amount' => 120]);
 
-        $this->actingAs($this->admin())->post('/admin/members/dues/generate', ['fiscal_year_id' => $newYear->id]);
-        $this->actingAs($this->admin())->post('/admin/members/dues/generate', ['fiscal_year_id' => $newYear->id]);
+        $this->actingAs($this->admin())->post('/members/dues/generate', ['fiscal_year_id' => $newYear->id]);
+        $this->actingAs($this->admin())->post('/members/dues/generate', ['fiscal_year_id' => $newYear->id]);
 
         $this->assertSame(1, MemberDue::where('fiscal_year_id', $newYear->id)->count());
     }

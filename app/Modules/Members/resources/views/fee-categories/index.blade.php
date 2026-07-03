@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('members::layout')
 @section('admin-title', __('members::admin.fee_categories.title'))
 @section('admin-content')
 <div class="ui-page">
@@ -7,7 +7,7 @@
     <div class="ui-card">
         <div class="ui-card-header"><h2>{{ __('members::admin.fee_categories.new_category') }}</h2></div>
         <div class="ui-card-body">
-            <form method="POST" action="{{ route('admin.members.fee-categories.store') }}" class="ui-row">
+            <form method="POST" action="{{ route('members.fee-categories.store') }}" class="ui-row">
                 @csrf
                 <div class="ui-field min-w-[16rem]">
                     <input type="text" name="name" placeholder="{{ __('members::admin.fee_categories.name') }}" class="ui-input">
@@ -22,7 +22,7 @@
             <h2>{{ __('members::admin.fee_categories.rates_for') }}</h2>
         </div>
         <div class="ui-card-body">
-            <form method="GET" action="{{ route('admin.members.fee-categories.index') }}" class="ui-row">
+            <form method="GET" action="{{ route('members.fee-categories.index') }}" class="ui-row">
                 <div class="ui-field min-w-[12rem]">
                     <select name="fiscal_year_id" class="ui-select" onchange="this.form.submit()">
                         @foreach($fiscalYears as $fiscalYear)
@@ -33,7 +33,7 @@
             </form>
 
             @if($fiscalYears->isNotEmpty())
-                <form method="POST" action="{{ route('admin.members.fee-categories.rates.store') }}" class="ui-stack mt-4">
+                <form method="POST" action="{{ route('members.fee-categories.rates.store') }}" class="ui-stack mt-4">
                     @csrf
                     <input type="hidden" name="fiscal_year_id" value="{{ $selectedFiscalYearId }}">
                     <div class="ui-table-wrap">
