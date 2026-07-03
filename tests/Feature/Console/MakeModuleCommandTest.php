@@ -52,6 +52,38 @@ class MakeModuleCommandTest extends TestCase
     }
 
     #[Test]
+    public function it_scaffolds_an_own_area_with_a_dashboard(): void
+    {
+        $this->modulePath = base_path('app/Modules/Widgets');
+
+        $this->artisan('make:module', ['name' => 'Widgets'])
+            ->assertExitCode(0);
+
+        $this->assertFileExists($this->modulePath.'/Http/Controllers/DashboardController.php');
+        $this->assertFileExists($this->modulePath.'/resources/views/dashboard.blade.php');
+        $this->assertFileExists($this->modulePath.'/resources/views/layout.blade.php');
+
+        $controller = File::get($this->modulePath.'/Http/Controllers/DashboardController.php');
+        $this->assertStringContainsString('namespace App\Modules\Widgets\Http\Controllers;', $controller);
+        $this->assertStringContainsString('class DashboardController', $controller);
+        $this->assertStringContainsString("view('widgets::dashboard')", $controller);
+
+        $routes = File::get($this->modulePath.'/routes.php');
+        $this->assertStringContainsString("prefix('widgets')", $routes);
+        $this->assertStringContainsString("name('widgets.')", $routes);
+        $this->assertStringContainsString("Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard')", $routes);
+
+        $dashboardView = File::get($this->modulePath.'/resources/views/dashboard.blade.php');
+        $this->assertStringContainsString("@extends('widgets::layout')", $dashboardView);
+
+        $layout = File::get($this->modulePath.'/resources/views/layout.blade.php');
+        $this->assertStringContainsString('widgets.dashboard', $layout);
+
+        $provider = File::get($this->modulePath.'/WidgetsServiceProvider.php');
+        $this->assertStringContainsString("Route::middleware('web')", $provider);
+    }
+
+    #[Test]
     public function it_rejects_a_path_traversal_attempt_without_touching_the_filesystem(): void
     {
         $this->artisan('make:module', ['name' => '../../etc/evil'])
