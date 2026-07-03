@@ -61,4 +61,10 @@ return [
         'status_paid' => 'Paid',
         'status_open' => 'Open',
     ],
+    'dashboard' => [
+        'title' => 'Overview',
+        'active_members' => 'Active members',
+        'open_dues' => 'Open dues',
+        'by_category' => 'Members per category',
+    ],
 ];

@@ -61,4 +61,10 @@ return [
         'status_paid' => 'Bezahlt',
         'status_open' => 'Offen',
     ],
+    'dashboard' => [
+        'title' => 'Übersicht',
+        'active_members' => 'Aktive Mitglieder',
+        'open_dues' => 'Offene Beiträge',
+        'by_category' => 'Mitglieder pro Kategorie',
+    ],
 ];
