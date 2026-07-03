@@ -24,6 +24,11 @@ return [
     ],
     'payments' => [
         'new_payment' => 'Zahlung erfassen',
+        'created' => 'Zahlung erfasst.',
+        'amount' => 'Betrag (€)',
+        'paid_at' => 'Zahlungsdatum',
+        'note' => 'Notiz',
+        'covers' => 'Deckt folgende Beiträge ab',
     ],
     'common' => [
         'all' => 'Alle',

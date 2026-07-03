@@ -24,6 +24,11 @@ return [
     ],
     'payments' => [
         'new_payment' => 'Record payment',
+        'created' => 'Payment recorded.',
+        'amount' => 'Amount (€)',
+        'paid_at' => 'Payment date',
+        'note' => 'Note',
+        'covers' => 'Covers the following dues',
     ],
     'common' => [
         'all' => 'All',
