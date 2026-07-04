@@ -26,6 +26,7 @@ final class DatabaseController extends Controller
         return view('admin.database.index', [
             'migrations' => $this->checker->migrationStatus(),
             'tables' => $this->checker->checkTables(),
+            'drift' => $this->checker->driftReport(),
             'hasPending' => $this->checker->hasPendingMigrations(),
             'migrationConfirmationValue' => self::MIGRATION_CONFIRMATION,
         ]);

@@ -184,6 +184,31 @@ class DatabaseControllerTest extends TestCase
     }
 
     #[Test]
+    public function database_page_shows_no_drift_message_for_a_healthy_schema(): void
+    {
+        $this->actingAs($this->admin())
+            ->get('/admin/database')
+            ->assertOk()
+            ->assertSee(__('booking.admin.database.drift_none'));
+    }
+
+    #[Test]
+    public function database_page_shows_an_extra_column_drift_finding(): void
+    {
+        $admin = $this->admin();
+
+        Schema::table('bs_users', function (Blueprint $table): void {
+            $table->string('legacy_note', 32)->nullable();
+        });
+
+        $this->actingAs($admin)
+            ->get('/admin/database')
+            ->assertOk()
+            ->assertSee('bs_users')
+            ->assertSee('legacy_note');
+    }
+
+    #[Test]
     public function database_status_page_shows_a_missing_column_when_schema_drifts(): void
     {
         $admin = $this->admin();

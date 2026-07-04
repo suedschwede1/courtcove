@@ -124,5 +124,42 @@
         </div>
     </div>
 
+    <div class="bg-white rounded-xl border border-[#e0ddd7] shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-[#f0ede6]">
+            <h2 class="text-base font-semibold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.admin.database.drift_heading') }}</h2>
+        </div>
+        <div class="px-6 py-5">
+            @if(empty($drift))
+                <p class="text-sm text-[#6a6e73]">{{ __('booking.admin.database.drift_none') }}</p>
+            @else
+                <ul class="flex flex-col gap-2 text-sm">
+                    @foreach($drift as $finding)
+                        <li>
+                            <span class="font-mono text-xs text-[#6a6e73]">{{ $finding['table'] }}</span>
+                            —
+                            @switch($finding['kind'])
+                                @case('extra_column')
+                                    {{ __('booking.admin.database.drift_extra_column', ['column' => $finding['column']]) }}
+                                    @break
+                                @case('type_mismatch')
+                                    {{ __('booking.admin.database.drift_type_mismatch', ['column' => $finding['column'], 'expected' => $finding['expected'], 'actual' => $finding['actual']]) }}
+                                    @break
+                                @case('missing_index')
+                                    {{ __('booking.admin.database.drift_missing_index', ['signature' => $finding['signature']]) }}
+                                    @break
+                                @case('extra_index')
+                                    {{ __('booking.admin.database.drift_extra_index', ['signature' => $finding['signature']]) }}
+                                    @break
+                                @case('drift_check_failed')
+                                    {{ __('booking.admin.database.drift_check_failed', ['message' => $finding['message']]) }}
+                                    @break
+                            @endswitch
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+        </div>
+    </div>
+
 </div>
 @endsection
