@@ -9,6 +9,7 @@ use App\Modules\Members\Models\Member;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class MemberController
 {
@@ -46,7 +47,7 @@ class MemberController
             'firstname' => ['required', 'string', 'max:128'],
             'lastname' => ['required', 'string', 'max:128'],
             'birthdate' => ['nullable', 'date'],
-            'gender' => ['nullable', 'in:m,w,d'],
+            'gender' => ['nullable', Rule::in(Member::GENDERS)],
             'email' => ['nullable', 'email', 'max:128'],
             'phone' => ['nullable', 'string', 'max:64'],
             'street' => ['nullable', 'string', 'max:255'],
@@ -77,7 +78,7 @@ class MemberController
             'firstname' => ['required', 'string', 'max:128'],
             'lastname' => ['required', 'string', 'max:128'],
             'birthdate' => ['nullable', 'date'],
-            'gender' => ['nullable', 'in:m,w,d'],
+            'gender' => ['nullable', Rule::in(Member::GENDERS)],
             'email' => ['nullable', 'email', 'max:128'],
             'phone' => ['nullable', 'string', 'max:64'],
             'street' => ['nullable', 'string', 'max:255'],
