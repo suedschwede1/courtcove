@@ -19,5 +19,11 @@ class MembersServiceProvider extends ServiceProvider
 
         $this->loadViewsFrom(__DIR__.'/resources/views', 'members');
         $this->loadTranslationsFrom(__DIR__.'/resources/lang', 'members');
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                Console\ImportMembersCommand::class,
+            ]);
+        }
     }
 }
