@@ -51,17 +51,17 @@
     </form>
 </div>
 <script>
-    (() => {
+    document.addEventListener('DOMContentLoaded', () => {
         const memberSelect = document.getElementById('df-member');
         const categorySelect = document.getElementById('df-category');
         const sync = () => {
             const category = memberSelect.selectedOptions[0]?.dataset.feeCategory;
-            if (category) categorySelect.value = category;
+            categorySelect.value = category || categorySelect.options[0]?.value || '';
         };
         memberSelect.addEventListener('change', sync);
         @unless(old('fee_category_id'))
         sync();
         @endunless
-    })();
+    });
 </script>
 @endsection
