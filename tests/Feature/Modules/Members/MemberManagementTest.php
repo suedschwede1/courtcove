@@ -190,4 +190,43 @@ class MemberManagementTest extends TestCase
             'joined_at' => $member->joined_at->toDateString(),
         ])->assertSessionDoesntHaveErrors('nuliga_id')->assertRedirect(route('members.index'));
     }
+
+    #[Test]
+    public function index_can_search_members_by_first_or_last_name(): void
+    {
+        Member::factory()->create(['firstname' => 'Anna', 'lastname' => 'Muster']);
+        Member::factory()->create(['firstname' => 'Bernd', 'lastname' => 'Alt']);
+
+        $this->actingAs($this->admin())->get('/members?search=must')
+            ->assertOk()->assertSee('Anna Muster')->assertDontSee('Bernd Alt');
+
+        $this->actingAs($this->admin())->get('/members?search=bernd')
+            ->assertOk()->assertSee('Bernd Alt')->assertDontSee('Anna Muster');
+    }
+
+    #[Test]
+    public function index_can_filter_members_by_fee_category(): void
+    {
+        $vollzahler = FeeCategory::create(['name' => 'Vollzahler']);
+        $pensionist = FeeCategory::create(['name' => 'Pensionisten']);
+        Member::factory()->create(['firstname' => 'Anna', 'lastname' => 'Muster', 'fee_category_id' => $vollzahler->id]);
+        Member::factory()->create(['firstname' => 'Bernd', 'lastname' => 'Alt', 'fee_category_id' => $pensionist->id]);
+
+        $this->actingAs($this->admin())->get("/members?fee_category={$vollzahler->id}")
+            ->assertOk()->assertSee('Anna Muster')->assertDontSee('Bernd Alt');
+    }
+
+    #[Test]
+    public function index_shows_age_and_fee_category_columns(): void
+    {
+        $category = FeeCategory::create(['name' => 'Vollzahler']);
+        Member::factory()->create([
+            'firstname' => 'Anna', 'lastname' => 'Muster',
+            'birthdate' => now()->subYears(46)->subDay()->toDateString(),
+            'fee_category_id' => $category->id,
+        ]);
+
+        $this->actingAs($this->admin())->get('/members')
+            ->assertOk()->assertSee('Vollzahler')->assertSee('<td class="text-[#6a6e73]">46</td>', false);
+    }
 }

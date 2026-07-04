@@ -15,7 +15,7 @@ class MemberController
 {
     public function index(Request $request): View
     {
-        $query = Member::query();
+        $query = Member::query()->with('feeCategory');
 
         if ($request->filled('status') && $request->string('status')->value() === 'departed') {
             $query->whereNotNull('left_at');
@@ -23,11 +23,22 @@ class MemberController
             $query->active();
         }
 
-        $members = $query->orderBy('lastname')->orderBy('firstname')->get();
+        $search = trim($request->string('search')->value());
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('firstname', 'like', "%{$search}%")
+                    ->orWhere('lastname', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('fee_category')) {
+            $query->where('fee_category_id', $request->integer('fee_category'));
+        }
 
         return view('members::members.index', [
-            'members' => $members,
-            'filters' => $request->only('status'),
+            'members' => $query->orderBy('lastname')->orderBy('firstname')->get(),
+            'filters' => $request->only('status', 'search', 'fee_category'),
+            'feeCategories' => FeeCategory::query()->orderBy('name')->get(),
         ]);
     }
 

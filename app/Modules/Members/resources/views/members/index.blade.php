@@ -12,9 +12,22 @@
     <div class="ui-card">
         <div class="ui-card-body ui-stack">
             <form method="GET" action="{{ route('members.index') }}" class="ui-row">
+                <div class="ui-field min-w-[14rem]">
+                    <label class="ui-label" for="mi-search">{{ __('members::admin.members.search') }}</label>
+                    <input id="mi-search" type="text" name="search" value="{{ $filters['search'] ?? '' }}" class="ui-input">
+                </div>
                 <div class="ui-field min-w-[12rem]">
-                    <label class="ui-label">{{ __('members::admin.members.status') }}</label>
-                    <select name="status" class="ui-select">
+                    <label class="ui-label" for="mi-fee-category">{{ __('members::admin.members.fee_category') }}</label>
+                    <select id="mi-fee-category" name="fee_category" class="ui-select">
+                        <option value="">{{ __('members::admin.common.all') }}</option>
+                        @foreach($feeCategories as $category)
+                            <option value="{{ $category->id }}" @selected((int) ($filters['fee_category'] ?? 0) === $category->id)>{{ $category->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="ui-field min-w-[12rem]">
+                    <label class="ui-label" for="mi-status">{{ __('members::admin.members.status') }}</label>
+                    <select id="mi-status" name="status" class="ui-select">
                         <option value="">{{ __('members::admin.common.all') }}</option>
                         <option value="active" @selected(($filters['status'] ?? '') === 'active')>{{ __('members::admin.members.status_active') }}</option>
                         <option value="departed" @selected(($filters['status'] ?? '') === 'departed')>{{ __('members::admin.members.status_departed') }}</option>
@@ -32,6 +45,8 @@
                     <tr>
                         <th>{{ __('members::admin.members.member_number') }}</th>
                         <th>{{ __('members::admin.members.name') }}</th>
+                        <th>{{ __('members::admin.members.age') }}</th>
+                        <th>{{ __('members::admin.members.fee_category') }}</th>
                         <th>{{ __('members::admin.members.email') }}</th>
                         <th>{{ __('members::admin.members.joined_at') }}</th>
                         <th class="text-right">{{ __('members::admin.common.actions') }}</th>
@@ -42,6 +57,8 @@
                         <tr>
                             <td class="text-[#6a6e73]">{{ $member->member_number }}</td>
                             <td class="font-medium">{{ $member->fullName() }}</td>
+                            <td class="text-[#6a6e73]">{{ $member->age() ?? '—' }}</td>
+                            <td class="text-[#6a6e73]">{{ $member->feeCategory->name ?? '—' }}</td>
                             <td class="text-[#6a6e73]">{{ $member->email ?: '—' }}</td>
                             <td class="text-[#6a6e73]">{{ $member->joined_at->format('d.m.Y') }}</td>
                             <td>
