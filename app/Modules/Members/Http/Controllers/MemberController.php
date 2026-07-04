@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Members\Http\Controllers;
 
+use App\Modules\Members\Models\FeeCategory;
 use App\Modules\Members\Models\Member;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -31,19 +32,27 @@ class MemberController
 
     public function create(): View
     {
-        return view('members::members.create', ['nextNumber' => Member::nextNumber()]);
+        return view('members::members.create', [
+            'nextNumber' => Member::nextNumber(),
+            'feeCategories' => FeeCategory::query()->orderBy('name')->get(),
+        ]);
     }
 
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'member_number' => ['required', 'integer', 'min:1', 'unique:members,member_number'],
+            'nuliga_id' => ['nullable', 'integer', 'min:1', 'unique:members,nuliga_id'],
             'firstname' => ['required', 'string', 'max:128'],
             'lastname' => ['required', 'string', 'max:128'],
             'birthdate' => ['nullable', 'date'],
+            'gender' => ['nullable', 'in:m,w,d'],
             'email' => ['nullable', 'email', 'max:128'],
             'phone' => ['nullable', 'string', 'max:64'],
-            'address' => ['nullable', 'string', 'max:255'],
+            'street' => ['nullable', 'string', 'max:255'],
+            'zip' => ['nullable', 'string', 'max:10'],
+            'city' => ['nullable', 'string', 'max:128'],
+            'fee_category_id' => ['nullable', 'exists:fee_categories,id'],
             'joined_at' => ['required', 'date'],
         ]);
 
@@ -54,19 +63,27 @@ class MemberController
 
     public function edit(Member $member): View
     {
-        return view('members::members.edit', ['member' => $member]);
+        return view('members::members.edit', [
+            'member' => $member,
+            'feeCategories' => FeeCategory::query()->orderBy('name')->get(),
+        ]);
     }
 
     public function update(Request $request, Member $member): RedirectResponse
     {
         $validated = $request->validate([
             'member_number' => ['required', 'integer', 'min:1', 'unique:members,member_number,'.$member->id],
+            'nuliga_id' => ['nullable', 'integer', 'min:1', 'unique:members,nuliga_id,'.$member->id],
             'firstname' => ['required', 'string', 'max:128'],
             'lastname' => ['required', 'string', 'max:128'],
             'birthdate' => ['nullable', 'date'],
+            'gender' => ['nullable', 'in:m,w,d'],
             'email' => ['nullable', 'email', 'max:128'],
             'phone' => ['nullable', 'string', 'max:64'],
-            'address' => ['nullable', 'string', 'max:255'],
+            'street' => ['nullable', 'string', 'max:255'],
+            'zip' => ['nullable', 'string', 'max:10'],
+            'city' => ['nullable', 'string', 'max:128'],
+            'fee_category_id' => ['nullable', 'exists:fee_categories,id'],
             'joined_at' => ['required', 'date'],
         ]);
 

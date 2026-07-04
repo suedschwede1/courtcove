@@ -132,4 +132,62 @@ class MemberManagementTest extends TestCase
         $this->assertSame(46, $member->age());
         $this->assertNull(Member::factory()->create(['birthdate' => null])->age());
     }
+
+    #[Test]
+    public function admin_can_create_a_member_with_all_master_data_fields(): void
+    {
+        $category = FeeCategory::create(['name' => 'Vollzahler']);
+
+        $this->actingAs($this->admin())->post('/members', [
+            'member_number' => 1,
+            'firstname' => 'Neu',
+            'lastname' => 'Mitglied',
+            'gender' => 'w',
+            'street' => 'Teststr. 1',
+            'zip' => '4400',
+            'city' => 'Sampletown',
+            'nuliga_id' => 288563,
+            'fee_category_id' => $category->id,
+            'joined_at' => '2026-01-01',
+        ])->assertRedirect(route('members.index'));
+
+        $this->assertDatabaseHas('members', [
+            'member_number' => 1, 'gender' => 'w', 'street' => 'Teststr. 1', 'zip' => '4400',
+            'city' => 'Sampletown', 'nuliga_id' => 288563, 'fee_category_id' => $category->id,
+        ]);
+    }
+
+    #[Test]
+    public function an_invalid_gender_fails_validation(): void
+    {
+        $this->actingAs($this->admin())->post('/members', [
+            'member_number' => 1, 'firstname' => 'A', 'lastname' => 'B',
+            'gender' => 'x', 'joined_at' => '2026-01-01',
+        ])->assertSessionHasErrors('gender');
+    }
+
+    #[Test]
+    public function a_duplicate_nuliga_id_fails_validation(): void
+    {
+        Member::factory()->create(['nuliga_id' => 111]);
+
+        $this->actingAs($this->admin())->post('/members', [
+            'member_number' => 99, 'firstname' => 'A', 'lastname' => 'B',
+            'nuliga_id' => 111, 'joined_at' => '2026-01-01',
+        ])->assertSessionHasErrors('nuliga_id');
+    }
+
+    #[Test]
+    public function updating_a_member_keeps_its_own_nuliga_id_valid(): void
+    {
+        $member = Member::factory()->create(['nuliga_id' => 222]);
+
+        $this->actingAs($this->admin())->put("/members/{$member->id}", [
+            'member_number' => $member->member_number,
+            'firstname' => $member->firstname,
+            'lastname' => $member->lastname,
+            'nuliga_id' => 222,
+            'joined_at' => $member->joined_at->toDateString(),
+        ])->assertSessionDoesntHaveErrors('nuliga_id')->assertRedirect(route('members.index'));
+    }
 }
