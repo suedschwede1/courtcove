@@ -25,6 +25,15 @@ class DatabaseSchemaCheckerTest extends TestCase
     }
 
     #[Test]
+    public function knows_table_only_accepts_manifest_tables(): void
+    {
+        $this->assertTrue($this->checker->knowsTable('bs_users'));
+        $this->assertTrue($this->checker->knowsTable('members'));
+        $this->assertFalse($this->checker->knowsTable('migrations'));
+        $this->assertFalse($this->checker->knowsTable('bs_users; DROP TABLE x'));
+    }
+
+    #[Test]
     public function migration_status_lists_all_migration_files(): void
     {
         $status = $this->checker->migrationStatus();
