@@ -108,7 +108,7 @@ final class SquareController extends Controller
             'time_block_bookable_max' => (int) round(((int) $square->time_block_bookable_max) / 60),
             'min_range_book' => (int) round($square->min_range_book / 60),
             'range_book' => (int) round(((int) $square->range_book) / 86400),
-            'short_booking_window' => (int) round($square->short_booking_window / 60),
+            'short_booking_window' => (int) round(((int) ($square->getMeta('short-booking-window') ?? '0')) / 60),
             'max_active_bookings' => (int) $square->max_active_bookings,
             'range_cancel' => round(((int) $square->range_cancel) / 3600, 2),
             'label_free' => (string) $square->getMeta('label.free'),

@@ -126,7 +126,8 @@ final class SquareValidator
     /** Whether the booking starts within the per-square short-term override window. */
     private function isShortTermLimitOverrideActive(Square $square, Carbon $dateStart): bool
     {
-        $windowSeconds = (int) $square->short_booking_window;
+        // Stored as square meta by Admin\SquareController, not as a bs_squares column.
+        $windowSeconds = (int) ($square->getMeta('short-booking-window') ?? '0');
         if ($windowSeconds <= 0) {
             return false;
         }
