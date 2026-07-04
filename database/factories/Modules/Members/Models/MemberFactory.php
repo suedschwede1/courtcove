@@ -20,7 +20,10 @@ class MemberFactory extends Factory
             'birthdate' => $this->faker->optional()->date(),
             'email' => $this->faker->optional()->safeEmail(),
             'phone' => $this->faker->optional()->phoneNumber(),
-            'address' => $this->faker->optional()->address(),
+            'gender' => $this->faker->optional()->randomElement(['m', 'w', 'd']),
+            'street' => $this->faker->optional()->streetAddress(),
+            'zip' => $this->faker->optional()->postcode(),
+            'city' => $this->faker->optional()->city(),
             'joined_at' => $this->faker->dateTimeBetween('-5 years', 'now')->format('Y-m-d'),
             'left_at' => null,
         ];

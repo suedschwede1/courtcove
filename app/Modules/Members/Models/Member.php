@@ -8,14 +8,18 @@ use Database\Factories\Modules\Members\Models\MemberFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Member extends Model
 {
     use HasFactory;
 
+    public const GENDERS = ['m', 'w', 'd'];
+
     protected $fillable = [
-        'member_number', 'firstname', 'lastname', 'birthdate', 'email', 'phone', 'address', 'joined_at', 'left_at',
+        'member_number', 'nuliga_id', 'firstname', 'lastname', 'birthdate', 'gender',
+        'email', 'phone', 'street', 'zip', 'city', 'fee_category_id', 'joined_at', 'left_at',
     ];
 
     protected $casts = [
@@ -37,6 +41,16 @@ class Member extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
+    }
+
+    public function feeCategory(): BelongsTo
+    {
+        return $this->belongsTo(FeeCategory::class);
+    }
+
+    public function age(): ?int
+    {
+        return $this->birthdate?->age;
     }
 
     public function scopeActive(Builder $query): Builder

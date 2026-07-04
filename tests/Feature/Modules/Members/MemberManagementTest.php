@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tests\Feature\Modules\Members;
 
 use App\Models\User;
+use App\Modules\Members\Models\FeeCategory;
+use App\Modules\Members\Models\Member;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -101,5 +103,33 @@ class MemberManagementTest extends TestCase
             ->assertRedirect(route('members.index'));
 
         $this->assertNotNull($member->fresh()->left_at);
+    }
+
+    #[Test]
+    public function members_store_the_new_master_data_fields(): void
+    {
+        $category = FeeCategory::create(['name' => 'Vollzahler']);
+
+        $member = Member::factory()->create([
+            'gender' => 'w',
+            'street' => 'Teststr. 1',
+            'zip' => '4400',
+            'city' => 'Sampletown',
+            'nuliga_id' => 288563,
+            'fee_category_id' => $category->id,
+        ]);
+
+        $this->assertSame('Vollzahler', $member->feeCategory->name);
+        $this->assertSame('w', $member->fresh()->gender);
+        $this->assertSame(288563, $member->fresh()->nuliga_id);
+    }
+
+    #[Test]
+    public function age_is_computed_from_birthdate(): void
+    {
+        $member = Member::factory()->create(['birthdate' => now()->subYears(46)->subDay()->toDateString()]);
+
+        $this->assertSame(46, $member->age());
+        $this->assertNull(Member::factory()->create(['birthdate' => null])->age());
     }
 }
