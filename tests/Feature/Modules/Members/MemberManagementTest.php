@@ -229,4 +229,32 @@ class MemberManagementTest extends TestCase
         $this->actingAs($this->admin())->get('/members')
             ->assertOk()->assertSee('Vollzahler')->assertSee('<td class="text-[#6a6e73]">46</td>', false);
     }
+
+    #[Test]
+    public function the_index_renders_an_inline_edit_form_for_the_requested_member(): void
+    {
+        FeeCategory::create(['name' => 'Vollzahler']);
+        $member = Member::factory()->create(['firstname' => 'Anna', 'lastname' => 'Muster']);
+
+        $this->actingAs($this->admin())->get("/members?edit={$member->id}")
+            ->assertOk()
+            ->assertSee('action="'.route('members.update', $member).'"', false)
+            ->assertSee('value="Anna"', false);
+    }
+
+    #[Test]
+    public function updating_from_the_list_redirects_back_with_the_active_filters(): void
+    {
+        $member = Member::factory()->create(['firstname' => 'Anna', 'lastname' => 'Muster', 'member_number' => 3]);
+
+        $this->actingAs($this->admin())->put("/members/{$member->id}", [
+            'member_number' => 3,
+            'firstname' => 'Anna',
+            'lastname' => 'Musterfrau',
+            'joined_at' => '2026-01-01',
+            'filters' => ['search' => 'must', 'status' => '', 'fee_category' => ''],
+        ])->assertRedirect(route('members.index', ['search' => 'must']));
+
+        $this->assertSame('Musterfrau', $member->fresh()->lastname);
+    }
 }

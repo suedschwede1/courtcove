@@ -39,6 +39,7 @@ class MemberController
             'members' => $query->orderBy('lastname')->orderBy('firstname')->get(),
             'filters' => $request->only('status', 'search', 'fee_category'),
             'feeCategories' => FeeCategory::query()->orderBy('name')->get(),
+            'editing' => $request->integer('edit') ?: null,
         ]);
     }
 
@@ -101,7 +102,12 @@ class MemberController
 
         $member->update($validated);
 
-        return redirect()->route('members.index');
+        $filters = array_filter(
+            (array) $request->input('filters', []),
+            fn ($value) => $value !== null && $value !== '',
+        );
+
+        return redirect()->route('members.index', $filters);
     }
 
     public function destroy(Member $member): RedirectResponse
