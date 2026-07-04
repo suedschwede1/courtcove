@@ -322,13 +322,41 @@ final class DatabaseSchemaChecker
             $expectedByName = collect($expectedColumns)->keyBy('name');
 
             foreach (Schema::getColumns($table) as $column) {
-                if (! $expectedByName->has($column['name'])) {
+                $expected = $expectedByName->get($column['name']);
+
+                if ($expected === null) {
                     $findings[] = ['table' => $table, 'kind' => 'extra_column', 'column' => $column['name']];
+
+                    continue;
+                }
+
+                if ($column['type'] !== $expected['type']
+                    || $column['nullable'] !== $expected['nullable']
+                    || $column['default'] !== $expected['default']
+                ) {
+                    $findings[] = [
+                        'table' => $table,
+                        'kind' => 'type_mismatch',
+                        'column' => $column['name'],
+                        'expected' => $this->describeColumn($expected),
+                        'actual' => $this->describeColumn($column),
+                    ];
                 }
             }
         }
 
         return $findings;
+    }
+
+    /**
+     * @param array<string, mixed> $column
+     */
+    private function describeColumn(array $column): string
+    {
+        $nullable = $column['nullable'] ? 'nullable' : 'not null';
+        $default = $column['default'] !== null ? ", default {$column['default']}" : '';
+
+        return "{$column['type']} {$nullable}{$default}";
     }
 
     /**

@@ -202,4 +202,27 @@ class DatabaseSchemaCheckerTest extends TestCase
 
         $this->assertCount(0, $findings);
     }
+
+    #[Test]
+    public function drift_report_flags_a_column_with_the_wrong_type(): void
+    {
+        Schema::table('bs_users', function (Blueprint $table): void {
+            $table->dropIndex(['alias']);
+        });
+        Schema::table('bs_users', function (Blueprint $table): void {
+            $table->dropColumn('alias');
+        });
+        Schema::table('bs_users', function (Blueprint $table): void {
+            $table->string('alias', 32)->nullable();
+        });
+
+        $finding = collect($this->checker->driftReport())
+            ->firstWhere('kind', 'type_mismatch');
+
+        $this->assertNotNull($finding);
+        $this->assertSame('bs_users', $finding['table']);
+        $this->assertSame('alias', $finding['column']);
+        $this->assertArrayHasKey('expected', $finding);
+        $this->assertArrayHasKey('actual', $finding);
+    }
 }
