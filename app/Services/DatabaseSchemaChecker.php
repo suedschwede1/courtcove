@@ -249,18 +249,25 @@ final class DatabaseSchemaChecker
     }
 
     /**
-     * Composite (multi-column) constraints that live outside the per-column
-     * closures in columnDefinitions() — mirrored from the create migrations'
-     * table-level $table->unique([...]) calls.
+     * Composite (multi-column) indexes/constraints that live outside the
+     * per-column closures in columnDefinitions() — mirrored from later
+     * migrations' table-level $table->index([...])/unique([...]) calls
+     * (composite index migrations + the module unique-per-fiscal-year ones).
      *
-     * @return array<string, Closure(Blueprint): mixed>
+     * @return array<string, array<int, Closure(Blueprint): mixed>>
      */
     private static function tableLevelConstraints(): array
     {
         return [
-            'fee_category_rates' => fn (Blueprint $t) => $t->unique(['fee_category_id', 'fiscal_year_id']),
-            'member_dues' => fn (Blueprint $t) => $t->unique(['member_id', 'fiscal_year_id']),
-            'payment_dues' => fn (Blueprint $t) => $t->unique(['payment_id', 'member_due_id']),
+            'bs_users_meta' => [fn (Blueprint $t) => $t->index(['uid', 'key'])],
+            'bs_squares_meta' => [fn (Blueprint $t) => $t->index(['sid', 'key'])],
+            'bs_bookings_meta' => [fn (Blueprint $t) => $t->index(['bid', 'key'])],
+            'bs_events_meta' => [fn (Blueprint $t) => $t->index(['eid', 'key'])],
+            'bs_bookings' => [fn (Blueprint $t) => $t->index(['sid', 'status'])],
+            'bs_reservations' => [fn (Blueprint $t) => $t->index(['date', 'bid'])],
+            'fee_category_rates' => [fn (Blueprint $t) => $t->unique(['fee_category_id', 'fiscal_year_id'])],
+            'member_dues' => [fn (Blueprint $t) => $t->unique(['member_id', 'fiscal_year_id'])],
+            'payment_dues' => [fn (Blueprint $t) => $t->unique(['payment_id', 'member_due_id'])],
         ];
     }
 
@@ -284,8 +291,7 @@ final class DatabaseSchemaChecker
                     $define($blueprint);
                 }
 
-                $constraint = self::tableLevelConstraints()[$table] ?? null;
-                if ($constraint !== null) {
+                foreach (self::tableLevelConstraints()[$table] ?? [] as $constraint) {
                     $constraint($blueprint);
                 }
             });
@@ -343,6 +349,17 @@ final class DatabaseSchemaChecker
                     ];
                 }
             }
+
+            $actualIndexSignatures = $this->normalizeIndexes(Schema::getIndexes($table));
+            $expectedIndexSignatures = $this->normalizeIndexes($expectedIndexes);
+
+            foreach (array_diff($expectedIndexSignatures, $actualIndexSignatures) as $signature) {
+                $findings[] = ['table' => $table, 'kind' => 'missing_index', 'signature' => $signature];
+            }
+
+            foreach (array_diff($actualIndexSignatures, $expectedIndexSignatures) as $signature) {
+                $findings[] = ['table' => $table, 'kind' => 'extra_index', 'signature' => $signature];
+            }
         }
 
         return $findings;
@@ -357,6 +374,34 @@ final class DatabaseSchemaChecker
         $default = $column['default'] !== null ? ", default {$column['default']}" : '';
 
         return "{$column['type']} {$nullable}{$default}";
+    }
+
+    /**
+     * Reduces an index list to a comparable signature (sorted columns + unique
+     * flag) since the auto-generated index name differs between the probe
+     * table and the real table (they have different table-name prefixes).
+     * Primary keys are excluded — already covered by column comparison.
+     *
+     * @param array<int, array<string, mixed>> $indexes
+     * @return array<int, string>
+     */
+    private function normalizeIndexes(array $indexes): array
+    {
+        $signatures = [];
+
+        foreach ($indexes as $index) {
+            if ($index['primary']) {
+                continue;
+            }
+
+            $columns = $index['columns'];
+            sort($columns);
+            $signatures[] = implode(',', $columns).'|'.($index['unique'] ? 'unique' : 'index');
+        }
+
+        sort($signatures);
+
+        return $signatures;
     }
 
     /**

@@ -225,4 +225,49 @@ class DatabaseSchemaCheckerTest extends TestCase
         $this->assertArrayHasKey('expected', $finding);
         $this->assertArrayHasKey('actual', $finding);
     }
+
+    #[Test]
+    public function drift_report_flags_a_missing_single_column_index(): void
+    {
+        Schema::table('bs_users_meta', function (Blueprint $table): void {
+            $table->dropIndex(['key']);
+        });
+
+        $finding = collect($this->checker->driftReport())
+            ->firstWhere('kind', 'missing_index');
+
+        $this->assertNotNull($finding);
+        $this->assertSame('bs_users_meta', $finding['table']);
+        $this->assertSame('key|index', $finding['signature']);
+    }
+
+    #[Test]
+    public function drift_report_flags_an_unexpected_extra_index(): void
+    {
+        Schema::table('bs_users_meta', function (Blueprint $table): void {
+            $table->index('value', 'bs_users_meta_value_test_index');
+        });
+
+        $finding = collect($this->checker->driftReport())
+            ->firstWhere('kind', 'extra_index');
+
+        $this->assertNotNull($finding);
+        $this->assertSame('bs_users_meta', $finding['table']);
+        $this->assertSame('value|index', $finding['signature']);
+    }
+
+    #[Test]
+    public function drift_report_flags_a_missing_composite_unique_index(): void
+    {
+        Schema::table('member_dues', function (Blueprint $table): void {
+            $table->dropUnique(['member_id', 'fiscal_year_id']);
+        });
+
+        $finding = collect($this->checker->driftReport())
+            ->firstWhere('kind', 'missing_index');
+
+        $this->assertNotNull($finding);
+        $this->assertSame('member_dues', $finding['table']);
+        $this->assertSame('fiscal_year_id,member_id|unique', $finding['signature']);
+    }
 }
