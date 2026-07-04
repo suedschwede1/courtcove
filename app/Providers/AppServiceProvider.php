@@ -40,24 +40,28 @@ class AppServiceProvider extends ServiceProvider
             });
         }, (string) config('booking.logo_path'), report: false));
 
-        View::share('registrationContent', rescue(function (): array {
-            $locale = app()->getLocale();
+        // Composer instead of View::share so the options and the locale are read
+        // at render time (the SetLocale middleware runs after providers boot).
+        View::composer(['auth.register', 'auth.login'], function (\Illuminate\View\View $view): void {
+            $view->with('registrationContent', rescue(function (): array {
+                $locale = app()->getLocale();
 
-            return [
-                'heading' => trim((string) Option::getValue('service.user.registration.heading', __('booking.register.heading'), $locale)) ?: __('booking.register.heading'),
-                'welcome' => trim((string) Option::getValue('service.user.registration.welcome', __('booking.register.welcome'), $locale)) ?: __('booking.register.welcome'),
-                'intro' => trim((string) Option::getValue('service.user.registration.intro', __('booking.register.intro'), $locale)) ?: __('booking.register.intro'),
-                'email_help' => trim((string) Option::getValue('service.user.registration.email_help', __('booking.register.email_help'), $locale)) ?: __('booking.register.email_help'),
-                'privacy' => trim((string) Option::getValue('service.user.registration.privacy', __('booking.register.privacy_text'), $locale)) ?: __('booking.register.privacy_text'),
-                'success' => trim((string) Option::getValue('service.user.registration.success', __('booking.register.success_message'), $locale)) ?: __('booking.register.success_message'),
-            ];
-        }, [
-            'heading' => __('booking.register.heading'),
-            'welcome' => __('booking.register.welcome'),
-            'intro' => __('booking.register.intro'),
-            'email_help' => __('booking.register.email_help'),
-            'privacy' => __('booking.register.privacy_text'),
-            'success' => __('booking.register.success_message'),
-        ], report: false));
+                return [
+                    'heading' => trim((string) Option::getValue('service.user.registration.heading', __('booking.register.heading'), $locale)) ?: __('booking.register.heading'),
+                    'welcome' => trim((string) Option::getValue('service.user.registration.welcome', __('booking.register.welcome'), $locale)) ?: __('booking.register.welcome'),
+                    'intro' => trim((string) Option::getValue('service.user.registration.intro', __('booking.register.intro'), $locale)) ?: __('booking.register.intro'),
+                    'email_help' => trim((string) Option::getValue('service.user.registration.email_help', __('booking.register.email_help'), $locale)) ?: __('booking.register.email_help'),
+                    'privacy' => trim((string) Option::getValue('service.user.registration.privacy', __('booking.register.privacy_text'), $locale)) ?: __('booking.register.privacy_text'),
+                    'success' => trim((string) Option::getValue('service.user.registration.success', __('booking.register.success_message'), $locale)) ?: __('booking.register.success_message'),
+                ];
+            }, [
+                'heading' => __('booking.register.heading'),
+                'welcome' => __('booking.register.welcome'),
+                'intro' => __('booking.register.intro'),
+                'email_help' => __('booking.register.email_help'),
+                'privacy' => __('booking.register.privacy_text'),
+                'success' => __('booking.register.success_message'),
+            ], report: false));
+        });
     }
 }
