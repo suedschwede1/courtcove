@@ -6,6 +6,7 @@ namespace Tests\Unit\Services;
 
 use App\Services\DatabaseSchemaChecker;
 use Illuminate\Database\Schema\Blueprint;
+use InvalidArgumentException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -105,5 +106,61 @@ class DatabaseSchemaCheckerTest extends TestCase
 
         $this->assertFalse($result['exists']);
         $this->assertSame(['emid', 'eid', 'key', 'value', 'locale'], $result['missing_columns']);
+    }
+
+    #[Test]
+    public function repair_table_adds_missing_columns(): void
+    {
+        Schema::table('bs_users', function (Blueprint $table): void {
+            $table->dropColumn('last_ip');
+        });
+
+        $actions = $this->checker->repairTable('bs_users');
+
+        $this->assertCount(1, $actions);
+        $this->assertStringContainsString('last_ip', $actions[0]);
+        $this->assertTrue(Schema::hasColumn('bs_users', 'last_ip'));
+
+        $result = collect($this->checker->checkTables())->firstWhere('table', 'bs_users');
+        $this->assertSame([], $result['missing_columns']);
+    }
+
+    #[Test]
+    public function repair_table_recreates_a_missing_table_via_its_migration(): void
+    {
+        Schema::drop('bs_events_meta');
+
+        $actions = $this->checker->repairTable('bs_events_meta');
+
+        $this->assertCount(1, $actions);
+        $this->assertStringContainsString('2026_06_26_073904_create_bs_events_meta_table', $actions[0]);
+        $this->assertTrue(Schema::hasTable('bs_events_meta'));
+        $this->assertDatabaseHas('migrations', ['migration' => '2026_06_26_073904_create_bs_events_meta_table']);
+    }
+
+    #[Test]
+    public function repair_table_restores_a_lost_migration_record(): void
+    {
+        Schema::drop('bs_events_meta');
+        DB::table('migrations')->where('migration', '2026_06_26_073904_create_bs_events_meta_table')->delete();
+
+        $this->checker->repairTable('bs_events_meta');
+
+        $this->assertTrue(Schema::hasTable('bs_events_meta'));
+        $this->assertDatabaseHas('migrations', ['migration' => '2026_06_26_073904_create_bs_events_meta_table']);
+    }
+
+    #[Test]
+    public function repair_table_is_a_noop_for_a_healthy_table(): void
+    {
+        $this->assertSame([], $this->checker->repairTable('bs_users'));
+    }
+
+    #[Test]
+    public function repair_table_throws_for_an_unknown_table(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        $this->checker->repairTable('migrations');
     }
 }

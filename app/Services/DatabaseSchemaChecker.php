@@ -7,6 +7,8 @@ namespace App\Services;
 use Closure;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use InvalidArgumentException;
+use RuntimeException;
 
 /**
  * Reports database migration status and validates that the bs_* tables
@@ -238,6 +240,74 @@ final class DatabaseSchemaChecker
     public function knowsTable(string $table): bool
     {
         return array_key_exists($table, self::columnDefinitions());
+    }
+
+    /**
+     * Creates the table (via its create migration) or adds missing columns.
+     * Only ever adds what is missing — never drops or alters existing columns.
+     *
+     * @return array<int, string> human-readable list of actions performed
+     */
+    public function repairTable(string $table): array
+    {
+        $definitions = self::columnDefinitions()[$table] ?? null;
+
+        if ($definitions === null) {
+            throw new InvalidArgumentException("Unknown table [{$table}].");
+        }
+
+        if (! Schema::hasTable($table)) {
+            return [$this->createTableFromMigration($table)];
+        }
+
+        $missing = array_values(array_diff(array_keys($definitions), Schema::getColumnListing($table)));
+
+        if ($missing === []) {
+            return [];
+        }
+
+        Schema::table($table, function (Blueprint $blueprint) use ($definitions, $missing): void {
+            foreach ($missing as $column) {
+                ($definitions[$column])($blueprint);
+            }
+        });
+
+        return array_map(
+            static fn (string $column): string => "Added column {$column} to {$table}.",
+            $missing,
+        );
+    }
+
+    private function createTableFromMigration(string $table): string
+    {
+        $migrator = app('migrator');
+        $files = $migrator->getMigrationFiles(array_merge(
+            [database_path('migrations')],
+            $migrator->paths(),
+        ));
+
+        $name = null;
+        $path = null;
+        foreach ($files as $migrationName => $migrationPath) {
+            if (str_ends_with($migrationName, "create_{$table}_table")) {
+                [$name, $path] = [$migrationName, $migrationPath];
+                break;
+            }
+        }
+
+        if ($name === null) {
+            throw new RuntimeException("No create migration found for table [{$table}].");
+        }
+
+        $migration = require $path;
+        $migration->up();
+
+        $repository = $migrator->getRepository();
+        if (! in_array($name, $repository->getRan(), true)) {
+            $repository->log($name, $repository->getNextBatchNumber());
+        }
+
+        return "Created table {$table} by running migration {$name}.";
     }
 
     /**
