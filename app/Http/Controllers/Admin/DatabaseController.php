@@ -69,4 +69,27 @@ final class DatabaseController extends Controller
             ->with('success', __('booking.admin.database.migrate_ran'))
             ->with('output', trim(Artisan::output()));
     }
+
+    public function repair(string $table): RedirectResponse
+    {
+        abort_unless($this->checker->knowsTable($table), 404);
+
+        try {
+            $actions = $this->checker->repairTable($table);
+        } catch (Throwable $e) {
+            report($e);
+
+            return redirect()->route('admin.database.index')
+                ->with('error', __('booking.admin.database.repair_failed', ['table' => $table, 'message' => $e->getMessage()]));
+        }
+
+        if ($actions === []) {
+            return redirect()->route('admin.database.index')
+                ->with('success', __('booking.admin.database.repair_nothing', ['table' => $table]));
+        }
+
+        return redirect()->route('admin.database.index')
+            ->with('success', __('booking.admin.database.repair_done', ['table' => $table]))
+            ->with('output', implode(PHP_EOL, $actions));
+    }
 }

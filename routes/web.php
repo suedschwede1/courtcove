@@ -83,6 +83,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function (): v
         Route::post('testmail', [TestMailController::class, 'send'])->name('testmail.send');
         Route::get('database', [DatabaseController::class, 'index'])->name('database.index');
         Route::post('database/migrate', [DatabaseController::class, 'migrate'])->name('database.migrate');
+        Route::post('database/repair/{table}', [DatabaseController::class, 'repair'])->name('database.repair');
     });
 });
 

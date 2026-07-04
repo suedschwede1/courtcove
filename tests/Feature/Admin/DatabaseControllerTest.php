@@ -112,6 +112,78 @@ class DatabaseControllerTest extends TestCase
     }
 
     #[Test]
+    public function admin_can_repair_a_table_with_a_missing_column(): void
+    {
+        $admin = $this->admin();
+
+        Schema::table('bs_users', function (Blueprint $table): void {
+            $table->dropColumn('last_ip');
+        });
+
+        $this->actingAs($admin)
+            ->post('/admin/database/repair/bs_users')
+            ->assertRedirect('/admin/database')
+            ->assertSessionHas('success')
+            ->assertSessionHas('output', fn (string $output): bool => str_contains($output, 'last_ip'));
+
+        $this->assertTrue(Schema::hasColumn('bs_users', 'last_ip'));
+    }
+
+    #[Test]
+    public function admin_can_repair_a_missing_table(): void
+    {
+        Schema::drop('bs_events_meta');
+
+        $this->actingAs($this->admin())
+            ->post('/admin/database/repair/bs_events_meta')
+            ->assertRedirect('/admin/database')
+            ->assertSessionHas('success');
+
+        $this->assertTrue(Schema::hasTable('bs_events_meta'));
+    }
+
+    #[Test]
+    public function repairing_a_healthy_table_reports_nothing_to_do(): void
+    {
+        $this->actingAs($this->admin())
+            ->post('/admin/database/repair/bs_users')
+            ->assertRedirect('/admin/database')
+            ->assertSessionHas('success', __('booking.admin.database.repair_nothing', ['table' => 'bs_users']));
+    }
+
+    #[Test]
+    public function repairing_an_unknown_table_returns_404(): void
+    {
+        $this->actingAs($this->admin())
+            ->post('/admin/database/repair/migrations')
+            ->assertNotFound();
+    }
+
+    #[Test]
+    public function regular_member_cannot_repair_tables(): void
+    {
+        $this->actingAs(User::factory()->create(['status' => 'enabled']))
+            ->post('/admin/database/repair/bs_users')
+            ->assertForbidden();
+    }
+
+    #[Test]
+    public function database_page_offers_repair_for_a_problem_table(): void
+    {
+        $admin = $this->admin();
+
+        Schema::table('bs_users', function (Blueprint $table): void {
+            $table->dropColumn('last_ip');
+        });
+
+        $this->actingAs($admin)
+            ->get('/admin/database')
+            ->assertOk()
+            ->assertSee(__('booking.admin.database.repair_button'))
+            ->assertSee(route('admin.database.repair', 'bs_users'));
+    }
+
+    #[Test]
     public function database_status_page_shows_a_missing_column_when_schema_drifts(): void
     {
         $admin = $this->admin();

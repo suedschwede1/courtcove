@@ -80,7 +80,8 @@
                     <tr class="text-left text-xs font-semibold uppercase tracking-wide text-[#6a6e73] border-b border-[#f0ede6]">
                         <th class="py-2 pr-4">{{ __('booking.admin.database.table_name') }}</th>
                         <th class="py-2 pr-4">{{ __('booking.admin.database.table_exists') }}</th>
-                        <th class="py-2">{{ __('booking.admin.database.table_missing_columns') }}</th>
+                        <th class="py-2 pr-4">{{ __('booking.admin.database.table_missing_columns') }}</th>
+                        <th class="py-2">{{ __('booking.admin.database.repair_heading') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -94,8 +95,27 @@
                                     <span class="text-[#c9190b]">✕ {{ __('booking.admin.database.exists_no') }}</span>
                                 @endif
                             </td>
-                            <td class="py-2 text-xs text-[#6a6e73]">
+                            <td class="py-2 pr-4 text-xs text-[#6a6e73]">
                                 {{ $table['missing_columns'] !== [] ? implode(', ', $table['missing_columns']) : '—' }}
+                            </td>
+                            <td class="py-2">
+                                @if(!$table['exists'] || $table['missing_columns'] !== [])
+                                    <div class="flex flex-col gap-1">
+                                        <p class="text-xs text-[#6a6e73]">
+                                            @if(!$table['exists'])
+                                                {{ __('booking.admin.database.repair_preview_create') }}
+                                            @else
+                                                {{ __('booking.admin.database.repair_preview_columns', ['columns' => implode(', ', $table['missing_columns'])]) }}
+                                            @endif
+                                        </p>
+                                        <form method="POST" action="{{ route('admin.database.repair', $table['table']) }}" onsubmit="return confirm({{ Js::from(__('booking.admin.database.repair_confirm')) }})">
+                                            @csrf
+                                            <button type="submit" class="bg-[#bf4316] hover:bg-[#9e3412] text-white text-xs font-medium px-3 py-1.5 rounded transition-colors">{{ __('booking.admin.database.repair_button') }}</button>
+                                        </form>
+                                    </div>
+                                @else
+                                    <span class="text-xs text-[#6a6e73]">—</span>
+                                @endif
                             </td>
                         </tr>
                     @endforeach
