@@ -221,8 +221,8 @@ class ImportMembersCommand extends Command
     {
         $raw = trim($row['ID-Nr'] ?? '');
 
-        // "0" ist in der Vereinsverwaltung ein Platzhalter für "keine ID".
-        if ($raw === '' || $raw === '0') {
+        // "0" (auch "00" …) ist in der Vereinsverwaltung ein Platzhalter für "keine ID".
+        if (ltrim($raw, '0') === '') {
             return null;
         }
 
