@@ -70,5 +70,12 @@ return [
         'active_members' => 'Active members',
         'open_dues' => 'Open dues',
         'by_category' => 'Members per category',
+        'age_structure' => 'Age structure',
+        'age_up_to_18' => 'up to 18',
+        'age_19_35' => '19–35',
+        'age_36_50' => '36–50',
+        'age_51_65' => '51–65',
+        'age_66_plus' => '66+',
+        'age_unknown' => 'no date of birth',
     ],
 ];

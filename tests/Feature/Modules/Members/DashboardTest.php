@@ -23,6 +23,28 @@ class DashboardTest extends TestCase
     }
 
     #[Test]
+    public function dashboard_shows_age_structure_of_active_members(): void
+    {
+        Member::factory()->create(['birthdate' => now()->subYears(16)->toDateString()]);
+        Member::factory()->create(['birthdate' => now()->subYears(36)->toDateString()]);
+        Member::factory()->create(['birthdate' => now()->subYears(41)->toDateString()]);
+        Member::factory()->create(['birthdate' => now()->subYears(76)->toDateString()]);
+        Member::factory()->create(['birthdate' => null]);
+        // Departed members are not part of the age structure.
+        Member::factory()->create(['birthdate' => now()->subYears(20)->toDateString(), 'left_at' => '2025-01-01']);
+
+        $response = $this->actingAs($this->admin())->get('/members/dashboard')->assertOk();
+
+        $response->assertSeeText('Altersstruktur');
+        $response->assertSeeText('bis 18: 1');
+        $response->assertSeeText('19–35: 0');
+        $response->assertSeeText('36–50: 2');
+        $response->assertSeeText('51–65: 0');
+        $response->assertSeeText('66+: 1');
+        $response->assertSeeText('ohne Geburtsdatum: 1');
+    }
+
+    #[Test]
     public function dashboard_shows_active_member_count_and_open_dues_total(): void
     {
         Member::factory()->create();

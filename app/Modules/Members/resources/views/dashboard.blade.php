@@ -28,6 +28,15 @@
                 @endforelse
             </div>
         </div>
+        <div class="ui-card">
+            <div class="ui-card-body">
+                <p class="ui-kpi-meta">{{ __('members::admin.dashboard.age_structure') }}</p>
+                @foreach($ageStructure['buckets'] as $bucket => $count)
+                    <p>{{ __('members::admin.dashboard.age_'.$bucket) }}: {{ $count }}</p>
+                @endforeach
+                <p class="ui-kpi-meta">{{ __('members::admin.dashboard.age_unknown') }}: {{ $ageStructure['unknown'] }}</p>
+            </div>
+        </div>
     </div>
 </div>
 @endsection

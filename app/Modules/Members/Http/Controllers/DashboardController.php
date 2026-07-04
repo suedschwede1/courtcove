@@ -38,6 +38,43 @@ class DashboardController
             'openDuesSum' => $openDues->sum('amount'),
             'categoryCounts' => $categoryCounts,
             'currentFiscalYear' => $currentFiscalYear,
+            'ageStructure' => $this->ageStructure(),
         ]);
+    }
+
+    /**
+     * Age distribution of active members, bucketed for the dashboard.
+     *
+     * @return array{buckets: array<string, int>, unknown: int}
+     */
+    private function ageStructure(): array
+    {
+        $buckets = [
+            'up_to_18' => 0,
+            '19_35' => 0,
+            '36_50' => 0,
+            '51_65' => 0,
+            '66_plus' => 0,
+        ];
+        $unknown = 0;
+
+        Member::query()->active()->get(['birthdate'])->each(function (Member $member) use (&$buckets, &$unknown): void {
+            if (! $member->birthdate) {
+                $unknown++;
+
+                return;
+            }
+
+            $age = (int) $member->birthdate->age;
+            match (true) {
+                $age <= 18 => $buckets['up_to_18']++,
+                $age <= 35 => $buckets['19_35']++,
+                $age <= 50 => $buckets['36_50']++,
+                $age <= 65 => $buckets['51_65']++,
+                default => $buckets['66_plus']++,
+            };
+        });
+
+        return ['buckets' => $buckets, 'unknown' => $unknown];
     }
 }
