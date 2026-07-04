@@ -80,28 +80,35 @@ class ImportMembersCommand extends Command
                     )
                     ->first();
 
+                $category = $this->resolveCategory($row);
+
                 if ($member) {
                     $skipped++;
                 } else {
                     $member = Member::create([
                         'member_number' => $nextNumber++,
+                        'nuliga_id' => $this->parseNuligaId($row['ID-Nr'] ?? ''),
                         'firstname' => $firstname,
                         'lastname' => $lastname,
                         'birthdate' => $birthdate,
+                        'gender' => $this->parseGender($row['Geschlecht'] ?? ''),
                         'email' => $this->nullable($row['Email'] ?? ''),
                         'phone' => $this->nullable($row['Mobil'] ?? '') ?? $this->nullable($row['Privat'] ?? ''),
-                        'address' => $this->buildAddress($row),
+                        'street' => $this->nullable($row['Strasse'] ?? ''),
+                        'zip' => $this->nullable($row['PLZ'] ?? ''),
+                        'city' => $this->nullable($row['Ort'] ?? ''),
+                        'fee_category_id' => $category?->id,
                         'joined_at' => $joinedAt,
                     ]);
                     $created++;
                 }
 
-                $duesCreated += $this->createDues($member, $row, $currentYear);
+                $duesCreated += $this->createDues($member, $row, $currentYear, $category);
             }
         });
 
         $this->info("Import abgeschlossen: {$created} Mitglieder angelegt, {$skipped} übersprungen (bereits vorhanden), {$duesCreated} Vorschreibungen erstellt.");
-        $this->line('Nicht importiert (kein Feld im Datenmodell): Geschlecht, ID-Nr, Alter, Reservierungssystem, Bemerkung.');
+        $this->line('Nicht importiert (kein Feld im Datenmodell): Alter, Reservierungssystem, Bemerkung.');
 
         return self::SUCCESS;
     }
@@ -113,15 +120,11 @@ class ImportMembersCommand extends Command
      * Idempotent: vorhandene Vorschreibungen bleiben unverändert, bereits bezahlte
      * bekommen keine zweite Zahlung.
      */
-    private function createDues(Member $member, array $row, int $currentYear): int
+    private function createDues(Member $member, array $row, int $currentYear, ?FeeCategory $category): int
     {
-        $categoryName = trim($row['Mitgliedsart'] ?? '');
-
-        if ($categoryName === '') {
+        if (! $category) {
             return 0;
         }
-
-        $category = FeeCategory::firstOrCreate(['name' => self::CATEGORY_ALIASES[$categoryName] ?? $categoryName]);
 
         $paidYear = null;
         if (preg_match('/bezahlt\s*(\d{2})/i', $row['MB'] ?? '', $matches)) {
@@ -213,11 +216,26 @@ class ImportMembersCommand extends Command
         return $value === '' ? null : $value;
     }
 
-    private function buildAddress(array $row): ?string
+    /** Mitgliedsart → Beitragskategorie; legt unbekannte Kategorien an. */
+    private function resolveCategory(array $row): ?FeeCategory
     {
-        $street = trim($row['Strasse'] ?? '');
-        $place = trim(sprintf('%s %s', trim($row['PLZ'] ?? ''), trim($row['Ort'] ?? '')));
+        $name = trim($row['Mitgliedsart'] ?? '');
 
-        return $this->nullable(trim("{$street}, {$place}", ' ,'));
+        return $name === '' ? null : FeeCategory::firstOrCreate(['name' => self::CATEGORY_ALIASES[$name] ?? $name]);
+    }
+
+    /** "weiblich"/"maennlich"/"divers" (auch abgekürzt) → w/m/d. */
+    private function parseGender(string $value): ?string
+    {
+        $letter = mb_strtolower(mb_substr(trim($value), 0, 1));
+
+        return in_array($letter, ['m', 'w', 'd'], true) ? $letter : null;
+    }
+
+    private function parseNuligaId(string $value): ?int
+    {
+        $value = trim($value);
+
+        return ctype_digit($value) ? (int) $value : null;
     }
 }

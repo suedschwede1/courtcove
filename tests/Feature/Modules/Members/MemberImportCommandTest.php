@@ -23,7 +23,7 @@ class MemberImportCommandTest extends TestCase
 
         $csv = <<<CSV
         Name,Vorname,Mitgliedsart,MB ,Bemerkung,Email,Strasse,PLZ,Ort,Privat,Mobil,Geschlecht,GebDatum,ID-Nr,Alter,Reservierungssystem
-        Muster,Anna,Vollmitglied,bezahlt {$currentYy},,anna@example.com,Teststr. 1,4400,Sampletown,,0650 1234567,weiblich,01.02.1980,,46,Ja
+        Muster,Anna,Vollmitglied,bezahlt {$currentYy},,anna@example.com,Teststr. 1,4400,Sampletown,,0650 1234567,weiblich,01.02.1980,288563,46,Ja
         Alt,Bernd,Pensionist,bezahlt {$lastYy},,,Weg 2,4400,Sampletown,70 658,,maennlich,03.04.1950,,76,Nein
         CSV;
 
@@ -47,16 +47,24 @@ class MemberImportCommandTest extends TestCase
         $this->assertSame('1980-02-01', $anna->birthdate->toDateString());
         $this->assertSame('anna@example.com', $anna->email);
         $this->assertSame('0650 1234567', $anna->phone);
-        $this->assertSame('Teststr. 1, 4400 Sampletown', $anna->address);
+        $this->assertSame('Teststr. 1', $anna->street);
+        $this->assertSame('4400', $anna->zip);
+        $this->assertSame('Sampletown', $anna->city);
+        $this->assertSame('w', $anna->gender);
+        $this->assertSame(288563, $anna->nuliga_id);
 
         $bernd = Member::where('lastname', 'Alt')->firstOrFail();
         $this->assertSame(2, $bernd->member_number);
         $this->assertNull($bernd->email);
         $this->assertSame('70 658', $bernd->phone);
+        $this->assertSame('m', $bernd->gender);
+        $this->assertNull($bernd->nuliga_id);
 
         // Mitgliedsarten aus der CSV werden auf die Kategorienamen der App gemappt.
         $this->assertNotNull(FeeCategory::where('name', 'Vollzahler')->first());
         $this->assertNotNull(FeeCategory::where('name', 'Pensionisten')->first());
+        $this->assertSame('Vollzahler', $anna->feeCategory->name);
+        $this->assertSame('Pensionisten', $bernd->feeCategory->name);
 
         $currentFy = FiscalYear::where('name', (string) $currentYear)->firstOrFail();
         $lastFy = FiscalYear::where('name', (string) $lastYear)->firstOrFail();
