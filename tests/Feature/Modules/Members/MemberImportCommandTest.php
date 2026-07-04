@@ -87,6 +87,36 @@ class MemberImportCommandTest extends TestCase
     }
 
     #[Test]
+    public function rerun_generates_dues_for_existing_members(): void
+    {
+        $currentYear = now()->year;
+        $currentYy = $currentYear % 100;
+
+        $this->artisan('members:import-csv', ['file' => $this->writeCsv()])->assertSuccessful();
+
+        // Nächster Export: Bernd hat inzwischen das aktuelle Jahr bezahlt.
+        $csv = <<<CSV
+        Name,Vorname,Mitgliedsart,MB ,Bemerkung,Email,Strasse,PLZ,Ort,Privat,Mobil,Geschlecht,GebDatum,ID-Nr,Alter,Reservierungssystem
+        Alt,Bernd,Pensionist,bezahlt {$currentYy},,,Weg 2,4400,Sampletown,70 658,,maennlich,03.04.1950,,76,Nein
+        CSV;
+        $file = sys_get_temp_dir().'/members-import-test-rerun.csv';
+        file_put_contents($file, $csv);
+
+        $this->artisan('members:import-csv', ['file' => $file])->assertSuccessful();
+
+        $this->assertSame(2, Member::count());
+
+        $bernd = Member::where('lastname', 'Alt')->firstOrFail();
+        $currentFy = FiscalYear::where('name', (string) $currentYear)->firstOrFail();
+        $due = MemberDue::where('member_id', $bernd->id)->where('fiscal_year_id', $currentFy->id)->firstOrFail();
+        $this->assertTrue($due->isPaid());
+
+        // Nochmaliger Lauf derselben Datei erzeugt keine doppelte Zahlung.
+        $this->artisan('members:import-csv', ['file' => $file])->assertSuccessful();
+        $this->assertSame(1, $due->payments()->count());
+    }
+
+    #[Test]
     public function fails_for_missing_file(): void
     {
         $this->artisan('members:import-csv', ['file' => 'C:/does/not/exist.csv'])->assertFailed();

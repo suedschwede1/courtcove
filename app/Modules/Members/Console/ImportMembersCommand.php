@@ -70,7 +70,7 @@ class ImportMembersCommand extends Command
 
                 $birthdate = $this->parseGermanDate($row['GebDatum'] ?? '');
 
-                $exists = Member::query()
+                $member = Member::query()
                     ->where('firstname', $firstname)
                     ->where('lastname', $lastname)
                     ->when(
@@ -78,27 +78,25 @@ class ImportMembersCommand extends Command
                         fn ($query) => $query->whereDate('birthdate', $birthdate->toDateString()),
                         fn ($query) => $query->whereNull('birthdate'),
                     )
-                    ->exists();
+                    ->first();
 
-                if ($exists) {
+                if ($member) {
                     $skipped++;
-
-                    continue;
+                } else {
+                    $member = Member::create([
+                        'member_number' => $nextNumber++,
+                        'firstname' => $firstname,
+                        'lastname' => $lastname,
+                        'birthdate' => $birthdate,
+                        'email' => $this->nullable($row['Email'] ?? ''),
+                        'phone' => $this->nullable($row['Mobil'] ?? '') ?? $this->nullable($row['Privat'] ?? ''),
+                        'address' => $this->buildAddress($row),
+                        'joined_at' => $joinedAt,
+                    ]);
+                    $created++;
                 }
 
-                $member = Member::create([
-                    'member_number' => $nextNumber++,
-                    'firstname' => $firstname,
-                    'lastname' => $lastname,
-                    'birthdate' => $birthdate,
-                    'email' => $this->nullable($row['Email'] ?? ''),
-                    'phone' => $this->nullable($row['Mobil'] ?? '') ?? $this->nullable($row['Privat'] ?? ''),
-                    'address' => $this->buildAddress($row),
-                    'joined_at' => $joinedAt,
-                ]);
-
                 $duesCreated += $this->createDues($member, $row, $currentYear);
-                $created++;
             }
         });
 
@@ -112,6 +110,8 @@ class ImportMembersCommand extends Command
      * Legt Vorschreibungen aus der "MB"-Spalte an ("bezahlt 26" = Jahr 2026 bezahlt).
      * Das zuletzt bezahlte Jahr bekommt eine bezahlte Vorschreibung; liegt es vor dem
      * aktuellen Jahr, wird zusätzlich eine offene Vorschreibung fürs aktuelle Jahr angelegt.
+     * Idempotent: vorhandene Vorschreibungen bleiben unverändert, bereits bezahlte
+     * bekommen keine zweite Zahlung.
      */
     private function createDues(Member $member, array $row, int $currentYear): int
     {
@@ -142,24 +142,24 @@ class ImportMembersCommand extends Command
                 ->where('fiscal_year_id', $fiscalYear->id)
                 ->value('amount') ?? 0;
 
-            $due = MemberDue::create([
-                'member_id' => $member->id,
-                'fiscal_year_id' => $fiscalYear->id,
-                'fee_category_id' => $category->id,
-                'amount' => $amount,
-            ]);
+            $due = MemberDue::firstOrCreate(
+                ['member_id' => $member->id, 'fiscal_year_id' => $fiscalYear->id],
+                ['fee_category_id' => $category->id, 'amount' => $amount],
+            );
 
-            if ($year === $paidYear) {
+            if ($due->wasRecentlyCreated) {
+                $count++;
+            }
+
+            if ($year === $paidYear && ! $due->isPaid()) {
                 $payment = Payment::create([
                     'member_id' => $member->id,
-                    'amount' => $amount,
+                    'amount' => $due->amount,
                     'paid_at' => "{$year}-01-01",
                     'note' => 'CSV-Import: '.trim($row['MB'] ?? ''),
                 ]);
                 $due->payments()->attach($payment);
             }
-
-            $count++;
         }
 
         return $count;
