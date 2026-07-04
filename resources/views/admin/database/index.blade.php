@@ -5,6 +5,13 @@
 
     <h1 class="text-2xl font-bold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.admin.database.title') }}</h1>
 
+    @if(session('output'))
+        <details class="bg-[#151515] rounded-xl overflow-hidden" open>
+            <summary class="px-4 py-2 text-sm font-medium text-white cursor-pointer select-none">{{ __('booking.admin.database.output_heading') }}</summary>
+            <pre class="px-4 pb-4 text-xs leading-relaxed text-[#d2d2d2] overflow-x-auto">{{ session('output') }}</pre>
+        </details>
+    @endif
+
     <div class="bg-white rounded-xl border border-[#e0ddd7] shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-[#f0ede6] flex items-start justify-between gap-4">
             <h2 class="text-base font-semibold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.admin.database.migrations_heading') }}</h2>

@@ -7,9 +7,11 @@ namespace Tests\Feature\Admin;
 use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use PHPUnit\Framework\Attributes\Test;
+use RuntimeException;
 use Tests\TestCase;
 
 class DatabaseControllerTest extends TestCase
@@ -73,6 +75,40 @@ class DatabaseControllerTest extends TestCase
         $this->actingAs(User::factory()->create(['status' => 'enabled']))
             ->post('/admin/database/migrate', ['confirmation' => 'MIGRATE'])
             ->assertForbidden();
+    }
+
+    #[Test]
+    public function migrate_flashes_the_artisan_output_on_success(): void
+    {
+        DB::table('migrations')->where('migration', '2026_06_28_155630_create_jobs_table')->delete();
+
+        $this->actingAs($this->admin())
+            ->post('/admin/database/migrate', ['confirmation' => 'MIGRATE'])
+            ->assertRedirect('/admin/database')
+            ->assertSessionHas('success')
+            ->assertSessionHas('output', fn (string $output): bool => str_contains($output, '2026_06_28_155630_create_jobs_table'));
+    }
+
+    #[Test]
+    public function migrate_failure_shows_the_exception_message(): void
+    {
+        Artisan::shouldReceive('call')->once()->andThrow(new RuntimeException('SQLSTATE boom'));
+        Artisan::shouldReceive('output')->andReturn('');
+
+        $this->actingAs($this->admin())
+            ->post('/admin/database/migrate', ['confirmation' => 'MIGRATE'])
+            ->assertRedirect('/admin/database')
+            ->assertSessionHas('error', fn (string $error): bool => str_contains($error, 'SQLSTATE boom'));
+    }
+
+    #[Test]
+    public function database_page_renders_flashed_output(): void
+    {
+        $this->actingAs($this->admin())
+            ->withSession(['output' => 'OUTPUT-ZEILE-42'])
+            ->get('/admin/database')
+            ->assertOk()
+            ->assertSee('OUTPUT-ZEILE-42');
     }
 
     #[Test]

@@ -61,10 +61,12 @@ final class DatabaseController extends Controller
 
             return redirect()->route('admin.database.index')
                 ->withInput()
-                ->with('error', __('booking.admin.database.migrate_failed'));
+                ->with('error', __('booking.admin.database.migrate_failed_message', ['message' => $e->getMessage()]))
+                ->with('output', trim(Artisan::output()));
         }
 
         return redirect()->route('admin.database.index')
-            ->with('success', __('booking.admin.database.migrate_ran'));
+            ->with('success', __('booking.admin.database.migrate_ran'))
+            ->with('output', trim(Artisan::output()));
     }
 }
