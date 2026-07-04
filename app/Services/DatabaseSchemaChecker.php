@@ -258,16 +258,21 @@ final class DatabaseSchemaChecker
      */
     private static function tableLevelConstraints(): array
     {
+        // Explicit short names: MySQL caps identifiers at 64 chars, and the
+        // default auto-generated name (table + all columns + suffix) can tip
+        // over that limit once probeSignature() prefixes the table name with
+        // "__drift_probe__". normalizeIndexes() ignores names anyway, so any
+        // short unique name is fine here.
         return [
-            'bs_users_meta' => [fn (Blueprint $t) => $t->index(['uid', 'key'])],
-            'bs_squares_meta' => [fn (Blueprint $t) => $t->index(['sid', 'key'])],
-            'bs_bookings_meta' => [fn (Blueprint $t) => $t->index(['bid', 'key'])],
-            'bs_events_meta' => [fn (Blueprint $t) => $t->index(['eid', 'key'])],
-            'bs_bookings' => [fn (Blueprint $t) => $t->index(['sid', 'status'])],
-            'bs_reservations' => [fn (Blueprint $t) => $t->index(['date', 'bid'])],
-            'fee_category_rates' => [fn (Blueprint $t) => $t->unique(['fee_category_id', 'fiscal_year_id'])],
-            'member_dues' => [fn (Blueprint $t) => $t->unique(['member_id', 'fiscal_year_id'])],
-            'payment_dues' => [fn (Blueprint $t) => $t->unique(['payment_id', 'member_due_id'])],
+            'bs_users_meta' => [fn (Blueprint $t) => $t->index(['uid', 'key'], 'dp_bs_users_meta_uid_key')],
+            'bs_squares_meta' => [fn (Blueprint $t) => $t->index(['sid', 'key'], 'dp_bs_squares_meta_sid_key')],
+            'bs_bookings_meta' => [fn (Blueprint $t) => $t->index(['bid', 'key'], 'dp_bs_bookings_meta_bid_key')],
+            'bs_events_meta' => [fn (Blueprint $t) => $t->index(['eid', 'key'], 'dp_bs_events_meta_eid_key')],
+            'bs_bookings' => [fn (Blueprint $t) => $t->index(['sid', 'status'], 'dp_bs_bookings_sid_status')],
+            'bs_reservations' => [fn (Blueprint $t) => $t->index(['date', 'bid'], 'dp_bs_reservations_date_bid')],
+            'fee_category_rates' => [fn (Blueprint $t) => $t->unique(['fee_category_id', 'fiscal_year_id'], 'dp_fee_category_rates_unique')],
+            'member_dues' => [fn (Blueprint $t) => $t->unique(['member_id', 'fiscal_year_id'], 'dp_member_dues_unique')],
+            'payment_dues' => [fn (Blueprint $t) => $t->unique(['payment_id', 'member_due_id'], 'dp_payment_dues_unique')],
         ];
     }
 
