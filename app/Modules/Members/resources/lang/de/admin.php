@@ -30,6 +30,7 @@ return [
         'note' => 'Notiz',
         'covers' => 'Deckt folgende Beiträge ab',
         'due_already_paid' => 'Einer der ausgewählten Beiträge wurde bereits bezahlt.',
+        'amount_mismatch' => 'Der Betrag muss der Summe der ausgewählten Beiträge entsprechen (:sum €).',
     ],
     'common' => [
         'all' => 'Alle',
@@ -55,6 +56,9 @@ return [
     ],
     'dues' => [
         'title' => 'Beiträge',
+        'new' => 'Beitrag manuell anlegen',
+        'member' => 'Mitglied',
+        'created' => 'Beitrag angelegt.',
         'generate' => 'Beiträge für dieses Fiskaljahr generieren',
         'generated' => ':count Beitrag/Beiträge erzeugt.',
         'status' => 'Status',

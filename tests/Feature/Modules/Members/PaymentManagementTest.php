@@ -44,6 +44,62 @@ class PaymentManagementTest extends TestCase
     }
 
     #[Test]
+    public function payment_is_rejected_when_amount_is_less_than_selected_dues(): void
+    {
+        $member = Member::factory()->create();
+        $category = FeeCategory::create(['name' => 'Vollmitglied']);
+        $fy1 = FiscalYear::create(['name' => '2025/26', 'starts_on' => '2025-09-01', 'ends_on' => '2026-08-31']);
+        $fy2 = FiscalYear::create(['name' => '2026/27', 'starts_on' => '2026-09-01', 'ends_on' => '2027-08-31']);
+        $due1 = MemberDue::create(['member_id' => $member->id, 'fiscal_year_id' => $fy1->id, 'fee_category_id' => $category->id, 'amount' => 120]);
+        $due2 = MemberDue::create(['member_id' => $member->id, 'fiscal_year_id' => $fy2->id, 'fee_category_id' => $category->id, 'amount' => 130]);
+
+        $this->actingAs($this->admin())->post("/members/{$member->id}/payments", [
+            'amount' => 100,
+            'paid_at' => '2025-09-10',
+            'member_due_ids' => [$due1->id, $due2->id],
+        ])->assertSessionHasErrors('amount');
+
+        $this->assertDatabaseCount('payments', 0);
+        $this->assertFalse($due1->fresh()->isPaid());
+        $this->assertFalse($due2->fresh()->isPaid());
+    }
+
+    #[Test]
+    public function payment_is_rejected_when_amount_exceeds_selected_dues(): void
+    {
+        $member = Member::factory()->create();
+        $category = FeeCategory::create(['name' => 'Vollmitglied']);
+        $fy = FiscalYear::create(['name' => '2025/26', 'starts_on' => '2025-09-01', 'ends_on' => '2026-08-31']);
+        $due = MemberDue::create(['member_id' => $member->id, 'fiscal_year_id' => $fy->id, 'fee_category_id' => $category->id, 'amount' => 120]);
+
+        $this->actingAs($this->admin())->post("/members/{$member->id}/payments", [
+            'amount' => 200,
+            'paid_at' => '2025-09-10',
+            'member_due_ids' => [$due->id],
+        ])->assertSessionHasErrors('amount');
+
+        $this->assertDatabaseCount('payments', 0);
+        $this->assertFalse($due->fresh()->isPaid());
+    }
+
+    #[Test]
+    public function payment_amount_may_not_exceed_the_decimal_column_range(): void
+    {
+        $member = Member::factory()->create();
+        $category = FeeCategory::create(['name' => 'Vollmitglied']);
+        $fy = FiscalYear::create(['name' => '2025/26', 'starts_on' => '2025-09-01', 'ends_on' => '2026-08-31']);
+        $due = MemberDue::create(['member_id' => $member->id, 'fiscal_year_id' => $fy->id, 'fee_category_id' => $category->id, 'amount' => 120]);
+
+        $this->actingAs($this->admin())->post("/members/{$member->id}/payments", [
+            'amount' => 1000000,
+            'paid_at' => '2025-09-10',
+            'member_due_ids' => [$due->id],
+        ])->assertSessionHasErrors('amount');
+
+        $this->assertDatabaseCount('payments', 0);
+    }
+
+    #[Test]
     public function payment_cannot_attach_a_due_belonging_to_another_member(): void
     {
         $member = Member::factory()->create();

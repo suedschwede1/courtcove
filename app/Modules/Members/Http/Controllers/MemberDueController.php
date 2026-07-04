@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Members\Http\Controllers;
 
+use App\Modules\Members\Models\FeeCategory;
 use App\Modules\Members\Models\FeeCategoryRate;
 use App\Modules\Members\Models\FiscalYear;
 use App\Modules\Members\Models\Member;
@@ -11,6 +12,7 @@ use App\Modules\Members\Models\MemberDue;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class MemberDueController
 {
@@ -29,6 +31,35 @@ class MemberDueController
             'selectedFiscalYearId' => $selectedFiscalYearId,
             'dues' => $dues,
         ]);
+    }
+
+    public function create(): View
+    {
+        return view('members::dues.create', [
+            'members' => Member::query()->active()->orderBy('lastname')->orderBy('firstname')->get(),
+            'fiscalYears' => FiscalYear::query()->orderBy('starts_on')->get(),
+            'feeCategories' => FeeCategory::query()->orderBy('name')->get(),
+        ]);
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'member_id' => [
+                'required',
+                'exists:members,id',
+                Rule::unique('member_dues', 'member_id')
+                    ->where('fiscal_year_id', (int) $request->input('fiscal_year_id')),
+            ],
+            'fiscal_year_id' => ['required', 'exists:fiscal_years,id'],
+            'fee_category_id' => ['required', 'exists:fee_categories,id'],
+            'amount' => ['required', 'numeric', 'decimal:0,2', 'min:0', 'max:999999.99'],
+        ]);
+
+        MemberDue::create($validated);
+
+        return redirect()->route('members.dues.index', ['fiscal_year_id' => $validated['fiscal_year_id']])
+            ->with('status', __('members::admin.dues.created'));
     }
 
     public function generate(Request $request): RedirectResponse

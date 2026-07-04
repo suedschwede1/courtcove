@@ -24,6 +24,7 @@
                 <input type="hidden" name="fiscal_year_id" value="{{ $selectedFiscalYearId }}">
                 <button type="submit" class="ui-btn ui-btn-primary">{{ __('members::admin.dues.generate') }}</button>
             </form>
+            <a href="{{ route('members.dues.create') }}" class="ui-btn ui-btn-ghost">{{ __('members::admin.dues.new') }}</a>
         </div>
     </div>
 

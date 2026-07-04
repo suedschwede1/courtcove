@@ -30,6 +30,7 @@ return [
         'note' => 'Note',
         'covers' => 'Covers the following dues',
         'due_already_paid' => 'One of the selected dues has already been paid.',
+        'amount_mismatch' => 'The amount must match the sum of the selected dues (:sum €).',
     ],
     'common' => [
         'all' => 'All',
@@ -55,6 +56,9 @@ return [
     ],
     'dues' => [
         'title' => 'Dues',
+        'new' => 'Create due manually',
+        'member' => 'Member',
+        'created' => 'Due created.',
         'generate' => 'Generate dues for this fiscal year',
         'generated' => ':count due(s) created.',
         'status' => 'Status',
