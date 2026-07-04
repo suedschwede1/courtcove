@@ -59,12 +59,12 @@
                                 <td colspan="7">
                                     <form method="POST" action="{{ route('members.update', $member) }}" class="ui-stack">
                                         @method('PUT')
-                                        @foreach(array_filter($filters, fn ($value) => $value !== null && $value !== '') as $key => $value)
+                                        @foreach($filters as $key => $value)
                                             <input type="hidden" name="filters[{{ $key }}]" value="{{ $value }}">
                                         @endforeach
                                         @include('members::members._form')
                                         <div class="ui-form-actions">
-                                            <a href="{{ route('members.index', array_filter($filters)) }}" class="ui-btn ui-btn-ghost">{{ __('members::admin.common.cancel') }}</a>
+                                            <a href="{{ route('members.index', $filters) }}" class="ui-btn ui-btn-ghost">{{ __('members::admin.common.cancel') }}</a>
                                             <button type="submit" class="ui-btn ui-btn-primary">{{ __('members::admin.common.save') }}</button>
                                         </div>
                                     </form>
@@ -80,7 +80,7 @@
                                 <td class="text-[#6a6e73]">{{ $member->joined_at->format('d.m.Y') }}</td>
                                 <td>
                                     <div class="flex items-center justify-end gap-2 whitespace-nowrap">
-                                        <a href="{{ route('members.index', array_merge(array_filter($filters), ['edit' => $member->id])) }}" class="ui-btn ui-btn-ghost">{{ __('members::admin.common.edit') }}</a>
+                                        <a href="{{ route('members.index', array_merge($filters, ['edit' => $member->id])) }}" class="ui-btn ui-btn-ghost">{{ __('members::admin.common.edit') }}</a>
                                         <form method="POST" action="{{ route('members.destroy', $member) }}" onsubmit="return confirm({{ Js::from(__('members::admin.members.confirm_leave')) }})">
                                             @csrf
                                             @method('DELETE')

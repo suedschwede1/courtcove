@@ -37,7 +37,10 @@ class MemberController
 
         return view('members::members.index', [
             'members' => $query->orderBy('lastname')->orderBy('firstname')->get(),
-            'filters' => $request->only('status', 'search', 'fee_category'),
+            'filters' => array_filter(
+                $request->only('status', 'search', 'fee_category'),
+                fn ($value) => $value !== null && $value !== '',
+            ),
             'feeCategories' => FeeCategory::query()->orderBy('name')->get(),
             'editing' => $request->integer('edit') ?: null,
         ]);
