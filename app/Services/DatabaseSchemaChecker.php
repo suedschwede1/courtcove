@@ -9,6 +9,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use InvalidArgumentException;
 use RuntimeException;
+use Throwable;
 
 /**
  * Reports database migration status and validates that the bs_* tables
@@ -198,12 +199,17 @@ final class DatabaseSchemaChecker
             'members' => [
                 'id' => fn (Blueprint $t) => $t->id(),
                 'member_number' => fn (Blueprint $t) => $t->unsignedInteger('member_number')->unique(),
+                'nuliga_id' => fn (Blueprint $t) => $t->unsignedInteger('nuliga_id')->nullable()->unique(),
                 'firstname' => fn (Blueprint $t) => $t->string('firstname', 128),
                 'lastname' => fn (Blueprint $t) => $t->string('lastname', 128),
                 'birthdate' => fn (Blueprint $t) => $t->date('birthdate')->nullable(),
+                'gender' => fn (Blueprint $t) => $t->string('gender', 1)->nullable(),
                 'email' => fn (Blueprint $t) => $t->string('email', 128)->nullable(),
                 'phone' => fn (Blueprint $t) => $t->string('phone', 64)->nullable(),
-                'address' => fn (Blueprint $t) => $t->string('address', 255)->nullable(),
+                'street' => fn (Blueprint $t) => $t->string('street', 255)->nullable(),
+                'zip' => fn (Blueprint $t) => $t->string('zip', 10)->nullable(),
+                'city' => fn (Blueprint $t) => $t->string('city', 128)->nullable(),
+                'fee_category_id' => fn (Blueprint $t) => $t->foreignId('fee_category_id')->nullable()->constrained('fee_categories')->nullOnDelete(),
                 'joined_at' => fn (Blueprint $t) => $t->date('joined_at'),
                 'left_at' => fn (Blueprint $t) => $t->date('left_at')->nullable(),
                 'created_at' => fn (Blueprint $t) => $t->timestamp('created_at')->nullable(),
@@ -240,6 +246,89 @@ final class DatabaseSchemaChecker
     public function knowsTable(string $table): bool
     {
         return array_key_exists($table, self::columnDefinitions());
+    }
+
+    /**
+     * Composite (multi-column) constraints that live outside the per-column
+     * closures in columnDefinitions() — mirrored from the create migrations'
+     * table-level $table->unique([...]) calls.
+     *
+     * @return array<string, Closure(Blueprint): mixed>
+     */
+    private static function tableLevelConstraints(): array
+    {
+        return [
+            'fee_category_rates' => fn (Blueprint $t) => $t->unique(['fee_category_id', 'fiscal_year_id']),
+            'member_dues' => fn (Blueprint $t) => $t->unique(['member_id', 'fiscal_year_id']),
+            'payment_dues' => fn (Blueprint $t) => $t->unique(['payment_id', 'member_due_id']),
+        ];
+    }
+
+    /**
+     * Builds a throwaway table from the same closures used to validate a real
+     * table, so the expected column/index signature is always computed by the
+     * current DB driver (SQLite in tests, MySQL in production) instead of a
+     * hardcoded type string that would only be correct for one driver.
+     *
+     * @param array<string, Closure(Blueprint): mixed> $definitions
+     * @return array{0: array<int, array<string, mixed>>, 1: array<int, array<string, mixed>>}
+     */
+    private function probeSignature(string $table, array $definitions): array
+    {
+        $probeTable = "__drift_probe__{$table}";
+        Schema::dropIfExists($probeTable);
+
+        try {
+            Schema::create($probeTable, function (Blueprint $blueprint) use ($definitions, $table): void {
+                foreach ($definitions as $define) {
+                    $define($blueprint);
+                }
+
+                $constraint = self::tableLevelConstraints()[$table] ?? null;
+                if ($constraint !== null) {
+                    $constraint($blueprint);
+                }
+            });
+
+            return [Schema::getColumns($probeTable), Schema::getIndexes($probeTable)];
+        } finally {
+            Schema::dropIfExists($probeTable);
+        }
+    }
+
+    /**
+     * Compares every existing table against its expected signature (built via
+     * probeSignature()) and reports what doesn't match. Missing tables are
+     * intentionally not reported here — checkTables() already covers those.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function driftReport(): array
+    {
+        $findings = [];
+
+        foreach (self::columnDefinitions() as $table => $definitions) {
+            if (! Schema::hasTable($table)) {
+                continue;
+            }
+
+            try {
+                [$expectedColumns, $expectedIndexes] = $this->probeSignature($table, $definitions);
+            } catch (Throwable $e) {
+                $findings[] = ['table' => $table, 'kind' => 'drift_check_failed', 'message' => $e->getMessage()];
+                continue;
+            }
+
+            $expectedByName = collect($expectedColumns)->keyBy('name');
+
+            foreach (Schema::getColumns($table) as $column) {
+                if (! $expectedByName->has($column['name'])) {
+                    $findings[] = ['table' => $table, 'kind' => 'extra_column', 'column' => $column['name']];
+                }
+            }
+        }
+
+        return $findings;
     }
 
     /**

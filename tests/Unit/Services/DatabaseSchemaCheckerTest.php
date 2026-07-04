@@ -163,4 +163,43 @@ class DatabaseSchemaCheckerTest extends TestCase
 
         $this->checker->repairTable('migrations');
     }
+
+    #[Test]
+    public function drift_report_is_empty_for_a_healthy_schema(): void
+    {
+        $this->assertSame([], $this->checker->driftReport());
+    }
+
+    #[Test]
+    public function drift_report_flags_an_unexpected_extra_column(): void
+    {
+        Schema::table('bs_users', function (Blueprint $table): void {
+            $table->string('legacy_note', 32)->nullable();
+        });
+
+        $finding = collect($this->checker->driftReport())
+            ->firstWhere('kind', 'extra_column');
+
+        $this->assertNotNull($finding);
+        $this->assertSame('bs_users', $finding['table']);
+        $this->assertSame('legacy_note', $finding['column']);
+    }
+
+    #[Test]
+    public function drift_report_does_not_leak_probe_tables(): void
+    {
+        $this->checker->driftReport();
+
+        $this->assertFalse(Schema::hasTable('__drift_probe__bs_users'));
+    }
+
+    #[Test]
+    public function drift_report_does_not_double_report_a_missing_table(): void
+    {
+        Schema::drop('bs_events_meta');
+
+        $findings = collect($this->checker->driftReport())->where('table', 'bs_events_meta');
+
+        $this->assertCount(0, $findings);
+    }
 }
