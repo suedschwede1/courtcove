@@ -130,14 +130,16 @@ final class BookingController extends Controller
             $owner = $this->resolveOwner($data['booked_for']);
             [, , $occurrenceStarts, $durationSeconds] = $this->buildBookingTimeline($data);
 
-            if (($data['status'] ?? null) !== 'cancelled') {
-                $conflictError = $this->batchCheckConflicts((int) $data['sid'], $occurrenceStarts, $durationSeconds, null);
-                if ($conflictError !== null) {
-                    return back()->withErrors(['booking' => $conflictError])->withInput();
-                }
-            }
-
             DB::transaction(function () use ($data, $owner, $occurrenceStarts, $durationSeconds): void {
+                if (($data['status'] ?? null) !== 'cancelled') {
+                    // Serialize with concurrent bookings on this square, then check conflicts.
+                    Square::query()->whereKey((int) $data['sid'])->lockForUpdate()->get();
+                    $conflictError = $this->batchCheckConflicts((int) $data['sid'], $occurrenceStarts, $durationSeconds, null);
+                    if ($conflictError !== null) {
+                        throw new BookingValidationException($conflictError);
+                    }
+                }
+
                 $booking = Booking::create([
                     'uid' => $owner['uid'],
                     'sid' => (int) $data['sid'],
@@ -225,14 +227,16 @@ final class BookingController extends Controller
             $owner = $this->resolveOwner($data['booked_for']);
             [, , $occurrenceStarts, $durationSeconds] = $this->buildBookingTimeline($data);
 
-            if (($data['status'] ?? null) !== 'cancelled') {
-                $conflictError = $this->batchCheckConflicts((int) $data['sid'], $occurrenceStarts, $durationSeconds, $booking->bid);
-                if ($conflictError !== null) {
-                    return back()->withErrors(['booking' => $conflictError])->withInput();
-                }
-            }
-
             DB::transaction(function () use ($booking, $data, $owner, $occurrenceStarts, $durationSeconds): void {
+                if (($data['status'] ?? null) !== 'cancelled') {
+                    // Serialize with concurrent bookings on this square, then check conflicts.
+                    Square::query()->whereKey((int) $data['sid'])->lockForUpdate()->get();
+                    $conflictError = $this->batchCheckConflicts((int) $data['sid'], $occurrenceStarts, $durationSeconds, $booking->bid);
+                    if ($conflictError !== null) {
+                        throw new BookingValidationException($conflictError);
+                    }
+                }
+
                 $effectiveStatus = ($data['status'] ?? null) === 'cancelled'
                     ? 'cancelled'
                     : (count($occurrenceStarts) > 1 ? 'subscription' : 'single');
@@ -561,32 +565,4 @@ final class BookingController extends Controller
         return null;
     }
 
-    private function hasBookingConflict(int $sid, Carbon $start, Carbon $end, ?int $excludeBookingId): bool
-    {
-        $query = Reservation::query()
-            ->join('bs_bookings', 'bs_bookings.bid', '=', 'bs_reservations.bid')
-            ->where('bs_bookings.sid', $sid)
-            ->whereIn('bs_bookings.status', Booking::ACTIVE_STATUSES)
-            ->where('bs_reservations.date', $start->format('Y-m-d'))
-            ->where('bs_reservations.time_start', '<', $end->format('H:i:s'))
-            ->where('bs_reservations.time_end', '>', $start->format('H:i:s'));
-
-        if ($excludeBookingId !== null) {
-            $query->where('bs_bookings.bid', '!=', $excludeBookingId);
-        }
-
-        return $query->exists();
-    }
-
-    private function hasEventConflict(int $sid, Carbon $start, Carbon $end): bool
-    {
-        return Event::query()
-            ->where('status', 'enabled')
-            ->where(function ($query) use ($sid): void {
-                $query->where('sid', $sid)->orWhereNull('sid');
-            })
-            ->where('datetime_start', '<', $end->format('Y-m-d H:i:s'))
-            ->where('datetime_end', '>', $start->format('Y-m-d H:i:s'))
-            ->exists();
-    }
 }

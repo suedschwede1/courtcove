@@ -131,8 +131,9 @@ class BookingControllerTest extends TestCase
     }
 
     #[Test]
-    public function user_can_create_booking_on_overlapping_slot_when_legacy_capacity_allows_it(): void
+    public function user_cannot_create_booking_on_occupied_slot_even_when_legacy_capacity_allows_it(): void
     {
+        // One booking per cell: the legacy capacity/heterogenic sharing is gone.
         $user = User::factory()->create();
         $square = Square::factory()->create([
             'status' => 'enabled',
@@ -160,9 +161,9 @@ class BookingControllerTest extends TestCase
             'time_end' => 39600,
             'quantity' => 2,
             'mitspieler' => 'Partner Mustermann',
-        ])->assertRedirect();
+        ])->assertSessionHasErrors(['booking']);
 
-        $this->assertDatabaseHas('bs_bookings', ['uid' => $user->uid, 'sid' => $square->sid]);
+        $this->assertDatabaseMissing('bs_bookings', ['uid' => $user->uid, 'sid' => $square->sid]);
     }
 
     #[Test]

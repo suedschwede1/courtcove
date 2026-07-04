@@ -51,7 +51,7 @@ class AdminBookingTest extends TestCase
         $b = Booking::factory()->create(['uid' => $owner->uid, 'status' => 'single']);
         Reservation::factory()->create(['bid' => $b->bid, 'date' => Carbon::today()->toDateString()]);
 
-        $this->actingAs($this->admin())->get('/admin/bookings')
+        $this->actingAs($this->admin())->get('/admin/bookings?searched=1')
             ->assertOk()->assertSee('Bucher Mitglied');
     }
 
@@ -61,7 +61,7 @@ class AdminBookingTest extends TestCase
         $owner = User::factory()->create(['alias' => 'Storno Mitglied']);
         Booking::factory()->create(['uid' => $owner->uid, 'status' => 'cancelled']);
 
-        $this->actingAs($this->admin())->get('/admin/bookings')->assertOk()->assertDontSee('Storno Mitglied');
+        $this->actingAs($this->admin())->get('/admin/bookings?searched=1')->assertOk()->assertDontSee('Storno Mitglied');
     }
 
     #[Test]
@@ -87,8 +87,9 @@ class AdminBookingTest extends TestCase
     }
 
     #[Test]
-    public function admin_can_create_overlapping_booking_when_capacity_allows_it(): void
+    public function admin_cannot_create_overlapping_booking_even_when_capacity_allows_it(): void
     {
+        // One booking per cell: capacity/heterogenic no longer permit slot sharing.
         $owner = User::factory()->create();
         $square = Square::factory()->create([
             'capacity' => 4,
@@ -111,12 +112,11 @@ class AdminBookingTest extends TestCase
             'booked_for' => $owner->alias,
             'sid' => $square->sid,
             'quantity' => 2,
-        ]))->assertRedirect();
+        ]))->assertSessionHasErrors(['booking']);
 
-        $this->assertDatabaseHas('bs_bookings', [
+        $this->assertDatabaseMissing('bs_bookings', [
             'uid' => $owner->uid,
             'sid' => $square->sid,
-            'quantity' => 2,
         ]);
     }
     #[Test]
@@ -216,7 +216,7 @@ class AdminBookingTest extends TestCase
         $booking->meta()->create(['key' => 'owner-name', 'value' => 'Gast Walzer']);
         Reservation::factory()->create(['bid' => $booking->bid, 'date' => Carbon::today()->toDateString()]);
 
-        $this->actingAs($admin)->get('/admin/bookings')->assertOk()->assertSee('Gast Walzer');
+        $this->actingAs($admin)->get('/admin/bookings?searched=1')->assertOk()->assertSee('Gast Walzer');
     }
 
     #[Test]

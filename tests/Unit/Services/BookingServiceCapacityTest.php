@@ -31,12 +31,14 @@ class BookingServiceCapacityTest extends TestCase
         Mail::fake();
     }
 
-    // --- Capacity checks ---
+    // --- One booking per cell: any overlapping active booking blocks the slot ---
 
     #[Test]
-    public function booking_is_rejected_when_court_is_at_full_capacity(): void
+    public function overlapping_booking_blocks_the_slot_regardless_of_capacity(): void
     {
-        $square = Square::factory()->create(['capacity' => 2, 'capacity_heterogenic' => 1]);
+        // capacity 4 + heterogenic would have allowed sharing under the old
+        // capacity model - a cell must hold at most one booking.
+        $square = Square::factory()->create(['capacity' => 4, 'capacity_heterogenic' => 1]);
         $user = User::factory()->create();
 
         $this->seedReservation($square, quantity: 2);
@@ -51,12 +53,41 @@ class BookingServiceCapacityTest extends TestCase
     }
 
     #[Test]
-    public function booking_succeeds_when_capacity_has_space(): void
+    public function partially_overlapping_booking_blocks_the_slot(): void
     {
         $square = Square::factory()->create(['capacity' => 4, 'capacity_heterogenic' => 1]);
         $user = User::factory()->create();
 
+        // Existing reservation: 10:00–11:00; new attempt 10:30–11:30 overlaps.
         $this->seedReservation($square, quantity: 2);
+
+        $this->expectException(BookingValidationException::class);
+
+        $this->service->createSingle(
+            $user, $square, 2,
+            Carbon::now()->addDay()->setTime(10, 30),
+            Carbon::now()->addDay()->setTime(11, 30),
+        );
+    }
+
+    #[Test]
+    public function cancelled_booking_does_not_block_the_slot(): void
+    {
+        $square = Square::factory()->create(['capacity' => 2, 'capacity_heterogenic' => 0]);
+        $user = User::factory()->create();
+
+        $cancelled = Booking::factory()->create([
+            'sid' => $square->sid,
+            'status' => 'cancelled',
+            'visibility' => 'public',
+            'quantity' => 2,
+        ]);
+        Reservation::factory()->create([
+            'bid' => $cancelled->bid,
+            'date' => Carbon::now()->addDay()->toDateString(),
+            'time_start' => '10:00:00',
+            'time_end' => '11:00:00',
+        ]);
 
         $booking = $this->service->createSingle(
             $user, $square, 2,
@@ -65,24 +96,6 @@ class BookingServiceCapacityTest extends TestCase
         );
 
         $this->assertNotNull($booking->bid);
-    }
-
-    #[Test]
-    public function non_heterogenic_court_blocks_any_overlapping_booking(): void
-    {
-        // capacity_heterogenic = 0 means no mixing: any existing booking blocks the slot entirely
-        $square = Square::factory()->create(['capacity' => 4, 'capacity_heterogenic' => 0]);
-        $user = User::factory()->create();
-
-        $this->seedReservation($square, quantity: 1);
-
-        $this->expectException(BookingValidationException::class);
-
-        $this->service->createSingle(
-            $user, $square, 1,
-            Carbon::now()->addDay()->setTime(10, 0),
-            Carbon::now()->addDay()->setTime(11, 0),
-        );
     }
 
     #[Test]

@@ -35,7 +35,9 @@ final class BookingService
         $this->assertSingleBookingIsValid($user, $square, $quantity, $dateStart, $dateEnd);
 
         $booking = DB::transaction(function () use ($user, $square, $quantity, $dateStart, $dateEnd, $bills, $meta): Booking {
-            // Re-check inside the transaction so stale forms cannot overbook a slot.
+            // Serialize concurrent bookings on this square (row lock as mutex),
+            // then re-check the slot so two parallel requests cannot both book it.
+            Square::query()->whereKey($square->sid)->lockForUpdate()->get();
             $this->assertSingleBookingIsValid($user, $square, $quantity, $dateStart, $dateEnd);
 
             $booking = Booking::create([
@@ -237,7 +239,7 @@ final class BookingService
             throw new BookingValidationException($result->getError());
         }
 
-        if (! $this->hasEnoughCapacity($square, $quantity, $dateStart, $dateEnd, $excludeBookingId)) {
+        if ($this->hasOverlappingBooking($square, $dateStart, $dateEnd, $excludeBookingId)) {
             throw new BookingValidationException(__('booking.messages.slot_occupied'));
         }
 
@@ -246,9 +248,9 @@ final class BookingService
         }
     }
 
-    private function hasEnoughCapacity(
+    /** A cell holds at most one booking: any overlapping active booking blocks the slot. */
+    private function hasOverlappingBooking(
         Square $square,
-        int $requestedQuantity,
         Carbon $start,
         Carbon $end,
         ?int $excludeBookingId = null,
@@ -266,13 +268,7 @@ final class BookingService
             $query->where('bs_bookings.bid', '!=', $excludeBookingId);
         }
 
-        $overlappingQuantity = $query->sum('bs_bookings.quantity');
-
-        if ((int) $overlappingQuantity > 0 && (int) $square->capacity_heterogenic === 0) {
-            return false;
-        }
-
-        return (int) $square->capacity >= ((int) $overlappingQuantity + $requestedQuantity);
+        return $query->exists();
     }
 
     private function hasEventConflict(Square $square, Carbon $start, Carbon $end): bool
