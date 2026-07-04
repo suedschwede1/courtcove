@@ -25,6 +25,7 @@ return [
         'event_created' => 'Veranstaltung angelegt.',
         'event_updated' => 'Veranstaltung aktualisiert.',
         'event_deleted' => 'Veranstaltung gelöscht.',
+        'event_end_before_start' => 'Das Ende der Veranstaltung muss nach dem Beginn liegen.',
         'square_created' => 'Platz angelegt.',
         'square_updated' => 'Platz aktualisiert.',
         'square_disabled_instead_deleted' => 'Platz hat Buchungen und wurde deaktiviert statt gelöscht.',

@@ -10,6 +10,7 @@ use App\Models\Square;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 final class EventController extends Controller
@@ -156,7 +157,7 @@ final class EventController extends Controller
             ]);
         }
 
-        return $request->validate([
+        $data = $request->validate([
             'sid'         => ['nullable'],
             'name'        => ['nullable', 'string', 'max:128'],
             'description' => ['nullable', 'string', 'max:4096'],
@@ -164,9 +165,20 @@ final class EventController extends Controller
             'capacity'    => ['nullable', 'integer', 'min:0'],
             'date_start'  => ['required', 'date_format:Y-m-d'],
             'time_start'  => ['required', 'date_format:H:i'],
-            'date_end'    => ['required', 'date_format:Y-m-d'],
+            'date_end'    => ['required', 'date_format:Y-m-d', 'after_or_equal:date_start'],
             'time_end'    => ['required', 'date_format:H:i'],
         ]);
+
+        [$dtStart, $dtEnd] = $this->combineDateTimes($data);
+        if ($dtEnd <= $dtStart) {
+            $message = __('booking.messages.event_end_before_start');
+            throw ValidationException::withMessages([
+                'time_end' => $message,
+                'datetime_end' => $message,
+            ]);
+        }
+
+        return $data;
     }
 
     /** @return array{0:string,1:string} */

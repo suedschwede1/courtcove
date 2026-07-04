@@ -25,6 +25,7 @@ return [
         'event_created' => 'Event created.',
         'event_updated' => 'Event updated.',
         'event_deleted' => 'Event deleted.',
+        'event_end_before_start' => 'The event end must be after its start.',
         'square_created' => 'Court created.',
         'square_updated' => 'Court updated.',
         'square_disabled_instead_deleted' => 'The court has bookings and was disabled instead of deleted.',
