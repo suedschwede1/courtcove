@@ -20,7 +20,7 @@ class MemberFactory extends Factory
             'birthdate' => $this->faker->optional()->date(),
             'email' => $this->faker->optional()->safeEmail(),
             'phone' => $this->faker->optional()->phoneNumber(),
-            'gender' => $this->faker->optional()->randomElement(['m', 'w', 'd']),
+            'gender' => $this->faker->optional()->randomElement(Member::GENDERS),
             'street' => $this->faker->optional()->streetAddress(),
             'zip' => $this->faker->optional()->postcode(),
             'city' => $this->faker->optional()->city(),

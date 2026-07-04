@@ -7,6 +7,8 @@ namespace App\Modules\Members\Support;
 /**
  * Zerlegt den Alt-Adresswert "Straße, PLZ Ort" (Format des CSV-Imports)
  * in Straße, PLZ und Ort. Nicht parsebare Werte landen komplett in street.
+ *
+ * Wird von der Migration 2026_07_04_090001_extend_members_master_data referenziert — nicht löschen/umbenennen.
  */
 class AddressSplitter
 {

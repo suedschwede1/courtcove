@@ -43,6 +43,10 @@ return new class extends Migration
         }
 
         Schema::table('members', function (Blueprint $table) {
+            $table->dropUnique(['nuliga_id']);
+        });
+
+        Schema::table('members', function (Blueprint $table) {
             $table->dropConstrainedForeignId('fee_category_id');
             $table->dropColumn(['street', 'zip', 'city', 'gender', 'nuliga_id']);
         });
