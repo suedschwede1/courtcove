@@ -38,6 +38,17 @@ class MemberDueManualCreationTest extends TestCase
     }
 
     #[Test]
+    public function the_create_form_exposes_each_members_default_category(): void
+    {
+        $category = FeeCategory::create(['name' => 'Vollzahler']);
+        Member::factory()->create(['fee_category_id' => $category->id]);
+
+        $this->actingAs($this->admin())->get(route('members.dues.create'))
+            ->assertOk()
+            ->assertSee('data-fee-category="'.$category->id.'"', false);
+    }
+
+    #[Test]
     public function admin_can_create_a_due_manually(): void
     {
         $member = Member::factory()->create();

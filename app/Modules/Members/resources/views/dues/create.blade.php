@@ -13,7 +13,7 @@
                         <label class="ui-label" for="df-member">{{ __('members::admin.dues.member') }}</label>
                         <select id="df-member" name="member_id" class="ui-select">
                             @foreach($members as $member)
-                                <option value="{{ $member->id }}" @selected((int) old('member_id') === $member->id)>{{ $member->fullName() }}</option>
+                                <option value="{{ $member->id }}" data-fee-category="{{ $member->fee_category_id }}" @selected((int) old('member_id') === $member->id)>{{ $member->fullName() }}</option>
                             @endforeach
                         </select>
                         @error('member_id')<p class="ui-error">{{ $message }}</p>@enderror
@@ -50,4 +50,18 @@
         </div>
     </form>
 </div>
+<script>
+    (() => {
+        const memberSelect = document.getElementById('df-member');
+        const categorySelect = document.getElementById('df-category');
+        const sync = () => {
+            const category = memberSelect.selectedOptions[0]?.dataset.feeCategory;
+            if (category) categorySelect.value = category;
+        };
+        memberSelect.addEventListener('change', sync);
+        @unless(old('fee_category_id'))
+        sync();
+        @endunless
+    })();
+</script>
 @endsection
