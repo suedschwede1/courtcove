@@ -25,7 +25,7 @@ class UserManagementTest extends TestCase
         User::factory()->create(['alias' => 'Aktiv Mitglied', 'status' => 'enabled']);
         User::factory()->create(['alias' => 'Geloescht', 'status' => 'deleted']);
 
-        $this->actingAs($this->admin())->get('/admin/users')
+        $this->actingAs($this->admin())->get('/admin/users?q=')
             ->assertOk()->assertSee('Aktiv Mitglied')->assertDontSee('Geloescht');
     }
 
