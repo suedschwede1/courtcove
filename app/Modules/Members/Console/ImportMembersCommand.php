@@ -55,10 +55,12 @@ class ImportMembersCommand extends Command
 
         $created = 0;
         $skipped = 0;
+        $updated = 0;
         $duesCreated = 0;
 
-        DB::transaction(function () use ($rows, $joinedAt, $currentYear, &$created, &$skipped, &$duesCreated): void {
+        DB::transaction(function () use ($rows, $joinedAt, $currentYear, &$created, &$skipped, &$updated, &$duesCreated): void {
             $nextNumber = Member::nextNumber();
+            $usedNuligaIds = [];
 
             foreach ($rows as $row) {
                 $lastname = trim($row['Name'] ?? '');
@@ -81,13 +83,18 @@ class ImportMembersCommand extends Command
                     ->first();
 
                 $category = $this->resolveCategory($row);
+                $nuligaId = $this->resolveNuligaId($row, $firstname, $lastname, $member?->id, $usedNuligaIds);
 
                 if ($member) {
                     $skipped++;
+
+                    if ($this->backfillMember($member, $row, $category, $nuligaId)) {
+                        $updated++;
+                    }
                 } else {
                     $member = Member::create([
                         'member_number' => $nextNumber++,
-                        'nuliga_id' => $this->parseNuligaId($row['ID-Nr'] ?? ''),
+                        'nuliga_id' => $nuligaId,
                         'firstname' => $firstname,
                         'lastname' => $lastname,
                         'birthdate' => $birthdate,
@@ -103,11 +110,15 @@ class ImportMembersCommand extends Command
                     $created++;
                 }
 
+                if ($nuligaId !== null) {
+                    $usedNuligaIds[$nuligaId] = $member->id;
+                }
+
                 $duesCreated += $this->createDues($member, $row, $currentYear, $category);
             }
         });
 
-        $this->info("Import abgeschlossen: {$created} Mitglieder angelegt, {$skipped} übersprungen (bereits vorhanden), {$duesCreated} Vorschreibungen erstellt.");
+        $this->info("Import abgeschlossen: {$created} Mitglieder angelegt, {$skipped} übersprungen (bereits vorhanden), {$updated} aktualisiert, {$duesCreated} Vorschreibungen erstellt.");
         $this->line('Nicht importiert (kein Feld im Datenmodell): Alter, Reservierungssystem, Bemerkung.');
 
         return self::SUCCESS;
@@ -166,6 +177,80 @@ class ImportMembersCommand extends Command
         }
 
         return $count;
+    }
+
+    /**
+     * Trägt bei einem bereits vorhandenen Mitglied nur fehlende (NULL-)Felder aus der CSV nach.
+     * Vorhandene Werte werden nie überschrieben. Gibt zurück, ob sich etwas geändert hat.
+     */
+    private function backfillMember(Member $member, array $row, ?FeeCategory $category, ?int $nuligaId): bool
+    {
+        $candidates = [
+            'gender' => $this->parseGender($row['Geschlecht'] ?? ''),
+            'nuliga_id' => $nuligaId,
+            'street' => $this->nullable($row['Strasse'] ?? ''),
+            'zip' => $this->nullable($row['PLZ'] ?? ''),
+            'city' => $this->nullable($row['Ort'] ?? ''),
+            'fee_category_id' => $category?->id,
+        ];
+
+        $changes = [];
+        foreach ($candidates as $field => $value) {
+            if ($member->{$field} === null && $value !== null) {
+                $changes[$field] = $value;
+            }
+        }
+
+        if ($changes === []) {
+            return false;
+        }
+
+        $member->fill($changes)->save();
+
+        return true;
+    }
+
+    /**
+     * Parst die Nuliga-ID einer Zeile und stellt sicher, dass sie eindeutig bleibt:
+     * unparsbare, nicht-leere Werte und Kollisionen mit bereits vergebenen IDs
+     * (in dieser DB oder bereits in dieser CSV verarbeitet) werden verwarnt und als NULL behandelt.
+     *
+     * @param  array<int, string>  $usedNuligaIds  in diesem Lauf bereits vergebene Nuliga-IDs => Member-ID
+     */
+    private function resolveNuligaId(array $row, string $firstname, string $lastname, ?int $currentMemberId, array $usedNuligaIds): ?int
+    {
+        $raw = trim($row['ID-Nr'] ?? '');
+
+        if ($raw === '') {
+            return null;
+        }
+
+        $nuligaId = $this->parseNuligaId($raw);
+
+        if ($nuligaId === null) {
+            $this->warn("Nuliga-ID von {$firstname} {$lastname} nicht lesbar: \"{$raw}\" – wird übersprungen.");
+
+            return null;
+        }
+
+        if (isset($usedNuligaIds[$nuligaId]) && $usedNuligaIds[$nuligaId] !== $currentMemberId) {
+            $this->warn("Nuliga-ID {$nuligaId} von {$firstname} {$lastname} ist bereits einem anderen Mitglied zugeordnet – wird übersprungen.");
+
+            return null;
+        }
+
+        $conflict = Member::query()
+            ->where('nuliga_id', $nuligaId)
+            ->when($currentMemberId, fn ($query) => $query->where('id', '!=', $currentMemberId))
+            ->exists();
+
+        if ($conflict) {
+            $this->warn("Nuliga-ID {$nuligaId} von {$firstname} {$lastname} ist bereits einem anderen Mitglied zugeordnet – wird übersprungen.");
+
+            return null;
+        }
+
+        return $nuligaId;
     }
 
     /** @return list<array<string, string>> Zeilen als Header-Wert-Paare; Header werden getrimmt ("MB " → "MB"). */
