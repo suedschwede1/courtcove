@@ -134,6 +134,8 @@ class MemberController
             'email' => ['nullable', 'email', 'max:128'],
             'fee_category_id' => ['nullable', 'exists:fee_categories,id'],
             'joined_at' => ['required', 'date'],
+            'left_at' => ['nullable', 'date'],
+            'status' => ['required', 'string', Rule::in(['aktiv', 'ruhend'])],
         ];
 
         $field = $request->string('field')->value();
@@ -151,7 +153,11 @@ class MemberController
 
         try {
             DB::transaction(function () use ($member, $validated, $before) {
-                $member->update([$validated['field'] => $validated['value']]);
+                match ($validated['field']) {
+                    'left_at' => $member->setLeftAt($validated['value']),
+                    'status' => $member->setStatus($validated['value']),
+                    default => $member->update([$validated['field'] => $validated['value']]),
+                };
                 $this->logChange($member, 'updated', $before);
             });
         } catch (\Throwable $e) {
@@ -163,6 +169,7 @@ class MemberController
         return response()->json([
             'value' => match ($validated['field']) {
                 'joined_at' => $member->joined_at->format('d.m.Y'),
+                'left_at' => $member->left_at?->format('d.m.Y') ?? '—',
                 'fee_category_id' => $member->feeCategory?->name ?? '—',
                 'email' => $member->email ?? '—',
                 default => (string) $member->{$validated['field']},

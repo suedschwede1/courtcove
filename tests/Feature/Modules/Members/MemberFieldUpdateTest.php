@@ -7,13 +7,13 @@ namespace Tests\Feature\Modules\Members;
 use App\Models\User;
 use App\Modules\Members\Models\FeeCategory;
 use App\Modules\Members\Models\Member;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class MemberFieldUpdateTest extends TestCase
 {
-    use RefreshDatabase;
+    use LazilyRefreshDatabase;
 
     private function admin(): User
     {
@@ -143,6 +143,73 @@ class MemberFieldUpdateTest extends TestCase
             ->assertJson(['value' => '15.03.2026']);
 
         $this->assertSame('2026-03-15', $member->fresh()->joined_at->toDateString());
+    }
+
+    #[Test]
+    public function setting_left_at_via_field_update_marks_the_member_ausgetreten(): void
+    {
+        $member = Member::factory()->create(['status' => 'aktiv']);
+
+        $this->actingAs($this->admin())
+            ->patchJson("/members/{$member->id}/field", ['field' => 'left_at', 'value' => '2026-03-01'])
+            ->assertOk()
+            ->assertJson(['value' => '01.03.2026']);
+
+        $this->assertSame('2026-03-01', $member->fresh()->left_at->toDateString());
+        $this->assertSame('ausgetreten', $member->fresh()->status);
+    }
+
+    #[Test]
+    public function clearing_left_at_via_field_update_marks_the_member_aktiv(): void
+    {
+        $member = Member::factory()->create(['status' => 'ausgetreten', 'left_at' => '2026-03-01']);
+
+        $this->actingAs($this->admin())
+            ->patchJson("/members/{$member->id}/field", ['field' => 'left_at', 'value' => null])
+            ->assertOk()
+            ->assertJson(['value' => '—']);
+
+        $this->assertNull($member->fresh()->left_at);
+        $this->assertSame('aktiv', $member->fresh()->status);
+    }
+
+    #[Test]
+    public function admin_can_set_status_to_ruhend(): void
+    {
+        $member = Member::factory()->create(['status' => 'aktiv']);
+
+        $this->actingAs($this->admin())
+            ->patchJson("/members/{$member->id}/field", ['field' => 'status', 'value' => 'ruhend'])
+            ->assertOk()
+            ->assertJson(['value' => 'ruhend']);
+
+        $this->assertSame('ruhend', $member->fresh()->status);
+        $this->assertNull($member->fresh()->left_at);
+    }
+
+    #[Test]
+    public function setting_status_to_aktiv_via_field_update_clears_left_at(): void
+    {
+        $member = Member::factory()->create(['status' => 'ausgetreten', 'left_at' => '2026-03-01']);
+
+        $this->actingAs($this->admin())
+            ->patchJson("/members/{$member->id}/field", ['field' => 'status', 'value' => 'aktiv'])
+            ->assertOk();
+
+        $this->assertSame('aktiv', $member->fresh()->status);
+        $this->assertNull($member->fresh()->left_at);
+    }
+
+    #[Test]
+    public function setting_status_to_ausgetreten_via_field_update_is_rejected(): void
+    {
+        $member = Member::factory()->create(['status' => 'aktiv']);
+
+        $this->actingAs($this->admin())
+            ->patchJson("/members/{$member->id}/field", ['field' => 'status', 'value' => 'ausgetreten'])
+            ->assertStatus(422);
+
+        $this->assertSame('aktiv', $member->fresh()->status);
     }
 
     #[Test]
