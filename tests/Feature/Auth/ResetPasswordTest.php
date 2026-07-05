@@ -108,6 +108,55 @@ class ResetPasswordTest extends TestCase
     }
 
     #[Test]
+    public function a_token_cannot_be_reused_after_a_successful_reset(): void
+    {
+        $user = User::factory()->create(['email' => 'test@example.com', 'pw' => Hash::make('old-password'), 'status' => 'enabled']);
+        $token = Password::broker()->createToken($user);
+
+        $this->post('/password/reset', [
+            'token' => $token,
+            'email' => 'test@example.com',
+            'password' => 'new-password123',
+            'password_confirmation' => 'new-password123',
+        ])->assertRedirect('/calendar');
+
+        // Log out the auto-login from the first reset, then try the same token again.
+        $this->post('/logout');
+
+        $response = $this->post('/password/reset', [
+            'token' => $token,
+            'email' => 'test@example.com',
+            'password' => 'yet-another-password',
+            'password_confirmation' => 'yet-another-password',
+        ]);
+
+        $response->assertRedirect(route('password.forgot'));
+        $this->assertGuest();
+        $this->assertTrue(Hash::check('new-password123', $user->refresh()->pw));
+        $this->assertFalse(Hash::check('yet-another-password', $user->pw));
+    }
+
+    #[Test]
+    public function an_expired_token_is_rejected(): void
+    {
+        $user = User::factory()->create(['email' => 'test@example.com', 'pw' => Hash::make('old-password'), 'status' => 'enabled']);
+        $token = Password::broker()->createToken($user);
+
+        $this->travel(61)->minutes();
+
+        $response = $this->post('/password/reset', [
+            'token' => $token,
+            'email' => 'test@example.com',
+            'password' => 'new-password123',
+            'password_confirmation' => 'new-password123',
+        ]);
+
+        $response->assertRedirect(route('password.forgot'));
+        $this->assertGuest();
+        $this->assertTrue(Hash::check('old-password', $user->refresh()->pw));
+    }
+
+    #[Test]
     public function the_reset_route_is_rate_limited_after_five_requests_per_minute(): void
     {
         for ($i = 0; $i < 5; $i++) {

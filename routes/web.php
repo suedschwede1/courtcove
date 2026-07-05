@@ -32,7 +32,8 @@ Route::post('/register', [RegisterController::class, 'register'])->middleware('t
 Route::get('/password/forgot', [ForgotPasswordController::class, 'showForm'])->name('password.forgot');
 Route::post('/password/forgot', [ForgotPasswordController::class, 'sendResetLink'])
     ->middleware('throttle:5,1')->name('password.email');
-Route::get('/password/reset/{token}', [ResetPasswordController::class, 'showForm'])->name('password.reset');
+Route::get('/password/reset/{token}', [ResetPasswordController::class, 'showForm'])
+    ->middleware('throttle:20,1')->name('password.reset');
 Route::post('/password/reset', [ResetPasswordController::class, 'reset'])
     ->middleware('throttle:5,1')->name('password.update');
 

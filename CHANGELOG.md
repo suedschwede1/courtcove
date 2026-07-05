@@ -10,6 +10,10 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-07-06
 
+- Password reset: rate-limited the reset-password page (`GET /password/reset/{token}`,
+  `throttle:20,1`) to match the throttling already on the other "forgot password" routes,
+  and added tests confirming a reset token can't be reused after a successful reset and
+  that an expired token is rejected.
 - Password reset: added the "set new password" flow — `GET/POST /password/reset`
   (Task 5 of "forgot password" feature). A valid, unexpired token from the emailed
   link lets a user set a new password and logs them in; an invalid token or unknown
