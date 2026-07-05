@@ -37,6 +37,14 @@ class MailController
         ]);
     }
 
+    public function config(): View
+    {
+        return view('members::mail.config', [
+            'fromAddress' => $this->fromAddress(),
+            'fromName' => $this->fromName(),
+        ]);
+    }
+
     public function send(Request $request): RedirectResponse
     {
         $validated = $request->validate([
@@ -68,7 +76,7 @@ class MailController
         Option::updateOrCreate(['key' => 'members.mail.from_name', 'locale' => null], ['value' => $validated['from_name']]);
         Option::updateOrCreate(['key' => 'members.mail.from_address', 'locale' => null], ['value' => $validated['from_address']]);
 
-        return redirect()->route('members.mail.index')
+        return redirect()->route('members.mail.config')
             ->with('success', __('members::admin.mail.sender_saved'));
     }
 

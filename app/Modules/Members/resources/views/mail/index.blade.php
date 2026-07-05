@@ -4,26 +4,6 @@
 <div class="ui-page" x-data="{ audience: 'all', subject: '', body: '', templateName: '', testEmail: {{ Js::from(auth()->user()?->email ?? '') }}, showRecipients: false, confirmOpen: false }">
     <div class="ui-page-header"><h1>{{ __('members::admin.mail.title') }}</h1></div>
 
-    <div class="ui-card">
-        <div class="ui-card-header"><h2>{{ __('members::admin.mail.sender_settings') }}</h2></div>
-        <div class="ui-card-body">
-            <form method="POST" action="{{ route('members.mail.sender.update') }}" class="grid gap-3 md:grid-cols-[1fr_1fr_auto] md:items-end">
-                @csrf
-                <div class="ui-field">
-                    <label class="ui-label" for="mail-from-name">{{ __('members::admin.mail.from_name') }}</label>
-                    <input id="mail-from-name" type="text" name="from_name" value="{{ old('from_name', $fromName) }}" required class="ui-input">
-                    @error('from_name')<p class="ui-error">{{ $message }}</p>@enderror
-                </div>
-                <div class="ui-field">
-                    <label class="ui-label" for="mail-from-address">{{ __('members::admin.mail.from_address') }}</label>
-                    <input id="mail-from-address" type="email" name="from_address" value="{{ old('from_address', $fromAddress) }}" required class="ui-input">
-                    @error('from_address')<p class="ui-error">{{ $message }}</p>@enderror
-                </div>
-                <button type="submit" class="ui-btn ui-btn-outline">{{ __('members::admin.mail.save_sender') }}</button>
-            </form>
-        </div>
-    </div>
-
     <div class="flex gap-2 mb-4">
         <button type="button" class="ui-btn" :class="audience === 'all' ? 'ui-btn-primary' : 'ui-btn-outline'" @click="audience = 'all'">
             {{ __('members::admin.mail.to_all') }}
@@ -37,7 +17,7 @@
         <div class="ui-card-body ui-stack">
             <div class="ui-field">
                 <label class="ui-label">{{ __('members::admin.mail.from') }}</label>
-                <div class="ui-readonly-box">{{ $fromName }} &lt;{{ $fromAddress }}&gt;</div>
+                <div class="ui-readonly-box flex items-center justify-between gap-3 flex-wrap"><span>{{ $fromName }} &lt;{{ $fromAddress }}&gt;</span><a href="{{ route('members.mail.config') }}" class="ui-btn ui-btn-ghost">{{ __('members::admin.mail.change_sender') }}</a></div>
             </div>
 
             <div class="ui-field">
@@ -57,6 +37,13 @@
             <div class="ui-field">
                 <label class="ui-label" for="mail-body">{{ __('members::admin.mail.message') }}</label>
                 <textarea id="mail-body" rows="18" x-model="body" class="ui-input" form="mail-send-form" style="min-height:22rem"></textarea>
+                <p class="ui-help">{{ __('members::admin.mail.formatting_hint') }}</p>
+                <div class="ui-readonly-box ui-readonly-box-muted text-sm">
+                    <div><code>**{{ __('members::admin.mail.formatting_bold') }}**</code> -> <strong>{{ __('members::admin.mail.formatting_bold') }}</strong></div>
+                    <div><code>*{{ __('members::admin.mail.formatting_italic') }}*</code> -> <em>{{ __('members::admin.mail.formatting_italic') }}</em></div>
+                    <div><code>- {{ __('members::admin.mail.formatting_list_item') }}</code></div>
+                    <div><code>[{{ __('members::admin.mail.formatting_link_text') }}](https://example.com)</code></div>
+                </div>
                 @error('body')<p class="ui-error">{{ $message }}</p>@enderror
             </div>
 

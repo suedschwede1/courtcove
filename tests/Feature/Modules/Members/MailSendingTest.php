@@ -98,7 +98,7 @@ class MailSendingTest extends TestCase
         $this->actingAs($this->admin())->post('/members/mail/sender', [
             'from_name' => 'Mitgliederverwaltung',
             'from_address' => 'verein@example.com',
-        ])->assertRedirect(route('members.mail.index'));
+        ])->assertRedirect(route('members.mail.config'));
 
         $this->assertDatabaseHas('bs_options', ['key' => 'members.mail.from_name', 'value' => 'Mitgliederverwaltung']);
         $this->assertDatabaseHas('bs_options', ['key' => 'members.mail.from_address', 'value' => 'verein@example.com']);
@@ -141,6 +141,18 @@ class MailSendingTest extends TestCase
             return collect($mail->to)->pluck('address')->contains('admin@example.com')
                 && $mail->from[0]['address'] === 'verein@example.com';
         });
+    }
+
+    #[Test]
+    public function config_page_shows_the_sender_settings(): void
+    {
+        Option::create(['key' => 'members.mail.from_name', 'value' => 'Mitgliederverwaltung', 'locale' => null]);
+        Option::create(['key' => 'members.mail.from_address', 'value' => 'verein@example.com', 'locale' => null]);
+
+        $this->actingAs($this->admin())->get('/members/mail/config')
+            ->assertOk()
+            ->assertSee('Mitgliederverwaltung')
+            ->assertSee('verein@example.com');
     }
 
     #[Test]
