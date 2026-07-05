@@ -13,6 +13,7 @@ use App\Models\Reservation;
 use App\Models\Square;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 
@@ -223,6 +224,91 @@ final class BookingService
             $booking->bills()->delete();
             $booking->delete();
         });
+    }
+
+    public function splitForScope(Booking $booking, ?string $occurrenceDate, string $scope): Booking
+    {
+        if ($occurrenceDate === null || ! $booking->isSubscription()) {
+            return $booking;
+        }
+
+        $booking->loadMissing(['reservations', 'meta']);
+        $reservations = $booking->reservations
+            ->sortBy([['date', 'asc'], ['time_start', 'asc']])
+            ->values();
+
+        if (! $reservations->contains(fn (Reservation $r): bool => $r->date === $occurrenceDate)) {
+            return $booking;
+        }
+
+        return $scope === 'this_and_following'
+            ? $this->splitFromDate($booking, $reservations, $occurrenceDate)
+            : $this->splitSingleOccurrence($booking, $reservations, $occurrenceDate);
+    }
+
+    /** @param Collection<int, Reservation> $reservations */
+    private function splitSingleOccurrence(Booking $booking, Collection $reservations, string $occurrenceDate): Booking
+    {
+        if ($reservations->count() <= 1) {
+            return $booking;
+        }
+
+        $moving = $reservations->filter(fn (Reservation $r): bool => $r->date === $occurrenceDate)->values();
+
+        return DB::transaction(function () use ($booking, $moving): Booking {
+            $newBooking = $this->cloneBookingShell($booking, $moving->count());
+            Reservation::whereIn('rid', $moving->pluck('rid'))->update(['bid' => $newBooking->bid]);
+            $this->recalculateStatus($booking);
+
+            return $newBooking->fresh(['reservations', 'meta']);
+        });
+    }
+
+    /** @param Collection<int, Reservation> $reservations */
+    private function splitFromDate(Booking $booking, Collection $reservations, string $occurrenceDate): Booking
+    {
+        $head = $reservations->filter(fn (Reservation $r): bool => $r->date < $occurrenceDate)->values();
+        $tail = $reservations->filter(fn (Reservation $r): bool => $r->date >= $occurrenceDate)->values();
+
+        if ($head->isEmpty()) {
+            return $booking;
+        }
+
+        return DB::transaction(function () use ($booking, $tail): Booking {
+            $newBooking = $this->cloneBookingShell($booking, $tail->count());
+            Reservation::whereIn('rid', $tail->pluck('rid'))->update(['bid' => $newBooking->bid]);
+            $this->recalculateStatus($booking);
+
+            return $newBooking->fresh(['reservations', 'meta']);
+        });
+    }
+
+    private function cloneBookingShell(Booking $booking, int $movingReservationCount): Booking
+    {
+        $newBooking = Booking::create([
+            'uid' => $booking->uid,
+            'sid' => $booking->sid,
+            'status' => $movingReservationCount > 1 ? 'subscription' : 'single',
+            'status_billing' => $booking->status_billing,
+            'visibility' => $booking->visibility,
+            'quantity' => $booking->quantity,
+            'created' => now()->format('Y-m-d H:i:s'),
+        ]);
+
+        foreach (['owner-name', 'admin-note', 'player-names'] as $key) {
+            $value = $booking->meta->firstWhere('key', $key)?->value;
+            if ($value !== null) {
+                $newBooking->meta()->create(['key' => $key, 'value' => $value]);
+            }
+        }
+
+        return $newBooking;
+    }
+
+    private function recalculateStatus(Booking $booking): void
+    {
+        $remaining = $booking->reservations()->count();
+        $booking->update(['status' => $remaining > 1 ? 'subscription' : 'single']);
     }
 
     private function assertSingleBookingIsValid(
