@@ -13,6 +13,10 @@
 <body style="font-family: var(--font-body)">
 <div class="flex min-h-screen bg-[#f3f1ec]">
     <aside style="width:180px; min-height:100vh; background:#1b1d21; flex-shrink:0; display:flex; flex-direction:column;">
+        <a href="{{ route('calendar.index') }}" onmouseover="this.style.color='#7fb3e8';" onmouseout="this.style.color='#4d8fdb';" style="display:block; padding:14px 14px 10px; border-bottom:1px solid rgba(255,255,255,0.08); margin-bottom:8px; font-family:var(--font-body); font-size:14px; font-weight:600; text-decoration:none; color:#4d8fdb; transition:color 0.15s ease;">
+            ← {{ __('booking.nav.back_to_calendar') }}
+        </a>
+
         <div style="padding:14px 14px 10px; border-bottom:1px solid rgba(255,255,255,0.08); margin-bottom:8px;">
             <span style="font-family:var(--font-body); font-size:10px; color:#6a6e73; font-weight:600; text-transform:uppercase; letter-spacing:0.08em;">
                 {{ __('booking.nav.members') }}
@@ -44,7 +48,6 @@
             <div class="flex items-center gap-4 text-sm text-[#6a6e73]">
                 @auth
                     <span>{{ auth()->user()->alias }}</span>
-                    <a href="{{ route('calendar.index') }}" class="ui-btn ui-btn-outline">{{ __('booking.nav.back_to_calendar') }}</a>
                     @can('admin.see-menu')
                         <a href="{{ route('admin.dashboard') }}" class="ui-btn ui-btn-outline">{{ __('booking.nav.admin') }}</a>
                     @endcan
