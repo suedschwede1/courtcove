@@ -17,6 +17,7 @@
         "stevebauman/location": "^7.6.3"
     },
     "require-dev": {
+        "brianium/paratest": "^7.20",
         "fakerphp/faker": "^1.23",
         "larastan/larastan": "^3.0",
         "laravel/dusk": "^8.6",
@@ -56,6 +57,21 @@
             "Composer\\Config::disableProcessTimeout",
             "@php artisan config:clear --ansi @no_additional_args",
             "@php artisan test"
+        ],
+        "test:parallel": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php artisan config:clear --ansi",
+            "@php artisan test --parallel"
+        ],
+        "test:members": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php artisan config:clear --ansi",
+            "@php artisan test --testsuite=Members"
+        ],
+        "test:booking": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php artisan config:clear --ansi",
+            "@php artisan test --testsuite=Booking"
         ],
         "dusk": "@php vendor/bin/phpunit -c phpunit.dusk.xml",
         "dusk:visual": "@php vendor/bin/phpunit -c phpunit.dusk.xml --filter VisualRegressionTest",

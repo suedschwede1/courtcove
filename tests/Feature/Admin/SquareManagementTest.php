@@ -7,13 +7,13 @@ namespace Tests\Feature\Admin;
 use App\Models\Booking;
 use App\Models\Square;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class SquareManagementTest extends TestCase
 {
-    use RefreshDatabase;
+    use LazilyRefreshDatabase;
 
     private function admin(): User
     {

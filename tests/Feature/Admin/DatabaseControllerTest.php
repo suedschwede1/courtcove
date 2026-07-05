@@ -7,7 +7,7 @@ namespace Tests\Feature\Admin;
 use App\Models\User;
 use App\Services\DatabaseBackupService;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -18,7 +18,7 @@ use Tests\TestCase;
 
 class DatabaseControllerTest extends TestCase
 {
-    use RefreshDatabase;
+    use LazilyRefreshDatabase;
 
     private function admin(): User
     {

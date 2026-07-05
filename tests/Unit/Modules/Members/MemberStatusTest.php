@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Tests\Unit\Modules\Members;
 
 use App\Modules\Members\Models\Member;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class MemberStatusTest extends TestCase
 {
-    use RefreshDatabase;
+    use LazilyRefreshDatabase;
 
     #[Test]
     public function setting_left_at_marks_the_member_ausgetreten(): void

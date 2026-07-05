@@ -7,13 +7,13 @@ namespace Tests\Unit\Services;
 use App\Models\Option;
 use App\Services\PeakLimitService;
 use Carbon\Carbon;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class PeakLimitServiceTest extends TestCase
 {
-    use RefreshDatabase;
+    use LazilyRefreshDatabase;
 
     private PeakLimitService $service;
 

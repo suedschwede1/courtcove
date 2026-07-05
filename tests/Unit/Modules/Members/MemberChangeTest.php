@@ -7,13 +7,13 @@ namespace Tests\Unit\Modules\Members;
 use App\Models\User;
 use App\Modules\Members\Models\Member;
 use App\Modules\Members\Models\MemberChange;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class MemberChangeTest extends TestCase
 {
-    use RefreshDatabase;
+    use LazilyRefreshDatabase;
 
     #[Test]
     public function changed_fields_returns_only_differing_keys_and_ignores_timestamps(): void

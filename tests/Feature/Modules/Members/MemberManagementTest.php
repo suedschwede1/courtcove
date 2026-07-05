@@ -289,4 +289,16 @@ class MemberManagementTest extends TestCase
         $this->assertSame('2026-05-01', $member->fresh()->left_at->toDateString());
         $this->assertSame('ausgetreten', $member->fresh()->status);
     }
+
+    #[Test]
+    public function the_status_filter_can_show_only_ruhend_members(): void
+    {
+        \App\Modules\Members\Models\Member::factory()->create(['firstname' => 'Aktiv', 'status' => 'aktiv']);
+        \App\Modules\Members\Models\Member::factory()->create(['firstname' => 'Ruhend', 'status' => 'ruhend']);
+        \App\Modules\Members\Models\Member::factory()->create(['firstname' => 'Weg', 'status' => 'ausgetreten', 'left_at' => '2026-01-01']);
+
+        $response = $this->actingAs($this->admin())->get('/members?status=ruhend');
+
+        $response->assertOk()->assertSee('Ruhend')->assertDontSee('Weg');
+    }
 }

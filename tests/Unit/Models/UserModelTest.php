@@ -6,13 +6,13 @@ namespace Tests\Unit\Models;
 
 use App\Models\User;
 use App\Models\UserMeta;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class UserModelTest extends TestCase
 {
-    use RefreshDatabase;
+    use LazilyRefreshDatabase;
 
     #[Test]
     public function admin_can_do_everything(): void

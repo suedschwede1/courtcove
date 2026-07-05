@@ -7,7 +7,7 @@ namespace Tests\Unit\Services;
 use App\Services\DatabaseSchemaChecker;
 use Illuminate\Database\Schema\Blueprint;
 use InvalidArgumentException;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use PHPUnit\Framework\Attributes\Test;
@@ -15,7 +15,7 @@ use Tests\TestCase;
 
 class DatabaseSchemaCheckerTest extends TestCase
 {
-    use RefreshDatabase;
+    use LazilyRefreshDatabase;
 
     private DatabaseSchemaChecker $checker;
 
@@ -47,7 +47,7 @@ class DatabaseSchemaCheckerTest extends TestCase
     #[Test]
     public function migration_status_marks_already_run_migrations_as_ran(): void
     {
-        // RefreshDatabase has already migrated everything in the test database.
+        // LazilyRefreshDatabase has already migrated everything in the test database.
         $status = $this->checker->migrationStatus();
 
         $usersMigration = collect($status)->firstWhere('name', '2026_06_26_073602_create_bs_users_table');

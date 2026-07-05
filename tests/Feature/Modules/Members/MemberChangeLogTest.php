@@ -7,13 +7,13 @@ namespace Tests\Feature\Modules\Members;
 use App\Models\User;
 use App\Modules\Members\Models\Member;
 use App\Modules\Members\Models\MemberChange;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class MemberChangeLogTest extends TestCase
 {
-    use RefreshDatabase;
+    use LazilyRefreshDatabase;
 
     private function admin(): User
     {

@@ -8,13 +8,13 @@ use App\Enums\SquareStatus;
 use App\Models\Booking;
 use App\Models\Square;
 use App\Models\SquareMeta;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class SquareModelTest extends TestCase
 {
-    use RefreshDatabase;
+    use LazilyRefreshDatabase;
 
     #[Test]
     public function square_status_is_cast_to_enum(): void

@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Tests\Unit\Modules\Members;
 
 use App\Modules\Members\Models\Member;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class MemberActiveScopeTest extends TestCase
 {
-    use RefreshDatabase;
+    use LazilyRefreshDatabase;
 
     #[Test]
     public function active_scope_excludes_members_with_a_left_at_date(): void

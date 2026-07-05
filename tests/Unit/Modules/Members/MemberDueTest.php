@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Tests\Unit\Modules\Members;
 
 use App\Modules\Members\Models\FiscalYear;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class MemberDueTest extends TestCase
 {
-    use RefreshDatabase;
+    use LazilyRefreshDatabase;
 
     #[Test]
     public function fiscal_year_dates_are_cast_to_carbon_instances(): void

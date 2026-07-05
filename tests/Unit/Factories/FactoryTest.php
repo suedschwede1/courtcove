@@ -14,13 +14,13 @@ use App\Models\Square;
 use App\Models\SquareMeta;
 use App\Models\User;
 use App\Models\UserMeta;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class FactoryTest extends TestCase
 {
-    use RefreshDatabase;
+    use LazilyRefreshDatabase;
 
     #[Test]
     public function user_factory_creates_valid_user(): void
