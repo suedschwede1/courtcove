@@ -42,7 +42,6 @@ class MemberController
                 fn ($value) => $value !== null && $value !== '',
             ),
             'feeCategories' => FeeCategory::query()->orderBy('name')->get(),
-            'editing' => $request->integer('edit') ?: null,
         ]);
     }
 
@@ -105,12 +104,7 @@ class MemberController
 
         $member->update($validated);
 
-        $filters = array_filter(
-            (array) $request->input('filters', []),
-            fn ($value) => $value !== null && $value !== '',
-        );
-
-        return redirect()->route('members.index', $filters);
+        return redirect()->route('members.index');
     }
 
     public function destroy(Member $member): RedirectResponse
