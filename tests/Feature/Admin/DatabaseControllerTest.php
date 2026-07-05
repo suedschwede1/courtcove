@@ -310,4 +310,28 @@ class DatabaseControllerTest extends TestCase
             ->post('/admin/database/backups/../../etc/passwd/delete')
             ->assertNotFound();
     }
+
+    #[Test]
+    public function database_page_lists_an_existing_backup(): void
+    {
+        Storage::fake('local');
+        $filename = (new DatabaseBackupService())->create();
+
+        $this->actingAs($this->admin())
+            ->get('/admin/database')
+            ->assertOk()
+            ->assertSee($filename)
+            ->assertSee(route('admin.database.backups.download', $filename));
+    }
+
+    #[Test]
+    public function database_page_shows_no_backups_message_when_empty(): void
+    {
+        Storage::fake('local');
+
+        $this->actingAs($this->admin())
+            ->get('/admin/database')
+            ->assertOk()
+            ->assertSee(__('booking.admin.database.backup_none'));
+    }
 }
