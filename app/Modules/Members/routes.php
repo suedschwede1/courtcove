@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
+use App\Modules\Members\Http\Controllers\ClubRoleController;
 use App\Modules\Members\Http\Controllers\DashboardController;
 use App\Modules\Members\Http\Controllers\FeeCategoryController;
 use App\Modules\Members\Http\Controllers\FiscalYearController;
+use App\Modules\Members\Http\Controllers\MailController;
 use App\Modules\Members\Http\Controllers\MemberController;
 use App\Modules\Members\Http\Controllers\MemberDueController;
 use App\Modules\Members\Http\Controllers\MemberExportController;
@@ -37,5 +39,18 @@ Route::middleware(['auth', 'can:admin.members'])
 
         Route::patch('members/{member}/field', [MemberController::class, 'updateField'])->name('members.update-field');
 
-        Route::resource('members', MemberController::class)->except(['show']);
+        Route::get('members/functions', [ClubRoleController::class, 'index'])->name('members.functions.index');
+        Route::get('members/functions/create', [ClubRoleController::class, 'create'])->name('members.functions.create');
+        Route::post('members/functions', [ClubRoleController::class, 'store'])->name('members.functions.store');
+        Route::get('members/functions/{clubRole}/edit', [ClubRoleController::class, 'edit'])->name('members.functions.edit');
+        Route::put('members/functions/{clubRole}', [ClubRoleController::class, 'update'])->name('members.functions.update');
+        Route::delete('members/functions/{clubRole}', [ClubRoleController::class, 'destroy'])->name('members.functions.destroy');
+
+        Route::get('members/mail', [MailController::class, 'index'])->name('members.mail.index');
+        Route::post('members/mail/send', [MailController::class, 'send'])->name('members.mail.send');
+        Route::post('members/mail/templates', [MailController::class, 'storeTemplate'])->name('members.mail.templates.store');
+        Route::put('members/mail/templates/{mailTemplate}', [MailController::class, 'updateTemplate'])->name('members.mail.templates.update');
+        Route::delete('members/mail/templates/{mailTemplate}', [MailController::class, 'destroyTemplate'])->name('members.mail.templates.destroy');
+
+        Route::resource('members', MemberController::class)->except(['show', 'destroy']);
     });

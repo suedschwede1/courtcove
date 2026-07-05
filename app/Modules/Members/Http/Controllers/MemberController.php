@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Members\Http\Controllers;
 
+use App\Modules\Members\Models\ClubRole;
 use App\Modules\Members\Models\FeeCategory;
 use App\Modules\Members\Models\Member;
 use App\Modules\Members\Models\MemberChange;
@@ -54,6 +55,7 @@ class MemberController
         return view('members::members.create', [
             'nextNumber' => Member::nextNumber(),
             'feeCategories' => FeeCategory::query()->orderBy('name')->get(),
+            'clubRoles' => ClubRole::query()->orderByDesc('is_board')->orderBy('name')->get(),
         ]);
     }
 
@@ -75,8 +77,9 @@ class MemberController
             'joined_at' => ['required', 'date'],
         ]);
 
-        DB::transaction(function () use ($validated) {
+        DB::transaction(function () use ($request, $validated) {
             $member = Member::create($validated);
+            $member->clubRoles()->sync($request->input('club_roles', []));
             $this->logChange($member, 'created', null);
         });
 
@@ -88,6 +91,7 @@ class MemberController
         return view('members::members.edit', [
             'member' => $member,
             'feeCategories' => FeeCategory::query()->orderBy('name')->get(),
+            'clubRoles' => ClubRole::query()->orderByDesc('is_board')->orderBy('name')->get(),
             'changes' => MemberChange::where('member_id', $member->id)->with('adminUser')->latest()->get(),
         ]);
     }
@@ -112,8 +116,9 @@ class MemberController
 
         $before = $member->toArray();
 
-        DB::transaction(function () use ($member, $validated, $before) {
+        DB::transaction(function () use ($request, $member, $validated, $before) {
             $member->update($validated);
+            $member->clubRoles()->sync($request->input('club_roles', []));
             $this->logChange($member, 'updated', $before);
         });
 
@@ -163,18 +168,6 @@ class MemberController
                 default => (string) $member->{$validated['field']},
             },
         ]);
-    }
-
-    public function destroy(Member $member): RedirectResponse
-    {
-        $before = $member->toArray();
-
-        DB::transaction(function () use ($member, $before) {
-            $member->update(['left_at' => $member->left_at ?? now()->toDateString()]);
-            $this->logChange($member, 'departed', $before);
-        });
-
-        return redirect()->route('members.index');
     }
 
     private function logChange(Member $member, string $action, ?array $before): void

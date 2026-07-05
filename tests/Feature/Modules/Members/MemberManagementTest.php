@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Modules\Members;
 
 use App\Models\User;
+use App\Modules\Members\Models\ClubRole;
 use App\Modules\Members\Models\FeeCategory;
 use App\Modules\Members\Models\Member;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -92,17 +93,6 @@ class MemberManagementTest extends TestCase
             'lastname' => 'Vergeben',
             'joined_at' => '2026-01-01',
         ])->assertSessionHasErrors('member_number');
-    }
-
-    #[Test]
-    public function admin_can_mark_a_member_as_departed(): void
-    {
-        $member = \App\Modules\Members\Models\Member::factory()->create();
-
-        $this->actingAs($this->admin())->delete("/members/{$member->id}")
-            ->assertRedirect(route('members.index'));
-
-        $this->assertNotNull($member->fresh()->left_at);
     }
 
     #[Test]
@@ -248,4 +238,38 @@ class MemberManagementTest extends TestCase
             ->assertSee('window.saveMemberField', false);
     }
 
+    #[Test]
+    public function creating_a_member_syncs_the_selected_club_roles(): void
+    {
+        $obmann = ClubRole::create(['name' => 'Obmann', 'is_board' => true]);
+        $platzwart = ClubRole::create(['name' => 'Platzwart', 'is_board' => false]);
+
+        $this->actingAs($this->admin())->post('/members', [
+            'member_number' => 1, 'firstname' => 'Neu', 'lastname' => 'Mitglied', 'joined_at' => '2026-01-01',
+            'club_roles' => [$obmann->id, $platzwart->id],
+        ])->assertRedirect(route('members.index'));
+
+        $member = Member::where('member_number', 1)->first();
+        $this->assertCount(2, $member->clubRoles);
+        $this->assertEqualsCanonicalizing([$obmann->id, $platzwart->id], $member->clubRoles->pluck('id')->all());
+    }
+
+    #[Test]
+    public function updating_a_member_replaces_its_club_roles(): void
+    {
+        $obmann = ClubRole::create(['name' => 'Obmann', 'is_board' => true]);
+        $kassier = ClubRole::create(['name' => 'Kassier', 'is_board' => true]);
+        $member = Member::factory()->create();
+        $member->clubRoles()->sync([$obmann->id]);
+
+        $this->actingAs($this->admin())->put("/members/{$member->id}", [
+            'member_number' => $member->member_number,
+            'firstname' => $member->firstname,
+            'lastname' => $member->lastname,
+            'joined_at' => $member->joined_at->toDateString(),
+            'club_roles' => [$kassier->id],
+        ])->assertRedirect(route('members.index'));
+
+        $this->assertSame([$kassier->id], $member->fresh()->clubRoles->pluck('id')->all());
+    }
 }

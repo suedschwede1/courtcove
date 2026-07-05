@@ -170,11 +170,6 @@
                             <td>
                                 <div class="flex items-center justify-end gap-2 whitespace-nowrap">
                                     <a href="{{ route('members.edit', $member) }}" class="ui-btn ui-btn-ghost">{{ __('members::admin.common.edit') }}</a>
-                                    <form method="POST" action="{{ route('members.destroy', $member) }}" onsubmit="return confirm({{ Js::from(__('members::admin.members.confirm_leave')) }})">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="ui-btn ui-btn-ghost">{{ __('members::admin.members.mark_departed') }}</button>
-                                    </form>
                                 </div>
                             </td>
                         </tr>
