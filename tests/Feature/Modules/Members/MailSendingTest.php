@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Modules\Members;
 
 use App\Mail\MemberBulkMail;
+use App\Models\Option;
 use App\Models\User;
 use App\Modules\Members\Models\ClubRole;
 use App\Modules\Members\Models\Member;
@@ -34,8 +35,6 @@ class MailSendingTest extends TestCase
 
         $this->actingAs($this->admin())->post('/members/mail/send', [
             'audience' => 'all',
-            'from_name' => 'Mitgliederverwaltung',
-            'from_address' => 'verein@example.com',
             'subject' => 'Hallo',
             'body' => 'Testtext',
         ])->assertRedirect(route('members.mail.index'));
@@ -63,8 +62,6 @@ class MailSendingTest extends TestCase
 
         $this->actingAs($this->admin())->post('/members/mail/send', [
             'audience' => 'vorstand',
-            'from_name' => 'Mitgliederverwaltung',
-            'from_address' => 'verein@example.com',
             'subject' => 'Vorstand',
             'body' => 'Text',
         ])->assertRedirect(route('members.mail.index'));
@@ -87,34 +84,70 @@ class MailSendingTest extends TestCase
     }
 
     #[Test]
-    public function the_sender_is_required(): void
+    public function the_sender_settings_are_required(): void
     {
-        $this->actingAs($this->admin())->post('/members/mail/send', [
-            'audience' => 'all',
-            'subject' => 'x',
-            'body' => 'y',
+        $this->actingAs($this->admin())->post('/members/mail/sender', [
+            'from_name' => '',
+            'from_address' => 'not-an-email',
         ])->assertSessionHasErrors(['from_name', 'from_address']);
     }
 
     #[Test]
-    public function sending_uses_the_submitted_sender_and_saves_it_as_the_new_default(): void
+    public function admin_can_save_the_default_sender(): void
+    {
+        $this->actingAs($this->admin())->post('/members/mail/sender', [
+            'from_name' => 'Mitgliederverwaltung',
+            'from_address' => 'verein@example.com',
+        ])->assertRedirect(route('members.mail.index'));
+
+        $this->assertDatabaseHas('bs_options', ['key' => 'members.mail.from_name', 'value' => 'Mitgliederverwaltung']);
+        $this->assertDatabaseHas('bs_options', ['key' => 'members.mail.from_address', 'value' => 'verein@example.com']);
+    }
+
+    #[Test]
+    public function sending_uses_the_saved_sender(): void
     {
         Mail::fake();
+        Option::create(['key' => 'members.mail.from_name', 'value' => 'Gespeicherter Absender', 'locale' => null]);
+        Option::create(['key' => 'members.mail.from_address', 'value' => 'gespeichert@example.com', 'locale' => null]);
         Member::factory()->create(['status' => 'aktiv', 'email' => 'a@example.com']);
 
         $this->actingAs($this->admin())->post('/members/mail/send', [
             'audience' => 'all',
-            'from_name' => 'Neuer Absender',
-            'from_address' => 'neu@example.com',
             'subject' => 'Hallo',
             'body' => 'Text',
         ])->assertRedirect(route('members.mail.index'));
 
         Mail::assertQueued(MemberBulkMail::class, function (MemberBulkMail $mail) {
-            return $mail->from[0]['address'] === 'neu@example.com' && $mail->from[0]['name'] === 'Neuer Absender';
+            return $mail->from[0]['address'] === 'gespeichert@example.com'
+                && $mail->from[0]['name'] === 'Gespeicherter Absender';
         });
+    }
 
-        $this->assertDatabaseHas('bs_options', ['key' => 'members.mail.from_name', 'value' => 'Neuer Absender']);
-        $this->assertDatabaseHas('bs_options', ['key' => 'members.mail.from_address', 'value' => 'neu@example.com']);
+    #[Test]
+    public function admin_can_send_a_test_mail_to_a_single_recipient(): void
+    {
+        Mail::fake();
+        Option::create(['key' => 'members.mail.from_name', 'value' => 'Mitgliederverwaltung', 'locale' => null]);
+        Option::create(['key' => 'members.mail.from_address', 'value' => 'verein@example.com', 'locale' => null]);
+
+        $this->actingAs($this->admin())->post('/members/mail/test', [
+            'test_email' => 'admin@example.com',
+            'subject' => 'Probe',
+            'body' => '**Hallo**',
+        ])->assertRedirect(route('members.mail.index'));
+
+        Mail::assertQueued(MemberBulkMail::class, function (MemberBulkMail $mail) {
+            return collect($mail->to)->pluck('address')->contains('admin@example.com')
+                && $mail->from[0]['address'] === 'verein@example.com';
+        });
+    }
+
+    #[Test]
+    public function member_bulk_mail_renders_markdown_formatting(): void
+    {
+        $html = (new MemberBulkMail('Format', '**Hallo**'))->render();
+
+        $this->assertStringContainsString('<strong>Hallo</strong>', $html);
     }
 }

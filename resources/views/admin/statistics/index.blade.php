@@ -10,6 +10,10 @@
         <div class="ui-card-body ui-stack">
             <form method="GET" action="{{ route('admin.statistics.index') }}" class="ui-row">
                 <input type="hidden" name="searched" value="1">
+                <div class="ui-field min-w-[14rem]">
+                    <label class="ui-label" for="stats-search">{{ __('booking.admin.statistics.search') }}</label>
+                    <input id="stats-search" type="text" name="search" value="{{ $search ?? '' }}" class="ui-input">
+                </div>
                 <button type="submit" class="ui-btn ui-btn-primary">{{ __('booking.admin.common.filter') }}</button>
             </form>
         </div>
@@ -25,6 +29,12 @@
         </div>
         <div class="ui-card">
             <div class="ui-card-body ui-stack">
+                <p class="ui-kpi-label">{{ __('booking.admin.statistics.summary_this_year') }}</p>
+                <p class="ui-kpi-value">{{ $summary['thisYear'] }}</p>
+            </div>
+        </div>
+        <div class="ui-card">
+            <div class="ui-card-body ui-stack">
                 <p class="ui-kpi-label">{{ __('booking.admin.statistics.summary_last_month') }}</p>
                 <p class="ui-kpi-value">{{ $summary['lastMonth'] }}</p>
             </div>
@@ -34,6 +44,36 @@
                 <p class="ui-kpi-label">{{ __('booking.admin.statistics.summary_cancellation_rate') }}</p>
                 <p class="ui-kpi-value">{{ number_format($summary['cancellationRate'], 1) }}%</p>
             </div>
+        </div>
+    </div>
+
+    <div class="ui-grid-4">
+        <div class="ui-card">
+            <div class="ui-card-body ui-stack">
+                <p class="ui-kpi-label">{{ __('booking.admin.statistics.summary_members_this_year') }}</p>
+                <p class="ui-kpi-value">{{ $summary['membersThisYear'] }}</p>
+            </div>
+        </div>
+        <div class="ui-card">
+            <div class="ui-card-body ui-stack">
+                <p class="ui-kpi-label">{{ __('booking.admin.statistics.summary_members_this_month') }}</p>
+                <p class="ui-kpi-value">{{ $summary['membersThisMonth'] }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="ui-card">
+        <div class="ui-card-header"><h2>{{ __('booking.admin.statistics.members_overview') }}</h2></div>
+        <div class="ui-card-body">
+            <p class="ui-kpi-label" style="margin-bottom:0.75rem">{{ __('booking.admin.statistics.members_by_category') }}</p>
+            @forelse($membersByCategory as $categoryName => $count)
+                <div class="flex items-center justify-between py-1" style="border-bottom:1px solid var(--ui-border)">
+                    <span>{{ $categoryName }}</span>
+                    <span class="font-medium">{{ $count }}</span>
+                </div>
+            @empty
+                <p class="ui-kpi-meta">—</p>
+            @endforelse
         </div>
     </div>
 
@@ -51,6 +91,7 @@
                                 <th data-sort="number">{{ __('booking.admin.statistics.single') }}</th>
                                 <th data-sort="number">{{ __('booking.admin.statistics.double') }}</th>
                                 <th data-sort="number">{{ __('booking.admin.statistics.last_month') }}</th>
+                                <th data-sort="number">{{ __('booking.admin.statistics.this_year') }}</th>
                                 <th data-sort="text">{{ __('booking.admin.statistics.top_court') }}</th>
                                 <th data-sort="number">{{ __('booking.admin.statistics.cancellation_rate') }}</th>
                             </tr>
@@ -63,6 +104,7 @@
                                     <td>{{ $row['single'] }}</td>
                                     <td>{{ $row['double'] }}</td>
                                     <td>{{ $row['lastMonth'] }}</td>
+                                    <td>{{ $row['thisYear'] }}</td>
                                     <td>{{ $row['topCourt'] ?? '—' }}</td>
                                     <td>{{ number_format($row['cancellationRate'], 1) }}%</td>
                                 </tr>

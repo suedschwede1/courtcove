@@ -66,14 +66,27 @@
                 <label class="ui-label" for="mf-nuliga-id">{{ __('members::admin.members.nuliga_id') }}</label>
                 <input id="mf-nuliga-id" type="number" min="1" name="nuliga_id" value="{{ old('nuliga_id', $member->nuliga_id ?? '') }}" class="ui-input">
             </div>
-            <div class="ui-field">
+            <div class="ui-field"
+                x-data="{
+                    label: @js((function () {
+                        $selected = ($users ?? collect())->firstWhere('uid', (int) old('user_id', $member->user_id ?? 0));
+                        return $selected ? $selected->alias.($selected->email ? " ({$selected->email})" : '') : '';
+                    })()),
+                    options: @js(($users ?? collect())->map(fn ($user) => ['id' => $user->uid, 'label' => $user->alias.($user->email ? " ({$user->email})" : '')])->values()),
+                    userId: @js((int) old('user_id', $member->user_id ?? 0) ?: ''),
+                    resolve() {
+                        const match = this.options.find(o => o.label === this.label);
+                        this.userId = match ? match.id : '';
+                    }
+                }">
                 <label class="ui-label" for="mf-user-id">{{ __('members::admin.members.booking_user') }}</label>
-                <select id="mf-user-id" name="user_id" class="ui-select">
-                    <option value=""></option>
-                    @foreach($users ?? [] as $user)
-                        <option value="{{ $user->uid }}" @selected((int) old('user_id', $member->user_id ?? 0) === $user->uid)>{{ $user->alias }}{{ $user->email ? " ({$user->email})" : '' }}</option>
-                    @endforeach
-                </select>
+                <input id="mf-user-id" type="text" list="mf-user-id-list" x-model="label" @input="resolve()" @change="resolve()" placeholder="{{ __('members::admin.members.search_booking_user') }}" class="ui-input" autocomplete="off">
+                <datalist id="mf-user-id-list">
+                    <template x-for="option in options" :key="option.id">
+                        <option :value="option.label"></option>
+                    </template>
+                </datalist>
+                <input type="hidden" name="user_id" :value="userId">
             </div>
             <div class="ui-field">
                 <label class="ui-label" for="mf-fee-category">{{ __('members::admin.members.fee_category') }}</label>

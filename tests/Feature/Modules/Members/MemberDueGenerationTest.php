@@ -117,4 +117,39 @@ class MemberDueGenerationTest extends TestCase
         $created = MemberDue::where('fiscal_year_id', $newYear->id)->first();
         $this->assertSame('2026-10-15', $created->faellig_am->format('Y-m-d'));
     }
+
+    #[Test]
+    public function generating_does_not_overwrite_a_due_already_covered_via_bezahlt_bis(): void
+    {
+        $category = FeeCategory::create(['name' => 'Vollmitglied']);
+        $currentYear = FiscalYear::create(['name' => '2025/26', 'starts_on' => '2025-09-01', 'ends_on' => '2026-08-31']);
+        $newYear = FiscalYear::create(['name' => '2026/27', 'starts_on' => '2026-09-01', 'ends_on' => '2027-08-31']);
+        FeeCategoryRate::create(['fee_category_id' => $category->id, 'fiscal_year_id' => $newYear->id, 'amount' => 130]);
+
+        $member = Member::factory()->create();
+        $due = MemberDue::create([
+            'member_id' => $member->id, 'fiscal_year_id' => $currentYear->id, 'fee_category_id' => $category->id,
+            'amount' => 120, 'status' => 'ausstehend',
+        ]);
+
+        // Mark this member as paid in advance through the new fiscal year — this creates
+        // a "bezahlt" row for $newYear ahead of running the generator.
+        $this->actingAs($this->admin())->patchJson("/members/dues/{$due->id}/paid-through", [
+            'fiscal_year_id' => $newYear->id,
+        ])->assertOk();
+
+        $paidAhead = MemberDue::where('member_id', $member->id)->where('fiscal_year_id', $newYear->id)->first();
+        $this->assertNotNull($paidAhead);
+        $this->assertSame('bezahlt', $paidAhead->status);
+        $this->assertSame(120.0, (float) $paidAhead->amount);
+
+        $this->actingAs($this->admin())->post('/members/dues/generate', ['fiscal_year_id' => $newYear->id]);
+
+        // The generator must not have touched the row bezahlt-bis already created: still
+        // exactly one due for this member+year, still bezahlt, still the original amount
+        // (not overwritten with the new fiscal year's 130 rate).
+        $this->assertSame(1, MemberDue::where('member_id', $member->id)->where('fiscal_year_id', $newYear->id)->count());
+        $this->assertSame('bezahlt', $paidAhead->fresh()->status);
+        $this->assertSame(120.0, (float) $paidAhead->fresh()->amount);
+    }
 }

@@ -32,7 +32,21 @@ class MemberDueManualCreationTest extends TestCase
 
         $this->actingAs($this->admin())->get(route('members.dues.index'))
             ->assertOk()
-            ->assertSee('data-fee-category="'.$category->id.'"', false);
+            ->assertSee('feeCategoryId')
+            ->assertSee((string) $category->id);
+    }
+
+    #[Test]
+    public function the_index_page_exposes_the_fee_category_rates_for_the_selected_fiscal_year(): void
+    {
+        $category = FeeCategory::create(['name' => 'Vollzahler']);
+        $fy = FiscalYear::create(['name' => '2026/27', 'starts_on' => '2026-09-01', 'ends_on' => '2027-08-31']);
+        FeeCategoryRate::create(['fee_category_id' => $category->id, 'fiscal_year_id' => $fy->id, 'amount' => 145]);
+
+        $this->actingAs($this->admin())->get(route('members.dues.index', ['fiscal_year_id' => $fy->id]))
+            ->assertOk()
+            ->assertSee('rates:')
+            ->assertSee('145');
     }
 
     #[Test]

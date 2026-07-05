@@ -61,6 +61,7 @@
                         <th>{{ __('members::admin.members.fee_category') }}</th>
                         <th>{{ __('members::admin.members.email') }}</th>
                         <th>{{ __('members::admin.members.phone') }}</th>
+                        <th>{{ __('members::admin.members.booking_user_short') }}</th>
                         <th class="text-right">{{ __('members::admin.common.actions') }}</th>
                     </tr>
                 </thead>
@@ -262,6 +263,13 @@
                                     <input type="text" x-model="value" @blur="save()" @keydown.enter.prevent="$event.target.blur()" :style="error && 'border-color:#c9190b'" class="ui-input">
                                     <p x-show="error" x-text="error" class="ui-error"></p>
                                 </div>
+                            </td>
+                            <td>
+                                @if($member->user_id !== null)
+                                    <span class="ui-badge ui-badge-success">{{ __('members::admin.common.yes') }}</span>
+                                @else
+                                    <span class="ui-badge ui-badge-neutral">{{ __('members::admin.common.no') }}</span>
+                                @endif
                             </td>
                             <td>
                                 <div class="flex items-center justify-end gap-2 whitespace-nowrap">

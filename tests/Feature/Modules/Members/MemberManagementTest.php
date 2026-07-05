@@ -7,7 +7,9 @@ namespace Tests\Feature\Modules\Members;
 use App\Models\User;
 use App\Modules\Members\Models\ClubRole;
 use App\Modules\Members\Models\FeeCategory;
+use App\Modules\Members\Models\FiscalYear;
 use App\Modules\Members\Models\Member;
+use App\Modules\Members\Models\MemberDue;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -52,8 +54,8 @@ class MemberManagementTest extends TestCase
     #[Test]
     public function index_lists_active_members_and_hides_departed_ones(): void
     {
-        \App\Modules\Members\Models\Member::factory()->create(['firstname' => 'Aktiv', 'lastname' => 'Mitglied']);
-        \App\Modules\Members\Models\Member::factory()->create(['firstname' => 'Ausgetreten', 'lastname' => 'Mitglied', 'left_at' => '2025-01-01']);
+        Member::factory()->create(['firstname' => 'Aktiv', 'lastname' => 'Mitglied']);
+        Member::factory()->create(['firstname' => 'Ausgetreten', 'lastname' => 'Mitglied', 'left_at' => '2025-01-01']);
 
         $this->actingAs($this->admin())->get('/members')
             ->assertOk()->assertSee('Aktiv Mitglied')->assertDontSee('Ausgetreten Mitglied');
@@ -76,7 +78,7 @@ class MemberManagementTest extends TestCase
     #[Test]
     public function create_form_prefills_the_next_free_member_number(): void
     {
-        \App\Modules\Members\Models\Member::factory()->create(['member_number' => 5]);
+        Member::factory()->create(['member_number' => 5]);
 
         $this->actingAs($this->admin())->get('/members/create')
             ->assertOk()->assertSee('value="6"', false);
@@ -85,7 +87,7 @@ class MemberManagementTest extends TestCase
     #[Test]
     public function creating_a_member_with_a_duplicate_number_fails_validation(): void
     {
-        \App\Modules\Members\Models\Member::factory()->create(['member_number' => 7]);
+        Member::factory()->create(['member_number' => 7]);
 
         $this->actingAs($this->admin())->post('/members', [
             'member_number' => 7,
@@ -242,8 +244,8 @@ class MemberManagementTest extends TestCase
     {
         $member = Member::factory()->create(['firstname' => 'Bezahler']);
         $category = FeeCategory::create(['name' => 'Vollmitglied']);
-        $fy = \App\Modules\Members\Models\FiscalYear::create(['name' => '2026/27', 'starts_on' => '2026-09-01', 'ends_on' => '2027-08-31']);
-        \App\Modules\Members\Models\MemberDue::create([
+        $fy = FiscalYear::create(['name' => '2026/27', 'starts_on' => '2026-09-01', 'ends_on' => '2027-08-31']);
+        MemberDue::create([
             'member_id' => $member->id, 'fiscal_year_id' => $fy->id, 'fee_category_id' => $category->id,
             'amount' => 120, 'status' => 'bezahlt',
         ]);
@@ -299,7 +301,7 @@ class MemberManagementTest extends TestCase
     #[Test]
     public function updating_a_member_with_a_left_at_date_marks_them_ausgetreten(): void
     {
-        $member = \App\Modules\Members\Models\Member::factory()->create(['status' => 'aktiv']);
+        $member = Member::factory()->create(['status' => 'aktiv']);
 
         $this->actingAs($this->admin())->put("/members/{$member->id}", [
             'member_number' => $member->member_number,
@@ -316,9 +318,9 @@ class MemberManagementTest extends TestCase
     #[Test]
     public function the_status_filter_can_show_only_ruhend_members(): void
     {
-        \App\Modules\Members\Models\Member::factory()->create(['firstname' => 'Aktiv', 'status' => 'aktiv']);
-        \App\Modules\Members\Models\Member::factory()->create(['firstname' => 'Ruhend', 'status' => 'ruhend']);
-        \App\Modules\Members\Models\Member::factory()->create(['firstname' => 'Weg', 'status' => 'ausgetreten', 'left_at' => '2026-01-01']);
+        Member::factory()->create(['firstname' => 'Aktiv', 'status' => 'aktiv']);
+        Member::factory()->create(['firstname' => 'Ruhend', 'status' => 'ruhend']);
+        Member::factory()->create(['firstname' => 'Weg', 'status' => 'ausgetreten', 'left_at' => '2026-01-01']);
 
         $response = $this->actingAs($this->admin())->get('/members?status=ruhend');
 
@@ -357,5 +359,18 @@ class MemberManagementTest extends TestCase
             'joined_at' => $other->joined_at->format('Y-m-d'),
             'user_id' => $user->uid,
         ])->assertSessionHasErrors('user_id');
+    }
+
+    #[Test]
+    public function the_list_shows_whether_a_member_is_linked_to_a_booking_system_user(): void
+    {
+        $user = User::factory()->create();
+        Member::factory()->create(['firstname' => 'Verknuepft', 'lastname' => 'Mitglied', 'user_id' => $user->uid]);
+        Member::factory()->create(['firstname' => 'Unverknuepft', 'lastname' => 'Mitglied']);
+
+        $response = $this->actingAs($this->admin())->get('/members');
+
+        $response->assertOk()->assertSeeInOrder(['Verknuepft Mitglied', 'Ja']);
+        $response->assertSeeInOrder(['Unverknuepft Mitglied', 'Nein']);
     }
 }

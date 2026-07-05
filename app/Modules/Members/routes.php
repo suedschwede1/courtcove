@@ -48,6 +48,8 @@ Route::middleware(['auth', 'can:admin.members'])
         Route::delete('members/functions/{clubRole}', [ClubRoleController::class, 'destroy'])->name('members.functions.destroy');
 
         Route::get('members/mail', [MailController::class, 'index'])->name('members.mail.index');
+        Route::post('members/mail/sender', [MailController::class, 'updateSender'])->name('members.mail.sender.update');
+        Route::post('members/mail/test', [MailController::class, 'sendTest'])->name('members.mail.test');
         Route::post('members/mail/send', [MailController::class, 'send'])->name('members.mail.send');
         Route::post('members/mail/templates', [MailController::class, 'storeTemplate'])->name('members.mail.templates.store');
         Route::put('members/mail/templates/{mailTemplate}', [MailController::class, 'updateTemplate'])->name('members.mail.templates.update');

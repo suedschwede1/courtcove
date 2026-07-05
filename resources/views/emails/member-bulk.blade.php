@@ -10,7 +10,10 @@
 </head>
 <body>
 <div class="wrap">
-  <p>{!! nl2br(e($body)) !!}</p>
+  {!! \Illuminate\Support\Str::markdown($body, [
+      'html_input' => 'strip',
+      'allow_unsafe_links' => false,
+  ]) !!}
 
   <div class="footer">
     {{ __('booking.mail.auto_footer') }}
@@ -18,3 +21,5 @@
 </div>
 </body>
 </html>
+
+

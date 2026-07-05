@@ -8,6 +8,8 @@ use App\Models\Booking;
 use App\Models\Reservation;
 use App\Models\Square;
 use App\Models\User;
+use App\Modules\Members\Models\FeeCategory;
+use App\Modules\Members\Models\Member;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -146,5 +148,66 @@ class StatisticsControllerTest extends TestCase
         $this->assertSame(1, $summary['single']);
         $this->assertSame(1, $summary['double']);
         $response->assertSee(__('booking.admin.statistics.summary_total'));
+    }
+
+    #[Test]
+    public function the_name_search_filter_narrows_the_results(): void
+    {
+        User::factory()->create(['alias' => 'Anna Muster', 'status' => 'enabled']);
+        User::factory()->create(['alias' => 'Bernd Alt', 'status' => 'enabled']);
+
+        $response = $this->actingAs($this->admin())->get('/admin/statistics?searched=1&search=Anna');
+
+        $response->assertOk()->assertSee('Anna Muster')->assertDontSee('Bernd Alt');
+    }
+
+    #[Test]
+    public function shows_bookings_in_the_current_year_per_user_and_in_the_summary(): void
+    {
+        $user = User::factory()->create(['alias' => 'Julia Sommer', 'status' => 'enabled']);
+        $booking = Booking::factory()->create(['uid' => $user->uid, 'status' => 'single']);
+        Reservation::factory()->create(['bid' => $booking->bid, 'date' => now()->startOfYear()->addDay()->toDateString()]);
+
+        $response = $this->actingAs($this->admin())->get('/admin/statistics?searched=1');
+
+        $row = $response->viewData('stats')->firstWhere('uid', $user->uid);
+        $this->assertSame(1, $row['thisYear']);
+        $this->assertSame(1, $response->viewData('summary')['thisYear']);
+    }
+
+    #[Test]
+    public function counts_distinct_members_with_a_booking_this_year_and_this_month(): void
+    {
+        $bookedThisMonth = User::factory()->create(['status' => 'enabled']);
+        $bookingA = Booking::factory()->create(['uid' => $bookedThisMonth->uid, 'status' => 'single']);
+        Reservation::factory()->create(['bid' => $bookingA->bid, 'date' => now()->toDateString()]);
+
+        $bookedEarlierThisYear = User::factory()->create(['status' => 'enabled']);
+        $bookingB = Booking::factory()->create(['uid' => $bookedEarlierThisYear->uid, 'status' => 'single']);
+        Reservation::factory()->create(['bid' => $bookingB->bid, 'date' => now()->startOfYear()->toDateString()]);
+
+        User::factory()->create(['status' => 'enabled']); // no bookings at all
+
+        $response = $this->actingAs($this->admin())->get('/admin/statistics');
+
+        $summary = $response->viewData('summary');
+        $this->assertSame(2, $summary['membersThisYear']);
+        $this->assertSame(1, $summary['membersThisMonth']);
+    }
+
+    #[Test]
+    public function shows_members_per_fee_category(): void
+    {
+        $vollzahler = FeeCategory::create(['name' => 'Vollzahler']);
+        $pensionist = FeeCategory::create(['name' => 'Pensionisten']);
+        Member::factory()->count(2)->create(['fee_category_id' => $vollzahler->id]);
+        Member::factory()->create(['fee_category_id' => $pensionist->id]);
+        Member::factory()->create(['fee_category_id' => $vollzahler->id, 'left_at' => '2020-01-01']);
+
+        $response = $this->actingAs($this->admin())->get('/admin/statistics');
+
+        $response->assertOk()
+            ->assertSeeInOrder(['Vollzahler', '2'])
+            ->assertSeeInOrder(['Pensionisten', '1']);
     }
 }

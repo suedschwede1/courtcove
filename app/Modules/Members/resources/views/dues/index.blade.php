@@ -42,25 +42,45 @@
             </form>
             <button type="button" class="ui-btn ui-btn-ghost" @click="composing = !composing">{{ __('members::admin.dues.new') }}</button>
         </div>
-        <form x-show="composing" method="POST" action="{{ route('members.dues.store') }}" class="ui-card-body ui-row" style="border-top:1px solid var(--ui-border)">
+        <form x-show="composing" method="POST" action="{{ route('members.dues.store') }}" class="ui-card-body ui-row" style="border-top:1px solid var(--ui-border)"
+            x-data="{
+                memberName: '',
+                memberId: '',
+                feeCategoryId: '',
+                amount: '',
+                members: @js($members->map(fn ($member) => ['id' => $member->id, 'name' => $member->fullName(), 'feeCategoryId' => $member->fee_category_id])->values()),
+                rates: @js($feeCategoryRates ?? []),
+                resolveMember() {
+                    const match = this.members.find(m => m.name === this.memberName);
+                    this.memberId = match ? match.id : '';
+                    if (match && match.feeCategoryId) { this.feeCategoryId = String(match.feeCategoryId); }
+                    this.applyRate();
+                },
+                applyRate() {
+                    const rate = this.rates[this.feeCategoryId];
+                    if (rate !== undefined) { this.amount = rate; }
+                }
+            }">
             @csrf
             <input type="hidden" name="fiscal_year_id" value="{{ $selectedFiscalYearId }}">
             <div class="ui-field min-w-[12rem]">
-                <select id="due-inline-member" name="member_id" class="ui-select">
-                    @foreach($members as $member)
-                        <option value="{{ $member->id }}" data-fee-category="{{ $member->fee_category_id }}">{{ $member->fullName() }}</option>
-                    @endforeach
-                </select>
+                <input type="text" list="due-inline-member-list" x-model="memberName" @input="resolveMember()" @change="resolveMember()" placeholder="{{ __('members::admin.members.search') }}" class="ui-input" autocomplete="off">
+                <datalist id="due-inline-member-list">
+                    <template x-for="member in members" :key="member.id">
+                        <option :value="member.name"></option>
+                    </template>
+                </datalist>
+                <input type="hidden" name="member_id" :value="memberId">
             </div>
             <div class="ui-field min-w-[10rem]">
-                <select id="due-inline-category" name="fee_category_id" class="ui-select">
+                <select name="fee_category_id" class="ui-select" x-model="feeCategoryId" @change="applyRate()">
                     @foreach($feeCategories as $category)
                         <option value="{{ $category->id }}">{{ $category->name }}</option>
                     @endforeach
                 </select>
             </div>
             <div class="ui-field min-w-[8rem]">
-                <input type="number" step="0.01" min="0" name="amount" placeholder="{{ __('members::admin.fee_categories.amount') }}" class="ui-input">
+                <input type="number" step="0.01" min="0" name="amount" x-model="amount" placeholder="{{ __('members::admin.fee_categories.amount') }}" class="ui-input">
             </div>
             <div class="ui-field min-w-[8rem]">
                 <input type="number" step="0.01" min="0" name="teilbetrag" placeholder="{{ __('members::admin.dues.teilbetrag') }}" class="ui-input">
@@ -260,15 +280,5 @@
             window.location.reload();
         }
     };
-
-    document.addEventListener('DOMContentLoaded', () => {
-        const memberSelect = document.getElementById('due-inline-member');
-        const categorySelect = document.getElementById('due-inline-category');
-        if (!memberSelect || !categorySelect) return;
-        memberSelect.addEventListener('change', () => {
-            const category = memberSelect.selectedOptions[0]?.dataset.feeCategory;
-            if (category) categorySelect.value = category;
-        });
-    });
 </script>
 @endsection

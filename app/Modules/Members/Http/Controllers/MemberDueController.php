@@ -63,6 +63,7 @@ class MemberDueController
             ),
             'members' => Member::query()->active()->orderBy('lastname')->orderBy('firstname')->get(),
             'feeCategories' => FeeCategory::query()->orderBy('name')->get(),
+            'feeCategoryRates' => FeeCategoryRate::where('fiscal_year_id', $selectedFiscalYearId)->pluck('amount', 'fee_category_id'),
         ]);
     }
 
