@@ -264,8 +264,6 @@ return [
             'summary_members_this_year' => 'Mitglieder mit Buchung (Jahr)',
             'summary_members_this_month' => 'Mitglieder mit Buchung (Monat)',
             'summary_cancellation_rate' => 'Storno-Quote gesamt',
-            'members_overview' => 'Mitglieder Übersicht',
-            'members_by_category' => 'Mitglieder pro Beitragskategorie',
         ],
         'users' => [
             'title' => 'Benutzer',

@@ -8,8 +8,6 @@ use App\Models\Booking;
 use App\Models\Reservation;
 use App\Models\Square;
 use App\Models\User;
-use App\Modules\Members\Models\FeeCategory;
-use App\Modules\Members\Models\Member;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -193,21 +191,5 @@ class StatisticsControllerTest extends TestCase
         $summary = $response->viewData('summary');
         $this->assertSame(2, $summary['membersThisYear']);
         $this->assertSame(1, $summary['membersThisMonth']);
-    }
-
-    #[Test]
-    public function shows_members_per_fee_category(): void
-    {
-        $vollzahler = FeeCategory::create(['name' => 'Vollzahler']);
-        $pensionist = FeeCategory::create(['name' => 'Pensionisten']);
-        Member::factory()->count(2)->create(['fee_category_id' => $vollzahler->id]);
-        Member::factory()->create(['fee_category_id' => $pensionist->id]);
-        Member::factory()->create(['fee_category_id' => $vollzahler->id, 'left_at' => '2020-01-01']);
-
-        $response = $this->actingAs($this->admin())->get('/admin/statistics');
-
-        $response->assertOk()
-            ->assertSeeInOrder(['Vollzahler', '2'])
-            ->assertSeeInOrder(['Pensionisten', '1']);
     }
 }

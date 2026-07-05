@@ -62,21 +62,6 @@
         </div>
     </div>
 
-    <div class="ui-card">
-        <div class="ui-card-header"><h2>{{ __('booking.admin.statistics.members_overview') }}</h2></div>
-        <div class="ui-card-body">
-            <p class="ui-kpi-label" style="margin-bottom:0.75rem">{{ __('booking.admin.statistics.members_by_category') }}</p>
-            @forelse($membersByCategory as $categoryName => $count)
-                <div class="flex items-center justify-between py-1" style="border-bottom:1px solid var(--ui-border)">
-                    <span>{{ $categoryName }}</span>
-                    <span class="font-medium">{{ $count }}</span>
-                </div>
-            @empty
-                <p class="ui-kpi-meta">—</p>
-            @endforelse
-        </div>
-    </div>
-
     @if($searched)
         <div class="ui-card">
             <div class="ui-table-wrap">

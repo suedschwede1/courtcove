@@ -8,7 +8,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Reservation;
 use App\Models\User;
-use App\Modules\Members\Models\Member;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -55,20 +54,11 @@ final class StatisticsController extends Controller
             ),
         ];
 
-        $membersByCategory = Member::query()
-            ->active()
-            ->with('feeCategory')
-            ->get()
-            ->filter(fn (Member $member) => $member->feeCategory !== null)
-            ->groupBy(fn (Member $member) => $member->feeCategory->name)
-            ->map->count();
-
         return view('admin.statistics.index', [
             'searched' => $searched,
             'search' => $search,
             'stats' => $searched ? $stats : null,
             'summary' => $summary,
-            'membersByCategory' => $membersByCategory,
         ]);
     }
 

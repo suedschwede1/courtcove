@@ -264,8 +264,6 @@ return [
             'summary_members_this_year' => 'Members with a booking (year)',
             'summary_members_this_month' => 'Members with a booking (month)',
             'summary_cancellation_rate' => 'Overall cancellation rate',
-            'members_overview' => 'Members overview',
-            'members_by_category' => 'Members per fee category',
         ],
         'users' => [
             'title' => 'Users',
