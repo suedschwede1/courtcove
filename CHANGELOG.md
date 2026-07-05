@@ -10,6 +10,8 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-07-06
 
+- Rate-limited `POST /register` (5/min per IP) — it had no throttling at all, unlike
+  `/login` which already has a custom per-email/IP/account limiter.
 - Extended the risk-based email verification spec with a display-only, per-user
   "risk score" on the admin login-history page — a 30-day sum of which triggers fired,
   no behavior change.
