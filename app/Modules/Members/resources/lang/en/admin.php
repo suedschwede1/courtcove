@@ -79,6 +79,7 @@ return [
         'status_paid' => 'Paid',
         'status_open' => 'Open',
         'field_update_failed' => 'Saving failed. Please try again later.',
+        'paid_through_before_own_year' => 'The selected fiscal year is before this due\'s own fiscal year.',
     ],
     'dashboard' => [
         'title' => 'Overview',

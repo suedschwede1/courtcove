@@ -13,6 +13,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -159,5 +160,68 @@ class MemberDueController
                 default => (string) $due->{$validated['field']},
             },
         ]);
+    }
+
+    /** Markiert eine Beitragszeile als im Voraus bezahlt bis zu einem späteren Fiskaljahr und legt/aktualisiert dazwischenliegende Zeilen entsprechend. */
+    public function markPaidThrough(Request $request, MemberDue $due): JsonResponse
+    {
+        $validated = $request->validate([
+            'fiscal_year_id' => [
+                'required',
+                'exists:fiscal_years,id',
+                function (string $attribute, mixed $value, callable $fail) use ($due): void {
+                    $target = FiscalYear::find($value);
+                    if ($target !== null && $target->starts_on->lt($due->fiscalYear->starts_on)) {
+                        $fail(__('members::admin.dues.paid_through_before_own_year'));
+                    }
+                },
+            ],
+        ]);
+
+        $targetFiscalYearId = (int) $validated['fiscal_year_id'];
+
+        DB::transaction(function () use ($due, $targetFiscalYearId): void {
+            $target = FiscalYear::findOrFail($targetFiscalYearId);
+
+            $intervening = FiscalYear::query()
+                ->where('starts_on', '>', $due->fiscalYear->starts_on)
+                ->where('starts_on', '<=', $target->starts_on)
+                ->orderBy('starts_on')
+                ->get();
+
+            foreach ($intervening as $fiscalYear) {
+                $existing = MemberDue::where('member_id', $due->member_id)
+                    ->where('fiscal_year_id', $fiscalYear->id)
+                    ->first();
+
+                if ($existing !== null) {
+                    // Only status/bezahlt_bis_fiscal_year_id change on an existing row — its own
+                    // amount/fee_category_id are left alone (per spec).
+                    $existing->update([
+                        'status' => 'bezahlt',
+                        'bezahlt_bis_fiscal_year_id' => $targetFiscalYearId,
+                    ]);
+
+                    continue;
+                }
+
+                MemberDue::create([
+                    'member_id' => $due->member_id,
+                    'fiscal_year_id' => $fiscalYear->id,
+                    'fee_category_id' => $due->fee_category_id,
+                    'amount' => $due->amount,
+                    'status' => 'bezahlt',
+                    'bezahlt_bis_fiscal_year_id' => $targetFiscalYearId,
+                    'faellig_am' => $fiscalYear->starts_on,
+                ]);
+            }
+
+            $due->update([
+                'status' => 'bezahlt',
+                'bezahlt_bis_fiscal_year_id' => $targetFiscalYearId,
+            ]);
+        });
+
+        return response()->json(['status' => 'bezahlt']);
     }
 }

@@ -79,6 +79,7 @@ return [
         'status_paid' => 'Bezahlt',
         'status_open' => 'Offen',
         'field_update_failed' => 'Speichern fehlgeschlagen. Bitte später erneut versuchen.',
+        'paid_through_before_own_year' => 'Das gewählte Fiskaljahr liegt vor dem Fiskaljahr dieser Beitragszeile.',
     ],
     'dashboard' => [
         'title' => 'Übersicht',
