@@ -8,7 +8,7 @@
         <div class="ui-card"><div class="ui-card-body">{{ session('status') }}</div></div>
     @endif
 
-    <div class="ui-card">
+    <div class="ui-card" x-data="{ composing: false }">
         <div class="ui-card-body ui-stack">
             <form method="GET" action="{{ route('members.dues.index') }}" class="ui-row">
                 <div class="ui-field min-w-[12rem]">
@@ -24,7 +24,30 @@
                 <input type="hidden" name="fiscal_year_id" value="{{ $selectedFiscalYearId }}">
                 <button type="submit" class="ui-btn ui-btn-primary">{{ __('members::admin.dues.generate') }}</button>
             </form>
+            <button type="button" class="ui-btn ui-btn-ghost" @click="composing = !composing">{{ __('members::admin.dues.new') }}</button>
         </div>
+        <form x-show="composing" method="POST" action="{{ route('members.dues.store') }}" class="ui-card-body ui-row" style="border-top:1px solid var(--ui-border)">
+            @csrf
+            <input type="hidden" name="fiscal_year_id" value="{{ $selectedFiscalYearId }}">
+            <div class="ui-field min-w-[12rem]">
+                <select id="due-inline-member" name="member_id" class="ui-select">
+                    @foreach($members as $member)
+                        <option value="{{ $member->id }}" data-fee-category="{{ $member->fee_category_id }}">{{ $member->fullName() }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="ui-field min-w-[10rem]">
+                <select id="due-inline-category" name="fee_category_id" class="ui-select">
+                    @foreach($feeCategories as $category)
+                        <option value="{{ $category->id }}">{{ $category->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="ui-field min-w-[8rem]">
+                <input type="number" step="0.01" min="0" name="amount" placeholder="{{ __('members::admin.fee_categories.amount') }}" class="ui-input">
+            </div>
+            <button type="submit" class="ui-btn ui-btn-primary">{{ __('members::admin.common.save') }}</button>
+        </form>
     </div>
 
     <div class="ui-card">
@@ -227,5 +250,15 @@
             window.location.reload();
         }
     };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const memberSelect = document.getElementById('due-inline-member');
+        const categorySelect = document.getElementById('due-inline-category');
+        if (!memberSelect || !categorySelect) return;
+        memberSelect.addEventListener('change', () => {
+            const category = memberSelect.selectedOptions[0]?.dataset.feeCategory;
+            if (category) categorySelect.value = category;
+        });
+    });
 </script>
 @endsection

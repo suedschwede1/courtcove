@@ -23,27 +23,13 @@ class MemberDueManualCreationTest extends TestCase
     }
 
     #[Test]
-    public function create_page_renders_with_members_years_and_categories(): void
-    {
-        $member = Member::factory()->create(['firstname' => 'Anna', 'lastname' => 'Muster']);
-        FeeCategory::create(['name' => 'Vollmitglied']);
-        FiscalYear::create(['name' => '2026/27', 'starts_on' => '2026-09-01', 'ends_on' => '2027-08-31']);
-
-        $this->actingAs($this->admin())
-            ->get(route('members.dues.create'))
-            ->assertOk()
-            ->assertSee('Anna')
-            ->assertSee('Vollmitglied')
-            ->assertSee('2026/27');
-    }
-
-    #[Test]
-    public function the_create_form_exposes_each_members_default_category(): void
+    public function the_index_page_exposes_each_members_default_category_for_the_inline_form(): void
     {
         $category = FeeCategory::create(['name' => 'Vollzahler']);
         Member::factory()->create(['fee_category_id' => $category->id]);
+        FiscalYear::create(['name' => '2026/27', 'starts_on' => '2026-09-01', 'ends_on' => '2027-08-31']);
 
-        $this->actingAs($this->admin())->get(route('members.dues.create'))
+        $this->actingAs($this->admin())->get(route('members.dues.index'))
             ->assertOk()
             ->assertSee('data-fee-category="'.$category->id.'"', false);
     }

@@ -42,15 +42,6 @@ class MemberDueController
         ]);
     }
 
-    public function create(): View
-    {
-        return view('members::dues.create', [
-            'members' => Member::query()->active()->orderBy('lastname')->orderBy('firstname')->get(),
-            'fiscalYears' => FiscalYear::query()->orderBy('starts_on')->get(),
-            'feeCategories' => FeeCategory::query()->orderBy('name')->get(),
-        ]);
-    }
-
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
