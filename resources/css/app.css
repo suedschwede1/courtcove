@@ -371,6 +371,52 @@ input[type="date"]::-webkit-datetime-edit-fields-wrapper {
     color: var(--ui-text-secondary);
 }
 
+.ui-dashboard-lower {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 1rem;
+}
+
+.ui-age-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.55rem 0;
+    border-bottom: 1px solid #f2f2f2;
+    font-size: 13px;
+    color: var(--ui-text);
+}
+
+.ui-age-row:last-child {
+    border-bottom: none;
+}
+
+.ui-category-bar-row + .ui-category-bar-row {
+    margin-top: 0.75rem;
+}
+
+.ui-category-bar-label {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 0.35rem;
+    font-size: 13px;
+    color: var(--ui-text);
+}
+
+.ui-category-bar-track {
+    height: 7px;
+    border-radius: 4px;
+    background: var(--ui-border);
+    overflow: hidden;
+}
+
+.ui-category-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: var(--ui-orange);
+}
+
 .ui-table-wrap {
     overflow-x: auto;
 }
@@ -508,7 +554,8 @@ input[type="date"]::-webkit-datetime-edit-fields-wrapper {
 @media (max-width: 768px) {
     .ui-grid-2,
     .ui-grid-3,
-    .ui-grid-4 {
+    .ui-grid-4,
+    .ui-dashboard-lower {
         grid-template-columns: 1fr;
     }
 }
