@@ -68,7 +68,9 @@
                 <tbody>
                     @foreach($members as $member)
                         <tr>
-                            <td><a href="{{ route('members.edit', $member) }}" class="text-[#6a6e73] hover:underline">{{ $member->member_number }}</a></td>
+                            <td class="cursor-pointer" onclick="window.location.href='{{ route('members.edit', $member) }}'">
+                                <a href="{{ route('members.edit', $member) }}" class="text-[#6a6e73] hover:underline">{{ $member->member_number }}</a>
+                            </td>
                             <td class="font-medium cursor-pointer"
                                 data-field="firstname"
                                 x-data="{
