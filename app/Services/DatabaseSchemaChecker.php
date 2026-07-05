@@ -179,6 +179,7 @@ final class DatabaseSchemaChecker
                 'name' => fn (Blueprint $t) => $t->string('name', 32),
                 'starts_on' => fn (Blueprint $t) => $t->date('starts_on'),
                 'ends_on' => fn (Blueprint $t) => $t->date('ends_on'),
+                'faellig_am' => fn (Blueprint $t) => $t->date('faellig_am')->nullable(),
                 'created_at' => fn (Blueprint $t) => $t->timestamp('created_at')->nullable(),
                 'updated_at' => fn (Blueprint $t) => $t->timestamp('updated_at')->nullable(),
             ],
@@ -200,6 +201,7 @@ final class DatabaseSchemaChecker
                 'id' => fn (Blueprint $t) => $t->id(),
                 'member_number' => fn (Blueprint $t) => $t->unsignedInteger('member_number')->unique(),
                 'nuliga_id' => fn (Blueprint $t) => $t->unsignedInteger('nuliga_id')->nullable()->unique(),
+                'user_id' => fn (Blueprint $t) => $t->unsignedBigInteger('user_id')->nullable()->unique(),
                 'firstname' => fn (Blueprint $t) => $t->string('firstname', 128),
                 'lastname' => fn (Blueprint $t) => $t->string('lastname', 128),
                 'birthdate' => fn (Blueprint $t) => $t->date('birthdate')->nullable(),
@@ -212,6 +214,9 @@ final class DatabaseSchemaChecker
                 'fee_category_id' => fn (Blueprint $t) => $t->foreignId('fee_category_id')->nullable()->constrained('fee_categories')->nullOnDelete(),
                 'joined_at' => fn (Blueprint $t) => $t->date('joined_at'),
                 'left_at' => fn (Blueprint $t) => $t->date('left_at')->nullable(),
+                'status' => fn (Blueprint $t) => $t->string('status')->default('aktiv'),
+                'anonymized_at' => fn (Blueprint $t) => $t->timestamp('anonymized_at')->nullable(),
+                'notiz' => fn (Blueprint $t) => $t->text('notiz')->nullable(),
                 'created_at' => fn (Blueprint $t) => $t->timestamp('created_at')->nullable(),
                 'updated_at' => fn (Blueprint $t) => $t->timestamp('updated_at')->nullable(),
             ],
@@ -221,6 +226,66 @@ final class DatabaseSchemaChecker
                 'fiscal_year_id' => fn (Blueprint $t) => $t->foreignId('fiscal_year_id')->constrained()->cascadeOnDelete(),
                 'fee_category_id' => fn (Blueprint $t) => $t->foreignId('fee_category_id')->constrained()->cascadeOnDelete(),
                 'amount' => fn (Blueprint $t) => $t->decimal('amount', 8, 2),
+                'status' => fn (Blueprint $t) => $t->string('status')->default('ausstehend'),
+                'teilbetrag' => fn (Blueprint $t) => $t->decimal('teilbetrag', 8, 2)->nullable(),
+                'kommentar' => fn (Blueprint $t) => $t->text('kommentar')->nullable(),
+                'bezahlt_bis_fiscal_year_id' => fn (Blueprint $t) => $t->foreignId('bezahlt_bis_fiscal_year_id')->nullable()->constrained('fiscal_years')->nullOnDelete(),
+                'faellig_am' => fn (Blueprint $t) => $t->date('faellig_am')->nullable(),
+                'created_at' => fn (Blueprint $t) => $t->timestamp('created_at')->nullable(),
+                'updated_at' => fn (Blueprint $t) => $t->timestamp('updated_at')->nullable(),
+            ],
+            'member_changes' => [
+                'id' => fn (Blueprint $t) => $t->id(),
+                'member_id' => fn (Blueprint $t) => $t->foreignId('member_id')->constrained()->cascadeOnDelete(),
+                'admin_user_id' => fn (Blueprint $t) => $t->unsignedInteger('admin_user_id')->nullable(),
+                'action' => fn (Blueprint $t) => $t->string('action', 16),
+                'before' => fn (Blueprint $t) => $t->json('before')->nullable(),
+                'after' => fn (Blueprint $t) => $t->json('after'),
+                'created_at' => fn (Blueprint $t) => $t->timestamp('created_at')->nullable(),
+            ],
+            'club_roles' => [
+                'id' => fn (Blueprint $t) => $t->id(),
+                'name' => fn (Blueprint $t) => $t->string('name'),
+                'is_board' => fn (Blueprint $t) => $t->boolean('is_board')->default(false),
+                'tasks' => fn (Blueprint $t) => $t->text('tasks')->nullable(),
+                'created_at' => fn (Blueprint $t) => $t->timestamp('created_at')->nullable(),
+                'updated_at' => fn (Blueprint $t) => $t->timestamp('updated_at')->nullable(),
+            ],
+            'member_club_role' => [
+                'id' => fn (Blueprint $t) => $t->id(),
+                'member_id' => fn (Blueprint $t) => $t->foreignId('member_id')->constrained()->cascadeOnDelete(),
+                'club_role_id' => fn (Blueprint $t) => $t->foreignId('club_role_id')->constrained()->cascadeOnDelete(),
+                'created_at' => fn (Blueprint $t) => $t->timestamp('created_at')->nullable(),
+                'updated_at' => fn (Blueprint $t) => $t->timestamp('updated_at')->nullable(),
+            ],
+            'club_role_mail_category' => [
+                'club_role_id' => fn (Blueprint $t) => $t->foreignId('club_role_id')->constrained()->cascadeOnDelete(),
+                'mail_category_id' => fn (Blueprint $t) => $t->foreignId('mail_category_id')->constrained('mail_categories')->cascadeOnDelete(),
+            ],
+            'mail_templates' => [
+                'id' => fn (Blueprint $t) => $t->id(),
+                'name' => fn (Blueprint $t) => $t->string('name'),
+                'subject' => fn (Blueprint $t) => $t->string('subject'),
+                'body' => fn (Blueprint $t) => $t->text('body'),
+                'created_at' => fn (Blueprint $t) => $t->timestamp('created_at')->nullable(),
+                'updated_at' => fn (Blueprint $t) => $t->timestamp('updated_at')->nullable(),
+            ],
+            'mail_categories' => [
+                'id' => fn (Blueprint $t) => $t->id(),
+                'name' => fn (Blueprint $t) => $t->string('name', 128)->unique(),
+                'created_at' => fn (Blueprint $t) => $t->timestamp('created_at')->nullable(),
+                'updated_at' => fn (Blueprint $t) => $t->timestamp('updated_at')->nullable(),
+            ],
+            'mail_sends' => [
+                'id' => fn (Blueprint $t) => $t->id(),
+                'sent_by_user_id' => fn (Blueprint $t) => $t->unsignedInteger('sent_by_user_id')->nullable(),
+                'audience_key' => fn (Blueprint $t) => $t->string('audience_key', 128),
+                'audience_label' => fn (Blueprint $t) => $t->string('audience_label', 255),
+                'recipient_count' => fn (Blueprint $t) => $t->unsignedInteger('recipient_count')->default(0),
+                'from_name' => fn (Blueprint $t) => $t->string('from_name', 128),
+                'from_address' => fn (Blueprint $t) => $t->string('from_address', 128),
+                'subject' => fn (Blueprint $t) => $t->string('subject', 255),
+                'body' => fn (Blueprint $t) => $t->text('body'),
                 'created_at' => fn (Blueprint $t) => $t->timestamp('created_at')->nullable(),
                 'updated_at' => fn (Blueprint $t) => $t->timestamp('updated_at')->nullable(),
             ],
@@ -249,6 +314,40 @@ final class DatabaseSchemaChecker
     }
 
     /**
+     * Tables Laravel/queue/session infrastructure may create that are
+     * intentionally not part of this app's manifest — new app tables should
+     * never be added here, only framework-owned ones.
+     *
+     * @return array<int, string>
+     */
+    private static function frameworkTables(): array
+    {
+        return [
+            'migrations', 'jobs', 'job_batches', 'failed_jobs',
+            'sessions', 'cache', 'cache_locks',
+            'password_reset_tokens', 'personal_access_tokens',
+        ];
+    }
+
+    /**
+     * Real tables in the database that this manifest doesn't know about —
+     * i.e. a migration created a table but columnDefinitions() was never
+     * updated for it. Used to keep the admin/database page (and its
+     * automated test) honest as new tables/modules are added.
+     *
+     * @return array<int, string>
+     */
+    public function untrackedTables(): array
+    {
+        $known = array_merge(array_keys(self::columnDefinitions()), self::frameworkTables());
+
+        return array_values(array_diff(
+            array_map(static fn (array $table): string => $table['name'], Schema::getTables()),
+            $known,
+        ));
+    }
+
+    /**
      * Composite (multi-column) indexes/constraints that live outside the
      * per-column closures in columnDefinitions() — mirrored from later
      * migrations' table-level $table->index([...])/unique([...]) calls
@@ -273,6 +372,10 @@ final class DatabaseSchemaChecker
             'fee_category_rates' => [fn (Blueprint $t) => $t->unique(['fee_category_id', 'fiscal_year_id'], 'dp_fee_category_rates_unique')],
             'member_dues' => [fn (Blueprint $t) => $t->unique(['member_id', 'fiscal_year_id'], 'dp_member_dues_unique')],
             'payment_dues' => [fn (Blueprint $t) => $t->unique(['payment_id', 'member_due_id'], 'dp_payment_dues_unique')],
+            'mail_sends' => [
+                fn (Blueprint $t) => $t->index('sent_by_user_id', 'dp_mail_sends_sent_by_user_id'),
+                fn (Blueprint $t) => $t->index('audience_key', 'dp_mail_sends_audience_key'),
+            ],
         ];
     }
 

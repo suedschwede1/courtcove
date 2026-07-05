@@ -256,6 +256,41 @@ class DatabaseSchemaCheckerTest extends TestCase
         $this->assertSame('value|index', $finding['signature']);
     }
 
+    /**
+     * The actual linter check: every real table in the database must be
+     * known to the manifest. Fails the moment a new migration creates a
+     * table (app or module) without a matching entry being added to
+     * DatabaseSchemaChecker::columnDefinitions() — the exact drift that let
+     * the admin/database page silently miss several Members-module tables.
+     */
+    #[Test]
+    public function every_table_in_the_database_is_tracked_by_the_manifest(): void
+    {
+        $untracked = $this->checker->untrackedTables();
+
+        $this->assertSame([], $untracked, 'Untracked tables: '.implode(', ', $untracked)
+            .' — add them to DatabaseSchemaChecker::columnDefinitions() (or frameworkTables() if Laravel-owned).');
+    }
+
+    #[Test]
+    public function untracked_tables_ignores_known_framework_tables(): void
+    {
+        $this->assertNotContains('migrations', $this->checker->untrackedTables());
+        $this->assertNotContains('jobs', $this->checker->untrackedTables());
+    }
+
+    #[Test]
+    public function untracked_tables_flags_a_table_created_outside_the_manifest(): void
+    {
+        Schema::create('some_new_module_table', function (Blueprint $table): void {
+            $table->id();
+        });
+
+        $this->assertContains('some_new_module_table', $this->checker->untrackedTables());
+
+        Schema::drop('some_new_module_table');
+    }
+
     #[Test]
     public function drift_report_flags_a_missing_composite_unique_index(): void
     {
