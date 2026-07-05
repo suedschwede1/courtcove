@@ -10,7 +10,7 @@ return [
         'my_account' => 'Mein Konto',
         'admin' => 'Administration',
         'members' => 'Mitglieder',
-        'back_to_calendar' => 'Zurück zum Kalender',
+        'back_to_calendar' => 'Zum Kalender',
         'logout' => 'Abmelden',
         'actions' => 'Aktionen',
         'more_actions' => 'Mehr Aktionen',
