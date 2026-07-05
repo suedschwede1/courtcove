@@ -26,6 +26,16 @@ class MemberFactory extends Factory
             'city' => $this->faker->optional()->city(),
             'joined_at' => $this->faker->dateTimeBetween('-5 years', 'now')->format('Y-m-d'),
             'left_at' => null,
+            'status' => 'aktiv',
         ];
+    }
+
+    public function configure(): static
+    {
+        return $this->afterMaking(function (Member $member): void {
+            if ($member->left_at !== null && $member->status === 'aktiv') {
+                $member->status = 'ausgetreten';
+            }
+        });
     }
 }
