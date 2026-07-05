@@ -152,3 +152,14 @@
         @endif
     </div>
 </div>
+@if($member ?? null)
+    <div class="ui-card">
+        <div class="ui-card-header"><h2>{{ __('members::admin.members.section_notiz') }}</h2></div>
+        <div class="ui-card-body">
+            <div class="ui-field">
+                <label class="ui-label" for="mf-notiz">{{ __('members::admin.members.notiz') }}</label>
+                <textarea id="mf-notiz" name="notiz" rows="4" class="ui-textarea">{{ old('notiz', $member->notiz ?? '') }}</textarea>
+            </div>
+        </div>
+    </div>
+@endif

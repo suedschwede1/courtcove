@@ -24,7 +24,7 @@ class Member extends Model
     protected $fillable = [
         'member_number', 'nuliga_id', 'user_id', 'firstname', 'lastname', 'birthdate', 'gender',
         'email', 'phone', 'street', 'zip', 'city', 'fee_category_id', 'joined_at', 'left_at', 'status',
-        'anonymized_at',
+        'anonymized_at', 'notiz',
     ];
 
     protected $casts = [

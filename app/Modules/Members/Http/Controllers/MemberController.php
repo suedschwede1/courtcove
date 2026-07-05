@@ -139,6 +139,7 @@ class MemberController
             'fee_category_id' => ['nullable', 'exists:fee_categories,id'],
             'joined_at' => ['required', 'date'],
             'left_at' => ['nullable', 'date'],
+            'notiz' => ['nullable', 'string', 'max:5000'],
         ]);
 
         $leftAt = $validated['left_at'] ?? null;

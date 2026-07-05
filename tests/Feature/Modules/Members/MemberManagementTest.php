@@ -117,6 +117,37 @@ class MemberManagementTest extends TestCase
     }
 
     #[Test]
+    public function admin_can_save_a_note_on_a_member(): void
+    {
+        $member = Member::factory()->create();
+
+        $this->actingAs($this->admin())->put(route('members.update', $member), [
+            'member_number' => $member->member_number,
+            'firstname' => $member->firstname,
+            'lastname' => $member->lastname,
+            'joined_at' => $member->joined_at->toDateString(),
+            'notiz' => 'Zahlt per Rechnung, nicht per Erlagschein.',
+        ])->assertRedirect(route('members.index'));
+
+        $this->assertSame('Zahlt per Rechnung, nicht per Erlagschein.', $member->fresh()->notiz);
+    }
+
+    #[Test]
+    public function the_note_field_is_only_shown_on_the_edit_page_not_on_create_or_the_list(): void
+    {
+        $member = Member::factory()->create(['notiz' => 'Geheime Notiz']);
+
+        $this->actingAs($this->admin())->get(route('members.edit', $member))
+            ->assertOk()->assertSee('Geheime Notiz');
+
+        $this->actingAs($this->admin())->get(route('members.create'))
+            ->assertOk()->assertDontSee(__('members::admin.members.section_notiz'));
+
+        $this->actingAs($this->admin())->get(route('members.index'))
+            ->assertOk()->assertDontSee('Geheime Notiz');
+    }
+
+    #[Test]
     public function age_is_computed_from_birthdate(): void
     {
         $member = Member::factory()->create(['birthdate' => now()->subYears(46)->subDay()->toDateString()]);
