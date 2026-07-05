@@ -103,6 +103,6 @@ final class LoginRiskEvaluator
             return false;
         }
 
-        return abs(now()->diffInSeconds($lastSuccess->created_at)) > self::IMPOSSIBLE_TRAVEL_MIN_GAP_SECONDS;
+        return $lastSuccess->created_at->diffInSeconds(now(), absolute: true) > self::IMPOSSIBLE_TRAVEL_MIN_GAP_SECONDS;
     }
 }

@@ -126,4 +126,16 @@ class LoginRiskEvaluatorTest extends TestCase
 
         Carbon::setTestNow();
     }
+
+    #[Test]
+    public function logins_from_different_countries_within_the_minimum_gap_do_not_count_as_impossible_travel(): void
+    {
+        Carbon::setTestNow('2026-01-01 10:00:00.000000');
+        LoginHistory::record(1, '1.1.1.1', 'AT', 'success');
+
+        Carbon::setTestNow('2026-01-01 10:00:05.000000');
+        $this->assertSame(['unusual_country'], $this->evaluator->triggeredFlags(1, 'RU'));
+
+        Carbon::setTestNow();
+    }
 }
