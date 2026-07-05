@@ -163,16 +163,42 @@ class MemberDueController
             ->with('status', __('members::admin.dues.generated', ['count' => $created]));
     }
 
-    /** Markiert alle ausgewählten Beitragszeilen in einem Schritt als bezahlt. */
+    /** Markiert alle ausgewählten Beitragszeilen in einem Schritt als bezahlt, optional bis zu einem gewählten Fiskaljahr im Voraus. */
     public function bulkMarkPaid(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'due_ids' => ['required', 'array', 'min:1'],
             'due_ids.*' => ['integer', 'exists:member_dues,id'],
+            'bezahlt_bis_fiscal_year_id' => ['nullable', 'exists:fiscal_years,id'],
             'fiscal_year_id' => ['nullable', 'exists:fiscal_years,id'],
         ]);
 
-        $count = MemberDue::whereIn('id', $validated['due_ids'])->update(['status' => 'bezahlt']);
+        $targetFiscalYearId = $validated['bezahlt_bis_fiscal_year_id'] ?? null;
+        $dues = MemberDue::with('fiscalYear')->whereIn('id', $validated['due_ids'])->get();
+        $count = 0;
+
+        DB::transaction(function () use ($dues, $targetFiscalYearId, &$count): void {
+            foreach ($dues as $due) {
+                if ($targetFiscalYearId === null) {
+                    $due->update(['status' => 'bezahlt']);
+                    $count++;
+
+                    continue;
+                }
+
+                $target = FiscalYear::find($targetFiscalYearId);
+
+                // Skip rows whose own fiscal year is already after the chosen "bezahlt bis"
+                // year instead of failing the whole batch — the other selected rows are
+                // still valid.
+                if ($target === null || $target->starts_on->lt($due->fiscalYear->starts_on)) {
+                    continue;
+                }
+
+                $this->applyPaidThrough($due, (int) $targetFiscalYearId);
+                $count++;
+            }
+        });
 
         return redirect()->route('members.dues.index', array_filter([
             'fiscal_year_id' => $validated['fiscal_year_id'] ?? null,
@@ -234,48 +260,52 @@ class MemberDueController
 
         $targetFiscalYearId = (int) $validated['fiscal_year_id'];
 
-        DB::transaction(function () use ($due, $targetFiscalYearId): void {
-            $target = FiscalYear::findOrFail($targetFiscalYearId);
-
-            $intervening = FiscalYear::query()
-                ->where('starts_on', '>', $due->fiscalYear->starts_on)
-                ->where('starts_on', '<=', $target->starts_on)
-                ->orderBy('starts_on')
-                ->get();
-
-            foreach ($intervening as $fiscalYear) {
-                $existing = MemberDue::where('member_id', $due->member_id)
-                    ->where('fiscal_year_id', $fiscalYear->id)
-                    ->first();
-
-                if ($existing !== null) {
-                    // Only status/bezahlt_bis_fiscal_year_id change on an existing row — its own
-                    // amount/fee_category_id are left alone (per spec).
-                    $existing->update([
-                        'status' => 'bezahlt',
-                        'bezahlt_bis_fiscal_year_id' => $targetFiscalYearId,
-                    ]);
-
-                    continue;
-                }
-
-                MemberDue::create([
-                    'member_id' => $due->member_id,
-                    'fiscal_year_id' => $fiscalYear->id,
-                    'fee_category_id' => $due->fee_category_id,
-                    'amount' => $due->amount,
-                    'status' => 'bezahlt',
-                    'bezahlt_bis_fiscal_year_id' => $targetFiscalYearId,
-                    'faellig_am' => $fiscalYear->faellig_am ?? $fiscalYear->starts_on,
-                ]);
-            }
-
-            $due->update([
-                'status' => 'bezahlt',
-                'bezahlt_bis_fiscal_year_id' => $targetFiscalYearId,
-            ]);
-        });
+        DB::transaction(fn () => $this->applyPaidThrough($due, $targetFiscalYearId));
 
         return response()->json(['status' => 'bezahlt']);
+    }
+
+    /** Markiert eine Beitragszeile und alle dazwischenliegenden Fiskaljahre bis zum Zieljahr als bezahlt. Muss innerhalb einer Transaktion aufgerufen werden. */
+    private function applyPaidThrough(MemberDue $due, int $targetFiscalYearId): void
+    {
+        $target = FiscalYear::findOrFail($targetFiscalYearId);
+
+        $intervening = FiscalYear::query()
+            ->where('starts_on', '>', $due->fiscalYear->starts_on)
+            ->where('starts_on', '<=', $target->starts_on)
+            ->orderBy('starts_on')
+            ->get();
+
+        foreach ($intervening as $fiscalYear) {
+            $existing = MemberDue::where('member_id', $due->member_id)
+                ->where('fiscal_year_id', $fiscalYear->id)
+                ->first();
+
+            if ($existing !== null) {
+                // Only status/bezahlt_bis_fiscal_year_id change on an existing row — its own
+                // amount/fee_category_id are left alone (per spec).
+                $existing->update([
+                    'status' => 'bezahlt',
+                    'bezahlt_bis_fiscal_year_id' => $targetFiscalYearId,
+                ]);
+
+                continue;
+            }
+
+            MemberDue::create([
+                'member_id' => $due->member_id,
+                'fiscal_year_id' => $fiscalYear->id,
+                'fee_category_id' => $due->fee_category_id,
+                'amount' => $due->amount,
+                'status' => 'bezahlt',
+                'bezahlt_bis_fiscal_year_id' => $targetFiscalYearId,
+                'faellig_am' => $fiscalYear->faellig_am ?? $fiscalYear->starts_on,
+            ]);
+        }
+
+        $due->update([
+            'status' => 'bezahlt',
+            'bezahlt_bis_fiscal_year_id' => $targetFiscalYearId,
+        ]);
     }
 }

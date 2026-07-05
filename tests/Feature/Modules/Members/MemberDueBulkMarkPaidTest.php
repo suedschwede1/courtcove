@@ -73,4 +73,55 @@ class MemberDueBulkMarkPaidTest extends TestCase
 
         $this->assertSame('ausstehend', $due->fresh()->status);
     }
+
+    #[Test]
+    public function admin_can_set_a_paid_through_fiscal_year_when_bulk_marking_as_paid(): void
+    {
+        $category = FeeCategory::create(['name' => 'Vollmitglied']);
+        $currentYear = FiscalYear::create(['name' => '2025/26', 'starts_on' => '2025-09-01', 'ends_on' => '2026-08-31']);
+        $nextYear = FiscalYear::create(['name' => '2026/27', 'starts_on' => '2026-09-01', 'ends_on' => '2027-08-31']);
+        $member = Member::factory()->create();
+        $due = MemberDue::create([
+            'member_id' => $member->id,
+            'fiscal_year_id' => $currentYear->id,
+            'fee_category_id' => $category->id,
+            'amount' => 120,
+            'status' => 'ausstehend',
+        ]);
+
+        $this->actingAs($this->admin())->post(route('members.dues.bulk-mark-paid'), [
+            'due_ids' => [$due->id],
+            'bezahlt_bis_fiscal_year_id' => $nextYear->id,
+        ])->assertRedirect();
+
+        $this->assertSame('bezahlt', $due->fresh()->status);
+        $this->assertSame($nextYear->id, $due->fresh()->bezahlt_bis_fiscal_year_id);
+
+        $created = MemberDue::where('member_id', $member->id)->where('fiscal_year_id', $nextYear->id)->first();
+        $this->assertNotNull($created);
+        $this->assertSame('bezahlt', $created->status);
+    }
+
+    #[Test]
+    public function bulk_paid_through_skips_a_due_whose_own_year_is_after_the_chosen_year(): void
+    {
+        $category = FeeCategory::create(['name' => 'Vollmitglied']);
+        $earlierYear = FiscalYear::create(['name' => '2025/26', 'starts_on' => '2025-09-01', 'ends_on' => '2026-08-31']);
+        $laterYear = FiscalYear::create(['name' => '2026/27', 'starts_on' => '2026-09-01', 'ends_on' => '2027-08-31']);
+        $member = Member::factory()->create();
+        $due = MemberDue::create([
+            'member_id' => $member->id,
+            'fiscal_year_id' => $laterYear->id,
+            'fee_category_id' => $category->id,
+            'amount' => 120,
+            'status' => 'ausstehend',
+        ]);
+
+        $this->actingAs($this->admin())->post(route('members.dues.bulk-mark-paid'), [
+            'due_ids' => [$due->id],
+            'bezahlt_bis_fiscal_year_id' => $earlierYear->id,
+        ])->assertRedirect();
+
+        $this->assertSame('ausstehend', $due->fresh()->status);
+    }
 }

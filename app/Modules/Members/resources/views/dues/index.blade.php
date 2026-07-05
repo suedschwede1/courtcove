@@ -114,9 +114,21 @@
         @csrf
         <input type="hidden" name="fiscal_year_id" value="{{ $selectedFiscalYearId }}">
         <div class="ui-card">
-            <div class="ui-card-body flex items-center justify-between" style="border-bottom:1px solid var(--ui-border)">
+            @php
+                $selectedFY = $fiscalYears->firstWhere('id', $selectedFiscalYearId);
+                $bulkPaidThroughYears = $fiscalYears->filter(fn ($fy) => $selectedFY === null || $fy->starts_on->gte($selectedFY->starts_on));
+            @endphp
+            <div class="ui-card-body flex items-center justify-between gap-4" style="border-bottom:1px solid var(--ui-border)">
                 <span class="ui-kpi-meta" x-show="selected.length > 0" x-text="'{{ __('members::admin.dues.selected_count', ['count' => '__COUNT__']) }}'.replace('__COUNT__', selected.length)"></span>
-                <button type="submit" id="dues-bulk-mark-paid" class="ui-btn ui-btn-primary" :disabled="selected.length === 0" :style="selected.length === 0 && 'opacity:0.5;cursor:not-allowed;'">{{ __('members::admin.dues.bulk_mark_paid') }}</button>
+                <div class="flex items-center gap-2">
+                    <select name="bezahlt_bis_fiscal_year_id" class="ui-select">
+                        <option value="">{{ __('members::admin.dues.paid_through') }} ({{ __('members::admin.common.no') }})</option>
+                        @foreach($bulkPaidThroughYears as $fiscalYear)
+                            <option value="{{ $fiscalYear->id }}">{{ __('members::admin.dues.paid_through') }}: {{ $fiscalYear->name }}</option>
+                        @endforeach
+                    </select>
+                    <button type="submit" id="dues-bulk-mark-paid" class="ui-btn ui-btn-primary" :disabled="selected.length === 0" :style="selected.length === 0 && 'opacity:0.5;cursor:not-allowed;'">{{ __('members::admin.dues.bulk_mark_paid') }}</button>
+                </div>
             </div>
             <div class="ui-table-wrap">
                 <table class="ui-table">
