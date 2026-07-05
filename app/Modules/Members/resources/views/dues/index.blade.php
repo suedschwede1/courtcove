@@ -36,9 +36,9 @@
             </form>
             <form method="POST" action="{{ route('members.dues.generate') }}">
                 @csrf
-                <input type="hidden" name="fiscal_year_id" value="{{ $selectedFiscalYearId }}">
-                @php $selectedFiscalYear = $fiscalYears->firstWhere('id', $selectedFiscalYearId); @endphp
-                <button type="submit" class="ui-btn ui-btn-primary">{{ __('members::admin.dues.generate_for', ['year' => $selectedFiscalYear->name ?? '']) }}</button>
+                <input type="hidden" name="fiscal_year_id" value="{{ $defaultFiscalYearId }}">
+                @php $defaultFiscalYear = $fiscalYears->firstWhere('id', $defaultFiscalYearId); @endphp
+                <button type="submit" class="ui-btn ui-btn-primary">{{ __('members::admin.dues.generate_for', ['year' => $defaultFiscalYear->name ?? '']) }}</button>
             </form>
             <button type="button" class="ui-btn ui-btn-ghost" @click="composing = !composing">{{ __('members::admin.dues.new') }}</button>
         </div>

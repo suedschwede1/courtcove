@@ -69,7 +69,7 @@
                     @foreach($members as $member)
                         <tr>
                             <td><a href="{{ route('members.edit', $member) }}" class="text-[#6a6e73] hover:underline">{{ $member->member_number }}</a></td>
-                            <td class="font-medium"
+                            <td class="font-medium cursor-pointer"
                                 data-field="firstname"
                                 x-data="{
                                     editing: false, error: null, justSaved: false,
@@ -88,9 +88,10 @@
                                         }
                                     }
                                 }"
+                                @click="if (!editing) editing = true"
                                 @click.outside="if (!error) editing = false">
-                                <span x-show="!editing" @click="editing = true" x-text="firstname + ' ' + lastname" class="cursor-pointer" :style="justSaved && 'outline: 2px solid #3e8635; outline-offset: 2px;'">{{ $member->fullName() }}</span>
-                                <div x-show="editing" class="flex flex-col gap-1">
+                                <span x-show="!editing" x-text="firstname + ' ' + lastname" :style="justSaved && 'outline: 2px solid #3e8635; outline-offset: 2px;'">{{ $member->fullName() }}</span>
+                                <div x-show="editing" @click.stop class="flex flex-col gap-1">
                                     <div class="flex gap-1">
                                         <input type="text" x-model="firstname" @blur="save('firstname')" @keydown.enter.prevent="$event.target.blur()" :style="error && 'border-color:#c9190b'" class="ui-input">
                                         <input type="text" x-model="lastname" @blur="save('lastname')" @keydown.enter.prevent="$event.target.blur()" :style="error && 'border-color:#c9190b'" class="ui-input">
@@ -120,9 +121,11 @@
                                         }
                                     }
                                 }"
-                                @click.outside="if (!error) editing = false">
-                                <span x-show="!editing" @click="editing = true" x-text="labels[displayValue]" :class="'ui-badge ' + classes[displayValue]" class="cursor-pointer" :style="justSaved && 'outline: 2px solid #3e8635; outline-offset: 2px;'"></span>
-                                <div x-show="editing">
+                                @click="if (!editing) editing = true"
+                                @click.outside="if (!error) editing = false"
+                                class="cursor-pointer">
+                                <span x-show="!editing" x-text="labels[displayValue]" :class="'ui-badge ' + classes[displayValue]" :style="justSaved && 'outline: 2px solid #3e8635; outline-offset: 2px;'"></span>
+                                <div x-show="editing" @click.stop>
                                     <select x-model="value" @change="save()" class="ui-select">
                                         <option value="aktiv" x-text="labels.aktiv"></option>
                                         <option value="ruhend" x-text="labels.ruhend"></option>
@@ -185,7 +188,7 @@
                                     <span class="text-[#6a6e73]">–</span>
                                 @endif
                             </td>
-                            <td class="text-[#6a6e73]"
+                            <td class="text-[#6a6e73] cursor-pointer"
                                 data-field="fee_category_id"
                                 x-data="{
                                     editing: false, error: null, justSaved: false,
@@ -204,9 +207,10 @@
                                         }
                                     }
                                 }"
+                                @click="if (!editing) editing = true"
                                 @click.outside="if (!error) editing = false">
-                                <span x-show="!editing" @click="editing = true" x-text="label" class="cursor-pointer" :style="justSaved && 'outline: 2px solid #3e8635; outline-offset: 2px;'">{{ $member->feeCategory->name ?? '—' }}</span>
-                                <div x-show="editing">
+                                <span x-show="!editing" x-text="label" :style="justSaved && 'outline: 2px solid #3e8635; outline-offset: 2px;'">{{ $member->feeCategory->name ?? '—' }}</span>
+                                <div x-show="editing" @click.stop>
                                     <select x-model="value" @change="save()" class="ui-select">
                                         <option value=""></option>
                                         @foreach($feeCategories as $category)
@@ -216,7 +220,7 @@
                                     <p x-show="error" x-text="error" class="ui-error"></p>
                                 </div>
                             </td>
-                            <td class="text-[#6a6e73]"
+                            <td class="text-[#6a6e73] cursor-pointer"
                                 data-field="email"
                                 x-data="{
                                     editing: false, error: null, justSaved: false,
@@ -233,14 +237,15 @@
                                         }
                                     }
                                 }"
+                                @click="if (!editing) editing = true"
                                 @click.outside="if (!error) editing = false">
-                                <span x-show="!editing" @click="editing = true" x-text="value || '—'" class="cursor-pointer" :style="justSaved && 'outline: 2px solid #3e8635; outline-offset: 2px;'">{{ $member->email ?: '—' }}</span>
-                                <div x-show="editing">
+                                <span x-show="!editing" x-text="value || '—'" :style="justSaved && 'outline: 2px solid #3e8635; outline-offset: 2px;'">{{ $member->email ?: '—' }}</span>
+                                <div x-show="editing" @click.stop>
                                     <input type="email" x-model="value" @blur="save()" @keydown.enter.prevent="$event.target.blur()" :style="error && 'border-color:#c9190b'" class="ui-input">
                                     <p x-show="error" x-text="error" class="ui-error"></p>
                                 </div>
                             </td>
-                            <td class="text-[#6a6e73]"
+                            <td class="text-[#6a6e73] cursor-pointer"
                                 data-field="phone"
                                 x-data="{
                                     editing: false, error: null, justSaved: false,
@@ -257,9 +262,10 @@
                                         }
                                     }
                                 }"
+                                @click="if (!editing) editing = true"
                                 @click.outside="if (!error) editing = false">
-                                <span x-show="!editing" @click="editing = true" x-text="value || '—'" class="cursor-pointer" :style="justSaved && 'outline: 2px solid #3e8635; outline-offset: 2px;'">{{ $member->phone ?: '—' }}</span>
-                                <div x-show="editing">
+                                <span x-show="!editing" x-text="value || '—'" :style="justSaved && 'outline: 2px solid #3e8635; outline-offset: 2px;'">{{ $member->phone ?: '—' }}</span>
+                                <div x-show="editing" @click.stop>
                                     <input type="text" x-model="value" @blur="save()" @keydown.enter.prevent="$event.target.blur()" :style="error && 'border-color:#c9190b'" class="ui-input">
                                     <p x-show="error" x-text="error" class="ui-error"></p>
                                 </div>

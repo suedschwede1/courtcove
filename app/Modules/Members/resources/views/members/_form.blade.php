@@ -79,7 +79,7 @@
                         this.userId = match ? match.id : '';
                     }
                 }">
-                <label class="ui-label" for="mf-user-id">{{ __('members::admin.members.booking_user') }}</label>
+                <label class="ui-label" for="mf-user-id">{{ __('members::admin.members.booking_user_short') }}</label>
                 <input id="mf-user-id" type="text" list="mf-user-id-list" x-model="label" @input="resolve()" @change="resolve()" placeholder="{{ __('members::admin.members.search_booking_user') }}" class="ui-input" autocomplete="off">
                 <datalist id="mf-user-id-list">
                     <template x-for="option in options" :key="option.id">

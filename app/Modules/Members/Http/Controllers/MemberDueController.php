@@ -56,6 +56,7 @@ class MemberDueController
         return view('members::dues.index', [
             'fiscalYears' => $fiscalYears,
             'selectedFiscalYearId' => $selectedFiscalYearId,
+            'defaultFiscalYearId' => $defaultFiscalYearId,
             'dues' => $dues,
             'filters' => array_filter(
                 $request->only('search', 'status'),
