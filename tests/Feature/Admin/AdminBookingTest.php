@@ -367,4 +367,127 @@ class AdminBookingTest extends TestCase
         $this->actingAs($this->admin())->delete("/admin/bookings/{$b->bid}")->assertRedirect(route('admin.bookings.index'));
         $this->assertDatabaseMissing('bs_bookings', ['bid' => $b->bid]);
     }
+
+    /** @return array{0: Booking, list<Reservation>} */
+    private function subscriptionBooking(User $owner, Square $square, array $dates): Booking
+    {
+        $booking = Booking::factory()->create([
+            'uid' => $owner->uid, 'sid' => $square->sid, 'status' => 'subscription', 'quantity' => 2,
+        ]);
+        foreach ($dates as $date) {
+            Reservation::factory()->create([
+                'bid' => $booking->bid, 'date' => $date, 'time_start' => '10:00:00', 'time_end' => '11:00:00',
+            ]);
+        }
+
+        return $booking;
+    }
+
+    #[Test]
+    public function update_with_single_occurrence_scope_only_changes_that_occurrence(): void
+    {
+        $admin = $this->admin();
+        $square = Square::factory()->create();
+        $booking = $this->subscriptionBooking($admin, $square, ['2026-07-06', '2026-07-13', '2026-07-20']);
+
+        $this->actingAs($admin)->put("/admin/bookings/{$booking->bid}", $this->bookingPayload([
+            'booked_for' => $admin->alias,
+            'sid' => $square->sid,
+            'date' => '2026-07-13',
+            'date_end' => '2026-07-13',
+            'time_start' => '14:00',
+            'time_end' => '15:00',
+            'occurrence' => '2026-07-13',
+            'edit_scope' => 'single_occurrence',
+        ]))->assertRedirect(route('admin.bookings.index'));
+
+        $booking->refresh();
+        $this->assertSame('subscription', $booking->status);
+        $this->assertEqualsCanonicalizing(['2026-07-06', '2026-07-20'], $booking->reservations()->pluck('date')->all());
+
+        $newBooking = Booking::where('bid', '!=', $booking->bid)->where('sid', $square->sid)->firstOrFail();
+        $this->assertSame('single', $newBooking->status);
+        $reservation = $newBooking->reservations()->firstOrFail();
+        $this->assertSame('2026-07-13', $reservation->date);
+        $this->assertSame('14:00:00', $reservation->time_start);
+    }
+
+    #[Test]
+    public function update_with_this_and_following_scope_splits_off_the_tail(): void
+    {
+        $admin = $this->admin();
+        $square = Square::factory()->create();
+        $booking = $this->subscriptionBooking($admin, $square, ['2026-07-06', '2026-07-13', '2026-07-20']);
+
+        $this->actingAs($admin)->put("/admin/bookings/{$booking->bid}", $this->bookingPayload([
+            'booked_for' => $admin->alias,
+            'sid' => $square->sid,
+            'date' => '2026-07-13',
+            'date_end' => '2026-07-20',
+            'repeat_type' => 'weekly',
+            'occurrence' => '2026-07-13',
+            'edit_scope' => 'this_and_following',
+        ]))->assertRedirect(route('admin.bookings.index'));
+
+        $booking->refresh();
+        $this->assertEqualsCanonicalizing(['2026-07-06'], $booking->reservations()->pluck('date')->all());
+
+        $newBooking = Booking::where('bid', '!=', $booking->bid)->where('sid', $square->sid)->firstOrFail();
+        $this->assertEqualsCanonicalizing(['2026-07-13', '2026-07-20'], $newBooking->reservations()->pluck('date')->all());
+    }
+
+    #[Test]
+    public function cancel_with_single_occurrence_scope_only_cancels_that_occurrence(): void
+    {
+        $admin = $this->admin();
+        $square = Square::factory()->create();
+        $booking = $this->subscriptionBooking($admin, $square, ['2026-07-06', '2026-07-13']);
+
+        $this->actingAs($admin)->post("/admin/bookings/{$booking->bid}/cancel", [
+            'occurrence' => '2026-07-13',
+            'edit_scope' => 'single_occurrence',
+        ])->assertRedirect(route('admin.bookings.index'));
+
+        $this->assertSame('single', $booking->fresh()->status);
+        $cancelled = Booking::where('status', 'cancelled')->firstOrFail();
+        $this->assertSame('2026-07-13', $cancelled->reservations()->firstOrFail()->date);
+    }
+
+    #[Test]
+    public function destroy_with_this_and_following_scope_only_removes_tail_occurrences(): void
+    {
+        $admin = $this->admin();
+        $square = Square::factory()->create();
+        $booking = $this->subscriptionBooking($admin, $square, ['2026-07-06', '2026-07-13', '2026-07-20']);
+
+        $this->actingAs($admin)->delete("/admin/bookings/{$booking->bid}", [
+            'occurrence' => '2026-07-13',
+            'edit_scope' => 'this_and_following',
+        ])->assertRedirect(route('admin.bookings.index'));
+
+        $this->assertDatabaseHas('bs_bookings', ['bid' => $booking->bid]);
+        $this->assertEqualsCanonicalizing(['2026-07-06'], $booking->fresh()->reservations()->pluck('date')->all());
+        $this->assertDatabaseMissing('bs_reservations', ['date' => '2026-07-20']);
+    }
+
+    #[Test]
+    public function update_without_occurrence_still_edits_the_whole_series_as_before(): void
+    {
+        $admin = $this->admin();
+        $square = Square::factory()->create();
+        $booking = $this->subscriptionBooking($admin, $square, ['2026-07-06', '2026-07-13']);
+
+        $this->actingAs($admin)->put("/admin/bookings/{$booking->bid}", $this->bookingPayload([
+            'booked_for' => $admin->alias,
+            'sid' => $square->sid,
+            'date' => '2026-07-06',
+            'date_end' => '2026-07-13',
+            'repeat_type' => 'weekly',
+        ]))->assertRedirect(route('admin.bookings.index'));
+
+        $booking->refresh();
+        $this->assertSame('subscription', $booking->status);
+        $this->assertEqualsCanonicalizing(['2026-07-06', '2026-07-13'], $booking->reservations()->pluck('date')->all());
+        $this->assertEquals(1, Booking::count());
+    }
 }
