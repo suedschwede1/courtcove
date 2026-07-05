@@ -185,6 +185,21 @@
                 </div>
             @endif
 
+            @if($showScopeChoice)
+                <div class="space-y-2 rounded-[6px] border border-[#e0dbd4] bg-[#fafaf8] p-3">
+                    <p class="block text-[13px] font-medium text-[#151515]">{{ __('booking.admin.bookings.edit_scope_label') }}</p>
+                    <label class="flex items-center gap-2 text-sm text-[#151515]">
+                        <input type="radio" name="edit_scope" value="single_occurrence" checked>
+                        {{ __('booking.admin.bookings.edit_scope_single', ['date' => \Carbon\Carbon::parse($occurrenceDate)->format('d.m.Y')]) }}
+                    </label>
+                    <label class="flex items-center gap-2 text-sm text-[#151515]">
+                        <input type="radio" name="edit_scope" value="this_and_following">
+                        {{ __('booking.admin.bookings.edit_scope_following') }}
+                    </label>
+                </div>
+            @endif
+            <input type="hidden" name="occurrence" value="{{ $occurrenceDate }}">
+
             <div>
                 <div class="grid grid-cols-[minmax(0,1fr)_174px] gap-3 items-end">
                     <div class="space-y-1">
@@ -255,21 +270,6 @@
                     </select>
                 </div>
             </div>
-
-            @if($showScopeChoice)
-                <div class="space-y-2 rounded-[6px] border border-[#e0dbd4] bg-[#fafaf8] p-3">
-                    <p class="block text-[13px] font-medium text-[#151515]">{{ __('booking.admin.bookings.edit_scope_label') }}</p>
-                    <label class="flex items-center gap-2 text-sm text-[#151515]">
-                        <input type="radio" name="edit_scope" value="single_occurrence" checked>
-                        {{ __('booking.admin.bookings.edit_scope_single', ['date' => \Carbon\Carbon::parse($occurrenceDate)->format('d.m.Y')]) }}
-                    </label>
-                    <label class="flex items-center gap-2 text-sm text-[#151515]">
-                        <input type="radio" name="edit_scope" value="this_and_following">
-                        {{ __('booking.admin.bookings.edit_scope_following') }}
-                    </label>
-                </div>
-            @endif
-            <input type="hidden" name="occurrence" value="{{ $occurrenceDate }}">
 
             <div>
                 <p class="mb-4 border-b border-[#ebebeb] pb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#6a6e73]">{{ __('booking.admin.bookings.player_names_section') }}</p>
