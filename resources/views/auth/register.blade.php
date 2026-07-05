@@ -152,5 +152,6 @@
 </div>
 
 </body>
+<!-- {{ config('booking.watermark') }} -->
 </html>
 

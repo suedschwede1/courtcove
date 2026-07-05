@@ -80,5 +80,6 @@
     </main>
 
 </body>
+<!-- {{ config('booking.watermark') }} -->
 </html>
 
