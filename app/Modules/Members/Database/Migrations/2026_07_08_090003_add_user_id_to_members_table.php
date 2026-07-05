@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -17,6 +16,11 @@ return new class extends Migration
      * application layer instead (see MemberController's `exists:bs_users,uid`
      * validation), consistent with how the rest of this legacy schema already
      * links to bs_users without FK constraints.
+     *
+     * The unique-index add is wrapped in try/catch (rather than an
+     * information_schema/SHOW INDEX check) so this migration works on both
+     * MySQL (the shared dev DB, where the column and index may already exist
+     * from concurrent work) and SQLite (the test suite's fresh in-memory DB).
      */
     public function up(): void
     {
@@ -26,12 +30,12 @@ return new class extends Migration
             });
         }
 
-        $indexes = collect(DB::select('SHOW INDEX FROM members'))->pluck('Key_name');
-
-        if (! $indexes->contains('members_user_id_unique')) {
+        try {
             Schema::table('members', function (Blueprint $table) {
                 $table->unique('user_id');
             });
+        } catch (\Throwable) {
+            // Index already exists (e.g. added by concurrent work on the shared dev DB).
         }
     }
 
