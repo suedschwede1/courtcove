@@ -7,9 +7,11 @@ namespace App\Modules\Members\Http\Controllers;
 use App\Modules\Members\Models\FeeCategory;
 use App\Modules\Members\Models\Member;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class MemberController
 {
@@ -105,6 +107,40 @@ class MemberController
         $member->update($validated);
 
         return redirect()->route('members.index');
+    }
+
+    /** Speichert genau ein Feld eines Mitglieds — für die direkt editierbaren Zellen der Liste. */
+    public function updateField(Request $request, Member $member): JsonResponse
+    {
+        $fieldRules = [
+            'firstname' => ['required', 'string', 'max:128'],
+            'lastname' => ['required', 'string', 'max:128'],
+            'email' => ['nullable', 'email', 'max:128'],
+            'fee_category_id' => ['nullable', 'exists:fee_categories,id'],
+            'joined_at' => ['required', 'date'],
+        ];
+
+        $field = $request->string('field')->value();
+
+        try {
+            $validated = $request->validate([
+                'field' => ['required', 'string', Rule::in(array_keys($fieldRules))],
+                'value' => $fieldRules[$field] ?? ['prohibited'],
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json(['message' => $e->validator->errors()->first()], 422);
+        }
+
+        $member->update([$validated['field'] => $validated['value']]);
+
+        return response()->json([
+            'value' => match ($validated['field']) {
+                'joined_at' => $member->joined_at->format('d.m.Y'),
+                'fee_category_id' => $member->feeCategory?->name ?? '—',
+                'email' => $member->email ?? '—',
+                default => (string) $member->{$validated['field']},
+            },
+        ]);
     }
 
     public function destroy(Member $member): RedirectResponse

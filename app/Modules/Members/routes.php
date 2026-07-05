@@ -34,5 +34,7 @@ Route::middleware(['auth', 'can:admin.members'])
         Route::get('members/{member}/payments/create', [PaymentController::class, 'create'])->name('members.payments.create');
         Route::post('members/{member}/payments', [PaymentController::class, 'store'])->name('members.payments.store');
 
+        Route::patch('members/{member}/field', [MemberController::class, 'updateField'])->name('members.update-field');
+
         Route::resource('members', MemberController::class)->except(['show']);
     });
