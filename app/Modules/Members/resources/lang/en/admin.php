@@ -33,6 +33,7 @@ return [
         'status_departed' => 'Departed',
         'mark_departed' => 'Mark as departed',
         'confirm_leave' => 'Really mark this member as departed?',
+        'field_update_failed' => 'Saving failed. Please try again later.',
     ],
     'payments' => [
         'new_payment' => 'Record payment',

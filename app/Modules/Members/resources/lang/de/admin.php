@@ -33,6 +33,7 @@ return [
         'status_departed' => 'Ausgetreten',
         'mark_departed' => 'Austragen',
         'confirm_leave' => 'Mitglied wirklich austragen?',
+        'field_update_failed' => 'Speichern fehlgeschlagen. Bitte später erneut versuchen.',
     ],
     'payments' => [
         'new_payment' => 'Zahlung erfassen',

@@ -58,6 +58,17 @@ class MemberFieldUpdateTest extends TestCase
     }
 
     #[Test]
+    public function lastname_cannot_be_cleared(): void
+    {
+        $member = Member::factory()->create(['lastname' => 'Muster']);
+
+        $this->actingAs($this->admin())
+            ->patchJson("/members/{$member->id}/field", ['field' => 'lastname', 'value' => ''])
+            ->assertStatus(422)
+            ->assertExactJson(['message' => $this->firstErrorMessage('lastname', ['field' => 'lastname', 'value' => ''])]);
+    }
+
+    #[Test]
     public function admin_can_clear_the_email_field(): void
     {
         $member = Member::factory()->create(['email' => 'alt@example.com']);
@@ -160,7 +171,10 @@ class MemberFieldUpdateTest extends TestCase
     /** Baut die erwartete Validierungsmeldung für ein Feld über einen echten Validator-Aufruf, um keinen Laravel-Text hart zu kodieren. */
     private function firstErrorMessage(string $field, array $input): string
     {
-        $rules = ['firstname' => ['required', 'string', 'max:128']];
+        $rules = [
+            'firstname' => ['required', 'string', 'max:128'],
+            'lastname' => ['required', 'string', 'max:128'],
+        ];
 
         return validator($input, [
             'field' => ['required', 'string'],

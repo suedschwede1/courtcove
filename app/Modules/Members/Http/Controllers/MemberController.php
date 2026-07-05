@@ -131,7 +131,13 @@ class MemberController
             return response()->json(['message' => $e->validator->errors()->first()], 422);
         }
 
-        $member->update([$validated['field'] => $validated['value']]);
+        try {
+            $member->update([$validated['field'] => $validated['value']]);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return response()->json(['message' => __('members::admin.members.field_update_failed')], 500);
+        }
 
         return response()->json([
             'value' => match ($validated['field']) {
