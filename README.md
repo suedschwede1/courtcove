@@ -13,6 +13,48 @@ Replaces the old Zend/Laminas system (`booking`).
 | Frontend | Tailwind CSS, Alpine.js, Vite |
 | Deployment | Shared hosting hosting.example.test, FTP |
 
+## Features
+
+### Booking calendar (public + account area)
+
+- Calendar view of all courts (squares), day/week navigation, login-gated booking
+- Booking modes: **Singles** (2 players, teammate via user search) and **Doubles**
+  (4 players, teammates as free text)
+- Repeat/subscription bookings (single occurrence vs. whole series editable separately)
+- Peak-time player limits, configurable per time window (`PeakLimitService`)
+- Daily booking limit per user per court, with a short-booking exception for slots
+  starting within 30 minutes
+- Club events shown on the calendar (admin-managed, own color/marker)
+- Account area: own bookings list, edit profile, change password
+- Booking/cancellation confirmation emails
+
+### Admin area (booking)
+
+- User management (create/edit, bulk actions, password reset, `admin`/`assist`/`enabled`
+  status, per-`assist`-user `allow.*` permission flags)
+- Club event management
+- Booking management: list, create/edit/cancel/delete on behalf of users, statistics
+- Configuration: general options, behavior settings, squares (courts), test mail sending
+- Database page: migration status/repair via `DatabaseSchemaChecker` (no SSH/cron
+  needed on hosting.example.test), on-demand DB backup/restore/download
+
+### Members module (club administration)
+
+- Member management: CRUD (no delete — departure via `left_at`), inline edit-in-place
+  fields, status tracking (aktiv/ruhend/ausgetreten), CSV import, export
+- Fiscal years and fee categories with per-year rates
+- Dues (Beiträge): generation per fiscal year, payment tracking, bulk-mark-paid with a
+  configurable "bezahlt bis" year, inline editing
+- Club roles (Funktionen): named roles (e.g. board members), each taggable with
+  multiple mail categories to target them from the mail composer
+- Mail: bulk email composer with saved templates, live preview, and dynamic audiences
+  (by club role, mail category, or other member filters), per-member send history
+- DSGVO (GDPR) settings page
+- Dashboard: member/dues KPIs, side-by-side charts, breakdown by fee category
+
+See [docs/DESIGN.md](docs/DESIGN.md) for the UI/design system and
+[CHANGELOG.md](CHANGELOG.md) for a dated history of changes.
+
 ## Local development
 
 ```bash
