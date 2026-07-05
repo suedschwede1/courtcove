@@ -2,6 +2,7 @@
 @section('admin-title', __('members::admin.mail.title'))
 @section('admin-content')
 @php
+    $mailSendItems = $mailSends ?? collect();
     $audiences = $audienceOptions->values();
     $templateItems = $templates->map(fn ($template) => [
         'id' => $template->id,
@@ -22,6 +23,7 @@
     testEmail: {{ Js::from(auth()->user()?->email ?? '') }},
     showRecipients: false,
     confirmOpen: false,
+    showPreview: false,
     previewHtml: '',
     previewLoading: false,
     previewError: '',
@@ -52,7 +54,9 @@
         this.templateName = template.name;
         this.subject = template.subject;
         this.body = template.body;
-        this.refreshPreview();
+        if (this.showPreview) {
+            this.refreshPreview();
+        }
     },
     clearTemplateSelection() {
         this.selectedTemplateId = null;
@@ -101,7 +105,7 @@
                 </div>
                 <div class="ui-field">
                     <label class="ui-label" for="mail-body">{{ __('members::admin.mail.message') }}</label>
-                    <textarea id="mail-body" rows="18" x-model="body" class="ui-input" form="mail-send-form" style="min-height:22rem" @input.debounce.600ms="refreshPreview()"></textarea>
+                    <textarea id="mail-body" rows="18" x-model="body" class="ui-input" form="mail-send-form" style="min-height:22rem" @input.debounce.600ms="if (showPreview) refreshPreview()"></textarea>
                     <p class="ui-help">{{ __('members::admin.mail.formatting_hint') }}</p>
                     <div class="ui-readonly-box ui-readonly-box-muted text-sm">
                         <div><code>**{{ __('members::admin.mail.formatting_bold') }}**</code> -> <strong>{{ __('members::admin.mail.formatting_bold') }}</strong></div>
@@ -109,7 +113,8 @@
                         <div><code>- {{ __('members::admin.mail.formatting_list_item') }}</code></div>
                         <div><code>[{{ __('members::admin.mail.formatting_link_text') }}](https://example.com)</code></div>
                     </div>
-                    <div class="ui-card mt-3">
+                    <div class="mt-3"><button type="button" class="ui-btn ui-btn-outline" @click="showPreview = ! showPreview; if (showPreview) refreshPreview()" x-text="showPreview ? {{ Js::from(__('members::admin.mail.hide_preview')) }} : {{ Js::from(__('members::admin.mail.show_preview')) }}"></button></div>
+                    <div class="ui-card mt-3" x-show="showPreview" x-cloak>
                         <div class="ui-card-header flex items-center justify-between gap-3">
                             <h2>{{ __('members::admin.mail.preview') }}</h2>
                             <button type="button" class="ui-btn ui-btn-ghost" @click="refreshPreview()" x-text="previewLoading ? {{ Js::from(__('members::admin.mail.preview_loading')) }} : {{ Js::from(__('members::admin.mail.refresh_preview')) }}"></button>
@@ -190,6 +195,35 @@
         </div>
     </div>
 
+    <div class="ui-card">
+        <div class="ui-card-header"><h2>{{ __('members::admin.mail.history') }}</h2></div>
+        <div class="ui-table-wrap">
+            <table class="ui-table">
+                <thead>
+                    <tr>
+                        <th>{{ __('members::admin.mail.sent_at') }}</th>
+                        <th>{{ __('members::admin.mail.sent_by') }}</th>
+                        <th>{{ __('members::admin.mail.audience') }}</th>
+                        <th>{{ __('members::admin.mail.subject') }}</th>
+                        <th>{{ __('members::admin.mail.recipients') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($mailSendItems as $mailSend)
+                        <tr>
+                            <td>{{ $mailSend->created_at?->format('d.m.Y H:i') }}</td>
+                            <td>{{ $mailSend->sender?->alias ?? '—' }}</td>
+                            <td>{{ $mailSend->audience_label }}</td>
+                            <td>{{ $mailSend->subject }}</td>
+                            <td>{{ $mailSend->recipient_count }}</td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="5" class="text-[#6a6e73]">{{ __('members::admin.mail.no_history') }}</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
     <div x-show="confirmOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4">
         <div class="ui-card w-full max-w-lg bg-white">
             <div class="ui-card-header"><h2>{{ __('members::admin.mail.confirm_send_title') }}</h2></div>
@@ -208,3 +242,6 @@
     </div>
 </div>
 @endsection
+
+
+

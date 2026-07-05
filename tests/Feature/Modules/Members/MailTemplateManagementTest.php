@@ -74,6 +74,7 @@ class MailTemplateManagementTest extends TestCase
             ->assertOk()
             ->assertSee('Vorlage A')
             ->assertSee(__('members::admin.mail.save_template_changes'))
-            ->assertSee(__('members::admin.mail.save_as_template'));
+            ->assertSee(__('members::admin.mail.save_as_template'))
+            ->assertSee(__('members::admin.mail.show_preview'));
     }
 }

@@ -6,6 +6,9 @@ namespace App\Modules\Members\Http\Controllers;
 
 use App\Mail\MemberBulkMail;
 use App\Models\Option;
+use App\Modules\Members\Models\ClubRole;
+use App\Modules\Members\Models\FeeCategory;
+use App\Modules\Members\Models\MailSend;
 use App\Modules\Members\Models\MailTemplate;
 use App\Modules\Members\Models\Member;
 use Illuminate\Contracts\View\View;
@@ -42,6 +45,7 @@ class MailController
             'fromName' => $this->fromName(),
             'audienceOptions' => $audienceOptions,
             'defaultAudience' => $audienceOptions->first()['key'] ?? 'all',
+            'mailSends' => MailSend::query()->with('sender')->latest()->limit(10)->get(),
         ]);
     }
 
@@ -69,6 +73,18 @@ class MailController
                 ->queue((new MemberBulkMail($validated['subject'], $validated['body']))
                     ->from($sender['address'], $sender['name']));
         }
+
+        $definition = $this->audienceDefinitions()[$validated['audience']];
+        MailSend::create([
+            'sent_by_user_id' => auth()->user()?->uid,
+            'audience_key' => $validated['audience'],
+            'audience_label' => $definition['label'],
+            'recipient_count' => $addresses->count(),
+            'from_name' => $sender['name'],
+            'from_address' => $sender['address'],
+            'subject' => $validated['subject'],
+            'body' => $validated['body'],
+        ]);
 
         return redirect()->route('members.mail.index')
             ->with('success', __('members::admin.mail.sent', ['count' => $addresses->count()]));
@@ -184,7 +200,7 @@ class MailController
     /** @return array<string, array{label: string, apply: callable(Builder<Member>): Builder<Member>}> */
     private function audienceDefinitions(): array
     {
-        return [
+        $definitions = [
             'all' => [
                 'label' => __('members::admin.mail.to_all'),
                 'apply' => fn (Builder $query): Builder => $query->active(),
@@ -200,6 +216,26 @@ class MailController
                 'apply' => fn (Builder $query): Builder => $query->where('status', 'ruhend'),
             ],
         ];
+
+        ClubRole::query()->orderBy('name')->get(['id', 'name'])->each(function (ClubRole $role) use (&$definitions): void {
+            $definitions['role:'.$role->id] = [
+                'label' => __('members::admin.mail.to_role', ['role' => $role->name]),
+                'apply' => fn (Builder $query): Builder => $query
+                    ->active()
+                    ->whereHas('clubRoles', fn (Builder $roles): Builder => $roles->whereKey($role->id)),
+            ];
+        });
+
+        FeeCategory::query()->orderBy('name')->get(['id', 'name'])->each(function (FeeCategory $category) use (&$definitions): void {
+            $definitions['fee_category:'.$category->id] = [
+                'label' => __('members::admin.mail.to_fee_category', ['category' => $category->name]),
+                'apply' => fn (Builder $query): Builder => $query
+                    ->active()
+                    ->where('fee_category_id', $category->id),
+            ];
+        });
+
+        return $definitions;
     }
 
     /** @return array<int, string> */

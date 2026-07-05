@@ -8,6 +8,7 @@ use App\Mail\MemberBulkMail;
 use App\Models\Option;
 use App\Models\User;
 use App\Modules\Members\Models\ClubRole;
+use App\Modules\Members\Models\FeeCategory;
 use App\Modules\Members\Models\Member;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\Mail;
@@ -95,6 +96,55 @@ class MailSendingTest extends TestCase
     }
 
     #[Test]
+    public function sending_to_a_specific_role_only_bccs_members_with_that_role(): void
+    {
+        Mail::fake();
+
+        $role = ClubRole::create(['name' => 'Kassier', 'is_board' => false]);
+        $matching = Member::factory()->create(['status' => 'aktiv', 'email' => 'kassier@example.com']);
+        $matching->clubRoles()->sync([$role->id]);
+        Member::factory()->create(['status' => 'aktiv', 'email' => 'other@example.com']);
+
+        $this->actingAs($this->admin())->post('/members/mail/send', [
+            'audience' => 'role:'.$role->id,
+            'subject' => 'Funktion',
+            'body' => 'Text',
+        ])->assertRedirect(route('members.mail.index'));
+
+        Mail::assertQueued(MemberBulkMail::class, function (MemberBulkMail $mail) {
+            $bcc = collect($mail->to)->merge($mail->bcc)->pluck('address');
+
+            return $bcc->contains('kassier@example.com') && ! $bcc->contains('other@example.com');
+        });
+    }
+
+    #[Test]
+    public function sending_to_a_fee_category_only_bccs_active_members_in_that_category(): void
+    {
+        Mail::fake();
+
+        $category = FeeCategory::create(['name' => 'Vollmitglied']);
+        $otherCategory = FeeCategory::create(['name' => 'Jugend']);
+        Member::factory()->create(['status' => 'aktiv', 'fee_category_id' => $category->id, 'email' => 'voll@example.com']);
+        Member::factory()->create(['status' => 'aktiv', 'fee_category_id' => $otherCategory->id, 'email' => 'jugend@example.com']);
+        Member::factory()->create(['status' => 'ruhend', 'fee_category_id' => $category->id, 'email' => 'ruhend-voll@example.com']);
+
+        $this->actingAs($this->admin())->post('/members/mail/send', [
+            'audience' => 'fee_category:'.$category->id,
+            'subject' => 'Kategorie',
+            'body' => 'Text',
+        ])->assertRedirect(route('members.mail.index'));
+
+        Mail::assertQueued(MemberBulkMail::class, function (MemberBulkMail $mail) {
+            $bcc = collect($mail->to)->merge($mail->bcc)->pluck('address');
+
+            return $bcc->contains('voll@example.com')
+                && ! $bcc->contains('jugend@example.com')
+                && ! $bcc->contains('ruhend-voll@example.com');
+        });
+    }
+
+    #[Test]
     public function an_invalid_audience_fails_validation(): void
     {
         $this->actingAs($this->admin())->post('/members/mail/send', [
@@ -174,6 +224,28 @@ class MailSendingTest extends TestCase
             ->assertOk()
             ->assertSee('Mitgliederverwaltung')
             ->assertSee('verein@example.com');
+    }
+
+    #[Test]
+    public function sending_records_a_history_snapshot(): void
+    {
+        Mail::fake();
+        $admin = $this->admin();
+        Member::factory()->create(['status' => 'aktiv', 'email' => 'a@example.com']);
+
+        $this->actingAs($admin)->post('/members/mail/send', [
+            'audience' => 'all',
+            'subject' => 'Historie',
+            'body' => 'Snapshot',
+        ])->assertRedirect(route('members.mail.index'));
+
+        $this->assertDatabaseHas('mail_sends', [
+            'sent_by_user_id' => $admin->uid,
+            'audience_key' => 'all',
+            'recipient_count' => 1,
+            'subject' => 'Historie',
+            'body' => 'Snapshot',
+        ]);
     }
 
     #[Test]
