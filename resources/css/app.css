@@ -20,16 +20,16 @@
 }
 
 :root {
-    --ui-orange: #bf4316;
-    --ui-orange-hover: #9e3412;
-    --ui-orange-soft: #fde8e1;
+    --ui-orange: #0066cc;
+    --ui-orange-hover: #004080;
+    --ui-orange-soft: #e7f1fa;
     --ui-text: #151515;
     --ui-text-secondary: #6a6e73;
-    --ui-text-muted: #b8b8b8;
-    --ui-bg: #fafafa;
+    --ui-text-muted: #b8bbbe;
+    --ui-bg: #f0f0f0;
     --ui-surface: #ffffff;
-    --ui-border: #e0e0e0;
-    --ui-sidebar: #1b1d21;
+    --ui-border: #d2d2d2;
+    --ui-sidebar: #151515;
     --ui-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -62,7 +62,7 @@ body {
 .ui-card {
     background: var(--ui-surface);
     border: 1px solid var(--ui-border);
-    border-radius: 8px;
+    border-radius: 6px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
     overflow: hidden;
 }
@@ -220,7 +220,7 @@ body {
 .ui-textarea {
     width: 100%;
     border: 1px solid #c7c7c7;
-    border-radius: 6px;
+    border-radius: 3px;
     background: #fff;
     color: var(--ui-text);
     font-family: var(--font-body);
@@ -302,7 +302,7 @@ input[type="date"]::-webkit-datetime-edit-fields-wrapper {
     justify-content: center;
     min-height: 38px;
     padding: 0 16px;
-    border-radius: 6px;
+    border-radius: 3px;
     font-size: 13px;
     font-weight: 600;
     text-decoration: none;
