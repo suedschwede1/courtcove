@@ -256,6 +256,21 @@
                 </div>
             </div>
 
+            @if($showScopeChoice)
+                <div class="space-y-2 rounded-[6px] border border-[#e0dbd4] bg-[#fafaf8] p-3">
+                    <p class="block text-[13px] font-medium text-[#151515]">{{ __('booking.admin.bookings.edit_scope_label') }}</p>
+                    <label class="flex items-center gap-2 text-sm text-[#151515]">
+                        <input type="radio" name="edit_scope" value="single_occurrence" checked>
+                        {{ __('booking.admin.bookings.edit_scope_single', ['date' => \Carbon\Carbon::parse($occurrenceDate)->format('d.m.Y')]) }}
+                    </label>
+                    <label class="flex items-center gap-2 text-sm text-[#151515]">
+                        <input type="radio" name="edit_scope" value="this_and_following">
+                        {{ __('booking.admin.bookings.edit_scope_following') }}
+                    </label>
+                </div>
+            @endif
+            <input type="hidden" name="occurrence" value="{{ $occurrenceDate }}">
+
             <div>
                 <p class="mb-4 border-b border-[#ebebeb] pb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#6a6e73]">{{ __('booking.admin.bookings.player_names_section') }}</p>
                 <div class="space-y-3">
@@ -308,6 +323,10 @@
     @if($booking->status !== 'cancelled')
         <form method="POST" action="{{ route('admin.bookings.cancel', $booking) }}" id="admin-booking-cancel" class="hidden" onsubmit="return confirm({{ Js::from(__('booking.admin.bookings.confirm_cancel')) }})">
             @csrf
+            <input type="hidden" name="occurrence" value="{{ $occurrenceDate }}">
+            @if($showScopeChoice)
+                <input type="hidden" name="edit_scope" id="admin-booking-cancel-scope" value="single_occurrence">
+            @endif
             @if(request('popup'))
                 <input type="hidden" name="redirect_to" value="{{ route('calendar.index', ['date' => old('date', $reservation?->date ?? now()->format('Y-m-d'))]) }}">
             @endif
@@ -317,6 +336,10 @@
     <form method="POST" action="{{ route('admin.bookings.destroy', $booking) }}" id="admin-booking-delete" class="hidden" onsubmit="return confirm({{ Js::from(__('booking.admin.bookings.confirm_delete')) }})">
         @csrf
         @method('DELETE')
+        <input type="hidden" name="occurrence" value="{{ $occurrenceDate }}">
+        @if($showScopeChoice)
+            <input type="hidden" name="edit_scope" id="admin-booking-delete-scope" value="single_occurrence">
+        @endif
         @if(request('popup'))
             <input type="hidden" name="redirect_to" value="{{ route('calendar.index', ['date' => old('date', $reservation?->date ?? now()->format('Y-m-d'))]) }}">
         @endif

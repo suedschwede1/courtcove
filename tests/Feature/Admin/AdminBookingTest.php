@@ -534,4 +534,31 @@ class AdminBookingTest extends TestCase
         $response->assertOk();
         $this->assertFalse($response->viewData('showScopeChoice'));
     }
+
+    #[Test]
+    public function edit_page_shows_scope_radios_when_occurrence_given_for_subscription(): void
+    {
+        $admin = $this->admin();
+        $square = Square::factory()->create();
+        $booking = $this->subscriptionBooking($admin, $square, ['2026-07-06', '2026-07-13', '2026-07-20']);
+
+        $this->actingAs($admin)->get("/admin/bookings/{$booking->bid}/edit?occurrence=2026-07-13")
+            ->assertOk()
+            ->assertSee('name="edit_scope"', false)
+            ->assertSee('value="single_occurrence"', false)
+            ->assertSee('value="this_and_following"', false)
+            ->assertSee('name="occurrence" value="2026-07-13"', false);
+    }
+
+    #[Test]
+    public function edit_page_hides_scope_radios_without_occurrence(): void
+    {
+        $admin = $this->admin();
+        $square = Square::factory()->create();
+        $booking = $this->subscriptionBooking($admin, $square, ['2026-07-06', '2026-07-13']);
+
+        $this->actingAs($admin)->get("/admin/bookings/{$booking->bid}/edit")
+            ->assertOk()
+            ->assertDontSee('name="edit_scope"', false);
+    }
 }
