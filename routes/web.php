@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\OptionController;
 use App\Http\Controllers\Admin\SquareController;
 use App\Http\Controllers\Admin\TestMailController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\RegisterController;
@@ -25,6 +26,12 @@ Route::post('/logout', [LogoutController::class, 'logout'])->name('logout');
 
 Route::get('/register', [RegisterController::class, 'showForm'])->name('register');
 Route::post('/register', [RegisterController::class, 'register'])->middleware('throttle:5,1');
+
+Route::get('/password/forgot', [ForgotPasswordController::class, 'showForm'])->name('password.forgot');
+Route::post('/password/forgot', [ForgotPasswordController::class, 'sendResetLink'])
+    ->middleware('throttle:5,1')->name('password.email');
+// Placeholder — Task 5 replaces this with ResetPasswordController::showForm
+Route::get('/password/reset/{token}', fn () => abort(404))->name('password.reset');
 
 Route::get('/lang/{locale}', [LocaleController::class, 'switch'])->name('lang.switch');
 

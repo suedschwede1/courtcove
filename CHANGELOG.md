@@ -10,6 +10,12 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-07-06
 
+- Password reset: added the "request a reset link" flow — `GET/POST /password/forgot`
+  (Task 4 of "forgot password" feature) — users can request a reset email; the response
+  is identical whether the email is unknown or the account is disabled, to avoid account
+  enumeration. `GET /password/reset/{token}` is a temporary placeholder route (404) so
+  the link generated here resolves a route name; Task 5 replaces it with the real
+  set-new-password page.
 - Password reset: added translation keys for forgot password and password reset pages
   (Task 3 of "forgot password" feature) — adds `password_reset` language group with
   all user-facing text for the two new pages.
