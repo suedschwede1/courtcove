@@ -320,6 +320,26 @@ class CalendarControllerTest extends TestCase
     }
 
     #[Test]
+    public function admin_clickable_series_booking_contains_occurrence_query_param(): void
+    {
+        $admin = User::factory()->create(['status' => 'admin']);
+        $owner = User::factory()->create(['alias' => 'Serie Owner']);
+        $square = Square::factory()->create();
+        $booking = Booking::factory()->create(['uid' => $owner->uid, 'sid' => $square->sid, 'status' => 'subscription']);
+        $targetDate = Carbon::tomorrow();
+        Reservation::factory()->create([
+            'bid' => $booking->bid, 'date' => $targetDate->toDateString(), 'time_start' => '10:00:00', 'time_end' => '11:00:00',
+        ]);
+        Reservation::factory()->create([
+            'bid' => $booking->bid, 'date' => $targetDate->copy()->addWeek()->toDateString(), 'time_start' => '10:00:00', 'time_end' => '11:00:00',
+        ]);
+
+        $this->actingAs($admin)->withUnencryptedCookie('admin_mode', '1')->get('/calendar?date='.$targetDate->format('Y-m-d'))
+            ->assertOk()
+            ->assertSee('/admin/bookings/'.$booking->bid.'/edit?occurrence='.$targetDate->format('Y-m-d'), false);
+    }
+
+    #[Test]
     public function admin_booking_popup_contains_delete_action(): void
     {
         $admin = User::factory()->create(['status' => 'admin']);
