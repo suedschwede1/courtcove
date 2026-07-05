@@ -143,4 +143,21 @@ class PaymentManagementTest extends TestCase
         $this->assertDatabaseCount('payments', 1);
         $this->assertSame(1, $due->fresh()->payments()->count());
     }
+
+    #[Test]
+    public function recording_a_payment_sets_status_to_bezahlt_on_covered_dues(): void
+    {
+        $member = Member::factory()->create();
+        $category = FeeCategory::create(['name' => 'Vollmitglied']);
+        $fy = FiscalYear::create(['name' => '2025/26', 'starts_on' => '2025-09-01', 'ends_on' => '2026-08-31']);
+        $due = MemberDue::create(['member_id' => $member->id, 'fiscal_year_id' => $fy->id, 'fee_category_id' => $category->id, 'amount' => 120, 'status' => 'ausstehend']);
+
+        $this->actingAs($this->admin())->post("/members/{$member->id}/payments", [
+            'amount' => 120,
+            'paid_at' => '2025-09-10',
+            'member_due_ids' => [$due->id],
+        ]);
+
+        $this->assertSame('bezahlt', $due->fresh()->status);
+    }
 }

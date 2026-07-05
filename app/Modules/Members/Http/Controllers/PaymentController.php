@@ -89,6 +89,8 @@ class PaymentController
             ]);
 
             $payment->dues()->attach($dueIds);
+
+            MemberDue::whereKey($dueIds)->update(['status' => 'bezahlt']);
         });
 
         return redirect()->route('members.edit', $member)
