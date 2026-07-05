@@ -161,20 +161,25 @@ final class BookingService
         });
     }
 
-    public function cancelSingle(Booking $booking): void
+    public function cancelSingle(Booking $booking, ?string $occurrenceDate = null, string $scope = 'single_occurrence'): void
     {
-        $booking->loadMissing('user');
+        $target = DB::transaction(function () use ($booking, $occurrenceDate, $scope): Booking {
+            $target = $this->splitForScope($booking, $occurrenceDate, $scope);
+            $target->update([
+                'status' => 'cancelled',
+                'status_billing' => 'cancelled',
+            ]);
 
-        $booking->update([
-            'status' => 'cancelled',
-            'status_billing' => 'cancelled',
-        ]);
+            return $target;
+        });
 
-        $email = $booking->user?->email ?? null;
+        $target->loadMissing('user');
+
+        $email = $target->user?->email ?? null;
         if (!empty($email) && $this->isMailConfigured()) {
-            dispatch(function () use ($email, $booking): void {
+            dispatch(function () use ($email, $target): void {
                 try {
-                    Mail::to($email)->send(new BookingCancelled($booking));
+                    Mail::to($email)->send(new BookingCancelled($target));
                 } catch (\Throwable) {
                     // Mail errors must not affect the response already sent
                 }
@@ -210,19 +215,20 @@ final class BookingService
         return $reservationStart->greaterThan(Carbon::now()->addSeconds($cancelRange));
     }
 
-    public function deleteSingle(Booking $booking): void
+    public function deleteSingle(Booking $booking, ?string $occurrenceDate = null, string $scope = 'single_occurrence'): void
     {
-        DB::transaction(function () use ($booking): void {
-            $booking->loadMissing(['meta', 'bills', 'reservations.meta']);
+        DB::transaction(function () use ($booking, $occurrenceDate, $scope): void {
+            $target = $this->splitForScope($booking, $occurrenceDate, $scope);
+            $target->loadMissing(['meta', 'bills', 'reservations.meta']);
 
-            foreach ($booking->reservations as $reservation) {
+            foreach ($target->reservations as $reservation) {
                 $reservation->meta()->delete();
             }
 
-            $booking->reservations()->delete();
-            $booking->meta()->delete();
-            $booking->bills()->delete();
-            $booking->delete();
+            $target->reservations()->delete();
+            $target->meta()->delete();
+            $target->bills()->delete();
+            $target->delete();
         });
     }
 

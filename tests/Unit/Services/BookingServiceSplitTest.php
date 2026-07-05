@@ -169,4 +169,45 @@ class BookingServiceSplitTest extends TestCase
         $this->assertSame($booking->bid, $result->bid);
         $this->assertEquals(3, $booking->reservations()->count());
     }
+
+    #[Test]
+    public function cancel_single_with_scope_cancels_only_the_split_off_booking(): void
+    {
+        [$booking] = $this->makeSubscription(['2026-07-06', '2026-07-13', '2026-07-20']);
+
+        $this->service->cancelSingle($booking, '2026-07-13', 'single_occurrence');
+
+        $this->assertSame('subscription', $booking->fresh()->status);
+        $this->assertEquals(2, $booking->reservations()->count());
+
+        $cancelled = Booking::where('status', 'cancelled')->firstOrFail();
+        $this->assertEquals(1, $cancelled->reservations()->count());
+        $this->assertSame('2026-07-13', $cancelled->reservations()->first()->date);
+    }
+
+    #[Test]
+    public function cancel_single_without_occurrence_cancels_whole_booking_as_before(): void
+    {
+        [$booking] = $this->makeSubscription(['2026-07-06', '2026-07-13']);
+
+        $this->service->cancelSingle($booking);
+
+        $this->assertSame('cancelled', $booking->fresh()->status);
+        $this->assertEquals(2, $booking->reservations()->count());
+    }
+
+    #[Test]
+    public function delete_single_with_this_and_following_scope_only_deletes_tail_reservations(): void
+    {
+        [$booking] = $this->makeSubscription(['2026-07-06', '2026-07-13', '2026-07-20']);
+
+        $this->service->deleteSingle($booking, '2026-07-13', 'this_and_following');
+
+        $this->assertDatabaseHas('bs_bookings', ['bid' => $booking->bid]);
+        $this->assertEquals(1, $booking->fresh()->reservations()->count());
+        $this->assertSame('single', $booking->fresh()->status);
+        $this->assertDatabaseMissing('bs_reservations', ['date' => '2026-07-13']);
+        $this->assertDatabaseMissing('bs_reservations', ['date' => '2026-07-20']);
+        $this->assertDatabaseHas('bs_reservations', ['date' => '2026-07-06']);
+    }
 }
