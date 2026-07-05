@@ -101,7 +101,8 @@ class MailSendingTest extends TestCase
         Mail::fake();
 
         $category = MailCategory::create(['name' => 'Finanzen']);
-        $role = ClubRole::create(['name' => 'Kassier', 'is_board' => false, 'mail_category_id' => $category->id]);
+        $role = ClubRole::create(['name' => 'Kassier', 'is_board' => false]);
+        $role->mailCategories()->sync([$category->id]);
         $matching = Member::factory()->create(['status' => 'aktiv', 'email' => 'kassier@example.com']);
         $matching->clubRoles()->sync([$role->id]);
         Member::factory()->create(['status' => 'aktiv', 'email' => 'other@example.com']);
@@ -125,8 +126,10 @@ class MailSendingTest extends TestCase
         Mail::fake();
 
         $category = MailCategory::create(['name' => 'Vorstand']);
-        $chairman = ClubRole::create(['name' => 'Obmann', 'is_board' => true, 'mail_category_id' => $category->id]);
-        $secretary = ClubRole::create(['name' => 'Schriftführer', 'is_board' => true, 'mail_category_id' => $category->id]);
+        $chairman = ClubRole::create(['name' => 'Obmann', 'is_board' => true]);
+        $chairman->mailCategories()->sync([$category->id]);
+        $secretary = ClubRole::create(['name' => 'Schriftführer', 'is_board' => true]);
+        $secretary->mailCategories()->sync([$category->id]);
 
         $member1 = Member::factory()->create(['status' => 'aktiv', 'email' => 'obmann@example.com']);
         $member1->clubRoles()->sync([$chairman->id]);
@@ -146,6 +149,32 @@ class MailSendingTest extends TestCase
             return $bcc->contains('obmann@example.com')
                 && $bcc->contains('schriftfuehrer@example.com')
                 && ! $bcc->contains('other@example.com');
+        });
+    }
+
+    #[Test]
+    public function a_role_with_multiple_mail_categories_is_reachable_through_either_one(): void
+    {
+        Mail::fake();
+
+        $vorstand = MailCategory::create(['name' => 'Vorstand']);
+        $finanzen = MailCategory::create(['name' => 'Finanzen']);
+        $role = ClubRole::create(['name' => 'Kassier', 'is_board' => true]);
+        $role->mailCategories()->sync([$vorstand->id, $finanzen->id]);
+
+        $member = Member::factory()->create(['status' => 'aktiv', 'email' => 'kassier@example.com']);
+        $member->clubRoles()->sync([$role->id]);
+
+        $this->actingAs($this->admin())->post('/members/mail/send', [
+            'audience' => 'category:'.$finanzen->id,
+            'subject' => 'Finanzen',
+            'body' => 'Text',
+        ])->assertRedirect(route('members.mail.index'));
+
+        Mail::assertQueued(MemberBulkMail::class, function (MemberBulkMail $mail) {
+            $bcc = collect($mail->to)->merge($mail->bcc)->pluck('address');
+
+            return $bcc->contains('kassier@example.com');
         });
     }
 
@@ -301,13 +330,14 @@ class MailSendingTest extends TestCase
     public function deleting_a_mail_category_clears_it_from_club_roles(): void
     {
         $category = MailCategory::create(['name' => 'Vorstand']);
-        $role = ClubRole::create(['name' => 'Obmann', 'is_board' => true, 'mail_category_id' => $category->id]);
+        $role = ClubRole::create(['name' => 'Obmann', 'is_board' => true]);
+        $role->mailCategories()->sync([$category->id]);
 
         $this->actingAs($this->admin())->delete("/members/mail/categories/{$category->id}")
             ->assertRedirect(route('members.mail.config'));
 
         $this->assertDatabaseMissing('mail_categories', ['id' => $category->id]);
-        $this->assertNull($role->refresh()->mail_category_id);
+        $this->assertSame([], $role->refresh()->mailCategories->pluck('id')->all());
     }
 
     #[Test]

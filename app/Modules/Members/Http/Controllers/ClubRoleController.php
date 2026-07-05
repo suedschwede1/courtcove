@@ -15,7 +15,7 @@ class ClubRoleController
     public function index(): View
     {
         return view('members::functions.index', [
-            'clubRoles' => ClubRole::query()->with('mailCategory')->orderByDesc('is_board')->orderBy('name')->get(),
+            'clubRoles' => ClubRole::query()->with('mailCategories')->orderByDesc('is_board')->orderBy('name')->get(),
         ]);
     }
 
@@ -31,16 +31,18 @@ class ClubRoleController
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:128'],
             'is_board' => ['nullable', 'boolean'],
-            'mail_category_id' => ['nullable', 'exists:mail_categories,id'],
+            'mail_category_ids' => ['nullable', 'array'],
+            'mail_category_ids.*' => ['integer', 'exists:mail_categories,id'],
             'tasks' => ['nullable', 'string'],
         ]);
 
-        ClubRole::create([
+        $clubRole = ClubRole::create([
             'name' => $validated['name'],
             'is_board' => $request->boolean('is_board'),
-            'mail_category_id' => $validated['mail_category_id'] ?? null,
             'tasks' => $validated['tasks'] ?? null,
         ]);
+
+        $clubRole->mailCategories()->sync($validated['mail_category_ids'] ?? []);
 
         return redirect()->route('members.functions.index');
     }
@@ -58,16 +60,18 @@ class ClubRoleController
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:128'],
             'is_board' => ['nullable', 'boolean'],
-            'mail_category_id' => ['nullable', 'exists:mail_categories,id'],
+            'mail_category_ids' => ['nullable', 'array'],
+            'mail_category_ids.*' => ['integer', 'exists:mail_categories,id'],
             'tasks' => ['nullable', 'string'],
         ]);
 
         $clubRole->update([
             'name' => $validated['name'],
             'is_board' => $request->boolean('is_board'),
-            'mail_category_id' => $validated['mail_category_id'] ?? null,
             'tasks' => $validated['tasks'] ?? null,
         ]);
+
+        $clubRole->mailCategories()->sync($validated['mail_category_ids'] ?? []);
 
         return redirect()->route('members.functions.index');
     }

@@ -30,11 +30,11 @@
                                 @endif
                             </td>
                             <td>
-                                @if($clubRole->mailCategory)
-                                    <span class="ui-badge ui-badge-info">{{ $clubRole->mailCategory->name }}</span>
-                                @else
+                                @forelse($clubRole->mailCategories as $mailCategory)
+                                    <span class="ui-badge ui-badge-info">{{ $mailCategory->name }}</span>
+                                @empty
                                     <span class="text-[#6a6e73]">–</span>
-                                @endif
+                                @endforelse
                             </td>
                             <td class="text-[#6a6e73]">{{ $clubRole->tasks ?? '–' }}</td>
                             <td class="text-right">

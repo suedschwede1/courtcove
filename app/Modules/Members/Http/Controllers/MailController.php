@@ -264,13 +264,14 @@ class MailController
             ],
         ];
 
-        if (Schema::hasColumn('club_roles', 'mail_category_id')) {
+        if (Schema::hasTable('mail_categories')) {
             MailCategory::query()->orderBy('name')->get()->each(function (MailCategory $category) use (&$definitions): void {
                 $definitions['category:'.$category->id] = [
                     'label' => __('members::admin.mail.to_mail_category', ['category' => $category->name]),
                     'apply' => fn (Builder $query): Builder => $query
                         ->active()
-                        ->whereHas('clubRoles', fn (Builder $roles): Builder => $roles->where('mail_category_id', $category->id)),
+                        ->whereHas('clubRoles', fn (Builder $roles): Builder => $roles
+                            ->whereHas('mailCategories', fn (Builder $categories): Builder => $categories->whereKey($category->id))),
                 ];
             });
         }

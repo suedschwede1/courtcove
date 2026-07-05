@@ -28,16 +28,34 @@ class ClubRoleManagementTest extends TestCase
         $this->actingAs($this->admin())->post('/members/functions', [
             'name' => 'Obmann',
             'is_board' => '1',
-            'mail_category_id' => $category->id,
+            'mail_category_ids' => [$category->id],
             'tasks' => 'Vereinsleitung',
         ])->assertRedirect(route('members.functions.index'));
 
         $this->assertDatabaseHas('club_roles', [
             'name' => 'Obmann',
             'is_board' => true,
-            'mail_category_id' => $category->id,
             'tasks' => 'Vereinsleitung',
         ]);
+        $this->assertDatabaseHas('club_role_mail_category', [
+            'club_role_id' => ClubRole::where('name', 'Obmann')->value('id'),
+            'mail_category_id' => $category->id,
+        ]);
+    }
+
+    #[Test]
+    public function admin_can_assign_multiple_mail_categories_to_a_club_role(): void
+    {
+        $vorstand = MailCategory::create(['name' => 'Vorstand']);
+        $finanzen = MailCategory::create(['name' => 'Finanzen']);
+
+        $this->actingAs($this->admin())->post('/members/functions', [
+            'name' => 'Obmann',
+            'mail_category_ids' => [$vorstand->id, $finanzen->id],
+        ])->assertRedirect(route('members.functions.index'));
+
+        $role = ClubRole::where('name', 'Obmann')->first();
+        $this->assertSame([$vorstand->id, $finanzen->id], $role->mailCategories->pluck('id')->sort()->values()->all());
     }
 
     #[Test]
@@ -59,14 +77,30 @@ class ClubRoleManagementTest extends TestCase
         $this->actingAs($this->admin())->put("/members/functions/{$role->id}", [
             'name' => 'Kassier/in',
             'is_board' => '1',
-            'mail_category_id' => $category->id,
+            'mail_category_ids' => [$category->id],
             'tasks' => 'Finanzen',
         ])->assertRedirect(route('members.functions.index'));
 
         $role->refresh();
         $this->assertSame('Kassier/in', $role->name);
         $this->assertSame('Finanzen', $role->tasks);
-        $this->assertSame($category->id, $role->mail_category_id);
+        $this->assertSame([$category->id], $role->mailCategories->pluck('id')->all());
+    }
+
+    #[Test]
+    public function updating_a_club_role_replaces_its_mail_categories(): void
+    {
+        $vorstand = MailCategory::create(['name' => 'Vorstand']);
+        $finanzen = MailCategory::create(['name' => 'Finanzen']);
+        $role = ClubRole::create(['name' => 'Kassier', 'is_board' => true]);
+        $role->mailCategories()->sync([$vorstand->id]);
+
+        $this->actingAs($this->admin())->put("/members/functions/{$role->id}", [
+            'name' => 'Kassier',
+            'mail_category_ids' => [$finanzen->id],
+        ])->assertRedirect(route('members.functions.index'));
+
+        $this->assertSame([$finanzen->id], $role->refresh()->mailCategories->pluck('id')->all());
     }
 
     #[Test]
