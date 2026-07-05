@@ -106,7 +106,11 @@ final class DatabaseBackupService
         Schema::disableForeignKeyConstraints();
 
         try {
-            foreach ([...$structureStatements, ...$dataStatements] as $statement) {
+            foreach ($structureStatements as $statement) {
+                DB::unprepared($statement);
+            }
+
+            foreach ($this->orderInsertsByDependency($dataStatements) as $statement) {
                 DB::unprepared($statement);
             }
         } catch (Throwable $e) {
@@ -122,6 +126,66 @@ final class DatabaseBackupService
         $actions[] = count($statements).' Statements aus '.$filename.' ausgeführt.';
 
         return $actions;
+    }
+
+    /**
+     * SQLite only honors PRAGMA foreign_keys outside an active transaction —
+     * a no-op under the test suite's RefreshDatabase-wrapped transaction —
+     * so disableForeignKeyConstraints() alone isn't reliable. Ordering
+     * inserts parent-before-child via each table's real FK metadata works
+     * regardless of whether FK enforcement is actually off.
+     *
+     * @param array<int, string> $dataStatements
+     * @return array<int, string>
+     */
+    private function orderInsertsByDependency(array $dataStatements): array
+    {
+        $byTable = [];
+
+        foreach ($dataStatements as $statement) {
+            preg_match('/^INSERT INTO `([^`]+)`/', $statement, $matches);
+            $byTable[$matches[1]][] = $statement;
+        }
+
+        $ordered = [];
+
+        foreach ($this->topologicallySortedTables(array_keys($byTable)) as $table) {
+            array_push($ordered, ...$byTable[$table]);
+        }
+
+        return $ordered;
+    }
+
+    /**
+     * @param array<int, string> $tables
+     * @return array<int, string>
+     */
+    private function topologicallySortedTables(array $tables): array
+    {
+        $sorted = [];
+        $visited = [];
+
+        $visit = function (string $table) use (&$visit, &$sorted, &$visited, $tables): void {
+            if (isset($visited[$table])) {
+                return;
+            }
+
+            $visited[$table] = true;
+
+            foreach (Schema::getForeignKeys($table) as $foreignKey) {
+                if (in_array($foreignKey['foreign_table'], $tables, true)) {
+                    $visit($foreignKey['foreign_table']);
+                }
+            }
+
+            $sorted[] = $table;
+        };
+
+        foreach ($tables as $table) {
+            $visit($table);
+        }
+
+        return $sorted;
     }
 
     private function buildDump(): string
