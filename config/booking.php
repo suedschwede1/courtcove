@@ -21,4 +21,9 @@ return [
         static fn (string $code): string => strtoupper(trim($code)),
         explode(',', (string) env('BOOKING_BLOCKED_LOGIN_COUNTRIES', ''))
     ))),
+    'login_verification' => [
+        'code_ttl_minutes' => 10,
+        'max_attempts' => 5,
+        'resend_decay_seconds' => 60,
+    ],
 ];
