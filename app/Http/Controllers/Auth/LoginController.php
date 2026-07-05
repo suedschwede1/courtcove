@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\LoginBookkeeping;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -30,6 +31,10 @@ final class LoginController extends Controller
     private const IP_MAX_ATTEMPTS = 25;
 
     private const LOCKOUT_SECONDS = 600;
+
+    public function __construct(
+        private readonly LoginBookkeeping $bookkeeping,
+    ) {}
 
     /** Render the login form. */
     public function showForm(Request $request): View
@@ -73,7 +78,7 @@ final class LoginController extends Controller
         $throttleKeys = $this->throttleKeys($email, $ip, $user);
 
         if ($seconds = $this->lockoutSeconds($throttleKeys)) {
-            $this->logAttempt('throttled', $request, $user, [
+            $this->bookkeeping->logAttempt('throttled', $request, $user, [
                 'email' => $email,
                 'lockout_seconds' => $seconds,
             ]);
@@ -88,8 +93,8 @@ final class LoginController extends Controller
             'password' => $credentials['password'],
         ], $request->boolean('remember') && ! $user->isPrivileged())) {
             $this->hitThrottleKeys($throttleKeys);
-            $this->syncLegacyLoginTracking($user, false, $ip);
-            $this->logAttempt('failed', $request, $user, [
+            $this->bookkeeping->syncLegacyLoginTracking($user, false, $ip, self::LOCKOUT_SECONDS);
+            $this->bookkeeping->logAttempt('failed', $request, $user, [
                 'email' => $email,
                 'disabled_account' => $user?->isEnabled() === false,
             ]);
@@ -103,9 +108,9 @@ final class LoginController extends Controller
 
         $wasKnownIp = $this->wasKnownIp($user, $ip);
         $rememberApplied = $request->boolean('remember') && ! $user->isPrivileged();
-        $this->syncLegacyLoginTracking($user, true, $ip);
+        $this->bookkeeping->syncLegacyLoginTracking($user, true, $ip, self::LOCKOUT_SECONDS);
 
-        $this->logAttempt('succeeded', $request, $user, [
+        $this->bookkeeping->logAttempt('succeeded', $request, $user, [
             'email' => $email,
             'known_ip' => $wasKnownIp,
             'privileged_user' => $user->isPrivileged(),
@@ -198,49 +203,6 @@ final class LoginController extends Controller
         $knownIp = trim((string) $user->last_ip);
 
         return $knownIp !== '' && hash_equals($knownIp, $ip);
-    }
-
-    private function syncLegacyLoginTracking(?User $user, bool $successful, string $ip): void
-    {
-        if (! $user) {
-            return;
-        }
-
-        if ($successful) {
-            $user->forceFill([
-                'login_attempts' => 0,
-                'login_detent' => null,
-                'last_activity' => now(),
-                'last_ip' => $ip,
-            ])->save();
-
-            return;
-        }
-
-        $attempts = (int) ($user->login_attempts ?? 0) + 1;
-
-        $user->forceFill([
-            'login_attempts' => min($attempts, 255),
-            'login_detent' => now()->addSeconds(self::LOCKOUT_SECONDS),
-            'last_ip' => $ip,
-        ])->save();
-    }
-
-    private function logAttempt(string $event, Request $request, ?User $user, array $context = []): void
-    {
-        $payload = array_merge($context, [
-            'event' => $event,
-            'user_id' => $user?->getKey(),
-            'status' => $user?->status,
-            'ip' => (string) $request->ip(),
-            'user_agent' => Str::limit((string) $request->userAgent(), 255),
-        ]);
-
-        match ($event) {
-            'succeeded' => Log::info('Login succeeded', $payload),
-            'throttled' => Log::warning('Login throttled', $payload),
-            default => Log::warning('Login failed', $payload),
-        };
     }
 
     private function normalizeRedirectTarget(?string $redirectTo): string
