@@ -29,7 +29,7 @@ class MemberDueController
         $selectedFiscalYearId = (int) $request->query('fiscal_year_id', $defaultFiscalYearId);
 
         $dues = MemberDue::query()
-            ->with(['member', 'feeCategory', 'payments'])
+            ->with(['member', 'feeCategory', 'payments', 'fiscalYear', 'bezahltBisFiscalYear'])
             ->where('fiscal_year_id', $selectedFiscalYearId)
             ->get();
 
@@ -37,6 +37,8 @@ class MemberDueController
             'fiscalYears' => $fiscalYears,
             'selectedFiscalYearId' => $selectedFiscalYearId,
             'dues' => $dues,
+            'members' => Member::query()->active()->orderBy('lastname')->orderBy('firstname')->get(),
+            'feeCategories' => FeeCategory::query()->orderBy('name')->get(),
         ]);
     }
 

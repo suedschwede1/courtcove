@@ -36,6 +36,10 @@
                         <th>{{ __('members::admin.fee_categories.title') }}</th>
                         <th>{{ __('members::admin.fee_categories.amount') }}</th>
                         <th>{{ __('members::admin.dues.status') }}</th>
+                        <th>{{ __('members::admin.dues.due_date') }}</th>
+                        <th>{{ __('members::admin.dues.paid_through') }}</th>
+                        <th>{{ __('members::admin.dues.teilbetrag') }}</th>
+                        <th>{{ __('members::admin.dues.kommentar') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -44,10 +48,123 @@
                             <td>{{ $due->member->fullName() }}</td>
                             <td>{{ $due->feeCategory->name }}</td>
                             <td>{{ number_format((float) $due->amount, 2) }} €</td>
+                            <td data-field="status"
+                                x-data="{
+                                    editing: false, error: null, justSaved: false,
+                                    value: @js($due->status),
+                                    displayValue: @js($due->displayStatus()),
+                                    labels: { ausstehend: @js(__('members::admin.dues.status_ausstehend')), bezahlt: @js(__('members::admin.dues.status_bezahlt')), ueberfaellig: @js(__('members::admin.dues.status_ueberfaellig')) },
+                                    classes: { ausstehend: 'ui-badge-warning', bezahlt: 'ui-badge-success', ueberfaellig: 'ui-badge-danger' },
+                                    async save() {
+                                        this.error = null;
+                                        const result = await window.saveDueField({{ $due->id }}, 'status', this.value);
+                                        if (result.ok) {
+                                            this.editing = false;
+                                            this.value = result.value;
+                                            // The server-computed overdue override (displayStatus()) only re-evaluates
+                                            // on the next page load; right after a manual edit we show the raw value
+                                            // the admin just chose, matching what was actually stored.
+                                            this.displayValue = result.value;
+                                            this.justSaved = true;
+                                            setTimeout(() => this.justSaved = false, 1500);
+                                        } else {
+                                            this.error = result.message;
+                                        }
+                                    }
+                                }"
+                                @click.outside="if (!error) editing = false">
+                                <span x-show="!editing" @click="editing = true" x-text="labels[displayValue]" :class="'ui-badge ' + classes[displayValue]" class="cursor-pointer" :style="justSaved && 'outline: 2px solid #3e8635; outline-offset: 2px;'"></span>
+                                <div x-show="editing">
+                                    <select x-model="value" @change="save()" class="ui-select">
+                                        <option value="ausstehend" x-text="labels.ausstehend"></option>
+                                        <option value="bezahlt" x-text="labels.bezahlt"></option>
+                                        <option value="ueberfaellig" x-text="labels.ueberfaellig"></option>
+                                    </select>
+                                    <p x-show="error" x-text="error" class="ui-error"></p>
+                                </div>
+                            </td>
+                            <td data-field="faellig_am"
+                                x-data="{
+                                    editing: false, error: null, justSaved: false,
+                                    value: @js($due->faellig_am?->format('Y-m-d') ?? ''),
+                                    display: @js($due->faellig_am?->format('d.m.Y') ?? '–'),
+                                    async save() {
+                                        this.error = null;
+                                        const result = await window.saveDueField({{ $due->id }}, 'faellig_am', this.value);
+                                        if (result.ok) {
+                                            this.editing = false;
+                                            this.display = result.value;
+                                            this.justSaved = true;
+                                            setTimeout(() => this.justSaved = false, 1500);
+                                        } else {
+                                            this.error = result.message;
+                                        }
+                                    }
+                                }"
+                                @click.outside="if (!error) editing = false">
+                                <span x-show="!editing" @click="editing = true" x-text="display" class="cursor-pointer" :style="justSaved && 'outline: 2px solid #3e8635; outline-offset: 2px;'"></span>
+                                <div x-show="editing">
+                                    <input type="date" x-model="value" @blur="save()" @keydown.enter.prevent="$event.target.blur()" :style="error && 'border-color:#c9190b'" class="ui-input">
+                                    <p x-show="error" x-text="error" class="ui-error"></p>
+                                </div>
+                            </td>
                             <td>
-                                <span class="ui-badge {{ $due->payments->isNotEmpty() ? 'ui-badge-success' : 'ui-badge-info' }}">
-                                    {{ $due->payments->isNotEmpty() ? __('members::admin.dues.status_paid') : __('members::admin.dues.status_open') }}
-                                </span>
+                                <select class="ui-select" onchange="window.saveDuePaidThrough({{ $due->id }}, this.value)">
+                                    <option value="">–</option>
+                                    @foreach($fiscalYears->filter(fn ($fy) => $fy->starts_on->gte($due->fiscalYear->starts_on)) as $fiscalYear)
+                                        <option value="{{ $fiscalYear->id }}" @selected($due->bezahlt_bis_fiscal_year_id === $fiscalYear->id)>{{ $fiscalYear->name }}</option>
+                                    @endforeach
+                                </select>
+                            </td>
+                            <td data-field="teilbetrag"
+                                x-data="{
+                                    editing: false, error: null, justSaved: false,
+                                    value: @js($due->teilbetrag ?? ''),
+                                    display: @js($due->teilbetrag !== null ? number_format((float) $due->teilbetrag, 2, ',', '.').' €' : '–'),
+                                    async save() {
+                                        this.error = null;
+                                        const result = await window.saveDueField({{ $due->id }}, 'teilbetrag', this.value || null);
+                                        if (result.ok) {
+                                            this.editing = false;
+                                            this.display = result.value;
+                                            this.justSaved = true;
+                                            setTimeout(() => this.justSaved = false, 1500);
+                                        } else {
+                                            this.error = result.message;
+                                        }
+                                    }
+                                }"
+                                @click.outside="if (!error) editing = false">
+                                <span x-show="!editing" @click="editing = true" x-text="display" class="cursor-pointer" :style="(display !== '–' ? 'color:#f0ab00;font-weight:500;' : '') + (justSaved ? 'outline: 2px solid #3e8635; outline-offset: 2px;' : '')"></span>
+                                <div x-show="editing">
+                                    <input type="number" step="0.01" min="0" x-model="value" @blur="save()" @keydown.enter.prevent="$event.target.blur()" :style="error && 'border-color:#c9190b'" class="ui-input">
+                                    <p x-show="error" x-text="error" class="ui-error"></p>
+                                </div>
+                            </td>
+                            <td data-field="kommentar"
+                                x-data="{
+                                    editing: false, error: null, justSaved: false,
+                                    value: @js($due->kommentar ?? ''),
+                                    display: @js($due->kommentar ?: '–'),
+                                    async save() {
+                                        this.error = null;
+                                        const result = await window.saveDueField({{ $due->id }}, 'kommentar', this.value || null);
+                                        if (result.ok) {
+                                            this.editing = false;
+                                            this.display = result.value;
+                                            this.justSaved = true;
+                                            setTimeout(() => this.justSaved = false, 1500);
+                                        } else {
+                                            this.error = result.message;
+                                        }
+                                    }
+                                }"
+                                @click.outside="if (!error) editing = false">
+                                <span x-show="!editing" @click="editing = true" x-text="display" class="cursor-pointer" :style="justSaved && 'outline: 2px solid #3e8635; outline-offset: 2px;'"></span>
+                                <div x-show="editing">
+                                    <input type="text" x-model="value" @blur="save()" @keydown.enter.prevent="$event.target.blur()" :style="error && 'border-color:#c9190b'" class="ui-input">
+                                    <p x-show="error" x-text="error" class="ui-error"></p>
+                                </div>
                             </td>
                         </tr>
                     @endforeach
@@ -56,4 +173,49 @@
         </div>
     </div>
 </div>
+<script>
+    window.saveDueField = async (dueId, field, value) => {
+        const token = document.querySelector('input[name="_token"]')?.value ?? '';
+
+        try {
+            const response = await fetch(`/members/dues/${dueId}/field`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                },
+                body: JSON.stringify({ field, value }),
+            });
+            const data = await response.json();
+
+            if (!response.ok) {
+                return { ok: false, message: data.message || 'Fehler beim Speichern.' };
+            }
+
+            return { ok: true, value: data.value };
+        } catch (e) {
+            return { ok: false, message: 'Fehler beim Speichern.' };
+        }
+    };
+
+    window.saveDuePaidThrough = async (dueId, fiscalYearId) => {
+        if (!fiscalYearId) return;
+        const token = document.querySelector('input[name="_token"]')?.value ?? '';
+
+        const response = await fetch(`/members/dues/${dueId}/paid-through`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': token,
+            },
+            body: JSON.stringify({ fiscal_year_id: fiscalYearId }),
+        });
+
+        if (response.ok) {
+            window.location.reload();
+        }
+    };
+</script>
 @endsection
