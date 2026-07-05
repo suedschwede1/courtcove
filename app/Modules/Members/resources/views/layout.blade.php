@@ -47,6 +47,7 @@
                 ['route' => 'members.fee-categories.index', 'pattern' => 'members.fee-categories.*', 'label' => __('members::admin.fee_categories.title')],
                 ['route' => 'members.functions.index', 'pattern' => 'members.functions.*', 'label' => __('members::admin.functions.title')],
                 ['route' => 'members.mail.config', 'pattern' => 'members.mail.config', 'label' => __('members::admin.mail.config_title')],
+                ['route' => 'members.dsgvo.index', 'pattern' => 'members.dsgvo.*', 'label' => __('members::admin.dsgvo.title')],
             ] as $item)
                 @php $active = request()->routeIs(...explode(',', $item['pattern'])); @endphp
                 <a href="{{ route($item['route']) }}" onmouseover="if (!this.dataset.active) { this.style.background='#26292e'; this.style.color='#ffffff'; }" onmouseout="if (!this.dataset.active) { this.style.background='transparent'; this.style.color='#b2b6bd'; }" data-active="{{ $active ? '1' : '' }}" style="display:block; padding:12px 14px 12px {{ $active ? '11px' : '17px' }}; font-family:var(--font-body); font-size:16px; text-decoration:none; transition:background 0.15s ease, color 0.15s ease; color:{{ $active ? '#ffffff' : '#b2b6bd' }}; font-weight:{{ $active ? '700' : '400' }}; background:{{ $active ? '#34363b' : 'transparent' }}; border-left:{{ $active ? '3px solid #0066cc' : '3px solid transparent' }};">

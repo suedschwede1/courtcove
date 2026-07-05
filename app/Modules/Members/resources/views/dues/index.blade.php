@@ -42,11 +42,13 @@
                     get label() { return this.template.replace('__YEAR__', this.names[this.fiscalYearId] ?? ''); }
                 }">
                 @csrf
-                <select name="fiscal_year_id" x-model="fiscalYearId" class="ui-select">
-                    @foreach($generateFiscalYears as $fiscalYear)
-                        <option value="{{ $fiscalYear->id }}">{{ $fiscalYear->name }}</option>
-                    @endforeach
-                </select>
+                <div class="ui-field min-w-[10rem]">
+                    <select name="fiscal_year_id" x-model="fiscalYearId" class="ui-select">
+                        @foreach($generateFiscalYears as $fiscalYear)
+                            <option value="{{ $fiscalYear->id }}">{{ $fiscalYear->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
                 @php $defaultFiscalYear = $generateFiscalYears->firstWhere('id', $defaultFiscalYearId); @endphp
                 <button type="submit" class="ui-btn ui-btn-primary" x-text="label">{{ __('members::admin.dues.generate_for', ['year' => $defaultFiscalYear->name ?? '']) }}</button>
             </form>
