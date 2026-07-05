@@ -82,4 +82,23 @@ class DashboardTest extends TestCase
             ->assertSeeTextInOrder(['Offene Beiträge', '1', '50.00 €'])
             ->assertSeeTextInOrder(['Bezahlte Beiträge', '1', '100.00 €']);
     }
+
+    #[Test]
+    public function dashboard_shows_active_members_per_fee_category(): void
+    {
+        $vollmitglied = FeeCategory::create(['name' => 'Vollmitglied']);
+        $ehrenmitglied = FeeCategory::create(['name' => 'Ehrenmitglied']);
+        Member::factory()->count(2)->create(['fee_category_id' => $vollmitglied->id]);
+        Member::factory()->create(['fee_category_id' => $ehrenmitglied->id]);
+        Member::factory()->create(['fee_category_id' => null]);
+        // Departed members are not part of the breakdown.
+        Member::factory()->create(['fee_category_id' => $vollmitglied->id, 'left_at' => '2025-01-01']);
+
+        $response = $this->actingAs($this->admin())->get('/members/dashboard')->assertOk();
+
+        $response->assertSeeText('Mitglieder pro Beitragskategorie');
+        $response->assertSeeTextInOrder(['Vollmitglied', '2']);
+        $response->assertSeeTextInOrder(['Ehrenmitglied', '1']);
+        $response->assertSeeTextInOrder(['Ohne Kategorie', '1']);
+    }
 }

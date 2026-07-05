@@ -124,6 +124,8 @@ return [
         'age_51_65' => '51–65',
         'age_66_plus' => '66+',
         'age_unknown' => 'ohne Geburtsdatum',
+        'members_by_category' => 'Mitglieder pro Beitragskategorie',
+        'no_category' => 'Ohne Kategorie',
     ],
     'history' => [
         'title' => 'Änderungshistorie',
@@ -145,6 +147,7 @@ return [
         'config_title' => 'Mail-Einstellungen',
         'to_all' => 'Mail an alle Mitglieder',
         'to_board' => 'Mail an Vorstand',
+        'to_dormant' => 'Mail an ruhende Mitglieder',
         'from' => 'Absender',
         'from_name' => 'Name des Absenders',
         'from_address' => 'E-Mail-Adresse des Absenders',
@@ -171,10 +174,14 @@ return [
         'confirm_send_title' => 'Versand bestätigen',
         'confirm_send' => 'Jetzt senden',
         'sent' => 'Mail an :count Empfänger gesendet.',
-        'save_as_template' => 'Als Vorlage speichern',
+        'save_as_template' => 'Als neue Vorlage speichern',
+        'save_template_changes' => 'Vorlage speichern',
+        'new_template' => 'Neue Vorlage',
         'template_name' => 'Name der Vorlage',
         'templates' => 'Vorlagen',
+        'no_templates' => 'Noch keine Vorlagen.',
         'load' => 'Laden',
         'confirm_delete_template' => 'Diese Vorlage wirklich löschen?',
     ],
 ];
+

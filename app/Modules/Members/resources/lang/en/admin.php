@@ -123,6 +123,8 @@ return [
         'age_51_65' => '51–65',
         'age_66_plus' => '66+',
         'age_unknown' => 'no date of birth',
+        'members_by_category' => 'Members per fee category',
+        'no_category' => 'No category',
     ],
     'history' => [
         'title' => 'Change history',
@@ -144,6 +146,7 @@ return [
         'config_title' => 'Mail Settings',
         'to_all' => 'Mail to all members',
         'to_board' => 'Mail to board',
+        'to_dormant' => 'Mail to dormant members',
         'from' => 'From',
         'from_name' => 'Sender name',
         'from_address' => 'Sender email address',
@@ -170,10 +173,14 @@ return [
         'confirm_send_title' => 'Confirm sending',
         'confirm_send' => 'Send now',
         'sent' => 'Mail sent to :count recipients.',
-        'save_as_template' => 'Save as template',
+        'save_as_template' => 'Save as new template',
+        'save_template_changes' => 'Save template',
+        'new_template' => 'New template',
         'template_name' => 'Template name',
         'templates' => 'Templates',
+        'no_templates' => 'No templates yet.',
         'load' => 'Load',
         'confirm_delete_template' => 'Really delete this template?',
     ],
 ];
+

@@ -53,5 +53,23 @@
             </div>
         </div>
     </div>
+
+    <div class="ui-card">
+        <div class="ui-card-header"><h2>{{ __('members::admin.dashboard.members_by_category') }}</h2></div>
+        <div class="ui-card-body">
+            @php $maxCategoryCount = $categoryBreakdown ? max($categoryBreakdown) : 0; @endphp
+            @foreach($categoryBreakdown as $name => $count)
+                <div class="ui-category-bar-row">
+                    <div class="ui-category-bar-label">
+                        <span>{{ $name }}</span>
+                        <span>{{ $count }}</span>
+                    </div>
+                    <div class="ui-category-bar-track">
+                        <div class="ui-category-bar-fill" style="width: {{ $maxCategoryCount > 0 ? round($count / $maxCategoryCount * 100) : 0 }}%"></div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </div>
 </div>
 @endsection

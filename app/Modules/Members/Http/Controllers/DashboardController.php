@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Members\Http\Controllers;
 
+use App\Modules\Members\Models\FeeCategory;
 use App\Modules\Members\Models\FiscalYear;
 use App\Modules\Members\Models\Member;
 use App\Modules\Members\Models\MemberDue;
@@ -37,7 +38,27 @@ class DashboardController
             'paidDuesSum' => $paidDues->sum('amount'),
             'currentFiscalYear' => $currentFiscalYear,
             'ageStructure' => $this->ageStructure(),
+            'categoryBreakdown' => $this->categoryBreakdown(),
         ]);
+    }
+
+    /**
+     * Count of active members per fee category, for the dashboard.
+     *
+     * @return array<string, int>
+     */
+    private function categoryBreakdown(): array
+    {
+        $breakdown = FeeCategory::query()->orderBy('name')->get()
+            ->mapWithKeys(fn (FeeCategory $category) => [$category->name => 0])
+            ->all();
+
+        Member::query()->active()->with('feeCategory')->get()->each(function (Member $member) use (&$breakdown): void {
+            $name = $member->feeCategory->name ?? __('members::admin.dashboard.no_category');
+            $breakdown[$name] = ($breakdown[$name] ?? 0) + 1;
+        });
+
+        return $breakdown;
     }
 
     /**
