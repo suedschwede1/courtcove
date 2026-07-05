@@ -478,6 +478,11 @@ input[type="date"]::-webkit-datetime-edit-fields-wrapper {
     color: #c9190b;
 }
 
+.ui-badge-warning {
+    background: #fdf7e7;
+    color: #f0ab00;
+}
+
 .ui-badge-info {
     background: #eff6ff;
     color: #1a3a6b;
