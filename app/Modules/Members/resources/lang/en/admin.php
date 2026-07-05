@@ -23,6 +23,7 @@ return [
         'zip' => 'Postal code',
         'city' => 'City',
         'joined_at' => 'Joined on',
+        'left_at' => 'Departed on',
         'nuliga_id' => 'Nuliga no.',
         'fee_category' => 'Fee category',
         'age' => 'Age',
@@ -90,5 +91,11 @@ return [
         'age_51_65' => '51–65',
         'age_66_plus' => '66+',
         'age_unknown' => 'no date of birth',
+    ],
+    'history' => [
+        'title' => 'Change history',
+        'created' => 'Created',
+        'no_changes' => 'No field changes.',
+        'empty' => 'No changes recorded.',
     ],
 ];

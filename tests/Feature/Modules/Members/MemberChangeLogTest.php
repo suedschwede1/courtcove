@@ -102,4 +102,25 @@ class MemberChangeLogTest extends TestCase
 
         $this->assertSame(0, MemberChange::count());
     }
+
+    #[Test]
+    public function edit_page_shows_change_history(): void
+    {
+        $admin = $this->admin();
+        $member = Member::factory()->create(['firstname' => 'Alt']);
+
+        MemberChange::create([
+            'member_id' => $member->id,
+            'admin_user_id' => $admin->uid,
+            'action' => 'updated',
+            'before' => ['firstname' => 'Alt'],
+            'after' => ['firstname' => 'Neu'],
+        ]);
+
+        $this->actingAs($admin)->get("/members/{$member->id}/edit")
+            ->assertOk()
+            ->assertSee($admin->alias)
+            ->assertSee('Alt')
+            ->assertSee('Neu');
+    }
 }

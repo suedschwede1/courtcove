@@ -14,5 +14,7 @@
             <button type="submit" class="ui-btn ui-btn-primary">{{ __('members::admin.common.save') }}</button>
         </div>
     </form>
+
+    @include('members::members._history', ['changes' => $changes])
 </div>
 @endsection

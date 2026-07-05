@@ -23,6 +23,7 @@ return [
         'zip' => 'PLZ',
         'city' => 'Ort',
         'joined_at' => 'Eingetreten am',
+        'left_at' => 'Ausgetreten am',
         'nuliga_id' => 'Nuliga-Nr.',
         'fee_category' => 'Beitragskategorie',
         'age' => 'Alter',
@@ -90,5 +91,11 @@ return [
         'age_51_65' => '51–65',
         'age_66_plus' => '66+',
         'age_unknown' => 'ohne Geburtsdatum',
+    ],
+    'history' => [
+        'title' => 'Änderungshistorie',
+        'created' => 'Angelegt',
+        'no_changes' => 'Keine Feldänderungen.',
+        'empty' => 'Keine Änderungen protokolliert.',
     ],
 ];

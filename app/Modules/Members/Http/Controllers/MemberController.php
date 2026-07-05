@@ -88,6 +88,7 @@ class MemberController
         return view('members::members.edit', [
             'member' => $member,
             'feeCategories' => FeeCategory::query()->orderBy('name')->get(),
+            'changes' => MemberChange::where('member_id', $member->id)->with('adminUser')->latest()->get(),
         ]);
     }
 
