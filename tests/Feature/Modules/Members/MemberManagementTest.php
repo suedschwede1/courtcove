@@ -230,4 +230,22 @@ class MemberManagementTest extends TestCase
             ->assertOk()->assertSee('Vollzahler')->assertSee('<td class="text-[#6a6e73]">46</td>', false);
     }
 
+    #[Test]
+    public function the_list_marks_name_email_category_and_joined_at_as_editable_fields(): void
+    {
+        $category = FeeCategory::create(['name' => 'Vollzahler']);
+        Member::factory()->create([
+            'firstname' => 'Anna', 'lastname' => 'Muster',
+            'email' => 'anna@example.com', 'fee_category_id' => $category->id,
+        ]);
+
+        $this->actingAs($this->admin())->get('/members')
+            ->assertOk()
+            ->assertSee('data-field="firstname"', false)
+            ->assertSee('data-field="fee_category_id"', false)
+            ->assertSee('data-field="email"', false)
+            ->assertSee('data-field="joined_at"', false)
+            ->assertSee('window.saveMemberField', false);
+    }
+
 }
