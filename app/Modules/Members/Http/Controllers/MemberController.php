@@ -6,6 +6,7 @@ namespace App\Modules\Members\Http\Controllers;
 
 use App\Modules\Members\Models\FeeCategory;
 use App\Modules\Members\Models\Member;
+use App\Modules\Members\Models\MemberChange;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -73,7 +74,8 @@ class MemberController
             'joined_at' => ['required', 'date'],
         ]);
 
-        Member::create($validated);
+        $member = Member::create($validated);
+        $this->logChange($member, 'created', null);
 
         return redirect()->route('members.index');
     }
@@ -104,7 +106,9 @@ class MemberController
             'joined_at' => ['required', 'date'],
         ]);
 
+        $before = $member->toArray();
         $member->update($validated);
+        $this->logChange($member, 'updated', $before);
 
         return redirect()->route('members.index');
     }
@@ -131,6 +135,8 @@ class MemberController
             return response()->json(['message' => $e->validator->errors()->first()], 422);
         }
 
+        $before = $member->toArray();
+
         try {
             $member->update([$validated['field'] => $validated['value']]);
         } catch (\Throwable $e) {
@@ -138,6 +144,8 @@ class MemberController
 
             return response()->json(['message' => __('members::admin.members.field_update_failed')], 500);
         }
+
+        $this->logChange($member, 'updated', $before);
 
         return response()->json([
             'value' => match ($validated['field']) {
@@ -151,8 +159,21 @@ class MemberController
 
     public function destroy(Member $member): RedirectResponse
     {
+        $before = $member->toArray();
         $member->update(['left_at' => $member->left_at ?? now()->toDateString()]);
+        $this->logChange($member, 'departed', $before);
 
         return redirect()->route('members.index');
+    }
+
+    private function logChange(Member $member, string $action, ?array $before): void
+    {
+        MemberChange::create([
+            'member_id' => $member->id,
+            'admin_user_id' => auth()->id(),
+            'action' => $action,
+            'before' => $before,
+            'after' => $member->fresh()->toArray(),
+        ]);
     }
 }
