@@ -55,6 +55,22 @@ Replaces the old Zend/Laminas system (`booking`).
 See [docs/DESIGN.md](docs/DESIGN.md) for the UI/design system and
 [CHANGELOG.md](CHANGELOG.md) for a dated history of changes.
 
+## Security
+
+**No MFA.** Deliberate decision — this is a booking system, not a system with sensitive
+financial/personal data behind the login, and login needs to be fast (members book
+courts on their phone between games). MFA would add friction disproportionate to the
+risk. Compensating controls instead:
+
+- **Rate limiting** (`App\Http\Controllers\Auth\LoginController`): login attempts are
+  throttled on three independent keys — `email+ip` (5 attempts), `ip` (25 attempts), and
+  `account` (8 attempts) — each triggering a 10-minute lockout via Laravel's
+  `RateLimiter`. Every attempt (success/failure/throttled) is logged with IP and user
+  agent; a login from a previously-unseen IP for a known user is logged at `notice`.
+- **Geo-blocking**: logins can be blocked by country via `BOOKING_BLOCKED_LOGIN_COUNTRIES`
+  (comma-separated ISO country codes) in `.env`, resolved via `stevebauman/location`
+  (IP geolocation). Empty by default (no blocking) — set per deployment if needed.
+
 ## Local development
 
 ```bash

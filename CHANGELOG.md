@@ -10,6 +10,9 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-07-05
 
+- Documented the security posture in the README: no MFA (deliberate — login must stay
+  fast for a booking system), compensated by existing login rate limiting and
+  country-based geo-blocking (`BOOKING_BLOCKED_LOGIN_COUNTRIES`).
 - A `pre-commit` hook (`.githooks/pre-commit`) now blocks commits that touch
   code/behavior-relevant files without a matching CHANGELOG.md entry, so this file stays
   complete. Enable it once per clone: `git config core.hooksPath .githooks`.
