@@ -305,6 +305,15 @@ final class DatabaseSchemaChecker
                 'created_at' => fn (Blueprint $t) => $t->timestamp('created_at')->nullable(),
                 'updated_at' => fn (Blueprint $t) => $t->timestamp('updated_at')->nullable(),
             ],
+            'login_history' => [
+                'id' => fn (Blueprint $t) => $t->id(),
+                'user_id' => fn (Blueprint $t) => $t->unsignedBigInteger('user_id')->nullable(),
+                'ip' => fn (Blueprint $t) => $t->string('ip', 45),
+                'country_code' => fn (Blueprint $t) => $t->string('country_code', 2)->nullable(),
+                'status' => fn (Blueprint $t) => $t->string('status', 16),
+                'risk_flags' => fn (Blueprint $t) => $t->string('risk_flags', 128)->nullable(),
+                'created_at' => fn (Blueprint $t) => $t->timestamp('created_at')->nullable()->index(),
+            ],
         ];
     }
 
@@ -375,6 +384,9 @@ final class DatabaseSchemaChecker
             'mail_sends' => [
                 fn (Blueprint $t) => $t->index('sent_by_user_id', 'dp_mail_sends_sent_by_user_id'),
                 fn (Blueprint $t) => $t->index('audience_key', 'dp_mail_sends_audience_key'),
+            ],
+            'login_history' => [
+                fn (Blueprint $t) => $t->index(['user_id', 'created_at'], 'dp_login_history_user_created'),
             ],
         ];
     }
