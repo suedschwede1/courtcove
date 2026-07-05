@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Modules\Members\Http\Controllers\ClubRoleController;
 use App\Modules\Members\Http\Controllers\DashboardController;
+use App\Modules\Members\Http\Controllers\DsgvoSettingsController;
 use App\Modules\Members\Http\Controllers\FeeCategoryController;
 use App\Modules\Members\Http\Controllers\FiscalYearController;
 use App\Modules\Members\Http\Controllers\MailController;
@@ -51,10 +52,14 @@ Route::middleware(['auth', 'can:admin.members'])
         Route::get('members/mail/config', [MailController::class, 'config'])->name('members.mail.config');
         Route::post('members/mail/sender', [MailController::class, 'updateSender'])->name('members.mail.sender.update');
         Route::post('members/mail/test', [MailController::class, 'sendTest'])->name('members.mail.test');
+        Route::post('members/mail/preview', [MailController::class, 'preview'])->name('members.mail.preview');
         Route::post('members/mail/send', [MailController::class, 'send'])->name('members.mail.send');
         Route::post('members/mail/templates', [MailController::class, 'storeTemplate'])->name('members.mail.templates.store');
         Route::put('members/mail/templates/{mailTemplate}', [MailController::class, 'updateTemplate'])->name('members.mail.templates.update');
         Route::delete('members/mail/templates/{mailTemplate}', [MailController::class, 'destroyTemplate'])->name('members.mail.templates.destroy');
+
+        Route::get('members/dsgvo', [DsgvoSettingsController::class, 'index'])->name('members.dsgvo.index');
+        Route::post('members/dsgvo', [DsgvoSettingsController::class, 'update'])->name('members.dsgvo.update');
 
         Route::resource('members', MemberController::class)->except(['show', 'destroy']);
     });

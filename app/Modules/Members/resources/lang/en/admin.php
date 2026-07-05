@@ -166,6 +166,11 @@ return [
         'formatting_italic' => 'italic',
         'formatting_list_item' => 'List item',
         'formatting_link_text' => 'Link text',
+        'preview' => 'Preview',
+        'refresh_preview' => 'Refresh preview',
+        'preview_loading' => 'Refreshing...',
+        'preview_empty' => 'No preview yet.',
+        'preview_failed' => 'Preview could not be loaded.',
         'send' => 'Send',
         'send_test' => 'Send test email',
         'test_recipient' => 'Test recipient',
@@ -183,4 +188,3 @@ return [
         'confirm_delete_template' => 'Really delete this template?',
     ],
 ];
-

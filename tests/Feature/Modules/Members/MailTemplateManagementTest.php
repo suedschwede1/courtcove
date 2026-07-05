@@ -64,4 +64,16 @@ class MailTemplateManagementTest extends TestCase
         $this->actingAs($this->admin())->get('/members/mail')
             ->assertOk()->assertSee('Vorlage A');
     }
+
+    #[Test]
+    public function the_index_shows_the_editor_template_actions(): void
+    {
+        MailTemplate::create(['name' => 'Vorlage A', 'subject' => 'X', 'body' => 'Y']);
+
+        $this->actingAs($this->admin())->get('/members/mail')
+            ->assertOk()
+            ->assertSee('Vorlage A')
+            ->assertSee(__('members::admin.mail.save_template_changes'))
+            ->assertSee(__('members::admin.mail.save_as_template'));
+    }
 }

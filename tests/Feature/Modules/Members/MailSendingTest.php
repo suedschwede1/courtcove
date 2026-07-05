@@ -74,6 +74,27 @@ class MailSendingTest extends TestCase
     }
 
     #[Test]
+    public function sending_to_ruhend_only_bccs_dormant_members(): void
+    {
+        Mail::fake();
+
+        Member::factory()->create(['status' => 'ruhend', 'email' => 'ruhend@example.com']);
+        Member::factory()->create(['status' => 'aktiv', 'email' => 'aktiv@example.com']);
+
+        $this->actingAs($this->admin())->post('/members/mail/send', [
+            'audience' => 'ruhend',
+            'subject' => 'Ruhend',
+            'body' => 'Text',
+        ])->assertRedirect(route('members.mail.index'));
+
+        Mail::assertQueued(MemberBulkMail::class, function (MemberBulkMail $mail) {
+            $bcc = collect($mail->to)->merge($mail->bcc)->pluck('address');
+
+            return $bcc->contains('ruhend@example.com') && ! $bcc->contains('aktiv@example.com');
+        });
+    }
+
+    #[Test]
     public function an_invalid_audience_fails_validation(): void
     {
         $this->actingAs($this->admin())->post('/members/mail/send', [
@@ -153,6 +174,15 @@ class MailSendingTest extends TestCase
             ->assertOk()
             ->assertSee('Mitgliederverwaltung')
             ->assertSee('verein@example.com');
+    }
+
+    #[Test]
+    public function preview_renders_markdown_and_strips_html(): void
+    {
+        $this->actingAs($this->admin())->postJson('/members/mail/preview', [
+            'body' => '**Hallo** <script>alert(1)</script>',
+        ])->assertOk()
+            ->assertJsonFragment(['html' => "<p><strong>Hallo</strong> alert(1)</p>\n"]);
     }
 
     #[Test]

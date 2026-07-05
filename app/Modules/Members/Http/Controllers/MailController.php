@@ -9,31 +9,39 @@ use App\Models\Option;
 use App\Modules\Members\Models\MailTemplate;
 use App\Modules\Members\Models\Member;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class MailController
 {
     public function index(): View
     {
-        $allAddresses = $this->recipientAddresses('all');
-        $vorstandAddresses = $this->recipientAddresses('vorstand');
+        $audienceOptions = collect($this->audienceDefinitions())
+            ->map(function (array $definition, string $key): array {
+                $addresses = $this->recipientAddresses($key);
+
+                return [
+                    'key' => $key,
+                    'label' => $definition['label'],
+                    'count' => $addresses->count(),
+                    'addresses' => $addresses->implode(', '),
+                    'countLabel' => __('members::admin.mail.recipients_count', ['count' => $addresses->count()]),
+                ];
+            })
+            ->values();
 
         return view('members::mail.index', [
             'templates' => MailTemplate::query()->orderBy('name')->get(),
             'fromAddress' => $this->fromAddress(),
             'fromName' => $this->fromName(),
-            'recipientCounts' => [
-                'all' => $allAddresses->count(),
-                'vorstand' => $vorstandAddresses->count(),
-            ],
-            'recipientAddresses' => [
-                'all' => $allAddresses->implode(', '),
-                'vorstand' => $vorstandAddresses->implode(', '),
-            ],
+            'audienceOptions' => $audienceOptions,
+            'defaultAudience' => $audienceOptions->first()['key'] ?? 'all',
         ]);
     }
 
@@ -48,7 +56,7 @@ class MailController
     public function send(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'audience' => ['required', 'string', Rule::in(['all', 'vorstand'])],
+            'audience' => ['required', 'string', Rule::in($this->audienceKeys())],
             'subject' => ['required', 'string', 'max:255'],
             'body' => ['required', 'string'],
         ]);
@@ -98,6 +106,17 @@ class MailController
             ->with('success', __('members::admin.mail.test_sent', ['email' => $validated['test_email']]));
     }
 
+    public function preview(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'body' => ['nullable', 'string'],
+        ]);
+
+        return response()->json([
+            'html' => $this->renderBodyMarkdown((string) ($validated['body'] ?? '')),
+        ]);
+    }
+
     private function fromName(): string
     {
         return (string) Option::getValue('members.mail.from_name', config('mail.from.name'));
@@ -119,6 +138,14 @@ class MailController
         }
 
         return ['name' => $name, 'address' => $address];
+    }
+
+    private function renderBodyMarkdown(string $body): string
+    {
+        return Str::markdown($body, [
+            'html_input' => 'strip',
+            'allow_unsafe_links' => false,
+        ]);
     }
 
     public function storeTemplate(Request $request): RedirectResponse
@@ -154,14 +181,38 @@ class MailController
         return redirect()->route('members.mail.index');
     }
 
-    /** Email addresses by audience: "all" = active members, "vorstand" = active members with a board role. */
+    /** @return array<string, array{label: string, apply: callable(Builder<Member>): Builder<Member>}> */
+    private function audienceDefinitions(): array
+    {
+        return [
+            'all' => [
+                'label' => __('members::admin.mail.to_all'),
+                'apply' => fn (Builder $query): Builder => $query->active(),
+            ],
+            'vorstand' => [
+                'label' => __('members::admin.mail.to_board'),
+                'apply' => fn (Builder $query): Builder => $query
+                    ->active()
+                    ->whereHas('clubRoles', fn (Builder $roles): Builder => $roles->where('is_board', true)),
+            ],
+            'ruhend' => [
+                'label' => __('members::admin.mail.to_dormant'),
+                'apply' => fn (Builder $query): Builder => $query->where('status', 'ruhend'),
+            ],
+        ];
+    }
+
+    /** @return array<int, string> */
+    private function audienceKeys(): array
+    {
+        return array_keys($this->audienceDefinitions());
+    }
+
     private function recipientAddresses(string $audience): Collection
     {
-        $query = Member::query()->active()->whereNotNull('email')->where('email', '!=', '');
-
-        if ($audience === 'vorstand') {
-            $query->whereHas('clubRoles', fn ($q) => $q->where('is_board', true));
-        }
+        $definition = $this->audienceDefinitions()[$audience] ?? $this->audienceDefinitions()['all'];
+        $query = Member::query()->whereNotNull('email')->where('email', '!=', '');
+        $query = $definition['apply']($query);
 
         return $query->pluck('email')->unique()->values();
     }

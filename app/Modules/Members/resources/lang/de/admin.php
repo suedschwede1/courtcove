@@ -167,6 +167,11 @@ return [
         'formatting_italic' => 'kursiv',
         'formatting_list_item' => 'Listenpunkt',
         'formatting_link_text' => 'Linktext',
+        'preview' => 'Vorschau',
+        'refresh_preview' => 'Vorschau aktualisieren',
+        'preview_loading' => 'Wird aktualisiert...',
+        'preview_empty' => 'Noch keine Vorschau.',
+        'preview_failed' => 'Vorschau konnte nicht geladen werden.',
         'send' => 'Senden',
         'send_test' => 'Testmail senden',
         'test_recipient' => 'Test-Empfänger',
@@ -184,4 +189,3 @@ return [
         'confirm_delete_template' => 'Diese Vorlage wirklich löschen?',
     ],
 ];
-
