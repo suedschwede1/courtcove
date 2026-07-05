@@ -203,17 +203,27 @@
         if (!fiscalYearId) return;
         const token = document.querySelector('input[name="_token"]')?.value ?? '';
 
-        const response = await fetch(`/members/dues/${dueId}/paid-through`, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': token,
-            },
-            body: JSON.stringify({ fiscal_year_id: fiscalYearId }),
-        });
+        try {
+            const response = await fetch(`/members/dues/${dueId}/paid-through`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                },
+                body: JSON.stringify({ fiscal_year_id: fiscalYearId }),
+            });
 
-        if (response.ok) {
+            if (response.ok) {
+                window.location.reload();
+                return;
+            }
+
+            const data = await response.json();
+            alert(data.message || 'Fehler beim Speichern.');
+            window.location.reload();
+        } catch (e) {
+            alert('Fehler beim Speichern.');
             window.location.reload();
         }
     };
