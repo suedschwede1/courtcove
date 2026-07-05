@@ -11,6 +11,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -74,8 +75,10 @@ class MemberController
             'joined_at' => ['required', 'date'],
         ]);
 
-        $member = Member::create($validated);
-        $this->logChange($member, 'created', null);
+        DB::transaction(function () use ($validated) {
+            $member = Member::create($validated);
+            $this->logChange($member, 'created', null);
+        });
 
         return redirect()->route('members.index');
     }
@@ -107,8 +110,11 @@ class MemberController
         ]);
 
         $before = $member->toArray();
-        $member->update($validated);
-        $this->logChange($member, 'updated', $before);
+
+        DB::transaction(function () use ($member, $validated, $before) {
+            $member->update($validated);
+            $this->logChange($member, 'updated', $before);
+        });
 
         return redirect()->route('members.index');
     }
@@ -138,14 +144,15 @@ class MemberController
         $before = $member->toArray();
 
         try {
-            $member->update([$validated['field'] => $validated['value']]);
+            DB::transaction(function () use ($member, $validated, $before) {
+                $member->update([$validated['field'] => $validated['value']]);
+                $this->logChange($member, 'updated', $before);
+            });
         } catch (\Throwable $e) {
             report($e);
 
             return response()->json(['message' => __('members::admin.members.field_update_failed')], 500);
         }
-
-        $this->logChange($member, 'updated', $before);
 
         return response()->json([
             'value' => match ($validated['field']) {
@@ -160,8 +167,11 @@ class MemberController
     public function destroy(Member $member): RedirectResponse
     {
         $before = $member->toArray();
-        $member->update(['left_at' => $member->left_at ?? now()->toDateString()]);
-        $this->logChange($member, 'departed', $before);
+
+        DB::transaction(function () use ($member, $before) {
+            $member->update(['left_at' => $member->left_at ?? now()->toDateString()]);
+            $this->logChange($member, 'departed', $before);
+        });
 
         return redirect()->route('members.index');
     }
