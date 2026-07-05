@@ -51,4 +51,26 @@ class MemberChangeTest extends TestCase
 
         $this->assertSame([], $change->changedFields());
     }
+
+    #[Test]
+    public function it_survives_deletion_of_the_acting_admin(): void
+    {
+        $member = Member::factory()->create();
+        $admin = User::factory()->create(['status' => 'admin']);
+
+        $change = MemberChange::create([
+            'member_id' => $member->id,
+            'admin_user_id' => $admin->uid,
+            'action' => 'updated',
+            'before' => ['firstname' => 'Alt'],
+            'after' => ['firstname' => 'Neu'],
+        ]);
+
+        $admin->delete();
+
+        $change->refresh();
+
+        $this->assertDatabaseHas('member_changes', ['id' => $change->id]);
+        $this->assertNull($change->admin_user_id);
+    }
 }

@@ -32,6 +32,10 @@ class MemberChange extends Model
     /**
      * Diffs `after` against `before`, skipping unchanged and internal keys.
      *
+     * Expects `before`/`after` to be flat scalar-valued attribute snapshots
+     * (e.g. `$member->toArray()` with no relations loaded) — nested arrays
+     * are compared as whole values, not diffed field-by-field.
+     *
      * @return array<int, array{field: string, old: mixed, new: mixed}>
      */
     public function changedFields(): array

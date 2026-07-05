@@ -13,8 +13,8 @@ return new class extends Migration
         Schema::create('member_changes', function (Blueprint $table) {
             $table->id();
             $table->foreignId('member_id')->constrained()->cascadeOnDelete();
-            $table->unsignedInteger('admin_user_id');
-            $table->foreign('admin_user_id')->references('uid')->on('bs_users')->cascadeOnDelete();
+            $table->unsignedInteger('admin_user_id')->nullable();
+            $table->foreign('admin_user_id')->references('uid')->on('bs_users')->nullOnDelete();
             $table->string('action', 16);
             $table->json('before')->nullable();
             $table->json('after');
