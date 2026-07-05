@@ -10,6 +10,8 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-07-06
 
+- Password reset: added `PasswordReset` mailable and email template (Task 2 of
+  "forgot password" feature) — sends users a 60-minute-valid reset link.
 - Rate-limited `POST /register` (5/min per IP) — it had no throttling at all, unlike
   `/login` which already has a custom per-email/IP/account limiter.
 - Extended the risk-based email verification spec with a display-only, per-user
