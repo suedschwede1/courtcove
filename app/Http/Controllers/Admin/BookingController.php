@@ -190,10 +190,31 @@ final class BookingController extends Controller
     public function edit(Booking $booking): View
     {
         $booking->load(['user', 'square', 'reservations', 'meta']);
-        $reservations = $booking->reservations->sortBy([['date', 'asc'], ['time_start', 'asc']]);
-        $reservation = $reservations->first();
+        $reservations = $booking->reservations->sortBy([['date', 'asc'], ['time_start', 'asc']])->values();
+
+        $occurrenceParam = request()->query('occurrence');
+        $occurrenceReservation = is_string($occurrenceParam)
+            ? $reservations->firstWhere('date', $occurrenceParam)
+            : null;
+
+        $showScopeChoice = $booking->isSubscription() && $occurrenceReservation !== null;
+        $reservation = $occurrenceReservation ?? $reservations->first();
+
         $repeatType = $this->detectRepeatType($reservations->all());
         $repeatEndDate = $reservations->last()?->date ?? $reservation?->date;
+        $followingRepeatType = $repeatType;
+        $followingRepeatEndDate = $repeatEndDate;
+
+        if ($showScopeChoice) {
+            $followingReservations = $reservations
+                ->filter(fn (Reservation $r): bool => $r->date >= $occurrenceReservation->date)
+                ->values()
+                ->all();
+            $followingRepeatType = $this->detectRepeatType($followingReservations);
+            $followingRepeatEndDate = $reservations->last()?->date ?? $occurrenceReservation->date;
+            $repeatType = 'once';
+            $repeatEndDate = $occurrenceReservation->date;
+        }
 
         return view('admin.bookings.edit', [
             'booking' => $booking,
@@ -211,6 +232,10 @@ final class BookingController extends Controller
             'repeatType' => $repeatType,
             'repeatEndDate' => $repeatEndDate,
             'isCreate' => false,
+            'showScopeChoice' => $showScopeChoice,
+            'occurrenceDate' => $occurrenceReservation?->date,
+            'followingRepeatType' => $followingRepeatType,
+            'followingRepeatEndDate' => $followingRepeatEndDate,
         ]);
     }
 
@@ -227,11 +252,15 @@ final class BookingController extends Controller
             $owner = $this->resolveOwner($data['booked_for']);
             [, , $occurrenceStarts, $durationSeconds] = $this->buildBookingTimeline($data);
 
-            DB::transaction(function () use ($booking, $data, $owner, $occurrenceStarts, $durationSeconds): void {
+            [$occurrenceDate, $scope] = $this->resolveOccurrenceScope($request);
+
+            DB::transaction(function () use ($booking, $data, $owner, $occurrenceStarts, $durationSeconds, $occurrenceDate, $scope): void {
+                $targetBooking = $this->bookingService->splitForScope($booking, $occurrenceDate, $scope);
+
                 if (($data['status'] ?? null) !== 'cancelled') {
                     // Serialize with concurrent bookings on this square, then check conflicts.
                     Square::query()->whereKey((int) $data['sid'])->lockForUpdate()->get();
-                    $conflictError = $this->batchCheckConflicts((int) $data['sid'], $occurrenceStarts, $durationSeconds, $booking->bid);
+                    $conflictError = $this->batchCheckConflicts((int) $data['sid'], $occurrenceStarts, $durationSeconds, $targetBooking->bid);
                     if ($conflictError !== null) {
                         throw new BookingValidationException($conflictError);
                     }
@@ -241,23 +270,23 @@ final class BookingController extends Controller
                     ? 'cancelled'
                     : (count($occurrenceStarts) > 1 ? 'subscription' : 'single');
 
-                $booking->update([
+                $targetBooking->update([
                     'uid' => $owner['uid'],
                     'sid' => (int) $data['sid'],
                     'quantity' => (int) $data['quantity'],
                     'status' => $effectiveStatus,
                 ]);
 
-                $booking->loadMissing(['reservations.meta']);
-                foreach ($booking->reservations as $reservation) {
+                $targetBooking->loadMissing(['reservations.meta']);
+                foreach ($targetBooking->reservations as $reservation) {
                     $reservation->meta()->delete();
                 }
-                $booking->reservations()->delete();
+                $targetBooking->reservations()->delete();
 
                 $rows = [];
                 foreach ($occurrenceStarts as $occurrenceStart) {
                     $rows[] = [
-                        'bid'        => $booking->bid,
+                        'bid'        => $targetBooking->bid,
                         'date'       => $occurrenceStart->format('Y-m-d'),
                         'time_start' => $occurrenceStart->format('H:i:s'),
                         'time_end'   => $occurrenceStart->copy()->addSeconds($durationSeconds)->format('H:i:s'),
@@ -265,12 +294,12 @@ final class BookingController extends Controller
                 }
                 DB::table('bs_reservations')->insert($rows);
 
-                $this->bookingService->syncPlayerMeta($booking, [
+                $this->bookingService->syncPlayerMeta($targetBooking, [
                     2 => $data['mitspieler'] ?? null,
                 ]);
 
-                $this->syncBookingMeta($booking, 'owner-name', $owner['ownerName']);
-                $this->syncBookingMeta($booking, 'admin-note', $data['admin_note'] ?? null);
+                $this->syncBookingMeta($targetBooking, 'owner-name', $owner['ownerName']);
+                $this->syncBookingMeta($targetBooking, 'admin-note', $data['admin_note'] ?? null);
             });
         } catch (BookingValidationException $e) {
             return back()->withErrors(['booking' => $e->getMessage()])->withInput();
@@ -290,7 +319,8 @@ final class BookingController extends Controller
 
     public function cancel(Request $request, Booking $booking): RedirectResponse|Response
     {
-        $this->bookingService->cancelSingle($booking);
+        [$occurrenceDate, $scope] = $this->resolveOccurrenceScope($request);
+        $this->bookingService->cancelSingle($booking, $occurrenceDate, $scope);
 
         if ($request->boolean('popup')) {
             return response('<script>window.parent.location.reload();</script>')->header('Content-Type', 'text/html');
@@ -306,7 +336,8 @@ final class BookingController extends Controller
 
     public function destroy(Request $request, Booking $booking): RedirectResponse|Response
     {
-        $this->bookingService->deleteSingle($booking);
+        [$occurrenceDate, $scope] = $this->resolveOccurrenceScope($request);
+        $this->bookingService->deleteSingle($booking, $occurrenceDate, $scope);
 
         if ($request->boolean('popup')) {
             return response('<script>window.parent.location.reload();</script>')->header('Content-Type', 'text/html');
@@ -330,6 +361,18 @@ final class BookingController extends Controller
      *
      * @return array{uid: int, ownerName: ?string}
      */
+    /** @return array{0: ?string, 1: string} */
+    private function resolveOccurrenceScope(Request $request): array
+    {
+        $occurrence = $request->string('occurrence')->trim()->value();
+        $scope = $request->string('edit_scope')->trim()->value();
+
+        return [
+            $occurrence === '' ? null : $occurrence,
+            in_array($scope, ['single_occurrence', 'this_and_following'], true) ? $scope : 'single_occurrence',
+        ];
+    }
+
     private function resolveOwner(string $bookedFor): array
     {
         $name = trim($bookedFor);

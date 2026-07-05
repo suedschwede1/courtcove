@@ -190,7 +190,7 @@
                                        data-square-name="{{ $squareFullLabel }}"
                                        data-date-label="{{ $dateLabels[$d->format('Y-m-d')]['full'] }}"
                                        data-time-label="{{ $timeRangeLabel }}"
-                                       data-edit-url="{{ route('admin.bookings.edit', $reservation->booking) }}"
+                                       data-edit-url="{{ route('admin.bookings.edit', $reservation->booking) }}?occurrence={{ $dateKey }}"
                                        data-delete-url="{{ route('admin.bookings.destroy', $reservation->booking) }}">
                                         <span class="cc-label-primary">{{ $primaryLabel }}</span>
                                         @if($secondaryLabel)
