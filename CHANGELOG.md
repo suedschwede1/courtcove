@@ -10,9 +10,13 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-07-06
 
+- Extended the risk-based email verification spec with a display-only, per-user
+  "risk score" on the admin login-history page — a 30-day sum of which triggers fired,
+  no behavior change.
 - Wrote the implementation plan for risk-based email verification — see
   [docs/superpowers/plans/2026-07-05-risk-based-email-verification.md](docs/superpowers/plans/2026-07-05-risk-based-email-verification.md).
-  Not implemented yet.
+  Updated to also persist which risk flags fired (for the display-only admin risk
+  score). Not implemented yet.
 
 ## 2026-07-05
 
