@@ -3,18 +3,20 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\AccountController;
-use App\Http\Controllers\AdminModeController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DatabaseController;
 use App\Http\Controllers\Admin\EventController;
 use App\Http\Controllers\Admin\OptionController;
 use App\Http\Controllers\Admin\SquareController;
+use App\Http\Controllers\Admin\StatisticsController;
 use App\Http\Controllers\Admin\TestMailController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\AdminModeController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\LocaleController;
@@ -30,8 +32,9 @@ Route::post('/register', [RegisterController::class, 'register'])->middleware('t
 Route::get('/password/forgot', [ForgotPasswordController::class, 'showForm'])->name('password.forgot');
 Route::post('/password/forgot', [ForgotPasswordController::class, 'sendResetLink'])
     ->middleware('throttle:5,1')->name('password.email');
-// Placeholder — Task 5 replaces this with ResetPasswordController::showForm
-Route::get('/password/reset/{token}', fn () => abort(404))->name('password.reset');
+Route::get('/password/reset/{token}', [ResetPasswordController::class, 'showForm'])->name('password.reset');
+Route::post('/password/reset', [ResetPasswordController::class, 'reset'])
+    ->middleware('throttle:5,1')->name('password.update');
 
 Route::get('/lang/{locale}', [LocaleController::class, 'switch'])->name('lang.switch');
 
@@ -75,7 +78,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function (): v
     });
 
     Route::middleware('can:admin.booking')->group(function (): void {
-        Route::get('statistics', [App\Http\Controllers\Admin\StatisticsController::class, 'index'])->name('statistics.index');
+        Route::get('statistics', [StatisticsController::class, 'index'])->name('statistics.index');
         Route::post('bookings/{booking}/cancel', [App\Http\Controllers\Admin\BookingController::class, 'cancel'])->name('bookings.cancel');
         Route::resource('bookings', App\Http\Controllers\Admin\BookingController::class)->only(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy']);
     });
@@ -103,4 +106,3 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function (): v
             ->where('filename', '^backup-\d{8}_\d{6}(-prerestore)?\.sql\.gz$');
     });
 });
-
