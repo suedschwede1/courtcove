@@ -46,7 +46,7 @@
         <div class="ui-card">
             <div class="ui-card-header"><h2>{{ __('members::admin.dashboard.by_category') }}</h2></div>
             <div class="ui-card-body">
-                @php $maxCategoryCount = count($categoryCounts) > 0 ? max($categoryCounts) : 0; @endphp
+                @php $maxCategoryCount = $categoryCounts->max() ?: 0; @endphp
                 @forelse($categoryCounts as $categoryName => $count)
                     <div class="ui-category-bar-row">
                         <div class="ui-category-bar-label">
