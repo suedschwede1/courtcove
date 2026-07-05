@@ -78,9 +78,12 @@ class MemberChangeLogTest extends TestCase
     #[Test]
     public function marking_a_member_departed_logs_a_departed_change(): void
     {
-        $member = Member::factory()->create();
+        $member = Member::factory()->create(['left_at' => null]);
 
-        $this->actingAs($this->admin())->delete("/members/{$member->id}");
+        $this->actingAs($this->admin())->patch("/members/{$member->id}/field", [
+            'field' => 'left_at',
+            'value' => '2026-07-05',
+        ]);
 
         $change = MemberChange::where('member_id', $member->id)->where('action', 'departed')->firstOrFail();
 

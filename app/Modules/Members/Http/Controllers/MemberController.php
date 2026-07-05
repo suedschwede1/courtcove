@@ -145,12 +145,13 @@ class MemberController
         unset($validated['left_at']);
 
         $before = $member->toArray();
+        $departs = $before['left_at'] === null && $leftAt !== null;
 
-        DB::transaction(function () use ($request, $member, $validated, $before, $leftAt) {
+        DB::transaction(function () use ($request, $member, $validated, $before, $leftAt, $departs) {
             $member->update($validated);
             $member->clubRoles()->sync($request->input('club_roles', []));
             $member->setLeftAt($leftAt);
-            $this->logChange($member, 'updated', $before);
+            $this->logChange($member, $departs ? 'departed' : 'updated', $before);
         });
 
         return redirect()->route('members.index');
@@ -188,15 +189,16 @@ class MemberController
         }
 
         $before = $member->toArray();
+        $departs = $validated['field'] === 'left_at' && $before['left_at'] === null && $validated['value'] !== null;
 
         try {
-            DB::transaction(function () use ($member, $validated, $before) {
+            DB::transaction(function () use ($member, $validated, $before, $departs) {
                 match ($validated['field']) {
                     'left_at' => $member->setLeftAt($validated['value']),
                     'status' => $member->setStatus($validated['value']),
                     default => $member->update([$validated['field'] => $validated['value']]),
                 };
-                $this->logChange($member, 'updated', $before);
+                $this->logChange($member, $departs ? 'departed' : 'updated', $before);
             });
         } catch (\Throwable $e) {
             report($e);
