@@ -59,6 +59,10 @@ Route::middleware(['auth', 'can:admin.members'])
         Route::put('members/mail/templates/{mailTemplate}', [MailController::class, 'updateTemplate'])->name('members.mail.templates.update');
         Route::delete('members/mail/templates/{mailTemplate}', [MailController::class, 'destroyTemplate'])->name('members.mail.templates.destroy');
 
+        Route::post('members/mail/categories', [MailController::class, 'storeCategory'])->name('members.mail.categories.store');
+        Route::put('members/mail/categories/{mailCategory}', [MailController::class, 'updateCategory'])->name('members.mail.categories.update');
+        Route::delete('members/mail/categories/{mailCategory}', [MailController::class, 'destroyCategory'])->name('members.mail.categories.destroy');
+
         Route::get('members/dsgvo', [DsgvoSettingsController::class, 'index'])->name('members.dsgvo.index');
         Route::post('members/dsgvo', [DsgvoSettingsController::class, 'update'])->name('members.dsgvo.update');
 

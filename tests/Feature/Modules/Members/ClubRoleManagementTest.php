@@ -6,6 +6,7 @@ namespace Tests\Feature\Modules\Members;
 
 use App\Models\User;
 use App\Modules\Members\Models\ClubRole;
+use App\Modules\Members\Models\MailCategory;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -22,15 +23,19 @@ class ClubRoleManagementTest extends TestCase
     #[Test]
     public function admin_can_create_a_club_role(): void
     {
+        $category = MailCategory::create(['name' => 'Vorstand']);
+
         $this->actingAs($this->admin())->post('/members/functions', [
             'name' => 'Obmann',
             'is_board' => '1',
+            'mail_category_id' => $category->id,
             'tasks' => 'Vereinsleitung',
         ])->assertRedirect(route('members.functions.index'));
 
         $this->assertDatabaseHas('club_roles', [
             'name' => 'Obmann',
             'is_board' => true,
+            'mail_category_id' => $category->id,
             'tasks' => 'Vereinsleitung',
         ]);
     }
@@ -49,16 +54,19 @@ class ClubRoleManagementTest extends TestCase
     public function admin_can_update_a_club_role(): void
     {
         $role = ClubRole::create(['name' => 'Kassier', 'is_board' => true]);
+        $category = MailCategory::create(['name' => 'Vorstand']);
 
         $this->actingAs($this->admin())->put("/members/functions/{$role->id}", [
             'name' => 'Kassier/in',
             'is_board' => '1',
+            'mail_category_id' => $category->id,
             'tasks' => 'Finanzen',
         ])->assertRedirect(route('members.functions.index'));
 
         $role->refresh();
         $this->assertSame('Kassier/in', $role->name);
         $this->assertSame('Finanzen', $role->tasks);
+        $this->assertSame($category->id, $role->mail_category_id);
     }
 
     #[Test]

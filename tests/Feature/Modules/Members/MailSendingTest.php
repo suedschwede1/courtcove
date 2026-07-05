@@ -8,7 +8,7 @@ use App\Mail\MemberBulkMail;
 use App\Models\Option;
 use App\Models\User;
 use App\Modules\Members\Models\ClubRole;
-use App\Modules\Members\Models\FeeCategory;
+use App\Modules\Members\Models\MailCategory;
 use App\Modules\Members\Models\Member;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\Mail;
@@ -96,17 +96,18 @@ class MailSendingTest extends TestCase
     }
 
     #[Test]
-    public function sending_to_a_specific_role_only_bccs_members_with_that_role(): void
+    public function sending_to_a_mail_category_only_bccs_members_with_a_role_in_that_category(): void
     {
         Mail::fake();
 
-        $role = ClubRole::create(['name' => 'Kassier', 'is_board' => false]);
+        $category = MailCategory::create(['name' => 'Finanzen']);
+        $role = ClubRole::create(['name' => 'Kassier', 'is_board' => false, 'mail_category_id' => $category->id]);
         $matching = Member::factory()->create(['status' => 'aktiv', 'email' => 'kassier@example.com']);
         $matching->clubRoles()->sync([$role->id]);
         Member::factory()->create(['status' => 'aktiv', 'email' => 'other@example.com']);
 
         $this->actingAs($this->admin())->post('/members/mail/send', [
-            'audience' => 'role:'.$role->id,
+            'audience' => 'category:'.$category->id,
             'subject' => 'Funktion',
             'body' => 'Text',
         ])->assertRedirect(route('members.mail.index'));
@@ -119,29 +120,57 @@ class MailSendingTest extends TestCase
     }
 
     #[Test]
-    public function sending_to_a_fee_category_only_bccs_active_members_in_that_category(): void
+    public function roles_sharing_the_same_mail_category_are_combined_into_one_audience(): void
     {
         Mail::fake();
 
-        $category = FeeCategory::create(['name' => 'Vollmitglied']);
-        $otherCategory = FeeCategory::create(['name' => 'Jugend']);
-        Member::factory()->create(['status' => 'aktiv', 'fee_category_id' => $category->id, 'email' => 'voll@example.com']);
-        Member::factory()->create(['status' => 'aktiv', 'fee_category_id' => $otherCategory->id, 'email' => 'jugend@example.com']);
-        Member::factory()->create(['status' => 'ruhend', 'fee_category_id' => $category->id, 'email' => 'ruhend-voll@example.com']);
+        $category = MailCategory::create(['name' => 'Vorstand']);
+        $chairman = ClubRole::create(['name' => 'Obmann', 'is_board' => true, 'mail_category_id' => $category->id]);
+        $secretary = ClubRole::create(['name' => 'Schriftführer', 'is_board' => true, 'mail_category_id' => $category->id]);
+
+        $member1 = Member::factory()->create(['status' => 'aktiv', 'email' => 'obmann@example.com']);
+        $member1->clubRoles()->sync([$chairman->id]);
+        $member2 = Member::factory()->create(['status' => 'aktiv', 'email' => 'schriftfuehrer@example.com']);
+        $member2->clubRoles()->sync([$secretary->id]);
+        Member::factory()->create(['status' => 'aktiv', 'email' => 'other@example.com']);
 
         $this->actingAs($this->admin())->post('/members/mail/send', [
-            'audience' => 'fee_category:'.$category->id,
-            'subject' => 'Kategorie',
+            'audience' => 'category:'.$category->id,
+            'subject' => 'Vorstand',
             'body' => 'Text',
         ])->assertRedirect(route('members.mail.index'));
 
         Mail::assertQueued(MemberBulkMail::class, function (MemberBulkMail $mail) {
             $bcc = collect($mail->to)->merge($mail->bcc)->pluck('address');
 
-            return $bcc->contains('voll@example.com')
-                && ! $bcc->contains('jugend@example.com')
-                && ! $bcc->contains('ruhend-voll@example.com');
+            return $bcc->contains('obmann@example.com')
+                && $bcc->contains('schriftfuehrer@example.com')
+                && ! $bcc->contains('other@example.com');
         });
+    }
+
+    #[Test]
+    public function fee_category_audiences_are_not_available(): void
+    {
+        $this->actingAs($this->admin())->post('/members/mail/send', [
+            'audience' => 'fee_category:1',
+            'subject' => 'Kategorie',
+            'body' => 'Text',
+        ])->assertSessionHasErrors('audience');
+    }
+
+    #[Test]
+    public function deleted_mail_categories_are_not_available_as_audience(): void
+    {
+        $category = MailCategory::create(['name' => 'Nicht Mehr']);
+        $categoryId = $category->id;
+        $category->delete();
+
+        $this->actingAs($this->admin())->post('/members/mail/send', [
+            'audience' => 'category:'.$categoryId,
+            'subject' => 'Funktion',
+            'body' => 'Text',
+        ])->assertSessionHasErrors('audience');
     }
 
     #[Test]
@@ -224,6 +253,61 @@ class MailSendingTest extends TestCase
             ->assertOk()
             ->assertSee('Mitgliederverwaltung')
             ->assertSee('verein@example.com');
+    }
+
+    #[Test]
+    public function config_page_lists_mail_categories(): void
+    {
+        MailCategory::create(['name' => 'Vorstand']);
+
+        $this->actingAs($this->admin())->get('/members/mail/config')
+            ->assertOk()
+            ->assertSee('Vorstand');
+    }
+
+    #[Test]
+    public function admin_can_create_a_mail_category(): void
+    {
+        $this->actingAs($this->admin())->post('/members/mail/categories', [
+            'name' => 'Vorstand',
+        ])->assertRedirect(route('members.mail.config'));
+
+        $this->assertDatabaseHas('mail_categories', ['name' => 'Vorstand']);
+    }
+
+    #[Test]
+    public function creating_a_mail_category_with_a_duplicate_name_fails_validation(): void
+    {
+        MailCategory::create(['name' => 'Vorstand']);
+
+        $this->actingAs($this->admin())->post('/members/mail/categories', [
+            'name' => 'Vorstand',
+        ])->assertSessionHasErrors('name');
+    }
+
+    #[Test]
+    public function admin_can_rename_a_mail_category(): void
+    {
+        $category = MailCategory::create(['name' => 'Vorstand']);
+
+        $this->actingAs($this->admin())->put("/members/mail/categories/{$category->id}", [
+            'name' => 'Vereinsleitung',
+        ])->assertRedirect(route('members.mail.config'));
+
+        $this->assertSame('Vereinsleitung', $category->refresh()->name);
+    }
+
+    #[Test]
+    public function deleting_a_mail_category_clears_it_from_club_roles(): void
+    {
+        $category = MailCategory::create(['name' => 'Vorstand']);
+        $role = ClubRole::create(['name' => 'Obmann', 'is_board' => true, 'mail_category_id' => $category->id]);
+
+        $this->actingAs($this->admin())->delete("/members/mail/categories/{$category->id}")
+            ->assertRedirect(route('members.mail.config'));
+
+        $this->assertDatabaseMissing('mail_categories', ['id' => $category->id]);
+        $this->assertNull($role->refresh()->mail_category_id);
     }
 
     #[Test]

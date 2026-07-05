@@ -11,6 +11,15 @@
                     {{ __('members::admin.functions.is_board') }}
                 </label>
             </div>
+            <div class="ui-field">
+                <label class="ui-label" for="fn-mail-category">{{ __('members::admin.functions.mail_category') }}</label>
+                <select id="fn-mail-category" name="mail_category_id" class="ui-input">
+                    <option value="">{{ __('members::admin.functions.mail_category_none') }}</option>
+                    @foreach($mailCategories as $mailCategory)
+                        <option value="{{ $mailCategory->id }}" @selected((int) old('mail_category_id', $clubRole->mail_category_id ?? '') === $mailCategory->id)>{{ $mailCategory->name }}</option>
+                    @endforeach
+                </select>
+            </div>
         </div>
         <div class="ui-field">
             <label class="ui-label" for="fn-tasks">{{ __('members::admin.functions.tasks') }}</label>

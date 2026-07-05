@@ -7,7 +7,7 @@ namespace App\Modules\Members\Http\Controllers;
 use App\Mail\MemberBulkMail;
 use App\Models\Option;
 use App\Modules\Members\Models\ClubRole;
-use App\Modules\Members\Models\FeeCategory;
+use App\Modules\Members\Models\MailCategory;
 use App\Modules\Members\Models\MailSend;
 use App\Modules\Members\Models\MailTemplate;
 use App\Modules\Members\Models\Member;
@@ -69,6 +69,7 @@ class MailController
         return view('members::mail.config', [
             'fromAddress' => $this->fromAddress(),
             'fromName' => $this->fromName(),
+            'mailCategories' => MailCategory::query()->orderBy('name')->get(),
         ]);
     }
 
@@ -214,6 +215,35 @@ class MailController
         return redirect()->route('members.mail.index');
     }
 
+    public function storeCategory(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:128', 'unique:mail_categories,name'],
+        ]);
+
+        MailCategory::create($validated);
+
+        return redirect()->route('members.mail.config');
+    }
+
+    public function updateCategory(Request $request, MailCategory $mailCategory): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:128', Rule::unique('mail_categories', 'name')->ignore($mailCategory->id)],
+        ]);
+
+        $mailCategory->update($validated);
+
+        return redirect()->route('members.mail.config');
+    }
+
+    public function destroyCategory(MailCategory $mailCategory): RedirectResponse
+    {
+        $mailCategory->delete();
+
+        return redirect()->route('members.mail.config');
+    }
+
     /** @return array<string, array{label: string, apply: callable(Builder<Member>): Builder<Member>}> */
     private function audienceDefinitions(): array
     {
@@ -234,23 +264,16 @@ class MailController
             ],
         ];
 
-        ClubRole::query()->orderBy('name')->get(['id', 'name'])->each(function (ClubRole $role) use (&$definitions): void {
-            $definitions['role:'.$role->id] = [
-                'label' => __('members::admin.mail.to_role', ['role' => $role->name]),
-                'apply' => fn (Builder $query): Builder => $query
-                    ->active()
-                    ->whereHas('clubRoles', fn (Builder $roles): Builder => $roles->whereKey($role->id)),
-            ];
-        });
-
-        FeeCategory::query()->orderBy('name')->get(['id', 'name'])->each(function (FeeCategory $category) use (&$definitions): void {
-            $definitions['fee_category:'.$category->id] = [
-                'label' => __('members::admin.mail.to_fee_category', ['category' => $category->name]),
-                'apply' => fn (Builder $query): Builder => $query
-                    ->active()
-                    ->where('fee_category_id', $category->id),
-            ];
-        });
+        if (Schema::hasColumn('club_roles', 'mail_category_id')) {
+            MailCategory::query()->orderBy('name')->get()->each(function (MailCategory $category) use (&$definitions): void {
+                $definitions['category:'.$category->id] = [
+                    'label' => __('members::admin.mail.to_mail_category', ['category' => $category->name]),
+                    'apply' => fn (Builder $query): Builder => $query
+                        ->active()
+                        ->whereHas('clubRoles', fn (Builder $roles): Builder => $roles->where('mail_category_id', $category->id)),
+                ];
+            });
+        }
 
         return $definitions;
     }

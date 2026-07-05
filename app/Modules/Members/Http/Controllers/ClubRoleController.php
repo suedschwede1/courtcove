@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Members\Http\Controllers;
 
 use App\Modules\Members\Models\ClubRole;
+use App\Modules\Members\Models\MailCategory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -14,13 +15,15 @@ class ClubRoleController
     public function index(): View
     {
         return view('members::functions.index', [
-            'clubRoles' => ClubRole::query()->orderByDesc('is_board')->orderBy('name')->get(),
+            'clubRoles' => ClubRole::query()->with('mailCategory')->orderByDesc('is_board')->orderBy('name')->get(),
         ]);
     }
 
     public function create(): View
     {
-        return view('members::functions.create');
+        return view('members::functions.create', [
+            'mailCategories' => MailCategory::query()->orderBy('name')->get(),
+        ]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -28,12 +31,14 @@ class ClubRoleController
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:128'],
             'is_board' => ['nullable', 'boolean'],
+            'mail_category_id' => ['nullable', 'exists:mail_categories,id'],
             'tasks' => ['nullable', 'string'],
         ]);
 
         ClubRole::create([
             'name' => $validated['name'],
             'is_board' => $request->boolean('is_board'),
+            'mail_category_id' => $validated['mail_category_id'] ?? null,
             'tasks' => $validated['tasks'] ?? null,
         ]);
 
@@ -42,7 +47,10 @@ class ClubRoleController
 
     public function edit(ClubRole $clubRole): View
     {
-        return view('members::functions.edit', ['clubRole' => $clubRole]);
+        return view('members::functions.edit', [
+            'clubRole' => $clubRole,
+            'mailCategories' => MailCategory::query()->orderBy('name')->get(),
+        ]);
     }
 
     public function update(Request $request, ClubRole $clubRole): RedirectResponse
@@ -50,12 +58,14 @@ class ClubRoleController
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:128'],
             'is_board' => ['nullable', 'boolean'],
+            'mail_category_id' => ['nullable', 'exists:mail_categories,id'],
             'tasks' => ['nullable', 'string'],
         ]);
 
         $clubRole->update([
             'name' => $validated['name'],
             'is_board' => $request->boolean('is_board'),
+            'mail_category_id' => $validated['mail_category_id'] ?? null,
             'tasks' => $validated['tasks'] ?? null,
         ]);
 

@@ -13,6 +13,7 @@
                     <tr>
                         <th>{{ __('members::admin.functions.name') }}</th>
                         <th>{{ __('members::admin.functions.is_board') }}</th>
+                        <th>{{ __('members::admin.functions.mail_category') }}</th>
                         <th>{{ __('members::admin.functions.tasks') }}</th>
                         <th class="text-right">{{ __('members::admin.common.actions') }}</th>
                     </tr>
@@ -24,6 +25,13 @@
                             <td>
                                 @if($clubRole->is_board)
                                     <span class="ui-badge ui-badge-info">{{ __('members::admin.members.club_roles_board') }}</span>
+                                @else
+                                    <span class="text-[#6a6e73]">–</span>
+                                @endif
+                            </td>
+                            <td>
+                                @if($clubRole->mailCategory)
+                                    <span class="ui-badge ui-badge-info">{{ $clubRole->mailCategory->name }}</span>
                                 @else
                                     <span class="text-[#6a6e73]">–</span>
                                 @endif
