@@ -70,6 +70,25 @@ class MemberDueManualCreationTest extends TestCase
     }
 
     #[Test]
+    public function manually_created_due_defaults_to_ausstehend_with_the_fiscal_years_start_as_due_date(): void
+    {
+        $member = Member::factory()->create();
+        $category = FeeCategory::create(['name' => 'Vollmitglied']);
+        $fy = FiscalYear::create(['name' => '2026/27', 'starts_on' => '2026-09-01', 'ends_on' => '2027-08-31']);
+
+        $this->actingAs($this->admin())->post(route('members.dues.store'), [
+            'member_id' => $member->id,
+            'fiscal_year_id' => $fy->id,
+            'fee_category_id' => $category->id,
+            'amount' => 120,
+        ]);
+
+        $due = MemberDue::where('member_id', $member->id)->first();
+        $this->assertSame('ausstehend', $due->status);
+        $this->assertSame('2026-09-01', $due->faellig_am->format('Y-m-d'));
+    }
+
+    #[Test]
     public function duplicate_due_for_same_member_and_fiscal_year_is_rejected(): void
     {
         $member = Member::factory()->create();

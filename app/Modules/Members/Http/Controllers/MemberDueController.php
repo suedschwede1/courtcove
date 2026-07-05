@@ -60,7 +60,13 @@ class MemberDueController
             'amount' => ['required', 'numeric', 'decimal:0,2', 'min:0', 'max:999999.99'],
         ]);
 
-        MemberDue::create($validated);
+        $fiscalYear = FiscalYear::findOrFail($validated['fiscal_year_id']);
+
+        MemberDue::create([
+            ...$validated,
+            'status' => 'ausstehend',
+            'faellig_am' => $fiscalYear->starts_on,
+        ]);
 
         return redirect()->route('members.dues.index', ['fiscal_year_id' => $validated['fiscal_year_id']])
             ->with('status', __('members::admin.dues.created'));
@@ -72,6 +78,7 @@ class MemberDueController
             'fiscal_year_id' => ['required', 'exists:fiscal_years,id'],
         ]);
         $fiscalYearId = (int) $validated['fiscal_year_id'];
+        $newFiscalYear = FiscalYear::findOrFail($fiscalYearId);
 
         $existingMemberIds = MemberDue::where('fiscal_year_id', $fiscalYearId)->pluck('member_id');
 
@@ -80,7 +87,7 @@ class MemberDueController
         Member::query()
             ->active()
             ->whereNotIn('id', $existingMemberIds)
-            ->each(function (Member $member) use ($fiscalYearId, &$created) {
+            ->each(function (Member $member) use ($fiscalYearId, $newFiscalYear, &$created) {
                 // "Last year's category" assumes fiscal years are created in chronological
                 // order, so the highest fiscal_year_id is the most recent one.
                 $lastDue = $member->dues()->latest('fiscal_year_id')->first();
@@ -102,6 +109,8 @@ class MemberDueController
                     'fiscal_year_id' => $fiscalYearId,
                     'fee_category_id' => $lastDue->fee_category_id,
                     'amount' => $rate->amount,
+                    'status' => 'ausstehend',
+                    'faellig_am' => $newFiscalYear->starts_on,
                 ]);
 
                 $created++;

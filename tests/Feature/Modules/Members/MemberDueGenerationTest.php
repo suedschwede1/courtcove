@@ -82,4 +82,22 @@ class MemberDueGenerationTest extends TestCase
 
         $this->assertSame(1, MemberDue::where('fiscal_year_id', $newYear->id)->count());
     }
+
+    #[Test]
+    public function generated_dues_default_to_ausstehend_with_the_fiscal_years_start_as_due_date(): void
+    {
+        $category = FeeCategory::create(['name' => 'Vollmitglied']);
+        $lastYear = FiscalYear::create(['name' => '2025/26', 'starts_on' => '2025-09-01', 'ends_on' => '2026-08-31']);
+        $newYear = FiscalYear::create(['name' => '2026/27', 'starts_on' => '2026-09-01', 'ends_on' => '2027-08-31']);
+        FeeCategoryRate::create(['fee_category_id' => $category->id, 'fiscal_year_id' => $newYear->id, 'amount' => 130]);
+
+        $member = Member::factory()->create();
+        MemberDue::create(['member_id' => $member->id, 'fiscal_year_id' => $lastYear->id, 'fee_category_id' => $category->id, 'amount' => 120]);
+
+        $this->actingAs($this->admin())->post('/members/dues/generate', ['fiscal_year_id' => $newYear->id]);
+
+        $created = MemberDue::where('fiscal_year_id', $newYear->id)->first();
+        $this->assertSame('ausstehend', $created->status);
+        $this->assertSame('2026-09-01', $created->faellig_am->format('Y-m-d'));
+    }
 }
