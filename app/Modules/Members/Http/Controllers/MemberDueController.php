@@ -163,6 +163,22 @@ class MemberDueController
             ->with('status', __('members::admin.dues.generated', ['count' => $created]));
     }
 
+    /** Markiert alle ausgewählten Beitragszeilen in einem Schritt als bezahlt. */
+    public function bulkMarkPaid(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'due_ids' => ['required', 'array', 'min:1'],
+            'due_ids.*' => ['integer', 'exists:member_dues,id'],
+            'fiscal_year_id' => ['nullable', 'exists:fiscal_years,id'],
+        ]);
+
+        $count = MemberDue::whereIn('id', $validated['due_ids'])->update(['status' => 'bezahlt']);
+
+        return redirect()->route('members.dues.index', array_filter([
+            'fiscal_year_id' => $validated['fiscal_year_id'] ?? null,
+        ]))->with('status', __('members::admin.dues.bulk_marked_paid', ['count' => $count]));
+    }
+
     /** Speichert genau ein Feld eines Beitrags — für die direkt editierbaren Zellen der Liste. */
     public function updateField(Request $request, MemberDue $due): JsonResponse
     {

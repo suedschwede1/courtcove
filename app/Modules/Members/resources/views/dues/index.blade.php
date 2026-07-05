@@ -104,25 +104,40 @@
         </form>
     </div>
 
-    <div class="ui-card">
-        <div class="ui-table-wrap">
-            <table class="ui-table">
-                <thead>
-                    <tr>
-                        <th>{{ __('members::admin.members.name') }}</th>
-                        <th>{{ __('members::admin.fiscal_years.title') }}</th>
-                        <th>{{ __('members::admin.fee_categories.title') }}</th>
-                        <th>{{ __('members::admin.fee_categories.amount') }}</th>
-                        <th>{{ __('members::admin.dues.status') }}</th>
-                        <th>{{ __('members::admin.dues.paid_through') }}</th>
-                        <th>{{ __('members::admin.dues.teilbetrag') }}</th>
-                        <th>{{ __('members::admin.dues.kommentar') }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($dues as $due)
+    <form method="POST" action="{{ route('members.dues.bulk-mark-paid') }}"
+        x-data="{
+            selected: [],
+            allIds: @js($dues->pluck('id')),
+            get selectAll() { return this.allIds.length > 0 && this.selected.length === this.allIds.length; },
+            set selectAll(value) { this.selected = value ? [...this.allIds] : []; }
+        }">
+        @csrf
+        <input type="hidden" name="fiscal_year_id" value="{{ $selectedFiscalYearId }}">
+        <div class="ui-card">
+            <div class="ui-card-body flex items-center justify-between" style="border-bottom:1px solid var(--ui-border)">
+                <span class="ui-kpi-meta" x-show="selected.length > 0" x-text="'{{ __('members::admin.dues.selected_count', ['count' => '__COUNT__']) }}'.replace('__COUNT__', selected.length)"></span>
+                <button type="submit" id="dues-bulk-mark-paid" class="ui-btn ui-btn-primary" :disabled="selected.length === 0" :style="selected.length === 0 && 'opacity:0.5;cursor:not-allowed;'">{{ __('members::admin.dues.bulk_mark_paid') }}</button>
+            </div>
+            <div class="ui-table-wrap">
+                <table class="ui-table">
+                    <thead>
                         <tr>
-                            <td>{{ $due->member->fullName() }}</td>
+                            <th><input type="checkbox" x-model="selectAll"></th>
+                            <th>{{ __('members::admin.members.name') }}</th>
+                            <th>{{ __('members::admin.fiscal_years.title') }}</th>
+                            <th>{{ __('members::admin.fee_categories.title') }}</th>
+                            <th>{{ __('members::admin.fee_categories.amount') }}</th>
+                            <th>{{ __('members::admin.dues.status') }}</th>
+                            <th>{{ __('members::admin.dues.paid_through') }}</th>
+                            <th>{{ __('members::admin.dues.teilbetrag') }}</th>
+                            <th>{{ __('members::admin.dues.kommentar') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($dues as $due)
+                            <tr>
+                                <td><input type="checkbox" name="due_ids[]" value="{{ $due->id }}" x-model="selected"></td>
+                                <td>{{ $due->member->fullName() }}</td>
                             <td>{{ $due->fiscalYear->name }}</td>
                             <td>{{ $due->feeCategory->name }}</td>
                             <td>{{ number_format((float) $due->amount, 2) }} €</td>
@@ -237,6 +252,7 @@
         @endif
 
     </div>
+    </form>
 </div>
 <script>
     window.saveDueField = async (dueId, field, value) => {

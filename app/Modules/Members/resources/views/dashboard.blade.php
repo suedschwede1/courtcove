@@ -27,48 +27,50 @@
         </div>
     </div>
 
-    <div class="ui-card">
-        <div class="ui-card-header"><h2>{{ __('members::admin.dashboard.age_structure') }}</h2></div>
-        <div class="ui-card-body">
-            @php $maxAgeCount = max([...array_values($ageStructure['buckets']), $ageStructure['unknown']]) ?: 0; @endphp
-            @foreach($ageStructure['buckets'] as $bucket => $count)
+    <div class="ui-grid-2">
+        <div class="ui-card">
+            <div class="ui-card-header"><h2>{{ __('members::admin.dashboard.age_structure') }}</h2></div>
+            <div class="ui-card-body">
+                @php $maxAgeCount = max([...array_values($ageStructure['buckets']), $ageStructure['unknown']]) ?: 0; @endphp
+                @foreach($ageStructure['buckets'] as $bucket => $count)
+                    <div class="ui-category-bar-row">
+                        <div class="ui-category-bar-label">
+                            <span>{{ __('members::admin.dashboard.age_'.$bucket) }}</span>
+                            <span>{{ $count }}</span>
+                        </div>
+                        <div class="ui-category-bar-track">
+                            <div class="ui-category-bar-fill" style="width: {{ $maxAgeCount > 0 ? round($count / $maxAgeCount * 100) : 0 }}%"></div>
+                        </div>
+                    </div>
+                @endforeach
                 <div class="ui-category-bar-row">
                     <div class="ui-category-bar-label">
-                        <span>{{ __('members::admin.dashboard.age_'.$bucket) }}</span>
-                        <span>{{ $count }}</span>
+                        <span>{{ __('members::admin.dashboard.age_unknown') }}</span>
+                        <span>{{ $ageStructure['unknown'] }}</span>
                     </div>
                     <div class="ui-category-bar-track">
-                        <div class="ui-category-bar-fill" style="width: {{ $maxAgeCount > 0 ? round($count / $maxAgeCount * 100) : 0 }}%"></div>
+                        <div class="ui-category-bar-fill" style="width: {{ $maxAgeCount > 0 ? round($ageStructure['unknown'] / $maxAgeCount * 100) : 0 }}%"></div>
                     </div>
-                </div>
-            @endforeach
-            <div class="ui-category-bar-row">
-                <div class="ui-category-bar-label">
-                    <span>{{ __('members::admin.dashboard.age_unknown') }}</span>
-                    <span>{{ $ageStructure['unknown'] }}</span>
-                </div>
-                <div class="ui-category-bar-track">
-                    <div class="ui-category-bar-fill" style="width: {{ $maxAgeCount > 0 ? round($ageStructure['unknown'] / $maxAgeCount * 100) : 0 }}%"></div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="ui-card">
-        <div class="ui-card-header"><h2>{{ __('members::admin.dashboard.members_by_category') }}</h2></div>
-        <div class="ui-card-body">
-            @php $maxCategoryCount = $categoryBreakdown ? max($categoryBreakdown) : 0; @endphp
-            @foreach($categoryBreakdown as $name => $count)
-                <div class="ui-category-bar-row">
-                    <div class="ui-category-bar-label">
-                        <span>{{ $name }}</span>
-                        <span>{{ $count }}</span>
+        <div class="ui-card">
+            <div class="ui-card-header"><h2>{{ __('members::admin.dashboard.members_by_category') }}</h2></div>
+            <div class="ui-card-body">
+                @php $maxCategoryCount = $categoryBreakdown ? max($categoryBreakdown) : 0; @endphp
+                @foreach($categoryBreakdown as $name => $count)
+                    <div class="ui-category-bar-row">
+                        <div class="ui-category-bar-label">
+                            <span>{{ $name }}</span>
+                            <span>{{ $count }}</span>
+                        </div>
+                        <div class="ui-category-bar-track">
+                            <div class="ui-category-bar-fill" style="width: {{ $maxCategoryCount > 0 ? round($count / $maxCategoryCount * 100) : 0 }}%"></div>
+                        </div>
                     </div>
-                    <div class="ui-category-bar-track">
-                        <div class="ui-category-bar-fill" style="width: {{ $maxCategoryCount > 0 ? round($count / $maxCategoryCount * 100) : 0 }}%"></div>
-                    </div>
-                </div>
-            @endforeach
+                @endforeach
+            </div>
         </div>
     </div>
 </div>
