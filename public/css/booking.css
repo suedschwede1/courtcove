@@ -4370,10 +4370,14 @@ textarea {
     transform: translateX(1px);
 }
 
-.app-header__locale {
+.app-header__actions > .app-header__admin-mode {
     margin-top: 6px;
+    padding-top: 10px !important;
+    border-top: 1px solid #f0ede6 !important;
+}
+
+.app-header__locale {
     padding: 10px 4px 2px;
-    border-top: 1px solid #f0ede6;
     color: #8b8580;
 }
 
