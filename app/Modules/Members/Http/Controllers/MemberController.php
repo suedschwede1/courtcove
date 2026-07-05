@@ -112,13 +112,18 @@ class MemberController
             'city' => ['nullable', 'string', 'max:128'],
             'fee_category_id' => ['nullable', 'exists:fee_categories,id'],
             'joined_at' => ['required', 'date'],
+            'left_at' => ['nullable', 'date'],
         ]);
+
+        $leftAt = $validated['left_at'] ?? null;
+        unset($validated['left_at']);
 
         $before = $member->toArray();
 
-        DB::transaction(function () use ($request, $member, $validated, $before) {
+        DB::transaction(function () use ($request, $member, $validated, $before, $leftAt) {
             $member->update($validated);
             $member->clubRoles()->sync($request->input('club_roles', []));
+            $member->setLeftAt($leftAt);
             $this->logChange($member, 'updated', $before);
         });
 

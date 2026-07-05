@@ -272,4 +272,21 @@ class MemberManagementTest extends TestCase
 
         $this->assertSame([$kassier->id], $member->fresh()->clubRoles->pluck('id')->all());
     }
+
+    #[Test]
+    public function updating_a_member_with_a_left_at_date_marks_them_ausgetreten(): void
+    {
+        $member = \App\Modules\Members\Models\Member::factory()->create(['status' => 'aktiv']);
+
+        $this->actingAs($this->admin())->put("/members/{$member->id}", [
+            'member_number' => $member->member_number,
+            'firstname' => $member->firstname,
+            'lastname' => $member->lastname,
+            'joined_at' => $member->joined_at->format('Y-m-d'),
+            'left_at' => '2026-05-01',
+        ])->assertRedirect(route('members.index'));
+
+        $this->assertSame('2026-05-01', $member->fresh()->left_at->toDateString());
+        $this->assertSame('ausgetreten', $member->fresh()->status);
+    }
 }

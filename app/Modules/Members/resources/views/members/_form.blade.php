@@ -79,6 +79,10 @@
                 <label class="ui-label" for="mf-joined-at">{{ __('members::admin.members.joined_at') }}</label>
                 <input id="mf-joined-at" type="date" name="joined_at" value="{{ old('joined_at', optional($member->joined_at ?? null)->format('Y-m-d') ?? now()->toDateString()) }}" class="ui-input">
             </div>
+            <div class="ui-field">
+                <label class="ui-label" for="mf-left-at">{{ __('members::admin.members.left_at') }}</label>
+                <input id="mf-left-at" type="date" name="left_at" value="{{ old('left_at', optional($member->left_at ?? null)->format('Y-m-d')) }}" class="ui-input">
+            </div>
         </div>
     </div>
 </div>
