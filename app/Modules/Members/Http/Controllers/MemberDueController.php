@@ -19,7 +19,11 @@ class MemberDueController
     public function index(Request $request): View
     {
         $fiscalYears = FiscalYear::query()->orderBy('starts_on')->get();
-        $selectedFiscalYearId = (int) $request->query('fiscal_year_id', $fiscalYears->last()->id ?? 0);
+        $currentFiscalYear = $fiscalYears->first(
+            fn (FiscalYear $fiscalYear) => now()->between($fiscalYear->starts_on, $fiscalYear->ends_on),
+        );
+        $defaultFiscalYearId = $currentFiscalYear->id ?? $fiscalYears->last()->id ?? 0;
+        $selectedFiscalYearId = (int) $request->query('fiscal_year_id', $defaultFiscalYearId);
 
         $dues = MemberDue::query()
             ->with(['member', 'feeCategory', 'payments'])

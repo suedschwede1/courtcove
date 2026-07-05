@@ -54,6 +54,19 @@ class MemberDueGenerationTest extends TestCase
     }
 
     #[Test]
+    public function index_defaults_to_the_fiscal_year_containing_today(): void
+    {
+        FiscalYear::create(['name' => '2025', 'starts_on' => '2025-01-01', 'ends_on' => '2025-12-31']);
+        $currentYear = FiscalYear::create(['name' => '2026', 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31']);
+        FiscalYear::create(['name' => '2027', 'starts_on' => '2027-01-01', 'ends_on' => '2027-12-31']);
+
+        $response = $this->actingAs($this->admin())->get(route('members.dues.index'));
+
+        $response->assertOk();
+        $this->assertSame($currentYear->id, $response->viewData('selectedFiscalYearId'));
+    }
+
+    #[Test]
     public function generating_dues_twice_does_not_create_duplicates(): void
     {
         $category = FeeCategory::create(['name' => 'Vollmitglied']);
