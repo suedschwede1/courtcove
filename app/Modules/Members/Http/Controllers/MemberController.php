@@ -20,11 +20,12 @@ class MemberController
 {
     public function index(Request $request): View
     {
-        $query = Member::query()->with('feeCategory');
+        $query = Member::query()->with(['feeCategory', 'dues.fiscalYear']);
 
-        if ($request->filled('status') && $request->string('status')->value() === 'departed') {
-            $query->whereNotNull('left_at');
-        } else {
+        $statusFilter = $request->string('status')->value();
+        if (in_array($statusFilter, Member::STATUSES, true)) {
+            $query->where('status', $statusFilter);
+        } elseif ($statusFilter === '') {
             $query->active();
         }
 
