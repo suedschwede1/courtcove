@@ -18,6 +18,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -45,8 +46,22 @@ class MailController
             'fromName' => $this->fromName(),
             'audienceOptions' => $audienceOptions,
             'defaultAudience' => $audienceOptions->first()['key'] ?? 'all',
-            'mailSends' => MailSend::query()->with('sender')->latest()->limit(10)->get(),
+            'mailSends' => $this->mailSendHistory(),
         ]);
+    }
+
+    private function mailSendHistory(): Collection
+    {
+        if (! $this->mailSendsTableExists()) {
+            return collect();
+        }
+
+        return MailSend::query()->with('sender')->latest()->limit(10)->get();
+    }
+
+    private function mailSendsTableExists(): bool
+    {
+        return Schema::hasTable('mail_sends');
     }
 
     public function config(): View
@@ -75,16 +90,18 @@ class MailController
         }
 
         $definition = $this->audienceDefinitions()[$validated['audience']];
-        MailSend::create([
-            'sent_by_user_id' => auth()->user()?->uid,
-            'audience_key' => $validated['audience'],
-            'audience_label' => $definition['label'],
-            'recipient_count' => $addresses->count(),
-            'from_name' => $sender['name'],
-            'from_address' => $sender['address'],
-            'subject' => $validated['subject'],
-            'body' => $validated['body'],
-        ]);
+        if ($this->mailSendsTableExists()) {
+            MailSend::create([
+                'sent_by_user_id' => auth()->user()?->uid,
+                'audience_key' => $validated['audience'],
+                'audience_label' => $definition['label'],
+                'recipient_count' => $addresses->count(),
+                'from_name' => $sender['name'],
+                'from_address' => $sender['address'],
+                'subject' => $validated['subject'],
+                'body' => $validated['body'],
+            ]);
+        }
 
         return redirect()->route('members.mail.index')
             ->with('success', __('members::admin.mail.sent', ['count' => $addresses->count()]));
