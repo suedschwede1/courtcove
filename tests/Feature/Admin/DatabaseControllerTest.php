@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace Tests\Feature\Admin;
 
 use App\Models\User;
+use App\Services\DatabaseBackupService;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
 use RuntimeException;
 use Tests\TestCase;
@@ -222,5 +224,90 @@ class DatabaseControllerTest extends TestCase
             ->assertOk()
             ->assertSee('bs_users')
             ->assertSee('last_ip');
+    }
+
+    #[Test]
+    public function admin_can_create_a_backup(): void
+    {
+        Storage::fake('local');
+
+        $this->actingAs($this->admin())
+            ->post('/admin/database/backups')
+            ->assertRedirect('/admin/database')
+            ->assertSessionHas('success');
+
+        $this->assertCount(1, Storage::disk('local')->files('backups'));
+    }
+
+    #[Test]
+    public function admin_can_download_a_backup(): void
+    {
+        Storage::fake('local');
+        $filename = (new DatabaseBackupService())->create();
+
+        $this->actingAs($this->admin())
+            ->get("/admin/database/backups/{$filename}/download")
+            ->assertOk()
+            ->assertHeader('Content-Disposition', "attachment; filename={$filename}");
+    }
+
+    #[Test]
+    public function admin_can_delete_a_backup(): void
+    {
+        Storage::fake('local');
+        $filename = (new DatabaseBackupService())->create();
+
+        $this->actingAs($this->admin())
+            ->post("/admin/database/backups/{$filename}/delete")
+            ->assertRedirect('/admin/database')
+            ->assertSessionHas('success');
+
+        Storage::disk('local')->assertMissing("backups/{$filename}");
+    }
+
+    #[Test]
+    public function restore_requires_typed_confirmation(): void
+    {
+        Storage::fake('local');
+        $filename = (new DatabaseBackupService())->create();
+
+        $this->from('/admin/database')
+            ->actingAs($this->admin())
+            ->post("/admin/database/backups/{$filename}/restore", ['confirmation' => 'wrong'])
+            ->assertRedirect('/admin/database')
+            ->assertSessionHasErrors('confirmation');
+    }
+
+    #[Test]
+    public function admin_can_restore_with_valid_confirmation(): void
+    {
+        Storage::fake('local');
+        $filename = (new DatabaseBackupService())->create();
+
+        $this->actingAs($this->admin())
+            ->post("/admin/database/backups/{$filename}/restore", ['confirmation' => 'RESTORE'])
+            ->assertRedirect('/admin/database')
+            ->assertSessionHas('success')
+            ->assertSessionHas('output');
+    }
+
+    #[Test]
+    public function regular_member_cannot_manage_backups(): void
+    {
+        Storage::fake('local');
+        $filename = (new DatabaseBackupService())->create();
+        $member = User::factory()->create(['status' => 'enabled']);
+
+        $this->actingAs($member)->post('/admin/database/backups')->assertForbidden();
+        $this->actingAs($member)->post("/admin/database/backups/{$filename}/delete")->assertForbidden();
+        $this->actingAs($member)->post("/admin/database/backups/{$filename}/restore", ['confirmation' => 'RESTORE'])->assertForbidden();
+    }
+
+    #[Test]
+    public function an_invalid_backup_filename_in_the_url_is_rejected(): void
+    {
+        $this->actingAs($this->admin())
+            ->post('/admin/database/backups/../../etc/passwd/delete')
+            ->assertNotFound();
     }
 }

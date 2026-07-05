@@ -84,6 +84,16 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function (): v
         Route::get('database', [DatabaseController::class, 'index'])->name('database.index');
         Route::post('database/migrate', [DatabaseController::class, 'migrate'])->name('database.migrate');
         Route::post('database/repair/{table}', [DatabaseController::class, 'repair'])->name('database.repair');
+        Route::post('database/backups', [DatabaseController::class, 'createBackup'])->name('database.backups.create');
+        Route::get('database/backups/{filename}/download', [DatabaseController::class, 'downloadBackup'])
+            ->name('database.backups.download')
+            ->where('filename', '^backup-\d{8}_\d{6}(-prerestore)?\.sql\.gz$');
+        Route::post('database/backups/{filename}/delete', [DatabaseController::class, 'deleteBackup'])
+            ->name('database.backups.delete')
+            ->where('filename', '^backup-\d{8}_\d{6}(-prerestore)?\.sql\.gz$');
+        Route::post('database/backups/{filename}/restore', [DatabaseController::class, 'restoreBackup'])
+            ->name('database.backups.restore')
+            ->where('filename', '^backup-\d{8}_\d{6}(-prerestore)?\.sql\.gz$');
     });
 });
 
