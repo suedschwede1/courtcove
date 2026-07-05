@@ -1,4 +1,5 @@
 import Alpine from 'alpinejs'
+window.__wm = 'src:hm-b26c8c89'
 window.Alpine = Alpine
 Alpine.start()
 

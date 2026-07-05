@@ -79,5 +79,6 @@
 <script src="{{ asset('js/booking.js') }}?v={{ filemtime(public_path('js/booking.js')) }}"></script>
 @stack('scripts')
 </body>
+<!-- {{ config('booking.watermark') }} -->
 </html>
 

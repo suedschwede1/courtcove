@@ -62,4 +62,12 @@ class MemberDueDisplayStatusTest extends TestCase
 
         $this->assertSame('bezahlt', $due->displayStatus());
     }
+
+    #[Test]
+    public function ausstehend_due_today_does_not_display_as_ueberfaellig_yet(): void
+    {
+        $due = $this->makeDue(['status' => 'ausstehend', 'faellig_am' => now()->format('Y-m-d')]);
+
+        $this->assertSame('ausstehend', $due->displayStatus());
+    }
 }

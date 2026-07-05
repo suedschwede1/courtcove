@@ -56,7 +56,7 @@ class MemberDue extends Model
     /** Der angezeigte Status: "ausstehend" mit verstrichenem Fälligkeitsdatum gilt automatisch als "überfällig". */
     public function displayStatus(): string
     {
-        if ($this->status === 'ausstehend' && $this->faellig_am !== null && $this->faellig_am->isPast()) {
+        if ($this->status === 'ausstehend' && $this->faellig_am !== null && $this->faellig_am->endOfDay()->isPast()) {
             return 'ueberfaellig';
         }
 

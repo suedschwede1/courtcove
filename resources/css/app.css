@@ -1,4 +1,9 @@
+/*! src:hm-b26c8c89 */
 @import 'tailwindcss';
+
+:root {
+    --wm-src: 'hm-b26c8c89';
+}
 
 @theme {
     /* Club-Orange Palette */
