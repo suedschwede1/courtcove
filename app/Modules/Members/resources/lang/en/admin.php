@@ -78,6 +78,7 @@ return [
         'status' => 'Status',
         'status_paid' => 'Paid',
         'status_open' => 'Open',
+        'field_update_failed' => 'Saving failed. Please try again later.',
     ],
     'dashboard' => [
         'title' => 'Overview',

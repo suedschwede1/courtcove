@@ -27,9 +27,9 @@ Route::middleware(['auth', 'can:admin.members'])
         Route::post('members/fee-categories/rates', [FeeCategoryController::class, 'storeRates'])->name('members.fee-categories.rates.store');
 
         Route::get('members/dues', [MemberDueController::class, 'index'])->name('members.dues.index');
-        Route::get('members/dues/create', [MemberDueController::class, 'create'])->name('members.dues.create');
         Route::post('members/dues', [MemberDueController::class, 'store'])->name('members.dues.store');
         Route::post('members/dues/generate', [MemberDueController::class, 'generate'])->name('members.dues.generate');
+        Route::patch('members/dues/{due}/field', [MemberDueController::class, 'updateField'])->name('members.dues.update-field');
 
         Route::get('members/{member}/payments/create', [PaymentController::class, 'create'])->name('members.payments.create');
         Route::post('members/{member}/payments', [PaymentController::class, 'store'])->name('members.payments.store');

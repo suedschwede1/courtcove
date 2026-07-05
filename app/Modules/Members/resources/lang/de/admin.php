@@ -78,6 +78,7 @@ return [
         'status' => 'Status',
         'status_paid' => 'Bezahlt',
         'status_open' => 'Offen',
+        'field_update_failed' => 'Speichern fehlgeschlagen. Bitte später erneut versuchen.',
     ],
     'dashboard' => [
         'title' => 'Übersicht',

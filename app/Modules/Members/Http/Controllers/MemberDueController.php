@@ -10,9 +10,11 @@ use App\Modules\Members\Models\FiscalYear;
 use App\Modules\Members\Models\Member;
 use App\Modules\Members\Models\MemberDue;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class MemberDueController
 {
@@ -118,5 +120,44 @@ class MemberDueController
 
         return redirect()->route('members.dues.index', ['fiscal_year_id' => $fiscalYearId])
             ->with('status', __('members::admin.dues.generated', ['count' => $created]));
+    }
+
+    /** Speichert genau ein Feld eines Beitrags — für die direkt editierbaren Zellen der Liste. */
+    public function updateField(Request $request, MemberDue $due): JsonResponse
+    {
+        $fieldRules = [
+            'status' => ['required', 'string', Rule::in(MemberDue::STATUSES)],
+            'teilbetrag' => ['nullable', 'numeric', 'decimal:0,2', 'min:0', 'max:999999.99'],
+            'kommentar' => ['nullable', 'string', 'max:1000'],
+            'faellig_am' => ['nullable', 'date'],
+        ];
+
+        $field = $request->string('field')->value();
+
+        try {
+            $validated = $request->validate([
+                'field' => ['required', 'string', Rule::in(array_keys($fieldRules))],
+                'value' => $fieldRules[$field] ?? ['prohibited'],
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json(['message' => $e->validator->errors()->first()], 422);
+        }
+
+        try {
+            $due->update([$validated['field'] => $validated['value']]);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return response()->json(['message' => __('members::admin.dues.field_update_failed')], 500);
+        }
+
+        return response()->json([
+            'value' => match ($validated['field']) {
+                'faellig_am' => $due->faellig_am?->format('d.m.Y'),
+                'teilbetrag' => $due->teilbetrag !== null ? number_format((float) $due->teilbetrag, 2, ',', '.').' €' : '–',
+                'kommentar' => $due->kommentar ?: '–',
+                default => (string) $due->{$validated['field']},
+            },
+        ]);
     }
 }
