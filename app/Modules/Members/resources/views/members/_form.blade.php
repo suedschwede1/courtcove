@@ -84,5 +84,39 @@
                 <input id="mf-left-at" type="date" name="left_at" value="{{ old('left_at', optional($member->left_at ?? null)->format('Y-m-d')) }}" class="ui-input">
             </div>
         </div>
+        @php
+            $selectedRoleIds = old('club_roles', ($member ?? null)?->clubRoles->pluck('id')->all() ?? []);
+            $boardRoles = ($clubRoles ?? collect())->where('is_board', true);
+            $otherRoles = ($clubRoles ?? collect())->where('is_board', false);
+        @endphp
+        @if(($clubRoles ?? collect())->isNotEmpty())
+            <div class="ui-field">
+                <label class="ui-label">{{ __('members::admin.members.club_roles') }}</label>
+                <div class="ui-grid-3 ui-form-panel">
+                    @if($boardRoles->isNotEmpty())
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73] mb-1">{{ __('members::admin.members.club_roles_board') }}</p>
+                            @foreach($boardRoles as $role)
+                                <label class="ui-label flex items-center gap-2 font-normal">
+                                    <input type="checkbox" name="club_roles[]" value="{{ $role->id }}" @checked(in_array($role->id, $selectedRoleIds))>
+                                    {{ $role->name }}
+                                </label>
+                            @endforeach
+                        </div>
+                    @endif
+                    @if($otherRoles->isNotEmpty())
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73] mb-1">{{ __('members::admin.members.club_roles_other') }}</p>
+                            @foreach($otherRoles as $role)
+                                <label class="ui-label flex items-center gap-2 font-normal">
+                                    <input type="checkbox" name="club_roles[]" value="{{ $role->id }}" @checked(in_array($role->id, $selectedRoleIds))>
+                                    {{ $role->name }}
+                                </label>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            </div>
+        @endif
     </div>
 </div>

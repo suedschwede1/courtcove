@@ -8,13 +8,13 @@ use App\Models\User;
 use App\Modules\Members\Models\ClubRole;
 use App\Modules\Members\Models\FeeCategory;
 use App\Modules\Members\Models\Member;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class MemberManagementTest extends TestCase
 {
-    use RefreshDatabase;
+    use LazilyRefreshDatabase;
 
     private function admin(): User
     {

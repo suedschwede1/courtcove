@@ -23,13 +23,29 @@
             </span>
         </div>
 
-        <nav style="flex:1; padding:6px 0;">
+        <nav style="flex:1; padding:6px 0; display:flex; flex-direction:column;">
             @foreach([
                 ['route' => 'members.dashboard', 'pattern' => 'members.dashboard', 'label' => __('members::admin.dashboard.title')],
                 ['route' => 'members.index', 'pattern' => 'members.index,members.create,members.edit', 'label' => __('members::admin.members.title')],
+                ['route' => 'members.dues.index', 'pattern' => 'members.dues.*', 'label' => __('members::admin.dues.title')],
+                ['route' => 'members.mail.index', 'pattern' => 'members.mail.*', 'label' => __('members::admin.mail.title')],
+            ] as $item)
+                @php $active = request()->routeIs(...explode(',', $item['pattern'])); @endphp
+                <a href="{{ route($item['route']) }}" onmouseover="if (!this.dataset.active) { this.style.background='#26292e'; this.style.color='#ffffff'; }" onmouseout="if (!this.dataset.active) { this.style.background='transparent'; this.style.color='#b2b6bd'; }" data-active="{{ $active ? '1' : '' }}" style="display:block; padding:12px 14px 12px {{ $active ? '11px' : '17px' }}; font-family:var(--font-body); font-size:14px; text-decoration:none; transition:background 0.15s ease, color 0.15s ease; color:{{ $active ? '#ffffff' : '#b2b6bd' }}; font-weight:{{ $active ? '700' : '400' }}; background:{{ $active ? '#34363b' : 'transparent' }}; border-left:{{ $active ? '3px solid #0066cc' : '3px solid transparent' }};">
+                    {{ $item['label'] }}
+                </a>
+            @endforeach
+
+            <div style="margin-top:auto; padding:14px 14px 10px; border-top:1px solid rgba(255,255,255,0.08);">
+                <span style="font-family:var(--font-body); font-size:10px; color:#6a6e73; font-weight:600; text-transform:uppercase; letter-spacing:0.08em;">
+                    {{ __('members::admin.dashboard.configuration') }}
+                </span>
+            </div>
+
+            @foreach([
                 ['route' => 'members.fiscal-years.index', 'pattern' => 'members.fiscal-years.*', 'label' => __('members::admin.fiscal_years.title')],
                 ['route' => 'members.fee-categories.index', 'pattern' => 'members.fee-categories.*', 'label' => __('members::admin.fee_categories.title')],
-                ['route' => 'members.dues.index', 'pattern' => 'members.dues.*', 'label' => __('members::admin.dues.title')],
+                ['route' => 'members.functions.index', 'pattern' => 'members.functions.*', 'label' => __('members::admin.functions.title')],
             ] as $item)
                 @php $active = request()->routeIs(...explode(',', $item['pattern'])); @endphp
                 <a href="{{ route($item['route']) }}" onmouseover="if (!this.dataset.active) { this.style.background='#26292e'; this.style.color='#ffffff'; }" onmouseout="if (!this.dataset.active) { this.style.background='transparent'; this.style.color='#b2b6bd'; }" data-active="{{ $active ? '1' : '' }}" style="display:block; padding:12px 14px 12px {{ $active ? '11px' : '17px' }}; font-family:var(--font-body); font-size:14px; text-decoration:none; transition:background 0.15s ease, color 0.15s ease; color:{{ $active ? '#ffffff' : '#b2b6bd' }}; font-weight:{{ $active ? '700' : '400' }}; background:{{ $active ? '#34363b' : 'transparent' }}; border-left:{{ $active ? '3px solid #0066cc' : '3px solid transparent' }};">
