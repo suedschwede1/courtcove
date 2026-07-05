@@ -8,8 +8,11 @@ reference point is `mobile-view-stable` (see [README.md](README.md#layout-refere
 When adding an entry: describe the *why*/user-facing effect in one line, not the diff —
 `git log` already has that. Add new entries at the top, under today's date.
 
-## 2026-07-11
+## 2026-07-05
 
+- A `pre-commit` hook (`.githooks/pre-commit`) now blocks commits that touch
+  code/behavior-relevant files without a matching CHANGELOG.md entry, so this file stays
+  complete. Enable it once per clone: `git config core.hooksPath .githooks`.
 - Club roles can now be tagged with multiple mail categories (many-to-many), replacing
   the earlier one-to-one `mail_category_id` link.
 - `DatabaseSchemaChecker` manifest extended to cover all current tables/columns, plus a

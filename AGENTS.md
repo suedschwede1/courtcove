@@ -36,6 +36,7 @@ cp .env.example .env
 php artisan key:generate
 php artisan migrate
 npm run build      # or `npm run dev` for Vite HMR during local work
+git config core.hooksPath .githooks   # enables the CHANGELOG pre-commit check below
 ```
 
 The app expects a real MySQL database (`booking_local` locally); migrations create the
@@ -122,3 +123,10 @@ assuming `git pull` happens on the server.
 - Don't bundle unrelated changes into one commit — if the working tree has other
   in-progress/unrelated modifications when you're about to commit, stage and commit only
   the files that belong to your change.
+- Every feature/behavior-relevant commit needs a [CHANGELOG.md](CHANGELOG.md) entry
+  (one line, dated, why/effect not diff — see file header for the exact convention). A
+  `pre-commit` hook (`.githooks/pre-commit`, enabled via `git config core.hooksPath
+  .githooks`, see Setup above) blocks commits that touch non-doc/non-vendor files
+  without also staging a CHANGELOG.md change; bypass only for genuinely
+  changelog-irrelevant commits (formatting, test-only, docs-only) with
+  `git commit --no-verify`.

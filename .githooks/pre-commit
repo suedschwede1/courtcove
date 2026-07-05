@@ -1,0 +1,26 @@
+#!/bin/sh
+# Require a CHANGELOG.md update whenever code/behavior-relevant files are staged.
+# Bypass for a single commit: git commit --no-verify
+
+staged=$(git diff --cached --name-only --diff-filter=ACMR)
+
+if [ -z "$staged" ]; then
+    exit 0
+fi
+
+if echo "$staged" | grep -qx 'CHANGELOG.md'; then
+    exit 0
+fi
+
+# Paths that don't need a CHANGELOG entry on their own.
+relevant=$(echo "$staged" | grep -vE '^(vendor/|node_modules/|\.claude/|docs/reviews/|docs/superpowers/|public/build/|composer\.lock$|package-lock\.json$|\.env)')
+
+if [ -z "$relevant" ]; then
+    exit 0
+fi
+
+echo "pre-commit: staged changes look feature/behavior-relevant, but CHANGELOG.md wasn't updated:" >&2
+echo "$relevant" | sed 's/^/  /' >&2
+echo "" >&2
+echo "Add a dated entry to CHANGELOG.md, or bypass with: git commit --no-verify" >&2
+exit 1
