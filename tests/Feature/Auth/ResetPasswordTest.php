@@ -75,6 +75,25 @@ class ResetPasswordTest extends TestCase
     }
 
     #[Test]
+    public function a_token_for_an_account_disabled_after_the_link_was_sent_is_rejected(): void
+    {
+        $user = User::factory()->create(['email' => 'test@example.com', 'pw' => Hash::make('old-password'), 'status' => 'enabled']);
+        $token = Password::broker()->createToken($user);
+        $user->update(['status' => 'disabled']);
+
+        $response = $this->post('/password/reset', [
+            'token' => $token,
+            'email' => 'test@example.com',
+            'password' => 'new-password123',
+            'password_confirmation' => 'new-password123',
+        ]);
+
+        $response->assertRedirect(route('password.forgot'));
+        $this->assertGuest();
+        $this->assertTrue(Hash::check('old-password', $user->refresh()->pw));
+    }
+
+    #[Test]
     public function password_confirmation_mismatch_fails_validation(): void
     {
         $user = User::factory()->create(['email' => 'test@example.com', 'status' => 'enabled']);

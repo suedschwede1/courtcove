@@ -39,7 +39,7 @@ final class ResetPasswordController extends Controller
 
         $user = User::where('email', $data['email'])->first();
 
-        if (! $user || ! Password::broker()->tokenExists($user, $data['token'])) {
+        if (! $user || ! $user->isEnabled() || ! Password::broker()->tokenExists($user, $data['token'])) {
             return redirect()->route('password.forgot')
                 ->withErrors(['email' => __('booking.password_reset.reset_invalid')]);
         }
