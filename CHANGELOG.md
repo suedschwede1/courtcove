@@ -10,6 +10,11 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-07-06
 
+- Password reset: added the "set new password" flow — `GET/POST /password/reset`
+  (Task 5 of "forgot password" feature). A valid, unexpired token from the emailed
+  link lets a user set a new password and logs them in; an invalid token or unknown
+  email both show the same generic error, to avoid account enumeration. Replaces the
+  temporary placeholder route added in Task 4.
 - Password reset: added the "request a reset link" flow — `GET/POST /password/forgot`
   (Task 4 of "forgot password" feature) — users can request a reset email; the response
   is identical whether the email is unknown or the account is disabled, to avoid account
