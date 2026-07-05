@@ -190,10 +190,31 @@ final class BookingController extends Controller
     public function edit(Booking $booking): View
     {
         $booking->load(['user', 'square', 'reservations', 'meta']);
-        $reservations = $booking->reservations->sortBy([['date', 'asc'], ['time_start', 'asc']]);
-        $reservation = $reservations->first();
+        $reservations = $booking->reservations->sortBy([['date', 'asc'], ['time_start', 'asc']])->values();
+
+        $occurrenceParam = request()->query('occurrence');
+        $occurrenceReservation = is_string($occurrenceParam)
+            ? $reservations->firstWhere('date', $occurrenceParam)
+            : null;
+
+        $showScopeChoice = $booking->isSubscription() && $occurrenceReservation !== null;
+        $reservation = $occurrenceReservation ?? $reservations->first();
+
         $repeatType = $this->detectRepeatType($reservations->all());
         $repeatEndDate = $reservations->last()?->date ?? $reservation?->date;
+        $followingRepeatType = $repeatType;
+        $followingRepeatEndDate = $repeatEndDate;
+
+        if ($showScopeChoice) {
+            $followingReservations = $reservations
+                ->filter(fn (Reservation $r): bool => $r->date >= $occurrenceReservation->date)
+                ->values()
+                ->all();
+            $followingRepeatType = $this->detectRepeatType($followingReservations);
+            $followingRepeatEndDate = $reservations->last()?->date ?? $occurrenceReservation->date;
+            $repeatType = 'once';
+            $repeatEndDate = $occurrenceReservation->date;
+        }
 
         return view('admin.bookings.edit', [
             'booking' => $booking,
@@ -211,6 +232,10 @@ final class BookingController extends Controller
             'repeatType' => $repeatType,
             'repeatEndDate' => $repeatEndDate,
             'isCreate' => false,
+            'showScopeChoice' => $showScopeChoice,
+            'occurrenceDate' => $occurrenceReservation?->date,
+            'followingRepeatType' => $followingRepeatType,
+            'followingRepeatEndDate' => $followingRepeatEndDate,
         ]);
     }
 

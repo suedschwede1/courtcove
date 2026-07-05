@@ -490,4 +490,48 @@ class AdminBookingTest extends TestCase
         $this->assertEqualsCanonicalizing(['2026-07-06', '2026-07-13'], $booking->reservations()->pluck('date')->all());
         $this->assertEquals(1, Booking::count());
     }
+
+    #[Test]
+    public function edit_with_occurrence_param_defaults_to_single_occurrence_scope(): void
+    {
+        $admin = $this->admin();
+        $square = Square::factory()->create();
+        $booking = $this->subscriptionBooking($admin, $square, ['2026-07-06', '2026-07-13', '2026-07-20']);
+
+        $response = $this->actingAs($admin)->get("/admin/bookings/{$booking->bid}/edit?occurrence=2026-07-13");
+
+        $response->assertOk();
+        $this->assertTrue($response->viewData('showScopeChoice'));
+        $this->assertSame('2026-07-13', $response->viewData('reservation')->date);
+        $this->assertSame('once', $response->viewData('repeatType'));
+        $this->assertSame('2026-07-13', $response->viewData('repeatEndDate'));
+        $this->assertSame('weekly', $response->viewData('followingRepeatType'));
+        $this->assertSame('2026-07-20', $response->viewData('followingRepeatEndDate'));
+    }
+
+    #[Test]
+    public function edit_without_occurrence_param_does_not_show_scope_choice(): void
+    {
+        $admin = $this->admin();
+        $square = Square::factory()->create();
+        $booking = $this->subscriptionBooking($admin, $square, ['2026-07-06', '2026-07-13']);
+
+        $response = $this->actingAs($admin)->get("/admin/bookings/{$booking->bid}/edit");
+
+        $response->assertOk();
+        $this->assertFalse($response->viewData('showScopeChoice'));
+        $this->assertSame('2026-07-06', $response->viewData('reservation')->date);
+    }
+
+    #[Test]
+    public function edit_with_occurrence_param_on_single_booking_does_not_show_scope_choice(): void
+    {
+        $booking = Booking::factory()->create(['status' => 'single']);
+        Reservation::factory()->create(['bid' => $booking->bid, 'date' => '2026-07-06']);
+
+        $response = $this->actingAs($this->admin())->get("/admin/bookings/{$booking->bid}/edit?occurrence=2026-07-06");
+
+        $response->assertOk();
+        $this->assertFalse($response->viewData('showScopeChoice'));
+    }
 }
