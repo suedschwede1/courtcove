@@ -21,6 +21,7 @@ final class LoginRiskEvaluator
 
     private const IMPOSSIBLE_TRAVEL_WINDOW_HOURS = 24;
 
+    /** Absorbs same-request timing artifacts (e.g. a test recording a login and checking it milliseconds later) — not a deliberate security grace period. */
     private const IMPOSSIBLE_TRAVEL_MIN_GAP_SECONDS = 60;
 
     private const KNOWN_COUNTRY_WINDOW_DAYS = 30;

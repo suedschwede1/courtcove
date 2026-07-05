@@ -26,6 +26,14 @@ class LoginTest extends TestCase
     }
 
     #[Test]
+    public function login_page_has_a_forgot_password_link(): void
+    {
+        $this->get('/login')
+            ->assertOk()
+            ->assertSee(route('password.forgot'), false);
+    }
+
+    #[Test]
     public function register_page_renders_configurable_registration_text(): void
     {
         Option::create(['key' => 'service.name', 'value' => 'ASV Buchung', 'locale' => null]);

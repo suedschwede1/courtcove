@@ -50,7 +50,10 @@
                     </div>
 
                     <div class="flex flex-col gap-1">
-                        <label for="password" class="text-sm font-medium text-[#151515]">{{ __('booking.auth.password') }}</label>
+                        <div class="flex items-center justify-between">
+                            <label for="password" class="text-sm font-medium text-[#151515]">{{ __('booking.auth.password') }}</label>
+                            <a href="{{ route('password.forgot') }}" class="text-xs text-[#bf4316] hover:underline">{{ __('booking.auth.forgot_password') }}</a>
+                        </div>
                         <input type="password" id="password" name="password" required autocomplete="current-password" class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent {{ $errors->has('password') ? 'border-red-400' : 'border-[#cccccc]' }}">
                         @error('password')
                             <p class="text-xs text-red-600">{{ $message }}</p>
