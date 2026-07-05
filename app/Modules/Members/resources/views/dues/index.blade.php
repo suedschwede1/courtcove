@@ -37,7 +37,8 @@
             <form method="POST" action="{{ route('members.dues.generate') }}">
                 @csrf
                 <input type="hidden" name="fiscal_year_id" value="{{ $selectedFiscalYearId }}">
-                <button type="submit" class="ui-btn ui-btn-primary">{{ __('members::admin.dues.generate') }}</button>
+                @php $selectedFiscalYear = $fiscalYears->firstWhere('id', $selectedFiscalYearId); @endphp
+                <button type="submit" class="ui-btn ui-btn-primary">{{ __('members::admin.dues.generate_for', ['year' => $selectedFiscalYear->name ?? '']) }}</button>
             </form>
             <button type="button" class="ui-btn ui-btn-ghost" @click="composing = !composing">{{ __('members::admin.dues.new') }}</button>
         </div>
@@ -117,9 +118,11 @@
                                         }
                                     }
                                 }"
-                                @click.outside="if (!error) editing = false">
-                                <span x-show="!editing" @click="editing = true" x-text="labels[displayValue]" :class="'ui-badge ' + classes[displayValue]" class="cursor-pointer" :style="justSaved && 'outline: 2px solid #3e8635; outline-offset: 2px;'"></span>
-                                <div x-show="editing">
+                                @click="if (!editing) editing = true"
+                                @click.outside="if (!error) editing = false"
+                                class="cursor-pointer">
+                                <span x-show="!editing" x-text="labels[displayValue]" :class="'ui-badge ' + classes[displayValue]" :style="justSaved && 'outline: 2px solid #3e8635; outline-offset: 2px;'"></span>
+                                <div x-show="editing" @click.stop>
                                     <select x-model="value" @change="save()" class="ui-select">
                                         <option value="ausstehend" x-text="labels.ausstehend"></option>
                                         <option value="bezahlt" x-text="labels.bezahlt"></option>
@@ -154,9 +157,11 @@
                                         }
                                     }
                                 }"
-                                @click.outside="if (!error) editing = false">
-                                <span x-show="!editing" @click="editing = true" x-text="display" class="cursor-pointer" :style="(display !== '–' ? 'color:#f0ab00;font-weight:500;' : '') + (justSaved ? 'outline: 2px solid #3e8635; outline-offset: 2px;' : '')"></span>
-                                <div x-show="editing">
+                                @click="if (!editing) editing = true"
+                                @click.outside="if (!error) editing = false"
+                                class="cursor-pointer">
+                                <span x-show="!editing" x-text="display" :style="(display !== '–' ? 'color:#f0ab00;font-weight:500;' : '') + (justSaved ? 'outline: 2px solid #3e8635; outline-offset: 2px;' : '')"></span>
+                                <div x-show="editing" @click.stop>
                                     <input type="number" step="0.01" min="0" x-model="value" @blur="save()" @keydown.enter.prevent="$event.target.blur()" :style="error && 'border-color:#c9190b'" class="ui-input">
                                     <p x-show="error" x-text="error" class="ui-error"></p>
                                 </div>
@@ -179,9 +184,11 @@
                                         }
                                     }
                                 }"
-                                @click.outside="if (!error) editing = false">
-                                <span x-show="!editing" @click="editing = true" x-text="display" class="cursor-pointer" :style="justSaved && 'outline: 2px solid #3e8635; outline-offset: 2px;'"></span>
-                                <div x-show="editing">
+                                @click="if (!editing) editing = true"
+                                @click.outside="if (!error) editing = false"
+                                class="cursor-pointer">
+                                <span x-show="!editing" x-text="display" :style="justSaved && 'outline: 2px solid #3e8635; outline-offset: 2px;'"></span>
+                                <div x-show="editing" @click.stop>
                                     <input type="text" x-model="value" @blur="save()" @keydown.enter.prevent="$event.target.blur()" :style="error && 'border-color:#c9190b'" class="ui-input">
                                     <p x-show="error" x-text="error" class="ui-error"></p>
                                 </div>

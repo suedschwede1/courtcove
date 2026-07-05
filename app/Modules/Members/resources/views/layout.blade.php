@@ -13,7 +13,7 @@
 <body style="font-family: var(--font-body)">
 <div class="flex min-h-screen bg-[#f0f0f0]">
     <aside style="width:180px; height:100vh; position:sticky; top:0; overflow-y:auto; background:#151515; flex-shrink:0; display:flex; flex-direction:column;">
-        <a href="{{ route('calendar.index') }}" onmouseover="this.style.color='#7fb3e8';" onmouseout="this.style.color='#4d8fdb';" style="display:block; padding:14px 14px 10px; border-bottom:1px solid rgba(255,255,255,0.08); margin-bottom:8px; font-family:var(--font-body); font-size:13px; font-weight:600; text-decoration:none; color:#4d8fdb; transition:color 0.15s ease;">
+        <a href="{{ route('calendar.index') }}" onmouseover="this.style.color='#7fb3e8';" onmouseout="this.style.color='#4d8fdb';" style="display:block; padding:14px 14px 10px; border-bottom:1px solid rgba(255,255,255,0.08); margin-bottom:8px; font-family:var(--font-body); font-size:16px; font-weight:600; text-decoration:none; color:#4d8fdb; transition:color 0.15s ease;">
             ← {{ __('booking.nav.back_to_calendar') }}
         </a>
 
@@ -31,7 +31,7 @@
                 ['route' => 'members.mail.index', 'pattern' => 'members.mail.*', 'label' => __('members::admin.mail.title')],
             ] as $item)
                 @php $active = request()->routeIs(...explode(',', $item['pattern'])); @endphp
-                <a href="{{ route($item['route']) }}" onmouseover="if (!this.dataset.active) { this.style.background='#26292e'; this.style.color='#ffffff'; }" onmouseout="if (!this.dataset.active) { this.style.background='transparent'; this.style.color='#b2b6bd'; }" data-active="{{ $active ? '1' : '' }}" style="display:block; padding:12px 14px 12px {{ $active ? '11px' : '17px' }}; font-family:var(--font-body); font-size:13px; text-decoration:none; transition:background 0.15s ease, color 0.15s ease; color:{{ $active ? '#ffffff' : '#b2b6bd' }}; font-weight:{{ $active ? '700' : '400' }}; background:{{ $active ? '#34363b' : 'transparent' }}; border-left:{{ $active ? '3px solid #0066cc' : '3px solid transparent' }};">
+                <a href="{{ route($item['route']) }}" onmouseover="if (!this.dataset.active) { this.style.background='#26292e'; this.style.color='#ffffff'; }" onmouseout="if (!this.dataset.active) { this.style.background='transparent'; this.style.color='#b2b6bd'; }" data-active="{{ $active ? '1' : '' }}" style="display:block; padding:12px 14px 12px {{ $active ? '11px' : '17px' }}; font-family:var(--font-body); font-size:16px; text-decoration:none; transition:background 0.15s ease, color 0.15s ease; color:{{ $active ? '#ffffff' : '#b2b6bd' }}; font-weight:{{ $active ? '700' : '400' }}; background:{{ $active ? '#34363b' : 'transparent' }}; border-left:{{ $active ? '3px solid #0066cc' : '3px solid transparent' }};">
                     {{ $item['label'] }}
                 </a>
             @endforeach
@@ -48,7 +48,7 @@
                 ['route' => 'members.functions.index', 'pattern' => 'members.functions.*', 'label' => __('members::admin.functions.title')],
             ] as $item)
                 @php $active = request()->routeIs(...explode(',', $item['pattern'])); @endphp
-                <a href="{{ route($item['route']) }}" onmouseover="if (!this.dataset.active) { this.style.background='#26292e'; this.style.color='#ffffff'; }" onmouseout="if (!this.dataset.active) { this.style.background='transparent'; this.style.color='#b2b6bd'; }" data-active="{{ $active ? '1' : '' }}" style="display:block; padding:12px 14px 12px {{ $active ? '11px' : '17px' }}; font-family:var(--font-body); font-size:13px; text-decoration:none; transition:background 0.15s ease, color 0.15s ease; color:{{ $active ? '#ffffff' : '#b2b6bd' }}; font-weight:{{ $active ? '700' : '400' }}; background:{{ $active ? '#34363b' : 'transparent' }}; border-left:{{ $active ? '3px solid #0066cc' : '3px solid transparent' }};">
+                <a href="{{ route($item['route']) }}" onmouseover="if (!this.dataset.active) { this.style.background='#26292e'; this.style.color='#ffffff'; }" onmouseout="if (!this.dataset.active) { this.style.background='transparent'; this.style.color='#b2b6bd'; }" data-active="{{ $active ? '1' : '' }}" style="display:block; padding:12px 14px 12px {{ $active ? '11px' : '17px' }}; font-family:var(--font-body); font-size:16px; text-decoration:none; transition:background 0.15s ease, color 0.15s ease; color:{{ $active ? '#ffffff' : '#b2b6bd' }}; font-weight:{{ $active ? '700' : '400' }}; background:{{ $active ? '#34363b' : 'transparent' }}; border-left:{{ $active ? '3px solid #0066cc' : '3px solid transparent' }};">
                     {{ $item['label'] }}
                 </a>
             @endforeach
