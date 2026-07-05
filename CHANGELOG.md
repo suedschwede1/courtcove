@@ -13,7 +13,8 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 - Wrote a design spec for risk-based email verification on login (unusual country,
   repeated failed attempts, impossible travel) — see
   [docs/superpowers/specs/2026-07-05-risk-based-email-verification-design.md](docs/superpowers/specs/2026-07-05-risk-based-email-verification-design.md).
-  Not implemented yet.
+  Country-based checks fail open when the MaxMind GeoLite2 file is missing. Not
+  implemented yet.
 - Documented the security posture in the README: no MFA (deliberate — login must stay
   fast for a booking system), compensated by existing login rate limiting and
   country-based geo-blocking (`BOOKING_BLOCKED_LOGIN_COUNTRIES`).
