@@ -207,21 +207,20 @@ class MemberManagementTest extends TestCase
     }
 
     #[Test]
-    public function index_shows_age_and_fee_category_columns(): void
+    public function index_shows_the_fee_category_column(): void
     {
         $category = FeeCategory::create(['name' => 'Vollzahler']);
         Member::factory()->create([
             'firstname' => 'Anna', 'lastname' => 'Muster',
-            'birthdate' => now()->subYears(46)->subDay()->toDateString(),
             'fee_category_id' => $category->id,
         ]);
 
         $this->actingAs($this->admin())->get('/members')
-            ->assertOk()->assertSee('Vollzahler')->assertSee('<td class="text-[#6a6e73]">46</td>', false);
+            ->assertOk()->assertSee('Vollzahler');
     }
 
     #[Test]
-    public function the_list_marks_name_email_category_and_joined_at_as_editable_fields(): void
+    public function the_list_marks_name_email_category_and_phone_as_editable_fields(): void
     {
         $category = FeeCategory::create(['name' => 'Vollzahler']);
         Member::factory()->create([
@@ -234,8 +233,32 @@ class MemberManagementTest extends TestCase
             ->assertSee('data-field="firstname"', false)
             ->assertSee('data-field="fee_category_id"', false)
             ->assertSee('data-field="email"', false)
-            ->assertSee('data-field="joined_at"', false)
+            ->assertSee('data-field="phone"', false)
             ->assertSee('window.saveMemberField', false);
+    }
+
+    #[Test]
+    public function index_shows_a_payment_status_badge_from_the_latest_due(): void
+    {
+        $member = Member::factory()->create(['firstname' => 'Bezahler']);
+        $category = FeeCategory::create(['name' => 'Vollmitglied']);
+        $fy = \App\Modules\Members\Models\FiscalYear::create(['name' => '2026/27', 'starts_on' => '2026-09-01', 'ends_on' => '2027-08-31']);
+        \App\Modules\Members\Models\MemberDue::create([
+            'member_id' => $member->id, 'fiscal_year_id' => $fy->id, 'fee_category_id' => $category->id,
+            'amount' => 120, 'status' => 'bezahlt',
+        ]);
+
+        $this->actingAs($this->admin())->get('/members')
+            ->assertOk()->assertSeeInOrder(['Bezahler', 'Bezahlt']);
+    }
+
+    #[Test]
+    public function index_shows_a_dash_for_a_member_without_dues(): void
+    {
+        Member::factory()->create(['firstname' => 'Ohne', 'lastname' => 'Beitrag']);
+
+        $this->actingAs($this->admin())->get('/members')
+            ->assertOk()->assertSee('Ohne Beitrag');
     }
 
     #[Test]
@@ -300,5 +323,39 @@ class MemberManagementTest extends TestCase
         $response = $this->actingAs($this->admin())->get('/members?status=ruhend');
 
         $response->assertOk()->assertSee('Ruhend')->assertDontSee('Weg');
+    }
+
+    #[Test]
+    public function admin_can_link_a_member_to_a_booking_system_user(): void
+    {
+        $user = User::factory()->create();
+        $member = Member::factory()->create();
+
+        $this->actingAs($this->admin())->put("/members/{$member->id}", [
+            'member_number' => $member->member_number,
+            'firstname' => $member->firstname,
+            'lastname' => $member->lastname,
+            'joined_at' => $member->joined_at->format('Y-m-d'),
+            'user_id' => $user->uid,
+        ])->assertRedirect(route('members.index'));
+
+        $this->assertSame($user->uid, $member->fresh()->user_id);
+        $this->assertSame($user->uid, $member->fresh()->user->uid);
+    }
+
+    #[Test]
+    public function a_booking_system_user_cannot_be_linked_to_two_members(): void
+    {
+        $user = User::factory()->create();
+        Member::factory()->create(['user_id' => $user->uid]);
+        $other = Member::factory()->create();
+
+        $this->actingAs($this->admin())->put("/members/{$other->id}", [
+            'member_number' => $other->member_number,
+            'firstname' => $other->firstname,
+            'lastname' => $other->lastname,
+            'joined_at' => $other->joined_at->format('Y-m-d'),
+            'user_id' => $user->uid,
+        ])->assertSessionHasErrors('user_id');
     }
 }

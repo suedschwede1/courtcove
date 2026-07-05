@@ -20,46 +20,36 @@
         </div>
         <div class="ui-card ui-kpi">
             <div class="ui-card-body">
-                <p class="ui-kpi-label">{{ __('members::admin.dashboard.by_category') }}</p>
-                <p class="ui-kpi-value">{{ count($categoryCounts) }}</p>
+                <p class="ui-kpi-label">{{ __('members::admin.dashboard.paid_dues') }}</p>
+                <p class="ui-kpi-value">{{ $paidDuesCount }}</p>
+                <p class="ui-kpi-meta">{{ number_format((float) $paidDuesSum, 2) }} €</p>
             </div>
         </div>
     </div>
 
-    <div class="ui-dashboard-lower">
-        <div class="ui-card">
-            <div class="ui-card-header"><h2>{{ __('members::admin.dashboard.age_structure') }}</h2></div>
-            <div class="ui-card-body">
-                @foreach($ageStructure['buckets'] as $bucket => $count)
-                    <div class="ui-age-row">
+    <div class="ui-card">
+        <div class="ui-card-header"><h2>{{ __('members::admin.dashboard.age_structure') }}</h2></div>
+        <div class="ui-card-body">
+            @php $maxAgeCount = max([...array_values($ageStructure['buckets']), $ageStructure['unknown']]) ?: 0; @endphp
+            @foreach($ageStructure['buckets'] as $bucket => $count)
+                <div class="ui-category-bar-row">
+                    <div class="ui-category-bar-label">
                         <span>{{ __('members::admin.dashboard.age_'.$bucket) }}</span>
                         <span>{{ $count }}</span>
                     </div>
-                @endforeach
-                <div class="ui-age-row">
+                    <div class="ui-category-bar-track">
+                        <div class="ui-category-bar-fill" style="width: {{ $maxAgeCount > 0 ? round($count / $maxAgeCount * 100) : 0 }}%"></div>
+                    </div>
+                </div>
+            @endforeach
+            <div class="ui-category-bar-row">
+                <div class="ui-category-bar-label">
                     <span>{{ __('members::admin.dashboard.age_unknown') }}</span>
                     <span>{{ $ageStructure['unknown'] }}</span>
                 </div>
-            </div>
-        </div>
-
-        <div class="ui-card">
-            <div class="ui-card-header"><h2>{{ __('members::admin.dashboard.by_category') }}</h2></div>
-            <div class="ui-card-body">
-                @php $maxCategoryCount = $categoryCounts->max() ?: 0; @endphp
-                @forelse($categoryCounts as $categoryName => $count)
-                    <div class="ui-category-bar-row">
-                        <div class="ui-category-bar-label">
-                            <span>{{ $categoryName }}</span>
-                            <span>{{ $count }}</span>
-                        </div>
-                        <div class="ui-category-bar-track">
-                            <div class="ui-category-bar-fill" style="width: {{ $maxCategoryCount > 0 ? round($count / $maxCategoryCount * 100) : 0 }}%"></div>
-                        </div>
-                    </div>
-                @empty
-                    <p class="ui-kpi-meta">—</p>
-                @endforelse
+                <div class="ui-category-bar-track">
+                    <div class="ui-category-bar-fill" style="width: {{ $maxAgeCount > 0 ? round($ageStructure['unknown'] / $maxAgeCount * 100) : 0 }}%"></div>
+                </div>
             </div>
         </div>
     </div>

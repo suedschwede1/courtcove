@@ -15,28 +15,26 @@ class DashboardController
     {
         $activeCount = Member::query()->active()->count();
 
-        $currentFiscalYear = FiscalYear::query()->orderByDesc('ends_on')->first();
+        $fiscalYears = FiscalYear::query()->orderBy('starts_on')->get();
+        $currentFiscalYear = $fiscalYears->first(
+            fn (FiscalYear $fiscalYear) => now()->between($fiscalYear->starts_on, $fiscalYear->ends_on),
+        ) ?? $fiscalYears->last();
 
         $openDuesQuery = MemberDue::query()->whereDoesntHave('payments');
+        $paidDuesQuery = MemberDue::query()->whereHas('payments');
         if ($currentFiscalYear) {
             $openDuesQuery->where('fiscal_year_id', $currentFiscalYear->id);
+            $paidDuesQuery->where('fiscal_year_id', $currentFiscalYear->id);
         }
         $openDues = $openDuesQuery->get();
-
-        $categoryCounts = $currentFiscalYear
-            ? MemberDue::query()
-                ->where('fiscal_year_id', $currentFiscalYear->id)
-                ->with('feeCategory')
-                ->get()
-                ->groupBy(fn (MemberDue $due) => $due->feeCategory->name)
-                ->map->count()
-            : collect();
+        $paidDues = $paidDuesQuery->get();
 
         return view('members::dashboard', [
             'activeCount' => $activeCount,
             'openDuesCount' => $openDues->count(),
             'openDuesSum' => $openDues->sum('amount'),
-            'categoryCounts' => $categoryCounts,
+            'paidDuesCount' => $paidDues->count(),
+            'paidDuesSum' => $paidDues->sum('amount'),
             'currentFiscalYear' => $currentFiscalYear,
             'ageStructure' => $this->ageStructure(),
         ]);

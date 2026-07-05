@@ -11,13 +11,28 @@
     <div class="ui-card" x-data="{ composing: false }">
         <div class="ui-card-body ui-stack">
             <form method="GET" action="{{ route('members.dues.index') }}" class="ui-row">
-                <div class="ui-field min-w-[12rem]">
-                    <select name="fiscal_year_id" class="ui-select" onchange="this.form.submit()">
+                <div class="ui-field min-w-[10rem]">
+                    <label class="ui-label" for="due-fiscal-year">{{ __('members::admin.fiscal_years.title') }}</label>
+                    <select id="due-fiscal-year" name="fiscal_year_id" class="ui-select" onchange="this.form.submit()">
                         @foreach($fiscalYears as $fiscalYear)
                             <option value="{{ $fiscalYear->id }}" @selected($selectedFiscalYearId === $fiscalYear->id)>{{ $fiscalYear->name }}</option>
                         @endforeach
                     </select>
                 </div>
+                <div class="ui-field min-w-[14rem]">
+                    <label class="ui-label" for="due-search">{{ __('members::admin.members.search') }}</label>
+                    <input id="due-search" type="text" name="search" value="{{ $filters['search'] ?? '' }}" class="ui-input">
+                </div>
+                <div class="ui-field min-w-[12rem]">
+                    <label class="ui-label" for="due-status">{{ __('members::admin.dues.status') }}</label>
+                    <select id="due-status" name="status" class="ui-select">
+                        <option value="">{{ __('members::admin.common.all') }}</option>
+                        <option value="bezahlt" @selected(($filters['status'] ?? '') === 'bezahlt')>{{ __('members::admin.dues.status_bezahlt') }}</option>
+                        <option value="ausstehend" @selected(($filters['status'] ?? '') === 'ausstehend')>{{ __('members::admin.dues.status_ausstehend') }}</option>
+                        <option value="ueberfaellig" @selected(($filters['status'] ?? '') === 'ueberfaellig')>{{ __('members::admin.dues.status_ueberfaellig') }}</option>
+                    </select>
+                </div>
+                <button type="submit" class="ui-btn ui-btn-primary">{{ __('members::admin.common.filter') }}</button>
             </form>
             <form method="POST" action="{{ route('members.dues.generate') }}">
                 @csrf
@@ -46,6 +61,12 @@
             <div class="ui-field min-w-[8rem]">
                 <input type="number" step="0.01" min="0" name="amount" placeholder="{{ __('members::admin.fee_categories.amount') }}" class="ui-input">
             </div>
+            <div class="ui-field min-w-[8rem]">
+                <input type="number" step="0.01" min="0" name="teilbetrag" placeholder="{{ __('members::admin.dues.teilbetrag') }}" class="ui-input">
+            </div>
+            <div class="ui-field min-w-[12rem]">
+                <input type="text" name="kommentar" placeholder="{{ __('members::admin.dues.kommentar') }}" class="ui-input">
+            </div>
             <button type="submit" class="ui-btn ui-btn-primary">{{ __('members::admin.common.save') }}</button>
         </form>
     </div>
@@ -56,10 +77,10 @@
                 <thead>
                     <tr>
                         <th>{{ __('members::admin.members.name') }}</th>
+                        <th>{{ __('members::admin.fiscal_years.title') }}</th>
                         <th>{{ __('members::admin.fee_categories.title') }}</th>
                         <th>{{ __('members::admin.fee_categories.amount') }}</th>
                         <th>{{ __('members::admin.dues.status') }}</th>
-                        <th>{{ __('members::admin.dues.due_date') }}</th>
                         <th>{{ __('members::admin.dues.paid_through') }}</th>
                         <th>{{ __('members::admin.dues.teilbetrag') }}</th>
                         <th>{{ __('members::admin.dues.kommentar') }}</th>
@@ -69,6 +90,7 @@
                     @foreach($dues as $due)
                         <tr>
                             <td>{{ $due->member->fullName() }}</td>
+                            <td>{{ $due->fiscalYear->name }}</td>
                             <td>{{ $due->feeCategory->name }}</td>
                             <td>{{ number_format((float) $due->amount, 2) }} €</td>
                             <td data-field="status"
@@ -103,31 +125,6 @@
                                         <option value="bezahlt" x-text="labels.bezahlt"></option>
                                         <option value="ueberfaellig" x-text="labels.ueberfaellig"></option>
                                     </select>
-                                    <p x-show="error" x-text="error" class="ui-error"></p>
-                                </div>
-                            </td>
-                            <td data-field="faellig_am"
-                                x-data="{
-                                    editing: false, error: null, justSaved: false,
-                                    value: @js($due->faellig_am?->format('Y-m-d') ?? ''),
-                                    display: @js($due->faellig_am?->format('d.m.Y') ?? '–'),
-                                    async save() {
-                                        this.error = null;
-                                        const result = await window.saveDueField({{ $due->id }}, 'faellig_am', this.value);
-                                        if (result.ok) {
-                                            this.editing = false;
-                                            this.display = result.value;
-                                            this.justSaved = true;
-                                            setTimeout(() => this.justSaved = false, 1500);
-                                        } else {
-                                            this.error = result.message;
-                                        }
-                                    }
-                                }"
-                                @click.outside="if (!error) editing = false">
-                                <span x-show="!editing" @click="editing = true" x-text="display" class="cursor-pointer" :style="justSaved && 'outline: 2px solid #3e8635; outline-offset: 2px;'"></span>
-                                <div x-show="editing">
-                                    <input type="date" x-model="value" @blur="save()" @keydown.enter.prevent="$event.target.blur()" :style="error && 'border-color:#c9190b'" class="ui-input">
                                     <p x-show="error" x-text="error" class="ui-error"></p>
                                 </div>
                             </td>
@@ -194,6 +191,12 @@
                 </tbody>
             </table>
         </div>
+        @if($dues->hasPages())
+            <div class="ui-card-body">
+                {{ $dues->links() }}
+            </div>
+        @endif
+
     </div>
 </div>
 <script>

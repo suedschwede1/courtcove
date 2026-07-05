@@ -47,6 +47,20 @@ class FiscalYearManagementTest extends TestCase
     }
 
     #[Test]
+    public function admin_can_set_a_due_date_distinct_from_the_start_date(): void
+    {
+        $this->actingAs($this->admin())->post('/members/fiscal-years', [
+            'name' => '2025/26',
+            'starts_on' => '2025-09-01',
+            'ends_on' => '2026-08-31',
+            'faellig_am' => '2025-10-15',
+        ])->assertRedirect(route('members.fiscal-years.index'));
+
+        $fiscalYear = \App\Modules\Members\Models\FiscalYear::where('name', '2025/26')->first();
+        $this->assertSame('2025-10-15', $fiscalYear->faellig_am->toDateString());
+    }
+
+    #[Test]
     public function index_lists_fiscal_years_ordered_by_start_date(): void
     {
         \App\Modules\Members\Models\FiscalYear::create(['name' => '2026/27', 'starts_on' => '2026-09-01', 'ends_on' => '2027-08-31']);

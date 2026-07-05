@@ -24,12 +24,30 @@
                 </div>
 
                 <p class="ui-section-label">{{ __('members::admin.payments.covers') }}</p>
-                @foreach($openDues as $due)
-                    <label class="flex items-center gap-2">
-                        <input type="checkbox" name="member_due_ids[]" value="{{ $due->id }}">
-                        {{ $due->fiscalYear->name }} — {{ $due->feeCategory->name }} ({{ number_format((float) $due->amount, 2) }} €)
-                    </label>
-                @endforeach
+            </div>
+        </div>
+        <div class="ui-card">
+            <div class="ui-table-wrap">
+                <table class="ui-table">
+                    <thead>
+                        <tr>
+                            <th style="width:2.5rem"></th>
+                            <th>{{ __('members::admin.fiscal_years.title') }}</th>
+                            <th>{{ __('members::admin.fee_categories.title') }}</th>
+                            <th>{{ __('members::admin.payments.amount') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($openDues as $due)
+                            <tr>
+                                <td><input type="checkbox" name="member_due_ids[]" value="{{ $due->id }}"></td>
+                                <td>{{ $due->fiscalYear->name }}</td>
+                                <td>{{ $due->feeCategory->name }}</td>
+                                <td>{{ number_format((float) $due->amount, 2) }} €</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
         </div>
         <div class="ui-form-actions">

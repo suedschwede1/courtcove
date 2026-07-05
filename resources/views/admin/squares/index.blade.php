@@ -4,7 +4,7 @@
 <div class="flex flex-col gap-6">
     <div class="flex items-center justify-between">
         <h1 class="text-2xl font-bold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.admin.squares.title') }}</h1>
-        <a href="{{ route('admin.squares.create') }}" class="bg-[#bf4316] hover:bg-[#9e3412] text-white text-sm font-medium px-5 py-2 rounded transition-colors">{{ __('booking.admin.squares.new_square') }}</a>
+        <a href="{{ route('admin.squares.create') }}" class="ui-btn ui-btn-primary">{{ __('booking.admin.squares.new_square') }}</a>
     </div>
 
     <div class="bg-white rounded-xl border border-[#e0ddd7] shadow-sm overflow-hidden">

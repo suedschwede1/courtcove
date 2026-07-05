@@ -17,40 +17,46 @@
         <div class="ui-card-body ui-stack">
             <div class="ui-field">
                 <label class="ui-label">{{ __('members::admin.mail.from') }}</label>
-                <input type="text" value="{{ $fromName }} <{{ $fromAddress }}>" class="ui-input" disabled>
+                <div class="flex gap-2">
+                    <input type="text" name="from_name" form="mail-send-form" value="{{ old('from_name', $fromName) }}" required class="ui-input" placeholder="{{ __('members::admin.mail.from_name') }}" style="flex:1">
+                    <input type="email" name="from_address" form="mail-send-form" value="{{ old('from_address', $fromAddress) }}" required class="ui-input" placeholder="{{ __('members::admin.mail.from_address') }}" style="flex:1">
+                </div>
             </div>
             <div class="ui-field">
                 <label class="ui-label">BCC</label>
-                <input type="text" class="ui-input" disabled
-                    :value="audience === 'all' ? {{ Js::from(__('members::admin.mail.recipients_count', ['count' => $recipientCounts['all']])) }} : {{ Js::from(__('members::admin.mail.recipients_count', ['count' => $recipientCounts['vorstand']])) }}">
+                <div class="ui-readonly-box ui-readonly-box-muted"
+                    x-text="audience === 'all' ? {{ Js::from($recipientAddresses['all']) }} : {{ Js::from($recipientAddresses['vorstand']) }}"></div>
             </div>
 
-            <form method="POST" action="{{ route('members.mail.send') }}" class="ui-stack">
-                @csrf
-                <input type="hidden" name="audience" x-model="audience">
-                <div class="ui-field">
-                    <label class="ui-label" for="mail-subject">{{ __('members::admin.mail.subject') }}</label>
-                    <input id="mail-subject" type="text" name="subject" x-model="subject" class="ui-input">
-                </div>
-                <div class="ui-field">
-                    <label class="ui-label" for="mail-body">{{ __('members::admin.mail.message') }}</label>
-                    <textarea id="mail-body" name="body" rows="8" x-model="body" class="ui-input"></textarea>
-                </div>
-                <div class="ui-form-actions justify-between">
-                    <button type="submit" class="ui-btn ui-btn-primary">{{ __('members::admin.mail.send') }}</button>
-                </div>
-            </form>
+            <div class="ui-field">
+                <label class="ui-label" for="mail-subject">{{ __('members::admin.mail.subject') }}</label>
+                <input id="mail-subject" type="text" x-model="subject" class="ui-input" form="mail-send-form">
+            </div>
+            <div class="ui-field">
+                <label class="ui-label" for="mail-body">{{ __('members::admin.mail.message') }}</label>
+                <textarea id="mail-body" rows="18" x-model="body" class="ui-input" form="mail-send-form" style="min-height:22rem"></textarea>
+            </div>
 
-            <form method="POST" action="{{ route('members.mail.templates.store') }}" class="flex items-end gap-2 pt-2 border-t border-[#e7e3da]">
-                @csrf
-                <input type="hidden" name="subject" x-model="subject">
-                <input type="hidden" name="body" x-model="body">
-                <div class="ui-field flex-1">
-                    <label class="ui-label" for="mail-template-name">{{ __('members::admin.mail.template_name') }}</label>
-                    <input id="mail-template-name" type="text" name="name" x-model="templateName" class="ui-input">
+            <div class="flex items-center gap-3 flex-wrap">
+                <form id="mail-send-form" method="POST" action="{{ route('members.mail.send') }}" style="display:contents">
+                    @csrf
+                    <input type="hidden" name="audience" x-model="audience">
+                    <input type="hidden" name="subject" x-model="subject">
+                    <input type="hidden" name="body" x-model="body">
+                    <button type="submit" class="ui-btn ui-btn-primary">{{ __('members::admin.mail.send') }}</button>
+                </form>
+                <span class="text-sm text-[#6a6e73]" x-text="audience === 'all' ? {{ Js::from(__('members::admin.mail.recipients_count', ['count' => $recipientCounts['all']])) }} : {{ Js::from(__('members::admin.mail.recipients_count', ['count' => $recipientCounts['vorstand']])) }}"></span>
+
+                <div class="flex items-center gap-2 flex-1 min-w-[16rem] pl-4" style="border-left:1px solid var(--ui-border)">
+                    <form method="POST" action="{{ route('members.mail.templates.store') }}" style="display:contents">
+                        @csrf
+                        <input type="hidden" name="subject" x-model="subject">
+                        <input type="hidden" name="body" x-model="body">
+                        <input type="text" name="name" x-model="templateName" placeholder="{{ __('members::admin.mail.template_name') }}" class="ui-input flex-1">
+                        <button type="submit" class="ui-btn ui-btn-outline">{{ __('members::admin.mail.save_as_template') }}</button>
+                    </form>
                 </div>
-                <button type="submit" class="ui-btn ui-btn-outline">{{ __('members::admin.mail.save_as_template') }}</button>
-            </form>
+            </div>
         </div>
     </div>
 

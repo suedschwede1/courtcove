@@ -9,11 +9,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class FiscalYear extends Model
 {
-    protected $fillable = ['name', 'starts_on', 'ends_on'];
+    protected $fillable = ['name', 'starts_on', 'ends_on', 'faellig_am'];
 
     protected $casts = [
         'starts_on' => 'date',
         'ends_on' => 'date',
+        'faellig_am' => 'date',
     ];
 
     public function feeCategoryRates(): HasMany

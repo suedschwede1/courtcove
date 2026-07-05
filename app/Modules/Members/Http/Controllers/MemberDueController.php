@@ -28,15 +28,39 @@ class MemberDueController
         $defaultFiscalYearId = $currentFiscalYear->id ?? $fiscalYears->last()->id ?? 0;
         $selectedFiscalYearId = (int) $request->query('fiscal_year_id', $defaultFiscalYearId);
 
-        $dues = MemberDue::query()
+        $duesQuery = MemberDue::query()
             ->with(['member', 'feeCategory', 'payments', 'fiscalYear', 'bezahltBisFiscalYear'])
-            ->where('fiscal_year_id', $selectedFiscalYearId)
-            ->get();
+            ->where('fiscal_year_id', $selectedFiscalYearId);
+
+        $search = trim($request->string('search')->value());
+        if ($search !== '') {
+            $duesQuery->whereHas('member', function ($q) use ($search) {
+                $q->where('firstname', 'like', "%{$search}%")
+                    ->orWhere('lastname', 'like', "%{$search}%");
+            });
+        }
+
+        $statusFilter = $request->string('status')->value();
+        if (in_array($statusFilter, MemberDue::STATUSES, true)) {
+            match ($statusFilter) {
+                'bezahlt' => $duesQuery->where('status', 'bezahlt'),
+                'ausstehend' => $duesQuery->where('status', 'ausstehend')
+                    ->where(fn ($q) => $q->whereNull('faellig_am')->orWhere('faellig_am', '>=', now()->toDateString())),
+                'ueberfaellig' => $duesQuery->where('status', 'ausstehend')
+                    ->whereNotNull('faellig_am')->where('faellig_am', '<', now()->toDateString()),
+            };
+        }
+
+        $dues = $duesQuery->orderBy('member_id')->paginate(25)->withQueryString();
 
         return view('members::dues.index', [
             'fiscalYears' => $fiscalYears,
             'selectedFiscalYearId' => $selectedFiscalYearId,
             'dues' => $dues,
+            'filters' => array_filter(
+                $request->only('search', 'status'),
+                fn ($value) => $value !== null && $value !== '',
+            ),
             'members' => Member::query()->active()->orderBy('lastname')->orderBy('firstname')->get(),
             'feeCategories' => FeeCategory::query()->orderBy('name')->get(),
         ]);
@@ -53,15 +77,31 @@ class MemberDueController
             ],
             'fiscal_year_id' => ['required', 'exists:fiscal_years,id'],
             'fee_category_id' => ['required', 'exists:fee_categories,id'],
-            'amount' => ['required', 'numeric', 'decimal:0,2', 'min:0', 'max:999999.99'],
+            'amount' => ['nullable', 'numeric', 'decimal:0,2', 'min:0', 'max:999999.99'],
+            'teilbetrag' => ['nullable', 'numeric', 'decimal:0,2', 'min:0', 'max:999999.99'],
+            'kommentar' => ['nullable', 'string', 'max:1000'],
         ]);
 
         $fiscalYear = FiscalYear::findOrFail($validated['fiscal_year_id']);
 
+        if (($validated['amount'] ?? null) === null) {
+            $rate = FeeCategoryRate::where('fee_category_id', $validated['fee_category_id'])
+                ->where('fiscal_year_id', $validated['fiscal_year_id'])
+                ->first();
+
+            if (! $rate) {
+                throw ValidationException::withMessages([
+                    'amount' => __('members::admin.dues.no_rate_for_category_year'),
+                ]);
+            }
+
+            $validated['amount'] = $rate->amount;
+        }
+
         MemberDue::create([
             ...$validated,
             'status' => 'ausstehend',
-            'faellig_am' => $fiscalYear->starts_on,
+            'faellig_am' => $fiscalYear->faellig_am ?? $fiscalYear->starts_on,
         ]);
 
         return redirect()->route('members.dues.index', ['fiscal_year_id' => $validated['fiscal_year_id']])
@@ -106,7 +146,7 @@ class MemberDueController
                     'fee_category_id' => $lastDue->fee_category_id,
                     'amount' => $rate->amount,
                     'status' => 'ausstehend',
-                    'faellig_am' => $newFiscalYear->starts_on,
+                    'faellig_am' => $newFiscalYear->faellig_am ?? $newFiscalYear->starts_on,
                 ]);
 
                 $created++;
@@ -123,7 +163,6 @@ class MemberDueController
             'status' => ['required', 'string', Rule::in(MemberDue::STATUSES)],
             'teilbetrag' => ['nullable', 'numeric', 'decimal:0,2', 'min:0', 'max:999999.99'],
             'kommentar' => ['nullable', 'string', 'max:1000'],
-            'faellig_am' => ['nullable', 'date'],
         ];
 
         $field = $request->string('field')->value();
@@ -147,7 +186,6 @@ class MemberDueController
 
         return response()->json([
             'value' => match ($validated['field']) {
-                'faellig_am' => $due->faellig_am?->format('d.m.Y'),
                 'teilbetrag' => $due->teilbetrag !== null ? number_format((float) $due->teilbetrag, 2, ',', '.').' €' : '–',
                 'kommentar' => $due->kommentar ?: '–',
                 default => (string) $due->{$validated['field']},
@@ -205,7 +243,7 @@ class MemberDueController
                     'amount' => $due->amount,
                     'status' => 'bezahlt',
                     'bezahlt_bis_fiscal_year_id' => $targetFiscalYearId,
-                    'faellig_am' => $fiscalYear->starts_on,
+                    'faellig_am' => $fiscalYear->faellig_am ?? $fiscalYear->starts_on,
                 ]);
             }
 

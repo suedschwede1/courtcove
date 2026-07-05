@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Members\Models;
 
+use App\Models\Option;
+use App\Models\User;
 use Database\Factories\Modules\Members\Models\MemberFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -20,14 +22,16 @@ class Member extends Model
     public const STATUSES = ['aktiv', 'ruhend', 'ausgetreten'];
 
     protected $fillable = [
-        'member_number', 'nuliga_id', 'firstname', 'lastname', 'birthdate', 'gender',
+        'member_number', 'nuliga_id', 'user_id', 'firstname', 'lastname', 'birthdate', 'gender',
         'email', 'phone', 'street', 'zip', 'city', 'fee_category_id', 'joined_at', 'left_at', 'status',
+        'anonymized_at',
     ];
 
     protected $casts = [
         'birthdate' => 'date',
         'joined_at' => 'date',
         'left_at' => 'date',
+        'anonymized_at' => 'datetime',
     ];
 
     protected static function newFactory(): MemberFactory
@@ -48,6 +52,11 @@ class Member extends Model
     public function feeCategory(): BelongsTo
     {
         return $this->belongsTo(FeeCategory::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id', 'uid');
     }
 
     public function clubRoles(): BelongsToMany
@@ -102,5 +111,18 @@ class Member extends Model
             'status' => $status,
             'left_at' => $status === 'aktiv' ? null : $this->left_at,
         ]);
+    }
+
+    /** DSGVO: ein ausgetretenes Mitglied darf erst nach Ablauf der Aufbewahrungsfrist anonymisiert werden. */
+    public function isAnonymizable(): bool
+    {
+        if ($this->anonymized_at !== null || $this->status !== 'ausgetreten' || $this->left_at === null) {
+            return false;
+        }
+
+        $rawRetention = Option::getValue('members.anonymization.retention_years', 3);
+        $retentionYears = is_numeric($rawRetention) && (int) $rawRetention > 0 ? (int) $rawRetention : 3;
+
+        return $this->left_at->lt(now()->subYears($retentionYears));
     }
 }

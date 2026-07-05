@@ -29,6 +29,7 @@ class FiscalYearController
             'name' => ['required', 'string', 'max:32'],
             'starts_on' => ['required', 'date'],
             'ends_on' => ['required', 'date', 'after:starts_on'],
+            'faellig_am' => ['nullable', 'date'],
         ]);
 
         FiscalYear::create($validated);
@@ -47,6 +48,7 @@ class FiscalYearController
             'name' => ['required', 'string', 'max:32'],
             'starts_on' => ['required', 'date'],
             'ends_on' => ['required', 'date', 'after:starts_on'],
+            'faellig_am' => ['nullable', 'date'],
         ]);
 
         $fiscalYear->update($validated);

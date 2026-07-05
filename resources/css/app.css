@@ -488,6 +488,27 @@ input[type="date"]::-webkit-datetime-edit-fields-wrapper {
     color: #1a3a6b;
 }
 
+.ui-readonly-box {
+    padding: 8px 10px;
+    min-height: 36px;
+    background: var(--ui-bg);
+    border: 1px solid var(--ui-border);
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--ui-text);
+    line-height: 1.6;
+}
+
+.ui-readonly-box-muted {
+    font-size: 12px;
+    color: var(--ui-text-secondary);
+}
+
+.ui-badge-neutral {
+    background: #f0f0f0;
+    color: #6a6e73;
+}
+
 .ui-flash {
     padding: 0.875rem 1rem;
     border-radius: 8px;

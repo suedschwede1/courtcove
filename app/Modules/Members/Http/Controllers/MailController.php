@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Members\Http\Controllers;
 
 use App\Mail\MemberBulkMail;
+use App\Models\Option;
 use App\Modules\Members\Models\Member;
 use App\Modules\Members\Models\MailTemplate;
 use Illuminate\Contracts\View\View;
@@ -17,13 +18,20 @@ class MailController
 {
     public function index(): View
     {
+        $allAddresses = $this->recipientAddresses('all');
+        $vorstandAddresses = $this->recipientAddresses('vorstand');
+
         return view('members::mail.index', [
             'templates' => MailTemplate::query()->orderBy('name')->get(),
-            'fromAddress' => config('mail.from.address'),
-            'fromName' => config('mail.from.name'),
+            'fromAddress' => $this->fromAddress(),
+            'fromName' => $this->fromName(),
             'recipientCounts' => [
-                'all' => $this->recipientAddresses('all')->count(),
-                'vorstand' => $this->recipientAddresses('vorstand')->count(),
+                'all' => $allAddresses->count(),
+                'vorstand' => $vorstandAddresses->count(),
+            ],
+            'recipientAddresses' => [
+                'all' => $allAddresses->implode(', '),
+                'vorstand' => $vorstandAddresses->implode(', '),
             ],
         ]);
     }
@@ -32,18 +40,35 @@ class MailController
     {
         $validated = $request->validate([
             'audience' => ['required', 'string', Rule::in(['all', 'vorstand'])],
+            'from_name' => ['required', 'string', 'max:128'],
+            'from_address' => ['required', 'email', 'max:128'],
             'subject' => ['required', 'string', 'max:255'],
             'body' => ['required', 'string'],
         ]);
 
+        Option::updateOrCreate(['key' => 'members.mail.from_name', 'locale' => null], ['value' => $validated['from_name']]);
+        Option::updateOrCreate(['key' => 'members.mail.from_address', 'locale' => null], ['value' => $validated['from_address']]);
+
         $addresses = $this->recipientAddresses($validated['audience']);
 
         if ($addresses->isNotEmpty()) {
-            Mail::bcc($addresses->all())->queue(new MemberBulkMail($validated['subject'], $validated['body']));
+            Mail::bcc($addresses->all())
+                ->queue((new MemberBulkMail($validated['subject'], $validated['body']))
+                    ->from($validated['from_address'], $validated['from_name']));
         }
 
         return redirect()->route('members.mail.index')
             ->with('success', __('members::admin.mail.sent', ['count' => $addresses->count()]));
+    }
+
+    private function fromName(): string
+    {
+        return (string) Option::getValue('members.mail.from_name', config('mail.from.name'));
+    }
+
+    private function fromAddress(): string
+    {
+        return (string) Option::getValue('members.mail.from_address', config('mail.from.address'));
     }
 
     public function storeTemplate(Request $request): RedirectResponse

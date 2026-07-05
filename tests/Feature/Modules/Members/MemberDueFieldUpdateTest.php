@@ -102,16 +102,13 @@ class MemberDueFieldUpdateTest extends TestCase
     }
 
     #[Test]
-    public function admin_can_update_faellig_am(): void
+    public function faellig_am_is_not_editable_per_row_since_it_is_defined_on_the_fiscal_year(): void
     {
         $due = $this->makeDue();
 
         $this->actingAs($this->admin())
             ->patchJson("/members/dues/{$due->id}/field", ['field' => 'faellig_am', 'value' => '2026-01-15'])
-            ->assertOk()
-            ->assertJson(['value' => '15.01.2026']);
-
-        $this->assertSame('2026-01-15', $due->fresh()->faellig_am->toDateString());
+            ->assertStatus(422);
     }
 
     #[Test]

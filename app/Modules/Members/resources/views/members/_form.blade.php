@@ -67,6 +67,15 @@
                 <input id="mf-nuliga-id" type="number" min="1" name="nuliga_id" value="{{ old('nuliga_id', $member->nuliga_id ?? '') }}" class="ui-input">
             </div>
             <div class="ui-field">
+                <label class="ui-label" for="mf-user-id">{{ __('members::admin.members.booking_user') }}</label>
+                <select id="mf-user-id" name="user_id" class="ui-select">
+                    <option value=""></option>
+                    @foreach($users ?? [] as $user)
+                        <option value="{{ $user->uid }}" @selected((int) old('user_id', $member->user_id ?? 0) === $user->uid)>{{ $user->alias }}{{ $user->email ? " ({$user->email})" : '' }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="ui-field">
                 <label class="ui-label" for="mf-fee-category">{{ __('members::admin.members.fee_category') }}</label>
                 <select id="mf-fee-category" name="fee_category_id" class="ui-select">
                     <option value=""></option>
@@ -83,6 +92,16 @@
                 <label class="ui-label" for="mf-left-at">{{ __('members::admin.members.left_at') }}</label>
                 <input id="mf-left-at" type="date" name="left_at" value="{{ old('left_at', optional($member->left_at ?? null)->format('Y-m-d')) }}" class="ui-input">
             </div>
+            @if($member ?? null)
+                <div class="ui-field">
+                    <label class="ui-label">{{ __('members::admin.members.status') }}</label>
+                    <div>
+                        <span class="ui-badge {{ match($member->status) { 'aktiv' => 'ui-badge-success', 'ruhend' => 'ui-badge-warning', 'ausgetreten' => 'ui-badge-neutral', default => 'ui-badge-neutral' } }}">
+                            {{ __('members::admin.members.status_'.($member->status === 'ausgetreten' ? 'departed' : ($member->status === 'ruhend' ? 'ruhend' : 'active'))) }}
+                        </span>
+                    </div>
+                </div>
+            @endif
         </div>
         @php
             $selectedRoleIds = old('club_roles', ($member ?? null)?->clubRoles->pluck('id')->all() ?? []);

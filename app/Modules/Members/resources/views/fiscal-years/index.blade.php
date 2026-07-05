@@ -14,6 +14,7 @@
                         <th>{{ __('members::admin.fiscal_years.name') }}</th>
                         <th>{{ __('members::admin.fiscal_years.starts_on') }}</th>
                         <th>{{ __('members::admin.fiscal_years.ends_on') }}</th>
+                        <th>{{ __('members::admin.fiscal_years.due_date') }}</th>
                         <th class="text-right">{{ __('members::admin.common.actions') }}</th>
                     </tr>
                 </thead>
@@ -23,6 +24,7 @@
                             <td class="font-medium">{{ $fiscalYear->name }}</td>
                             <td>{{ $fiscalYear->starts_on->format('d.m.Y') }}</td>
                             <td>{{ $fiscalYear->ends_on->format('d.m.Y') }}</td>
+                            <td>{{ optional($fiscalYear->faellig_am)->format('d.m.Y') ?? '–' }}</td>
                             <td class="text-right"><a href="{{ route('members.fiscal-years.edit', $fiscalYear) }}" class="ui-btn ui-btn-ghost">{{ __('members::admin.common.edit') }}</a></td>
                         </tr>
                     @endforeach

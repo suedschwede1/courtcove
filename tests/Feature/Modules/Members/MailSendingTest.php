@@ -34,6 +34,8 @@ class MailSendingTest extends TestCase
 
         $this->actingAs($this->admin())->post('/members/mail/send', [
             'audience' => 'all',
+            'from_name' => 'Mitgliederverwaltung',
+            'from_address' => 'verein@example.com',
             'subject' => 'Hallo',
             'body' => 'Testtext',
         ])->assertRedirect(route('members.mail.index'));
@@ -61,6 +63,8 @@ class MailSendingTest extends TestCase
 
         $this->actingAs($this->admin())->post('/members/mail/send', [
             'audience' => 'vorstand',
+            'from_name' => 'Mitgliederverwaltung',
+            'from_address' => 'verein@example.com',
             'subject' => 'Vorstand',
             'body' => 'Text',
         ])->assertRedirect(route('members.mail.index'));
@@ -80,5 +84,37 @@ class MailSendingTest extends TestCase
             'subject' => 'x',
             'body' => 'y',
         ])->assertSessionHasErrors('audience');
+    }
+
+    #[Test]
+    public function the_sender_is_required(): void
+    {
+        $this->actingAs($this->admin())->post('/members/mail/send', [
+            'audience' => 'all',
+            'subject' => 'x',
+            'body' => 'y',
+        ])->assertSessionHasErrors(['from_name', 'from_address']);
+    }
+
+    #[Test]
+    public function sending_uses_the_submitted_sender_and_saves_it_as_the_new_default(): void
+    {
+        Mail::fake();
+        Member::factory()->create(['status' => 'aktiv', 'email' => 'a@example.com']);
+
+        $this->actingAs($this->admin())->post('/members/mail/send', [
+            'audience' => 'all',
+            'from_name' => 'Neuer Absender',
+            'from_address' => 'neu@example.com',
+            'subject' => 'Hallo',
+            'body' => 'Text',
+        ])->assertRedirect(route('members.mail.index'));
+
+        Mail::assertQueued(MemberBulkMail::class, function (MemberBulkMail $mail) {
+            return $mail->from[0]['address'] === 'neu@example.com' && $mail->from[0]['name'] === 'Neuer Absender';
+        });
+
+        $this->assertDatabaseHas('bs_options', ['key' => 'members.mail.from_name', 'value' => 'Neuer Absender']);
+        $this->assertDatabaseHas('bs_options', ['key' => 'members.mail.from_address', 'value' => 'neu@example.com']);
     }
 }

@@ -6,6 +6,7 @@ namespace Tests\Feature\Modules\Members;
 
 use App\Models\User;
 use App\Modules\Members\Models\FeeCategory;
+use App\Modules\Members\Models\FeeCategoryRate;
 use App\Modules\Members\Models\FiscalYear;
 use App\Modules\Members\Models\Member;
 use App\Modules\Members\Models\MemberDue;
@@ -53,6 +54,63 @@ class MemberDueManualCreationTest extends TestCase
             'fiscal_year_id' => $fy->id,
             'fee_category_id' => $category->id,
         ]);
+    }
+
+    #[Test]
+    public function admin_can_set_teilbetrag_and_kommentar_when_creating_a_due_manually(): void
+    {
+        $member = Member::factory()->create();
+        $category = FeeCategory::create(['name' => 'Vollmitglied']);
+        $fy = FiscalYear::create(['name' => '2026/27', 'starts_on' => '2026-09-01', 'ends_on' => '2027-08-31']);
+
+        $this->actingAs($this->admin())->post(route('members.dues.store'), [
+            'member_id' => $member->id,
+            'fiscal_year_id' => $fy->id,
+            'fee_category_id' => $category->id,
+            'amount' => 120,
+            'teilbetrag' => 60,
+            'kommentar' => 'Stundung vereinbart',
+        ])->assertRedirect(route('members.dues.index', ['fiscal_year_id' => $fy->id]));
+
+        $this->assertDatabaseHas('member_dues', [
+            'member_id' => $member->id,
+            'teilbetrag' => 60,
+            'kommentar' => 'Stundung vereinbart',
+        ]);
+    }
+
+    #[Test]
+    public function amount_is_derived_from_the_fee_category_rate_when_omitted(): void
+    {
+        $member = Member::factory()->create();
+        $category = FeeCategory::create(['name' => 'Vollmitglied']);
+        $fy = FiscalYear::create(['name' => '2026/27', 'starts_on' => '2026-09-01', 'ends_on' => '2027-08-31']);
+        FeeCategoryRate::create(['fee_category_id' => $category->id, 'fiscal_year_id' => $fy->id, 'amount' => 145]);
+
+        $this->actingAs($this->admin())->post(route('members.dues.store'), [
+            'member_id' => $member->id,
+            'fiscal_year_id' => $fy->id,
+            'fee_category_id' => $category->id,
+        ])->assertRedirect(route('members.dues.index', ['fiscal_year_id' => $fy->id]));
+
+        $this->assertDatabaseHas('member_dues', [
+            'member_id' => $member->id,
+            'amount' => 145,
+        ]);
+    }
+
+    #[Test]
+    public function omitting_amount_without_a_configured_rate_fails_validation(): void
+    {
+        $member = Member::factory()->create();
+        $category = FeeCategory::create(['name' => 'Vollmitglied']);
+        $fy = FiscalYear::create(['name' => '2026/27', 'starts_on' => '2026-09-01', 'ends_on' => '2027-08-31']);
+
+        $this->actingAs($this->admin())->post(route('members.dues.store'), [
+            'member_id' => $member->id,
+            'fiscal_year_id' => $fy->id,
+            'fee_category_id' => $category->id,
+        ])->assertSessionHasErrors('amount');
     }
 
     #[Test]
