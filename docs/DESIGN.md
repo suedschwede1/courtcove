@@ -506,6 +506,35 @@ The `admin.events._form` partial has two layout branches:
 - `popup_mode = true` → compact Tailwind layout (4-column for date/time, no section header)
 - `popup_mode = false/null` → legacy UI classes (`.ui-form-shell`, `.ui-form-divider` etc.)
 
+## Members module patterns
+
+The Members module (`app/Modules/Members`, views under `members::`) reuses the same
+`ui-*` classes and color tokens as the rest of the admin, combined with two additional
+Alpine.js-driven interaction patterns not used elsewhere in the app:
+
+### Inline edit-in-place (list tables)
+
+Used in the Mitglieder list (`members::members.index`) for fields like firstname/
+lastname/status: clicking a table cell turns it into an input, submits a `PATCH` to a
+`*.update-field` route via `fetch`, and shows a brief success indicator (checkmark
+flash) on the cell before reverting to display mode. No page reload, no modal.
+
+- Whole-cell click target (not just the text) opens edit mode
+- Escape or blur without change cancels the edit
+- Same `.ui-input` sizing/border as regular forms, just inline in the table cell
+
+### Mail composer with templates and dynamic audiences
+
+Used on the Mail page (`members::mail.index`): a single Alpine component drives
+audience selection (club roles, mail categories, custom filters), template load/save/
+delete, and a live HTML preview fetched via AJAX before sending. Audiences are computed
+server-side per request (`MailController::audienceDefinitions()`), not hardcoded, so new
+mail categories or club roles automatically appear as selectable targets.
+
+- Template list and the compose form share one Alpine `x-data` scope
+- Preview pane renders the rendered mail body server-side and injects it read-only
+- Buttons follow the standard primary/outline/ghost variants; no custom button styles
+
 ## Loading and AJAX states
 
 The system uses **no Livewire, no `wire:loading`, no `axios`/`fetch` layer** in the views.
