@@ -34,11 +34,21 @@
                 </div>
                 <button type="submit" class="ui-btn ui-btn-primary">{{ __('members::admin.common.filter') }}</button>
             </form>
-            <form method="POST" action="{{ route('members.dues.generate') }}">
+            <form method="POST" action="{{ route('members.dues.generate') }}" class="ui-row"
+                x-data="{
+                    fiscalYearId: '{{ $defaultFiscalYearId }}',
+                    names: @js($generateFiscalYears->mapWithKeys(fn ($fy) => [(string) $fy->id => $fy->name])),
+                    template: @js(__('members::admin.dues.generate_for', ['year' => '__YEAR__'])),
+                    get label() { return this.template.replace('__YEAR__', this.names[this.fiscalYearId] ?? ''); }
+                }">
                 @csrf
-                <input type="hidden" name="fiscal_year_id" value="{{ $defaultFiscalYearId }}">
-                @php $defaultFiscalYear = $fiscalYears->firstWhere('id', $defaultFiscalYearId); @endphp
-                <button type="submit" class="ui-btn ui-btn-primary">{{ __('members::admin.dues.generate_for', ['year' => $defaultFiscalYear->name ?? '']) }}</button>
+                <select name="fiscal_year_id" x-model="fiscalYearId" class="ui-select">
+                    @foreach($generateFiscalYears as $fiscalYear)
+                        <option value="{{ $fiscalYear->id }}">{{ $fiscalYear->name }}</option>
+                    @endforeach
+                </select>
+                @php $defaultFiscalYear = $generateFiscalYears->firstWhere('id', $defaultFiscalYearId); @endphp
+                <button type="submit" class="ui-btn ui-btn-primary" x-text="label">{{ __('members::admin.dues.generate_for', ['year' => $defaultFiscalYear->name ?? '']) }}</button>
             </form>
             <button type="button" class="ui-btn ui-btn-ghost" @click="composing = !composing">{{ __('members::admin.dues.new') }}</button>
         </div>

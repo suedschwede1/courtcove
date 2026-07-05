@@ -53,10 +53,15 @@ class MemberDueController
 
         $dues = $duesQuery->orderBy('member_id')->paginate(25)->withQueryString();
 
+        $generateFiscalYears = $fiscalYears->filter(
+            fn (FiscalYear $fiscalYear) => $fiscalYear->ends_on->toDateString() >= now()->toDateString(),
+        )->values();
+
         return view('members::dues.index', [
             'fiscalYears' => $fiscalYears,
             'selectedFiscalYearId' => $selectedFiscalYearId,
             'defaultFiscalYearId' => $defaultFiscalYearId,
+            'generateFiscalYears' => $generateFiscalYears,
             'dues' => $dues,
             'filters' => array_filter(
                 $request->only('search', 'status'),
