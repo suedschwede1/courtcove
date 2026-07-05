@@ -16,10 +16,11 @@ class Member extends Model
     use HasFactory;
 
     public const GENDERS = ['m', 'w', 'd'];
+    public const STATUSES = ['aktiv', 'ruhend', 'ausgetreten'];
 
     protected $fillable = [
         'member_number', 'nuliga_id', 'firstname', 'lastname', 'birthdate', 'gender',
-        'email', 'phone', 'street', 'zip', 'city', 'fee_category_id', 'joined_at', 'left_at',
+        'email', 'phone', 'street', 'zip', 'city', 'fee_category_id', 'joined_at', 'left_at', 'status',
     ];
 
     protected $casts = [
@@ -55,7 +56,7 @@ class Member extends Model
 
     public function scopeActive(Builder $query): Builder
     {
-        return $query->whereNull('left_at');
+        return $query->where('status', 'aktiv');
     }
 
     public function fullName(): string
@@ -77,5 +78,23 @@ class Member extends Model
             ->map(fn (MemberDue $due) => $due->fiscalYear->ends_on)
             ->sort()
             ->last();
+    }
+
+    /** Setzt das Austrittsdatum und leitet daraus automatisch den Status ab: gesetzt = ausgetreten, geleert = aktiv. */
+    public function setLeftAt(?string $date): void
+    {
+        $this->update([
+            'left_at' => $date,
+            'status' => $date === null ? 'aktiv' : 'ausgetreten',
+        ]);
+    }
+
+    /** Setzt den Status manuell (nur 'aktiv' oder 'ruhend' — 'ausgetreten' läuft ausschließlich über setLeftAt()). Zurück auf 'aktiv' löscht ein gesetztes Austrittsdatum. */
+    public function setStatus(string $status): void
+    {
+        $this->update([
+            'status' => $status,
+            'left_at' => $status === 'aktiv' ? null : $this->left_at,
+        ]);
     }
 }
