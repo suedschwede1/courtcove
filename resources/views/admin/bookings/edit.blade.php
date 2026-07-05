@@ -388,6 +388,40 @@ document.addEventListener('DOMContentLoaded', function () {
     if (repeat) { repeat.addEventListener('change', syncAdminBookingFields); }
     if (dateStart) { dateStart.addEventListener('change', syncAdminBookingFields); }
     syncAdminBookingFields();
+
+    var scopeRadioName = 'edit_scope';
+    var scopeRadios = document.querySelectorAll('input[name="' + scopeRadioName + '"]');
+    if (scopeRadios.length) {
+        var cancelScopeField = document.getElementById('admin-booking-cancel-scope');
+        var deleteScopeField = document.getElementById('admin-booking-delete-scope');
+        var followingRepeatType = @json($followingRepeatType ?? 'once');
+        var followingRepeatEndDate = @json($followingRepeatEndDate ?? '');
+        var singleRepeatEndDate = @json($occurrenceDate ?? '');
+
+        function syncScopeToActionForms() {
+            var checked = document.querySelector('input[name="' + scopeRadioName + '"]:checked');
+            var value = checked ? checked.value : 'single_occurrence';
+            if (cancelScopeField) { cancelScopeField.value = value; }
+            if (deleteScopeField) { deleteScopeField.value = value; }
+        }
+
+        scopeRadios.forEach(function (radio) {
+            radio.addEventListener('change', function () {
+                syncScopeToActionForms();
+                if (!repeat || !dateEnd) { return; }
+                if (this.value === 'this_and_following' && this.checked) {
+                    repeat.value = followingRepeatType;
+                    dateEnd.value = followingRepeatEndDate;
+                } else if (this.value === 'single_occurrence' && this.checked) {
+                    repeat.value = 'once';
+                    dateEnd.value = singleRepeatEndDate;
+                }
+                syncAdminBookingFields();
+            });
+        });
+
+        syncScopeToActionForms();
+    }
 });
 </script>
 @endsection
