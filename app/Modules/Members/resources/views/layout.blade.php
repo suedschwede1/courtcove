@@ -11,8 +11,12 @@
     <link rel="stylesheet" href="{{ asset('css/booking.css') }}">
 </head>
 <body style="font-family: var(--font-body)">
-<div class="flex min-h-screen bg-[#f3f1ec]">
-    <aside style="width:180px; min-height:100vh; background:#1b1d21; flex-shrink:0; display:flex; flex-direction:column;">
+<div class="flex min-h-screen bg-[#f0f0f0]">
+    <aside style="width:180px; min-height:100vh; background:#151515; flex-shrink:0; display:flex; flex-direction:column;">
+        <a href="{{ route('calendar.index') }}" onmouseover="this.style.color='#7fb3e8';" onmouseout="this.style.color='#4d8fdb';" style="display:block; padding:14px 14px 10px; border-bottom:1px solid rgba(255,255,255,0.08); margin-bottom:8px; font-family:var(--font-body); font-size:14px; font-weight:600; text-decoration:none; color:#4d8fdb; transition:color 0.15s ease;">
+            ← {{ __('booking.nav.back_to_calendar') }}
+        </a>
+
         <div style="padding:14px 14px 10px; border-bottom:1px solid rgba(255,255,255,0.08); margin-bottom:8px;">
             <span style="font-family:var(--font-body); font-size:10px; color:#6a6e73; font-weight:600; text-transform:uppercase; letter-spacing:0.08em;">
                 {{ __('booking.nav.members') }}
@@ -28,7 +32,7 @@
                 ['route' => 'members.dues.index', 'pattern' => 'members.dues.*', 'label' => __('members::admin.dues.title')],
             ] as $item)
                 @php $active = request()->routeIs(...explode(',', $item['pattern'])); @endphp
-                <a href="{{ route($item['route']) }}" onmouseover="if (!this.dataset.active) { this.style.background='#26292e'; this.style.color='#ffffff'; }" onmouseout="if (!this.dataset.active) { this.style.background='transparent'; this.style.color='#b2b6bd'; }" data-active="{{ $active ? '1' : '' }}" style="display:block; padding:12px 14px 12px {{ $active ? '11px' : '17px' }}; font-family:var(--font-body); font-size:14px; text-decoration:none; transition:background 0.15s ease, color 0.15s ease; color:{{ $active ? '#ffffff' : '#b2b6bd' }}; font-weight:{{ $active ? '700' : '400' }}; background:{{ $active ? '#34363b' : 'transparent' }}; border-left:{{ $active ? '3px solid #bf4316' : '3px solid transparent' }};">
+                <a href="{{ route($item['route']) }}" onmouseover="if (!this.dataset.active) { this.style.background='#26292e'; this.style.color='#ffffff'; }" onmouseout="if (!this.dataset.active) { this.style.background='transparent'; this.style.color='#b2b6bd'; }" data-active="{{ $active ? '1' : '' }}" style="display:block; padding:12px 14px 12px {{ $active ? '11px' : '17px' }}; font-family:var(--font-body); font-size:14px; text-decoration:none; transition:background 0.15s ease, color 0.15s ease; color:{{ $active ? '#ffffff' : '#b2b6bd' }}; font-weight:{{ $active ? '700' : '400' }}; background:{{ $active ? '#34363b' : 'transparent' }}; border-left:{{ $active ? '3px solid #0066cc' : '3px solid transparent' }};">
                     {{ $item['label'] }}
                 </a>
             @endforeach
@@ -44,7 +48,6 @@
             <div class="flex items-center gap-4 text-sm text-[#6a6e73]">
                 @auth
                     <span>{{ auth()->user()->alias }}</span>
-                    <a href="{{ route('calendar.index') }}" class="ui-btn ui-btn-outline">{{ __('booking.nav.back_to_calendar') }}</a>
                     @can('admin.see-menu')
                         <a href="{{ route('admin.dashboard') }}" class="ui-btn ui-btn-outline">{{ __('booking.nav.admin') }}</a>
                     @endcan

@@ -5,6 +5,10 @@
     $itemPaddingDefault = '17px';
 @endphp
 <aside style="width:{{ $sidebarWidth }}; min-height:100vh; background:#1b1d21; flex-shrink:0; display:flex; flex-direction:column;">
+    <a href="{{ route('calendar.index') }}" onmouseover="this.style.color='#7fb3e8';" onmouseout="this.style.color='#4d8fdb';" style="display:block; padding:14px 14px 10px; border-bottom:1px solid rgba(255,255,255,0.08); margin-bottom:8px; font-family:var(--font-body); font-size:14px; font-weight:600; text-decoration:none; color:#4d8fdb; transition:color 0.15s ease;">
+        ← {{ __('booking.admin.to_calendar') }}
+    </a>
+
     <div style="padding:14px 14px 10px; border-bottom:1px solid rgba(255,255,255,0.08); margin-bottom:8px;">
         <span style="font-family:var(--font-body); font-size:11px; color:#6a6e73; font-weight:600; text-transform:uppercase; letter-spacing:0.08em;">
             {{ __('booking.nav.admin') }}
@@ -65,9 +69,5 @@
                 {{ __('booking.admin.behavior') }}
             </a>
         @endcan
-
-        <a href="{{ route('calendar.index') }}" onmouseover="this.style.background='#26292e'; this.style.color='#ffffff';" onmouseout="this.style.background='transparent'; this.style.color='#8f949c';" style="display:block; padding:12px 14px 12px 19px; font-family:var(--font-body); font-size:{{ $itemFontSize }}; line-height:1.35; text-decoration:none; transition:background 0.15s ease, color 0.15s ease; color:#8f949c; font-weight:400; background:transparent; border-left:3px solid transparent;">
-            ← {{ __('booking.admin.to_calendar') }}
-        </a>
     </nav>
 </aside>

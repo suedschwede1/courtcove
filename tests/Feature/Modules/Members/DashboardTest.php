@@ -36,12 +36,12 @@ class DashboardTest extends TestCase
         $response = $this->actingAs($this->admin())->get('/members/dashboard')->assertOk();
 
         $response->assertSeeText('Altersstruktur');
-        $response->assertSeeText('bis 18: 1');
-        $response->assertSeeText('19–35: 0');
-        $response->assertSeeText('36–50: 2');
-        $response->assertSeeText('51–65: 0');
-        $response->assertSeeText('66+: 1');
-        $response->assertSeeText('ohne Geburtsdatum: 1');
+        $response->assertSeeTextInOrder(['bis 18', '1']);
+        $response->assertSeeTextInOrder(['19–35', '0']);
+        $response->assertSeeTextInOrder(['36–50', '2']);
+        $response->assertSeeTextInOrder(['51–65', '0']);
+        $response->assertSeeTextInOrder(['66+', '1']);
+        $response->assertSeeTextInOrder(['ohne Geburtsdatum', '1']);
     }
 
     #[Test]
