@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Auth;
 
+use App\Models\LoginHistory;
 use App\Models\Option;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Session;
 use PHPUnit\Framework\Attributes\Test;
 use Stevebauman\Location\Facades\Location;
+use Stevebauman\Location\LocationManager;
 use Stevebauman\Location\Position;
 use Symfony\Component\HttpFoundation\Cookie;
 use Tests\TestCase;
@@ -375,5 +379,149 @@ class LoginTest extends TestCase
     private function accountThrottleKey(int $userId, string $email): string
     {
         return 'login:account:'.($userId > 0 ? (string) $userId : strtolower(trim($email)));
+    }
+
+    #[Test]
+    public function an_ordinary_login_does_not_require_verification(): void
+    {
+        Location::fake(['127.0.0.1' => Position::make(['countryCode' => 'AT'])]);
+        User::factory()->create([
+            'email' => 'test@example.com',
+            'pw' => bcrypt('secret123'),
+            'status' => 'enabled',
+        ]);
+
+        $this->post('/login', ['email' => 'test@example.com', 'password' => 'secret123'])
+            ->assertRedirect('/calendar');
+
+        $this->assertAuthenticated();
+    }
+
+    #[Test]
+    public function a_login_from_an_unusual_country_requires_verification(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'test@example.com',
+            'pw' => bcrypt('secret123'),
+            'status' => 'enabled',
+        ]);
+
+        Location::fake(['127.0.0.1' => Position::make(['countryCode' => 'AT'])]);
+        LoginHistory::record((int) $user->uid, '1.1.1.1', 'AT', 'success');
+
+        app()->forgetInstance(LocationManager::class);
+        Location::clearResolvedInstance(LocationManager::class);
+        Location::fake(['127.0.0.1' => Position::make(['countryCode' => 'RU'])]);
+
+        $this->post('/login', ['email' => 'test@example.com', 'password' => 'secret123'])
+            ->assertRedirect(route('login.verify.show'));
+
+        $this->assertGuest();
+        $this->assertNotNull(Session::get('login.pending_verification'));
+    }
+
+    #[Test]
+    public function two_recent_failed_attempts_followed_by_success_require_verification(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'test@example.com',
+            'pw' => bcrypt('secret123'),
+            'status' => 'enabled',
+        ]);
+
+        $this->post('/login', ['email' => 'test@example.com', 'password' => 'wrong']);
+        $this->post('/login', ['email' => 'test@example.com', 'password' => 'wrong']);
+
+        $this->post('/login', ['email' => 'test@example.com', 'password' => 'secret123'])
+            ->assertRedirect(route('login.verify.show'));
+
+        $this->assertGuest();
+    }
+
+    #[Test]
+    public function a_first_ever_login_never_requires_verification_on_country_grounds(): void
+    {
+        Location::fake(['127.0.0.1' => Position::make(['countryCode' => 'RU'])]);
+        User::factory()->create([
+            'email' => 'test@example.com',
+            'pw' => bcrypt('secret123'),
+            'status' => 'enabled',
+        ]);
+
+        $this->post('/login', ['email' => 'test@example.com', 'password' => 'secret123'])
+            ->assertRedirect('/calendar');
+
+        $this->assertAuthenticated();
+    }
+
+    #[Test]
+    public function login_history_records_a_successful_attempt(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'test@example.com',
+            'pw' => bcrypt('secret123'),
+            'status' => 'enabled',
+        ]);
+
+        $this->post('/login', ['email' => 'test@example.com', 'password' => 'secret123']);
+
+        $this->assertDatabaseHas('login_history', [
+            'user_id' => $user->uid,
+            'status' => 'success',
+        ]);
+    }
+
+    #[Test]
+    public function login_history_records_which_risk_flags_fired(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'test@example.com',
+            'pw' => bcrypt('secret123'),
+            'status' => 'enabled',
+        ]);
+
+        Carbon::setTestNow('2026-01-01 10:00:00');
+        Location::fake(['127.0.0.1' => Position::make(['countryCode' => 'AT'])]);
+        LoginHistory::record((int) $user->uid, '1.1.1.1', 'AT', 'success');
+
+        Carbon::setTestNow('2026-01-01 12:00:00');
+        app()->forgetInstance(LocationManager::class);
+        Location::clearResolvedInstance(LocationManager::class);
+        Location::fake(['127.0.0.1' => Position::make(['countryCode' => 'RU'])]);
+
+        $this->post('/login', ['email' => 'test@example.com', 'password' => 'secret123']);
+
+        $this->assertDatabaseHas('login_history', [
+            'user_id' => $user->uid,
+            'status' => 'success',
+            'risk_flags' => 'unusual_country,impossible_travel',
+        ]);
+
+        Carbon::setTestNow();
+    }
+
+    #[Test]
+    public function login_history_records_a_failed_attempt_for_a_known_user(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'test@example.com',
+            'pw' => bcrypt('secret123'),
+            'status' => 'enabled',
+        ]);
+
+        $this->post('/login', ['email' => 'test@example.com', 'password' => 'wrong']);
+
+        $this->assertDatabaseHas('login_history', [
+            'user_id' => $user->uid,
+            'status' => 'failed',
+        ]);
+    }
+
+    #[Test]
+    public function login_history_does_not_record_an_unknown_email(): void
+    {
+        $this->post('/login', ['email' => 'nobody@example.com', 'password' => 'wrong']);
+
+        $this->assertDatabaseCount('login_history', 0);
     }
 }

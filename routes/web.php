@@ -28,6 +28,7 @@ Route::post('/logout', [LogoutController::class, 'logout'])->name('logout');
 
 Route::get('/register', [RegisterController::class, 'showForm'])->name('register');
 Route::post('/register', [RegisterController::class, 'register'])->middleware('throttle:5,1');
+Route::get('/login/verify', static fn () => redirect('/login'))->name('login.verify.show');
 
 Route::get('/password/forgot', [ForgotPasswordController::class, 'showForm'])->name('password.forgot');
 Route::post('/password/forgot', [ForgotPasswordController::class, 'sendResetLink'])

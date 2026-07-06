@@ -5,16 +5,21 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Mail\LoginVerificationCode;
+use App\Models\LoginHistory;
 use App\Models\User;
+use App\Services\GeoLookup;
 use App\Services\LoginBookkeeping;
+use App\Services\LoginRiskEvaluator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
-use Stevebauman\Location\Facades\Location;
 
 /**
  * LoginController — handles login form display and credential authentication.
@@ -34,6 +39,8 @@ final class LoginController extends Controller
 
     public function __construct(
         private readonly LoginBookkeeping $bookkeeping,
+        private readonly GeoLookup $geoLookup,
+        private readonly LoginRiskEvaluator $riskEvaluator,
     ) {}
 
     /** Render the login form. */
@@ -48,7 +55,8 @@ final class LoginController extends Controller
      * Validate credentials and authenticate the user.
      *
      * Redirects to /login with errors if the account is disabled or credentials are invalid.
-     * On success, regenerates the session and redirects to the intended URL (default: /calendar).
+     * On success, either completes the login or (if the attempt looks risky) redirects to
+     * the pending email-verification step. Default redirect target: /calendar.
      *
      * @param  Request  $request  Must contain email and password fields
      */
@@ -62,8 +70,9 @@ final class LoginController extends Controller
 
         $email = Str::lower(trim($credentials['email']));
         $ip = (string) $request->ip();
+        $countryCode = $this->geoLookup->resolveCountry($ip);
 
-        if ($this->isLoginBlockedByCountry($ip)) {
+        if ($this->isLoginBlockedByCountry($countryCode)) {
             Log::warning('Login blocked by country', [
                 'email' => $email,
                 'ip' => $ip,
@@ -82,6 +91,7 @@ final class LoginController extends Controller
                 'email' => $email,
                 'lockout_seconds' => $seconds,
             ]);
+            LoginHistory::record($user?->getKey(), $ip, $countryCode, 'throttled');
 
             return redirect('/login')->withErrors([
                 'email' => trans('booking.auth.throttled', ['seconds' => $seconds]),
@@ -98,16 +108,37 @@ final class LoginController extends Controller
                 'email' => $email,
                 'disabled_account' => $user?->isEnabled() === false,
             ]);
+            LoginHistory::record($user?->getKey(), $ip, $countryCode, 'failed');
 
             return redirect('/login')->withErrors(['email' => __('booking.auth.invalid')])
                 ->withInput($request->except('password'));
         }
 
-        $request->session()->regenerate();
         $this->clearThrottleKeys($throttleKeys);
 
         $wasKnownIp = $this->wasKnownIp($user, $ip);
         $rememberApplied = $request->boolean('remember') && ! $user->isPrivileged();
+        $redirectTarget = $this->normalizeRedirectTarget($credentials['redirect_to'] ?? null);
+        $riskFlags = $this->riskEvaluator->triggeredFlags($user->getKey(), $countryCode);
+
+        LoginHistory::record($user->getKey(), $ip, $countryCode, 'success', $riskFlags);
+
+        if ($riskFlags !== []) {
+            Auth::logout();
+            $request->session()->regenerate();
+            $this->beginPendingVerification($request, $user, $rememberApplied, $redirectTarget);
+
+            Log::notice('Login requires verification', [
+                'user_id' => $user->getKey(),
+                'email' => $email,
+                'ip' => $ip,
+            ]);
+
+            return redirect()->route('login.verify.show');
+        }
+
+        $request->session()->regenerate();
+
         $this->bookkeeping->syncLegacyLoginTracking($user, true, $ip, self::LOCKOUT_SECONDS);
 
         $this->bookkeeping->logAttempt('succeeded', $request, $user, [
@@ -126,24 +157,34 @@ final class LoginController extends Controller
             ]);
         }
 
-        return redirect()->to($this->normalizeRedirectTarget($credentials['redirect_to'] ?? null));
+        return redirect()->to($redirectTarget);
     }
 
-    private function isLoginBlockedByCountry(string $ip): bool
+    private function beginPendingVerification(Request $request, User $user, bool $remember, string $redirectTo): void
+    {
+        $code = (string) random_int(100000, 999999);
+
+        $request->session()->put('login.pending_verification', [
+            'user_id' => $user->getKey(),
+            'code_hash' => Hash::make($code),
+            'expires_at' => now()->addMinutes((int) config('booking.login_verification.code_ttl_minutes'))->toIso8601String(),
+            'attempts' => 0,
+            'remember' => $remember,
+            'redirect_to' => $redirectTo,
+        ]);
+
+        Mail::to($user->email)->send(new LoginVerificationCode($code));
+    }
+
+    private function isLoginBlockedByCountry(?string $countryCode): bool
     {
         $blockedCountries = config('booking.blocked_login_countries', []);
 
-        if ($blockedCountries === []) {
+        if ($blockedCountries === [] || $countryCode === null) {
             return false;
         }
 
-        $position = Location::get($ip);
-
-        if (! $position || ! $position->countryCode) {
-            return false;
-        }
-
-        return in_array($position->countryCode, $blockedCountries, true);
+        return in_array($countryCode, $blockedCountries, true);
     }
 
     /** @return array<string, int> */
