@@ -52,6 +52,16 @@ Replaces the old Zend/Laminas system (`booking`).
 - DSGVO (GDPR) settings page
 - Dashboard: member/dues KPIs, side-by-side charts, breakdown by fee category
 
+### JSON API & MCP server
+
+- Versioned JSON API (`/api/v1/...`) for bookings, events, members, and dues
+  (create/edit only), authenticated with Laravel Sanctum personal access tokens
+- Tokens are issued/revoked exclusively by an admin via `/admin/api-tokens` — there is
+  no public login endpoint; external integrations get a token handed to them
+- The same module also exposes an MCP (Model Context Protocol) server over HTTP at
+  `/api/v1/mcp`, so LLM clients can call the same four resources as tools, using the
+  same bearer token
+
 See [docs/DESIGN.md](docs/DESIGN.md) for the UI/design system and
 [CHANGELOG.md](CHANGELOG.md) for a dated history of changes.
 
@@ -139,6 +149,38 @@ git checkout mobile-view-stable -- resources/views/components/layout/header.blad
 | `app/Services/SquareValidator.php` | Booking authorization/business-rule checks |
 | `app/Services/DatabaseSchemaChecker.php` | Schema drift check + repair (no SSH/cron on hosting.example.test) |
 | `app/Services/UiLinter.php` + `UiRules.php` | Dev-time Blade linter enforcing allowed colors/classes |
+
+## JSON API & MCP server (Modules/Api)
+
+`Modules/Api` is a self-contained module built with `nwidart/laravel-modules`, deliberately
+separate from `app/Modules/<Name>` (which is for web-admin UI sections). It provides a
+versioned REST API and an MCP server for external integrations — deliberately without a
+public login endpoint; tokens are issued by an admin instead.
+
+**Auth**: Laravel Sanctum personal access tokens, issued/revoked at `/admin/api-tokens`
+(`App\Http\Controllers\Admin\ApiTokenController`, gated by the `admin.api-tokens`
+privilege). Clients send `Authorization: Bearer <token>`.
+
+**REST endpoints** (`/api/v1/...`, create+edit only — no list/show/delete over the API):
+
+| Resource | Endpoints | Privilege |
+|---|---|---|
+| Booking | `POST/PUT bookings[/{id}]` | `admin.booking` |
+| Event | `POST/PUT events[/{id}]` | `admin.event` |
+| Member | `POST/PUT members[/{id}]` | `admin.members` |
+| Due (Beiträge) | `POST/PUT dues[/{id}]` | `admin.members` |
+| — | `GET ping` | any authenticated token |
+
+These reuse the exact same business logic as the admin panel — `App\Services\BookingService`
+(conflict checks, repeat/series expansion, owner resolution) and `App\Services\EventService`
+(date combination, meta sync) are shared between `app/Http/Controllers/Admin/*` and
+`Modules/Api`, not duplicated.
+
+**MCP server**: `POST /api/v1/mcp` (Streamable HTTP transport, via `laravel/mcp`) exposes the
+same four resources as MCP tools (`Modules/Api/app/Mcp/Tools`, registered in
+`Modules/Api/app/Mcp/Servers/BookingServer.php`). Each tool independently checks the
+token user's `admin.*` privilege and returns an MCP error result if missing — the route
+itself only requires a valid Sanctum token, since different tools need different privileges.
 
 ## Members module
 

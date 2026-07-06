@@ -10,6 +10,17 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-07-06
 
+- Added an MCP (Model Context Protocol) server at `POST /api/v1/mcp` (via `laravel/mcp`),
+  exposing the same booking/event/member/dues create+edit actions as MCP tools for LLM
+  clients, authenticated with the same Sanctum tokens as the REST API. Each tool checks
+  the token user's `admin.*` privilege itself before acting.
+- Added create/edit JSON API endpoints for bookings, events, members, and dues under
+  `/api/v1/...`, reusing the same validation and business logic as the admin panel (the
+  repeat/conflict-check logic moved from `Admin\BookingController` into `BookingService`,
+  and the date-combination/meta-sync logic from `Admin\EventController` into a new
+  `EventService`, so both the admin panel and the API share one implementation).
+- Removed the `/api/v1/auth/logout` endpoint (and its now-empty `AuthController`) —
+  tokens are only ever revoked by an admin via `/admin/api-tokens`, not by the client.
 - Added a versioned JSON API (`/api/v1/...`, self-contained module under `Modules/Api` via
   nwidart/laravel-modules) authenticated with Laravel Sanctum personal access tokens. Tokens
   are issued/revoked only through a new admin-only "API-Tokens" page (`/admin/api-tokens`,
