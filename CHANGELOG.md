@@ -10,6 +10,9 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-07-06
 
+- Fixed: adding a Beitrag from a member's detail page redirected to the general
+  dues list instead of back to the member, making the save look like it had
+  failed.
 - Password reset emails now use the configured club/service name in the subject,
   matching the name shown in the booking UI.
 - Documented the new risk-based email verification in the README's Security section

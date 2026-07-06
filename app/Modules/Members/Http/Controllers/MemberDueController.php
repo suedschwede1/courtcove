@@ -111,7 +111,7 @@ class MemberDueController
             'faellig_am' => $fiscalYear->faellig_am ?? $fiscalYear->starts_on,
         ]);
 
-        return redirect()->route('members.dues.index', ['fiscal_year_id' => $validated['fiscal_year_id']])
+        return redirect()->back(fallback: route('members.dues.index', ['fiscal_year_id' => $validated['fiscal_year_id']]))
             ->with('status', __('members::admin.dues.created'));
     }
 

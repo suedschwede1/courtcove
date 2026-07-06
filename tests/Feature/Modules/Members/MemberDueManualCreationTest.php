@@ -182,6 +182,23 @@ class MemberDueManualCreationTest extends TestCase
     }
 
     #[Test]
+    public function creating_a_due_from_the_member_detail_page_redirects_back_there(): void
+    {
+        $member = Member::factory()->create();
+        $category = FeeCategory::create(['name' => 'Vollmitglied']);
+        $fy = FiscalYear::create(['name' => '2026/27', 'starts_on' => '2026-09-01', 'ends_on' => '2027-08-31']);
+
+        $this->actingAs($this->admin())
+            ->from(route('members.edit', $member))
+            ->post(route('members.dues.store'), [
+                'member_id' => $member->id,
+                'fiscal_year_id' => $fy->id,
+                'fee_category_id' => $category->id,
+                'amount' => 120,
+            ])->assertRedirect(route('members.edit', $member));
+    }
+
+    #[Test]
     public function regular_member_cannot_create_dues(): void
     {
         $member = Member::factory()->create();
