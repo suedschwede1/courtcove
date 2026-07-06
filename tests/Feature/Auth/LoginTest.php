@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Session;
 use PHPUnit\Framework\Attributes\Test;
@@ -523,5 +524,30 @@ class LoginTest extends TestCase
         $this->post('/login', ['email' => 'nobody@example.com', 'password' => 'wrong']);
 
         $this->assertDatabaseCount('login_history', 0);
+    }
+
+    #[Test]
+    public function a_risky_login_with_a_failed_mail_send_shows_an_error_but_keeps_pending_state(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'test@example.com',
+            'pw' => bcrypt('secret123'),
+            'status' => 'enabled',
+        ]);
+
+        Location::fake(['127.0.0.1' => Position::make(['countryCode' => 'AT'])]);
+        LoginHistory::record((int) $user->uid, '1.1.1.1', 'AT', 'success');
+
+        app()->forgetInstance(LocationManager::class);
+        Location::clearResolvedInstance(LocationManager::class);
+        Location::fake(['127.0.0.1' => Position::make(['countryCode' => 'RU'])]);
+
+        Mail::shouldReceive('to->send')->once()->andThrow(new \Exception('SMTP down'));
+
+        $this->post('/login', ['email' => 'test@example.com', 'password' => 'secret123'])
+            ->assertRedirect(route('login.verify.show'))
+            ->assertSessionHasErrors('code');
+
+        $this->assertGuest();
     }
 }

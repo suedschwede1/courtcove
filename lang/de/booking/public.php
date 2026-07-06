@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 return [
-'nav' => [
+    'nav' => [
         'info' => 'Infos',
         'help' => 'Hinweise',
         'my_bookings' => 'Meine Buchungen',
@@ -23,12 +23,12 @@ return [
         'next_day' => 'Nächster Tag',
         'choose_date' => 'Datum wählen',
     ],
-'feedback' => [
+    'feedback' => [
         'success' => 'Erfolg',
         'notice' => 'Hinweis',
         'close' => 'Schließen',
     ],
-'auth' => [
+    'auth' => [
         'title' => 'Anmelden – :system',
         'eyebrow' => 'Mitgliedsbereich',
         'heading' => 'Anmelden',
@@ -44,8 +44,11 @@ return [
         'no_account' => 'Noch kein Konto?',
         'register_now' => 'Jetzt registrieren',
         'forgot_password' => 'Passwort vergessen?',
+        'verify' => [
+            'send_failed' => 'Der Bestätigungscode konnte nicht per E-Mail versendet werden. Bitte versuchen Sie es erneut oder kontaktieren Sie einen Administrator.',
+        ],
     ],
-'register' => [
+    'register' => [
         'title' => 'Registrierung – :system',
         'heading' => 'Registrierung',
         'welcome' => 'Willkommen zu unserem :system',
@@ -80,7 +83,7 @@ return [
         'already_registered' => 'Bereits registriert?',
         'success_message' => 'Ihre Registrierung war erfolgreich. Ihr Konto wird nach Überprüfung durch unsere Administration freigeschaltet. Sie werden dann per E-Mail benachrichtigt.',
     ],
-'password_reset' => [
+    'password_reset' => [
         'forgot_title' => 'Passwort vergessen – :system',
         'forgot_heading' => 'Passwort vergessen',
         'forgot_intro' => 'Geben Sie Ihre E-Mail-Adresse ein. Falls ein Konto dazu existiert, senden wir Ihnen einen Link zum Zurücksetzen des Passworts.',
@@ -97,7 +100,7 @@ return [
         'reset_invalid' => 'Dieser Link ist ungültig oder abgelaufen. Bitte fordern Sie einen neuen Link an.',
         'reset_success' => 'Ihr Passwort wurde erfolgreich geändert.',
     ],
-'calendar' => [
+    'calendar' => [
         'title' => 'Buchungsplan – :date',
         'system_eyebrow' => 'Buchungssystem',
         'information' => 'Informationen',
@@ -142,7 +145,7 @@ return [
         'occupied' => 'Belegt',
         'to_time' => 'bis :time Uhr',
     ],
-'modal' => [
+    'modal' => [
         'confirm_cancel' => 'Möchten Sie diese Buchung stornieren?',
         'edit' => 'Bearbeiten',
         'cancel_booking' => 'Stornieren',

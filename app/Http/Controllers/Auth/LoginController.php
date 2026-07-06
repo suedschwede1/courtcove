@@ -126,12 +126,18 @@ final class LoginController extends Controller
         if ($riskFlags !== []) {
             Auth::logout();
             $request->session()->regenerate();
-            $this->beginPendingVerification($request, $user, $rememberApplied, $redirectTarget);
+
+            if (! $this->beginPendingVerification($request, $user, $rememberApplied, $redirectTarget)) {
+                return redirect()->route('login.verify.show')->withErrors([
+                    'code' => __('booking.auth.verify.send_failed'),
+                ]);
+            }
 
             Log::notice('Login requires verification', [
                 'user_id' => $user->getKey(),
                 'email' => $email,
                 'ip' => $ip,
+                'risk_flags' => $riskFlags,
             ]);
 
             return redirect()->route('login.verify.show');
@@ -160,7 +166,7 @@ final class LoginController extends Controller
         return redirect()->to($redirectTarget);
     }
 
-    private function beginPendingVerification(Request $request, User $user, bool $remember, string $redirectTo): void
+    private function beginPendingVerification(Request $request, User $user, bool $remember, string $redirectTo): bool
     {
         $code = (string) random_int(100000, 999999);
 
@@ -173,7 +179,18 @@ final class LoginController extends Controller
             'redirect_to' => $redirectTo,
         ]);
 
-        Mail::to($user->email)->send(new LoginVerificationCode($code));
+        try {
+            Mail::to($user->email)->send(new LoginVerificationCode($code));
+        } catch (\Throwable $e) {
+            Log::error('Failed to send login verification code', [
+                'user_id' => $user->getKey(),
+                'exception' => $e->getMessage(),
+            ]);
+
+            return false;
+        }
+
+        return true;
     }
 
     private function isLoginBlockedByCountry(?string $countryCode): bool

@@ -44,6 +44,9 @@ return [
         'no_account' => 'No account yet?',
         'register_now' => 'Register now',
         'forgot_password' => 'Forgot your password?',
+        'verify' => [
+            'send_failed' => 'The verification code could not be emailed. Please try again or contact an administrator.',
+        ],
     ],
     'register' => [
         'title' => 'Registration - :system',
