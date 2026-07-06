@@ -10,6 +10,8 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-07-06
 
+- Documented the new risk-based email verification in the README's Security section
+  (was only in CHANGELOG/code, undersold the current auth posture).
 - Login now requires a 6-digit email code when it looks risky (unusual country,
   2+ recent failed attempts, or impossible travel within 24h) — normal logins are
   unaffected. Backed by a new 30-day `login_history` table. Country-based checks

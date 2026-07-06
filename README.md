@@ -70,6 +70,15 @@ risk. Compensating controls instead:
 - **Geo-blocking**: logins can be blocked by country via `BOOKING_BLOCKED_LOGIN_COUNTRIES`
   (comma-separated ISO country codes) in `.env`, resolved via `stevebauman/location`
   (IP geolocation). Empty by default (no blocking) — set per deployment if needed.
+- **Risk-based email verification**: a login that looks risky — unusual country vs. the
+  user's 30-day history, 2+ recent failed attempts, or impossible travel within 24h —
+  requires a 6-digit email code to complete, instead of logging in immediately. Normal
+  logins are unaffected; this only kicks in as an actual second factor when something
+  looks wrong. Backed by a 30-day `login_history` table (`App\Models\LoginHistory`,
+  `App\Services\LoginRiskEvaluator`). Country-based checks fail open when the MaxMind
+  GeoLite2 database file is missing (untracked, per-deployment download). Admins can
+  view a user's login history (including which flags fired) read-only from their edit
+  page.
 
 ## Local development
 
