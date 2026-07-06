@@ -10,6 +10,8 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-07-06
 
+- Added a risk-score column to the admin Benutzer (users) list so admins can spot
+  risky accounts while browsing/filtering, without opening each user individually.
 - Fixed the overdue member-dues filters so they include rows explicitly marked
   as overdue, not only rows computed overdue from a past due date.
 - Added a standalone "Login-Historie" admin page (own sidebar entry) listing login

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Admin;
 
+use App\Models\LoginHistory;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -27,6 +28,17 @@ class UserManagementTest extends TestCase
 
         $this->actingAs($this->admin())->get('/admin/users?q=')
             ->assertOk()->assertSee('Aktiv Mitglied')->assertDontSee('Geloescht');
+    }
+
+    #[Test]
+    public function index_shows_the_risk_score_per_user(): void
+    {
+        $risky = User::factory()->create(['alias' => 'Risky User', 'status' => 'enabled']);
+        LoginHistory::record((int) $risky->uid, '1.1.1.1', 'RU', 'success', ['unusual_country', 'impossible_travel']);
+
+        $response = $this->actingAs($this->admin())->get('/admin/users?q=Risky');
+
+        $response->assertOk()->assertSee('Risky User')->assertSee('>2<', false);
     }
 
     #[Test]
