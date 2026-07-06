@@ -46,6 +46,14 @@ return [
         'forgot_password' => 'Forgot your password?',
         'verify' => [
             'send_failed' => 'The verification code could not be emailed. Please try again or contact an administrator.',
+            'title' => 'Confirm Login - :system',
+            'heading' => 'Confirm your login',
+            'intro' => 'We sent you a 6-digit code by email. Enter it below to complete the login.',
+            'code_label' => 'Code',
+            'submit' => 'Confirm',
+            'resend' => 'Resend code',
+            'invalid' => 'This code is invalid.',
+            'expired' => 'This code has expired or is invalid. Please log in again.',
         ],
     ],
     'register' => [

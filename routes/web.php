@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AdminModeController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\LoginVerificationController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ResetPasswordController;
@@ -28,7 +29,9 @@ Route::post('/logout', [LogoutController::class, 'logout'])->name('logout');
 
 Route::get('/register', [RegisterController::class, 'showForm'])->name('register');
 Route::post('/register', [RegisterController::class, 'register'])->middleware('throttle:5,1');
-Route::get('/login/verify', static fn () => redirect('/login'))->name('login.verify.show');
+Route::get('/login/verify', [LoginVerificationController::class, 'show'])->name('login.verify.show');
+Route::post('/login/verify', [LoginVerificationController::class, 'verify'])->name('login.verify.submit');
+Route::post('/login/verify/resend', [LoginVerificationController::class, 'resend'])->name('login.verify.resend');
 
 Route::get('/password/forgot', [ForgotPasswordController::class, 'showForm'])->name('password.forgot');
 Route::post('/password/forgot', [ForgotPasswordController::class, 'sendResetLink'])

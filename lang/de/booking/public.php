@@ -46,6 +46,14 @@ return [
         'forgot_password' => 'Passwort vergessen?',
         'verify' => [
             'send_failed' => 'Der Bestätigungscode konnte nicht per E-Mail versendet werden. Bitte versuchen Sie es erneut oder kontaktieren Sie einen Administrator.',
+            'title' => 'Anmeldung bestätigen – :system',
+            'heading' => 'Anmeldung bestätigen',
+            'intro' => 'Wir haben Ihnen einen 6-stelligen Code per E-Mail geschickt. Bitte geben Sie ihn hier ein, um die Anmeldung abzuschließen.',
+            'code_label' => 'Code',
+            'submit' => 'Bestätigen',
+            'resend' => 'Code erneut senden',
+            'invalid' => 'Der Code ist ungültig.',
+            'expired' => 'Der Code ist abgelaufen oder ungültig. Bitte melden Sie sich erneut an.',
         ],
     ],
     'register' => [
