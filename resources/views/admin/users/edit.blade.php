@@ -7,6 +7,8 @@
         <p>{{ __('booking.admin.users.intro_edit') }}</p>
     </div>
 
+    <a href="{{ route('admin.users.login-history', $user) }}" class="ui-btn ui-btn-outline">{{ __('booking.admin.users.login_history_title') }}</a>
+
     <form method="POST" action="{{ route('admin.users.update', $user) }}" class="ui-form-shell">
         @method('PUT')
         @include('admin.users._form', ['privileges' => $privileges, 'user' => $user, 'profile' => $profile, 'granted' => $granted])

@@ -74,6 +74,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function (): v
 
     Route::middleware('can:admin.user')->group(function (): void {
         Route::post('users/bulk', [UserController::class, 'bulkUpdate'])->name('users.bulk');
+        Route::get('users/{user}/login-history', [UserController::class, 'loginHistory'])->name('users.login-history');
         Route::resource('users', UserController::class)->except(['show']);
         Route::post('users/{user}/password', [UserController::class, 'password'])->name('users.password');
     });

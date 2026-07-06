@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Mail\UserActivated;
+use App\Models\LoginHistory;
 use App\Models\User;
 use App\Services\QuoteGroups;
 use Illuminate\Http\RedirectResponse;
@@ -105,6 +106,19 @@ final class UserController extends Controller
                 'phone' => $user->getMeta('phone'),
                 'quote_group' => $user->getMeta('quote_group'),
             ],
+        ]);
+    }
+
+    public function loginHistory(User $user): View
+    {
+        return view('admin.users.login-history', [
+            'user' => $user,
+            'riskScore' => LoginHistory::riskScore((int) $user->getKey()),
+            'history' => LoginHistory::query()
+                ->where('user_id', $user->getKey())
+                ->latest('created_at')
+                ->paginate(25)
+                ->withQueryString(),
         ]);
     }
 
