@@ -21,7 +21,7 @@ return new class extends Migration
             $table->increments('sid');
             $table->string('name', 64);
             $table->string('status', 64)->default('enabled');
-            $table->float('priority')->default(1);
+            $table->float('priority', 24)->default(1);
             $table->unsignedInteger('capacity');
             $table->boolean('capacity_heterogenic');
             $table->boolean('allow_notes')->default(false);

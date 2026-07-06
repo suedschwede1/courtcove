@@ -53,7 +53,7 @@ final class DatabaseSchemaChecker
                 'sid' => fn (Blueprint $t) => $t->increments('sid'),
                 'name' => fn (Blueprint $t) => $t->string('name', 64),
                 'status' => fn (Blueprint $t) => $t->string('status', 64)->default('enabled'),
-                'priority' => fn (Blueprint $t) => $t->float('priority')->default(1),
+                'priority' => fn (Blueprint $t) => $t->float('priority', 24)->default(1),
                 'capacity' => fn (Blueprint $t) => $t->unsignedInteger('capacity'),
                 'capacity_heterogenic' => fn (Blueprint $t) => $t->boolean('capacity_heterogenic'),
                 'allow_notes' => fn (Blueprint $t) => $t->boolean('allow_notes')->default(false),
@@ -237,7 +237,7 @@ final class DatabaseSchemaChecker
             'member_changes' => [
                 'id' => fn (Blueprint $t) => $t->id(),
                 'member_id' => fn (Blueprint $t) => $t->foreignId('member_id')->constrained()->cascadeOnDelete(),
-                'admin_user_id' => fn (Blueprint $t) => $t->unsignedInteger('admin_user_id')->nullable(),
+                'admin_user_id' => fn (Blueprint $t) => $t->unsignedInteger('admin_user_id')->nullable()->index(),
                 'action' => fn (Blueprint $t) => $t->string('action', 16),
                 'before' => fn (Blueprint $t) => $t->json('before')->nullable(),
                 'after' => fn (Blueprint $t) => $t->json('after'),
@@ -387,6 +387,9 @@ final class DatabaseSchemaChecker
             ],
             'login_history' => [
                 fn (Blueprint $t) => $t->index(['user_id', 'created_at'], 'dp_login_history_user_created'),
+            ],
+            'club_role_mail_category' => [
+                fn (Blueprint $t) => $t->primary(['club_role_id', 'mail_category_id']),
             ],
         ];
     }

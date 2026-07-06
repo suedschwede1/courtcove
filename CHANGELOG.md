@@ -10,6 +10,10 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-07-06
 
+- Fixed the admin database-drift check reporting false positives on
+  bs_squares.priority, member_changes.admin_user_id, and
+  club_role_mail_category — the checker's manifest had drifted from what the
+  migrations actually create.
 - Fixed: adding a Beitrag from a member's detail page redirected to the general
   dues list instead of back to the member, making the save look like it had
   failed.
