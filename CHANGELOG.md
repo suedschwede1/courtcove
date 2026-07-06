@@ -10,6 +10,8 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-07-06
 
+- Password reset emails now use the configured club/service name in the subject,
+  matching the name shown in the booking UI.
 - Documented the new risk-based email verification in the README's Security section
   (was only in CHANGELOG/code, undersold the current auth posture).
 - Login now requires a 6-digit email code when it looks risky (unusual country,
