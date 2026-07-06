@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * One row per login attempt (success/failed/throttled) for a resolved user —
@@ -31,6 +32,11 @@ class LoginHistory extends Model
     protected $casts = [
         'created_at' => 'datetime',
     ];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id', 'uid');
+    }
 
     /** @param array<int, string> $riskFlags */
     public static function record(?int $userId, string $ip, ?string $countryCode, string $status, array $riskFlags = []): void

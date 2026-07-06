@@ -6,6 +6,7 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DatabaseController;
 use App\Http\Controllers\Admin\EventController;
+use App\Http\Controllers\Admin\LoginHistoryController;
 use App\Http\Controllers\Admin\OptionController;
 use App\Http\Controllers\Admin\SquareController;
 use App\Http\Controllers\Admin\StatisticsController;
@@ -75,6 +76,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function (): v
     Route::middleware('can:admin.user')->group(function (): void {
         Route::post('users/bulk', [UserController::class, 'bulkUpdate'])->name('users.bulk');
         Route::get('users/{user}/login-history', [UserController::class, 'loginHistory'])->name('users.login-history');
+        Route::get('login-history', [LoginHistoryController::class, 'index'])->name('login-history.index');
         Route::resource('users', UserController::class)->except(['show']);
         Route::post('users/{user}/password', [UserController::class, 'password'])->name('users.password');
     });

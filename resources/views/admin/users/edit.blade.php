@@ -7,7 +7,10 @@
         <p>{{ __('booking.admin.users.intro_edit') }}</p>
     </div>
 
-    <a href="{{ route('admin.users.login-history', $user) }}" class="ui-btn ui-btn-outline">{{ __('booking.admin.users.login_history_title') }}</a>
+    <div class="flex items-center gap-3">
+        <a href="{{ route('admin.users.login-history', $user) }}" class="ui-btn ui-btn-outline">{{ __('booking.admin.users.login_history_title') }}</a>
+        <span class="text-sm text-[#6a6e73]">{{ __('booking.admin.users.login_history_risk_score') }}: <strong class="text-[#151515]">{{ $riskScore }}</strong></span>
+    </div>
 
     <form method="POST" action="{{ route('admin.users.update', $user) }}" class="ui-form-shell">
         @method('PUT')

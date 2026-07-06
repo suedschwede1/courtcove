@@ -345,6 +345,14 @@ return [
                 'calendar.delete-subscription-bookings' => 'Darf Serienbuchungen löschen',
             ],
         ],
+        'login_history' => [
+            'title' => 'Login-Historie',
+            'intro' => 'Login-Ereignisse aller Benutzer durchsuchen und filtern.',
+            'user' => 'Benutzer',
+            'filter_user' => 'Benutzer (Name oder E-Mail)',
+            'filter_date_from' => 'Von',
+            'filter_date_to' => 'Bis',
+        ],
         'events' => [
             'title' => 'Veranstaltungen',
             'intro_index' => 'Veranstaltungen und Sperren verwalten.',

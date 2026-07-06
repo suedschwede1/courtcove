@@ -100,6 +100,7 @@ final class UserController extends Controller
             'privileges' => User::PRIVILEGES,
             'quoteGroups' => QuoteGroups::all(),
             'granted' => $user->grantedPrivileges(),
+            'riskScore' => LoginHistory::riskScore((int) $user->getKey()),
             'profile' => [
                 'firstname' => $user->getMeta('firstname'),
                 'lastname' => $user->getMeta('lastname'),

@@ -345,6 +345,14 @@ return [
                 'calendar.delete-subscription-bookings' => 'May delete recurring bookings',
             ],
         ],
+        'login_history' => [
+            'title' => 'Login History',
+            'intro' => 'Search and filter login events across all users.',
+            'user' => 'User',
+            'filter_user' => 'User (name or email)',
+            'filter_date_from' => 'From',
+            'filter_date_to' => 'To',
+        ],
         'events' => [
             'title' => 'Events',
             'intro_index' => 'Manage events and blocks.',

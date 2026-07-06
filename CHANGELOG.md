@@ -10,6 +10,11 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-07-06
 
+- Added a standalone "Login-Historie" admin page (own sidebar entry) listing login
+  events across all users, searchable/filterable by user, status, country, and date
+  range — previously only viewable one user at a time from their edit page. Also
+  surfaced the risk score directly on the user edit page instead of only on the
+  per-user history page.
 - Fixed the admin database-drift check reporting false positives on
   bs_squares.priority, member_changes.admin_user_id, and
   club_role_mail_category — the checker's manifest had drifted from what the

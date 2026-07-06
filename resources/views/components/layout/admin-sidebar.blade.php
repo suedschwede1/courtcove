@@ -28,6 +28,12 @@
             </a>
         @endcan
 
+        @can('admin.user')
+            <a href="{{ route('admin.login-history.index') }}" onmouseover="if (!this.dataset.active) { this.style.background='#26292e'; this.style.color='#ffffff'; }" onmouseout="if (!this.dataset.active) { this.style.background='transparent'; this.style.color='#b2b6bd'; }" data-active="{{ request()->routeIs('admin.login-history.*') ? '1' : '' }}" style="display:block; padding:12px 14px 12px {{ request()->routeIs('admin.login-history.*') ? $itemPaddingActive : $itemPaddingDefault }}; font-family:var(--font-body); font-size:{{ $itemFontSize }}; line-height:1.35; text-decoration:none; transition:background 0.15s ease, color 0.15s ease; color:{{ request()->routeIs('admin.login-history.*') ? '#ffffff' : '#b2b6bd' }}; font-weight:{{ request()->routeIs('admin.login-history.*') ? '700' : '400' }}; background:{{ request()->routeIs('admin.login-history.*') ? '#34363b' : 'transparent' }}; border-left:{{ request()->routeIs('admin.login-history.*') ? '3px solid #bf4316' : '3px solid transparent' }};">
+                {{ __('booking.admin.login_history.title') }}
+            </a>
+        @endcan
+
         @can('admin.booking')
             <a href="{{ route('admin.bookings.index') }}" onmouseover="if (!this.dataset.active) { this.style.background='#26292e'; this.style.color='#ffffff'; }" onmouseout="if (!this.dataset.active) { this.style.background='transparent'; this.style.color='#b2b6bd'; }" data-active="{{ request()->routeIs('admin.bookings.*') ? '1' : '' }}" style="display:block; padding:12px 14px 12px {{ request()->routeIs('admin.bookings.*') ? $itemPaddingActive : $itemPaddingDefault }}; font-family:var(--font-body); font-size:{{ $itemFontSize }}; line-height:1.35; text-decoration:none; transition:background 0.15s ease, color 0.15s ease; color:{{ request()->routeIs('admin.bookings.*') ? '#ffffff' : '#b2b6bd' }}; font-weight:{{ request()->routeIs('admin.bookings.*') ? '700' : '400' }}; background:{{ request()->routeIs('admin.bookings.*') ? '#34363b' : 'transparent' }}; border-left:{{ request()->routeIs('admin.bookings.*') ? '3px solid #bf4316' : '3px solid transparent' }};">
                 {{ __('booking.admin.bookings.title') }}
