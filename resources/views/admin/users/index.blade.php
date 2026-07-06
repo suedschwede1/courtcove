@@ -71,6 +71,7 @@
                                 <th>{{ __('booking.admin.users.email') }}</th>
                                 <th>{{ __('booking.admin.users.status') }}</th>
                                 <th>{{ __('booking.admin.users.bookings_count') }}</th>
+                                <th>{{ __('booking.admin.users.login_history_risk_score') }}</th>
                                 <th class="text-right">{{ __('booking.admin.users.actions') }}</th>
                             </tr>
                         </thead>
@@ -86,6 +87,10 @@
                                         <span class="ui-badge {{ in_array($u->status, ['enabled', 'assist', 'admin'], true) ? 'ui-badge-success' : 'ui-badge-info' }}">{{ __('booking.admin.users.status_' . $u->status) }}</span>
                                     </td>
                                     <td class="text-[#6a6e73]">{{ $u->bookings()->count() }}</td>
+                                    <td>
+                                        @php($risk = $riskScores[$u->uid] ?? 0)
+                                        <span class="ui-badge {{ $risk > 0 ? 'ui-badge-warning' : 'ui-badge-info' }}">{{ $risk }}</span>
+                                    </td>
                                     <td>
                                         <div class="flex items-center justify-end gap-2 whitespace-nowrap">
                                             <a href="{{ route('admin.users.edit', $u) }}" class="ui-btn ui-btn-ghost">{{ __('booking.admin.common.edit') }}</a>

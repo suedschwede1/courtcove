@@ -160,4 +160,35 @@ class PaymentManagementTest extends TestCase
 
         $this->assertSame('bezahlt', $due->fresh()->status);
     }
+
+    #[Test]
+    public function payment_form_hides_a_due_marked_paid_without_a_payment_record(): void
+    {
+        $member = Member::factory()->create();
+        $category = FeeCategory::create(['name' => 'Vollmitglied']);
+        $fy = FiscalYear::create(['name' => '2025/26', 'starts_on' => '2025-09-01', 'ends_on' => '2026-08-31']);
+        $paidDue = MemberDue::create(['member_id' => $member->id, 'fiscal_year_id' => $fy->id, 'fee_category_id' => $category->id, 'amount' => 120, 'status' => 'bezahlt']);
+
+        $this->actingAs($this->admin())->get(route('members.payments.create', $member))
+            ->assertOk()
+            ->assertDontSee('value="'.$paidDue->id.'"', false);
+    }
+
+    #[Test]
+    public function payment_cannot_attach_a_due_marked_paid_without_a_payment_record(): void
+    {
+        $member = Member::factory()->create();
+        $category = FeeCategory::create(['name' => 'Vollmitglied']);
+        $fy = FiscalYear::create(['name' => '2025/26', 'starts_on' => '2025-09-01', 'ends_on' => '2026-08-31']);
+        $due = MemberDue::create(['member_id' => $member->id, 'fiscal_year_id' => $fy->id, 'fee_category_id' => $category->id, 'amount' => 120, 'status' => 'bezahlt']);
+
+        $this->actingAs($this->admin())->post(route('members.payments.store', $member), [
+            'amount' => 120,
+            'paid_at' => '2025-09-10',
+            'member_due_ids' => [$due->id],
+        ])->assertSessionHasErrors('member_due_ids.0');
+
+        $this->assertDatabaseCount('payments', 0);
+        $this->assertSame(0, $due->fresh()->payments()->count());
+    }
 }

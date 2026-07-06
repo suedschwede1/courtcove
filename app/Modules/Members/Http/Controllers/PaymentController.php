@@ -18,7 +18,7 @@ class PaymentController
     public function create(Member $member): View
     {
         $openDues = $member->dues()
-            ->whereDoesntHave('payments')
+            ->open()
             ->with(['fiscalYear', 'feeCategory'])
             ->get();
 
@@ -38,7 +38,7 @@ class PaymentController
                 function (string $attribute, mixed $value, callable $fail): void {
                     $isAlreadyPaid = MemberDue::query()
                         ->whereKey($value)
-                        ->whereHas('payments')
+                        ->paid()
                         ->exists();
 
                     if ($isAlreadyPaid) {
@@ -71,7 +71,7 @@ class PaymentController
             // concurrent submissions cannot allocate the same due twice.
             $alreadyPaid = MemberDue::query()
                 ->whereKey($dueIds)
-                ->whereHas('payments')
+                ->paid()
                 ->lockForUpdate()
                 ->exists();
 

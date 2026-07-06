@@ -10,6 +10,8 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-07-06
 
+- Fixed the overdue member-dues filters so they include rows explicitly marked
+  as overdue, not only rows computed overdue from a past due date.
 - Added a standalone "Login-Historie" admin page (own sidebar entry) listing login
   events across all users, searchable/filterable by user, status, country, and date
   range — previously only viewable one user at a time from their edit page. Also

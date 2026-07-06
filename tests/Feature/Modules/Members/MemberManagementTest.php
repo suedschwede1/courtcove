@@ -404,4 +404,21 @@ class MemberManagementTest extends TestCase
         $response->assertOk()->assertSeeInOrder(['Verknuepft Mitglied', 'Ja']);
         $response->assertSeeInOrder(['Unverknuepft Mitglied', 'Nein']);
     }
+
+    #[Test]
+    public function index_can_filter_members_by_explicitly_overdue_due_status(): void
+    {
+        $category = FeeCategory::create(['name' => 'Vollmitglied']);
+        $fy = FiscalYear::create(['name' => '2026/27', 'starts_on' => '2026-09-01', 'ends_on' => '2027-08-31']);
+        $overdueMember = Member::factory()->create(['firstname' => 'Manuell', 'lastname' => 'Ueberfaellig']);
+        $openMember = Member::factory()->create(['firstname' => 'Offen', 'lastname' => 'Mitglied']);
+
+        MemberDue::create(['member_id' => $overdueMember->id, 'fiscal_year_id' => $fy->id, 'fee_category_id' => $category->id, 'amount' => 120, 'status' => 'ueberfaellig']);
+        MemberDue::create(['member_id' => $openMember->id, 'fiscal_year_id' => $fy->id, 'fee_category_id' => $category->id, 'amount' => 120, 'status' => 'ausstehend', 'faellig_am' => now()->addWeek()->toDateString()]);
+
+        $this->actingAs($this->admin())->get('/members?zahlung=ueberfaellig')
+            ->assertOk()
+            ->assertSee('Manuell Ueberfaellig')
+            ->assertDontSee('Offen Mitglied');
+    }
 }

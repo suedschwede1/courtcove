@@ -71,4 +71,20 @@ class MemberDueFilterTest extends TestCase
         $this->actingAs($this->admin())->get("/members/dues?fiscal_year_id={$fy->id}&status=ueberfaellig")
             ->assertOk()->assertSee('<td>Verspaetet Mitglied</td>', false)->assertDontSee('<td>Piinktlich Mitglied</td>', false);
     }
+
+    #[Test]
+    public function the_ueberfaellig_filter_includes_dues_explicitly_marked_overdue(): void
+    {
+        $category = FeeCategory::create(['name' => 'Vollzahler']);
+        $fy = FiscalYear::create(['name' => '2026/27', 'starts_on' => '2026-09-01', 'ends_on' => '2027-08-31']);
+        $overdue = Member::factory()->create(['firstname' => 'Manuell', 'lastname' => 'Ueberfaellig']);
+        $onTime = Member::factory()->create(['firstname' => 'Piinktlich', 'lastname' => 'Mitglied']);
+        $this->dueFor($overdue, $fy, $category, 'ueberfaellig', null);
+        $this->dueFor($onTime, $fy, $category, 'ausstehend', now()->addWeek()->toDateString());
+
+        $this->actingAs($this->admin())->get("/members/dues?fiscal_year_id={$fy->id}&status=ueberfaellig")
+            ->assertOk()
+            ->assertSee('<td>Manuell Ueberfaellig</td>', false)
+            ->assertDontSee('<td>Piinktlich Mitglied</td>', false);
+    }
 }

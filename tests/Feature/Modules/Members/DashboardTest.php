@@ -9,6 +9,7 @@ use App\Modules\Members\Models\FeeCategory;
 use App\Modules\Members\Models\FiscalYear;
 use App\Modules\Members\Models\Member;
 use App\Modules\Members\Models\MemberDue;
+use App\Modules\Members\Models\Payment;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -73,7 +74,7 @@ class DashboardTest extends TestCase
 
         MemberDue::create(['member_id' => $paidMember->id, 'fiscal_year_id' => $pastYear->id, 'fee_category_id' => $category->id, 'amount' => 90, 'status' => 'bezahlt']);
         $paid = MemberDue::create(['member_id' => $paidMember->id, 'fiscal_year_id' => $currentYear->id, 'fee_category_id' => $category->id, 'amount' => 100, 'status' => 'bezahlt']);
-        $paid->payments()->attach(\App\Modules\Members\Models\Payment::create(['member_id' => $paidMember->id, 'amount' => 100, 'paid_at' => now()]));
+        $paid->payments()->attach(Payment::create(['member_id' => $paidMember->id, 'amount' => 100, 'paid_at' => now()]));
         MemberDue::create(['member_id' => $openMember->id, 'fiscal_year_id' => $currentYear->id, 'fee_category_id' => $category->id, 'amount' => 50, 'status' => 'ausstehend']);
         MemberDue::create(['member_id' => $futureMember->id, 'fiscal_year_id' => $futureYear->id, 'fee_category_id' => $category->id, 'amount' => 200, 'status' => 'ausstehend']);
 
@@ -100,5 +101,22 @@ class DashboardTest extends TestCase
         $response->assertSeeTextInOrder(['Vollmitglied', '2']);
         $response->assertSeeTextInOrder(['Ehrenmitglied', '1']);
         $response->assertSeeTextInOrder(['Ohne Kategorie', '1']);
+    }
+
+    #[Test]
+    public function dashboard_counts_status_paid_dues_without_payment_records_as_paid(): void
+    {
+        $paidMember = Member::factory()->create();
+        $openMember = Member::factory()->create();
+        $category = FeeCategory::create(['name' => 'Vollmitglied']);
+        $currentYear = FiscalYear::create(['name' => '2025/26', 'starts_on' => '2025-09-01', 'ends_on' => '2026-08-31']);
+
+        MemberDue::create(['member_id' => $paidMember->id, 'fiscal_year_id' => $currentYear->id, 'fee_category_id' => $category->id, 'amount' => 100, 'status' => 'bezahlt']);
+        MemberDue::create(['member_id' => $openMember->id, 'fiscal_year_id' => $currentYear->id, 'fee_category_id' => $category->id, 'amount' => 50, 'status' => 'ausstehend']);
+
+        $this->actingAs($this->admin())->get('/members/dashboard')
+            ->assertOk()
+            ->assertSeeTextInOrder(['Offene Beiträge', '1', '50.00 €'])
+            ->assertSeeTextInOrder(['Bezahlte Beiträge', '1', '100.00 €']);
     }
 }

@@ -70,4 +70,27 @@ class LoginHistory extends Model
             ->get()
             ->sum(fn (self $row): int => count(explode(',', (string) $row->risk_flags)));
     }
+
+    /**
+     * Batch version of riskScore() for a list of users (e.g. an admin index page) —
+     * one query instead of one per user.
+     *
+     * @param  array<int, int>  $userIds
+     * @return array<int, int> user_id => score
+     */
+    public static function riskScores(array $userIds): array
+    {
+        if ($userIds === []) {
+            return [];
+        }
+
+        return self::query()
+            ->whereIn('user_id', $userIds)
+            ->where('created_at', '>=', now()->subDays(30))
+            ->whereNotNull('risk_flags')
+            ->get(['user_id', 'risk_flags'])
+            ->groupBy('user_id')
+            ->map(fn ($rows): int => $rows->sum(fn (self $row): int => count(explode(',', (string) $row->risk_flags))))
+            ->all();
+    }
 }

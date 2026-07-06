@@ -46,8 +46,7 @@ class MemberDueController
                 'bezahlt' => $duesQuery->where('status', 'bezahlt'),
                 'ausstehend' => $duesQuery->where('status', 'ausstehend')
                     ->where(fn ($q) => $q->whereNull('faellig_am')->orWhere('faellig_am', '>=', now()->toDateString())),
-                'ueberfaellig' => $duesQuery->where('status', 'ausstehend')
-                    ->whereNotNull('faellig_am')->where('faellig_am', '<', now()->toDateString()),
+                'ueberfaellig' => $duesQuery->overdue(),
             };
         }
 

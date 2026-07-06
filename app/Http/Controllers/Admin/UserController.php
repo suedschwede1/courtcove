@@ -41,6 +41,7 @@ final class UserController extends Controller
 
         return view('admin.users.index', [
             'users' => $users,
+            'riskScores' => LoginHistory::riskScores($users->pluck('uid')->all()),
             'searched' => $searched,
             'filters' => $request->only('q', 'status'),
         ]);

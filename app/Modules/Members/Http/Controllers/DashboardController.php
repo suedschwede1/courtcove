@@ -21,8 +21,8 @@ class DashboardController
             fn (FiscalYear $fiscalYear) => now()->between($fiscalYear->starts_on, $fiscalYear->ends_on),
         ) ?? $fiscalYears->last();
 
-        $openDuesQuery = MemberDue::query()->whereDoesntHave('payments');
-        $paidDuesQuery = MemberDue::query()->whereHas('payments');
+        $openDuesQuery = MemberDue::query()->open();
+        $paidDuesQuery = MemberDue::query()->paid();
         if ($currentFiscalYear) {
             $openDuesQuery->where('fiscal_year_id', $currentFiscalYear->id);
             $paidDuesQuery->where('fiscal_year_id', $currentFiscalYear->id);

@@ -53,8 +53,7 @@ class MemberController
                     'bezahlt' => $dueQuery->where('status', 'bezahlt'),
                     'ausstehend' => $dueQuery->where('status', 'ausstehend')
                         ->where(fn ($q) => $q->whereNull('faellig_am')->orWhere('faellig_am', '>=', now()->toDateString())),
-                    'ueberfaellig' => $dueQuery->where('status', 'ausstehend')
-                        ->whereNotNull('faellig_am')->where('faellig_am', '<', now()->toDateString()),
+                    'ueberfaellig' => $dueQuery->overdue(),
                 };
             });
         }
@@ -114,7 +113,7 @@ class MemberController
             'member' => $member,
             'feeCategories' => FeeCategory::query()->orderBy('name')->get(),
             'clubRoles' => ClubRole::query()->orderByDesc('is_board')->orderBy('name')->get(),
-            'fiscalYears' => \App\Modules\Members\Models\FiscalYear::query()->orderBy('starts_on')->get(),
+            'fiscalYears' => FiscalYear::query()->orderBy('starts_on')->get(),
             'dues' => $member->dues()->with('fiscalYear', 'feeCategory')->get()->sortByDesc(fn ($due) => $due->fiscalYear->starts_on),
             'changes' => MemberChange::where('member_id', $member->id)->with('adminUser')->latest()->get(),
             'users' => User::query()->orderBy('alias')->get(),

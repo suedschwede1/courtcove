@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Members\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -50,7 +51,31 @@ class MemberDue extends Model
 
     public function isPaid(): bool
     {
-        return $this->payments()->exists();
+        return $this->status === 'bezahlt' || $this->payments()->exists();
+    }
+
+    public function scopePaid(Builder $query): Builder
+    {
+        return $query->where(function (Builder $query): void {
+            $query->where('status', 'bezahlt')->orWhereHas('payments');
+        });
+    }
+
+    public function scopeOpen(Builder $query): Builder
+    {
+        return $query->where('status', '!=', 'bezahlt')->whereDoesntHave('payments');
+    }
+
+    public function scopeOverdue(Builder $query): Builder
+    {
+        return $query->where(function (Builder $query): void {
+            $query->where('status', 'ueberfaellig')
+                ->orWhere(function (Builder $query): void {
+                    $query->where('status', 'ausstehend')
+                        ->whereNotNull('faellig_am')
+                        ->where('faellig_am', '<', now()->toDateString());
+                });
+        });
     }
 
     /** Der angezeigte Status: "ausstehend" mit verstrichenem Fälligkeitsdatum gilt automatisch als "überfällig". */

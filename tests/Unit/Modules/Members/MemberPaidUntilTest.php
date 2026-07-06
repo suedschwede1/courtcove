@@ -42,4 +42,16 @@ class MemberPaidUntilTest extends TestCase
 
         $this->assertNull($member->paidUntil());
     }
+
+    #[Test]
+    public function paid_until_uses_dues_marked_paid_without_a_payment_record(): void
+    {
+        $member = Member::factory()->create();
+        $category = FeeCategory::create(['name' => 'Vollmitglied']);
+        $fy2025 = FiscalYear::create(['name' => '2025/26', 'starts_on' => '2025-09-01', 'ends_on' => '2026-08-31']);
+
+        MemberDue::create(['member_id' => $member->id, 'fiscal_year_id' => $fy2025->id, 'fee_category_id' => $category->id, 'amount' => 120, 'status' => 'bezahlt']);
+
+        $this->assertSame('2026-08-31', $member->paidUntil()->format('Y-m-d'));
+    }
 }
