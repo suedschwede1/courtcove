@@ -352,6 +352,11 @@ return [
             'filter_user' => 'Benutzer (Name oder E-Mail)',
             'filter_date_from' => 'Von',
             'filter_date_to' => 'Bis',
+            'stat_success' => 'Erfolgreiche Anmeldungen',
+            'stat_failed' => 'Fehlgeschlagene Anmeldungen',
+            'stat_today' => 'Heute',
+            'stat_month' => 'Diesen Monat',
+            'stat_countries' => 'Anmeldungen nach Land',
         ],
         'events' => [
             'title' => 'Veranstaltungen',

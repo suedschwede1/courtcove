@@ -41,6 +41,54 @@
         </div>
     </div>
 
+    <div class="ui-grid-4">
+        <div class="ui-card ui-kpi">
+            <div class="ui-card-body ui-stack">
+                <p class="ui-kpi-label">{{ __('booking.admin.login_history.stat_success') }}</p>
+                <p class="ui-kpi-value">{{ $statusCounts['success'] ?? 0 }}</p>
+            </div>
+        </div>
+        <div class="ui-card">
+            <div class="ui-card-body ui-stack">
+                <p class="ui-kpi-label">{{ __('booking.admin.login_history.stat_failed') }}</p>
+                <p class="ui-kpi-value">{{ ($statusCounts['failed'] ?? 0) + ($statusCounts['throttled'] ?? 0) }}</p>
+                <p class="ui-kpi-meta">
+                    {{ $statusCounts['failed'] ?? 0 }} {{ __('booking.admin.users.login_history_status_failed') }}
+                    · {{ $statusCounts['throttled'] ?? 0 }} {{ __('booking.admin.users.login_history_status_throttled') }}
+                </p>
+            </div>
+        </div>
+        <div class="ui-card">
+            <div class="ui-card-body ui-stack">
+                <p class="ui-kpi-label">{{ __('booking.admin.login_history.stat_today') }}</p>
+                <p class="ui-kpi-value">{{ $todayCount }}</p>
+            </div>
+        </div>
+        <div class="ui-card">
+            <div class="ui-card-body ui-stack">
+                <p class="ui-kpi-label">{{ __('booking.admin.login_history.stat_month') }}</p>
+                <p class="ui-kpi-value">{{ $monthCount }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="ui-card">
+        <div class="ui-card-header">
+            <h2>{{ __('booking.admin.login_history.stat_countries') }}</h2>
+        </div>
+        <div class="ui-card-body">
+            @if($countryCounts->isEmpty())
+                <p class="ui-kpi-meta">{{ __('booking.admin.users.login_history_empty') }}</p>
+            @else
+                <div class="flex flex-wrap gap-2">
+                    @foreach($countryCounts as $country => $count)
+                        <span class="ui-badge ui-badge-info">{{ $country }}: {{ $count }}</span>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+    </div>
+
     <div class="ui-card">
         <div class="ui-table-wrap">
             <table class="ui-table">

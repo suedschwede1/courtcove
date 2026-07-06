@@ -352,6 +352,11 @@ return [
             'filter_user' => 'User (name or email)',
             'filter_date_from' => 'From',
             'filter_date_to' => 'To',
+            'stat_success' => 'Successful logins',
+            'stat_failed' => 'Failed logins',
+            'stat_today' => 'Today',
+            'stat_month' => 'This month',
+            'stat_countries' => 'Logins by country',
         ],
         'events' => [
             'title' => 'Events',

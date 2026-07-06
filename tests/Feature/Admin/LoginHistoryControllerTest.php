@@ -71,6 +71,81 @@ class LoginHistoryControllerTest extends TestCase
     }
 
     #[Test]
+    public function it_shows_success_and_failed_counts(): void
+    {
+        $admin = User::factory()->create(['status' => 'admin']);
+        $user = User::factory()->create(['alias' => 'Jane Doe']);
+        LoginHistory::record((int) $user->uid, '1.1.1.1', 'AT', 'success');
+        LoginHistory::record((int) $user->uid, '1.1.1.1', 'AT', 'success');
+        LoginHistory::record((int) $user->uid, '1.1.1.1', 'AT', 'failed');
+        LoginHistory::record((int) $user->uid, '1.1.1.1', 'AT', 'throttled');
+
+        $response = $this->actingAs($admin)->get(route('admin.login-history.index'));
+
+        $response->assertOk()
+            ->assertSee(__('booking.admin.login_history.stat_success'))
+            ->assertSee(__('booking.admin.login_history.stat_failed'))
+            ->assertSee('>2<', false);
+    }
+
+    #[Test]
+    public function it_shows_a_country_breakdown(): void
+    {
+        $admin = User::factory()->create(['status' => 'admin']);
+        $user = User::factory()->create(['alias' => 'Jane Doe']);
+        LoginHistory::record((int) $user->uid, '1.1.1.1', 'AT', 'success');
+        LoginHistory::record((int) $user->uid, '2.2.2.2', 'AT', 'success');
+        LoginHistory::record((int) $user->uid, '3.3.3.3', 'RU', 'success');
+
+        $response = $this->actingAs($admin)->get(route('admin.login-history.index'));
+
+        $response->assertOk()
+            ->assertSee(__('booking.admin.login_history.stat_countries'))
+            ->assertSee('AT: 2', false)
+            ->assertSee('RU: 1', false);
+    }
+
+    #[Test]
+    public function stats_respect_the_current_filters(): void
+    {
+        $admin = User::factory()->create(['status' => 'admin']);
+        $jane = User::factory()->create(['alias' => 'Jane Doe']);
+        $bob = User::factory()->create(['alias' => 'Bob Smith']);
+        LoginHistory::record((int) $jane->uid, '1.1.1.1', 'AT', 'success');
+        LoginHistory::record((int) $bob->uid, '2.2.2.2', 'RU', 'success');
+        LoginHistory::record((int) $bob->uid, '2.2.2.2', 'RU', 'failed');
+
+        $response = $this->actingAs($admin)
+            ->get(route('admin.login-history.index', ['user' => 'Bob']));
+
+        $response->assertOk()
+            ->assertSee('RU: 2', false)
+            ->assertDontSee('AT:', false);
+    }
+
+    #[Test]
+    public function it_shows_todays_and_this_months_totals(): void
+    {
+        $admin = User::factory()->create(['status' => 'admin']);
+        $user = User::factory()->create(['alias' => 'Jane Doe']);
+
+        Carbon::setTestNow('2026-02-15 12:00:00');
+        LoginHistory::record((int) $user->uid, '1.1.1.1', 'AT', 'success');
+        LoginHistory::record((int) $user->uid, '1.1.1.1', 'AT', 'success');
+
+        Carbon::setTestNow('2026-02-01 09:00:00');
+        LoginHistory::record((int) $user->uid, '1.1.1.1', 'AT', 'success');
+
+        Carbon::setTestNow('2026-02-15 15:00:00');
+        $response = $this->actingAs($admin)->get(route('admin.login-history.index'));
+        Carbon::setTestNow();
+
+        $response->assertOk();
+        $response->assertSee(__('booking.admin.login_history.stat_today'));
+        $response->assertSee(__('booking.admin.login_history.stat_month'));
+    }
+
+    #[Test]
     public function it_filters_by_date_range(): void
     {
         $admin = User::factory()->create(['status' => 'admin']);
