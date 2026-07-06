@@ -473,7 +473,7 @@ class LoginTest extends TestCase
     }
 
     #[Test]
-    public function login_history_records_which_risk_flags_fired(): void
+    public function risky_login_history_is_not_recorded_as_success_before_verification(): void
     {
         $user = User::factory()->create([
             'email' => 'test@example.com',
@@ -489,11 +489,14 @@ class LoginTest extends TestCase
         app()->forgetInstance(LocationManager::class);
         Location::clearResolvedInstance(LocationManager::class);
         Location::fake(['127.0.0.1' => Position::make(['countryCode' => 'RU'])]);
+        Mail::fake();
 
-        $this->post('/login', ['email' => 'test@example.com', 'password' => 'secret123']);
+        $this->post('/login', ['email' => 'test@example.com', 'password' => 'secret123'])
+            ->assertRedirect(route('login.verify.show'));
 
-        $this->assertDatabaseHas('login_history', [
+        $this->assertDatabaseMissing('login_history', [
             'user_id' => $user->uid,
+            'country_code' => 'RU',
             'status' => 'success',
             'risk_flags' => 'unusual_country,impossible_travel',
         ]);

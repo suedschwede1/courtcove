@@ -13,8 +13,10 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 - Login-Historie: added stat tiles (successful/failed/throttled, today, this month)
   and a per-country breakdown to the admin page — all respect the currently applied
   filters (user/status/country/date range).
-- Fixed risky login history handling so a suspicious login only becomes a trusted successful login after the email code is verified.
-
+- Fixed risky login history handling so a suspicious login only becomes a trusted
+  successful login after the email code is verified — the login_history row is now
+  written after code entry succeeds, carrying the ip/country/risk flags captured at
+  password-check time, instead of being recorded as `success` before verification.
 - Added a risk-score column to the admin Benutzer (users) list so admins can spot
   risky accounts while browsing/filtering, without opening each user individually.
 - Fixed the overdue member-dues filters so they include rows explicitly marked

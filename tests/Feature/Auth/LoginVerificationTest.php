@@ -98,11 +98,22 @@ class LoginVerificationTest extends TestCase
         Location::fake(['127.0.0.1' => Position::make(['countryCode' => 'AT'])]);
         LoginHistory::record((int) $user->uid, '1.1.1.1', 'AT', 'success');
 
+        // Past the 60s same-request grace window (LoginRiskEvaluator::IMPOSSIBLE_TRAVEL_MIN_GAP_SECONDS)
+        // so this genuinely represents impossible travel rather than test-timing noise.
+        $this->travel(2)->minutes();
+
         app()->forgetInstance(LocationManager::class);
         Location::clearResolvedInstance(LocationManager::class);
         Location::fake(['127.0.0.1' => Position::make(['countryCode' => 'RU'])]);
 
         $this->post('/login', ['email' => 'test@example.com', 'password' => 'secret123']);
+
+        $this->assertDatabaseMissing('login_history', [
+            'user_id' => $user->uid,
+            'country_code' => 'RU',
+            'status' => 'success',
+            'risk_flags' => 'unusual_country,impossible_travel',
+        ]);
 
         $pending = session('login.pending_verification');
         $code = '482913';
@@ -115,6 +126,12 @@ class LoginVerificationTest extends TestCase
 
         $this->assertAuthenticated();
         $this->assertNull(session('login.pending_verification'));
+        $this->assertDatabaseHas('login_history', [
+            'user_id' => $user->uid,
+            'country_code' => 'RU',
+            'status' => 'success',
+            'risk_flags' => 'unusual_country,impossible_travel',
+        ]);
     }
 
     #[Test]

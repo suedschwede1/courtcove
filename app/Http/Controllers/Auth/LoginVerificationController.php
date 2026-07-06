@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Mail\LoginVerificationCode;
+use App\Models\LoginHistory;
 use App\Models\User;
 use App\Services\LoginBookkeeping;
 use Illuminate\Http\RedirectResponse;
@@ -70,11 +71,19 @@ final class LoginVerificationController extends Controller
         }
 
         $user = User::findOrFail($pending['user_id']);
+        $ip = (string) ($pending['ip'] ?? $request->ip());
+        $countryCode = isset($pending['country_code']) ? (string) $pending['country_code'] : null;
+        $riskFlags = is_array($pending['risk_flags'] ?? null)
+            ? array_values(array_filter($pending['risk_flags'], 'is_string'))
+            : [];
+
+        LoginHistory::record($user->getKey(), $ip, $countryCode, 'success', $riskFlags);
+
         Auth::loginUsingId($user->getKey(), (bool) $pending['remember']);
         $request->session()->regenerate();
         $request->session()->forget('login.pending_verification');
 
-        $this->bookkeeping->syncLegacyLoginTracking($user, true, (string) $request->ip(), 600);
+        $this->bookkeeping->syncLegacyLoginTracking($user, true, $ip, 600);
         $this->bookkeeping->logAttempt('succeeded', $request, $user, [
             'email' => (string) $user->email,
             'verified' => true,

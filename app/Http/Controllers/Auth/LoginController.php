@@ -121,13 +121,11 @@ final class LoginController extends Controller
         $redirectTarget = $this->normalizeRedirectTarget($credentials['redirect_to'] ?? null);
         $riskFlags = $this->riskEvaluator->triggeredFlags($user->getKey(), $countryCode);
 
-        LoginHistory::record($user->getKey(), $ip, $countryCode, 'success', $riskFlags);
-
         if ($riskFlags !== []) {
             Auth::logout();
             $request->session()->regenerate();
 
-            if (! $this->beginPendingVerification($request, $user, $rememberApplied, $redirectTarget)) {
+            if (! $this->beginPendingVerification($request, $user, $rememberApplied, $redirectTarget, $ip, $countryCode, $riskFlags)) {
                 return redirect()->route('login.verify.show')->withErrors([
                     'code' => __('booking.auth.verify.send_failed'),
                 ]);
@@ -142,6 +140,8 @@ final class LoginController extends Controller
 
             return redirect()->route('login.verify.show');
         }
+
+        LoginHistory::record($user->getKey(), $ip, $countryCode, 'success');
 
         $request->session()->regenerate();
 
@@ -166,12 +166,25 @@ final class LoginController extends Controller
         return redirect()->to($redirectTarget);
     }
 
-    private function beginPendingVerification(Request $request, User $user, bool $remember, string $redirectTo): bool
-    {
+    /**
+     * @param  array<int, string>  $riskFlags
+     */
+    private function beginPendingVerification(
+        Request $request,
+        User $user,
+        bool $remember,
+        string $redirectTo,
+        string $ip,
+        ?string $countryCode,
+        array $riskFlags,
+    ): bool {
         $code = (string) random_int(100000, 999999);
 
         $request->session()->put('login.pending_verification', [
             'user_id' => $user->getKey(),
+            'ip' => $ip,
+            'country_code' => $countryCode,
+            'risk_flags' => $riskFlags,
             'code_hash' => Hash::make($code),
             'expires_at' => now()->addMinutes((int) config('booking.login_verification.code_ttl_minutes'))->toIso8601String(),
             'attempts' => 0,
