@@ -173,7 +173,7 @@
 </div>
 
 <script>
-    window.saveMemberField = window.saveMemberField || async (memberId, field, value) => {
+    window.saveMemberField = window.saveMemberField || (async (memberId, field, value) => {
         const token = document.querySelector('input[name="_token"]')?.value ?? '';
 
         try {
@@ -196,7 +196,7 @@
         } catch (e) {
             return { ok: false, message: 'Fehler beim Speichern.' };
         }
-    };
+    });
 
     window.saveDueField = async (dueId, field, value) => {
         const token = document.querySelector('input[name="_token"]')?.value ?? '';

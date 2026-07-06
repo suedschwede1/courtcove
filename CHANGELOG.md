@@ -10,6 +10,10 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-07-06
 
+- Fixed a JS syntax error on the member detail page (`window.x = window.x || async (...) => {}`,
+  invalid without parens around the arrow function) that silently broke every inline save
+  on the page — Beiträge status/Bezahlt-bis/Teilbetrag/Kommentar edits and member field edits
+  all failed with no visible error.
 - Login-Historie: added stat tiles (successful/failed/throttled, today, this month)
   and a per-country breakdown to the admin page — all respect the currently applied
   filters (user/status/country/date range).
