@@ -152,10 +152,25 @@ git checkout mobile-view-stable -- resources/views/components/layout/header.blad
 
 ## JSON API & MCP server (Modules/Api)
 
-`Modules/Api` is a self-contained module built with `nwidart/laravel-modules`, deliberately
-separate from `app/Modules/<Name>` (which is for web-admin UI sections). It provides a
+`Modules/Api` is a self-contained module built with `nwidart/laravel-modules`. It provides a
 versioned REST API and an MCP server for external integrations — deliberately without a
 public login endpoint; tokens are issued by an admin instead.
+
+> **Why two different "Modules" directories?** `app/Modules/<Name>` (e.g. `app/Modules/Members`)
+> and top-level `Modules/<Name>` (e.g. `Modules/Api`) look similar but are unrelated systems
+> solving different problems:
+>
+> - **`app/Modules/*`** is a small homegrown convention (see
+>   `app/Console/Commands/MakeModuleCommand.php`, `php artisan make:module`) for
+>   self-contained **web-admin UI sections** — own layout, sidebar entry, Blade views,
+>   `can()`-gated routes. Used by the Members module.
+> - **`Modules/*`** comes from the `nwidart/laravel-modules` package (`php artisan
+>   module:make`) and is for **stateless, non-UI feature modules** — no layout, no views,
+>   just routes/controllers/services. Used for the API/MCP layer, because it doesn't fit
+>   the admin-UI shape `app/Modules/*` is built for.
+>
+> When adding a new self-contained feature, pick based on whether it needs an admin UI
+> (`app/Modules/*`) or not (`Modules/*`) — don't add a third convention.
 
 **Auth**: Laravel Sanctum personal access tokens, issued/revoked at `/admin/api-tokens`
 (`App\Http\Controllers\Admin\ApiTokenController`, gated by the `admin.api-tokens`

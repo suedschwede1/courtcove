@@ -10,6 +10,10 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-07-06
 
+- Documented in the README why `app/Modules/*` (homegrown, web-admin UI sections) and
+  `Modules/*` (nwidart/laravel-modules, stateless feature modules like the API/MCP layer)
+  are two separate, unrelated conventions — the near-identical naming kept causing
+  confusion about which one to use for a new self-contained feature.
 - Added an MCP (Model Context Protocol) server at `POST /api/v1/mcp` (via `laravel/mcp`),
   exposing the same booking/event/member/dues create+edit actions as MCP tools for LLM
   clients, authenticated with the same Sanctum tokens as the REST API. Each tool checks
