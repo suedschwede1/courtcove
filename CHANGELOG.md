@@ -10,6 +10,12 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-07-06
 
+- Login now requires a 6-digit email code when it looks risky (unusual country,
+  2+ recent failed attempts, or impossible travel within 24h) — normal logins are
+  unaffected. Backed by a new 30-day `login_history` table. Country-based checks
+  fail open when the MaxMind GeoLite2 file is missing. Admins can view a user's
+  login history read-only from their edit page, including a display-only risk
+  score (30-day sum of fired triggers) and which flags fired per login.
 - Password reset: rate-limited the reset-password page (`GET /password/reset/{token}`,
   `throttle:20,1`) to match the throttling already on the other "forgot password" routes,
   and added tests confirming a reset token can't be reused after a successful reset and
