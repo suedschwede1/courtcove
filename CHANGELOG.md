@@ -10,6 +10,11 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-07-06
 
+- Added a versioned JSON API (`/api/v1/...`, self-contained module under `Modules/Api` via
+  nwidart/laravel-modules) authenticated with Laravel Sanctum personal access tokens. Tokens
+  are issued/revoked only through a new admin-only "API-Tokens" page (`/admin/api-tokens`,
+  new `admin.api-tokens` privilege) for a chosen member — there is no public login endpoint,
+  so external integrations get a token handed to them by an admin.
 - Fixed a JS syntax error on the member detail page (`window.x = window.x || async (...) => {}`,
   invalid without parens around the arrow function) that silently broke every inline save
   on the page — Beiträge status/Bezahlt-bis/Teilbetrag/Kommentar edits and member field edits

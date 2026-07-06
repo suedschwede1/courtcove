@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\Admin\ApiTokenController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DatabaseController;
 use App\Http\Controllers\Admin\EventController;
@@ -112,5 +113,11 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function (): v
         Route::post('database/backups/{filename}/restore', [DatabaseController::class, 'restoreBackup'])
             ->name('database.backups.restore')
             ->where('filename', '^backup-\d{8}_\d{6}(-prerestore)?\.sql\.gz$');
+    });
+
+    Route::middleware('can:admin.api-tokens')->group(function (): void {
+        Route::get('api-tokens', [ApiTokenController::class, 'index'])->name('api-tokens.index');
+        Route::post('api-tokens', [ApiTokenController::class, 'store'])->name('api-tokens.store');
+        Route::delete('api-tokens/{token}', [ApiTokenController::class, 'destroy'])->name('api-tokens.destroy');
     });
 });

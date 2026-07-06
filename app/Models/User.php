@@ -7,6 +7,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Laravel\Sanctum\HasApiTokens;
 
 /**
  * A system user (club member). Maps to the real bs_users table:
@@ -28,11 +29,12 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
  */
 class User extends Authenticatable
 {
+    use HasApiTokens;
     use HasFactory;
 
     /** All assignable privileges (ported from ZF2 User::$privileges). */
     public const PRIVILEGES = [
-        'admin.user', 'admin.booking', 'admin.event', 'admin.config', 'admin.see-menu', 'admin.members',
+        'admin.user', 'admin.booking', 'admin.event', 'admin.config', 'admin.see-menu', 'admin.members', 'admin.api-tokens',
         'calendar.see-past', 'calendar.see-data',
         'calendar.create-single-bookings', 'calendar.cancel-single-bookings', 'calendar.delete-single-bookings',
         'calendar.create-subscription-bookings', 'calendar.cancel-subscription-bookings', 'calendar.delete-subscription-bookings',

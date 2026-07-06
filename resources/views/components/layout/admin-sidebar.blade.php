@@ -75,5 +75,11 @@
                 {{ __('booking.admin.behavior') }}
             </a>
         @endcan
+
+        @can('admin.api-tokens')
+            <a href="{{ route('admin.api-tokens.index') }}" onmouseover="if (!this.dataset.active) { this.style.background='#26292e'; this.style.color='#ffffff'; }" onmouseout="if (!this.dataset.active) { this.style.background='transparent'; this.style.color='#b2b6bd'; }" data-active="{{ request()->routeIs('admin.api-tokens.*') ? '1' : '' }}" style="display:block; padding:12px 14px 12px {{ request()->routeIs('admin.api-tokens.*') ? $itemPaddingActive : $itemPaddingDefault }}; font-family:var(--font-body); font-size:{{ $itemFontSize }}; line-height:1.35; text-decoration:none; transition:background 0.15s ease, color 0.15s ease; color:{{ request()->routeIs('admin.api-tokens.*') ? '#ffffff' : '#b2b6bd' }}; font-weight:{{ request()->routeIs('admin.api-tokens.*') ? '700' : '400' }}; background:{{ request()->routeIs('admin.api-tokens.*') ? '#34363b' : 'transparent' }}; border-left:{{ request()->routeIs('admin.api-tokens.*') ? '3px solid #bf4316' : '3px solid transparent' }};">
+                {{ __('booking.admin.api_tokens.title') }}
+            </a>
+        @endcan
     </nav>
 </aside>
