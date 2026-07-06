@@ -40,9 +40,9 @@ final class UserController extends Controller
         }
 
         return view('admin.users.index', [
-            'users'    => $users,
+            'users' => $users,
             'searched' => $searched,
-            'filters'  => $request->only('q', 'status'),
+            'filters' => $request->only('q', 'status'),
         ]);
     }
 
@@ -176,7 +176,7 @@ final class UserController extends Controller
     public function bulkUpdate(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'uids'   => ['required', 'array', 'min:1'],
+            'uids' => ['required', 'array', 'min:1'],
             'uids.*' => ['integer'],
             'action' => ['required', 'in:blocked,enabled,disabled'],
         ]);

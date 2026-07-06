@@ -397,7 +397,7 @@ final class DatabaseSchemaChecker
      * current DB driver (SQLite in tests, MySQL in production) instead of a
      * hardcoded type string that would only be correct for one driver.
      *
-     * @param array<string, Closure(Blueprint): mixed> $definitions
+     * @param  array<string, Closure(Blueprint): mixed>  $definitions
      * @return array{0: array<int, array<string, mixed>>, 1: array<int, array<string, mixed>>}
      */
     private function probeSignature(string $table, array $definitions): array
@@ -442,6 +442,7 @@ final class DatabaseSchemaChecker
                 [$expectedColumns, $expectedIndexes] = $this->probeSignature($table, $definitions);
             } catch (Throwable $e) {
                 $findings[] = ['table' => $table, 'kind' => 'drift_check_failed', 'message' => $e->getMessage()];
+
                 continue;
             }
 
@@ -486,7 +487,7 @@ final class DatabaseSchemaChecker
     }
 
     /**
-     * @param array<string, mixed> $column
+     * @param  array<string, mixed>  $column
      */
     private function describeColumn(array $column): string
     {
@@ -502,7 +503,7 @@ final class DatabaseSchemaChecker
      * table and the real table (they have different table-name prefixes).
      * Primary keys are excluded — already covered by column comparison.
      *
-     * @param array<int, array<string, mixed>> $indexes
+     * @param  array<int, array<string, mixed>>  $indexes
      * @return array<int, string>
      */
     private function normalizeIndexes(array $indexes): array
