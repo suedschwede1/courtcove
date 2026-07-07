@@ -43,7 +43,7 @@ class UpdateEventTool extends Tool
 
         $data = $request->validate([
             'event_id' => ['required', 'integer', 'exists:bs_events,eid'],
-            'sid' => ['nullable'],
+            'sid' => ['nullable', 'integer', 'exists:bs_squares,sid'],
             'name' => ['nullable', 'string', 'max:128'],
             'description' => ['nullable', 'string', 'max:4096'],
             'notes' => ['nullable', 'string', 'max:2048'],

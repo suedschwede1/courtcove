@@ -40,7 +40,7 @@ class CreateEventTool extends Tool
         }
 
         $data = $request->validate([
-            'sid' => ['nullable'],
+            'sid' => ['nullable', 'integer', 'exists:bs_squares,sid'],
             'name' => ['nullable', 'string', 'max:128'],
             'description' => ['nullable', 'string', 'max:4096'],
             'notes' => ['nullable', 'string', 'max:2048'],
