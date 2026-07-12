@@ -23,6 +23,7 @@ class MembersServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 Console\ImportMembersCommand::class,
+                Console\ImportNuligaLicenseCommand::class,
             ]);
         }
     }

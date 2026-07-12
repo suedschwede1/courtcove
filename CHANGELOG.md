@@ -8,6 +8,13 @@ reference point is `mobile-view-stable` (see [README.md](README.md#layout-refere
 When adding an entry: describe the *why*/user-facing effect in one line, not the diff —
 `git log` already has that. Add new entries at the top, under today's date.
 
+## 2026-07-12
+
+- Added `members:import-nuliga-license`, a command that backfills the `nuliga_id` on
+  existing members from the official nuLiga membership export (matched by name +
+  birthdate), treating the export as authoritative and overwriting conflicting existing
+  values. Supports `--dry-run` to preview changes without saving.
+
 ## 2026-07-07
 
 - Hardened the API/MCP event endpoints so square-specific events now reject unknown court IDs instead of accepting invalid `bs_squares.sid` values.
