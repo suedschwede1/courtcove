@@ -19,9 +19,16 @@ use Illuminate\Support\Facades\Mail;
 
 final class BookingService
 {
-    public const REPEAT_KEYS = [
-        'once', 'daily', 'every_2_days', 'every_3_days', 'every_4_days',
-        'every_5_days', 'every_6_days', 'weekly', 'every_2_weeks', 'monthly', 'custom',
+    /** Repeat types offered for new input. */
+    public const REPEAT_KEYS = ['once', 'weekly', 'every_2_weeks'];
+
+    /**
+     * Repeat types that only exist in legacy series: still displayed, edited and
+     * deleted, but no longer offered for new bookings.
+     */
+    public const LEGACY_REPEAT_KEYS = [
+        'daily', 'every_2_days', 'every_3_days', 'every_4_days',
+        'every_5_days', 'every_6_days', 'monthly', 'custom',
     ];
 
     public function __construct(

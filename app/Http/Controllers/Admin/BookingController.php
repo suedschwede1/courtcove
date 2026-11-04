@@ -20,13 +20,21 @@ use Illuminate\View\View;
 
 final class BookingController extends Controller
 {
-    /** @return array<string,string> */
-    private static function repeatOptions(): array
+    /**
+     * Offered repeat options plus any legacy type of the series being edited, so an
+     * existing legacy series is still displayed with its label.
+     *
+     * @param  list<string>  $extraKeys
+     * @return array<string,string>
+     */
+    private static function repeatOptions(array $extraKeys = []): array
     {
-        return array_combine(
+        $keys = array_values(array_unique(array_merge(
             BookingService::REPEAT_KEYS,
-            array_map(fn (string $k) => __('booking.repeat.'.$k), BookingService::REPEAT_KEYS),
-        );
+            array_intersect(BookingService::LEGACY_REPEAT_KEYS, $extraKeys),
+        )));
+
+        return array_combine($keys, array_map(fn (string $k) => __('booking.repeat.'.$k), $keys));
     }
 
     public function __construct(private readonly BookingService $bookingService) {}
@@ -157,6 +165,7 @@ final class BookingController extends Controller
         $reservation = $occurrenceReservation ?? $reservations->first();
 
         $repeatType = $this->detectRepeatType($reservations->all());
+        $detectedRepeatType = $repeatType;
         $repeatEndDate = $reservations->last()?->date ?? $reservation?->date;
         $followingRepeatType = $repeatType;
         $followingRepeatEndDate = $repeatEndDate;
@@ -184,7 +193,7 @@ final class BookingController extends Controller
                 4 => $booking->player_names[2] ?? '',
             ],
             'adminNote' => $booking->meta->firstWhere('key', 'admin-note')?->value ?? '',
-            'repeatOptions' => self::repeatOptions(),
+            'repeatOptions' => self::repeatOptions([$detectedRepeatType, $followingRepeatType]),
             'repeatType' => $repeatType,
             'repeatEndDate' => $repeatEndDate,
             'isCreate' => false,
@@ -204,10 +213,10 @@ final class BookingController extends Controller
         }
 
         try {
-            $data = $this->validateBookingData($request);
+            [$occurrenceDate, $scope] = $this->resolveOccurrenceScope($request);
+            $data = $this->validateBookingData($request, $this->existingLegacyRepeatTypes($booking, $occurrenceDate));
             $owner = $this->bookingService->resolveOwner($data['booked_for']);
             [, , $occurrenceStarts, $durationSeconds] = $this->bookingService->buildOccurrenceTimeline($data);
-            [$occurrenceDate, $scope] = $this->resolveOccurrenceScope($request);
 
             $this->bookingService->updateSeries($booking, $data, $owner, $occurrenceStarts, $durationSeconds, $occurrenceDate, $scope);
         } catch (BookingValidationException $e) {
@@ -272,14 +281,35 @@ final class BookingController extends Controller
         ];
     }
 
-    private function validateBookingData(Request $request): array
+    /**
+     * Legacy repeat types of the existing series (whole series, and from the
+     * occurrence on) that may be kept on update although they are no longer offered.
+     *
+     * @return list<string>
+     */
+    private function existingLegacyRepeatTypes(Booking $booking, ?string $occurrenceDate): array
+    {
+        $reservations = $booking->reservations()->orderBy('date')->orderBy('time_start')->get();
+        $types = [$this->detectRepeatType($reservations->all())];
+
+        if ($occurrenceDate !== null) {
+            $types[] = $this->detectRepeatType(
+                $reservations->filter(fn (Reservation $r): bool => $r->date >= $occurrenceDate)->values()->all()
+            );
+        }
+
+        return array_values(array_intersect(BookingService::LEGACY_REPEAT_KEYS, $types));
+    }
+
+    /** @param list<string> $allowedLegacyRepeat */
+    private function validateBookingData(Request $request, array $allowedLegacyRepeat = []): array
     {
         $data = $request->validate([
             'booked_for' => ['required', 'string', 'max:120'],
             'sid' => ['required', 'integer', 'exists:bs_squares,sid'],
             'date' => ['required', 'date_format:Y-m-d'],
             'date_end' => ['nullable', 'date_format:Y-m-d'],
-            'repeat_type' => ['required', 'in:'.implode(',', BookingService::REPEAT_KEYS)],
+            'repeat_type' => ['required', 'in:'.implode(',', array_merge(BookingService::REPEAT_KEYS, $allowedLegacyRepeat))],
             'time_start' => ['required', 'date_format:H:i'],
             'time_end' => ['required', 'date_format:H:i'],
             'quantity' => ['required', 'integer', 'in:2,4'],
