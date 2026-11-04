@@ -177,7 +177,7 @@
         const token = document.querySelector('input[name="_token"]')?.value ?? '';
 
         try {
-            const response = await fetch(`/members/${memberId}/field`, {
+            const response = await fetch(`{{ url('/members') }}/${memberId}/field`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -202,7 +202,7 @@
         const token = document.querySelector('input[name="_token"]')?.value ?? '';
 
         try {
-            const response = await fetch(`/members/dues/${dueId}/field`, {
+            const response = await fetch(`{{ url('/members') }}/dues/${dueId}/field`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -228,7 +228,7 @@
         const token = document.querySelector('input[name="_token"]')?.value ?? '';
 
         try {
-            const response = await fetch(`/members/dues/${dueId}/paid-through`, {
+            const response = await fetch(`{{ url('/members') }}/dues/${dueId}/paid-through`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',

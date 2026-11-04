@@ -40,7 +40,7 @@
             <button type="button" @click="open = false; $dispatch('open-edit-booking', {bid, squareName, dateLabel, timeLabel, quantity, mitspieler})" class="w-full text-sm border border-[#d1cbc0] text-[#6a6e73] py-2 rounded hover:bg-[#f9f8f6] transition-colors">
                 {{ __('booking.modal.edit_booking') }}
             </button>
-            <form method="POST" x-bind:action="'/bookings/' + bid">
+            <form method="POST" x-bind:action="@js(url('/bookings')) + '/' + bid">
                 @csrf
                 @method('DELETE')
                 <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white text-sm font-medium py-2 rounded transition-colors">
@@ -69,7 +69,7 @@
         loading: false,
         async fetchAc(v) {
             if (v.length < 2) { this.acResults = []; this.acOpen = false; return; }
-            const r = await fetch('/bookings/players?q=' + encodeURIComponent(v) + '&quantity=' + encodeURIComponent(this.quantity));
+            const r = await fetch(@js(route('bookings.players')) + '?q=' + encodeURIComponent(v) + '&quantity=' + encodeURIComponent(this.quantity));
             this.acResults = await r.json();
             this.acOpen = this.acResults.length > 0;
         },
@@ -123,7 +123,7 @@
             </div>
         </div>
 
-        <form x-bind:action="'/bookings/' + bid" method="POST" @submit.prevent="submitEdit($el)" class="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <form x-bind:action="@js(url('/bookings')) + '/' + bid" method="POST" @submit.prevent="submitEdit($el)" class="flex min-h-0 flex-1 flex-col overflow-hidden">
             @csrf
             <input type="hidden" name="_method" value="PUT">
 
@@ -198,7 +198,7 @@
         loading: false,
         async fetchAc(v) {
             if (v.length < 2) { this.acResults = []; this.acOpen = false; return; }
-            const r = await fetch('/bookings/players?q=' + encodeURIComponent(v) + '&quantity=' + encodeURIComponent(this.quantity));
+            const r = await fetch(@js(route('bookings.players')) + '?q=' + encodeURIComponent(v) + '&quantity=' + encodeURIComponent(this.quantity));
             this.acResults = await r.json();
             this.acOpen = this.acResults.length > 0;
         },
