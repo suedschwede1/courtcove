@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-04
 
+- Phase 2: admin "view as player" test mode state ported (used by the Tournament module).
 - Tests: the legacy baseline test ignores the guarded draw adoption migrations, which are not part of the 15-table baseline.
 - Tests: MySQL tests now hard-fail unless they target the local booking_test database (no DB_URL, local host), so a stray environment can never reach real data.
 - Tests: composer test:mysql runs MySQL-only adoption and preflight checks.
