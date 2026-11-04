@@ -221,7 +221,7 @@ updated by FTP upload of changed files.
 
 ### Character set (emoji)
 
-The legacy `bs_*` tables are `utf8mb3`, while Laravel connects as `utf8mb4`; storing a 4-byte character (emoji) there fails with MySQL error 3988 (HTTP 500). The `App\Http\Middleware\StripFourByteCharacters` middleware (web and api groups) therefore removes 4-byte characters from all request input. The Members module is exempt (its tables are `utf8mb4` and keep emoji); the opt-out list lives on the middleware and must not include the tournament modules while any module path is still bridged to the old app.
+The legacy `bs_*` tables are `utf8mb3`, while Laravel connects as `utf8mb4`; storing a 4-byte character (emoji) there fails with MySQL error 3988 (HTTP 500). The `App\Http\Middleware\StripFourByteCharacters` middleware (web and api groups) therefore removes 4-byte characters from all request input. The Members module and the API member/due endpoints are exempt (their tables are `utf8mb4` and keep emoji), and credential fields (`password*`, `token`) are never altered; the opt-out list lives on the middleware and must not include the tournament modules while any module path is still bridged to the old app.
 
 ## Layout reference
 

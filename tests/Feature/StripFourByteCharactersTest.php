@@ -132,10 +132,52 @@ class StripFourByteCharactersTest extends TestCase
     }
 
     #[Test]
+    public function credentials_keep_emoji_at_any_depth_but_other_keys_are_stripped(): void
+    {
+        $t = self::TENNIS;
+
+        $data = $this->postJson('_probe/legacy', [
+            'password' => "pw{$t}{$t}",
+            'token' => "tk{$t}",
+            'note' => "pw{$t}{$t}",
+            'user' => ['password' => $t, 'note' => "n{$t}"],
+        ])->json();
+
+        $this->assertSame("pw{$t}{$t}", $data['all']['password']);
+        $this->assertSame("tk{$t}", $data['all']['token']);
+        $this->assertSame('pw', $data['all']['note']);
+        $this->assertSame($t, $data['all']['user']['password']);
+        $this->assertSame('n', $data['all']['user']['note']);
+    }
+
+    #[Test]
+    public function member_and_due_api_routes_are_exempt_but_booking_api_is_not(): void
+    {
+        $t = self::TENNIS;
+        Route::middleware('api')->prefix('api/v1')->group(function (): void {
+            Route::post('members/_p', fn (Request $r) => response()->json($r->all()))->name('api.members.probe');
+            Route::post('dues/_p', fn (Request $r) => response()->json($r->all()));
+            Route::post('bookings/_p', fn (Request $r) => response()->json($r->all()));
+        });
+
+        $this->assertSame("a{$t}", $this->postJson('api/v1/members/_p', ['a' => "a{$t}"])->json('a'));
+        $this->assertSame("a{$t}", $this->postJson('api/v1/dues/_p', ['a' => "a{$t}"])->json('a'));
+        $this->assertSame('a', $this->postJson('api/v1/bookings/_p', ['a' => "a{$t}"])->json('a'));
+    }
+
+    #[Test]
     public function the_opt_out_list_is_only_the_members_module(): void
     {
-        $this->assertSame(['members.*'], StripFourByteCharacters::EXEMPT_ROUTE_NAMES);
-        $this->assertSame(['members', 'members/*'], StripFourByteCharacters::EXEMPT_PATHS);
+        $this->assertSame(['members.*', 'api.members.*', 'api.dues.*'], StripFourByteCharacters::EXEMPT_ROUTE_NAMES);
+        $this->assertSame([
+            'members', 'members/*',
+            'api/v1/members', 'api/v1/members/*',
+            'api/v1/dues', 'api/v1/dues/*',
+        ], StripFourByteCharacters::EXEMPT_PATHS);
+        $this->assertSame([
+            'password', 'password_confirm', 'password_confirmation', 'current_password',
+            'new_password', 'new_password_confirmation', 'token', '_token',
+        ], StripFourByteCharacters::EXEMPT_INPUT_KEYS);
     }
 
     #[Test]
