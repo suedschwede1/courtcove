@@ -343,6 +343,10 @@ return [
                 'calendar.create-subscription-bookings' => 'May create recurring bookings',
                 'calendar.cancel-subscription-bookings' => 'May cancel recurring bookings',
                 'calendar.delete-subscription-bookings' => 'May delete recurring bookings',
+                'admin.tournament' => 'Can manage the club championship',
+                'admin.mixed' => 'Can manage the mixed/fun tournament',
+                'admin.pyramid' => 'Can manage the challenge pyramid',
+                'admin.draw' => 'Can manage draws',
             ],
         ],
         'login_history' => [

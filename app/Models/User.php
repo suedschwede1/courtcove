@@ -38,6 +38,7 @@ class User extends Authenticatable
         'calendar.see-past', 'calendar.see-data',
         'calendar.create-single-bookings', 'calendar.cancel-single-bookings', 'calendar.delete-single-bookings',
         'calendar.create-subscription-bookings', 'calendar.cancel-subscription-bookings', 'calendar.delete-subscription-bookings',
+        'admin.tournament', 'admin.mixed', 'admin.pyramid', 'admin.draw',
     ];
 
     protected $table = 'bs_users';

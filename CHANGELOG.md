@@ -8,6 +8,10 @@ reference point is `mobile-view-stable` (see [README.md](README.md#layout-refere
 When adding an entry: describe the *why*/user-facing effect in one line, not the diff —
 `git log` already has that. Add new entries at the top, under today's date.
 
+## 2026-11-04
+
+- Added tournament privileges (admin.tournament/mixed/pyramid/draw) to the user admin so the legacy tournament modules' access flags can be granted and kept when saving a user.
+
 ## 2026-07-12
 
 - Added `members:import-nuliga-license`, a command that backfills the `nuliga_id` on

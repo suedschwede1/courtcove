@@ -343,6 +343,10 @@ return [
                 'calendar.create-subscription-bookings' => 'Darf Serienbuchungen anlegen',
                 'calendar.cancel-subscription-bookings' => 'Darf Serienbuchungen stornieren',
                 'calendar.delete-subscription-bookings' => 'Darf Serienbuchungen löschen',
+                'admin.tournament' => 'Darf die Vereinsmeisterschaft verwalten',
+                'admin.mixed' => 'Darf das Mixed-/Fun-Turnier verwalten',
+                'admin.pyramid' => 'Darf die Forderungspyramide verwalten',
+                'admin.draw' => 'Darf Auslosungen verwalten',
             ],
         ],
         'login_history' => [
