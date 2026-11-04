@@ -259,13 +259,14 @@ final class BookingController extends Controller
 
     public function destroy(Booking $booking): RedirectResponse
     {
+        /** @var \App\Models\User|null $user */
         $user = auth()->user();
 
         if ($booking->uid !== $user?->getAuthIdentifier() && ! $user?->can('admin.booking')) {
             abort(403);
         }
 
-        if (! $user || ! $this->bookingService->canUserCancelSingle($user, $booking)) {
+        if (! $this->bookingService->canUserCancelSingle($user, $booking)) {
             return back()->withErrors(['booking' => __('booking.messages.booking_not_cancellable')])->with('error', __('booking.messages.booking_not_cancellable'));
         }
 

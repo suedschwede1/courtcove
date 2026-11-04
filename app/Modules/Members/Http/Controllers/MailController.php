@@ -250,12 +250,12 @@ class MailController
         $definitions = [
             'all' => [
                 'label' => __('members::admin.mail.to_all'),
-                'apply' => fn (Builder $query): Builder => $query->active(),
+                'apply' => fn (Builder $query): Builder => $query->scopes(['active']),
             ],
             'vorstand' => [
                 'label' => __('members::admin.mail.to_board'),
                 'apply' => fn (Builder $query): Builder => $query
-                    ->active()
+                    ->scopes(['active'])
                     ->whereHas('clubRoles', fn (Builder $roles): Builder => $roles->where('is_board', true)),
             ],
             'ruhend' => [
@@ -269,7 +269,7 @@ class MailController
                 $definitions['category:'.$category->id] = [
                     'label' => __('members::admin.mail.to_mail_category', ['category' => $category->name]),
                     'apply' => fn (Builder $query): Builder => $query
-                        ->active()
+                        ->scopes(['active'])
                         ->whereHas('clubRoles', fn (Builder $roles): Builder => $roles
                             ->whereHas('mailCategories', fn (Builder $categories): Builder => $categories->whereKey($category->id))),
                 ];

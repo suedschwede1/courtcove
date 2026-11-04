@@ -17,11 +17,13 @@ class Payment extends Model
         'paid_at' => 'date',
     ];
 
+    /** @return BelongsTo<Member, $this> */
     public function member(): BelongsTo
     {
         return $this->belongsTo(Member::class);
     }
 
+    /** @return BelongsToMany<MemberDue, $this> */
     public function dues(): BelongsToMany
     {
         return $this->belongsToMany(MemberDue::class, 'payment_dues');

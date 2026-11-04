@@ -14,6 +14,27 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property int $member_number
+ * @property int|null $nuliga_id
+ * @property int|null $user_id
+ * @property string $firstname
+ * @property string $lastname
+ * @property \Illuminate\Support\Carbon|null $birthdate
+ * @property string|null $gender
+ * @property string|null $email
+ * @property string|null $phone
+ * @property string|null $street
+ * @property string|null $zip
+ * @property string|null $city
+ * @property int|null $fee_category_id
+ * @property \Illuminate\Support\Carbon|null $joined_at
+ * @property \Illuminate\Support\Carbon|null $left_at
+ * @property string $status
+ * @property \Illuminate\Support\Carbon|null $anonymized_at
+ * @property string|null $notiz
+ */
 class Member extends Model
 {
     use HasFactory;
@@ -39,26 +60,31 @@ class Member extends Model
         return MemberFactory::new();
     }
 
+    /** @return HasMany<MemberDue, $this> */
     public function dues(): HasMany
     {
         return $this->hasMany(MemberDue::class);
     }
 
+    /** @return HasMany<Payment, $this> */
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
     }
 
+    /** @return BelongsTo<FeeCategory, $this> */
     public function feeCategory(): BelongsTo
     {
         return $this->belongsTo(FeeCategory::class);
     }
 
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id', 'uid');
     }
 
+    /** @return BelongsToMany<ClubRole, $this> */
     public function clubRoles(): BelongsToMany
     {
         return $this->belongsToMany(ClubRole::class, 'member_club_role');
@@ -69,6 +95,10 @@ class Member extends Model
         return $this->birthdate?->age;
     }
 
+    /**
+     * @param  Builder<Member>  $query
+     * @return Builder<Member>
+     */
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', 'aktiv');

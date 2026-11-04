@@ -154,7 +154,7 @@ class ImportNuligaLicenseCommand extends Command
 
         $date = Carbon::createFromFormat('d.m.Y', $value);
 
-        return $date === false ? null : $date->startOfDay();
+        return $date === null ? null : $date->startOfDay();
     }
 
     /** "-", leere Werte und der Platzhalter "000000" (= keine Lizenz in nuLiga) werden als "keine Lizenz" behandelt. */

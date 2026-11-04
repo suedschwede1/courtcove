@@ -53,7 +53,7 @@ class MemberController
                     'bezahlt' => $dueQuery->where('status', 'bezahlt'),
                     'ausstehend' => $dueQuery->where('status', 'ausstehend')
                         ->where(fn ($q) => $q->whereNull('faellig_am')->orWhere('faellig_am', '>=', now()->toDateString())),
-                    'ueberfaellig' => $dueQuery->overdue(),
+                    'ueberfaellig' => $dueQuery->scopes(['overdue']),
                 };
             });
         }
@@ -210,7 +210,7 @@ class MemberController
             'value' => match ($validated['field']) {
                 'joined_at' => $member->joined_at->format('d.m.Y'),
                 'left_at' => $member->left_at?->format('d.m.Y') ?? '—',
-                'fee_category_id' => $member->feeCategory?->name ?? '—',
+                'fee_category_id' => $member->feeCategory->name ?? '—',
                 'email' => $member->email ?? '—',
                 'phone' => $member->phone ?? '—',
                 default => (string) $member->{$validated['field']},
