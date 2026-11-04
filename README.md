@@ -131,13 +131,27 @@ Production runs on the Provider cPanel host and is served at `https://example.te
 Deploy from WSL in the repo root with a clean, committed tree:
 
 ```bash
-scripts/deploy-provider.sh --dry-run   # print the steps, no ssh
-scripts/deploy-provider.sh             # or: scripts/deploy-provider.sh <target-dir>
+scripts/deploy-provider.sh --dry-run             # print the steps, no ssh, no prompt
+scripts/deploy-provider.sh                       # master only; asks "Proceed? [y/N]"
+scripts/deploy-provider.sh --allow-branch --yes  # other branch (e.g. staging), no prompt
+scripts/deploy-provider.sh '~/apps/other'        # other target dir (quote the ~: expanded on the server)
 ```
 
-The script builds assets, ships `git archive HEAD` over `ssh provider`, then runs
-`composer install --no-dev --optimize-autoloader`, `php artisan migrate --force` and the
-`config:cache`/`route:cache`/`view:cache` steps, and prints the deployed commit.
+- Only `$EXPECTED_BRANCH` (env var, default `master`) may be deployed; any other branch
+  exits with an error unless `--allow-branch` is passed. The script prints branch, commit,
+  host and target and asks for confirmation before the first ssh (`--yes` skips it).
+- The target dir must match `^(~/)?[A-Za-z0-9._/-]+$`, and its `.env` must already exist.
+- The script builds assets, then on the server: `php artisan down` (maintenance mode),
+  removes the repo-owned dirs (`app database routes resources config lang Modules`, so
+  deleted files and migrations do not linger; existing `local.php`/`*.local.php` files are
+  kept), extracts `git archive HEAD`, runs `optimize:clear`,
+  `composer install --no-dev --optimize-autoloader`, `php artisan migrate --force`, the
+  `config:cache`/`route:cache`/`view:cache` steps, and only then `php artisan up`. It
+  prints the deployed commit.
+- **If a step fails the site stays in maintenance mode** (loud message, no auto-up). Fix the
+  cause and run `php artisan up` on the server by hand.
+- Git-ignored local files (`lang/*/booking/local.php`, `config/calendar.local.php`) are not
+  deployed; place them on the server by hand once.
 
 **First deploy against a database created by the old ZF2 system** (manual, deliberate, in
 this order, on the server in the app directory):
