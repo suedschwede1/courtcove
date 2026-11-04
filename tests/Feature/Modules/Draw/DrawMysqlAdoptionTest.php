@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Feature\Modules\Draw;
 
 use App\Modules\Draw\Models\Draw;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
