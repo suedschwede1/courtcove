@@ -1,611 +1,345 @@
 # Design Documentation
 
-**Layout reference:** Git tag `mobile-view-stable`
+**Design system:** "Example Club" (Claude design system artifact, private to the owner). This file is the in-repo copy of its rules.
+**Mockups:** design canvas "Example Club – Platzbuchung Redesign" (calendar, booking, account, admin, tournaments; desktop and phone). Screenshots and sources: [`design/README.md`](design/README.md).
+**Status:** target design. The current Blade views and `resources/css/app.css` still use the previous look (Red Hat fonts, `#bf4316`, PatternFly blue). Migrate view by view; new or touched views follow this document.
 
-**Development language:** English. All code, comments, commit messages and internal docs are written in English — only the `lang/` translation files contain German (and English) UI text.
+**Development language:** English. All code, comments, commit messages and internal docs are written in English. Only the `lang/` translation files contain German (and English) UI text.
 
-## Philosophy
+## Principles
 
-Minimal, functional, clear. The design follows the principle: as little as possible, as much as necessary. No decoration, no effects without purpose. Every element earns its place.
+1. **Phone first.** Most members book at the court or on the go. Every screen works with a thumb: tap targets at least 44px, primary actions on phones 52px high and at the bottom of the screen. This now applies to admin views as well.
+2. **Status is visible without reading.** Free, booked, own booking, event, past: each state has its own surface, not only its own text.
+3. **One primary action per screen.** Only that action uses `clay`. Everything else is an outlined white button or a text link.
+4. **Real court names.** The court alias comes first (Center Court, Court A, Court B), the number small underneath ("Platz 1").
+5. **Flat and quiet.** Flat colors, no gradients. Shadows only on dialogs and bottom sheets. No emoji. Motion limited to `transition-colors` (0.1–0.15s) and the modal fade.
 
-No gradients or shadow gimmicks — all backgrounds are flat colors, shadows only where needed (modals, cards). No emoji — status is shown via text badges and color. Minimal animation — only `transition-colors` for hover states (0.1–0.15s), no page transitions. Minimal icons — arrow characters (◄ ►) as text for navigation, no icon library needed.
+## UI copy (German)
 
-Minimum font sizes: desktop forms 13px, helper/meta text 11px (never smaller), calendar court names 10px (exception, very compact context).
+- Address members informally with "du": "Dein nächstes Spiel", "Du stehst auf Platz 9".
+- Buttons say exactly what happens: "Verbindlich buchen", "Ergebnis speichern", "Forderung zurückziehen", never "OK" or "Absenden".
+- Short dates: "Do, 5. Nov · 17:00 – 18:00". Times always two-digit, ranges with an en dash.
+- Eyebrow labels in capitals, one to three words: "MEINE FORDERUNG", "VERWALTUNG".
+- No exclamation marks in the interface.
 
-## Colors
+## Color tokens
 
-### Primary palette
+Every color comes from a token. Light values are the default; dark values are defined for a later dark mode.
 
-| Token | Value | Usage |
-|---|---|---|
-| Primary | `#bf4316` | Buttons, accents, active navigation, court numbers |
-| Primary hover | `#9e3412` | Hover state for primary |
-| Primary surface | `#fde8e1` | Light background tint (event cells, active day) |
-| Primary border | `#bf4316` @ 30% | Outline buttons, focus rings |
-
-### Neutral palette
-
-| Token | Value | Usage |
-|---|---|---|
-| Text | `#151515` | Main text, headings |
-| Text secondary | `#6a6e73` | Labels, helper text, date, icons |
-| Text placeholder | `#b8b8b8` | Input placeholders, "until X:XX" |
-| Background | `#eae8e2` | App background |
-| Background (admin) | `#fafafa` | App background, table headers |
-| Card | `#ffffff` | Header card, modals, inputs |
-| Border | `#d8d2c8` | Card borders |
-| Border (admin) | `#e0e0e0` | Divider lines, input borders |
-| Border light | `#f0f0f0` | Subtle divider lines |
-
-### Status colors
-
-| State | Background | Text | Usage |
+| Token | Light | Dark | Usage |
 |---|---|---|---|
-| Active/success | `#f0faf0` | `#3e8635` | Active bookings |
-| Danger | `#f9f0f0` | `#c9190b` | Cancellations, deletions |
-| Info | `#f0f8ff` | `#0066cc` | Subscription bookings, info status |
-| Warning | `#fff3cd` | `#f0ab00` | Warnings |
+| `ground` | `#F5F1EA` | `#171513` | Page background (clay-court sand). Never for cards. |
+| `surface` | `#FFFFFF` | `#211E1B` | Cards, day columns, dialogs, inputs |
+| `surface-sunk` | `#FAF8F4` | `#1B1917` | Table headers, dialog footers |
+| `sand` | `#EFE9DF` | `#2C2824` | Neutral chips/badges, court headers in the calendar |
+| `line` | `#E3DCD0` | `#3A3631` | Card borders, dividers |
+| `line-strong` | `#BDB2A2` | `#6A6259` | Input and select borders |
+| `ink` | `#1D1B18` | `#F3EEE6` | Primary text |
+| `ink-2` | `#4A443D` | `#CFC6B8` | Secondary text, meta lines |
+| `ink-3` | `#6B6359` | `#A79D8F` | Small uppercase labels; only on `ground`/`surface` |
+| `chrome` | `#1D1B18` | `#0F0E0D` | Header, admin sidebar, phone menu, highlighted cards |
+| `chrome-ink` | `#E7E0D5` | `#E7E0D5` | Menu text on `chrome` |
+| `chrome-muted` | `#CFC6B8` | `#A79D8F` | Eyebrows and subtitles on `chrome` |
+| `clay` | `#B5441A` | `#E07A4F` | Club accent: primary action, active item, own booking, "du" |
+| `clay-hover` | `#8F3412` | `#F0936C` | Hover/pressed of `clay`, links |
+| `on-clay` | `#FFFFFF` | `#171513` | Text and icons on `clay` |
+| `clay-soft` | `#FBF1EB` | `#3A2419` | Selected options, your own table row |
+| `court` | `#1F5A44` | `#5FAE87` | Calendar events, "challengeable", progress |
+| `on-court` | `#FFFFFF` | `#171513` | Text on `court` |
+| `court-soft` | `#E3F0E8` | `#1E3329` | Badges active/played/confirmed, tournament match cell |
+| `court-ink` | `#1F5A44` | `#8FD0AE` | Text on `court-soft` |
+| `warn-soft` | `#FBEFD5` | `#3A2E12` | Badges no date/open/pending, notice boxes |
+| `warn-ink` | `#7A4E00` | `#F0C46B` | Text on `warn-soft` |
+| `danger` | `#9A2B17` | `#F08A72` | Cancel, delete, reset (text or border) |
+| `danger-soft` | `#F8E1DC` | `#3D1C15` | Badges cancelled/blocked/lost |
+| `cell-free-line` | `#CFC5B5` | `#4A443D` | Dashed border of free calendar cells |
+| `cell-booked` | `#E6DFD3` | `#34302B` | Booked cells (other members, subscriptions) |
+| `cell-past-a` / `cell-past-b` | `#EDE8DF` / `#F7F4EE` | `#1F1C19` / `#252220` | Hatching of past cells |
 
-### Calendar cell colors
+The PatternFly blue (`#0066cc`, `#2596be`) and the old green `#8BB243` are retired.
 
-| Class | Color | Meaning |
+### Status badges
+
+| Group | Fill / text | German labels |
 |---|---|---|
-| `cc-free` | `#EEE` grey / `#ffffff` | Free slot |
-| `cc-own` | `#8BB243` green / `#eff6ff` | Own booking |
-| `cc-single-future` | `#2596be` blue | Someone else's booking (future) |
-| `cc-single` | `#808D96` grey-blue | Past booking |
-| `cc-blocked` | — | Blocked slot |
-| Event | `#fde8e1` bg, `#7f2010` text | Club event |
-| Past | `#f4f4f4` | Not clickable |
+| Good / done | `court-soft` / `court-ink` | Aktiv, gespielt, bestätigt, fertig, Laufend |
+| Neutral | `sand` / `ink` | geplant, Termin vereinbart, pausiert, Abo |
+| Attention | `warn-soft` / `warn-ink` | ohne Termin, Offen, Wartet auf Freigabe |
+| Problem | `danger-soft` / `danger` | Storniert, Gesperrt, Abgelehnt, Niederlage |
+| You | `clay` / `on-clay` | du |
 
-### Admin chrome
-
-| Element | Color |
-|---|---|
-| Sidebar background | `#1b1d21` |
-| Active nav item | `rgba(255,255,255,0.1)` + `3px solid #bf4316` left border |
-| Inactive nav text | `#a0a0a0` |
-| Header background | `#ffffff` |
-| Calendar background | `#eae8e2` (beige) |
+Badge: 13px bold, `border-radius: 999px`, padding 3px 10px. Always with text, never color alone.
 
 ## Typography
 
-### Fonts
+Fonts from Google Fonts:
+`https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap`
 
-**Red Hat Display** — headings, numbers, court numbers
-- Weights: 600 (Semibold), 700 (Bold)
-- Usage: page titles, calendar day name, court numbers, modal titles, KPI values
+- `--font-display`: `"Barlow Condensed", "Arial Narrow", sans-serif`. Titles, day names, key figures only.
+- `--font-body`: `Barlow, system-ui, sans-serif`. Everything else.
+- Digits in tables, times and scores: `font-variant-numeric: tabular-nums`.
 
-**Red Hat Text** — everything else
-- Weights: 400 (Regular), 500 (Medium), 600 (Semibold)
-- Usage: labels, body text, buttons, helper text, table data
+| Style | Family | Size / line | Weight | Usage |
+|---|---|---|---|---|
+| `display-xl` | display | 40 / 40 | 700 | Page title desktop (calendar uses 32) |
+| `display-l` | display | 32 / 34 | 700 | Page title phone, dialog title |
+| `display-m` | display | 24 / 26 | 700 | Card title, phone header |
+| `display-s` | display | 20 / 22 | 700 | Subtitle, calendar day name |
+| `numeral` | display | 40 / 40 | 700 | Key figures, rankings |
+| `body-l` | body | 17 / 24 | 500 | Intro text, large phone buttons |
+| `body` | body | 15 / 22 | 400 | Default text, desktop inputs |
+| `body-strong` | body | 15 / 22 | 700 | Names, row headings |
+| `body-s` | body | 13 / 18 | 400 | Meta lines |
+| `label` | body | 12 / 16 | 700, 0.1em, uppercase | Eyebrows, table headers |
+| `button` | body | 15 / 20 | 700 | Button labels |
 
-### Size scale
+Minimum size: 11px (second line in calendar cells). Inputs on phones use 17px to prevent iOS zoom.
 
-| Class | Size | Usage |
+## Spacing, radius, sizes
+
+| Token | Value | Usage |
 |---|---|---|
-| Display | 22–26px, Bold | Page titles |
-| Heading | 18–20px, Bold | Modal titles, section headings |
-| Body | 14px, Regular | Form content, table cells |
-| Label | 13px, Medium | Form labels |
-| Small | 11–12px | Helper text, metadata, "until X:XX" |
-| Micro | 10px | Court names under numbers |
+| `space-1` | 4px | Gap between calendar cells |
+| `space-2` | 8px | Button groups, chip rows |
+| `space-3` | 12px | Small card padding, card gap on phones |
+| `space-4` | 16px | Phone page gutter, card padding |
+| `space-5` | 20px | Large card padding, column gap |
+| `space-6` | 24px | Desktop page gutter |
+| `space-8` | 32px | Admin content gutter |
+| `radius-sm` | 6px | Calendar cells (desktop) |
+| `radius-md` | 8px | Buttons, inputs (desktop) |
+| `radius-lg` | 12px | Cards; buttons and inputs on phones |
+| `radius-xl` | 18px | Top edge of bottom sheets |
+| `radius-pill` | 999px | Badges, filter chips |
+| `touch-min` | 44px | Minimum height of anything tappable |
+| `control-h` | 46px | Inputs and buttons (desktop) |
+| `control-h-mobile` | 52px | Inputs and primary buttons (phone) |
+| `cell-h` | 36px | Calendar cell (desktop) |
+| `cell-h-mobile` | 48px | Calendar cell (phone) |
+| `shadow-dialog` | `0 20px 50px rgba(0,0,0,0.25)` | Desktop dialog |
+| `shadow-sheet` | `0 -10px 30px rgba(0,0,0,0.2)` | Phone bottom sheet |
 
-### Section headers (form sections)
+Cards: `surface`, `1px solid line`, `radius-lg`, no shadow. Lay out siblings with flex/grid `gap`, not margins.
 
-```css
-font-size: 11px;
-font-weight: 600;
-letter-spacing: 0.08em;
-text-transform: uppercase;
-color: #6a6e73;
-border-bottom: 1px solid #ebebeb;
-padding-bottom: 8–10px;
-margin-bottom: 14–16px;
-```
+## Layout
 
-> **Popup forms**: section headers are **not** used in popup dialogs — space is limited and context comes from the popup title. Fields follow directly with `space-y-4`/`gap-3`.
-
-## Spacing
-
-| Class | Value | Usage |
-|---|---|---|
-| xs | 4px | Internal button gaps, small icons |
-| sm | 8px | Compact spacing, inline elements |
-| md | 12–14px | Standard gap between form fields |
-| lg | 16–20px | Section spacing, card padding |
-| xl | 24px | Main content padding |
-| 2xl | 32–40px | Page padding, large sections |
-
-## Header
+### Header (public and member views)
 
 **File:** `resources/views/components/layout/header.blade.php`
-**CSS:** `public/css/booking.css` from line 1350
 
-### Desktop (> 900px)
+- Full-width bar on `chrome`, content max 1400px, padding 14px 24px.
+- Left: logo in a 44px circle on `clay` (from `booking.logo_path`), club name in `display` 24px, "PLATZBUCHUNG" eyebrow.
+- Main menu: Kalender, Meine Buchungen, Vereinsmeisterschaft (only while running), Forderungspyramide, Mixed-/Fun-Turnier, Admin (permission). Items `padding: 10px 14px`, `color: chrome-ink`; active item `background: rgba(255,255,255,0.10)`, white, 600, `aria-current="page"`.
+- Right: admin mode switch, language DE/EN, avatar (links to account).
+- The date navigation moves out of the header into the page toolbar (see Calendar).
 
-```
-┌─────────────────────────────────────────────────────┐
-│ [Logo] Club name       < 30.06.2026 >    [Nav links] │
-└─────────────────────────────────────────────────────┘
-```
+**Phone:** logo, section title and a 44px ☰ button. The button opens a full-screen menu on `chrome` (all menu items with icons, admin mode, language, log out). **No bottom navigation bar.**
 
-- Background: `#eae8e2` with a white card (`rounded-[6px]`, `shadow`)
-- Logo: configurable via `booking.logo_path`
-- Title: 18px, bold, `var(--font-display)`
-- Nav links: `h-8`, `border`, `rounded-[6px]`, hover `#bf4316`
+### Module tabs
 
-### Mobile (≤ 900px)
+Tournament modules and admin sub-areas use tabs below the page title: `padding: 12px 16px`, 3px bottom border, active tab `border-color: clay`, `ink`, 700. They scroll horizontally on narrow screens, never wrap. On phones they become a row of pill chips.
 
-```
-┌──────────────────────────────────┐
-│ Club name              [👤] [...] │
-│ < Dienstag 30.06.2026 >          │
-└──────────────────────────────────┘
-```
+### Admin
 
-- Grid layout: 2 columns (title | icons), date nav in row 2
-- Logo: max 44px
-- Title: 15px
-- Auth icons: login/logout as an SVG icon button
-- Admin menu: `...` button opens a dropdown (`is-open`)
+**File:** `resources/views/components/layout/admin-sidebar.blade.php`
 
-## Calendar grid
+- Sidebar on `chrome`, `flex: 1 1 240px`; logo + "VERWALTUNG" eyebrow at the top.
+- Groups with `label` headings in `#A79D8F`: **Betrieb** (Übersicht, Buchungen, Veranstaltungen, Statistik), **Mitglieder** (Mitglieder, Anmeldeverlauf), **Turniere** (Forderungspyramide, Meisterschaft, Auslosungen, Mixed-Turniere), **Einstellungen** (Plätze, Texte, Verhalten, Datenbank, API-Tokens, Testmail).
+- Items 40px high, `radius-md`; active item filled `clay` with `on-clay` text (replaces the old left-border marker).
+- Content `flex: 999 1 560px`, padding 28px 32px. The row uses `flex-wrap: wrap`, so on phones the sidebar becomes a slide-in menu behind a ☰ button.
+- The inline `onmouseover` styles in the current sidebar are replaced by classes.
 
-**File:** `resources/views/components/calendar/grid.blade.php`
-**CSS:** `resources/css/calendar-grid.css`
+## Calendar
 
-### Time column (left)
-- Width: `76px`
-- Slot height: `60px`
-- Time: Red Hat Display, 17px, bold, `#151515`
-- "until X:XX": Red Hat Text, 11px, `#b8b8b8`
-- Alternating backgrounds: `#ffffff` | `#fafafa`
+**Files:** `resources/views/calendar/index.blade.php`, `resources/views/components/calendar/grid.blade.php`, `resources/css/calendar-grid.css`, colors in `config/calendar.php`
 
-### Day column headers
-- Day name: Red Hat Display, 13px, bold, `#151515` (active day: `#bf4316`)
-- Date: Red Hat Text, 11px, `#6a6e73` (active day: `#bf4316`, font-weight 500)
-- Active day: `background: #fff8f6`
+**Goal:** the full 08:00–19:00 grid (12 rows) is visible without vertical scrolling.
 
-### Court numbers (under day headers)
-- Number: Red Hat Display, 12px, bold, `#bf4316`
-- Name: Red Hat Text, 10–11px, `#bf4316`
-- Each court in its own grid column (not flex within a day)
+### Toolbar
+- Date as `h1` (`display`, 32px), e.g. "Mittwoch, 4. November 2026". No eyebrow above it.
+- Right: previous day (44px icon button), "Heute", date field, next day; then text buttons "Infos" and "Hinweise".
+- Legend row below: Frei, Meine Buchung, Belegt, Veranstaltung, Turnierspiel, Vergangen (13px, swatch 18×14).
 
-### Booking cells
-- Free: `background: #ffffff`, clickable
-- Booked: `background: #eff6ff`, text centered (Red Hat Text, 12–13px bold, `#1a3a6b`)
-- Event: `background: #fde8e1`, text centered (Red Hat Text, 12px bold, `#7f2010`)
-- Past: `background: #f4f4f4`, not clickable
-- Border style: `1px solid #e8e8e8` right + bottom
+### Desktop grid
+- Time column 60px: hour in 15px bold tabular, "bis 09" 11px `ink-3`, right-aligned, 36px high.
+- One card per day (`surface`, `line`, `radius-lg`, padding 8px), three days side by side, gap 14px; wrapper `overflow-x: auto` with `min-width: 980px`.
+- Day header 36px: day name `display` 22px + date 13px `ink-3` on one line; "HEUTE" pill (`#F8E4D9` / `#8F3412`) on today.
+- Court header 34px per court on `ground`: alias 14px bold, "Platz 1" 11px `ink-3` beneath.
+- Rows: 3 cells, gap 4px, cell height 36px.
 
-## Booking modals
+### Cell states
+
+| State | Surface | Text | Element |
+|---|---|---|---|
+| Free | `surface`, `1px dashed cell-free-line` | none | `<a href>` with `aria-label` "Court A, 17:00 Uhr buchen" |
+| My booking (`cc-own`) | `clay` | `on-clay` | link to own booking / cancel dialog |
+| Booked / subscription (`cc-single-future`) | `cell-booked` | `ink` | span (link for admins) |
+| Event | `court`, joined across hours | `on-court` | first hour 40px with `margin-bottom: -4px`, following hours plain `court` |
+| Tournament match (`cc-turnier`) | `court-soft` + `box-shadow: inset 0 0 0 1px court` | `court-ink` | span |
+| Past (`slot-cell--past`) | `repeating-linear-gradient(135deg, cell-past-a 0 4px, cell-past-b 4px 8px)` | none | span |
+
+Cell text is **centered horizontally and vertically**: padding 4px 10px, line 1 name 13px bold, line 2 detail 11px, `line-height: 1.1`, single lines with ellipsis. Use `box-shadow` instead of `border` for outlines so text stays aligned across states.
+
+### Phone
+- One day; header with ‹ day › buttons (44px) and "4. November 2026 · Heute".
+- Sticky court header row (alias + number), time column 52px, cells 48px.
+- Tapping a free cell opens the booking bottom sheet.
+
+## Booking
 
 **File:** `resources/views/components/calendar/modals.blade.php`
 
-### New booking (regular user)
+### Desktop dialog
+- Width ~500px, `surface`, `radius-lg` 14px, `shadow-dialog`, backdrop `rgba(29,27,24,0.55)`.
+- Header: eyebrow "NEUE BUCHUNG", title "Court A buchen" (`display` 32px), close button 44px.
+- Summary tiles on `ground`: Datum, Zeit, Platz.
+- Spielart as option tiles: Einzel (2 Spieler) / Doppel (4 Spieler). Selected: `2px solid clay` on `clay-soft`.
+- Teammate field with member autocomplete (`/bookings/players?q=`); doubles show three fields.
+- Checkbox "Bestätigung per E-Mail an mich senden".
+- Footer on `surface-sunk`: "Abbrechen" (secondary) and "Verbindlich buchen" (primary).
 
-- Fields: court (readonly), booked for (readonly), date, time, number of players, teammates
-- **Singles (2):** teammate field with user autocomplete (`/bookings/players?q=`), required field
-- **Doubles (4):** teammate field as free text (e.g. "Müller, Huber, Schmidt"), required field
-- Buttons: only **Save** (no Cancel — close via ✕ or Escape)
+### Phone bottom sheet
+- Anchored to the bottom, `radius-xl` top corners, grab handle 44×5px, `shadow-sheet`.
+- Same content plus time options (1 or 2 hours) as tiles and "Zuletzt gespielt mit" chips.
+- Full-width primary button 56px: "Verbindlich buchen · 17:00 – 18:00", "Abbrechen" text button beneath.
+- Success state in the same sheet: check icon on `court-soft`, "Platz gebucht", buttons "Zum Kalender" and "Meine Buchungen ansehen".
 
-### Edit booking
+### Cancel own booking
+Booking details, then "Buchung bearbeiten" (secondary), "Stornieren" (danger) and "Abbrechen".
 
-- Fields: court, date, time (all readonly), number of players, teammates
-- Same autocomplete logic as new booking
-- Buttons: **Save** + **Cancel**
-
-### Cancellation (own booking)
-
-- Display: booking details, court, date, time
-- Buttons: edit booking, cancel booking (red), cancel
-
-## Form components
-
-```css
-.ui-input   /* Standard text field: border, rounded-[6px], h-9, px-3 */
-.ui-select  /* Dropdown: same base as ui-input */
-.ui-label   /* Label: text-[13px], font-medium */
-.ui-btn     /* Button base */
-.ui-btn-primary   /* Red (#bf4316), white text */
-.ui-btn-ghost     /* Transparent, border */
-```
-
-### Input fields
-
-```css
-height: 36px (normal) | 40px (prominent)
-border: 1px solid #c7c7c7
-border-radius: 6px
-padding: 0 12px
-font-size: 14px
-font-family: Red Hat Text
-background: #ffffff
-```
-
-Focus ring: `2px solid #151515` (standard) or `1px solid #d4d4d4` (subtle)
-
-### Select fields
-
-Same as inputs. `cursor: pointer`.
-
-### Textarea
-
-```css
-border: 1px solid #c7c7c7
-border-radius: 6px
-padding: 8px 12px
-font-size: 14px
-resize: vertical
-line-height: 1.5
-```
+## Components
 
 ### Buttons
 
 | Variant | Background | Text | Border | Usage |
 |---|---|---|---|---|
-| Primary | `#bf4316` | `#fff` | none | Main action (save, book) |
-| Outline | `#fff` | `#bf4316` | `1px solid #bf4316` | Secondary action |
-| Ghost | `transparent` | `#151515` | none | Cancel, navigation |
-| Danger | `#c9190b` | `#fff` | none | Delete, destructive actions |
+| Primary | `clay` | `on-clay` | none | Book, save, confirm |
+| Secondary | `surface` | `ink` | `1px solid line` | Cancel, filter, side actions |
+| Dark | `chrome` | `#fff` | none | Form actions in admin cards |
+| Danger | `surface` | `danger` | `1px solid danger-soft` | Cancel booking, delete, withdraw |
+| Text | transparent | `ink-2` | none | Infos, Hinweise, Abbrechen in sheets |
 
-All buttons: `height: 36px`, `border-radius: 6px`, `font-weight: 500–600`, `font-size: 13–14px`
+Height `control-h` (46px), `radius-md`, `button` style. On phones `control-h-mobile`, `radius-lg`, full width. A link styled as a button is an `<a>` with the same classes, never a button inside a link.
 
-### Cards / tiles
-
-```css
-background: #ffffff
-border: 1px solid #e8e8e8 (or Tailwind border-zinc-200)
-border-radius: 6px (forms/tables) | 8px (modals/dialogs)
-box-shadow: 0 2px 8px rgba(0,0,0,0.10) (subtle) | 0 4px 20px rgba(0,0,0,0.15) (prominent)
-overflow: hidden
-```
-
-KPI tiles (dashboard) additionally have `border-top: 3px solid [color]` (signal color per KPI).
+### Inputs and selects
+- Label above the field, 14px bold, linked via `for`/`id`; help text 13px `ink-3`.
+- Height 46px (phone 52px), `1px solid line-strong`, `radius-md`, padding 0 12px, `body` 15px.
+- Focus: `outline: 2px solid ink; outline-offset: 1px`.
+- Two to five choices are option tiles, not a dropdown.
+- Score inputs: `inputmode="numeric"`, centered, 20px bold.
+- Errors: text 13px `danger` under the field, border `danger`. The old `.error-message` block (`#a84433`) becomes a notice box on `danger-soft` with `danger` text.
 
 ### Tables
+- Header row on `surface-sunk`, `label` style (12px, 700, uppercase, 0.08em), `ink-3`, padding 10px 18px.
+- Rows: padding 10–12px 18px, `border-top: 1px solid #F1ECE3`, 14–15px.
+- Your own row: `clay-soft`; leader/qualified row: `court-soft`.
+- Wide tables sit in an `overflow-x: auto` box. On phones, member and booking lists become cards.
+- Pagination: 40px squares, active page filled `chrome` with white text.
 
-Header row:
+### Cards and key figures
+- Card: `surface`, `1px solid line`, `radius-lg`, padding 16–20px, title `display-m`.
+- Key figure tile: `label` eyebrow, value in `numeral`, meta line 14px `ink-2`. The old 3px colored top border is dropped.
+- Highlighted card (next match, my challenge): `chrome` background with white text.
 
-```css
-background: #fafafa
-font-size: 11px
-font-weight: 600
-text-transform: uppercase
-letter-spacing: 0.04em
-color: #6a6e73
-padding: 10px 16–20px
-border-bottom: 1px solid #ebebeb
-```
+### Match card (tournaments)
+- Top row: context `label` (Gruppe B · Spiel 4) and badge.
+- Players stacked, winner bold; score right-aligned in tabular figures, sets separated by spaces ("6 4").
+- Meta line: date · time · court alias, or "noch kein Termin".
+- Action by status: no date → "Termin eintragen" (primary), scheduled → "Ergebnis eintragen" (secondary), played → none.
+- Mixed: "A & B" vs "C & D" centered with "VS"; result buttons 4:0 / 3:1 / 2:2 / 1:3 / 0:4.
 
-Data rows:
+### Icons
+Inline SVG, 24px grid, 2px stroke, `stroke="currentColor"`, round caps. Icon-only buttons need an `aria-label`. No icon library, no emoji, no arrow characters as icons.
 
-```css
-padding: 11–12px 16–20px
-border-bottom: 1px solid #f5f5f5
-font-size: 13px
-color: #151515 (primary) / #6a6e73 (secondary)
-```
+## Login
 
-Hover: `background: #fafafa`
+- Two halves (`flex-wrap`): left a `clay` panel with court lines drawn as borders (white at 35–55% opacity), logo and "Dein Platz. Deine Zeit."; right the form, max 420px.
+- Fields 50px, primary button "Anmelden" in `chrome`, full width, 52px.
+- "Passwort vergessen?" link next to the password label; registration hint in a card below.
+- Phone: clay panel shrinks to a 230px band at the top.
 
-Pagination:
-- Inactive page: `border-zinc-200`, `bg-white`, `text-zinc-600`
-- Active page: `border-color: #bf4316`, `background: #fff3f0`, `color: #bf4316`, `font-weight: 600`
+## Tournament modules (ZF2, to be ported)
 
-### Status badges
+Forderungspyramide, Vereinsmeisterschaft, Mixed-/Fun-Turnier and Auslosung use the same tokens and components. Their own CSS prefixes (`pyr-`, `tn-`, `mx-`) map to the tokens above; their "Desktop / Handy" view switch is removed because every page is responsive.
 
-```css
-display: inline-flex
-border-radius: 4px
-padding: 2px 8px
-font-size: 11px
-font-weight: 600
-```
+| Old meaning | Old color | New token |
+|---|---|---|
+| Primary / active tab | `#2596be` | `clay` |
+| Forderbar, gespielt, done | `#8BB243`, `#eff5e8` | `court` / `court-soft` |
+| Ohne Termin, offen | `#fdf7e7` / `#795600` | `warn-soft` / `warn-ink` |
+| Geplant | `#e7f4f9` / `#0f6f8e` | `sand` / `ink` |
+| Danger | `#c0392b` | `danger` |
+| Header | `#212427` | `chrome` |
 
-Color combinations from the status colors table above.
+## Accessibility
 
-## Admin sidebar
+- Text contrast at least 4.5:1 (large numbers 3:1); `ink-3` only on `ground`/`surface`.
+- Real `<button>`, `<a href>`, `<label>`, also inside calendar cells.
+- State is never shown through color alone.
+- Visible focus on every control: `2px solid ink`, offset 2px.
+- Respect `prefers-reduced-motion` for the modal and sheet transitions.
 
-```
-Width: 200px
-Background: #1b1d21 (dark)
-Section label: 11px, uppercase, #6a6e73
-Nav item inactive: color #a0a0a0, padding 9px 16px 9px 19px
-Nav item active: color #fff, font-weight 600, background rgba(255,255,255,0.1), border-left 3px solid #bf4316
-```
+## Implementation notes
 
-## Login page
+### Tailwind tokens (`resources/css/app.css`)
+Replace the `--color-accent-*` scale, the Red Hat font tokens and the `--ui-*` block with the tokens above in the `@theme` block (`--color-clay`, `--color-court`, `--font-display`, `--font-body`, …). Replace the Red Hat `<link>` in `layouts/app.blade.php` with the Barlow link. Prefer token classes (`bg-clay`, `text-ink-2`) over arbitrary values like `bg-[#bf4316]`.
 
-**Layout**: 2-column card on grey background
+### Calendar colors (`config/calendar.php`)
+Map `free`, `own`, `single_future`, `series`, `past` and `event` to the cell tokens above; the CSS variables in `layouts/app.blade.php` (`--cal-*`) keep their names.
 
-```
-Total: max-width 672px, grid-cols-2
-Left: padding 40px 32px, flex-col, justify-center, gap 14px
-Right: padding 40px 32px, flex-col, gap 16px, bg #fafafa, border-left
-```
-
-Left column:
-- "Member area": 11px, uppercase, tracking-widest, `#6a6e73`
-- "Sign in": 26px, bold, Red Hat Display, `#151515`
-- Description: 13px, `#6a6e73`, line-height 1.65
-
-Right column: form fields (40px height), checkbox, full-width button
-
-## Modal header (admin popups)
-
-```css
-background: #1b1d21
-height: 52px
-padding: 0 24px
-display: flex, align-items: center, justify-content: space-between
-```
-
-Title: 15px, bold, Red Hat Display, `#ffffff`
-Close button: `×`, 20px, `#8a8d90`
-
-## Form sections
-
-Each section has:
-1. Section header (micro uppercase, orange or grey, `border-bottom: 1px solid #ebebeb`)
-2. Form fields with 14–16px gap
-3. Spacing to next section: 20–24px
-
-Field order for date/time: **Date (start) → Time (start) → Date (end) → Time (end)**
-
-## Peak-time feature
-
-Admin can define peak times with a player limit.
-**Service:** `app/Services/PeakLimitService.php`
-**Admin:** settings under Admin → Configuration
-
-## Blade component reference
+### Blade component reference
 
 All components live under `resources/views/components/`.
 
 | Component | Path | Purpose |
 |---|---|---|
 | Header | `layout/header.blade.php` | Logo, navigation, action buttons; carries class `no-print` |
-| Admin sidebar | `layout/admin-sidebar.blade.php` | Dark sidebar (200px, `#1b1d21`); active item with `border-l-[3px] border-[#bf4316] bg-white/10` |
+| Admin sidebar | `layout/admin-sidebar.blade.php` | Dark sidebar with grouped navigation |
 | Calendar grid | `calendar/grid.blade.php` | Booking table; cell clicks via Alpine `$dispatch('open-booking', {...})` |
 | Calendar modals | `calendar/modals.blade.php` | All modals in the booking flow (create booking, cancel, feedback, admin iframe) |
 
 **No Livewire.** Alpine.js is used directly on HTML elements (`x-data`, `x-show`, `x-model`, `x-transition`). There are no registered `<x-*>` component tags.
 
-## Form patterns
-
-### Date + time (two columns)
-
-Standard pattern for all date/time combinations — 2-column grid, order always: date start → time start → date end → time end.
-
-```html
-<div class="grid grid-cols-2 gap-3">
-    <input type="date" name="date_start" class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316]">
-    <input type="time" name="time_start" class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316]">
-    <input type="date" name="date_end" ...>
-    <input type="time" name="time_end" ...>
-</div>
-```
-
-### Form label (Tailwind pattern)
-
-```html
-<label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">Field name</label>
-<input class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316]">
-```
-
-### Court selection
-
-Plain `<select>` with no custom styling — same classes as input fields.
-
-### Conditional fields (player count)
-
-Fields for players 3/4 are shown/hidden via Alpine:
-
-```html
-<div x-show="quantity == '4'">...</div>
-```
-
-### Legacy classes (admin forms)
-
-Older admin views use CSS classes from `booking.css`:
-
-```
-.admin-form__row          → grid, 200px label + 1fr field
-.admin-form__label        → 12px, bold, #444
-.admin-form__field--flex  → flex-row for inline date+time
-.admin-form__inline-group → label + input side by side
-```
-
-## Error states
-
-### Inline errors (Tailwind views)
-
-Error text directly under the field, no icon:
-
-```html
-<input class="... {{ $errors->has('alias') ? 'border-red-400' : 'border-[#d1cbc0]' }}">
-@error('alias')
-    <p class="text-xs text-red-600">{{ $message }}</p>
-@enderror
-```
-
-- Error border: `border-red-400` (Tailwind)
-- Error text: `text-xs text-red-600`
-
-### Error summary (auth views)
-
-Collected errors as a block above the form:
-
-```html
-@if($errors->any())
-    <div class="error-message">
-        @foreach($errors->all() as $error)
-            <div>{{ $error }}</div>
-        @endforeach
-    </div>
-@endif
-```
-
-CSS class `.error-message`: `background: #a84433`, `color: #fff`, `padding: 8px 10px`, `border-radius: 3px`.
-
-### Focus ring (admin legacy)
-
-Legacy-CSS admin inputs show an orange ring on focus:
-
-```css
-border-color: #c75518;
-box-shadow: 0 0 0 3px rgba(199, 85, 24, 0.12);
-```
-
-## Popup layout pattern
+### Popup layout pattern
 
 Admin views that appear both as a full page (admin layout) and as an iframe popup:
 
 ```blade
 @extends(request('popup') ? 'layouts.popup' : 'layouts.admin')
 
-{{-- For popup layout (yields 'content'): --}}
 @section('content')
     <div class="ui-page">...</div>
 @endsection
 
-{{-- For admin layout (yields 'admin-content'): --}}
 @section('admin-content')
     <div class="ui-page">...</div>
 @endsection
 ```
 
-Both sections contain the same content — Laravel only renders the one the active layout yields. `layouts.popup` yields `content`, `layouts.admin` yields `admin-content`.
+Both sections contain the same content; Laravel renders the one the active layout yields. Controller methods that answer popups use a union return type (`RedirectResponse|Response`) and return `<script>window.parent.location.reload();</script>` when `popup` is set. Forms in popups include `<input type="hidden" name="popup" value="1">`. The popup header uses `chrome` with a `display-m` white title and a 44px close button.
 
-Controller methods that return popup responses need a union return type:
+### Date and time fields
 
-```php
-public function store(Request $request): RedirectResponse|Response
-{
-    // ...
-    if ($request->boolean('popup')) {
-        return response('<script>window.parent.location.reload();</script>')
-            ->header('Content-Type', 'text/html');
-    }
-    return redirect()->route(...);
-}
-```
+Order is always: date start → time start → date end → time end, in a 2-column grid (`grid grid-cols-2 gap-3`). Player fields 3 and 4 are toggled with `x-show="quantity == '4'"`.
 
-Forms in popups include `<input type="hidden" name="popup" value="1">`.
+### Members module
 
-### Form includes with `popup_mode`
+The Members module (`app/Modules/Members`, views under `members::`) uses the same tokens plus two Alpine patterns: inline edit-in-place in list tables (`PATCH` to `*.update-field`, brief checkmark, Escape cancels) and the mail composer with templates, dynamic audiences (`MailController::audienceDefinitions()`) and a server-rendered preview.
 
-The `admin.events._form` partial has two layout branches:
+### Loading and feedback
 
-```blade
-@include('admin.events._form', ['popup_mode' => request('popup')])
-```
+No Livewire, no `wire:loading`, no axios layer. Modals fade in with `x-transition.opacity`. Session feedback appears as a modal that closes after 4 seconds. Legacy admin forms post into a hidden iframe and reload the parent. No spinners or skeletons.
 
-- `popup_mode = true` → compact Tailwind layout (4-column for date/time, no section header)
-- `popup_mode = false/null` → legacy UI classes (`.ui-form-shell`, `.ui-form-divider` etc.)
+### Emails and print
 
-## Members module patterns
+Emails under `resources/views/emails/` use inline CSS only (Arial, `#222`, 15px, simple tables) and no accent colors. Print exclusions use the `no-print` class only; there are no `@media print` rules.
 
-The Members module (`app/Modules/Members`, views under `members::`) reuses the same
-`ui-*` classes and color tokens as the rest of the admin, combined with two additional
-Alpine.js-driven interaction patterns not used elsewhere in the app:
+### Texts and localization
 
-### Inline edit-in-place (list tables)
+- Loader: `lang/{locale}/booking.php`, partial files `lang/{locale}/booking/*.php`, languages `de` and `en`.
+- Translation keys stay stable (e.g. `booking.nav.login`, `booking.account.my_bookings`).
+- No hardcoded texts in views; admin texts in `booking/admin.php`, public texts in `booking/public.php`.
 
-Used in the Mitglieder list (`members::members.index`) for fields like firstname/
-lastname/status: clicking a table cell turns it into an input, submits a `PATCH` to a
-`*.update-field` route via `fetch`, and shows a brief success indicator (checkmark
-flash) on the cell before reverting to display mode. No page reload, no modal.
+### Peak-time feature
 
-- Whole-cell click target (not just the text) opens edit mode
-- Escape or blur without change cancels the edit
-- Same `.ui-input` sizing/border as regular forms, just inline in the table cell
-
-### Mail composer with templates and dynamic audiences
-
-Used on the Mail page (`members::mail.index`): a single Alpine component drives
-audience selection (club roles, mail categories, custom filters), template load/save/
-delete, and a live HTML preview fetched via AJAX before sending. Audiences are computed
-server-side per request (`MailController::audienceDefinitions()`), not hardcoded, so new
-mail categories or club roles automatically appear as selectable targets.
-
-- Template list and the compose form share one Alpine `x-data` scope
-- Preview pane renders the rendered mail body server-side and injects it read-only
-- Buttons follow the standard primary/outline/ghost variants; no custom button styles
-
-## Loading and AJAX states
-
-The system uses **no Livewire, no `wire:loading`, no `axios`/`fetch` layer** in the views.
-
-| Situation | Behavior |
-|---|---|
-| Modal opens | Alpine `x-transition.opacity` — smooth fade-in |
-| Feedback after action | Session flash modal, closes itself after **4 seconds** (`setTimeout(() => open = false, 4000)`) |
-| Legacy admin forms | Form in a hidden `<iframe>` — parent page reloads after successful submission (`window.location.reload()`) |
-
-There are **no spinners, skeleton screens, or loading bars**. Load times are bridged by fast server responses and minimal JS.
-
-## Email and print styles
-
-### Email templates
-
-Templates under `resources/views/emails/`:
-
-| File | Purpose |
-|---|---|
-| `booking-confirmed.blade.php` | Booking confirmation with detail table |
-| `booking-cancelled.blade.php` | Cancellation notification |
-| `user-activated.blade.php` | Account activation |
-
-Emails use **inline CSS** (no Tailwind, no external stylesheet) for maximum mail client compatibility:
-
-```css
-body { font-family: Arial, sans-serif; color: #222; font-size: 15px; line-height: 1.6; }
-h1   { font-size: 20px; margin-bottom: 4px; }
-table { border-collapse: collapse; width: 100%; margin: 20px 0; }
-td   { padding: 8px 0; border-bottom: 1px solid #eee; }
-.footer { margin-top: 32px; font-size: 13px; color: #888; }
-```
-
-Layout: simple `<table>` structure, no multi-column design. No primary orange in emails — neutral colors for maximum readability.
-
-### Print styles
-
-There are **no `@media print` rules** in the CSS files. Print exclusions are controlled exclusively via the `no-print` utility class:
-
-| Element | Class |
-|---|---|
-| Header | `no-print` |
-| Help panels | `no-print` |
-
-Everything without `no-print` gets printed. New elements that aren't print-relevant should get `no-print` added.
-
-## Texts and localization
-
-The UI texts are split by topic per language and no longer collected in a single large file.
-
-- Loader: `lang/{locale}/booking.php`
-- Partial files: `lang/{locale}/booking/*.php`
-- Active languages: `de`, `en`
-
-The existing translation keys deliberately stay stable, for example:
-
-- `booking.nav.login`
-- `booking.account.my_bookings`
-- `booking.admin.peak_limit.title`
-
-For new UI elements:
-
-- No hardcoded texts in views or components
-- Always reuse existing key areas
-- Admin texts under `booking/admin.php`, public texts under `booking/public.php`
-
-## Responsive
-
-The current templates are **desktop-first** (from 1024px). Mobile optimization is not part of this redesign for admin views — the Blade templates contain no responsive breakpoints there, which is intentional since the system is primarily used on desktop. The public calendar/header views do have mobile breakpoints (see Header section above).
-
-## Fonts
-
-`var(--font-display)` for headings/titles (configured in `app.css`/Tailwind). See Typography section above for the full font/size scale.
+Admins define peak times with a player limit. Service `app/Services/PeakLimitService.php`, settings under Admin → Configuration.
