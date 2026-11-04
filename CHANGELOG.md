@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-04
 
+- English members area no longer falls back to German for the short booking-system label.
 - The UI linter now checks the new design rules (tokens, 46/52 px controls, no inline styles, emoji or character icons) across all views, module views and CSS.
 - All pages share one page frame (fonts, styles, head) instead of five copies.
 - Site-wide switch to the new palette and fonts on existing pages, with a visible keyboard focus outline everywhere.
