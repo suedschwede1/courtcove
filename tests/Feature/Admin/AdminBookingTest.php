@@ -119,6 +119,7 @@ class AdminBookingTest extends TestCase
             'sid' => $square->sid,
         ]);
     }
+
     #[Test]
     public function store_resolves_booked_for_to_matching_member(): void
     {
@@ -311,7 +312,6 @@ class AdminBookingTest extends TestCase
         $this->actingAs($this->admin())->post("/admin/bookings/{$b->bid}/cancel")->assertRedirect(route('admin.bookings.index'));
         $this->assertSame('cancelled', $b->fresh()->status);
     }
-
 
     #[Test]
     public function popup_edit_page_contains_calendar_redirect(): void

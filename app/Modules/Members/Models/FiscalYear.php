@@ -6,13 +6,14 @@ namespace App\Modules\Members\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
  * @property string $name
- * @property \Illuminate\Support\Carbon $starts_on
- * @property \Illuminate\Support\Carbon $ends_on
- * @property \Illuminate\Support\Carbon|null $faellig_am
+ * @property Carbon $starts_on
+ * @property Carbon $ends_on
+ * @property Carbon|null $faellig_am
  */
 class FiscalYear extends Model
 {

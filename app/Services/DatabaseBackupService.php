@@ -21,8 +21,11 @@ use Throwable;
 final class DatabaseBackupService
 {
     private const DISK = 'local';
+
     private const DIRECTORY = 'backups';
+
     private const MAX_BACKUPS = 10;
+
     private const INSERT_BATCH_SIZE = 500;
 
     /**
@@ -135,7 +138,7 @@ final class DatabaseBackupService
      * inserts parent-before-child via each table's real FK metadata works
      * regardless of whether FK enforcement is actually off.
      *
-     * @param array<int, string> $dataStatements
+     * @param  array<int, string>  $dataStatements
      * @return array<int, string>
      */
     private function orderInsertsByDependency(array $dataStatements): array
@@ -157,7 +160,7 @@ final class DatabaseBackupService
     }
 
     /**
-     * @param array<int, string> $tables
+     * @param  array<int, string>  $tables
      * @return array<int, string>
      */
     private function topologicallySortedTables(array $tables): array

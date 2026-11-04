@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 return [
-'repeat' => [
+    'repeat' => [
         'once' => 'Einmalig',
         'daily' => 'Täglich',
         'every_2_days' => 'Alle 2 Tage',
@@ -17,4 +17,3 @@ return [
         'custom' => 'Individuell',
     ],
 ];
-

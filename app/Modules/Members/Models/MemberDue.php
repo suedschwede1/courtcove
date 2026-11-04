@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -19,7 +20,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property string|null $teilbetrag
  * @property string|null $kommentar
  * @property int|null $bezahlt_bis_fiscal_year_id
- * @property \Illuminate\Support\Carbon|null $faellig_am
+ * @property Carbon|null $faellig_am
  * @property-read FiscalYear $fiscalYear
  */
 class MemberDue extends Model

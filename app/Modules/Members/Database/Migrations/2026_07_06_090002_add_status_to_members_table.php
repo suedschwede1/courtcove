@@ -15,7 +15,7 @@ return new class extends Migration
         });
 
         // Backfill: any existing departed member (left_at already set) is ausgetreten.
-        \DB::table('members')->whereNotNull('left_at')->update(['status' => 'ausgetreten']);
+        DB::table('members')->whereNotNull('left_at')->update(['status' => 'ausgetreten']);
     }
 
     public function down(): void

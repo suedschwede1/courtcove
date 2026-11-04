@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 return [
-'mail' => [
+    'mail' => [
         'booking_reference' => 'Buchung #:bid',
         'confirmed_subject' => 'Buchungsbestätigung – :title',
         'cancelled_subject' => 'Stornierungsbestätigung – :title',
@@ -42,4 +42,3 @@ return [
         'test_footer' => 'Diese Test-E-Mail wurde von :system am :date gesendet.',
     ],
 ];
-

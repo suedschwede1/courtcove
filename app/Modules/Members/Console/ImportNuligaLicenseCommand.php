@@ -107,7 +107,7 @@ class ImportNuligaLicenseCommand extends Command
         });
 
         $this->info(
-            "Lizenzabgleich".($dryRun ? ' (Dry-Run, keine Änderungen gespeichert)' : '').": ".
+            'Lizenzabgleich'.($dryRun ? ' (Dry-Run, keine Änderungen gespeichert)' : '').': '.
             "{$updated} aktualisiert, {$unchanged} bereits korrekt, ".
             "{$skippedNoLicense} ohne Lizenz übersprungen, {$unmatched} nicht gefunden, {$conflicts} Konflikte."
         );

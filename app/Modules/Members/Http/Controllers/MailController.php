@@ -6,7 +6,6 @@ namespace App\Modules\Members\Http\Controllers;
 
 use App\Mail\MemberBulkMail;
 use App\Models\Option;
-use App\Modules\Members\Models\ClubRole;
 use App\Modules\Members\Models\MailCategory;
 use App\Modules\Members\Models\MailSend;
 use App\Modules\Members\Models\MailTemplate;

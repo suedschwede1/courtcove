@@ -23,7 +23,7 @@ class DatabaseBackupServiceTest extends TestCase
     {
         parent::setUp();
         Storage::fake('local');
-        $this->backups = new DatabaseBackupService();
+        $this->backups = new DatabaseBackupService;
     }
 
     #[Test]

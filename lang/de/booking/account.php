@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 return [
-'account' => [
+    'account' => [
         'my_bookings' => 'Meine Buchungen',
         'my_account' => 'Mein Konto',
         'intro' => 'Verwalten Sie hier Ihre persönlichen Daten.',
@@ -48,4 +48,3 @@ return [
         'status' => 'Status',
     ],
 ];
-

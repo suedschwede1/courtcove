@@ -6,6 +6,7 @@ namespace App\Modules\Members\Models;
 
 use App\Models\Option;
 use App\Models\User;
+use Carbon\Carbon;
 use Database\Factories\Modules\Members\Models\MemberFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -40,6 +41,7 @@ class Member extends Model
     use HasFactory;
 
     public const GENDERS = ['m', 'w', 'd'];
+
     public const STATUSES = ['aktiv', 'ruhend', 'ausgetreten'];
 
     protected $fillable = [
@@ -115,7 +117,7 @@ class Member extends Model
         return (int) (static::query()->max('member_number') ?? 0) + 1;
     }
 
-    public function paidUntil(): ?\Carbon\Carbon
+    public function paidUntil(): ?Carbon
     {
         return $this->dues()
             ->get()

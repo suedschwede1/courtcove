@@ -164,7 +164,7 @@ class MemberImportCommandTest extends TestCase
     #[Test]
     public function warns_about_unparsable_nuliga_id(): void
     {
-        $csv = <<<CSV
+        $csv = <<<'CSV'
         Name,Vorname,Mitgliedsart,MB ,Bemerkung,Email,Strasse,PLZ,Ort,Privat,Mobil,Geschlecht,GebDatum,ID-Nr,Alter,Reservierungssystem
         Muster,Anna,Vollmitglied,bezahlt 25,,anna@example.com,Teststr. 1,4400,Sampletown,,0650 1234567,weiblich,01.02.1980,NU288563,46,Ja
         CSV;
@@ -185,7 +185,7 @@ class MemberImportCommandTest extends TestCase
     #[Test]
     public function treats_a_zero_nuliga_id_as_missing_without_warning(): void
     {
-        $csv = <<<CSV
+        $csv = <<<'CSV'
         Name,Vorname,Mitgliedsart,MB ,Bemerkung,Email,Strasse,PLZ,Ort,Privat,Mobil,Geschlecht,GebDatum,ID-Nr,Alter,Reservierungssystem
         Muster,Anna,Vollmitglied,bezahlt 25,,anna@example.com,Teststr. 1,4400,Sampletown,,0650 1234567,weiblich,01.02.1980,0,46,Ja
         Alt,Bernd,Pensionist,bezahlt 25,,,Weg 2,4400,Sampletown,70 658,,maennlich,03.04.1950,0,76,Nein
@@ -204,7 +204,7 @@ class MemberImportCommandTest extends TestCase
     #[Test]
     public function warns_about_duplicate_nuliga_id_and_keeps_first(): void
     {
-        $csv = <<<CSV
+        $csv = <<<'CSV'
         Name,Vorname,Mitgliedsart,MB ,Bemerkung,Email,Strasse,PLZ,Ort,Privat,Mobil,Geschlecht,GebDatum,ID-Nr,Alter,Reservierungssystem
         Muster,Anna,Vollmitglied,bezahlt 25,,anna@example.com,Teststr. 1,4400,Sampletown,,0650 1234567,weiblich,01.02.1980,288563,46,Ja
         Alt,Bernd,Pensionist,bezahlt 25,,,Weg 2,4400,Sampletown,70 658,,maennlich,03.04.1950,288563,76,Nein

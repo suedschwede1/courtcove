@@ -21,23 +21,23 @@ class UiRules
         return [
             // --- Farben ---
             [
-                'id'      => 'CLR-01',
-                'warn'    => 'Hex-Farbe %s nicht im Design Guide — Palette in docs/DESIGN.md prüfen',
+                'id' => 'CLR-01',
+                'warn' => 'Hex-Farbe %s nicht im Design Guide — Palette in docs/DESIGN.md prüfen',
                 'pattern' => '/#([0-9a-fA-F]{6})\b/i',
                 'exclude' => ['emails/'],
                 'context' => false,
-                'hex'     => true,
+                'hex' => true,
             ],
             [
-                'id'      => 'CLR-02',
-                'warn'    => 'Fehlertext: text-red-600 verwenden, nicht text-red-500',
+                'id' => 'CLR-02',
+                'warn' => 'Fehlertext: text-red-600 verwenden, nicht text-red-500',
                 'pattern' => '/\btext-red-500\b/',
                 'exclude' => [],
                 'context' => false,
             ],
             [
-                'id'      => 'CLR-03',
-                'warn'    => 'Fehler-Border: border-red-400 verwenden, nicht border-red-500',
+                'id' => 'CLR-03',
+                'warn' => 'Fehler-Border: border-red-400 verwenden, nicht border-red-500',
                 'pattern' => '/\bborder-red-500\b/',
                 'exclude' => [],
                 'context' => false,
@@ -45,29 +45,29 @@ class UiRules
 
             // --- Buttons ---
             [
-                'id'      => 'BTN-01',
-                'warn'    => 'Button: bg-[#bf4316] verwenden, nicht bg-orange-*',
+                'id' => 'BTN-01',
+                'warn' => 'Button: bg-[#bf4316] verwenden, nicht bg-orange-*',
                 'pattern' => '/<button[^>]*bg-orange-/i',
                 'exclude' => [],
                 'context' => false,
             ],
             [
-                'id'      => 'BTN-02',
-                'warn'    => 'Danger-Button: bg-[#c9190b] verwenden, nicht bg-red-*',
+                'id' => 'BTN-02',
+                'warn' => 'Danger-Button: bg-[#c9190b] verwenden, nicht bg-red-*',
                 'pattern' => '/<button[^>]*bg-red-/i',
                 'exclude' => [],
                 'context' => false,
             ],
             [
-                'id'      => 'BTN-03',
-                'warn'    => 'Button: rounded (6px) verwenden, nicht rounded-full',
+                'id' => 'BTN-03',
+                'warn' => 'Button: rounded (6px) verwenden, nicht rounded-full',
                 'pattern' => '/<button[^>]*rounded-full/i',
                 'exclude' => [],
                 'context' => false,
             ],
             [
-                'id'      => 'BTN-04',
-                'warn'    => 'Button ohne Höhenklasse — h-9 (36px) oder h-10 (40px) prüfen',
+                'id' => 'BTN-04',
+                'warn' => 'Button ohne Höhenklasse — h-9 (36px) oder h-10 (40px) prüfen',
                 'pattern' => '/<button(?!.*\bh-(?:9|10)\b)[^>]*>/i',
                 'exclude' => [],
                 'context' => false,
@@ -75,29 +75,29 @@ class UiRules
 
             // --- Inputs / Select / Textarea ---
             [
-                'id'      => 'INP-01',
-                'warn'    => 'Formularfeld: rounded (6px) verwenden, nicht rounded-full',
+                'id' => 'INP-01',
+                'warn' => 'Formularfeld: rounded (6px) verwenden, nicht rounded-full',
                 'pattern' => '/<(?:input|select|textarea)[^>]*rounded-full/i',
                 'exclude' => [],
                 'context' => false,
             ],
             [
-                'id'      => 'INP-02',
-                'warn'    => 'Formularfeld: rounded (6px) verwenden, nicht rounded-lg',
+                'id' => 'INP-02',
+                'warn' => 'Formularfeld: rounded (6px) verwenden, nicht rounded-lg',
                 'pattern' => '/<(?:input|select|textarea)[^>]*rounded-lg/i',
                 'exclude' => [],
                 'context' => false,
             ],
             [
-                'id'      => 'INP-03',
-                'warn'    => 'Formularfeld: rounded (6px) verwenden, nicht rounded-xl',
+                'id' => 'INP-03',
+                'warn' => 'Formularfeld: rounded (6px) verwenden, nicht rounded-xl',
                 'pattern' => '/<(?:input|select|textarea)[^>]*rounded-xl/i',
                 'exclude' => [],
                 'context' => false,
             ],
             [
-                'id'      => 'INP-04',
-                'warn'    => 'Focus-Ring: focus:ring-[#bf4316] verwenden, nicht focus:ring-blue-*',
+                'id' => 'INP-04',
+                'warn' => 'Focus-Ring: focus:ring-[#bf4316] verwenden, nicht focus:ring-blue-*',
                 'pattern' => '/<input[^>]*focus:ring-blue-/i',
                 'exclude' => [],
                 'context' => false,
@@ -105,8 +105,8 @@ class UiRules
 
             // --- Badges ---
             [
-                'id'      => 'BDG-01',
-                'warn'    => 'Badge: rounded (4px) verwenden, nicht rounded-full',
+                'id' => 'BDG-01',
+                'warn' => 'Badge: rounded (4px) verwenden, nicht rounded-full',
                 'pattern' => '/(?=.*\bpx-)(?=.*\bpy-)(?=.*(?:text-xs|text-\[11px\])).*\brounded-full\b/',
                 'exclude' => [],
                 'context' => false,
@@ -114,16 +114,16 @@ class UiRules
 
             // --- Tabellen (Kontext-Regeln) ---
             [
-                'id'      => 'TBL-01',
-                'warn'    => 'Tabellenkopf: uppercase-Klasse fehlt',
+                'id' => 'TBL-01',
+                'warn' => 'Tabellenkopf: uppercase-Klasse fehlt',
                 'pattern' => '/<thead/i',
                 'exclude' => [],
                 'context' => true,
                 'context_require' => 'uppercase',
             ],
             [
-                'id'      => 'TBL-02',
-                'warn'    => 'Tabellenkopf: bg-[#fafafa] fehlt',
+                'id' => 'TBL-02',
+                'warn' => 'Tabellenkopf: bg-[#fafafa] fehlt',
                 'pattern' => '/<thead/i',
                 'exclude' => [],
                 'context' => true,
@@ -132,15 +132,15 @@ class UiRules
 
             // --- Typografie ---
             [
-                'id'      => 'TYP-01',
-                'warn'    => 'Schriftgröße unter 10px — Design-Minimum: 10px (Kalender-Ausnahme)',
+                'id' => 'TYP-01',
+                'warn' => 'Schriftgröße unter 10px — Design-Minimum: 10px (Kalender-Ausnahme)',
                 'pattern' => '/text-\[([1-9])px\]/',
                 'exclude' => [],
                 'context' => false,
             ],
             [
-                'id'      => 'TYP-02',
-                'warn'    => 'Schriftart: nur Red Hat Display/Text erlaubt, nicht font-serif/font-mono',
+                'id' => 'TYP-02',
+                'warn' => 'Schriftart: nur Red Hat Display/Text erlaubt, nicht font-serif/font-mono',
                 'pattern' => '/\bfont-(?:serif|mono)\b/',
                 'exclude' => [],
                 'context' => false,
@@ -148,8 +148,8 @@ class UiRules
 
             // --- Modals ---
             [
-                'id'      => 'MOD-01',
-                'warn'    => 'Modal-Header: bg-[#1b1d21] prüfen — andere bg-* Klasse gefunden',
+                'id' => 'MOD-01',
+                'warn' => 'Modal-Header: bg-[#1b1d21] prüfen — andere bg-* Klasse gefunden',
                 'pattern' => '/modal.*\bbg-(?!\[#1b1d21\])[a-z\[#]/i',
                 'exclude' => [],
                 'context' => false,
@@ -157,8 +157,8 @@ class UiRules
 
             // --- Inline Styles ---
             [
-                'id'      => 'STY-01',
-                'warn'    => 'Inline style-Attribut — Tailwind oder booking.css verwenden',
+                'id' => 'STY-01',
+                'warn' => 'Inline style-Attribut — Tailwind oder booking.css verwenden',
                 'pattern' => '/\bstyle="/',
                 'exclude' => ['emails/'],
                 'context' => false,

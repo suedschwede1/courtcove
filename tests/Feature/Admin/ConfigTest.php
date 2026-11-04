@@ -75,13 +75,13 @@ class ConfigTest extends TestCase
     public function client_contact_fields_are_saved(): void
     {
         $this->actingAs($this->admin())->put('/admin/config', [
-            'client_name_short'      => 'ASV',
-            'client_phone'           => '666',
-            'client_website'         => 'https://example.test',
+            'client_name_short' => 'ASV',
+            'client_phone' => '666',
+            'client_website' => 'https://example.test',
             'client_website_contact' => 'https://example.test/#kontakt',
             'client_website_imprint' => 'https://example.test/impressum',
             'client_website_privacy' => 'https://example.test/datenschutz',
-            'client_email_cc'        => '1',
+            'client_email_cc' => '1',
         ])->assertRedirect();
 
         $this->assertSame('ASV', Option::getValue('client.name.short'));
@@ -94,13 +94,13 @@ class ConfigTest extends TestCase
     public function service_and_subject_fields_are_saved(): void
     {
         $this->actingAs($this->admin())->put('/admin/config', [
-            'service_name_short'    => 'BS',
-            'service_description'   => 'Tennisplatz Online Reservierung',
-            'subject_type'          => 'die Anlage',
-            'subject_square_type'   => 'Platz',
+            'service_name_short' => 'BS',
+            'service_description' => 'Tennisplatz Online Reservierung',
+            'subject_type' => 'die Anlage',
+            'subject_square_type' => 'Platz',
             'subject_square_plural' => 'Plätze',
-            'subject_unit'          => 'Spieler',
-            'subject_unit_plural'   => 'Spieler',
+            'subject_unit' => 'Spieler',
+            'subject_unit_plural' => 'Spieler',
         ])->assertRedirect();
 
         $this->assertSame('BS', Option::getValue('service.name.short'));
@@ -113,14 +113,14 @@ class ConfigTest extends TestCase
     public function behavior_fields_are_saved(): void
     {
         $this->actingAs($this->admin())->put('/admin/config/verhalten', [
-            'registration'        => '1',
-            'activation'          => 'manual',
-            'maintenance'         => '0',
-            'peak_limit_enabled'  => '1',
+            'registration' => '1',
+            'activation' => 'manual',
+            'maintenance' => '0',
+            'peak_limit_enabled' => '1',
             'peak_limit_w1_start' => '08:00',
-            'peak_limit_w1_end'   => '12:00',
+            'peak_limit_w1_end' => '12:00',
             'peak_limit_w2_start' => '17:00',
-            'peak_limit_w2_end'   => '21:00',
+            'peak_limit_w2_end' => '21:00',
         ])->assertRedirect();
 
         $this->assertSame('1', Option::getValue('service.user.registration'));

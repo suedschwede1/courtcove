@@ -16,8 +16,8 @@ class UiLinterTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->tmpDir = sys_get_temp_dir() . '/ui-linter-test-' . uniqid();
-        mkdir($this->tmpDir . '/emails', 0777, true);
+        $this->tmpDir = sys_get_temp_dir().'/ui-linter-test-'.uniqid();
+        mkdir($this->tmpDir.'/emails', 0777, true);
     }
 
     protected function tearDown(): void
@@ -28,7 +28,7 @@ class UiLinterTest extends TestCase
 
     private function rimraf(string $dir): void
     {
-        foreach (glob($dir . '/*') as $f) {
+        foreach (glob($dir.'/*') as $f) {
             is_dir($f) ? $this->rimraf($f) : unlink($f);
         }
         rmdir($dir);
@@ -36,9 +36,10 @@ class UiLinterTest extends TestCase
 
     private function writeView(string $subpath, string $content): string
     {
-        $path = $this->tmpDir . '/' . $subpath;
+        $path = $this->tmpDir.'/'.$subpath;
         @mkdir(dirname($path), 0777, true);
         file_put_contents($path, $content);
+
         return $path;
     }
 
@@ -76,7 +77,7 @@ class UiLinterTest extends TestCase
     {
         $this->writeView('ok.blade.php', '<div class="text-[#bf4316]">ok</div>');
         $linter = new UiLinter($this->tmpDir, UiRules::all());
-        $findings = array_filter($linter->run(), fn($f) => $f['rule'] === 'CLR-01');
+        $findings = array_filter($linter->run(), fn ($f) => $f['rule'] === 'CLR-01');
         $this->assertEmpty($findings);
     }
 
@@ -85,7 +86,7 @@ class UiLinterTest extends TestCase
     {
         $this->writeView('emails/confirm.blade.php', '<td style="color:#ff0000">text</td>');
         $linter = new UiLinter($this->tmpDir, UiRules::all());
-        $findings = array_filter($linter->run(), fn($f) => $f['rule'] === 'CLR-01');
+        $findings = array_filter($linter->run(), fn ($f) => $f['rule'] === 'CLR-01');
         $this->assertEmpty($findings);
     }
 

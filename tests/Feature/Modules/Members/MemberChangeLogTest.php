@@ -94,7 +94,7 @@ class MemberChangeLogTest extends TestCase
     #[Test]
     public function csv_import_does_not_write_change_log_rows(): void
     {
-        $csv = <<<CSV
+        $csv = <<<'CSV'
         Name,Vorname,Mitgliedsart,MB ,Bemerkung,Email,Strasse,PLZ,Ort,Privat,Mobil,Geschlecht,GebDatum,ID-Nr,Alter,Reservierungssystem
         Muster,Anna,Vollmitglied,,,,,,,,,,,,,
         CSV;

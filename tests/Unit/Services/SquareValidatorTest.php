@@ -577,4 +577,3 @@ class SquareValidatorTest extends TestCase
         $this->assertTrue($result->isValid());
     }
 }
-

@@ -21,7 +21,7 @@ final class LocaleController extends Controller
     {
         $available = config('app.available_locales', ['de']);
         if (! in_array($locale, $available, true)) {
-            throw new NotFoundHttpException();
+            throw new NotFoundHttpException;
         }
 
         if ($request->user() !== null) {

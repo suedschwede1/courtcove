@@ -46,7 +46,7 @@ final class QuoteGroups
      * quotes.local.example.php). When present and non-empty, it fully
      * replaces $default instead of merging with it.
      *
-     * @param array<int, string> $default
+     * @param  array<int, string>  $default
      * @return array<int, string>
      */
     public static function baseQuotes(string $locale, array $default): array
@@ -60,7 +60,7 @@ final class QuoteGroups
      * see quotes_named.local.example.php). When present and non-empty, it
      * fully replaces $default instead of merging with it.
      *
-     * @param array<int, string> $default
+     * @param  array<int, string>  $default
      * @return array<int, string>
      */
     public static function namedQuotes(string $locale, array $default): array
@@ -69,7 +69,7 @@ final class QuoteGroups
     }
 
     /**
-     * @param array<int, string> $default
+     * @param  array<int, string>  $default
      * @return array<int, string>
      */
     private static function localOverride(string $locale, string $filename, array $default): array

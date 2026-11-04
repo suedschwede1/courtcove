@@ -21,24 +21,24 @@ class LintUiCommand extends Command
     public function handle(): int
     {
         $viewsPath = resource_path('views');
-        $rules     = UiRules::all();
+        $rules = UiRules::all();
 
         if ($filterRule = $this->option('rule')) {
             $rules = array_values(array_filter(
                 $rules,
-                fn($r) => str_starts_with($r['id'], strtoupper((string) $filterRule))
+                fn ($r) => str_starts_with($r['id'], strtoupper((string) $filterRule))
             ));
         }
 
-        $linter   = new UiLinter($viewsPath, $rules);
+        $linter = new UiLinter($viewsPath, $rules);
         $findings = $linter->run();
 
         $fileCount = count(array_filter(
             iterator_to_array(new RecursiveIteratorIterator(new RecursiveDirectoryIterator($viewsPath))),
-            fn($f) => $f->isFile() && str_ends_with($f->getFilename(), '.blade.php')
+            fn ($f) => $f->isFile() && str_ends_with($f->getFilename(), '.blade.php')
         ));
 
-        if (!$this->option('summary')) {
+        if (! $this->option('summary')) {
             foreach ($findings as $f) {
                 $this->line(sprintf(
                     '<comment>[WARN] %s</comment>  %s:%d',
@@ -46,7 +46,7 @@ class LintUiCommand extends Command
                     $f['file'],
                     $f['line'],
                 ));
-                $this->line('       ' . $f['message']);
+                $this->line('       '.$f['message']);
                 $this->line('');
             }
         }
@@ -57,7 +57,7 @@ class LintUiCommand extends Command
         if ($count === 0) {
             $this->info("Keine Verstöße gefunden. {$fileCount} Dateien geprüft.");
         } else {
-            $this->warn("{$count} " . ($count === 1 ? 'Warnung' : 'Warnungen') . " in {$fileCount} Dateien.");
+            $this->warn("{$count} ".($count === 1 ? 'Warnung' : 'Warnungen')." in {$fileCount} Dateien.");
         }
 
         return self::SUCCESS;

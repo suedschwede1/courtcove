@@ -186,6 +186,7 @@ final class VisualRegressionTest extends DuskTestCase
 
             copy($actual, $baseline);
             $this->addToAssertionCount(1);
+
             return;
         }
 
