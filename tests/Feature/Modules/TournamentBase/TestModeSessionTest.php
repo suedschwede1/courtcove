@@ -19,7 +19,7 @@ class TestModeSessionTest extends TestCase
 {
     use LazilyRefreshDatabase;
 
-    private function test_mode(): TestModeSession
+    private function sessionMode(): TestModeSession
     {
         return new TestModeSession(new Store('test', new ArraySessionHandler(120)));
     }
@@ -35,13 +35,13 @@ class TestModeSessionTest extends TestCase
         $member = User::factory()->create(['status' => 'enabled']);
 
         $this->expectException(AuthorizationException::class);
-        $this->testMode()->simulate($member, 'member');
+        $this->sessionMode()->simulate($member, 'member');
     }
 
     #[Test]
     public function member_simulation_is_stored(): void
     {
-        $mode = $this->testMode();
+        $mode = $this->sessionMode();
         $admin = $this->admin();
 
         $mode->simulate($admin, 'member');
@@ -52,7 +52,7 @@ class TestModeSessionTest extends TestCase
     #[Test]
     public function player_simulation_needs_a_tpid(): void
     {
-        $mode = $this->testMode();
+        $mode = $this->sessionMode();
         $admin = $this->admin();
 
         try {
@@ -74,7 +74,7 @@ class TestModeSessionTest extends TestCase
     #[Test]
     public function stop_clears_the_simulation(): void
     {
-        $mode = $this->testMode();
+        $mode = $this->sessionMode();
         $admin = $this->admin();
         $mode->simulate($admin, 'member');
 
@@ -86,7 +86,7 @@ class TestModeSessionTest extends TestCase
     #[Test]
     public function admin_may_select_a_tournament(): void
     {
-        $mode = $this->testMode();
+        $mode = $this->sessionMode();
         $admin = $this->admin();
 
         $mode->selectTid($admin, 5);
@@ -102,7 +102,7 @@ class TestModeSessionTest extends TestCase
     #[Test]
     public function switching_tournament_stops_simulation(): void
     {
-        $mode = $this->testMode();
+        $mode = $this->sessionMode();
         $admin = $this->admin();
         $mode->selectTid($admin, 5);
         $mode->simulate($admin, 'player', 9);
@@ -116,7 +116,7 @@ class TestModeSessionTest extends TestCase
     #[Test]
     public function same_tournament_keeps_simulation(): void
     {
-        $mode = $this->testMode();
+        $mode = $this->sessionMode();
         $admin = $this->admin();
         $mode->selectTid($admin, 5);
         $mode->simulate($admin, 'player', 9);
@@ -129,7 +129,7 @@ class TestModeSessionTest extends TestCase
     #[Test]
     public function non_admin_sees_no_selection(): void
     {
-        $mode = $this->testMode();
+        $mode = $this->sessionMode();
         $admin = $this->admin();
         $mode->selectTid($admin, 5);
         $mode->simulate($admin, 'member');

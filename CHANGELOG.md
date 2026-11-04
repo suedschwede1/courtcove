@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-04
 
+- Tests: the test-mode session test no longer uses a helper name that collides with the test method naming.
 - Phase 2: php artisan phase2:scrub-staging (staging only) replaces module data with fictional demo draws.
 - Phase 2: PHASE2_LIVE_DB_DATABASE must be set on the staging host (name of the live database); phase2:scrub-staging refuses to run without it.
 - Phase 2: admin "view as player" test mode state ported (used by the Tournament module).
