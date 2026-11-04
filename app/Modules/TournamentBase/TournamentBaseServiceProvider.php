@@ -26,6 +26,7 @@ class TournamentBaseServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 Console\Phase2PreflightCommand::class,
+                Console\Phase2ScrubStagingCommand::class,
             ]);
         }
     }
