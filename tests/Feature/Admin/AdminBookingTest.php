@@ -642,6 +642,26 @@ class AdminBookingTest extends TestCase
     }
 
     #[Test]
+    public function mixed_series_with_daily_tail_keeps_daily_under_this_and_following(): void
+    {
+        $admin = $this->admin();
+        $square = Square::factory()->create();
+        $booking = $this->subscriptionBooking($admin, $square, [
+            '2026-07-06', '2026-07-13', '2026-07-20', '2026-07-21', '2026-07-22',
+        ]);
+
+        $this->actingAs($admin)->put("/admin/bookings/{$booking->bid}", $this->bookingPayload([
+            'booked_for' => $admin->alias, 'sid' => $square->sid,
+            'date' => '2026-07-20', 'date_end' => '2026-07-23', 'repeat_type' => 'daily',
+            'occurrence' => '2026-07-20', 'edit_scope' => 'this_and_following',
+        ]))->assertSessionHasNoErrors()->assertRedirect(route('admin.bookings.index'));
+
+        $this->assertEqualsCanonicalizing(['2026-07-06', '2026-07-13'], $booking->fresh()->reservations()->pluck('date')->all());
+        $tail = Booking::where('bid', '!=', $booking->bid)->firstOrFail();
+        $this->assertCount(4, $tail->reservations);
+    }
+
+    #[Test]
     public function legacy_series_occurrence_scopes_and_delete_still_work(): void
     {
         $admin = $this->admin();

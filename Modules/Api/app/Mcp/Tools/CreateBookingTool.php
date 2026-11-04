@@ -25,7 +25,7 @@ class CreateBookingTool extends Tool
             'sid' => $schema->integer()->description('ID des Platzes (bs_squares.sid)')->required(),
             'date' => $schema->string()->description('Startdatum, Format YYYY-MM-DD')->required(),
             'date_end' => $schema->string()->description('Enddatum der Serie, Format YYYY-MM-DD (nur bei Wiederholung)'),
-            'repeat_type' => $schema->string()->description('once|daily|every_2_days|every_3_days|every_4_days|every_5_days|every_6_days|weekly|every_2_weeks|monthly|custom')->required(),
+            'repeat_type' => $schema->string()->description('once|weekly|every_2_weeks')->required(),
             'time_start' => $schema->string()->description('Startzeit, Format HH:MM')->required(),
             'time_end' => $schema->string()->description('Endzeit, Format HH:MM')->required(),
             'quantity' => $schema->integer()->description('Anzahl Spieler: 2 oder 4')->required(),

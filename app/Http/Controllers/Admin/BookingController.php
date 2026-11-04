@@ -164,7 +164,7 @@ final class BookingController extends Controller
         $showScopeChoice = $booking->isSubscription() && $occurrenceReservation !== null;
         $reservation = $occurrenceReservation ?? $reservations->first();
 
-        $repeatType = $this->detectRepeatType($reservations->all());
+        $repeatType = $this->bookingService->detectRepeatType($reservations->all());
         $detectedRepeatType = $repeatType;
         $repeatEndDate = $reservations->last()?->date ?? $reservation?->date;
         $followingRepeatType = $repeatType;
@@ -175,7 +175,7 @@ final class BookingController extends Controller
                 ->filter(fn (Reservation $r): bool => $r->date >= $occurrenceReservation->date)
                 ->values()
                 ->all();
-            $followingRepeatType = $this->detectRepeatType($followingReservations);
+            $followingRepeatType = $this->bookingService->detectRepeatType($followingReservations);
             $followingRepeatEndDate = $reservations->last()?->date ?? $occurrenceReservation->date;
             $repeatType = 'once';
             $repeatEndDate = $occurrenceReservation->date;
@@ -214,7 +214,7 @@ final class BookingController extends Controller
 
         try {
             [$occurrenceDate, $scope] = $this->resolveOccurrenceScope($request);
-            $data = $this->validateBookingData($request, $this->existingLegacyRepeatTypes($booking, $occurrenceDate));
+            $data = $this->validateBookingData($request, $this->bookingService->legacyRepeatTypesOf($booking, $occurrenceDate));
             $owner = $this->bookingService->resolveOwner($data['booked_for']);
             [, , $occurrenceStarts, $durationSeconds] = $this->bookingService->buildOccurrenceTimeline($data);
 
@@ -281,26 +281,6 @@ final class BookingController extends Controller
         ];
     }
 
-    /**
-     * Legacy repeat types of the existing series (whole series, and from the
-     * occurrence on) that may be kept on update although they are no longer offered.
-     *
-     * @return list<string>
-     */
-    private function existingLegacyRepeatTypes(Booking $booking, ?string $occurrenceDate): array
-    {
-        $reservations = $booking->reservations()->orderBy('date')->orderBy('time_start')->get();
-        $types = [$this->detectRepeatType($reservations->all())];
-
-        if ($occurrenceDate !== null) {
-            $types[] = $this->detectRepeatType(
-                $reservations->filter(fn (Reservation $r): bool => $r->date >= $occurrenceDate)->values()->all()
-            );
-        }
-
-        return array_values(array_intersect(BookingService::LEGACY_REPEAT_KEYS, $types));
-    }
-
     /** @param list<string> $allowedLegacyRepeat */
     private function validateBookingData(Request $request, array $allowedLegacyRepeat = []): array
     {
@@ -319,53 +299,5 @@ final class BookingController extends Controller
         ]);
 
         return $data;
-    }
-
-    /** @param list<Reservation> $reservations */
-    private function detectRepeatType(array $reservations): string
-    {
-        if (count($reservations) <= 1) {
-            return 'once';
-        }
-
-        $dates = array_map(
-            static fn (Reservation $reservation): Carbon => Carbon::createFromFormat('Y-m-d', $reservation->date),
-            $reservations,
-        );
-
-        $allMonthly = true;
-        $daySteps = [];
-
-        for ($i = 1, $count = count($dates); $i < $count; $i++) {
-            $previous = $dates[$i - 1]->copy();
-            $current = $dates[$i]->copy();
-            // diffInDays() returns a float in Carbon 3; cast to int so the match
-            // arms below (1, 2, … 7, 14) compare correctly instead of always failing.
-            $daySteps[] = (int) $previous->diffInDays($current);
-            if (! $previous->copy()->addMonthNoOverflow()->isSameDay($current)) {
-                $allMonthly = false;
-            }
-        }
-
-        if ($allMonthly) {
-            return 'monthly';
-        }
-
-        $uniqueSteps = array_values(array_unique($daySteps));
-        if (count($uniqueSteps) !== 1) {
-            return 'custom';
-        }
-
-        return match ($uniqueSteps[0]) {
-            1 => 'daily',
-            2 => 'every_2_days',
-            3 => 'every_3_days',
-            4 => 'every_4_days',
-            5 => 'every_5_days',
-            6 => 'every_6_days',
-            7 => 'weekly',
-            14 => 'every_2_weeks',
-            default => 'custom',
-        };
     }
 }

@@ -27,7 +27,7 @@ class UpdateBookingTool extends Tool
             'sid' => $schema->integer()->description('ID des Platzes (bs_squares.sid)')->required(),
             'date' => $schema->string()->description('Datum, Format YYYY-MM-DD')->required(),
             'date_end' => $schema->string()->description('Enddatum der Serie, Format YYYY-MM-DD (nur bei Wiederholung)'),
-            'repeat_type' => $schema->string()->description('once|daily|every_2_days|every_3_days|every_4_days|every_5_days|every_6_days|weekly|every_2_weeks|monthly|custom')->required(),
+            'repeat_type' => $schema->string()->description('once|weekly|every_2_weeks (legacy types of an existing series, e.g. daily or monthly, are also accepted when updating it)')->required(),
             'time_start' => $schema->string()->description('Startzeit, Format HH:MM')->required(),
             'time_end' => $schema->string()->description('Endzeit, Format HH:MM')->required(),
             'quantity' => $schema->integer()->description('Anzahl Spieler: 2 oder 4')->required(),
@@ -45,13 +45,22 @@ class UpdateBookingTool extends Tool
             return Response::error('Keine Berechtigung (admin.booking erforderlich).');
         }
 
+        // Legacy repeat types are only accepted for the existing series itself,
+        // derived from its stored reservations (never from the request).
+        $existing = Booking::find($request->get('booking_id'));
+        $occurrence = $request->get('occurrence');
+        $allowedLegacy = $existing === null ? [] : $this->bookingService->legacyRepeatTypesOf(
+            $existing,
+            is_string($occurrence) && $occurrence !== '' ? $occurrence : null,
+        );
+
         $data = $request->validate([
             'booking_id' => ['required', 'integer', 'exists:bs_bookings,bid'],
             'booked_for' => ['required', 'string', 'max:120'],
             'sid' => ['required', 'integer', 'exists:bs_squares,sid'],
             'date' => ['required', 'date_format:Y-m-d'],
             'date_end' => ['nullable', 'date_format:Y-m-d'],
-            'repeat_type' => ['required', 'in:'.implode(',', BookingService::REPEAT_KEYS)],
+            'repeat_type' => ['required', 'in:'.implode(',', array_merge(BookingService::REPEAT_KEYS, $allowedLegacy))],
             'time_start' => ['required', 'date_format:H:i'],
             'time_end' => ['required', 'date_format:H:i'],
             'quantity' => ['required', 'integer', 'in:2,4'],

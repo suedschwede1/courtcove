@@ -128,6 +128,79 @@ final class BookingService
     }
 
     /**
+     * Derive the repeat type of a series from its reservation dates.
+     *
+     * @param  list<Reservation>  $reservations  ordered by date
+     */
+    public function detectRepeatType(array $reservations): string
+    {
+        if (count($reservations) <= 1) {
+            return 'once';
+        }
+
+        $dates = array_map(
+            static fn (Reservation $reservation): Carbon => Carbon::createFromFormat('Y-m-d', $reservation->date),
+            $reservations,
+        );
+
+        $allMonthly = true;
+        $daySteps = [];
+
+        for ($i = 1, $count = count($dates); $i < $count; $i++) {
+            $previous = $dates[$i - 1]->copy();
+            $current = $dates[$i]->copy();
+            // diffInDays() returns a float in Carbon 3; cast to int so the match
+            // arms below (1, 2, … 7, 14) compare correctly instead of always failing.
+            $daySteps[] = (int) $previous->diffInDays($current);
+            if (! $previous->copy()->addMonthNoOverflow()->isSameDay($current)) {
+                $allMonthly = false;
+            }
+        }
+
+        if ($allMonthly) {
+            return 'monthly';
+        }
+
+        $uniqueSteps = array_values(array_unique($daySteps));
+        if (count($uniqueSteps) !== 1) {
+            return 'custom';
+        }
+
+        return match ($uniqueSteps[0]) {
+            1 => 'daily',
+            2 => 'every_2_days',
+            3 => 'every_3_days',
+            4 => 'every_4_days',
+            5 => 'every_5_days',
+            6 => 'every_6_days',
+            7 => 'weekly',
+            14 => 'every_2_weeks',
+            default => 'custom',
+        };
+    }
+
+    /**
+     * Legacy repeat types of an existing series (whole series, and from the
+     * occurrence on) that may be kept on update although they are no longer offered.
+     * Always derived from the stored reservations, never from request input.
+     *
+     * @return list<string>
+     */
+    public function legacyRepeatTypesOf(Booking $booking, ?string $occurrenceDate): array
+    {
+        $reservations = $booking->reservations()->orderBy('date')->orderBy('time_start')->get();
+        $types = [$this->detectRepeatType($reservations->all())];
+
+        if ($occurrenceDate !== null) {
+            $types[] = $this->detectRepeatType(
+                $reservations->filter(fn (Reservation $r): bool => $r->date >= $occurrenceDate)->values()->all()
+            );
+        }
+
+        return array_values(array_intersect(self::LEGACY_REPEAT_KEYS, $types));
+    }
+
+    /**
      * Check all occurrences for booking and event conflicts in 2 queries instead of 2×N.
      * Returns a translated error string on the first conflict found, or null if clear.
      *
