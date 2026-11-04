@@ -22,6 +22,11 @@
             <exclude>tests/Unit/Modules/Members</exclude>
         </testsuite>
     </testsuites>
+    <groups>
+        <exclude>
+            <group>mysql</group>
+        </exclude>
+    </groups>
     <source>
         <include>
             <directory>app</directory>

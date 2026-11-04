@@ -107,6 +107,7 @@ npm run dev             # Vite HMR
 
 # Tests (via WSL)
 php artisan test
+composer test:mysql     # MySQL-only tests; needs a local MySQL database `booking_test` (DB_USERNAME/DB_PASSWORD from the environment)
 ```
 
 > **Important:** always run `php`/`composer` via WSL, never directly in PowerShell.
