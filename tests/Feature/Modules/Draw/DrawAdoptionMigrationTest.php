@@ -46,19 +46,56 @@ class DrawAdoptionMigrationTest extends TestCase
     #[Test]
     public function up_leaves_an_existing_table_untouched(): void
     {
-        Schema::drop('bs_draw_eligible');
-        Schema::create('bs_draw_eligible', function (Blueprint $table): void {
-            $table->increments('deid');
-            $table->unsignedInteger('did');
-            $table->unsignedInteger('tpid');
-            $table->string('legacy_note')->nullable();
-        });
-        DB::table('bs_draw_eligible')->insert(['did' => 1, 'tpid' => 2, 'legacy_note' => 'keep']);
+        foreach (array_keys(self::MIGRATIONS) as $name) {
+            Schema::drop($name);
+            Schema::create($name, function (Blueprint $table): void {
+                $table->increments('id');
+                $table->string('legacy_note')->nullable();
+            });
+            DB::table($name)->insert(['legacy_note' => 'keep']);
 
-        $this->migration('bs_draw_eligible')->up();
+            $this->migration($name)->up();
 
-        $this->assertContains('legacy_note', Schema::getColumnListing('bs_draw_eligible'));
-        $this->assertSame(1, DB::table('bs_draw_eligible')->count());
+            $this->assertSame(['id', 'legacy_note'], Schema::getColumnListing($name), $name);
+            $this->assertSame(1, DB::table($name)->count(), $name);
+        }
+    }
+
+    #[Test]
+    public function column_types_and_plain_indexes_match_the_legacy_sql(): void
+    {
+        $types = [];
+        foreach (Schema::getColumns('bs_draws') as $column) {
+            $types['bs_draws.'.$column['name']] = $column;
+        }
+        foreach (Schema::getColumns('bs_draw_tokens') as $column) {
+            $types['bs_draw_tokens.'.$column['name']] = $column;
+        }
+
+        foreach (['bs_draws.pick_deadline', 'bs_draws.closed', 'bs_draws.created', 'bs_draws.executed',
+            'bs_draws.discarded', 'bs_draws.applied_at', 'bs_draw_tokens.claimed'] as $key) {
+            $this->assertStringContainsString('datetime', strtolower($types[$key]['type_name']), $key);
+        }
+        foreach (['bs_draws.payload', 'bs_draws.result'] as $key) {
+            $this->assertStringContainsString('text', strtolower($types[$key]['type_name']), $key);
+        }
+
+        $nullable = ['tid', 'pick_deadline', 'closed', 'server_seed', 'beacon_value', 'final_seed', 'result',
+            'executed', 'discarded', 'discarded_reason', 'applied_at', 'applied_uid'];
+        foreach (Schema::getColumns('bs_draws') as $column) {
+            $this->assertSame(in_array($column['name'], $nullable, true), (bool) $column['nullable'], 'bs_draws.'.$column['name']);
+        }
+        $this->assertTrue($types['bs_draw_tokens.slot']['nullable']);
+        $this->assertTrue($types['bs_draw_tokens.assigned_by']['nullable']);
+        $this->assertFalse($types['bs_draw_tokens.token']['nullable']);
+
+        $plain = fn (string $table): array => collect(Schema::getIndexes($table))
+            ->filter(fn (array $i): bool => ! $i['unique'] && ! $i['primary'])
+            ->map(fn (array $i): array => $i['columns'])
+            ->all();
+
+        $this->assertContains(['tid'], $plain('bs_draws'));
+        $this->assertContains(['did', 'claimed_tpid'], $plain('bs_draw_tokens'));
     }
 
     #[Test]

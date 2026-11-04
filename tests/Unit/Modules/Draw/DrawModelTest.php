@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tests\Unit\Modules\Draw;
 
 use App\Modules\Draw\Models\Draw;
+use App\Modules\Draw\Models\DrawEligible;
+use App\Modules\Draw\Models\DrawToken;
 use App\Modules\Draw\Services\DrawService;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -45,6 +47,16 @@ class DrawModelTest extends TestCase
         $draw = Draw::factory()->create(['created' => '2026-03-01 10:00:00']);
 
         $this->assertSame('2026-03-01 10:00:00', $draw->fresh()->created);
+    }
+
+    #[Test]
+    public function models_have_no_date_casts(): void
+    {
+        foreach ([new Draw, new DrawToken, new DrawEligible] as $model) {
+            foreach ($model->getCasts() as $column => $cast) {
+                $this->assertDoesNotMatchRegularExpression('/date|time/i', (string) $cast, $model::class.'.'.$column);
+            }
+        }
     }
 
     #[Test]
