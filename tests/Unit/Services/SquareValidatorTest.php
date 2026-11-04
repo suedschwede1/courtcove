@@ -365,6 +365,9 @@ class SquareValidatorTest extends TestCase
     #[Test]
     public function booking_after_min_range_book_is_accepted(): void
     {
+        // Frozen to mid-morning: now + 4 hours must stay inside opening hours.
+        $this->travelTo('2026-11-04 10:00:00');
+
         $square = Square::factory()->create([
             'min_range_book' => 2 * 3600,
             'time_block_bookable_max' => 0, 'range_book' => 0,

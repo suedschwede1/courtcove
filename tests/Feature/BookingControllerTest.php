@@ -35,6 +35,9 @@ class BookingControllerTest extends TestCase
     #[Test]
     public function user_can_create_booking_on_available_slot(): void
     {
+        // Freeze "now" so the fixed 10 July 2026 booking date stays in the future.
+        $this->travelTo('2026-07-01 10:00:00');
+
         $user = User::factory()->create();
         $square = Square::factory()->create([
             'status' => 'enabled', 'time_block_bookable_max' => 0, 'range_book' => 0,
@@ -56,6 +59,9 @@ class BookingControllerTest extends TestCase
     #[Test]
     public function booking_quote_stays_in_locale_even_with_a_german_only_quote_group(): void
     {
+        // Freeze "now" so the fixed 10 July 2026 booking date stays in the future.
+        $this->travelTo('2026-07-01 10:00:00');
+
         app()->setLocale('en');
 
         $user = User::factory()->create();
