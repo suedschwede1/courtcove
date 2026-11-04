@@ -1,7 +1,7 @@
 # Changelog
 
 This project does not use semantic version numbers (it is deployed continuously via FTP
-to a single hosting.example.test hosting instance, not released as versioned packages). Instead, this
+to a single shared-hosting instance, not released as versioned packages). Instead, this
 file groups notable user-facing and structural changes by date. The only tagged
 reference point is `mobile-view-stable` (see [README.md](README.md#layout-reference)).
 
@@ -24,9 +24,9 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 - Fixed a 500 on login with "remember me" for normal members: `bs_users` has no `remember_token` column, so the User model no longer persists one.
 - Fixed the booking modals, player autocomplete and member/dues inline editing so their requests honor the `/booking` URL base path (they used root-absolute `/bookings/...` and `/members/...` URLs and would have hit the wrong host path in production).
 - Restored `public/.htaccess` (front-controller rewrite, Authorization passthrough) that the Laravel scaffold had dropped; without it every route except `/booking/` returned 404 on Apache.
-- The Provider deploy script no longer deletes `*.sqlite*` files, refuses a server `.env` with `DB_CONNECTION=sqlite`, and aborts before extracting if cleaning the old files fails.
-- Hardened `scripts/deploy-provider.sh`: refuses non-`master` branches without `--allow-branch`, asks for confirmation, requires the server `.env`, and runs the deploy in maintenance mode (stale files removed, caches cleared, site left down if a step fails).
-- Added temporary (302) redirects for the old ZF2 URLs (`/user/login`, `/user/logout`, `/user/bookings`, `/user/settings`, `/square/...`, `/backend/...`) and `scripts/deploy-provider.sh`, a tar-over-ssh deploy for the Provider host that keeps the server `.env` and `storage/`; README/AGENTS deployment docs rewritten for Provider.
+- The deploy script no longer deletes `*.sqlite*` files, refuses a server `.env` with `DB_CONNECTION=sqlite`, and aborts before extracting if cleaning the old files fails.
+- Hardened the (local, untracked) deploy script: refuses non-`master` branches without `--allow-branch`, asks for confirmation, requires the server `.env`, and runs the deploy in maintenance mode (stale files removed, caches cleared, site left down if a step fails).
+- Added temporary (302) redirects for the old ZF2 URLs (`/user/login`, `/user/logout`, `/user/bookings`, `/user/settings`, `/square/...`, `/backend/...`) and a tar-over-ssh deploy script (kept locally) that keeps the server `.env` and `storage/`; README/AGENTS deployment docs rewritten accordingly.
 - Added `db:baseline-legacy [--dry-run]`, which records the `create_bs_*` migrations as applied for legacy tables that already exist, so `migrate --force` can run against the production database created by the old system without recreating tables.
 - Highlighted club championship bookings (note contains "Vereinsmeisterschaft") in orange in the calendar, on desktop and mobile, as the legacy system did.
 - Added tournament entry buttons (current championship, challenge pyramid, mixed/fun tournament) to the logged-in header, linking to the tournament pages that stay on the legacy system (`TOURNAMENT_BASE_URL`, defaulting to the legacy host when unset or empty).
@@ -128,7 +128,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
   "risk score" on the admin login-history page — a 30-day sum of which triggers fired,
   no behavior change.
 - Wrote the implementation plan for risk-based email verification — see
-  [docs/superpowers/plans/2026-07-05-risk-based-email-verification.md](docs/superpowers/plans/2026-07-05-risk-based-email-verification.md).
+  the risk-based email verification plans document (kept locally, not in the repository).
   Updated to also persist which risk flags fired (for the display-only admin risk
   score). Not implemented yet.
 
@@ -136,7 +136,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 - Wrote a design spec for risk-based email verification on login (unusual country,
   repeated failed attempts, impossible travel) — see
-  [docs/superpowers/specs/2026-07-05-risk-based-email-verification-design.md](docs/superpowers/specs/2026-07-05-risk-based-email-verification-design.md).
+  the risk-based email verification specs document (kept locally, not in the repository).
   Country-based checks fail open when the MaxMind GeoLite2 file is missing. Not
   implemented yet.
 - Documented the security posture in the README: no MFA (deliberate — login must stay

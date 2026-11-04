@@ -163,7 +163,7 @@ git checkout master
 git merge update/laravel-XX
 ```
 
-Then a normal deployment via FTP to hosting.example.test.
+Then a normal deployment via FTP to the shared host.
 
 ---
 
@@ -186,5 +186,5 @@ wsl composer update laravel/framework
 ## Known limitations
 
 - **No `php artisan migrate`** on the production DB — the app uses the legacy schema `booking_local`
-- **Deployment is manual via FTP** — no `git pull` on the server (hosting.example.test shared hosting)
+- **Deployment is manual via FTP** — no `git pull` on the server (shared hosting)
 - **PHP via WSL** — all `php`/`composer` commands run via WSL, never directly in PowerShell
