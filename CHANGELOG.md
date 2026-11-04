@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-04
 
+- Phase 2: shared module route group helper (`ModuleRoutes::middleware()`), module routes rely on the global 4-byte stripping.
 - Phase 2: php artisan draw:verify {slug?} --all recomputes commitment, seed and assignment of stored draws.
 - Phase 2: draw adoption tests now pin column types, plain indexes, no date casts and the existing-table guard for all three tables.
 - Phase 2: draw tables adopted in place (guarded create migrations, no-op rollback, schema manifest).
