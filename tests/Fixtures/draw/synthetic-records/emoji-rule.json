@@ -1,0 +1,31 @@
+{
+    "title": "emoji-rule",
+    "status": "executed",
+    "payload": {
+        "entries": [
+            101,
+            102,
+            103
+        ],
+        "slots": [
+            "A2",
+            "B2",
+            "C2"
+        ],
+        "rule": "Losglück 😀"
+    },
+    "commitment": "a34f46ad13bd60671602e4b7c86f57ffafdef6ff8021ac19cb2592dc310d1e10",
+    "beacon_source": "drand:round:1",
+    "created": "2026-01-01 00:00:00",
+    "discarded": null,
+    "discarded_reason": null,
+    "server_seed": "fe902585fc4d4020dd6544072ce02293a19005a31ac0d4e5688d70244801f63c",
+    "beacon_value": "2ec0746db843a7ee609a62e00b8424acd9836120760fe5fa10beb3e054ad0442",
+    "final_seed": "c064c13ae13eba71d527166750ded46e33d2dcc9714970973a514e54633396a6",
+    "assignment": {
+        "A2": 101,
+        "B2": 102,
+        "C2": 103
+    },
+    "executed": "2026-01-01 00:00:00"
+}

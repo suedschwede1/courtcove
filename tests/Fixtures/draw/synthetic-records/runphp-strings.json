@@ -1,0 +1,31 @@
+{
+    "title": "runphp-strings",
+    "status": "executed",
+    "payload": {
+        "entries": [
+            "Q1",
+            "Q2",
+            "Q3"
+        ],
+        "slots": [
+            "KO_A:3",
+            "KO_A:5",
+            "KO_A:7"
+        ],
+        "rule": "test"
+    },
+    "commitment": "2e9485d745e2ec7a33c330b8a3027dbdd3b370215e77650bd3c37845a1305eb8",
+    "beacon_source": "drand:round:1",
+    "created": "2026-01-01 00:00:00",
+    "discarded": null,
+    "discarded_reason": null,
+    "server_seed": "abababababababababababababababababababababababababababababababab",
+    "beacon_value": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+    "final_seed": "6bf4e1f20871ba74ced35ae59e9715b43abc2400e367a4936420f88c0c9c47f6",
+    "assignment": {
+        "KO_A:3": "Q1",
+        "KO_A:5": "Q2",
+        "KO_A:7": "Q3"
+    },
+    "executed": "2026-01-01 00:00:00"
+}

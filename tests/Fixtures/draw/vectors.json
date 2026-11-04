@@ -1,0 +1,2153 @@
+{
+    "meta": {
+        "old_repo_commit": "6b780d3324936bab3749237183c2dab161873612",
+        "php_version": "8.4.22",
+        "generated_at": "2026-11-04T19:46:16+00:00",
+        "files": [
+            "modulex/Draw/src/Draw/Service/DrawService.php",
+            "modulex/Draw/src/Draw/Service/TokenService.php",
+            "modulex/Tournament/src/Tournament/Service/ScoreService.php"
+        ]
+    },
+    "draw": [
+        {
+            "name": "runphp-strings",
+            "payload": {
+                "entries": [
+                    "Q1",
+                    "Q2",
+                    "Q3"
+                ],
+                "slots": [
+                    "KO_A:3",
+                    "KO_A:5",
+                    "KO_A:7"
+                ],
+                "rule": "test"
+            },
+            "server_seed": "abababababababababababababababababababababababababababababababab",
+            "beacon_value": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+            "canonical": "{\"entries\":[\"Q1\",\"Q2\",\"Q3\"],\"slots\":[\"KO_A:3\",\"KO_A:5\",\"KO_A:7\"],\"rule\":\"test\"}",
+            "commitment": "2e9485d745e2ec7a33c330b8a3027dbdd3b370215e77650bd3c37845a1305eb8",
+            "final_seed": "6bf4e1f20871ba74ced35ae59e9715b43abc2400e367a4936420f88c0c9c47f6",
+            "shuffled": [
+                "Q1",
+                "Q2",
+                "Q3"
+            ],
+            "assignment": {
+                "KO_A:3": "Q1",
+                "KO_A:5": "Q2",
+                "KO_A:7": "Q3"
+            },
+            "assignment_json": "{\"KO_A:3\":\"Q1\",\"KO_A:5\":\"Q2\",\"KO_A:7\":\"Q3\"}"
+        },
+        {
+            "name": "n2-int",
+            "payload": {
+                "entries": [
+                    101,
+                    102
+                ],
+                "slots": [
+                    "A2",
+                    "B2"
+                ],
+                "rule": "Gruppenkoepfe"
+            },
+            "server_seed": "d52df7e66ea90ab15c2b75af889086a0fb631b8aaf950ad44953cb6629628133",
+            "beacon_value": "f5e7442485ba6891e412863a47b479b6244c6102ee0d0d6886589e4bde5041a3",
+            "canonical": "{\"entries\":[101,102],\"slots\":[\"A2\",\"B2\"],\"rule\":\"Gruppenkoepfe\"}",
+            "commitment": "626a382861bd689e724a0fcdecd0b02dd727f1e220737d26d1262b0953c9f466",
+            "final_seed": "0011c74090de860f9b581f2bc38888b8bd008befa18819b4a12d534a0468d720",
+            "shuffled": [
+                101,
+                102
+            ],
+            "assignment": {
+                "A2": 101,
+                "B2": 102
+            },
+            "assignment_json": "{\"A2\":101,\"B2\":102}"
+        },
+        {
+            "name": "n3-int",
+            "payload": {
+                "entries": [
+                    101,
+                    102,
+                    103
+                ],
+                "slots": [
+                    "A2",
+                    "B2",
+                    "C2"
+                ],
+                "rule": "Gruppenkoepfe"
+            },
+            "server_seed": "5cfe1623ac6a4196e0d904ef7e0ae4e59016f6e3360d19ae374286aae75eb8ce",
+            "beacon_value": "d88b405f195f0b95658aed6f682e579961af3507ef512728dce7dc80b5c0fb0c",
+            "canonical": "{\"entries\":[101,102,103],\"slots\":[\"A2\",\"B2\",\"C2\"],\"rule\":\"Gruppenkoepfe\"}",
+            "commitment": "518aa5bb3bfbe39180c88cc747f58fb7c3f589e40232604f7cf83481cb62150a",
+            "final_seed": "7f41da68d39013a5ccd904a8d66fc1627a38c407a65a6390afffc24f4ce3808c",
+            "shuffled": [
+                103,
+                101,
+                102
+            ],
+            "assignment": {
+                "A2": 103,
+                "B2": 101,
+                "C2": 102
+            },
+            "assignment_json": "{\"A2\":103,\"B2\":101,\"C2\":102}"
+        },
+        {
+            "name": "n16-int",
+            "payload": {
+                "entries": [
+                    201,
+                    202,
+                    203,
+                    204,
+                    205,
+                    206,
+                    207,
+                    208,
+                    209,
+                    210,
+                    211,
+                    212,
+                    213,
+                    214,
+                    215,
+                    216
+                ],
+                "slots": [
+                    "KO_A:1",
+                    "KO_A:2",
+                    "KO_A:3",
+                    "KO_A:4",
+                    "KO_A:5",
+                    "KO_A:6",
+                    "KO_A:7",
+                    "KO_A:8",
+                    "KO_A:9",
+                    "KO_A:10",
+                    "KO_A:11",
+                    "KO_A:12",
+                    "KO_A:13",
+                    "KO_A:14",
+                    "KO_A:15",
+                    "KO_A:16"
+                ],
+                "rule": "Gruppenkoepfe"
+            },
+            "server_seed": "e363ae68785c2c4f583b7d7e198717a24eae694c5b82bef961320389f4415ec1",
+            "beacon_value": "d7e0b7f5ca0decc3a734e6ffc3ed221e9c5e6eb44abaec6be0df7ed712dda5b7",
+            "canonical": "{\"entries\":[201,202,203,204,205,206,207,208,209,210,211,212,213,214,215,216],\"slots\":[\"KO_A:1\",\"KO_A:2\",\"KO_A:3\",\"KO_A:4\",\"KO_A:5\",\"KO_A:6\",\"KO_A:7\",\"KO_A:8\",\"KO_A:9\",\"KO_A:10\",\"KO_A:11\",\"KO_A:12\",\"KO_A:13\",\"KO_A:14\",\"KO_A:15\",\"KO_A:16\"],\"rule\":\"Gruppenkoepfe\"}",
+            "commitment": "dc05f1d31d90dc592108b2de703ab8621f4f282c8e3caf340752abd02a2fceb2",
+            "final_seed": "6e0a9841bd1afbb225b01f0fb9b54dce18e61519d9617187784318b02fdc3492",
+            "shuffled": [
+                212,
+                214,
+                203,
+                204,
+                211,
+                209,
+                215,
+                210,
+                213,
+                202,
+                201,
+                205,
+                208,
+                216,
+                206,
+                207
+            ],
+            "assignment": {
+                "KO_A:1": 212,
+                "KO_A:2": 214,
+                "KO_A:3": 203,
+                "KO_A:4": 204,
+                "KO_A:5": 211,
+                "KO_A:6": 209,
+                "KO_A:7": 215,
+                "KO_A:8": 210,
+                "KO_A:9": 213,
+                "KO_A:10": 202,
+                "KO_A:11": 201,
+                "KO_A:12": 205,
+                "KO_A:13": 208,
+                "KO_A:14": 216,
+                "KO_A:15": 206,
+                "KO_A:16": 207
+            },
+            "assignment_json": "{\"KO_A:1\":212,\"KO_A:2\":214,\"KO_A:3\":203,\"KO_A:4\":204,\"KO_A:5\":211,\"KO_A:6\":209,\"KO_A:7\":215,\"KO_A:8\":210,\"KO_A:9\":213,\"KO_A:10\":202,\"KO_A:11\":201,\"KO_A:12\":205,\"KO_A:13\":208,\"KO_A:14\":216,\"KO_A:15\":206,\"KO_A:16\":207}"
+        },
+        {
+            "name": "n24-int",
+            "payload": {
+                "entries": [
+                    301,
+                    302,
+                    303,
+                    304,
+                    305,
+                    306,
+                    307,
+                    308,
+                    309,
+                    310,
+                    311,
+                    312,
+                    313,
+                    314,
+                    315,
+                    316,
+                    317,
+                    318,
+                    319,
+                    320,
+                    321,
+                    322,
+                    323,
+                    324
+                ],
+                "slots": [
+                    "A1",
+                    "A2",
+                    "A3",
+                    "A4",
+                    "B1",
+                    "B2",
+                    "B3",
+                    "B4",
+                    "C1",
+                    "C2",
+                    "C3",
+                    "C4",
+                    "D1",
+                    "D2",
+                    "D3",
+                    "D4",
+                    "E1",
+                    "E2",
+                    "E3",
+                    "E4",
+                    "F1",
+                    "F2",
+                    "F3",
+                    "F4"
+                ],
+                "rule": "Gruppenkoepfe"
+            },
+            "server_seed": "979d8dd8da5f9cb4df94ac15101b96fd1479e9be35fe908a0e473e4e650acca6",
+            "beacon_value": "da2c5ed97bcb5b93f73d84242686b7965f4fff9c9c684a7bbf073fd44ef9043f",
+            "canonical": "{\"entries\":[301,302,303,304,305,306,307,308,309,310,311,312,313,314,315,316,317,318,319,320,321,322,323,324],\"slots\":[\"A1\",\"A2\",\"A3\",\"A4\",\"B1\",\"B2\",\"B3\",\"B4\",\"C1\",\"C2\",\"C3\",\"C4\",\"D1\",\"D2\",\"D3\",\"D4\",\"E1\",\"E2\",\"E3\",\"E4\",\"F1\",\"F2\",\"F3\",\"F4\"],\"rule\":\"Gruppenkoepfe\"}",
+            "commitment": "4b495c2e4f7fa4443b5ee6e84bf1e668684f392bfc6bca5adb21042764524990",
+            "final_seed": "55270507050eb34af732424167af682a3b64c6617fb4e49e54c6ca53b8ba3f8d",
+            "shuffled": [
+                323,
+                313,
+                317,
+                316,
+                302,
+                311,
+                304,
+                306,
+                312,
+                305,
+                319,
+                303,
+                321,
+                301,
+                318,
+                324,
+                310,
+                315,
+                308,
+                314,
+                309,
+                320,
+                322,
+                307
+            ],
+            "assignment": {
+                "A1": 323,
+                "A2": 313,
+                "A3": 317,
+                "A4": 316,
+                "B1": 302,
+                "B2": 311,
+                "B3": 304,
+                "B4": 306,
+                "C1": 312,
+                "C2": 305,
+                "C3": 319,
+                "C4": 303,
+                "D1": 321,
+                "D2": 301,
+                "D3": 318,
+                "D4": 324,
+                "E1": 310,
+                "E2": 315,
+                "E3": 308,
+                "E4": 314,
+                "F1": 309,
+                "F2": 320,
+                "F3": 322,
+                "F4": 307
+            },
+            "assignment_json": "{\"A1\":323,\"A2\":313,\"A3\":317,\"A4\":316,\"B1\":302,\"B2\":311,\"B3\":304,\"B4\":306,\"C1\":312,\"C2\":305,\"C3\":319,\"C4\":303,\"D1\":321,\"D2\":301,\"D3\":318,\"D4\":324,\"E1\":310,\"E2\":315,\"E3\":308,\"E4\":314,\"F1\":309,\"F2\":320,\"F3\":322,\"F4\":307}"
+        },
+        {
+            "name": "mixed-int-string",
+            "payload": {
+                "entries": [
+                    "Q1",
+                    7,
+                    "S2"
+                ],
+                "slots": [
+                    "A2",
+                    "B2",
+                    "C2"
+                ],
+                "rule": "Gruppenkoepfe"
+            },
+            "server_seed": "944dc29ddde1697e3f511957e99646ba8ac30b4c783b142f7c86c6cff23ab634",
+            "beacon_value": "ea1c85ee3a380de9c20a97662f5d42f57bac11c0842677e5c2d4b9d1a75024ac",
+            "canonical": "{\"entries\":[\"Q1\",7,\"S2\"],\"slots\":[\"A2\",\"B2\",\"C2\"],\"rule\":\"Gruppenkoepfe\"}",
+            "commitment": "5c0bd278d7ca5f67167fe9782f227d5b724b31857e207f7932c08d641ca56825",
+            "final_seed": "1572958f236425c4bc0f760258e33ed49f05001f1e6b5603b204cb8f28a8c88d",
+            "shuffled": [
+                "S2",
+                7,
+                "Q1"
+            ],
+            "assignment": {
+                "A2": "S2",
+                "B2": 7,
+                "C2": "Q1"
+            },
+            "assignment_json": "{\"A2\":\"S2\",\"B2\":7,\"C2\":\"Q1\"}"
+        },
+        {
+            "name": "numeric-strings",
+            "payload": {
+                "entries": [
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                ],
+                "slots": [
+                    "A2",
+                    "B2",
+                    "C2",
+                    "D2"
+                ],
+                "rule": "Gruppenkoepfe"
+            },
+            "server_seed": "7485a358736afd5825765eb920702098d8d583ee151bf78d74888242d0938bcc",
+            "beacon_value": "4403e9fa46687d19a32a61e5bf911603ffb0fe7e565888181c6bbfd0bbbaa085",
+            "canonical": "{\"entries\":[\"1\",\"2\",\"3\",\"4\"],\"slots\":[\"A2\",\"B2\",\"C2\",\"D2\"],\"rule\":\"Gruppenkoepfe\"}",
+            "commitment": "a139f694df44ad869a35faca6375e854cbb34ed090fd2cb7c923131a302b8f11",
+            "final_seed": "7a5643bdf4b3c0d5b2ab147b71ee33f4c6adede65f33877da5abfe3d9f3dffe9",
+            "shuffled": [
+                "1",
+                "4",
+                "3",
+                "2"
+            ],
+            "assignment": {
+                "A2": "1",
+                "B2": "4",
+                "C2": "3",
+                "D2": "2"
+            },
+            "assignment_json": "{\"A2\":\"1\",\"B2\":\"4\",\"C2\":\"3\",\"D2\":\"2\"}"
+        },
+        {
+            "name": "unicode-slash-rule",
+            "payload": {
+                "entries": [
+                    101,
+                    102,
+                    103
+                ],
+                "slots": [
+                    "A2",
+                    "B2",
+                    "C2"
+                ],
+                "rule": "Gruppen A/B – Setzliste für Damen & Herren \"2027\" ✓"
+            },
+            "server_seed": "eda748a27c2b074c7a109bbb84515d56fc9c15e175f0e968bc62735491ffe103",
+            "beacon_value": "83a2a66abc6518db4bb4a357bacccc2c49fc354e733df33a6b14d82cdac38b59",
+            "canonical": "{\"entries\":[101,102,103],\"slots\":[\"A2\",\"B2\",\"C2\"],\"rule\":\"Gruppen A/B – Setzliste für Damen & Herren \\\"2027\\\" ✓\"}",
+            "commitment": "81e28bcf50fbf80aa7c92e29a988e35d05fca8381c9d36b5fb87882164c6348c",
+            "final_seed": "2e557988345ccbc7bb8bb2b34ad4bb23efa9ce95d1ddeaadac442cb2036bf39d",
+            "shuffled": [
+                103,
+                101,
+                102
+            ],
+            "assignment": {
+                "A2": 103,
+                "B2": 101,
+                "C2": 102
+            },
+            "assignment_json": "{\"A2\":103,\"B2\":101,\"C2\":102}"
+        },
+        {
+            "name": "emoji-rule",
+            "payload": {
+                "entries": [
+                    101,
+                    102,
+                    103
+                ],
+                "slots": [
+                    "A2",
+                    "B2",
+                    "C2"
+                ],
+                "rule": "Losglück 😀"
+            },
+            "server_seed": "fe902585fc4d4020dd6544072ce02293a19005a31ac0d4e5688d70244801f63c",
+            "beacon_value": "2ec0746db843a7ee609a62e00b8424acd9836120760fe5fa10beb3e054ad0442",
+            "canonical": "{\"entries\":[101,102,103],\"slots\":[\"A2\",\"B2\",\"C2\"],\"rule\":\"Losglück 😀\"}",
+            "commitment": "a34f46ad13bd60671602e4b7c86f57ffafdef6ff8021ac19cb2592dc310d1e10",
+            "final_seed": "c064c13ae13eba71d527166750ded46e33d2dcc9714970973a514e54633396a6",
+            "shuffled": [
+                101,
+                102,
+                103
+            ],
+            "assignment": {
+                "A2": 101,
+                "B2": 102,
+                "C2": 103
+            },
+            "assignment_json": "{\"A2\":101,\"B2\":102,\"C2\":103}"
+        },
+        {
+            "name": "line-separator-rule",
+            "payload": {
+                "entries": [
+                    101,
+                    102,
+                    103
+                ],
+                "slots": [
+                    "A2",
+                    "B2",
+                    "C2"
+                ],
+                "rule": "a\u2028b"
+            },
+            "server_seed": "e4b82037eeb5728651c77e5788b615389dc49f807832678e1345b4ca21744a8d",
+            "beacon_value": "d655025411b59bdd6fff1502cb22eea2c909c6c98835513d9adde2f2f4d47eaa",
+            "canonical": "{\"entries\":[101,102,103],\"slots\":[\"A2\",\"B2\",\"C2\"],\"rule\":\"a\\u2028b\"}",
+            "commitment": "00929bf597b7b664ee5f7b7dae12938c0b598c4454c04a71443c3fb0c361f1ec",
+            "final_seed": "afb280482dc5ef806ae2bdab10c6eba0c79d84b485d8b803d095679d387ed168",
+            "shuffled": [
+                102,
+                103,
+                101
+            ],
+            "assignment": {
+                "A2": 102,
+                "B2": 103,
+                "C2": 101
+            },
+            "assignment_json": "{\"A2\":102,\"B2\":103,\"C2\":101}"
+        },
+        {
+            "name": "numeric-slots",
+            "payload": {
+                "entries": [
+                    11,
+                    12,
+                    13
+                ],
+                "slots": [
+                    "0",
+                    "1",
+                    "2"
+                ],
+                "rule": "Gruppenkoepfe"
+            },
+            "server_seed": "d55c1cd7bc1c16f62a9d719985616b5eb16a95a1196c52a1eddf4b1d76e2056f",
+            "beacon_value": "756eb4d308073abffaadfbe0acf228a8de68c8a6d95356e141608d9e98ab875f",
+            "canonical": "{\"entries\":[11,12,13],\"slots\":[\"0\",\"1\",\"2\"],\"rule\":\"Gruppenkoepfe\"}",
+            "commitment": "8ab68cc2e76e2d352484cf4071d51ad516b5e966f300ea2ca28a496d89494982",
+            "final_seed": "a12866df1c3daa347bed1e20f6ebd6394e7c78ae13047610fd4a3c1f8664a74d",
+            "shuffled": [
+                13,
+                12,
+                11
+            ],
+            "assignment": [
+                13,
+                12,
+                11
+            ],
+            "assignment_json": "[13,12,11]"
+        },
+        {
+            "name": "token-ac6",
+            "payload": {
+                "entries": [
+                    "AC-01",
+                    "AC-02",
+                    "AC-03",
+                    "AC-04",
+                    "AC-05",
+                    "AC-06"
+                ],
+                "slots": [
+                    "A2",
+                    "B2",
+                    "C2",
+                    "A3",
+                    "B3",
+                    "C3"
+                ],
+                "rule": "Tokenziehung AC"
+            },
+            "server_seed": "d11de5cd335d9b09bef21f8d7cb156cd6353405af940edfde8f93ba0608ae788",
+            "beacon_value": "2862fcc0847d717059941bd823dd7dbe29943479f4412771c087a568e2ceac2d",
+            "canonical": "{\"entries\":[\"AC-01\",\"AC-02\",\"AC-03\",\"AC-04\",\"AC-05\",\"AC-06\"],\"slots\":[\"A2\",\"B2\",\"C2\",\"A3\",\"B3\",\"C3\"],\"rule\":\"Tokenziehung AC\"}",
+            "commitment": "2189d141849596493827ae733acfb49af9690ec5dd900451dbcae414310729e0",
+            "final_seed": "5cdab6b09857520b94d65bfbe52e8beb4b715c3d1de0a72dca31105bec2196cd",
+            "shuffled": [
+                "AC-02",
+                "AC-04",
+                "AC-03",
+                "AC-05",
+                "AC-01",
+                "AC-06"
+            ],
+            "assignment": {
+                "A2": "AC-02",
+                "B2": "AC-04",
+                "C2": "AC-03",
+                "A3": "AC-05",
+                "B3": "AC-01",
+                "C3": "AC-06"
+            },
+            "assignment_json": "{\"A2\":\"AC-02\",\"B2\":\"AC-04\",\"C2\":\"AC-03\",\"A3\":\"AC-05\",\"B3\":\"AC-01\",\"C3\":\"AC-06\"}"
+        },
+        {
+            "name": "beacon-non-hex",
+            "payload": {
+                "entries": [
+                    101,
+                    102,
+                    103
+                ],
+                "slots": [
+                    "A2",
+                    "B2",
+                    "C2"
+                ],
+                "rule": "Gruppenkoepfe"
+            },
+            "server_seed": "80766f3bb4f9a23c00d79dbc75120aae5168e088178dc7019756088cfc4ad461",
+            "beacon_value": "drand-randomness-not-hex",
+            "canonical": "{\"entries\":[101,102,103],\"slots\":[\"A2\",\"B2\",\"C2\"],\"rule\":\"Gruppenkoepfe\"}",
+            "commitment": "c828e6efb391f02a9e215b3c791c5dfc5988991347fba23ab23cceaa4f320ea1",
+            "final_seed": "24e4f6bb2b5f4ee5a50f77eac30658840feeb5cffd2d51bda4ad52d6cae8d4e4",
+            "shuffled": [
+                103,
+                101,
+                102
+            ],
+            "assignment": {
+                "A2": 103,
+                "B2": 101,
+                "C2": 102
+            },
+            "assignment_json": "{\"A2\":103,\"B2\":101,\"C2\":102}"
+        }
+    ],
+    "shuffle": [
+        {
+            "items": [],
+            "seed": "7feaa5721459ae89da19e89760c6e4db92c78c031d6dfa9445b21e0164b2ef9a",
+            "result": []
+        },
+        {
+            "items": [
+                5
+            ],
+            "seed": "7feaa5721459ae89da19e89760c6e4db92c78c031d6dfa9445b21e0164b2ef9a",
+            "result": [
+                5
+            ]
+        },
+        {
+            "items": [
+                {
+                    "tpid": 3,
+                    "uid": 30
+                },
+                {
+                    "tpid": 1,
+                    "uid": 10
+                },
+                {
+                    "tpid": 2,
+                    "uid": 20
+                }
+            ],
+            "seed": "7feaa5721459ae89da19e89760c6e4db92c78c031d6dfa9445b21e0164b2ef9a",
+            "result": [
+                {
+                    "tpid": 2,
+                    "uid": 20
+                },
+                {
+                    "tpid": 3,
+                    "uid": 30
+                },
+                {
+                    "tpid": 1,
+                    "uid": 10
+                }
+            ]
+        },
+        {
+            "items": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10
+            ],
+            "seed": "7feaa5721459ae89da19e89760c6e4db92c78c031d6dfa9445b21e0164b2ef9a",
+            "result": [
+                4,
+                7,
+                2,
+                3,
+                8,
+                5,
+                6,
+                1,
+                10,
+                9
+            ]
+        }
+    ],
+    "errors": [
+        {
+            "call": "execute",
+            "args": {
+                "payload": {
+                    "entries": [
+                        1,
+                        2
+                    ],
+                    "slots": [
+                        "A",
+                        "B",
+                        "C"
+                    ],
+                    "rule": "r"
+                },
+                "server_seed": "abababababababababababababababababababababababababababababababab",
+                "beacon_value": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+            },
+            "class": "RuntimeException",
+            "message": "entries (2) and slots (3) must have the same length"
+        },
+        {
+            "call": "execute",
+            "args": {
+                "payload": {
+                    "entries": [
+                        1,
+                        2,
+                        3
+                    ],
+                    "slots": [
+                        "A",
+                        "B"
+                    ],
+                    "rule": "r"
+                },
+                "server_seed": "abababababababababababababababababababababababababababababababab",
+                "beacon_value": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+            },
+            "class": "RuntimeException",
+            "message": "entries (3) and slots (2) must have the same length"
+        },
+        {
+            "call": "execute",
+            "args": {
+                "payload": {
+                    "entries": [
+                        1,
+                        "1"
+                    ],
+                    "slots": [
+                        "A",
+                        "B"
+                    ],
+                    "rule": "r"
+                },
+                "server_seed": "abababababababababababababababababababababababababababababababab",
+                "beacon_value": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+            },
+            "class": "RuntimeException",
+            "message": "entries must be unique"
+        },
+        {
+            "call": "execute",
+            "args": {
+                "payload": {
+                    "entries": [
+                        1,
+                        2
+                    ],
+                    "slots": [
+                        "A",
+                        "B"
+                    ]
+                },
+                "server_seed": "abababababababababababababababababababababababababababababababab",
+                "beacon_value": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+            },
+            "class": "InvalidArgumentException",
+            "message": "payload key \"rule\" is missing"
+        },
+        {
+            "call": "commit",
+            "args": {
+                "payload": {
+                    "entries": [
+                        1,
+                        2
+                    ],
+                    "slots": [
+                        "A",
+                        "B"
+                    ],
+                    "rule": "r"
+                },
+                "server_seed": "ABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABAB"
+            },
+            "class": "InvalidArgumentException",
+            "message": "serverSeed must be 64 lowercase hex chars"
+        },
+        {
+            "call": "finalSeed",
+            "args": {
+                "server_seed": "abababababababababababababababababababababababababababababababab",
+                "beacon_value": ""
+            },
+            "class": "InvalidArgumentException",
+            "message": "beaconValue must not be empty"
+        }
+    ],
+    "token_names": [
+        {
+            "count": 3,
+            "prefix": "T",
+            "result": [
+                {
+                    "position": 1,
+                    "token": "T-01"
+                },
+                {
+                    "position": 2,
+                    "token": "T-02"
+                },
+                {
+                    "position": 3,
+                    "token": "T-03"
+                }
+            ]
+        },
+        {
+            "count": 12,
+            "prefix": "DG",
+            "result": [
+                {
+                    "position": 1,
+                    "token": "DG-01"
+                },
+                {
+                    "position": 2,
+                    "token": "DG-02"
+                },
+                {
+                    "position": 3,
+                    "token": "DG-03"
+                },
+                {
+                    "position": 4,
+                    "token": "DG-04"
+                },
+                {
+                    "position": 5,
+                    "token": "DG-05"
+                },
+                {
+                    "position": 6,
+                    "token": "DG-06"
+                },
+                {
+                    "position": 7,
+                    "token": "DG-07"
+                },
+                {
+                    "position": 8,
+                    "token": "DG-08"
+                },
+                {
+                    "position": 9,
+                    "token": "DG-09"
+                },
+                {
+                    "position": 10,
+                    "token": "DG-10"
+                },
+                {
+                    "position": 11,
+                    "token": "DG-11"
+                },
+                {
+                    "position": 12,
+                    "token": "DG-12"
+                }
+            ]
+        },
+        {
+            "count": 0,
+            "prefix": "T",
+            "result": []
+        },
+        {
+            "count": 100,
+            "prefix": "X",
+            "result": [
+                {
+                    "position": 1,
+                    "token": "X-01"
+                },
+                {
+                    "position": 2,
+                    "token": "X-02"
+                },
+                {
+                    "position": 3,
+                    "token": "X-03"
+                },
+                {
+                    "position": 4,
+                    "token": "X-04"
+                },
+                {
+                    "position": 5,
+                    "token": "X-05"
+                },
+                {
+                    "position": 6,
+                    "token": "X-06"
+                },
+                {
+                    "position": 7,
+                    "token": "X-07"
+                },
+                {
+                    "position": 8,
+                    "token": "X-08"
+                },
+                {
+                    "position": 9,
+                    "token": "X-09"
+                },
+                {
+                    "position": 10,
+                    "token": "X-10"
+                },
+                {
+                    "position": 11,
+                    "token": "X-11"
+                },
+                {
+                    "position": 12,
+                    "token": "X-12"
+                },
+                {
+                    "position": 13,
+                    "token": "X-13"
+                },
+                {
+                    "position": 14,
+                    "token": "X-14"
+                },
+                {
+                    "position": 15,
+                    "token": "X-15"
+                },
+                {
+                    "position": 16,
+                    "token": "X-16"
+                },
+                {
+                    "position": 17,
+                    "token": "X-17"
+                },
+                {
+                    "position": 18,
+                    "token": "X-18"
+                },
+                {
+                    "position": 19,
+                    "token": "X-19"
+                },
+                {
+                    "position": 20,
+                    "token": "X-20"
+                },
+                {
+                    "position": 21,
+                    "token": "X-21"
+                },
+                {
+                    "position": 22,
+                    "token": "X-22"
+                },
+                {
+                    "position": 23,
+                    "token": "X-23"
+                },
+                {
+                    "position": 24,
+                    "token": "X-24"
+                },
+                {
+                    "position": 25,
+                    "token": "X-25"
+                },
+                {
+                    "position": 26,
+                    "token": "X-26"
+                },
+                {
+                    "position": 27,
+                    "token": "X-27"
+                },
+                {
+                    "position": 28,
+                    "token": "X-28"
+                },
+                {
+                    "position": 29,
+                    "token": "X-29"
+                },
+                {
+                    "position": 30,
+                    "token": "X-30"
+                },
+                {
+                    "position": 31,
+                    "token": "X-31"
+                },
+                {
+                    "position": 32,
+                    "token": "X-32"
+                },
+                {
+                    "position": 33,
+                    "token": "X-33"
+                },
+                {
+                    "position": 34,
+                    "token": "X-34"
+                },
+                {
+                    "position": 35,
+                    "token": "X-35"
+                },
+                {
+                    "position": 36,
+                    "token": "X-36"
+                },
+                {
+                    "position": 37,
+                    "token": "X-37"
+                },
+                {
+                    "position": 38,
+                    "token": "X-38"
+                },
+                {
+                    "position": 39,
+                    "token": "X-39"
+                },
+                {
+                    "position": 40,
+                    "token": "X-40"
+                },
+                {
+                    "position": 41,
+                    "token": "X-41"
+                },
+                {
+                    "position": 42,
+                    "token": "X-42"
+                },
+                {
+                    "position": 43,
+                    "token": "X-43"
+                },
+                {
+                    "position": 44,
+                    "token": "X-44"
+                },
+                {
+                    "position": 45,
+                    "token": "X-45"
+                },
+                {
+                    "position": 46,
+                    "token": "X-46"
+                },
+                {
+                    "position": 47,
+                    "token": "X-47"
+                },
+                {
+                    "position": 48,
+                    "token": "X-48"
+                },
+                {
+                    "position": 49,
+                    "token": "X-49"
+                },
+                {
+                    "position": 50,
+                    "token": "X-50"
+                },
+                {
+                    "position": 51,
+                    "token": "X-51"
+                },
+                {
+                    "position": 52,
+                    "token": "X-52"
+                },
+                {
+                    "position": 53,
+                    "token": "X-53"
+                },
+                {
+                    "position": 54,
+                    "token": "X-54"
+                },
+                {
+                    "position": 55,
+                    "token": "X-55"
+                },
+                {
+                    "position": 56,
+                    "token": "X-56"
+                },
+                {
+                    "position": 57,
+                    "token": "X-57"
+                },
+                {
+                    "position": 58,
+                    "token": "X-58"
+                },
+                {
+                    "position": 59,
+                    "token": "X-59"
+                },
+                {
+                    "position": 60,
+                    "token": "X-60"
+                },
+                {
+                    "position": 61,
+                    "token": "X-61"
+                },
+                {
+                    "position": 62,
+                    "token": "X-62"
+                },
+                {
+                    "position": 63,
+                    "token": "X-63"
+                },
+                {
+                    "position": 64,
+                    "token": "X-64"
+                },
+                {
+                    "position": 65,
+                    "token": "X-65"
+                },
+                {
+                    "position": 66,
+                    "token": "X-66"
+                },
+                {
+                    "position": 67,
+                    "token": "X-67"
+                },
+                {
+                    "position": 68,
+                    "token": "X-68"
+                },
+                {
+                    "position": 69,
+                    "token": "X-69"
+                },
+                {
+                    "position": 70,
+                    "token": "X-70"
+                },
+                {
+                    "position": 71,
+                    "token": "X-71"
+                },
+                {
+                    "position": 72,
+                    "token": "X-72"
+                },
+                {
+                    "position": 73,
+                    "token": "X-73"
+                },
+                {
+                    "position": 74,
+                    "token": "X-74"
+                },
+                {
+                    "position": 75,
+                    "token": "X-75"
+                },
+                {
+                    "position": 76,
+                    "token": "X-76"
+                },
+                {
+                    "position": 77,
+                    "token": "X-77"
+                },
+                {
+                    "position": 78,
+                    "token": "X-78"
+                },
+                {
+                    "position": 79,
+                    "token": "X-79"
+                },
+                {
+                    "position": 80,
+                    "token": "X-80"
+                },
+                {
+                    "position": 81,
+                    "token": "X-81"
+                },
+                {
+                    "position": 82,
+                    "token": "X-82"
+                },
+                {
+                    "position": 83,
+                    "token": "X-83"
+                },
+                {
+                    "position": 84,
+                    "token": "X-84"
+                },
+                {
+                    "position": 85,
+                    "token": "X-85"
+                },
+                {
+                    "position": 86,
+                    "token": "X-86"
+                },
+                {
+                    "position": 87,
+                    "token": "X-87"
+                },
+                {
+                    "position": 88,
+                    "token": "X-88"
+                },
+                {
+                    "position": 89,
+                    "token": "X-89"
+                },
+                {
+                    "position": 90,
+                    "token": "X-90"
+                },
+                {
+                    "position": 91,
+                    "token": "X-91"
+                },
+                {
+                    "position": 92,
+                    "token": "X-92"
+                },
+                {
+                    "position": 93,
+                    "token": "X-93"
+                },
+                {
+                    "position": 94,
+                    "token": "X-94"
+                },
+                {
+                    "position": 95,
+                    "token": "X-95"
+                },
+                {
+                    "position": 96,
+                    "token": "X-96"
+                },
+                {
+                    "position": 97,
+                    "token": "X-97"
+                },
+                {
+                    "position": 98,
+                    "token": "X-98"
+                },
+                {
+                    "position": 99,
+                    "token": "X-99"
+                },
+                {
+                    "position": 100,
+                    "token": "X-100"
+                }
+            ]
+        }
+    ],
+    "token_payload": [
+        {
+            "token_names": [
+                {
+                    "position": 1,
+                    "token": "AC-01"
+                },
+                {
+                    "position": 2,
+                    "token": "AC-02"
+                },
+                {
+                    "position": 3,
+                    "token": "AC-03"
+                },
+                {
+                    "position": 4,
+                    "token": "AC-04"
+                },
+                {
+                    "position": 5,
+                    "token": "AC-05"
+                },
+                {
+                    "position": 6,
+                    "token": "AC-06"
+                }
+            ],
+            "slots": [
+                "A2",
+                "B2",
+                "C2",
+                "A3",
+                "B3",
+                "C3"
+            ],
+            "rule": "Tokenziehung AC",
+            "result": {
+                "entries": [
+                    "AC-01",
+                    "AC-02",
+                    "AC-03",
+                    "AC-04",
+                    "AC-05",
+                    "AC-06"
+                ],
+                "slots": [
+                    "A2",
+                    "B2",
+                    "C2",
+                    "A3",
+                    "B3",
+                    "C3"
+                ],
+                "rule": "Tokenziehung AC"
+            }
+        }
+    ],
+    "assign_slots": [
+        {
+            "tokens": [
+                {
+                    "dtid": 7,
+                    "position": 2
+                },
+                {
+                    "dtid": 5,
+                    "position": 1
+                },
+                {
+                    "dtid": 9,
+                    "position": 3
+                }
+            ],
+            "slots": [
+                "C2",
+                "A2",
+                "B2"
+            ],
+            "result": {
+                "5": "C2",
+                "7": "A2",
+                "9": "B2"
+            }
+        },
+        {
+            "tokens": [
+                {
+                    "dtid": 7,
+                    "position": 2
+                },
+                {
+                    "dtid": 5,
+                    "position": 1
+                },
+                {
+                    "dtid": 9,
+                    "position": 3
+                }
+            ],
+            "slots": [
+                "C2",
+                "A2"
+            ],
+            "error": {
+                "class": "RuntimeException",
+                "message": "tokens (3) and slots (2) must match"
+            }
+        }
+    ],
+    "fallback": [
+        {
+            "free_tokens": [
+                {
+                    "dtid": 2,
+                    "position": 2
+                },
+                {
+                    "dtid": 1,
+                    "position": 1
+                }
+            ],
+            "non_pickers": [
+                {
+                    "tpid": 9,
+                    "uid": 90
+                },
+                {
+                    "tpid": 4,
+                    "uid": 40
+                }
+            ],
+            "final_seed": null,
+            "partner_map": [],
+            "fixed_groups": [],
+            "result": [
+                {
+                    "dtid": 1,
+                    "tpid": 4,
+                    "uid": 40
+                },
+                {
+                    "dtid": 2,
+                    "tpid": 9,
+                    "uid": 90
+                }
+            ]
+        },
+        {
+            "free_tokens": [
+                {
+                    "dtid": 1,
+                    "position": 1,
+                    "group": "D"
+                },
+                {
+                    "dtid": 2,
+                    "position": 2,
+                    "group": "E"
+                }
+            ],
+            "non_pickers": [
+                {
+                    "tpid": 1,
+                    "uid": 10
+                },
+                {
+                    "tpid": 2,
+                    "uid": 20
+                }
+            ],
+            "final_seed": null,
+            "partner_map": {
+                "1": 9,
+                "9": 1
+            },
+            "fixed_groups": {
+                "9": "D"
+            },
+            "result": [
+                {
+                    "dtid": 2,
+                    "tpid": 1,
+                    "uid": 10
+                },
+                {
+                    "dtid": 1,
+                    "tpid": 2,
+                    "uid": 20
+                }
+            ]
+        },
+        {
+            "free_tokens": [
+                {
+                    "dtid": 3,
+                    "position": 1,
+                    "group": "D"
+                }
+            ],
+            "non_pickers": [
+                {
+                    "tpid": 1,
+                    "uid": 10
+                }
+            ],
+            "final_seed": null,
+            "partner_map": {
+                "1": 9,
+                "9": 1
+            },
+            "fixed_groups": {
+                "9": "D"
+            },
+            "result": [
+                {
+                    "dtid": 3,
+                    "tpid": 1,
+                    "uid": 10
+                }
+            ]
+        },
+        {
+            "free_tokens": [
+                {
+                    "dtid": 11,
+                    "position": 1,
+                    "group": "D"
+                },
+                {
+                    "dtid": 12,
+                    "position": 2,
+                    "group": "D"
+                },
+                {
+                    "dtid": 13,
+                    "position": 3,
+                    "group": "E"
+                }
+            ],
+            "non_pickers": [
+                {
+                    "tpid": 1,
+                    "uid": 10
+                },
+                {
+                    "tpid": 2,
+                    "uid": 20
+                },
+                {
+                    "tpid": 3,
+                    "uid": 30
+                }
+            ],
+            "final_seed": null,
+            "partner_map": {
+                "1": 91,
+                "2": 92,
+                "3": 93
+            },
+            "fixed_groups": {
+                "91": "D",
+                "92": "D",
+                "93": "E"
+            },
+            "result": [
+                {
+                    "dtid": 13,
+                    "tpid": 1,
+                    "uid": 10
+                },
+                {
+                    "dtid": 11,
+                    "tpid": 2,
+                    "uid": 20
+                },
+                {
+                    "dtid": 12,
+                    "tpid": 3,
+                    "uid": 30
+                }
+            ]
+        },
+        {
+            "free_tokens": [
+                {
+                    "dtid": 21,
+                    "position": 1,
+                    "group": "D"
+                },
+                {
+                    "dtid": 22,
+                    "position": 2,
+                    "group": "D"
+                },
+                {
+                    "dtid": 23,
+                    "position": 3,
+                    "group": "E"
+                },
+                {
+                    "dtid": 24,
+                    "position": 4,
+                    "group": "E"
+                },
+                {
+                    "dtid": 25,
+                    "position": 5,
+                    "group": "F"
+                },
+                {
+                    "dtid": 26,
+                    "position": 6,
+                    "group": "F"
+                }
+            ],
+            "non_pickers": [
+                {
+                    "tpid": 4,
+                    "uid": 40
+                },
+                {
+                    "tpid": 2,
+                    "uid": 20
+                },
+                {
+                    "tpid": 6,
+                    "uid": 60
+                },
+                {
+                    "tpid": 1,
+                    "uid": 10
+                }
+            ],
+            "final_seed": "5556e563d3fde28a518b60baf17e06293f12e4ebf9263f8a4f194f736b072b04",
+            "partner_map": {
+                "2": 4,
+                "4": 2,
+                "6": 8,
+                "8": 6
+            },
+            "fixed_groups": {
+                "8": "E"
+            },
+            "result": [
+                {
+                    "dtid": 22,
+                    "tpid": 1,
+                    "uid": 10
+                },
+                {
+                    "dtid": 21,
+                    "tpid": 6,
+                    "uid": 60
+                },
+                {
+                    "dtid": 23,
+                    "tpid": 4,
+                    "uid": 40
+                },
+                {
+                    "dtid": 25,
+                    "tpid": 2,
+                    "uid": 20
+                }
+            ]
+        },
+        {
+            "free_tokens": [
+                {
+                    "dtid": 1,
+                    "position": 1
+                },
+                {
+                    "dtid": 2,
+                    "position": 2
+                }
+            ],
+            "non_pickers": [
+                {
+                    "tpid": 1,
+                    "uid": 10
+                },
+                {
+                    "tpid": 2,
+                    "uid": 20
+                },
+                {
+                    "tpid": 3,
+                    "uid": 30
+                }
+            ],
+            "final_seed": null,
+            "partner_map": [],
+            "fixed_groups": [],
+            "error": {
+                "class": "RuntimeException",
+                "message": "more players without a token (3) than free tokens (2) - the token count does not match the pool"
+            }
+        }
+    ],
+    "parse_lines": [
+        {
+            "text": "a\n# c\n\n b # x\r\nc\r",
+            "result": [
+                "a",
+                "b",
+                "c"
+            ]
+        },
+        {
+            "text": "",
+            "result": []
+        }
+    ],
+    "score_evaluate": [
+        {
+            "input": {
+                "s1a": 6,
+                "s1b": 4,
+                "s2a": 3,
+                "s2b": 6,
+                "mtba": 10,
+                "mtbb": 8
+            },
+            "result": {
+                "s1a": 6,
+                "s1b": 4,
+                "s2a": 3,
+                "s2b": 6,
+                "mtba": 10,
+                "mtbb": 8,
+                "sets_a": 2,
+                "sets_b": 1,
+                "games_a": 10,
+                "games_b": 10,
+                "winner_side": "a",
+                "score": "6:4 3:6 10:8"
+            }
+        },
+        {
+            "input": {
+                "s1a": 6,
+                "s1b": 4,
+                "s2a": 6,
+                "s2b": 3,
+                "mtba": 10,
+                "mtbb": 8
+            },
+            "error": {
+                "class": "InvalidArgumentException",
+                "message": "Das Match war nach zwei Saetzen entschieden - der Match-Tiebreak muss leer bleiben."
+            }
+        },
+        {
+            "input": {
+                "s1a": 6,
+                "s1b": 4,
+                "s2a": 3,
+                "s2b": 6,
+                "mtba": 10,
+                "mtbb": 9
+            },
+            "error": {
+                "class": "InvalidArgumentException",
+                "message": "Match-Tiebreak 10:9 - bei 10:9 muss weitergespielt werden."
+            }
+        },
+        {
+            "input": {
+                "s1a": 6,
+                "s1b": 4,
+                "s2a": 3,
+                "s2b": 6,
+                "mtba": 12,
+                "mtbb": 10
+            },
+            "result": {
+                "s1a": 6,
+                "s1b": 4,
+                "s2a": 3,
+                "s2b": 6,
+                "mtba": 12,
+                "mtbb": 10,
+                "sets_a": 2,
+                "sets_b": 1,
+                "games_a": 10,
+                "games_b": 10,
+                "winner_side": "a",
+                "score": "6:4 3:6 12:10"
+            }
+        },
+        {
+            "input": {
+                "s1a": 6,
+                "s1b": 4,
+                "s2a": 3,
+                "s2b": 6,
+                "mtba": 13,
+                "mtbb": 10
+            },
+            "error": {
+                "class": "InvalidArgumentException",
+                "message": "Match-Tiebreak 13:10 - ueber 10 Punkte hinaus sind genau zwei Punkte Unterschied notwendig."
+            }
+        },
+        {
+            "input": {
+                "s1a": 6,
+                "s1b": 4,
+                "s2a": 3,
+                "s2b": 6,
+                "mtba": 9,
+                "mtbb": 7
+            },
+            "error": {
+                "class": "InvalidArgumentException",
+                "message": "Match-Tiebreak 9:7 - der Sieger braucht mindestens 10 Punkte."
+            }
+        },
+        {
+            "input": {
+                "s1a": 6,
+                "s1b": 4,
+                "s2a": 3,
+                "s2b": 6,
+                "mtba": 10,
+                "mtbb": 0
+            },
+            "result": {
+                "s1a": 6,
+                "s1b": 4,
+                "s2a": 3,
+                "s2b": 6,
+                "mtba": 10,
+                "mtbb": 0,
+                "sets_a": 2,
+                "sets_b": 1,
+                "games_a": 10,
+                "games_b": 10,
+                "winner_side": "a",
+                "score": "6:4 3:6 10:0"
+            }
+        },
+        {
+            "input": {
+                "s1a": 6,
+                "s1b": 4,
+                "s2a": 3,
+                "s2b": 6,
+                "mtba": 11,
+                "mtbb": 9
+            },
+            "result": {
+                "s1a": 6,
+                "s1b": 4,
+                "s2a": 3,
+                "s2b": 6,
+                "mtba": 11,
+                "mtbb": 9,
+                "sets_a": 2,
+                "sets_b": 1,
+                "games_a": 10,
+                "games_b": 10,
+                "winner_side": "a",
+                "score": "6:4 3:6 11:9"
+            }
+        },
+        {
+            "input": {
+                "s1a": 6,
+                "s1b": 4,
+                "s2a": 3,
+                "s2b": 6,
+                "mtba": 10,
+                "mtbb": 10
+            },
+            "error": {
+                "class": "InvalidArgumentException",
+                "message": "Match-Tiebreak 10:10 - bei 10:9 muss weitergespielt werden."
+            }
+        },
+        {
+            "input": {
+                "s1a": 6,
+                "s1b": 0,
+                "s2a": 6,
+                "s2b": 0
+            },
+            "result": {
+                "s1a": 6,
+                "s1b": 0,
+                "s2a": 6,
+                "s2b": 0,
+                "mtba": null,
+                "mtbb": null,
+                "sets_a": 2,
+                "sets_b": 0,
+                "games_a": 12,
+                "games_b": 0,
+                "winner_side": "a",
+                "score": "6:0 6:0"
+            }
+        },
+        {
+            "input": {
+                "s1a": 7,
+                "s1b": 6,
+                "s2a": 7,
+                "s2b": 5
+            },
+            "result": {
+                "s1a": 7,
+                "s1b": 6,
+                "s2a": 7,
+                "s2b": 5,
+                "mtba": null,
+                "mtbb": null,
+                "sets_a": 2,
+                "sets_b": 0,
+                "games_a": 14,
+                "games_b": 11,
+                "winner_side": "a",
+                "score": "7:6 7:5"
+            }
+        },
+        {
+            "input": {
+                "s1a": 4,
+                "s1b": 6,
+                "s2a": 3,
+                "s2b": 6
+            },
+            "result": {
+                "s1a": 4,
+                "s1b": 6,
+                "s2a": 3,
+                "s2b": 6,
+                "mtba": null,
+                "mtbb": null,
+                "sets_a": 0,
+                "sets_b": 2,
+                "games_a": 7,
+                "games_b": 12,
+                "winner_side": "b",
+                "score": "4:6 3:6"
+            }
+        },
+        {
+            "input": {
+                "s1a": 6,
+                "s1b": 5,
+                "s2a": 6,
+                "s2b": 0
+            },
+            "error": {
+                "class": "InvalidArgumentException",
+                "message": "Satz 1: 6:5 ist kein gueltiges Satzergebnis. Moeglich sind 6:0 bis 6:4, 7:5 und 7:6."
+            }
+        },
+        {
+            "input": {
+                "s1a": 8,
+                "s1b": 6,
+                "s2a": 6,
+                "s2b": 0
+            },
+            "error": {
+                "class": "InvalidArgumentException",
+                "message": "Satz 1: Gamestaende muessen zwischen 0 und 7 liegen."
+            }
+        },
+        {
+            "input": {
+                "s1a": 6,
+                "s1b": 4,
+                "s2a": 3,
+                "s2b": 6
+            },
+            "error": {
+                "class": "InvalidArgumentException",
+                "message": "Satzgleichstand 1:1 - der Match-Tiebreak muss eingetragen werden."
+            }
+        },
+        {
+            "input": {
+                "s1a": 6,
+                "s1b": 4,
+                "s2a": 3,
+                "s2b": 6,
+                "mtba": 10,
+                "mtbb": ""
+            },
+            "error": {
+                "class": "InvalidArgumentException",
+                "message": "Der Match-Tiebreak braucht beide Punktestaende."
+            }
+        },
+        {
+            "input": {
+                "s1a": 6,
+                "s1b": 4,
+                "s2a": "",
+                "s2b": ""
+            },
+            "error": {
+                "class": "InvalidArgumentException",
+                "message": "Satz 1 und Satz 2 muessen vollstaendig eingetragen werden."
+            }
+        },
+        {
+            "input": {
+                "s1a": "6",
+                "s1b": "4",
+                "s2a": "6",
+                "s2b": "3"
+            },
+            "result": {
+                "s1a": 6,
+                "s1b": 4,
+                "s2a": 6,
+                "s2b": 3,
+                "mtba": null,
+                "mtbb": null,
+                "sets_a": 2,
+                "sets_b": 0,
+                "games_a": 12,
+                "games_b": 7,
+                "winner_side": "a",
+                "score": "6:4 6:3"
+            }
+        },
+        {
+            "input": {
+                "s1a": " 6 ",
+                "s1b": "4",
+                "s2a": "6",
+                "s2b": "3"
+            },
+            "result": {
+                "s1a": 6,
+                "s1b": 4,
+                "s2a": 6,
+                "s2b": 3,
+                "mtba": null,
+                "mtbb": null,
+                "sets_a": 2,
+                "sets_b": 0,
+                "games_a": 12,
+                "games_b": 7,
+                "winner_side": "a",
+                "score": "6:4 6:3"
+            }
+        },
+        {
+            "input": {
+                "s1a": "x",
+                "s1b": "4",
+                "s2a": "6",
+                "s2b": "3"
+            },
+            "error": {
+                "class": "InvalidArgumentException",
+                "message": "\"s1a\": nur ganze Zahlen erlaubt."
+            }
+        },
+        {
+            "input": {
+                "s1a": 6,
+                "s1b": 4,
+                "s2a": 3,
+                "s2b": 6,
+                "mtba": "-1",
+                "mtbb": 10
+            },
+            "error": {
+                "class": "InvalidArgumentException",
+                "message": "\"mtba\": nur ganze Zahlen erlaubt."
+            }
+        }
+    ],
+    "score_describe": [
+        {
+            "input": [],
+            "has_schedule": false,
+            "result": {
+                "state": "neutral",
+                "message": "Satzergebnisse eintragen – z. B. 6 : 4 und 6 : 3.",
+                "canSave": false
+            }
+        },
+        {
+            "input": [],
+            "has_schedule": true,
+            "result": {
+                "state": "success",
+                "message": "Termin wird gespeichert – Ergebnis kann später nachgetragen werden.",
+                "canSave": true
+            }
+        },
+        {
+            "input": {
+                "s1a": 6,
+                "s1b": 4
+            },
+            "has_schedule": false,
+            "result": {
+                "state": "error",
+                "message": "Satz 2 ist kein gültiges Satzergebnis (6:0–6:4, 7:5 oder 7:6).",
+                "canSave": false
+            }
+        },
+        {
+            "input": {
+                "s1a": 6,
+                "s1b": 4,
+                "s2a": 6,
+                "s2b": 3
+            },
+            "has_schedule": false,
+            "result": {
+                "state": "success",
+                "message": null,
+                "canSave": true,
+                "winner": "a"
+            }
+        },
+        {
+            "input": {
+                "s1a": 6,
+                "s1b": 4,
+                "s2a": 6,
+                "s2b": 3,
+                "mtba": 10,
+                "mtbb": 8
+            },
+            "has_schedule": false,
+            "result": {
+                "state": "error",
+                "message": "Match ist nach zwei Sätzen entschieden – Match-Tiebreak bitte leer lassen.",
+                "canSave": false
+            }
+        },
+        {
+            "input": {
+                "s1a": 6,
+                "s1b": 4,
+                "s2a": 3,
+                "s2b": 6
+            },
+            "has_schedule": false,
+            "result": {
+                "state": "warning",
+                "message": "Satzstand 1:1 – Match-Tiebreak eintragen (auf 10, mindestens 2 Punkte Differenz).",
+                "canSave": false
+            }
+        },
+        {
+            "input": {
+                "s1a": 6,
+                "s1b": 4,
+                "s2a": 3,
+                "s2b": 6,
+                "mtba": 10,
+                "mtbb": 9
+            },
+            "has_schedule": false,
+            "result": {
+                "state": "error",
+                "message": "Match-Tiebreak ungültig: auf 10 gespielt, mindestens 2 Punkte Differenz.",
+                "canSave": false
+            }
+        },
+        {
+            "input": {
+                "s1a": 6,
+                "s1b": 4,
+                "s2a": 3,
+                "s2b": 6,
+                "mtba": 10,
+                "mtbb": 8
+            },
+            "has_schedule": false,
+            "result": {
+                "state": "success",
+                "message": null,
+                "canSave": true,
+                "winner": "a"
+            }
+        },
+        {
+            "input": {
+                "s1a": 6,
+                "s1b": 5,
+                "s2a": 6,
+                "s2b": 3
+            },
+            "has_schedule": false,
+            "result": {
+                "state": "error",
+                "message": "Satz 1 ist kein gültiges Satzergebnis (6:0–6:4, 7:5 oder 7:6).",
+                "canSave": false
+            }
+        }
+    ]
+}

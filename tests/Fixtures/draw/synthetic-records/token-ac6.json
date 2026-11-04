@@ -1,0 +1,40 @@
+{
+    "title": "token-ac6",
+    "status": "executed",
+    "payload": {
+        "entries": [
+            "AC-01",
+            "AC-02",
+            "AC-03",
+            "AC-04",
+            "AC-05",
+            "AC-06"
+        ],
+        "slots": [
+            "A2",
+            "B2",
+            "C2",
+            "A3",
+            "B3",
+            "C3"
+        ],
+        "rule": "Tokenziehung AC"
+    },
+    "commitment": "2189d141849596493827ae733acfb49af9690ec5dd900451dbcae414310729e0",
+    "beacon_source": "drand:round:1",
+    "created": "2026-01-01 00:00:00",
+    "discarded": null,
+    "discarded_reason": null,
+    "server_seed": "d11de5cd335d9b09bef21f8d7cb156cd6353405af940edfde8f93ba0608ae788",
+    "beacon_value": "2862fcc0847d717059941bd823dd7dbe29943479f4412771c087a568e2ceac2d",
+    "final_seed": "5cdab6b09857520b94d65bfbe52e8beb4b715c3d1de0a72dca31105bec2196cd",
+    "assignment": {
+        "A2": "AC-02",
+        "B2": "AC-04",
+        "C2": "AC-03",
+        "A3": "AC-05",
+        "B3": "AC-01",
+        "C3": "AC-06"
+    },
+    "executed": "2026-01-01 00:00:00"
+}
