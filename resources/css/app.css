@@ -12,6 +12,7 @@
 @import '@fontsource/barlow-condensed/latin-ext-600.css';
 @import '@fontsource/barlow-condensed/latin-700.css';
 @import '@fontsource/barlow-condensed/latin-ext-700.css';
+@import './ds.css';
 
 :root {
     --wm-src: 'hm-b26c8c89';
