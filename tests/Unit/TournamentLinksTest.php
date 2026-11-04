@@ -98,6 +98,20 @@ class TournamentLinksTest extends TestCase
     }
 
     #[Test]
+    public function falls_back_to_default_base_url_when_env_is_empty(): void
+    {
+        // An empty TOURNAMENT_BASE_URL= in .env makes env() return '' instead of the default.
+        putenv('TOURNAMENT_BASE_URL=');
+        $_ENV['TOURNAMENT_BASE_URL'] = '';
+        $_SERVER['TOURNAMENT_BASE_URL'] = '';
+        $services = require base_path('config/services.php');
+        putenv('TOURNAMENT_BASE_URL');
+        unset($_ENV['TOURNAMENT_BASE_URL'], $_SERVER['TOURNAMENT_BASE_URL']);
+
+        $this->assertSame('https://tournament.example.test', $services['tournament']['base_url']);
+    }
+
+    #[Test]
     public function builds_pyramid_and_mixed_urls_from_config(): void
     {
         config(['services.tournament.base_url' => 'https://t.example/']);

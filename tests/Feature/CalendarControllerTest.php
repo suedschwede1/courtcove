@@ -89,15 +89,18 @@ class CalendarControllerTest extends TestCase
     #[Test]
     public function championship_button_hidden_without_tournament(): void
     {
-        Schema::dropIfExists('bs_tournaments');
+        $this->createTournamentsTable();
+        DB::table('bs_tournaments')->insert(['title' => 'Zq Finished Cup', 'status' => 'finished', 'season' => 2026, 'active' => 1, 'is_test' => 0]);
 
         $this->actingAs(User::factory()->create())
             ->get('/calendar')
             ->assertOk()
             ->assertSee('Forderungspyramide')
             ->assertSee('Mixed-/Fun-Turnier')
-            ->assertDontSee('VM')
+            ->assertDontSee('Zq Finished Cup')
             ->assertDontSee('tournament.example.test/tournament"', false);
+
+        Schema::dropIfExists('bs_tournaments');
     }
 
     #[Test]

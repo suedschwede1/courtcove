@@ -29,7 +29,7 @@ return [
     ],
 
     'tournament' => [
-        'base_url' => env('TOURNAMENT_BASE_URL', 'https://tournament.example.test'),
+        'base_url' => env('TOURNAMENT_BASE_URL') ?: 'https://tournament.example.test',
     ],
 
     'slack' => [
