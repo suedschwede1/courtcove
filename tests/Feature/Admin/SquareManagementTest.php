@@ -24,7 +24,7 @@ class SquareManagementTest extends TestCase
     private function payload(array $overrides = []): array
     {
         return array_merge([
-            'name' => 'Center', 'alias' => 'Court B', 'status' => 'enabled',
+            'name' => 'Center', 'alias' => 'Alpha Court', 'status' => 'enabled',
             'readonly_message' => '', 'priority' => 1, 'capacity' => 2,
             'capacity_ask_names' => '', 'name_visibility' => 'private',
             'time_start' => '08:00', 'time_end' => '22:00',
@@ -45,10 +45,10 @@ class SquareManagementTest extends TestCase
     public function admin_sees_square_list(): void
     {
         $square = Square::factory()->create(['name' => 'Center']);
-        $square->setMeta('alias', 'Court B');
+        $square->setMeta('alias', 'Alpha Court');
 
         $this->actingAs($this->admin())->get('/admin/squares')
-            ->assertOk()->assertSee('Plätze')->assertSee('Court B');
+            ->assertOk()->assertSee('Plätze')->assertSee('Alpha Court');
     }
 
     #[Test]
@@ -70,7 +70,7 @@ class SquareManagementTest extends TestCase
         $this->assertSame(10800, (int) $square->time_block_bookable_max); // 180 min × 60
         $this->assertSame(56 * 86400, (int) $square->range_book);         // 56 days
         $this->assertSame(86400, (int) $square->range_cancel);            // 24 h × 3600
-        $this->assertSame('Court B', $square->getMeta('alias'));
+        $this->assertSame('Alpha Court', $square->getMeta('alias'));
         $this->assertSame('frei', $square->getMeta('label.free'));
     }
 
@@ -113,19 +113,19 @@ class SquareManagementTest extends TestCase
         $square = Square::factory()->create(['name' => 'Alt']);
 
         $this->actingAs($this->admin())
-            ->put(route('admin.squares.update', $square), $this->payload(['name' => 'Neu', 'alias' => 'Court D']))
+            ->put(route('admin.squares.update', $square), $this->payload(['name' => 'Neu', 'alias' => 'Beta Court']))
             ->assertRedirect(route('admin.squares.index'));
 
         $fresh = $square->fresh();
         $this->assertSame('Neu', $fresh->name);
-        $this->assertSame('Court D', $fresh->getMeta('alias'));
+        $this->assertSame('Beta Court', $fresh->getMeta('alias'));
     }
 
     #[Test]
     public function update_with_blank_alias_deletes_meta(): void
     {
         $square = Square::factory()->create();
-        $square->setMeta('alias', 'Court B');
+        $square->setMeta('alias', 'Alpha Court');
 
         $this->actingAs($this->admin())
             ->put(route('admin.squares.update', $square), $this->payload(['alias' => '']))
@@ -138,7 +138,7 @@ class SquareManagementTest extends TestCase
     public function destroy_deletes_square_without_bookings(): void
     {
         $square = Square::factory()->create();
-        $square->setMeta('alias', 'Court B');
+        $square->setMeta('alias', 'Alpha Court');
 
         $this->actingAs($this->admin())->delete(route('admin.squares.destroy', $square))
             ->assertRedirect(route('admin.squares.index'));
