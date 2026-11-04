@@ -20,12 +20,8 @@ class LegacyRedirectTest extends TestCase
     public static function redirects(): array
     {
         return [
-            'user login' => ['/user/login', 'login'],
-            'user logout' => ['/user/logout', 'calendar.index'],
             'user bookings' => ['/user/bookings', 'account.bookings'],
             'user settings' => ['/user/settings', 'account.edit'],
-            'user password' => ['/user/password', 'password.forgot'],
-            'user password reset' => ['/user/password-reset', 'password.forgot'],
             'user registration' => ['/user/registration', 'register'],
             'user activation' => ['/user/activation', 'login'],
             'user activation token' => ['/user/activation/abc123', 'login'],
@@ -54,13 +50,24 @@ class LegacyRedirectTest extends TestCase
     }
 
     #[Test]
-    public function legacy_logout_does_not_log_the_user_out(): void
+    #[DataProvider('zf2ServedPaths')]
+    public function zf2_served_user_paths_have_no_laravel_route(string $path): void
     {
-        $user = User::factory()->create();
+        // public/.htaccess sends these to ZF2 before Laravel; Laravel itself must not shadow them.
+        $this->get($path)->assertNotFound();
+    }
 
-        $this->actingAs($user)->get('/user/logout')->assertStatus(302);
-
-        $this->assertAuthenticatedAs($user);
+    /**
+     * @return array<string, array{string}>
+     */
+    public static function zf2ServedPaths(): array
+    {
+        return [
+            'login' => ['/user/login'],
+            'logout' => ['/user/logout'],
+            'password' => ['/user/password'],
+            'password reset' => ['/user/password-reset'],
+        ];
     }
 
     #[Test]

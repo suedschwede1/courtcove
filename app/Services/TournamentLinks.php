@@ -38,22 +38,27 @@ class TournamentLinks
 
         return [
             'title' => (string) $tournament->title,
-            'url' => $this->baseUrl().'/tournament',
+            'url' => $this->absolute('/tournament'),
         ];
     }
 
     public function pyramidUrl(): string
     {
-        return $this->baseUrl().'/pyramide';
+        return $this->absolute('/pyramide');
     }
 
     public function mixedUrl(): string
     {
-        return $this->baseUrl().'/mixed-tournament';
+        return $this->absolute('/mixed-tournament');
     }
 
-    private function baseUrl(): string
+    /**
+     * Same host (empty base_url): url() honors the /booking base path. Separate host: prefix it.
+     */
+    private function absolute(string $path): string
     {
-        return rtrim((string) config('services.tournament.base_url'), '/');
+        $base = rtrim((string) config('services.tournament.base_url'), '/');
+
+        return $base === '' ? url($path) : $base.$path;
     }
 }

@@ -57,14 +57,10 @@ Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.in
 
 // Legacy ZF2 URLs (bookmarks, mails, links on the club site). Temporary (302) redirects,
 // deliberately NOT 301: a rollback to ZF2 must not be poisoned by browser-cached
-// permanent redirects. No auth required. /user/logout was a GET in ZF2; Laravel logout
-// is POST-only, so it just lands on the calendar without touching the session.
-Route::get('/user/login', static fn () => redirect()->route('login'));
-Route::get('/user/logout', static fn () => redirect()->route('calendar.index'));
+// permanent redirects. No auth required. /user/login|logout|password[-reset] are NOT here:
+// public/.htaccess routes them to the ZF2 tournament app (see zf2-bridge.php).
 Route::get('/user/bookings', static fn () => redirect()->route('account.bookings'));
 Route::get('/user/settings', static fn () => redirect()->route('account.edit'));
-Route::get('/user/password', static fn () => redirect()->route('password.forgot'));
-Route::get('/user/password-reset', static fn () => redirect()->route('password.forgot'));
 Route::get('/user/registration', static fn () => redirect()->route('register'));
 Route::get('/user/activation/{any?}', static fn () => redirect()->route('login'))->where('any', '.*');
 Route::get('/square/{any?}', static fn () => redirect()->route('calendar.index'))->where('any', '.*');

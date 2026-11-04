@@ -81,9 +81,9 @@ class CalendarControllerTest extends TestCase
             ->assertSee('VM 2026')
             ->assertSee('Forderungspyramide')
             ->assertSee('Mixed-/Fun-Turnier')
-            ->assertSee('https://tournament.example.test/tournament')
-            ->assertSee('https://tournament.example.test/pyramide')
-            ->assertSee('https://tournament.example.test/mixed-tournament');
+            ->assertSee(url('/tournament'))
+            ->assertSee(url('/pyramide'))
+            ->assertSee(url('/mixed-tournament'));
 
         Schema::dropIfExists('bs_tournaments');
     }
@@ -100,7 +100,7 @@ class CalendarControllerTest extends TestCase
             ->assertSee('Forderungspyramide')
             ->assertSee('Mixed-/Fun-Turnier')
             ->assertDontSee('Zq Finished Cup')
-            ->assertDontSee('tournament.example.test/tournament"', false);
+            ->assertDontSee(url('/tournament').'"', false);
 
         Schema::dropIfExists('bs_tournaments');
     }

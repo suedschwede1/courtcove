@@ -29,7 +29,8 @@ return [
     ],
 
     'tournament' => [
-        'base_url' => env('TOURNAMENT_BASE_URL') ?: 'https://tournament.example.test',
+        // Empty = same host as this app (tournament pages are routed to ZF2 by public/.htaccess).
+        'base_url' => env('TOURNAMENT_BASE_URL', ''),
     ],
 
     'slack' => [

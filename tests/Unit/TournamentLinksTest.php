@@ -8,6 +8,7 @@ use App\Services\TournamentLinks;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\URL;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -93,14 +94,14 @@ class TournamentLinksTest extends TestCase
 
         $this->assertSame([
             'title' => 'VM 2025',
-            'url' => 'https://tournament.example.test/tournament',
+            'url' => url('/tournament'),
         ], $this->links()->currentChampionship());
     }
 
     #[Test]
-    public function falls_back_to_default_base_url_when_env_is_empty(): void
+    public function empty_env_means_same_host(): void
     {
-        // An empty TOURNAMENT_BASE_URL= in .env makes env() return '' instead of the default.
+        // An empty TOURNAMENT_BASE_URL= in .env makes env() return '' (same host).
         putenv('TOURNAMENT_BASE_URL=');
         $_ENV['TOURNAMENT_BASE_URL'] = '';
         $_SERVER['TOURNAMENT_BASE_URL'] = '';
@@ -108,7 +109,35 @@ class TournamentLinksTest extends TestCase
         putenv('TOURNAMENT_BASE_URL');
         unset($_ENV['TOURNAMENT_BASE_URL'], $_SERVER['TOURNAMENT_BASE_URL']);
 
-        $this->assertSame('https://tournament.example.test', $services['tournament']['base_url']);
+        $this->assertSame('', $services['tournament']['base_url']);
+    }
+
+    #[Test]
+    public function unset_env_means_same_host(): void
+    {
+        $services = require base_path('config/services.php');
+
+        $this->assertSame('', $services['tournament']['base_url']);
+    }
+
+    #[Test]
+    public function same_host_urls_are_relative_to_the_app_and_honor_the_base_path(): void
+    {
+        config(['services.tournament.base_url' => '']);
+
+        $this->assertSame(url('/pyramide'), $this->links()->pyramidUrl());
+        $this->assertSame(url('/mixed-tournament'), $this->links()->mixedUrl());
+
+        URL::forceScheme('http');
+        URL::forceRootUrl('http://club.example/booking');
+
+        try {
+            $this->assertSame('http://club.example/booking/pyramide', $this->links()->pyramidUrl());
+            $this->assertSame('http://club.example/booking/mixed-tournament', $this->links()->mixedUrl());
+        } finally {
+            URL::forceRootUrl(null);
+            URL::forceScheme(null);
+        }
     }
 
     #[Test]
@@ -118,5 +147,14 @@ class TournamentLinksTest extends TestCase
 
         $this->assertSame('https://t.example/pyramide', $this->links()->pyramidUrl());
         $this->assertSame('https://t.example/mixed-tournament', $this->links()->mixedUrl());
+    }
+
+    #[Test]
+    public function championship_url_uses_the_configured_separate_host(): void
+    {
+        config(['services.tournament.base_url' => 'https://t.example']);
+        $this->tournament(['title' => 'VM']);
+
+        $this->assertSame('https://t.example/tournament', $this->links()->currentChampionship()['url']);
     }
 }
