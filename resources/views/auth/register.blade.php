@@ -1,16 +1,12 @@
-<!doctype html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ str_replace(':system', $bookingName, __('booking.register.title')) }}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@600;700&family=Red+Hat+Text:wght@400;500;600&display=swap" rel="stylesheet">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <link rel="stylesheet" href="{{ asset('css/booking.css') }}">
-</head>
-<body style="font-family: var(--font-body); background: var(--ui-bg); min-height: 100vh;">
+@extends('layouts.base')
+
+@section('title')
+    {{ str_replace(':system', $bookingName, __('booking.register.title')) }}
+@endsection
+
+@section('body-class', 'min-h-screen')
+
+@section('body')
 @php
     $registrationHeading = str_replace(':system', $bookingName, $registrationContent['heading']);
     $registrationWelcome = str_replace(':system', $bookingName, $registrationContent['welcome']);
@@ -150,8 +146,4 @@
         </div>
     </form>
 </div>
-
-</body>
-<!-- {{ config('booking.watermark') }} -->
-</html>
-
+@endsection

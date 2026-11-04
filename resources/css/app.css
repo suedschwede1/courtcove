@@ -153,8 +153,8 @@
 }
 
 body {
-    background: var(--ui-bg);
-    color: var(--ui-text);
+    background: var(--color-ground);
+    color: var(--color-ink);
     font-family: var(--font-body);
 }
 
