@@ -67,18 +67,6 @@ class Square extends Model
         return $this->hasMany(SquareMeta::class, 'sid', 'sid');
     }
 
-    /** @return HasMany<SquareProduct, $this> */
-    public function products(): HasMany
-    {
-        return $this->hasMany(SquareProduct::class, 'sid', 'sid');
-    }
-
-    /** @return HasMany<SquarePricing, $this> */
-    public function pricing(): HasMany
-    {
-        return $this->hasMany(SquarePricing::class, 'sid', 'sid');
-    }
-
     /** @return HasMany<Event, $this> */
     public function events(): HasMany
     {

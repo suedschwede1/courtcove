@@ -329,13 +329,12 @@ final class BookingService
         int $quantity,
         Carbon $dateStart,
         Carbon $dateEnd,
-        array $bills = [],
         array $meta = [],
     ): Booking {
         $dateEnd = $this->normalizeBookableEnd($square, $dateStart, $dateEnd);
         $this->assertSingleBookingIsValid($user, $square, $quantity, $dateStart, $dateEnd);
 
-        $booking = DB::transaction(function () use ($user, $square, $quantity, $dateStart, $dateEnd, $bills, $meta): Booking {
+        $booking = DB::transaction(function () use ($user, $square, $quantity, $dateStart, $dateEnd, $meta): Booking {
             // Serialize concurrent bookings on this square (row lock as mutex),
             // then re-check the slot so two parallel requests cannot both book it.
             Square::query()->whereKey($square->sid)->lockForUpdate()->get();
@@ -358,15 +357,11 @@ final class BookingService
                 'time_end' => $dateEnd->format('H:i:s'),
             ]);
 
-            foreach ($bills as $bill) {
-                $booking->bills()->create($bill);
-            }
-
             foreach ($meta as $entry) {
                 $booking->meta()->create($entry);
             }
 
-            return $booking->load('reservations', 'bills', 'meta');
+            return $booking->load('reservations', 'meta');
         });
 
         if (! empty($user->email) && $this->isMailConfigured()) {
