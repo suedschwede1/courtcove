@@ -74,7 +74,7 @@
         "test:booking": [
             "Composer\\Config::disableProcessTimeout",
             "@php artisan config:clear --ansi",
-            "@php artisan test --testsuite=Booking"
+            "@php artisan test --testsuite=Unit,Feature"
         ],
         "dusk": "@php vendor/bin/phpunit -c phpunit.dusk.xml",
         "dusk:visual": "@php vendor/bin/phpunit -c phpunit.dusk.xml --filter VisualRegressionTest",

@@ -5,21 +5,18 @@
          colors="true"
 >
     <testsuites>
+        <!-- Every test directory is registered exactly once (no overlap between suites). -->
         <testsuite name="Unit">
             <directory>tests/Unit</directory>
+            <exclude>tests/Unit/Modules/Members</exclude>
         </testsuite>
         <testsuite name="Feature">
             <directory>tests/Feature</directory>
+            <exclude>tests/Feature/Modules/Members</exclude>
         </testsuite>
         <testsuite name="Members">
             <directory>tests/Feature/Modules/Members</directory>
             <directory>tests/Unit/Modules/Members</directory>
-        </testsuite>
-        <testsuite name="Booking">
-            <directory>tests/Feature</directory>
-            <directory>tests/Unit</directory>
-            <exclude>tests/Feature/Modules/Members</exclude>
-            <exclude>tests/Unit/Modules/Members</exclude>
         </testsuite>
     </testsuites>
     <source>
