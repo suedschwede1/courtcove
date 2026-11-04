@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-04
 
+- Fonts are served from the app itself (Barlow); no request to an external font service.
 - Design tokens of the new look (sand, clay, court, Barlow scale) defined in one place; dark values prepared, not switched on.
 - Fix HTTP 500 when `public/` is served through a symlink (Apache + PHP-FPM keeps `__DIR__` unresolved): `public/index.php` and `public/zf2-bridge.php` now derive the application root from `realpath(__DIR__)`, so vendor, bootstrap, maintenance file, `zf2.path` and the default ZF2 dir are found at the real location.
 - Emoji stripping no longer touches password/token fields (an emoji password was silently altered) and skips the utf8mb4-only API member/due endpoints.

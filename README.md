@@ -11,6 +11,7 @@ Replaces the old Zend/Laminas system (`booking`).
 | Laravel | 13.x |
 | Database | MySQL (`booking_local`) |
 | Frontend | Tailwind CSS, Alpine.js, Vite |
+| Fonts | Barlow and Barlow Condensed, self-hosted via Fontsource, SIL Open Font License |
 | Deployment | Shared hosting over SSH (details kept locally) |
 
 ## Features

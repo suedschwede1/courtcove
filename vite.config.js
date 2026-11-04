@@ -10,6 +10,11 @@ export default defineConfig({
         }),
         tailwindcss(),
     ],
+    experimental: {
+        renderBuiltUrl(filename, { hostType }) {
+            return hostType === 'css' ? { relative: true } : undefined;
+        },
+    },
     server: {
         watch: {
             ignored: ['**/storage/framework/views/**'],
