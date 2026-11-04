@@ -41,15 +41,6 @@
         <h2 class="text-base font-semibold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.admin.squares.section_booking') }}</h2>
     </div>
     <div class="px-6 py-5 flex flex-col gap-4">
-        <div class="flex flex-col gap-1">
-            <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="sf-ask-names">{{ __('booking.admin.squares.ask_names') }}</label>
-            @php $askLabels = ['' => __('booking.admin.squares.ask_names_none'), 'optional-names' => __('booking.admin.squares.ask_names_optional'), 'optional-names-email' => __('booking.admin.squares.ask_names_optional_email'), 'optional-names-phone' => __('booking.admin.squares.ask_names_optional_phone'), 'optional-names-email-phone' => __('booking.admin.squares.ask_names_optional_email_phone'), 'required-names' => __('booking.admin.squares.ask_names_required'), 'required-names-email' => __('booking.admin.squares.ask_names_required_email'), 'required-names-phone' => __('booking.admin.squares.ask_names_required_phone'), 'required-names-email-phone' => __('booking.admin.squares.ask_names_required_email_phone')]; @endphp
-            <select id="sf-ask-names" name="capacity_ask_names" class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                @foreach($askLabels as $val => $lbl)
-                    <option value="{{ $val }}" @selected(old('capacity_ask_names', $form['capacity_ask_names']) === $val)>{{ $lbl }}</option>
-                @endforeach
-            </select>
-        </div>
         <label class="flex items-center gap-2 text-sm text-[#151515] cursor-pointer">
             <input type="checkbox" name="allow_notes" value="1" @checked(old('allow_notes', $form['allow_notes']))> {{ __('booking.admin.squares.allow_notes') }}
         </label>
