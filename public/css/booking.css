@@ -1,13 +1,13 @@
 body {
     margin: 0;
-    background: #f3f0ea;
-    color: #222;
-    font-family: Verdana, sans-serif;
+    background: var(--color-ground);
+    color: var(--color-ink);
+    font-family: var(--font-body);
     font-size: 12px;
 }
 
 a {
-    color: #c75518;
+    color: var(--color-clay);
     text-decoration: none;
 }
 
@@ -74,7 +74,7 @@ a.header-login-button:focus-visible {
 }
 
 .brand-title {
-    font-family: Georgia, serif;
+    font-family: var(--font-display);
     font-size: 18px;
     font-weight: 700;
     color: #2a241d;
@@ -160,7 +160,7 @@ input[type="text"] {
     border-radius: 9px;
     background: #fff;
     color: #333;
-    font-family: Verdana, sans-serif;
+    font-family: var(--font-body);
     font-size: 12px;
     padding: 6px 10px;
 }
@@ -235,7 +235,7 @@ input[type="text"] {
 
 .help-card__title {
     margin: 0 0 12px;
-    font-family: Georgia, serif;
+    font-family: var(--font-display);
     font-size: 28px;
     line-height: 1.1;
 }
@@ -333,7 +333,7 @@ input[type="text"] {
     align-items: center;
     justify-content: center;
     gap: 2px;
-    font-family: "Red Hat Text", sans-serif;
+    font-family: var(--font-body);
 }
 
 .day-header-name {
@@ -341,7 +341,7 @@ input[type="text"] {
     font-size: 13px;
     font-weight: 700;
     color: #151515;
-    font-family: "Red Hat Display", sans-serif;
+    font-family: var(--font-display);
 }
 
 .day-header-date {
@@ -349,7 +349,7 @@ input[type="text"] {
     font-size: 11px;
     font-weight: 500;
     color: #6a6e73;
-    font-family: "Red Hat Text", sans-serif;
+    font-family: var(--font-body);
 }
 
 .day-header-cell--today .day-header-name,
@@ -377,7 +377,7 @@ input[type="text"] {
 
 .square-head-title {
     display: block;
-    font-family: "Red Hat Display", sans-serif;
+    font-family: var(--font-display);
     font-size: 12px;
     font-weight: 700;
     color: #bf4316;
@@ -387,7 +387,7 @@ input[type="text"] {
 .square-head-alias {
     display: block;
     margin-top: 2px;
-    font-family: "Red Hat Text", sans-serif;
+    font-family: var(--font-body);
     font-size: 10px;
     color: #bf4316;
     line-height: 1.2;
@@ -417,7 +417,7 @@ input[type="text"] {
 
 .time-main {
     display: block;
-    font-family: "Red Hat Display", sans-serif;
+    font-family: var(--font-display);
     font-size: 16px;
     font-weight: 600;
     line-height: 1.1;
@@ -562,7 +562,7 @@ a.cc-own:hover {
     min-height: 100%;
     padding: 10px 14px;
     box-sizing: border-box;
-    font-family: "Trebuchet MS", Arial, sans-serif;
+    font-family: var(--font-body);
     font-size: 14px;
     font-weight: 500;
     line-height: 1.2;
@@ -690,7 +690,7 @@ a.event-label {
 }
 
 .login-page-copy h1 {
-    font-family: Georgia, serif;
+    font-family: var(--font-display);
     margin-bottom: 10px;
 }
 
@@ -756,7 +756,7 @@ a.event-label {
 }
 
     .brand-title {
-    font-family: Georgia, serif;
+    font-family: var(--font-display);
     font-size: 18px;
     font-weight: 700;
     color: #2a241d;
@@ -838,7 +838,7 @@ a.event-label {
     border-radius: 8px;
     background: #fff;
     color: #333;
-    font-family: Verdana, sans-serif;
+    font-family: var(--font-body);
     font-size: 12px;
     padding: 8px 10px;
 }
@@ -939,7 +939,7 @@ a.event-label {
     border: 1px solid #bfc1c6;
     background: #fff;
     color: #333;
-    font-family: Verdana, sans-serif;
+    font-family: var(--font-body);
     font-size: 12px;
     padding: 6px 8px;
     border-radius: 2px;
@@ -1579,7 +1579,7 @@ textarea,
     padding: 7px 10px;
     border: 1px solid #ccc5bb;
     border-radius: 5px;
-    font-family: Verdana, sans-serif;
+    font-family: var(--font-body);
     font-size: 12px;
     color: #222;
     background: #fff;
@@ -1601,7 +1601,7 @@ textarea,
     padding: 7px 10px;
     border: 1px solid #ccc5bb;
     border-radius: 5px;
-    font-family: Verdana, sans-serif;
+    font-family: var(--font-body);
     font-size: 12px;
     color: #222;
     background: #fff;
@@ -1626,7 +1626,7 @@ textarea,
     max-width: 340px;
     border: 1px solid #ccc5bb;
     border-radius: 5px;
-    font-family: Verdana, sans-serif;
+    font-family: var(--font-body);
     font-size: 12px;
     color: #222;
     background: #fff;
@@ -1962,7 +1962,7 @@ textarea,
     border: 1px solid #d1cbc0;
     border-radius: 8px;
     padding: 8px 10px;
-    font-family: Verdana, sans-serif;
+    font-family: var(--font-body);
     font-size: 14px;
     background: #fff;
 }
@@ -2118,7 +2118,7 @@ textarea {
     align-items: center;
     justify-content: center;
     gap: 2px;
-    font-family: "Red Hat Text", sans-serif;
+    font-family: var(--font-body);
 }
 
 .day-header-name {
@@ -2126,7 +2126,7 @@ textarea {
     font-size: 13px;
     font-weight: 700;
     color: #151515;
-    font-family: "Red Hat Display", sans-serif;
+    font-family: var(--font-display);
 }
 
 .day-header-date {
@@ -2134,7 +2134,7 @@ textarea {
     font-size: 11px;
     font-weight: 500;
     color: #6a6e73;
-    font-family: "Red Hat Text", sans-serif;
+    font-family: var(--font-body);
 }
 
 .day-header-cell--today .day-header-name,
@@ -2162,7 +2162,7 @@ textarea {
 
 .square-head-title {
     display: block;
-    font-family: "Red Hat Display", sans-serif;
+    font-family: var(--font-display);
     font-size: 12px;
     font-weight: 700;
     color: #bf4316;
@@ -2172,7 +2172,7 @@ textarea {
 .square-head-alias {
     display: block;
     margin-top: 2px;
-    font-family: "Red Hat Text", sans-serif;
+    font-family: var(--font-body);
     font-size: 10px;
     color: #bf4316;
     line-height: 1.2;
@@ -2545,7 +2545,7 @@ textarea {
     border: 1px solid #ccc5bb;
     border-radius: 5px;
     background: #fff;
-    font-family: Verdana, sans-serif;
+    font-family: var(--font-body);
     font-size: 12px;
     color: #222;
     transition: border-color 0.12s, box-shadow 0.12s;
@@ -2618,7 +2618,7 @@ textarea {
     border: 1px solid #ccc5bb;
     border-radius: 5px;
     background: #fff;
-    font-family: Verdana, sans-serif;
+    font-family: var(--font-body);
     font-size: 12px;
     color: #222;
     box-sizing: border-box;
@@ -2847,7 +2847,7 @@ textarea {
     border-radius: 6px;
     background: #fff;
     color: #222;
-    font-family: Verdana, sans-serif;
+    font-family: var(--font-body);
     font-size: 12px;
     line-height: 1.25;
     transition: border-color 0.12s, box-shadow 0.12s, background-color 0.12s;
@@ -2962,7 +2962,7 @@ textarea {
     display: inline-block;
     padding: 7px 20px;
     font-size: 12px;
-    font-family: Verdana, sans-serif;
+    font-family: var(--font-body);
     color: #555;
     background: #f5f1ec;
     border: none;
@@ -2996,7 +2996,7 @@ textarea {
     border-radius: 6px;
     background: linear-gradient(180deg, #d96020 0%, #c75518 100%);
     color: #fff;
-    font-family: Verdana, sans-serif;
+    font-family: var(--font-body);
     font-size: 12px;
     font-weight: bold;
     cursor: pointer;
@@ -3026,7 +3026,7 @@ textarea {
     margin: 0;
     background: #f3f0ea;
     color: #222;
-    font-family: Verdana, sans-serif;
+    font-family: var(--font-body);
     font-size: 12px;
     overflow: auto;
 }

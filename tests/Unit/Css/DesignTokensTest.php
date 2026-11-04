@@ -4,6 +4,7 @@ namespace Tests\Unit\Css;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Support\CssBlocks;
 use Tests\TestCase;
 
 final class DesignTokensTest extends TestCase
@@ -77,28 +78,11 @@ final class DesignTokensTest extends TestCase
         $this->assertStringContainsString('src:hm-b26c8c89', $css); // watermark stays
     }
 
-    /** Returns the brace-balanced body after "$opener {" (empty string if absent). */
     private function block(string $opener): string
     {
-        $css = (string) file_get_contents(resource_path('css/app.css'));
-        $start = strpos($css, $opener.' {');
-        if ($start === false) {
+        $body = CssBlocks::body((string) file_get_contents(resource_path('css/app.css')), $opener);
+        if ($body === '') {
             $this->fail("Block '{$opener}' not found in app.css");
-        }
-        $i = $start + strlen($opener) + 2;
-        $depth = 1;
-        $body = '';
-        for ($n = strlen($css); $i < $n && $depth > 0; $i++) {
-            $c = $css[$i];
-            if ($c === '{') {
-                $depth++;
-            } elseif ($c === '}') {
-                $depth--;
-                if ($depth === 0) {
-                    break;
-                }
-            }
-            $body .= $c;
         }
 
         return $body;

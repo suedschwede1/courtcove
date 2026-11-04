@@ -9,7 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-04
-
+- Site-wide switch to the new palette and fonts on existing pages, with a visible keyboard focus outline everywhere.
 - Fonts are served from the app itself (Barlow); no request to an external font service.
 - Design tokens of the new look (sand, clay, court, Barlow scale) defined in one place; dark values prepared, not switched on.
 - Fix HTTP 500 when `public/` is served through a symlink (Apache + PHP-FPM keeps `__DIR__` unresolved): `public/index.php` and `public/zf2-bridge.php` now derive the application root from `realpath(__DIR__)`, so vendor, bootstrap, maintenance file, `zf2.path` and the default ZF2 dir are found at the real location.
