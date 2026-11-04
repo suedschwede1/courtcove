@@ -14,7 +14,7 @@ use Throwable;
 /**
  * Reports database migration status and validates that the bs_* tables
  * this app relies on actually have the columns the code expects. Exists
- * because the production host (hosting.example.test shared hosting) has no SSH/cron
+ * because the production host (shared hosting) has no SSH/cron
  * access — this is consumed by an admin page instead of `artisan migrate:status`.
  */
 final class DatabaseSchemaChecker

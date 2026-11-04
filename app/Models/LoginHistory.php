@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * unmatched emails aren't recorded, there's no account/baseline to protect.
  * Feeds App\Services\LoginRiskEvaluator, and the admin-only, display-only risk
  * score (riskScore()). Retention: 30 days, pruned opportunistically on every
- * insert (no cron on hosting.example.test).
+ * insert (no cron on shared hosting).
  *
  * @property int $id
  * @property int $user_id

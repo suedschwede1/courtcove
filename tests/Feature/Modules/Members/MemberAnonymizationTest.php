@@ -106,8 +106,8 @@ class MemberAnonymizationTest extends TestCase
             'phone' => '0664 1234567',
             'street' => 'Teststr. 1',
             'zip' => '4400',
-            'city' => 'Sampletown',
-            'nuliga_id' => 288563,
+            'city' => 'Teststadt',
+            'nuliga_id' => 123456,
             'joined_at' => '2010-01-01',
             'left_at' => now()->subYears(5)->toDateString(),
         ]);

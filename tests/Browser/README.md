@@ -2,7 +2,7 @@
 
 These Dusk tests protect the calendar UI from accidental layout regressions.
 
-Start the app with the Dusk environment first:
+Copy `.env.dusk.example` to `.env.dusk.local` (git-ignored) and start the app with the Dusk environment:
 
 ```bash
 wsl php artisan serve --env=dusk.local --host=127.0.0.1 --port=8088
