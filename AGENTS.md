@@ -112,7 +112,14 @@ and no `artisan up`, and prints the manual steps (`migrate:install`,
 `db:baseline-legacy --dry-run`, `db:baseline-legacy`, `migrate --force`), which are never
 part of the script. `--skip-build` skips `npm run build` (run it from Windows; WSL Node
 is too old) but still requires a committed `public/build/manifest.json` and a clean tree.
-No Node.js on the server: `public/build/` **is committed to git**. See README
+Tournament pages are the legacy ZF2 app served on the **same host** (no `turnier.` subdomain):
+`public/.htaccess` rewrites an allowlist (`tournament|mixed-tournament|pyramide|draw|service`,
+`user/login|logout|password[-reset]`) to `public/zf2-bridge.php`, which runs ZF2's `index.php`
+from its own install (`~/apps/zf2`; override with env `ZF2_PUBLIC` or an untracked
+`<app>/zf2.path` file, e.g. staging). The deploy script symlinks ZF2's static dirs into
+`public/`. Never add paths to that allowlist casually (it exposes ZF2) and never copy the old
+install's one-off `public/*.php` scripts into the ZF2 copy. `TOURNAMENT_BASE_URL` stays empty
+(same host). No Node.js on the server: `public/build/` **is committed to git**. See README
 "Deployment (Provider)" and `docs/superpowers/specs/2026-11-04-provider-laravel-cutover-design.md`.
 The old hosting.example.test FTP flow is historical only.
 

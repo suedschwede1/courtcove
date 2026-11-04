@@ -133,8 +133,9 @@ Production runs on the Provider cPanel host and is served at `https://example.te
   CACHE_STORE=file              # no `cache` table is created; do not use the database store
   ```
 
-  plus the DB credentials and `TOURNAMENT_BASE_URL` (tournament pages that stay on the
-  legacy system; defaults to `https://tournament.example.test` when empty).
+  plus the DB credentials and `TOURNAMENT_BASE_URL` (leave it **empty**: the tournament
+  pages of the legacy ZF2 system are served on the same host, see below; set a full URL only
+  for a separate tournament host).
 - **Mail**: SMTP via the `booking@example.test` mailbox (`MAIL_*` in the server `.env`).
 - **Cron**: if the scheduler is used, add a cPanel cron job running
   `php ~/apps/bookingnew/artisan schedule:run` every minute.
@@ -196,10 +197,23 @@ Then `php artisan config:cache && php artisan route:cache && php artisan view:ca
 command. Details:
 [docs/superpowers/specs/2026-11-04-provider-laravel-cutover-design.md](docs/superpowers/specs/2026-11-04-provider-laravel-cutover-design.md).
 
-Legacy ZF2 URLs (`/user/login`, `/user/bookings`, `/user/password`, `/user/registration`,
-`/user/activation`, `/square/...`, `/backend/...` etc.) are redirected with a temporary
+Legacy ZF2 booking URLs (`/user/bookings`, `/user/settings`, `/user/registration`,
+`/user/activation`, `/square/...`, `/backend/...`) are redirected with a temporary
 **302** to their Laravel equivalents (not 301, so a rollback to ZF2 is not poisoned by
 cached redirects).
+
+**Tournament pages (legacy ZF2) on the same host.** `/tournament`, `/mixed-tournament`,
+`/pyramide`, `/draw`, `/service/...` and ZF2's own `/user/login|logout|password[-reset]` are
+rewritten by `public/.htaccess` to `public/zf2-bridge.php`, which runs the ZF2 app installed
+outside the web root (default `~/apps/zf2`, i.e. next to `~/apps/bookingnew`; override with
+the `ZF2_PUBLIC` env var or an untracked `zf2.path` file in the app root containing the
+absolute path of ZF2's `public` dir). There is no `turnier.` subdomain. On every deploy the
+script symlinks ZF2's static dirs (`css css-client docs docs-client imgs imgs-client js
+js-client misc misc-client vendor`) into `public/` and prints a note if the ZF2 dir is
+missing (tournament pages then answer 503). Members have two logins (Laravel `/login`, ZF2
+`/user/login`) with the same credentials. ZF2 runs under the domain's PHP version (8.4).
+Do not copy the old install's one-off `public/*.php` maintenance scripts into the ZF2 copy.
+Details and the routing test table: `docs/deploy/2026-provider-cutover-runbook.md`.
 
 *Historical:* before Provider the app was hosted on hosting.example.test shared hosting (no SSH) and
 updated by FTP upload of changed files.
