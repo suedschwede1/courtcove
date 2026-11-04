@@ -10,7 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-04
 
-- Phase 2 groundwork: shared TournamentBase module (config, translations, injectable Randomizer).
+- Phase 2 groundwork: shared TournamentBase module (config with environment-supplied court names, translations, injectable Randomizer).
 - Emoji stripping no longer touches password/token fields (an emoji password was silently altered) and skips the utf8mb4-only API member/due endpoints.
 - Emoji and other 4-byte characters are stripped from request input (web and api) before they reach the utf8mb3 legacy tables, which previously failed with an HTTP 500; the Members module (utf8mb4) is exempt and keeps emoji.
 - Bridge guard hardening: the direct-request check now uses the raw request URI (query cut off, decoded until stable, slashes collapsed; no `parse_url`), so `//zf2-bridge.php/x`, `///zf2-bridge.php/x` and encoded forms answer 404, and `public/.htaccess` additionally 404s any raw request line containing `zf2-bridge`.

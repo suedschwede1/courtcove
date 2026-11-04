@@ -6,5 +6,11 @@ return [
     // Name of the legacy tournament database, supplied per environment (never hard-coded).
     'live_database' => env('PHASE2_LIVE_DB_DATABASE'),
 
-    'courts' => [1 => 'Court B', 2 => 'Court D', 3 => 'Court C'],
+    // Optional court names, supplied per environment as JSON, e.g. {"1":"Alpha","2":"Beta"}.
+    // Invalid or missing JSON yields no names.
+    'courts' => (static function (): array {
+        $decoded = json_decode((string) env('TOURNAMENT_COURTS', '[]'), true);
+
+        return is_array($decoded) ? $decoded : [];
+    })(),
 ];

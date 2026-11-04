@@ -19,7 +19,32 @@ class TournamentBaseProviderTest extends TestCase
     public function config_is_merged(): void
     {
         $this->assertNull(config('tournament-base.live_database')); // supplied per environment, never hard-coded
-        $this->assertSame([1 => 'Court B', 2 => 'Court D', 3 => 'Court C'], config('tournament-base.courts'));
+        $this->assertSame([], config('tournament-base.courts')); // names are supplied per environment
+    }
+
+    #[Test]
+    public function configured_courts_are_read_from_config(): void
+    {
+        config()->set('tournament-base.courts', [1 => 'Alpha', 2 => 'Beta', 3 => 'Gamma']);
+
+        $this->assertSame('Beta', config('tournament-base.courts')[2]);
+    }
+
+    #[Test]
+    public function env_style_json_is_decoded_and_invalid_json_falls_back_to_empty(): void
+    {
+        $load = function (string $json): array {
+            putenv('TOURNAMENT_COURTS='.$json);
+            try {
+                return (require base_path('app/Modules/TournamentBase/config/tournament-base.php'))['courts'];
+            } finally {
+                putenv('TOURNAMENT_COURTS');
+            }
+        };
+
+        $this->assertSame([1 => 'Alpha', 2 => 'Beta'], $load('{"1":"Alpha","2":"Beta"}'));
+        $this->assertSame([], $load('not json'));
+        $this->assertSame([], $load('"scalar"'));
     }
 
     #[Test]
