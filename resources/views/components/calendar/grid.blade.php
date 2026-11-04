@@ -133,6 +133,10 @@
                                         ? ($squareLabel . ' – ' . __('booking.calendar.past'))
                                         : ($squareLabel . ' – ' . __('booking.calendar.occupied'));
                                 }
+
+                                if ($reservation?->booking?->isChampionshipMatch()) {
+                                    $cellClass .= ' cc-turnier';
+                                }
                             }
                         @endphp
 

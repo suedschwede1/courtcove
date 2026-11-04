@@ -138,4 +138,16 @@ class Booking extends Model
 
         return $ownerName !== '' ? $ownerName : ($this->user?->alias ?? '—');
     }
+
+    /**
+     * Whether this booking is a club championship match, i.e. its free-text 'notes'
+     * meta mentions "vereinsmeisterschaft" (case-insensitive). Reads the already
+     * loaded meta relation, so calendar rendering causes no extra queries.
+     */
+    public function isChampionshipMatch(): bool
+    {
+        $notes = $this->meta->firstWhere('key', 'notes')?->value;
+
+        return is_string($notes) && mb_stripos($notes, 'vereinsmeisterschaft') !== false;
+    }
 }

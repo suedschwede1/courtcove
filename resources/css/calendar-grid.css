@@ -280,3 +280,28 @@
     }
 }
 
+/*
+ * Club championship match (booking note contains "vereinsmeisterschaft").
+ * Kept at the very end of the file so it wins over the cc-own / cc-single-future /
+ * past-slot colours at every viewport width (in the legacy system the mobile rules
+ * overrode it). The doubled class selector adds specificity as a safety margin.
+ */
+.calendar-cell.cc-turnier {
+    background: var(--cal-turnier-bg, #e8720c);
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.calendar-cell.cc-turnier:hover,
+.calendar-cell.cc-turnier:focus-visible {
+    background: var(--cal-turnier-bg-hover, #c55f08);
+}
+
+.calendar-cell.cc-turnier.cc-own {
+    box-shadow: inset 0 0 0 3px #c8e89a;
+}
+
+.calendar-cell.cc-turnier .cc-label-primary,
+.calendar-cell.cc-turnier .cc-label-secondary {
+    color: #ffffff;
+}
