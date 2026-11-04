@@ -173,7 +173,7 @@ class Zf2BridgeTest extends TestCase
     {
         $this->stubZf2($this->root.'/zf2/public');
 
-        foreach (['/zf2-bridge.php/backend', '/booking/zf2-bridge.php/x', '/zf2%2Dbridge.php/x', '/ZF2-Bridge.php/x'] as $uri) {
+        foreach (['/zf2-bridge.php/backend', '/booking/zf2-bridge.php/x', '/zf2%2Dbridge.php/x', '/ZF2-Bridge.PHP/x', '//zf2-bridge.php/backend', '///zf2-bridge.php/x', '/zf2-bridge.php%2Fbackend', '/booking//zf2-bridge.php/x', '/%252e/zf2-bridge%252ephp/x'] as $uri) {
             $result = $this->runBridge('/zf2-bridge.php', $uri);
 
             $this->assertSame('404', $result['code'], $uri);
@@ -186,7 +186,7 @@ class Zf2BridgeTest extends TestCase
     {
         $this->stubZf2($this->root.'/zf2/public');
 
-        foreach (['/mixed-tournament', '/booking/pyramide/', '/user/login?next=/x', '/tournament/zf2-bridge'] as $uri) {
+        foreach (['/mixed-tournament', '/booking/pyramide/', '/user/login?next=/x', '/tournament/zf2-bridge', '/mixed-tournament?x=zf2-bridge.php', '/draw?next=%2Fzf2-bridge.php#zf2-bridge.php'] as $uri) {
             $result = $this->runBridge('/zf2-bridge.php', $uri);
 
             $this->assertStringContainsString('index.php|index.php', $result['output'], $uri);

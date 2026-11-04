@@ -114,4 +114,22 @@ class PublicHtaccessTest extends TestCase
             $this->assertFalse($matches($path), "$path must not be touched");
         }
     }
+
+    public function test_raw_request_line_guard_blocks_the_bridge_before_any_rewrite(): void
+    {
+        $contents = file_get_contents(dirname(__DIR__, 2).'/public/.htaccess');
+
+        $needle = 'RewriteCond %{THE_REQUEST} zf2-bridge [NC]
+    RewriteRule ^ - [R=404,L]';
+        $this->assertStringContainsString($needle, $contents);
+
+        $guard = strpos($contents, $needle);
+        $this->assertLessThan(strpos($contents, 'zf2-bridge.php [L]'), $guard);
+        $this->assertLessThan(strpos($contents, '[L,R=301]'), $guard);
+
+        $this->assertSame(1, preg_match('#zf2-bridge#i', 'GET //zf2-bridge.php/backend HTTP/1.1'));
+        $this->assertSame(1, preg_match('#zf2-bridge#i', 'GET /booking/ZF2-Bridge.php/x HTTP/1.1'));
+        $this->assertSame(0, preg_match('#zf2-bridge#i', 'GET /mixed-tournament?x=1 HTTP/1.1'));
+        $this->assertSame(0, preg_match('#zf2-bridge#i', 'GET /mixed-tournament HTTP/1.1'));
+    }
 }

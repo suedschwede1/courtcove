@@ -9,6 +9,11 @@
     # are served through zf2-bridge.php. This is a strict ALLOWLIST - everything else
     # (calendar, bookings, admin, ...) stays with Laravel, so the ZF2 booking UI is
     # unreachable. Must stay above the front-controller rule below.
+    # The bridge is not a public URL: THE_REQUEST is the raw client request line and is not changed by
+    # the internal rewrite, so rewritten tournament requests never contain the bridge name.
+    RewriteCond %{THE_REQUEST} zf2-bridge [NC]
+    RewriteRule ^ - [R=404,L]
+
     # A trailing slash on an allowlisted path is redirected to the slashless URL (base-path safe:
     # %1 is the full request path), because ZF2 has no route for "/tournament/".
     RewriteCond %{REQUEST_URI} (.+)/$

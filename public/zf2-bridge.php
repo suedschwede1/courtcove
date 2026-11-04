@@ -28,9 +28,24 @@ require (static function (): string {
     // Only reachable through the rewrite rules. After an internal rewrite REQUEST_URI is the
     // ORIGINAL uri (e.g. /mixed-tournament), so it never contains the bridge name. Check the
     // decoded path anywhere (PATH_INFO requests like /zf2-bridge.php/backend, %-encoded names).
-    $requestPath = rawurldecode((string) parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH));
+    // Raw REQUEST_URI up to ? or # (never parse_url: "//host/x" and "///x" confuse it), percent-decoded
+    // until stable (max 3 rounds), repeated slashes collapsed, lowercased.
+    $requestPath = (string) ($_SERVER['REQUEST_URI'] ?? '');
+    $requestPath = preg_split('/[?#]/', $requestPath, 2)[0];
 
-    if (stripos($requestPath, 'zf2-bridge.php') !== false) {
+    for ($round = 0; $round < 3; $round++) {
+        $decoded = rawurldecode($requestPath);
+
+        if ($decoded === $requestPath) {
+            break;
+        }
+
+        $requestPath = $decoded;
+    }
+
+    $requestPath = strtolower((string) preg_replace('#/+#', '/', $requestPath));
+
+    if (str_contains($requestPath, 'zf2-bridge.php')) {
         $fail(404, 'Not found');
     }
 
