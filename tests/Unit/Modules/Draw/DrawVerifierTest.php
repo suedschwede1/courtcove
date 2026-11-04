@@ -80,6 +80,33 @@ class DrawVerifierTest extends TestCase
     }
 
     #[Test]
+    public function commitment_only_failure(): void
+    {
+        $draw = Draw::factory()->executed()->create();
+        $draw->update(['commitment' => str_repeat('0', 64)]);
+
+        $this->assertSame(['commitment'], $this->verify($draw)->failures());
+    }
+
+    #[Test]
+    public function final_seed_mismatch_fails(): void
+    {
+        $draw = Draw::factory()->executed()->create();
+        $draw->update(['final_seed' => str_repeat('0', 64)]);
+
+        $this->assertSame(['final_seed'], $this->verify($draw)->failures());
+    }
+
+    #[Test]
+    public function missing_token_row_fails(): void
+    {
+        $draw = Draw::factory()->token()->executed()->closed()->create();
+        $draw->tokens()->whereNotNull('slot')->first()->delete();
+
+        $this->assertSame(['tokens'], $this->verify($draw)->failures());
+    }
+
+    #[Test]
     public function golden_vectors_verify_when_stored(): void
     {
         $cases = json_decode(file_get_contents(dirname(__DIR__, 3).'/Fixtures/draw/vectors.json'), true, flags: JSON_THROW_ON_ERROR)['draw'];
