@@ -59,6 +59,27 @@ final class DrawService
     }
 
     /**
+     * Whether a stored payload string is byte-for-byte what canonical() would
+     * produce for its decoded form. Anything that decodes but re-encodes
+     * differently (whitespace, escapes, empty object vs. list) has drifted and
+     * can no longer be verified against its commitment.
+     */
+    public function isCanonical(string $stored): bool
+    {
+        $decoded = json_decode($stored, true);
+
+        if (! is_array($decoded)) {
+            return false;
+        }
+
+        try {
+            return $this->canonical($decoded) === $stored;
+        } catch (\JsonException) {
+            return false;
+        }
+    }
+
+    /**
      * Creates a cryptographically secure server seed (64 hex characters).
      *
      * random_bytes() is correct here; only the draw itself must be purely
