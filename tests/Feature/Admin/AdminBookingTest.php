@@ -642,6 +642,32 @@ class AdminBookingTest extends TestCase
     }
 
     #[Test]
+    public function saving_a_custom_series_as_custom_is_rejected_and_keeps_reservations(): void
+    {
+        $admin = $this->admin();
+        $square = Square::factory()->create();
+        $booking = $this->subscriptionBooking($admin, $square, ['2026-07-06', '2026-07-13', '2026-07-27']);
+
+        $response = $this->actingAs($admin)->get("/admin/bookings/{$booking->bid}/edit");
+        $this->assertSame('custom', $response->viewData('repeatType'));
+        $this->assertArrayHasKey('custom', $response->viewData('repeatOptions'));
+
+        $this->actingAs($admin)->put("/admin/bookings/{$booking->bid}", $this->bookingPayload([
+            'booked_for' => $admin->alias, 'sid' => $square->sid,
+            'date' => '2026-07-06', 'date_end' => '2026-07-27', 'repeat_type' => 'custom',
+        ]))->assertSessionHasErrors('booking');
+
+        $this->assertCount(3, $booking->fresh()->reservations);
+
+        $this->actingAs($admin)->put("/admin/bookings/{$booking->bid}", $this->bookingPayload([
+            'booked_for' => $admin->alias, 'sid' => $square->sid,
+            'date' => '2026-07-06', 'date_end' => '2026-07-27', 'repeat_type' => 'weekly',
+        ]))->assertSessionHasNoErrors();
+
+        $this->assertCount(4, $booking->fresh()->reservations);
+    }
+
+    #[Test]
     public function mixed_series_with_daily_tail_keeps_daily_under_this_and_following(): void
     {
         $admin = $this->admin();

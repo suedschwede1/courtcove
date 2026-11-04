@@ -77,6 +77,12 @@ final class BookingService
         }
 
         $repeatType = $data['repeat_type'];
+        if ($repeatType === 'custom') {
+            // Irregular legacy series cannot be regenerated from a rule; saving them
+            // would silently collapse them to a single occurrence.
+            throw new BookingValidationException(__('booking.validation.custom_repeat_not_editable'));
+        }
+
         $repeatEndDate = $repeatType === 'once'
             ? Carbon::createFromFormat('Y-m-d', $data['date'])
             : Carbon::createFromFormat('Y-m-d', (string) ($data['date_end'] ?: $data['date']));

@@ -47,7 +47,10 @@ class UpdateBookingTool extends Tool
 
         // Legacy repeat types are only accepted for the existing series itself,
         // derived from its stored reservations (never from the request).
-        $existing = Booking::find($request->get('booking_id'));
+        $bookingId = $request->get('booking_id');
+        $existing = is_int($bookingId) || (is_string($bookingId) && ctype_digit($bookingId))
+            ? Booking::find((int) $bookingId)
+            : null;
         $occurrence = $request->get('occurrence');
         $allowedLegacy = $existing === null ? [] : $this->bookingService->legacyRepeatTypesOf(
             $existing,

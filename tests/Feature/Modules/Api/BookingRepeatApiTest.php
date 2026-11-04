@@ -93,6 +93,35 @@ class BookingRepeatApiTest extends TestCase
     }
 
     #[Test]
+    public function rest_update_of_custom_series_as_custom_is_rejected_without_data_loss(): void
+    {
+        $admin = User::factory()->create(['status' => 'admin']);
+        $square = Square::factory()->create();
+        $booking = $this->series($admin, $square, ['2026-07-06', '2026-07-13', '2026-07-27']);
+        Sanctum::actingAs($admin);
+
+        $this->putJson("/api/v1/bookings/{$booking->bid}", $this->payload($admin, $square, [
+            'date_end' => '2026-07-27', 'repeat_type' => 'custom',
+        ]))->assertUnprocessable();
+
+        $this->assertCount(3, $booking->fresh()->reservations);
+    }
+
+    #[Test]
+    public function mcp_update_with_array_booking_id_gives_validation_error(): void
+    {
+        $admin = User::factory()->create(['status' => 'admin']);
+        $square = Square::factory()->create();
+        Sanctum::actingAs($admin);
+
+        $this->expectException(ValidationException::class);
+
+        app(UpdateBookingTool::class)->handle(new McpRequest($this->payload($admin, $square, [
+            'booking_id' => [1, 2], 'repeat_type' => 'weekly',
+        ])));
+    }
+
+    #[Test]
     public function mcp_create_rejects_daily_repeat(): void
     {
         $admin = User::factory()->create(['status' => 'admin']);
