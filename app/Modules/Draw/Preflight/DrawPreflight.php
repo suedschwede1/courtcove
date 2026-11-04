@@ -138,15 +138,15 @@ final class DrawPreflight implements ModulePreflight
     {
         $check = "unique:{$table}(".implode(',', $columns).')';
 
-        if (! $this->schema->hasUniqueIndex($table, $columns)) {
-            return PreflightResult::fail($check, 'unique index missing');
-        }
-
         if (! $this->schema->hasColumns($table, $columns)) {
-            return PreflightResult::fail($check, 'column missing');
+            return PreflightResult::fail($check, $this->schema->hasUniqueIndex($table, $columns) ? 'column missing' : 'unique index missing, column missing');
         }
 
         $groups = $this->schema->duplicateGroups($table, $columns);
+
+        if (! $this->schema->hasUniqueIndex($table, $columns)) {
+            return PreflightResult::fail($check, $groups > 0 ? "unique index missing, {$groups} duplicate groups" : 'unique index missing');
+        }
 
         return $groups > 0
             ? PreflightResult::fail($check, "{$groups} duplicate groups")
@@ -180,7 +180,7 @@ final class DrawPreflight implements ModulePreflight
         $results = [];
         $count = 0;
 
-        foreach (Draw::query()->orderBy('did')->cursor() as $draw) {
+        foreach (Draw::query()->orderBy('did')->get() as $draw) {
             $count++;
             $verification = $this->verifier->verify($draw);
             $check = "verify:{$verification->slug}";

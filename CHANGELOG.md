@@ -12,6 +12,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 - Tests: composer test:mysql runs MySQL-only adoption and preflight checks.
 - Phase 2: read-only php artisan phase2:preflight draw checks columns, ENUMs, charset, unique keys, orphans and recomputes every draw.
+- Phase 2: draw preflight now reports duplicate counts even when a unique index is missing.
 - Phase 2: draw:verify --compare-dir proves the Laravel JSON equals the ZF2 JSON for every captured live draw.
 - Phase 2: shared WhatsApp link and court name helpers for the tournament modules.
 - Phase 2: match score rules (best of three, match tie-break) ported unchanged with German/English messages.

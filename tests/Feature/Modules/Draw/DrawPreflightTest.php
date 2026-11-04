@@ -8,6 +8,7 @@ use App\Modules\Draw\Models\Draw;
 use App\Modules\Draw\Models\DrawToken;
 use App\Modules\Draw\Preflight\DrawPreflight;
 use App\Modules\TournamentBase\Preflight\PreflightResult;
+use App\Modules\TournamentBase\Preflight\SchemaInspector;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -86,7 +87,45 @@ class DrawPreflightTest extends TestCase
         Draw::factory()->create(['slug' => 'same']);
         Draw::factory()->create(['slug' => 'same']);
 
-        $this->assertTrue($this->has('[FAIL] unique:bs_draws(slug)'));
+        $this->assertTrue($this->has('[FAIL] unique:bs_draws(slug): unique index missing, 1 duplicate groups'));
+    }
+
+    #[Test]
+    public function duplicate_groups_counts_repeats_and_ignores_nulls(): void
+    {
+        Schema::drop('bs_draw_tokens');
+        Schema::create('bs_draw_tokens', function (Blueprint $table): void {
+            $table->increments('dtid');
+            $table->unsignedInteger('did');
+            $table->unsignedInteger('claimed_tpid')->nullable();
+            $table->index(['did', 'claimed_tpid']);
+        });
+        DB::table('bs_draw_tokens')->insert([
+            ['did' => 1, 'claimed_tpid' => null],
+            ['did' => 1, 'claimed_tpid' => null],
+            ['did' => 1, 'claimed_tpid' => 5],
+            ['did' => 1, 'claimed_tpid' => 5],
+            ['did' => 1, 'claimed_tpid' => 5],
+            ['did' => 2, 'claimed_tpid' => 5],
+            ['did' => 2, 'claimed_tpid' => 6],
+            ['did' => 2, 'claimed_tpid' => 6],
+        ]);
+
+        $inspector = app(SchemaInspector::class);
+
+        $this->assertSame(2, $inspector->duplicateGroups('bs_draw_tokens', ['did', 'claimed_tpid']));
+        $this->assertSame(0, $inspector->duplicateGroups('bs_draw_tokens', ['dtid']));
+    }
+
+    #[Test]
+    public function orphan_check_skips_when_parent_table_is_absent(): void
+    {
+        Schema::dropIfExists('bs_tournament_players');
+
+        $this->assertContains(
+            '[SKIP] orphans:bs_draw_eligible.tpid->bs_tournament_players.tpid: bs_tournament_players is absent',
+            $this->lines()
+        );
     }
 
     #[Test]
@@ -110,6 +149,9 @@ class DrawPreflightTest extends TestCase
     public function preflight_is_read_only(): void
     {
         Draw::factory()->token()->executed()->create();
+        $tables = ['bs_draws', 'bs_draw_tokens', 'bs_draw_eligible'];
+        $counts = fn (): array => array_map(fn (string $t): int => DB::table($t)->count(), $tables);
+        $before = $counts();
         $sql = [];
         DB::listen(function ($query) use (&$sql): void {
             $sql[] = $query->sql;
@@ -117,6 +159,7 @@ class DrawPreflightTest extends TestCase
 
         $this->lines();
 
+        $this->assertSame($before, $counts());
         $this->assertNotEmpty($sql);
         foreach ($sql as $statement) {
             $this->assertDoesNotMatchRegularExpression('/^\s*(insert|update|delete|create|drop|alter|truncate|replace)\b/i', $statement);
