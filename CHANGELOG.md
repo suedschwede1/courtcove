@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-04
 
+- Phase 2: php artisan draw:verify {slug?} --all recomputes commitment, seed and assignment of stored draws.
 - Phase 2: draw adoption tests now pin column types, plain indexes, no date casts and the existing-table guard for all three tables.
 - Phase 2: draw tables adopted in place (guarded create migrations, no-op rollback, schema manifest).
 - Phase 2: token draw helpers ported unchanged (golden vectors).

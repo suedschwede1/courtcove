@@ -13,5 +13,11 @@ class DrawServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(__DIR__.'/Database/Migrations');
         $this->loadViewsFrom(__DIR__.'/resources/views', 'draw');
         $this->loadTranslationsFrom(__DIR__.'/resources/lang', 'draw');
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                Console\DrawVerifyCommand::class,
+            ]);
+        }
     }
 }
