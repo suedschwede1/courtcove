@@ -9,3 +9,6 @@
 /.github export-ignore
 CHANGELOG.md export-ignore
 .styleci.yml export-ignore
+
+.env.dusk export-ignore
+.env.dusk.local export-ignore

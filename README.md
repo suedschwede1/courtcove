@@ -115,24 +115,41 @@ php artisan test
 
 Production runs on the Provider cPanel host and is served at `https://example.test/booking`.
 
-- **SSH**: use the alias `provider` (configured in `~/.ssh/config` / `~/.tcb.cnf` setup, from WSL).
+- **SSH**: use the alias `provider`, which lives in `~/.ssh/config` only (`~/.tcb.cnf` holds
+  MySQL client credentials, not SSH settings). Run everything from WSL.
 - **App directory**: `~/apps/bookingnew`, outside the web root. `public_html/booking` points
   at the app's `public/` directory (symlink, or a rewrite if the host disallows symlinks).
-  The app therefore runs under the `/booking` base path; routes are declared without it.
+  The app therefore runs under the `/booking` base path; routes are declared without it,
+  and views must build URLs with `url()`/`route()` (never root-absolute `'/bookings/...'`;
+  a test enforces this). `public/.htaccess` is the front controller and must stay committed.
 - **`.env` stays on the server only** and is never overwritten by a deploy (nor is `storage/`).
-  Set at least `APP_URL=https://example.test/booking`, the DB credentials and
-  `TOURNAMENT_BASE_URL` (tournament pages that stay on the legacy system; defaults to
-  `https://tournament.example.test` when empty).
+  Set at least:
+
+  ```dotenv
+  APP_URL=https://example.test/booking
+  SESSION_DRIVER=database       # the `sessions` table is created by `php artisan migrate`
+  SESSION_PATH=/booking
+  SESSION_SECURE_COOKIE=true
+  CACHE_STORE=file              # no `cache` table is created; do not use the database store
+  ```
+
+  plus the DB credentials and `TOURNAMENT_BASE_URL` (tournament pages that stay on the
+  legacy system; defaults to `https://tournament.example.test` when empty).
 - **Mail**: SMTP via the `booking@example.test` mailbox (`MAIL_*` in the server `.env`).
 - **Cron**: if the scheduler is used, add a cPanel cron job running
   `php ~/apps/bookingnew/artisan schedule:run` every minute.
 - **No Node.js on the server**: run `npm run build` locally and commit `public/build/`.
+  WSL's Node is too old and `node_modules` holds Windows-only native bindings, so run
+  `npm run build` from **Windows**, commit `public/build`, then run the deploy script from
+  WSL with `--skip-build`.
 
 Deploy from WSL in the repo root with a clean, committed tree:
 
 ```bash
 scripts/deploy-provider.sh --dry-run             # print the steps, no ssh, no prompt
 scripts/deploy-provider.sh                       # master only; asks "Proceed? [y/N]"
+scripts/deploy-provider.sh --skip-build          # build was done from Windows and committed
+scripts/deploy-provider.sh --first-deploy        # very first deploy only (see below)
 scripts/deploy-provider.sh --allow-branch --yes  # other branch (e.g. staging), no prompt
 scripts/deploy-provider.sh '~/apps/other'        # other target dir (quote the ~: expanded on the server)
 ```
@@ -141,31 +158,48 @@ scripts/deploy-provider.sh '~/apps/other'        # other target dir (quote the ~
   exits with an error unless `--allow-branch` is passed. The script prints branch, commit,
   host and target and asks for confirmation before the first ssh (`--yes` skips it).
 - The target dir must match `^(~/)?[A-Za-z0-9._/-]+$`, and its `.env` must already exist.
-- The script builds assets, then on the server: `php artisan down` (maintenance mode),
-  removes the repo-owned dirs (`app database routes resources config lang Modules`, so
-  deleted files and migrations do not linger; existing `local.php`/`*.local.php` files are
-  kept), extracts `git archive HEAD`, runs `optimize:clear`,
-  `composer install --no-dev --optimize-autoloader`, `php artisan migrate --force`, the
-  `config:cache`/`route:cache`/`view:cache` steps, and only then `php artisan up`. It
-  prints the deployed commit.
+- The script builds assets (`--skip-build` skips `npm run build` but still requires
+  `public/build/manifest.json` to be committed and the tree to be clean), then on the
+  server: pre-flight, `php artisan down` (maintenance mode), removes the repo-owned dirs
+  (`app database routes resources config lang Modules`, so deleted files and migrations do
+  not linger), extracts `git archive HEAD`, deletes the generated `bootstrap/cache/*.php`
+  files, runs `composer install --no-dev --optimize-autoloader`, `optimize:clear`,
+  `php artisan migrate --force`, the `config:cache`/`route:cache`/`view:cache` steps, and
+  only then `php artisan up`. It prints the deployed commit.
+- **Without `--first-deploy` the script refuses** (exit 1, before `artisan down` and before
+  extracting anything) when `php artisan migrate:status` fails on the server (no
+  `migrations` table, DB unreachable) or when there is no `artisan` there yet. So it can
+  never run `migrate --force` against a database created by the old ZF2 system.
 - **If a step fails the site stays in maintenance mode** (loud message, no auto-up). Fix the
   cause and run `php artisan up` on the server by hand.
-- Git-ignored local files (`lang/*/booking/local.php`, `config/calendar.local.php`) are not
-  deployed; place them on the server by hand once.
+- **Per-installation overrides are never deployed.** Five git-ignored files must be placed
+  on the server by hand; the deploy keeps them if present:
+  1. `lang/{de,en}/booking/local.php`
+  2. `config/calendar.local.php`
+  3. `lang/{de,en}/booking/quotes.local.php`
+  4. `lang/{de,en}/booking/quotes_named.local.php`
+  5. `lang/de/booking/quote_groups.php`
 
-**First deploy against a database created by the old ZF2 system** (manual, deliberate, in
-this order, on the server in the app directory):
+**First deploy against a database created by the old ZF2 system.** Run the script once with
+`--first-deploy`: it deploys the code, runs `composer install` and `optimize:clear`, but does
+**not** run `migrate --force` and does **not** run `php artisan up` (if it put the site into
+maintenance mode it stays there). It then prints these manual steps, which you run on the
+server in the app directory, in this order:
 
 1. `php artisan migrate:install`
-2. `php artisan db:baseline-legacy --dry-run`
+2. `php artisan db:baseline-legacy --dry-run` (review the output before continuing)
 3. `php artisan db:baseline-legacy`
 4. `php artisan migrate --force`
 
-The deploy script never runs steps 1-3. Details:
+Then `php artisan config:cache && php artisan route:cache && php artisan view:cache` and
+`php artisan up`. The script never runs steps 1-4 itself; later deploys use the plain
+command. Details:
 [docs/superpowers/specs/2026-11-04-provider-laravel-cutover-design.md](docs/superpowers/specs/2026-11-04-provider-laravel-cutover-design.md).
 
-Legacy ZF2 URLs (`/user/login`, `/user/bookings`, `/square/...`, `/backend/...` etc.) are
-301-redirected to their Laravel equivalents.
+Legacy ZF2 URLs (`/user/login`, `/user/bookings`, `/user/password`, `/user/registration`,
+`/user/activation`, `/square/...`, `/backend/...` etc.) are redirected with a temporary
+**302** to their Laravel equivalents (not 301, so a rollback to ZF2 is not poisoned by
+cached redirects).
 
 *Historical:* before Provider the app was hosted on hosting.example.test shared hosting (no SSH) and
 updated by FTP upload of changed files.

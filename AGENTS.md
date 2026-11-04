@@ -83,8 +83,9 @@ with `php artisan view:cache` (catches Blade syntax errors) then `php artisan vi
 ### Per-installation overrides (never committed)
 
 Several optional, gitignored files let a specific club deployment customize content
-without touching tracked files (important since deployments are updated via FTP, not
-`git pull` — see Deployment below). Each has a tracked `*.example.php` template:
+without touching tracked files (important since the Provider deploy ships `git archive HEAD`
+over SSH, which never contains them — place them on the server by hand; the deploy wipe
+keeps them; see Deployment below). Each has a tracked `*.example.php` template:
 
 | Purpose | File (per locale where noted) | Semantics |
 |---|---|---|
@@ -101,11 +102,17 @@ absent — see `App\Services\QuoteGroups` for the reference implementation.
 ## Deployment (Provider)
 
 Production is the Provider cPanel host (SSH alias `provider`, app in `~/apps/bookingnew`,
-served at `/booking`). Deploy from WSL with `scripts/deploy-provider.sh` (`--dry-run` first;
-never run it without the user asking). It ships `git archive HEAD` over ssh and never
-overwrites the server's `.env` or `storage/`. `db:baseline-legacy` / `migrate:install`
-are manual first-deploy steps, not part of the script. No Node.js on the server:
-`npm run build` locally and `public/build/` **is committed to git**. See README
+served at `/booking`, so never hard-code root-absolute URLs in views/JS). Deploy from WSL
+with `scripts/deploy-provider.sh` (`--dry-run` first; never run it without the user asking).
+It ships `git archive HEAD` over ssh and never overwrites the server's `.env` or `storage/`.
+Without `--first-deploy` it refuses (before `artisan down`/extract) if
+`php artisan migrate:status` fails on the server or there is no artisan yet; with
+`--first-deploy` it deploys code + composer install + optimize:clear but runs no `migrate`
+and no `artisan up`, and prints the manual steps (`migrate:install`,
+`db:baseline-legacy --dry-run`, `db:baseline-legacy`, `migrate --force`), which are never
+part of the script. `--skip-build` skips `npm run build` (run it from Windows; WSL Node
+is too old) but still requires a committed `public/build/manifest.json` and a clean tree.
+No Node.js on the server: `public/build/` **is committed to git**. See README
 "Deployment (Provider)" and `docs/superpowers/specs/2026-11-04-provider-laravel-cutover-design.md`.
 The old hosting.example.test FTP flow is historical only.
 
