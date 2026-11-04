@@ -219,6 +219,10 @@ Details and the routing test table: `docs/deploy/2026-provider-cutover-runbook.m
 *Historical:* before Provider the app was hosted on hosting.example.test shared hosting (no SSH) and
 updated by FTP upload of changed files.
 
+### Character set (emoji)
+
+The legacy `bs_*` tables are `utf8mb3`, while Laravel connects as `utf8mb4`; storing a 4-byte character (emoji) there fails with MySQL error 3988 (HTTP 500). The `App\Http\Middleware\StripFourByteCharacters` middleware (web and api groups) therefore removes 4-byte characters from all request input. The Members module is exempt (its tables are `utf8mb4` and keep emoji); the opt-out list lives on the middleware and must not include the tournament modules while any module path is still bridged to the old app.
+
 ## Layout reference
 
 The stable UI layout is marked with the Git tag **`mobile-view-stable`**.

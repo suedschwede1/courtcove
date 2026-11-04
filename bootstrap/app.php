@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\SetLocale;
+use App\Http\Middleware\StripFourByteCharacters;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -13,7 +14,8 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->encryptCookies(except: ['locale', 'admin_mode']);
-        $middleware->web(append: [SetLocale::class]);
+        $middleware->web(append: [SetLocale::class, StripFourByteCharacters::class]);
+        $middleware->api(append: [StripFourByteCharacters::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
