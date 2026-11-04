@@ -6,4 +6,124 @@
     .ds-icon {
         flex-shrink: 0;
     }
+
+    .ds-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: var(--spacing-control-h);
+        padding: 0 18px;
+        border: 1px solid transparent;
+        border-radius: var(--radius-md);
+        font: 700 var(--text-button) / 20px var(--font-body);
+        text-decoration: none;
+        cursor: pointer;
+        transition: background-color 0.12s, color 0.12s, border-color 0.12s;
+    }
+
+    .ds-btn--primary {
+        background: var(--color-clay);
+        color: var(--color-on-clay);
+    }
+
+    .ds-btn--primary:hover {
+        background: var(--color-clay-hover);
+    }
+
+    .ds-btn--secondary {
+        background: var(--color-surface);
+        color: var(--color-ink);
+        border-color: var(--color-line);
+        font-weight: 600;
+    }
+
+    .ds-btn--secondary:hover {
+        border-color: var(--color-line-strong);
+    }
+
+    .ds-btn--dark {
+        background: var(--color-chrome);
+        color: var(--color-surface);
+    }
+
+    .ds-btn--dark:hover {
+        background: var(--color-ink-2);
+    }
+
+    .ds-btn--danger {
+        background: var(--color-surface);
+        color: var(--color-danger);
+        border-color: var(--color-danger-soft);
+    }
+
+    .ds-btn--danger:hover {
+        background: var(--color-danger-soft);
+    }
+
+    .ds-btn--text {
+        background: transparent;
+        color: var(--color-ink-2);
+        border-color: transparent;
+    }
+
+    .ds-btn--text:hover {
+        color: var(--color-ink);
+    }
+
+    .ds-btn[disabled],
+    .ds-btn[aria-disabled="true"],
+    .ds-icon-btn[disabled],
+    .ds-icon-btn[aria-disabled="true"] {
+        opacity: 0.5;
+        pointer-events: none;
+    }
+
+    .ds-icon-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: var(--spacing-touch-min);
+        height: var(--spacing-touch-min);
+        border: 1px solid transparent;
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        text-decoration: none;
+        transition: background-color 0.12s, color 0.12s, border-color 0.12s;
+    }
+
+    .ds-icon-btn--secondary {
+        background: var(--color-surface);
+        border-color: var(--color-line);
+        color: var(--color-ink);
+    }
+
+    .ds-icon-btn--chrome {
+        background: rgb(255 255 255 / 0.1);
+        color: var(--color-surface);
+    }
+
+    .ds-icon-btn--text {
+        background: transparent;
+        color: var(--color-ink-2);
+    }
+
+    @media (width < 48rem) {
+        .ds-btn {
+            min-height: var(--spacing-control-h-mobile);
+            border-radius: var(--radius-lg);
+            font-size: 17px;
+        }
+
+        .ds-btn--block {
+            width: 100%;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .ds-btn,
+        .ds-icon-btn {
+            transition: none;
+        }
+    }
 }

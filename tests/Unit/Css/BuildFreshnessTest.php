@@ -30,7 +30,7 @@ final class BuildFreshnessTest extends TestCase
             foreach ($strings as $s) {
                 preg_match_all('/\bds-[a-z0-9_-]+/', $s, $t);
                 foreach ($t[0] as $token) {
-                    if (! str_contains($css, '.'.$token)) {
+                    if (! preg_match('/\.'.preg_quote($token, '/').'(?![\w-])/', $css)) {
                         $missing[$token] = basename($file);
                     }
                 }

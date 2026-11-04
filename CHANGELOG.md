@@ -8,6 +8,10 @@ reference point is `mobile-view-stable` (see [README.md](README.md#layout-refere
 When adding an entry: describe the *why*/user-facing effect in one line, not the diff —
 `git log` already has that. Add new entries at the top, under today's date.
 
+## 2026-11-05
+
+- Shared button components with 46/52 px touch targets.
+
 ## 2026-11-04
 
 - Shared SVG icon set for the new design (no icon font, no emoji).
