@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-04
 
+- Tournament bridge hardening: direct requests to `zf2-bridge.php` (including `/zf2-bridge.php/x` PATH_INFO forms) answer 404; the default ZF2 dir (`../zf2/public`) applies only to an app directory named `bookingnew` (staging needs `zf2.path`/`ZF2_PUBLIC`, else 503); `zf2.path` must be absolute; allowlisted paths with a trailing slash are 301-redirected to the slashless URL; the deploy script follows the same default/trim rules.
 - Docs: the cutover design, runbook, README and AGENTS now describe the same-host tournament model (ZF2 install in `~/apps/zf2`, `zf2.path`, asset linking, routing test table) instead of the `turnier.` subdomain.
 - Deploy script links the legacy ZF2 static assets (css, js, imgs, vendor, ...) into `public/` after extracting (ZF2 dir from `zf2.path` or `../zf2/public`; skipped with a note when missing), so the same-host tournament pages are styled.
 - Tournament buttons now link to the same host (`/pyramide`, `/mixed-tournament`, `/tournament`, honoring the `/booking` base path); `TOURNAMENT_BASE_URL` is empty by default and only needed for a separate tournament host. The `/user/login|logout|password[-reset]` redirects are gone because ZF2 serves those paths.

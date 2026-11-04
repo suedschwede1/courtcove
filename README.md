@@ -205,9 +205,10 @@ cached redirects).
 **Tournament pages (legacy ZF2) on the same host.** `/tournament`, `/mixed-tournament`,
 `/pyramide`, `/draw`, `/service/...` and ZF2's own `/user/login|logout|password[-reset]` are
 rewritten by `public/.htaccess` to `public/zf2-bridge.php`, which runs the ZF2 app installed
-outside the web root (default `~/apps/zf2`, i.e. next to `~/apps/bookingnew`; override with
-the `ZF2_PUBLIC` env var or an untracked `zf2.path` file in the app root containing the
-absolute path of ZF2's `public` dir). There is no `turnier.` subdomain. On every deploy the
+outside the web root (default `~/apps/zf2`, next to `~/apps/bookingnew`, used **only** when the app directory is
+named `bookingnew`; any other directory, e.g. staging, needs the `ZF2_PUBLIC` env var or an
+untracked `zf2.path` file in the app root containing the absolute path of ZF2's `public` dir,
+otherwise the tournament pages answer 503). There is no `turnier.` subdomain. On every deploy the
 script symlinks ZF2's static dirs (`css css-client docs docs-client imgs imgs-client js
 js-client misc misc-client vendor`) into `public/` and prints a note if the ZF2 dir is
 missing (tournament pages then answer 503). Members have two logins (Laravel `/login`, ZF2

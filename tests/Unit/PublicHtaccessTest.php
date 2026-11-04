@@ -91,4 +91,27 @@ class PublicHtaccessTest extends TestCase
         $this->assertLessThan($front, $bridge);
         $this->assertSame(strrpos($contents, 'zf2-bridge.php'), strrpos(substr($contents, 0, $front), 'zf2-bridge.php'));
     }
+
+    public function test_trailing_slash_on_allowlisted_paths_is_redirected_before_the_bridge(): void
+    {
+        $contents = file_get_contents(dirname(__DIR__, 2).'/public/.htaccess');
+
+        $this->assertSame(1, preg_match('#^\s*RewriteRule\s+(\S+)\s+%1\s+\[L,R=301\]\s*$#m', $contents, $m));
+        $this->assertLessThan(
+            strpos($contents, 'RewriteRule ^(tournament|mixed-tournament|pyramide|draw|service)(/|$) zf2-bridge.php'),
+            strpos($contents, $m[0]),
+        );
+        $this->assertStringContainsString('RewriteCond %{REQUEST_URI} (.+)/$
+'.$m[0], $contents);
+
+        $matches = static fn (string $path): bool => preg_match('#'.str_replace('#', '\#', $m[1]).'#', $path) === 1;
+
+        foreach (['tournament/', 'mixed-tournament/', 'pyramide/', 'draw/1/', 'service/help/', 'user/login/', 'user/password-reset/'] as $path) {
+            $this->assertTrue($matches($path), "$path/ must be redirected to the slashless URL");
+        }
+
+        foreach (['tournament', 'calendar/', 'login/', 'bookings/', 'user/bookings/', 'square/', 'admin/', 'tournaments/', 'user/loginx/'] as $path) {
+            $this->assertFalse($matches($path), "$path must not be touched");
+        }
+    }
 }

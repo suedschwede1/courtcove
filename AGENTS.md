@@ -115,8 +115,8 @@ is too old) but still requires a committed `public/build/manifest.json` and a cl
 Tournament pages are the legacy ZF2 app served on the **same host** (no `turnier.` subdomain):
 `public/.htaccess` rewrites an allowlist (`tournament|mixed-tournament|pyramide|draw|service`,
 `user/login|logout|password[-reset]`) to `public/zf2-bridge.php`, which runs ZF2's `index.php`
-from its own install (`~/apps/zf2`; override with env `ZF2_PUBLIC` or an untracked
-`<app>/zf2.path` file, e.g. staging). The deploy script symlinks ZF2's static dirs into
+from its own install (`~/apps/zf2`, default only for an app dir named `bookingnew`; otherwise
+set env `ZF2_PUBLIC` or an untracked absolute-path `<app>/zf2.path`, e.g. staging). The deploy script symlinks ZF2's static dirs into
 `public/`. Never add paths to that allowlist casually (it exposes ZF2) and never copy the old
 install's one-off `public/*.php` scripts into the ZF2 copy. `TOURNAMENT_BASE_URL` stays empty
 (same host). No Node.js on the server: `public/build/` **is committed to git**. See README
