@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-04
 
+- Phase 2: token draw helpers ported unchanged (golden vectors).
 - Phase 2: stored draw payloads are checked to be exactly canonical JSON.
 - Phase 2: Draw module with a byte-exact port of the commit/reveal draw maths (golden vectors from the old code).
 - Phase 2 groundwork: golden draw/token/score vectors captured from the old services (`tests/Fixtures/draw`, regenerable with `generate_vectors.php`) plus the public `tools/verify_draw.py` verifier, so the port can be checked byte for byte.
