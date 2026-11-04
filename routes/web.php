@@ -55,6 +55,16 @@ Route::get('/booking', static fn () => redirect()->route('calendar.index'));
 Route::get('/bookings', static fn () => redirect()->route('calendar.index'));
 Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');
 
+// Legacy ZF2 URLs (bookmarks, mails, links on the club site). Permanent redirects,
+// no auth required. /user/logout was a GET in ZF2; Laravel logout is POST-only, so
+// it just lands on the calendar without touching the session.
+Route::get('/user/login', static fn () => redirect()->route('login', [], 301));
+Route::get('/user/logout', static fn () => redirect()->route('calendar.index', [], 301));
+Route::get('/user/bookings', static fn () => redirect()->route('account.bookings', [], 301));
+Route::get('/user/settings', static fn () => redirect()->route('account.edit', [], 301));
+Route::get('/square/{any?}', static fn () => redirect()->route('calendar.index', [], 301))->where('any', '.*');
+Route::get('/backend/{any?}', static fn () => redirect()->route('admin.dashboard', [], 301))->where('any', '.*');
+
 Route::middleware('auth')->group(function (): void {
     Route::get('/bookings/create', [BookingController::class, 'create'])->name('bookings.create');
     Route::get('/bookings/players', [BookingController::class, 'players'])->name('bookings.players');

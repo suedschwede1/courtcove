@@ -98,12 +98,16 @@ When adding a new override mechanism, follow this pattern: gitignore the real fi
 a documented `.example.php`, and fail gracefully (empty array / default) when the file is
 absent — see `App\Services\QuoteGroups` for the reference implementation.
 
-## Deployment (hosting.example.test shared hosting)
+## Deployment (Provider)
 
-No Node.js on the server. `npm run build` must be run locally and `public/build/` **is
-committed to git** (unusual, but required here). Deploys are done via FTP of changed
-files, not a git-based pipeline — keep this in mind when suggesting deployment steps or
-assuming `git pull` happens on the server.
+Production is the Provider cPanel host (SSH alias `provider`, app in `~/apps/bookingnew`,
+served at `/booking`). Deploy from WSL with `scripts/deploy-provider.sh` (`--dry-run` first;
+never run it without the user asking). It ships `git archive HEAD` over ssh and never
+overwrites the server's `.env` or `storage/`. `db:baseline-legacy` / `migrate:install`
+are manual first-deploy steps, not part of the script. No Node.js on the server:
+`npm run build` locally and `public/build/` **is committed to git**. See README
+"Deployment (Provider)" and `docs/superpowers/specs/2026-11-04-provider-laravel-cutover-design.md`.
+The old hosting.example.test FTP flow is historical only.
 
 ## Testing conventions
 
