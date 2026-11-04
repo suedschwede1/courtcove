@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-04
 
+- Tournament pages stay on the same host: `public/.htaccess` routes `/tournament`, `/mixed-tournament`, `/pyramide`, `/draw`, `/service` and the ZF2 login/logout/password pages through the new `public/zf2-bridge.php` to the legacy ZF2 app (located via `ZF2_PUBLIC`, an untracked `zf2.path` file, or `../zf2/public`); everything else stays with Laravel.
 - Deploy script: re-deploys no longer fail on stale generated `bootstrap/cache` files (now untracked and deleted before any artisan call), `.env.dusk*` are no longer shipped, the wipe keeps `lang/de/booking/quote_groups.php`, and new `--first-deploy` / `--skip-build` flags make the documented first-deploy order possible (without `--first-deploy` the script refuses when the server DB has no migrations table).
 - Legacy ZF2 URL redirects are now temporary (302) instead of 301, so a rollback to the old system is not poisoned by cached permanent redirects, and `/user/password`, `/user/password-reset`, `/user/registration` and `/user/activation[/...]` are covered too.
 - Added a guarded `sessions` table migration so `SESSION_DRIVER=database` (the production setting) works after `migrate`; the composite meta-table index migration is now re-runnable after a partial failure.
