@@ -105,6 +105,19 @@ class UserManagementTest extends TestCase
     }
 
     #[Test]
+    public function zf2_granted_tournament_privilege_is_preselected_in_the_user_form(): void
+    {
+        $u = User::factory()->create(['status' => 'assist']);
+        $u->setMeta('allow.admin.pyramid', 'true');
+
+        $html = $this->actingAs($this->admin())->get("/admin/users/{$u->uid}/edit")
+            ->assertOk()->getContent();
+
+        $this->assertMatchesRegularExpression('/<option value="admin\.pyramid"[^>]*\sselected\b[^>]*>/', $html);
+        $this->assertMatchesRegularExpression('/<option value="admin\.draw"(?![^>]*\sselected\b)[^>]*>/', $html);
+    }
+
+    #[Test]
     public function existing_zf2_tournament_privileges_survive_a_save(): void
     {
         $u = User::factory()->create(['status' => 'assist']);
