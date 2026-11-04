@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-04
 
+- Phase 2: draw tables adopted in place (guarded create migrations, no-op rollback, schema manifest).
 - Phase 2: token draw helpers ported unchanged (golden vectors).
 - Phase 2: stored draw payloads are checked to be exactly canonical JSON.
 - Phase 2: Draw module with a byte-exact port of the commit/reveal draw maths (golden vectors from the old code).
