@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Modules\TournamentBase;
 
+use App\Models\User;
 use App\Modules\Draw\Models\Draw;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -23,6 +25,7 @@ class Phase2ScrubStagingCommandTest extends TestCase
         parent::setUp();
 
         $this->assertSame('sqlite', DB::connection()->getDriverName());
+        config(['tournament-base.live_database' => 'fictional_live']);
         Draw::factory()->create(['slug' => 'real-draw-1']);
     }
 
@@ -52,6 +55,26 @@ class Phase2ScrubStagingCommandTest extends TestCase
             ->assertExitCode(1);
 
         $this->assertTrue($this->untouched());
+    }
+
+    #[Test]
+    #[DataProvider('unsetLiveDatabaseValues')]
+    public function refuses_when_live_database_is_not_configured(mixed $value): void
+    {
+        config(['tournament-base.live_database' => $value]);
+        DB::connection()->setDatabaseName('booking_staging');
+
+        $this->artisan('phase2:scrub-staging', ['--force' => true, '--no-interaction' => true])
+            ->expectsOutputToContain('PHASE2_LIVE_DB_DATABASE')
+            ->assertExitCode(1);
+
+        $this->assertTrue($this->untouched());
+    }
+
+    /** @return array<string, array{mixed}> */
+    public static function unsetLiveDatabaseValues(): array
+    {
+        return ['null' => [null], 'empty' => ['']];
     }
 
     #[Test]
@@ -85,6 +108,8 @@ class Phase2ScrubStagingCommandTest extends TestCase
     {
         DB::connection()->setDatabaseName('booking_staging');
         $this->app['env'] = 'production';
+        $user = User::factory()->create(['email' => 'keep.me@real-club.invalid']);
+        DB::table('migrations')->insert(['migration' => 'survivor-row', 'batch' => 9999]);
 
         $this->artisan('phase2:scrub-staging', ['--force' => true, '--no-interaction' => true])
             ->expectsOutput('Tables: bs_draw_eligible, bs_draw_tokens, bs_draws')
@@ -92,5 +117,7 @@ class Phase2ScrubStagingCommandTest extends TestCase
 
         $this->assertFalse($this->untouched());
         $this->assertTrue(Draw::query()->where('slug', 'demo-closed')->exists());
+        $this->assertTrue(User::query()->whereKey($user->getKey())->where('email', 'keep.me@real-club.invalid')->exists());
+        $this->assertTrue(DB::table('migrations')->where('migration', 'survivor-row')->exists());
     }
 }

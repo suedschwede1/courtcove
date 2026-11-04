@@ -77,6 +77,7 @@ class DrawDemoSeeder extends Seeder
         return hash('sha256', 'demo-beacon-'.$slug);
     }
 
+    // Invented tpid/claimed_uid ids (9001+/9101+) assume no real rows with those ids exist; names are never joined.
     private function eligible(Draw $draw): void
     {
         for ($tpid = 9001; $tpid <= 9006; $tpid++) {

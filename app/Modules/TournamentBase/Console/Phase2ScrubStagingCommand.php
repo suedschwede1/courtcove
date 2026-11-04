@@ -29,7 +29,15 @@ class Phase2ScrubStagingCommand extends Command
             return 1;
         }
 
-        if ($db === config('tournament-base.live_database')) {
+        $live = config('tournament-base.live_database');
+
+        if (! is_string($live) || trim($live) === '') {
+            $this->error('Refusing: tournament-base.live_database (PHASE2_LIVE_DB_DATABASE) is not set; the live-database guard cannot be skipped.');
+
+            return 1;
+        }
+
+        if ($db === $live) {
             $this->error("Refusing: database '{$db}' is the live database.");
 
             return 1;
