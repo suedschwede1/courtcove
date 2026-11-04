@@ -30,4 +30,24 @@ class MigrationTest extends TestCase
             );
         }
     }
+
+    #[Test]
+    public function sessions_table_exists_for_the_database_session_driver(): void
+    {
+        $this->assertTrue(\Schema::hasTable('sessions'));
+
+        foreach (['id', 'user_id', 'ip_address', 'user_agent', 'payload', 'last_activity'] as $column) {
+            $this->assertTrue(\Schema::hasColumn('sessions', $column), "sessions.{$column} missing");
+        }
+    }
+
+    #[Test]
+    public function sessions_migration_is_a_noop_when_the_table_already_exists(): void
+    {
+        $migration = require database_path('migrations/2026_11_04_000001_create_sessions_table.php');
+
+        $migration->up();
+
+        $this->assertTrue(\Schema::hasTable('sessions'));
+    }
 }

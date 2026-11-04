@@ -316,6 +316,34 @@ class LoginTest extends TestCase
     }
 
     #[Test]
+    public function remember_me_login_for_a_normal_member_does_not_fail_without_a_remember_token_column(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'member@example.com',
+            'pw' => bcrypt('secret123'),
+            'status' => 'enabled',
+        ]);
+        $before = $user->fresh()->getAttributes();
+
+        $this->post('/login', [
+            'email' => 'member@example.com',
+            'password' => 'secret123',
+            'remember' => '1',
+        ])->assertRedirect('/calendar');
+
+        $this->assertAuthenticated();
+
+        // bs_users (legacy table) has no remember_token column; nothing but the existing
+        // login bookkeeping columns may change.
+        $after = $user->fresh()->getAttributes();
+        $changed = array_keys(array_diff_assoc($after, $before));
+        $bookkeeping = ['login_attempts', 'login_detent', 'last_activity', 'last_ip'];
+
+        $this->assertSame([], array_values(array_diff($changed, $bookkeeping)), 'unexpected columns changed on login');
+        $this->assertArrayNotHasKey('remember_token', $after);
+    }
+
+    #[Test]
     public function successful_login_updates_last_activity_and_last_ip(): void
     {
         $user = User::factory()->create([
