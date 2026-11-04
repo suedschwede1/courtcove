@@ -22,5 +22,11 @@ class TournamentBaseServiceProvider extends ServiceProvider
     {
         $this->loadTranslationsFrom(__DIR__.'/resources/lang', 'tournament-base');
         $this->loadViewsFrom(__DIR__.'/resources/views', 'tournament-base');
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                Console\Phase2PreflightCommand::class,
+            ]);
+        }
     }
 }
