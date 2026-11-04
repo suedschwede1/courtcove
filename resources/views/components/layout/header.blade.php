@@ -50,6 +50,16 @@
                 @endif
 
                 @auth
+                    @inject('tournamentLinks', \App\Services\TournamentLinks::class)
+                    @php $championship = $tournamentLinks->currentChampionship(); @endphp
+                    @if($championship)
+                        <a href="{{ $championship['url'] }}"
+                           class="inline-flex h-8 items-center rounded-[6px] border border-[#d4cec3] bg-white px-4 text-[13px] font-medium text-[#6a6e73] transition-colors hover:border-[#bf4316] hover:text-[#bf4316]">{{ $championship['title'] }}</a>
+                    @endif
+                    <a href="{{ $tournamentLinks->pyramidUrl() }}"
+                       class="inline-flex h-8 items-center rounded-[6px] border border-[#d4cec3] bg-white px-4 text-[13px] font-medium text-[#6a6e73] transition-colors hover:border-[#bf4316] hover:text-[#bf4316]">{{ __('booking.nav.challenge_pyramid') }}</a>
+                    <a href="{{ $tournamentLinks->mixedUrl() }}"
+                       class="inline-flex h-8 items-center rounded-[6px] border border-[#d4cec3] bg-white px-4 text-[13px] font-medium text-[#6a6e73] transition-colors hover:border-[#bf4316] hover:text-[#bf4316]">{{ __('booking.nav.mixed_tournament') }}</a>
                     <a href="{{ route('account.bookings') }}"
                        class="inline-flex h-8 items-center rounded-[6px] border border-[#d4cec3] bg-white px-4 text-[13px] font-medium text-[#6a6e73] transition-colors hover:border-[#bf4316] hover:text-[#bf4316]">{{ __('booking.nav.my_bookings') }}</a>
                     <a href="{{ route('account.edit') }}"

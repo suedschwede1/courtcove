@@ -14,6 +14,8 @@ use App\Models\SquareMeta;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -50,6 +52,61 @@ class CalendarControllerTest extends TestCase
     {
         $user = User::factory()->create();
         $this->actingAs($user)->get('/calendar')->assertOk()->assertViewIs('calendar.index');
+    }
+
+    private function createTournamentsTable(): void
+    {
+        Schema::dropIfExists('bs_tournaments');
+        Schema::create('bs_tournaments', function ($table): void {
+            $table->increments('tid');
+            $table->string('title');
+            $table->string('status')->default('running');
+            $table->integer('season')->default(2026);
+            $table->tinyInteger('active')->default(0);
+            $table->tinyInteger('is_test')->default(0);
+        });
+    }
+
+    #[Test]
+    public function logged_in_user_sees_tournament_buttons(): void
+    {
+        $this->createTournamentsTable();
+        DB::table('bs_tournaments')->insert(['title' => 'VM 2026', 'status' => 'running', 'season' => 2026, 'active' => 1, 'is_test' => 0]);
+
+        $this->actingAs(User::factory()->create())
+            ->get('/calendar')
+            ->assertOk()
+            ->assertSee('VM 2026')
+            ->assertSee('Forderungspyramide')
+            ->assertSee('Mixed-/Fun-Turnier')
+            ->assertSee('https://tournament.example.test/tournament')
+            ->assertSee('https://tournament.example.test/pyramide')
+            ->assertSee('https://tournament.example.test/mixed-tournament');
+
+        Schema::dropIfExists('bs_tournaments');
+    }
+
+    #[Test]
+    public function championship_button_hidden_without_tournament(): void
+    {
+        Schema::dropIfExists('bs_tournaments');
+
+        $this->actingAs(User::factory()->create())
+            ->get('/calendar')
+            ->assertOk()
+            ->assertSee('Forderungspyramide')
+            ->assertSee('Mixed-/Fun-Turnier')
+            ->assertDontSee('VM')
+            ->assertDontSee('tournament.example.test/tournament"', false);
+    }
+
+    #[Test]
+    public function guests_see_no_tournament_buttons(): void
+    {
+        $this->get('/calendar')
+            ->assertOk()
+            ->assertDontSee('Forderungspyramide')
+            ->assertDontSee('Mixed-/Fun-Turnier');
     }
 
     #[Test]
