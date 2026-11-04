@@ -5,23 +5,124 @@
     --wm-src: 'hm-b26c8c89';
 }
 
-@theme {
-    /* Club-Orange Palette */
-    --color-accent-50:  oklch(97%   0.012 35);
-    --color-accent-100: oklch(93%   0.030 35);
-    --color-accent-200: oklch(86%   0.060 35);
-    --color-accent-300: oklch(76%   0.100 35);
-    --color-accent-400: oklch(64%   0.150 35);
-    --color-accent-500: oklch(57%   0.178 35);
-    --color-accent-600: oklch(51%   0.190 35);
-    --color-accent-700: oklch(43%   0.168 35);
-    --color-accent-800: oklch(35%   0.138 35);
-    --color-accent-900: oklch(28%   0.100 35);
-    --color-accent-950: oklch(20%   0.070 35);
+@theme static {
+    --color-ground: #F5F1EA;
+    --color-surface: #FFFFFF;
+    --color-surface-sunk: #FAF8F4;
+    --color-sand: #EFE9DF;
+    --color-line: #E3DCD0;
+    --color-line-soft: #F1ECE3;
+    --color-line-strong: #BDB2A2;
+    --color-ink: #1D1B18;
+    --color-ink-2: #4A443D;
+    --color-ink-3: #6B6359;
+    --color-chrome: #1D1B18;
+    --color-chrome-ink: #E7E0D5;
+    --color-chrome-muted: #CFC6B8;
+    --color-chrome-line: #3A3631;
+    --color-clay: #B5441A;
+    --color-clay-hover: #8F3412;
+    --color-on-clay: #FFFFFF;
+    --color-clay-soft: #FBF1EB;
+    --color-court: #1F5A44;
+    --color-on-court: #FFFFFF;
+    --color-court-soft: #E3F0E8;
+    --color-court-ink: #1F5A44;
+    --color-warn-soft: #FBEFD5;
+    --color-warn-ink: #7A4E00;
+    --color-danger: #9A2B17;
+    --color-danger-soft: #F8E1DC;
+    --color-cell-free-line: #CFC5B5;
+    --color-cell-booked: #E6DFD3;
+    --color-cell-past-a: #EDE8DF;
+    --color-cell-past-b: #F7F4EE;
 
-    /* Typografie */
-    --font-display: 'Red Hat Display', sans-serif;
-    --font-body:    'Red Hat Text', sans-serif;
+    --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+    --font-body: Barlow, system-ui, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 18px;
+    --radius-pill: 999px;
+    --spacing-touch-min: 44px;
+    --spacing-control-h: 46px;
+    --spacing-control-h-mobile: 52px;
+    --spacing-cell-h: 36px;
+    --spacing-cell-h-mobile: 48px;
+    --shadow-dialog: 0 20px 50px rgba(0, 0, 0, 0.25);
+    --shadow-sheet: 0 -10px 30px rgba(0, 0, 0, 0.2);
+    --text-display-xl: 40px;
+    --text-display-l: 32px;
+    --text-display-m: 24px;
+    --text-display-s: 20px;
+    --text-numeral: 40px;
+    --text-body-l: 17px;
+    --text-body: 15px;
+    --text-body-strong: 15px;
+    --text-body-s: 13px;
+    --text-label: 12px;
+    --text-button: 15px;
+
+    --text-display-xl--line-height: 40px;
+    --text-display-xl--font-weight: 700;
+    --text-display-l--line-height: 34px;
+    --text-display-l--font-weight: 700;
+    --text-display-m--line-height: 26px;
+    --text-display-m--font-weight: 700;
+    --text-display-s--line-height: 22px;
+    --text-display-s--font-weight: 700;
+    --text-numeral--line-height: 40px;
+    --text-numeral--font-weight: 700;
+    --text-body-l--line-height: 24px;
+    --text-body-l--font-weight: 500;
+    --text-body--line-height: 22px;
+    --text-body--font-weight: 400;
+    --text-body-strong--line-height: 22px;
+    --text-body-strong--font-weight: 700;
+    --text-body-s--line-height: 18px;
+    --text-body-s--font-weight: 400;
+    --text-label--line-height: 16px;
+    --text-label--font-weight: 700;
+    --text-label--letter-spacing: 0.1em;
+    --text-button--line-height: 20px;
+    --text-button--font-weight: 700;
+
+    --font-sans: var(--font-body);
+}
+
+/* Dark values: defined, not wired (restyle spec decision 3). */
+[data-theme="dark"] {
+    --color-ground: #171513;
+    --color-surface: #211E1B;
+    --color-surface-sunk: #1B1917;
+    --color-sand: #2C2824;
+    --color-line: #3A3631;
+    --color-line-soft: #2C2824;
+    --color-line-strong: #6A6259;
+    --color-ink: #F3EEE6;
+    --color-ink-2: #CFC6B8;
+    --color-ink-3: #A79D8F;
+    --color-chrome: #0F0E0D;
+    --color-chrome-ink: #E7E0D5;
+    --color-chrome-muted: #A79D8F;
+    --color-chrome-line: #2C2824;
+    --color-clay: #E07A4F;
+    --color-clay-hover: #F0936C;
+    --color-on-clay: #171513;
+    --color-clay-soft: #3A2419;
+    --color-court: #5FAE87;
+    --color-on-court: #171513;
+    --color-court-soft: #1E3329;
+    --color-court-ink: #8FD0AE;
+    --color-warn-soft: #3A2E12;
+    --color-warn-ink: #F0C46B;
+    --color-danger: #F08A72;
+    --color-danger-soft: #3D1C15;
+    --color-cell-free-line: #4A443D;
+    --color-cell-booked: #34302B;
+    --color-cell-past-a: #1F1C19;
+    --color-cell-past-b: #252220;
 }
 
 :root {
