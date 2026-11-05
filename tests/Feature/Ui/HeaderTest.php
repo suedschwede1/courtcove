@@ -43,7 +43,7 @@ class HeaderTest extends TestCase
     {
         $html = $this->get('/calendar')->assertOk()->assertDontSee('Forderungspyramide')->getContent();
 
-        $login = $this->xpath($html)->query('//a[@href="'.route('login', ['redirect_to' => url('/calendar')]).'"]');
+        $login = $this->xpath($html)->query('//*[contains(@class,"ds-header__tools")]//a[@href="'.route('login', ['redirect_to' => url('/calendar')]).'"]');
         $this->assertSame(1, $login->length);
         $this->assertContains('ds-btn', explode(' ', $login->item(0)->getAttribute('class')));
     }
@@ -73,11 +73,11 @@ class HeaderTest extends TestCase
         $admin = User::factory()->create(['status' => 'admin']);
         $html = $this->actingAs($admin)->get('/calendar')->assertOk()
             ->assertSee(route('admin-mode.set', ['state' => 'on']), false)->getContent();
-        $this->assertSame(1, $this->xpath($html)->query('//a[@role="switch"][@aria-checked="false"]')->length);
+        $this->assertSame(2, $this->xpath($html)->query('//a[@role="switch"][@aria-checked="false"]')->length); // bar + phone menu
 
         $html = $this->actingAs($admin)->withUnencryptedCookie('admin_mode', '1')->get('/calendar')->assertOk()
             ->assertSee(route('admin-mode.set', ['state' => 'off']), false)->getContent();
-        $this->assertSame(1, $this->xpath($html)->query('//a[@role="switch"][@aria-checked="true"]')->length);
+        $this->assertSame(2, $this->xpath($html)->query('//a[@role="switch"][@aria-checked="true"]')->length);
     }
 
     #[Test]
@@ -89,7 +89,7 @@ class HeaderTest extends TestCase
             ->getContent();
 
         $current = $this->xpath($html)->query('//span[@aria-current="true"]');
-        $this->assertSame(1, $current->length);
+        $this->assertSame(2, $current->length); // bar + phone menu
         $this->assertSame('DE', trim($current->item(0)->textContent));
     }
 

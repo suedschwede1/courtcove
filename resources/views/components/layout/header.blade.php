@@ -10,7 +10,7 @@
     $hasInfo = $__env->hasSection('calendar-system-info');
     $hasHelp = $__env->hasSection('calendar-help');
 @endphp
-<header class="ds-header ds-on-chrome no-print" x-data="{ menuOpen: false }" @keydown.escape.window="menuOpen = false">
+<header class="ds-header ds-on-chrome no-print" x-data="{ menuOpen: false }" @keydown.escape.window="if (menuOpen) { menuOpen = false; $refs.menuButton.focus() }" @resize.window="if (menuOpen && window.innerWidth >= 768) menuOpen = false">
     <div class="ds-header__bar">
         <a href="{{ route('calendar.index') }}" class="ds-header__brand">
             <x-ui.logo-mark :name="$bookingName" />
@@ -49,7 +49,7 @@
         <x-ui.icon-button icon="menu" variant="chrome" class="ds-header__menu-button" :label="__('booking.nav.open_menu')" x-ref="menuButton" x-on:click="menuOpen = true" aria-controls="phone-menu" x-bind:aria-expanded="menuOpen ? 'true' : 'false'" aria-expanded="false" />
     </div>
 
-    {{-- Task 17: <x-layout.phone-menu :items="$navItems" … /> goes here. --}}
+    <x-layout.phone-menu :items="$navItems" :club-name="$bookingName" />
 </header>
 
 @if($hasDateNav || $hasInfo || $hasHelp)
