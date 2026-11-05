@@ -23,7 +23,8 @@ class RecordPageTest extends TestCase
             ->assertSee('Losprotokoll', false)
             ->assertSee($draw->commitment)
             ->assertSee('Noch nicht gezogen')
-            ->assertDontSee($draw->server_seed);
+            ->assertDontSee($draw->server_seed)
+            ->assertDontSee('Nachrechnen');
     }
 
     #[Test]
@@ -50,7 +51,22 @@ class RecordPageTest extends TestCase
         $this->get("draw/record/{$draw->slug}")
             ->assertOk()
             ->assertDontSee($draw->server_seed)
+            ->assertDontSee($draw->final_seed)
+            ->assertDontSee($draw->beacon_value)
+            ->assertDontSee('Nachrechnen')
             ->assertSee('Noch nicht gezogen');
+    }
+
+    #[Test]
+    public function closed_token_draw_is_revealed(): void
+    {
+        $draw = Draw::factory()->token()->closed()->create();
+
+        $this->get("draw/record/{$draw->slug}")
+            ->assertOk()
+            ->assertSee($draw->server_seed)
+            ->assertSee($draw->final_seed)
+            ->assertDontSee('Noch nicht gezogen');
     }
 
     #[Test]
@@ -115,7 +131,7 @@ class RecordPageTest extends TestCase
 
         $html = $this->get("/booking/draw/record/{$draw->slug}")->assertOk()->getContent();
 
-        $this->assertMatchesRegularExpression('#href="[^"]*/booking/draw/record/'.preg_quote($draw->slug, '#').'/json"#', $html);
+        $this->assertMatchesRegularExpression('#href="(https?://[^/"]+)?/booking/draw/record/'.preg_quote($draw->slug, '#').'/json"#', $html);
     }
 
     #[Test]
