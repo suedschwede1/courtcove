@@ -5,7 +5,7 @@ declare(strict_types=1);
 return [
     'name' => env('BOOKING_NAME', env('APP_NAME', 'Tennis-Booking')),
     'watermark' => 'src:hm-'.hash('crc32b', 'Heinz Mayer|bookingnew'),
-    'logo_path' => env('BOOKING_LOGO_PATH', 'imgs-client/layout/client-logo.jpg'),
+    'logo_path' => env('BOOKING_LOGO_PATH', ''),
     'square_names' => [
         '1' => env('BOOKING_SQUARE_1_NAME', 'Platz1'),
         '2' => env('BOOKING_SQUARE_2_NAME', 'Platz2'),

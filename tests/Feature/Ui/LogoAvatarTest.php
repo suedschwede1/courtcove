@@ -27,14 +27,15 @@ class LogoAvatarTest extends TestCase
     }
 
     #[Test]
-    public function logo_falls_back_to_initials(): void
+    public function logo_falls_back_to_the_design_glyph(): void
     {
         View::share('bookingLogoPath', '');
 
-        $this->assertSame(
-            '<span class="ds-logo ds-logo--44" role="img" aria-label="Example Club"><span class="ds-logo__initials" aria-hidden="true">EC</span></span>',
-            $this->render('<x-ui.logo-mark name="Example Club" />'),
-        );
+        $html = $this->render('<x-ui.logo-mark name="Example Club" />');
+
+        $this->assertStringContainsString('<span class="ds-logo ds-logo--44" role="img" aria-label="Example Club"><svg class="ds-logo__glyph"', $html);
+        $this->assertStringNotContainsString('ds-logo__initials', $html);
+        $this->assertStringNotContainsString('<img', $html);
     }
 
     #[Test]
@@ -50,7 +51,7 @@ class LogoAvatarTest extends TestCase
         $html = $this->render('<x-ui.logo-mark name="Example Club" />');
 
         $this->assertStringContainsString('<img src="'.asset('imgs-client/test-logo.png').'" alt="" class="ds-logo__img">', $html);
-        $this->assertStringNotContainsString('ds-logo__initials', $html);
+        $this->assertStringNotContainsString('ds-logo__glyph', $html);
     }
 
     #[Test]

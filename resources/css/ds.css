@@ -703,13 +703,9 @@
         object-fit: contain;
     }
 
-    .ds-logo__initials {
-        font: 700 18px / 1 var(--font-display);
-        letter-spacing: 0.02em;
-    }
-
-    .ds-logo--36 .ds-logo__initials {
-        font-size: 15px;
+    .ds-logo__glyph {
+        width: 100%;
+        height: 100%;
     }
 
     .ds-avatar {
@@ -1178,10 +1174,6 @@
         .ds-header .ds-logo {
             width: 36px;
             height: 36px;
-        }
-
-        .ds-header .ds-logo__initials {
-            font-size: 15px;
         }
     }
 
