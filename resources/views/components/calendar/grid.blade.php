@@ -100,6 +100,7 @@
                                 :event="$eventPart['block']['event']"
                                 :part="$eventPart['part']"
                                 :can-admin-events="$canAdminEvents"
+                                :date-key="$dateKey"
                             />
                         @else
                             <x-calendar.cell

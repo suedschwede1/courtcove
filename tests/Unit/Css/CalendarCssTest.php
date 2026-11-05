@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Css;
 
+use Illuminate\Support\Arr;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -58,5 +59,33 @@ final class CalendarCssTest extends TestCase
         $this->assertMatchesRegularExpression('/\.page-shell:has\(\.cal-page\) > \.ds-header\s*\{[^}]*margin-inline:\s*12px;/', $css);
         $this->assertMatchesRegularExpression('/#content:has\(\.cal-page\)\s*\{[^}]*margin-top:\s*0;/', $css);
         $this->assertStringNotContainsString(':has(> .cal-page)', $css);
+    }
+
+    #[Test]
+    public function past_cells_are_hatched(): void
+    {
+        $this->assertStringContainsString(
+            'repeating-linear-gradient(135deg, var(--cal-past-bg) 0 4px, var(--cal-past-bg-alt) 4px 8px)',
+            $this->grid(),
+        );
+    }
+
+    #[Test]
+    public function free_cells_have_a_dashed_border(): void
+    {
+        $this->assertStringContainsString('border: 1px dashed var(--cal-free-line)', $this->grid());
+    }
+
+    #[Test]
+    public function every_exported_cal_variable_is_used(): void
+    {
+        $css = $this->grid().$this->toolbar();
+        $keys = array_keys(Arr::dot((array) config('calendar.colors')));
+        $this->assertNotEmpty($keys);
+
+        foreach ($keys as $key) {
+            $variable = '--cal-'.str_replace(['_', '.'], '-', $key);
+            $this->assertStringContainsString('var('.$variable.')', $css, $variable);
+        }
     }
 }

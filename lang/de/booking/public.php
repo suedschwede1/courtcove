@@ -176,6 +176,11 @@ return [
         'occupied' => 'Belegt',
         'court_number' => 'Platz :number',
         'until_hour' => 'bis :hour',
+        'book_cell' => ':court, :time Uhr buchen',
+        'login_cell' => ':court, :time Uhr – zum Buchen anmelden',
+        'series_hint' => 'Abo',
+        'event_range' => ':from – :to Uhr',
+        'own_short' => 'Meine',
     ],
     'modal' => [
         'confirm_cancel' => 'Möchten Sie diese Buchung stornieren?',

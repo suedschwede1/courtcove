@@ -165,20 +165,207 @@
     border: 0;
 }
 
+/*
+ * Slots. The state shows in the fill (colours from the --cal-* variables);
+ * free and past slots carry no text, booked slots and events a centred name
+ * line plus a detail line, both cut with an ellipsis instead of wrapping.
+ */
 .cal-row > .calendar-cell {
+    display: block;
     box-sizing: border-box;
     width: auto;
     min-width: 0;
     height: var(--cal-cell);
     margin: 0;
     border-radius: var(--radius-sm);
+    color: inherit;
+    text-decoration: none;
     transition: background-color 0.12s ease;
 }
 
-/* Event parts: only the first hour carries the visible label on desktop. */
-.event-cell--middle .event-label,
-.event-cell--end .event-label {
+.cal-row > .cc-own,
+.cal-row > .cc-single-future,
+.cal-row > .cc-turnier,
+.cal-row > .event-cell {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: stretch;
+    gap: 1px;
+    padding: 4px 10px;
+    overflow: hidden;
+    font-size: var(--text-body-s);
+    line-height: 1.1;
+    text-align: center;
+}
+
+.cal-row .cc-label-primary,
+.cal-row .cc-label-secondary,
+.cal-row .cc-label-own,
+.cal-row .event-label,
+.cal-row .event-range {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: inherit;
+    text-decoration: none;
+}
+
+.cal-row .cc-label-primary,
+.cal-row .event-label {
+    font-size: var(--text-body-s);
+    font-weight: 700;
+}
+
+.cal-row .cc-label-secondary,
+.cal-row .cc-label-own,
+.cal-row .event-range {
+    font-size: 11px;
+    font-weight: 400;
+}
+
+/* "Mine" replaces the detail line on phones only. */
+.cal-row .cc-label-own {
     display: none;
+}
+
+/* Free: white with a dashed line; it has no text, so the border shifts nothing. */
+.cal-row > .cc-free {
+    background: var(--cal-free-bg);
+    border: 1px dashed var(--cal-free-line);
+}
+
+.cal-row > a.cc-free:hover,
+.cal-row > a.cc-free:focus-visible {
+    background-color: var(--cal-free-bg-hover);
+}
+
+/* Own booking */
+.cal-row > .cc-own {
+    background: var(--cal-own-bg);
+    color: var(--cal-own-label);
+}
+
+.cal-row > .cc-own .cc-label-secondary,
+.cal-row > .cc-own .cc-label-own {
+    color: var(--cal-own-label-secondary);
+}
+
+.cal-row > a.cc-own:hover,
+.cal-row > a.cc-own:focus-visible {
+    background-color: var(--cal-own-bg-hover);
+}
+
+/* Booked by someone else */
+.cal-row > .cc-single-future {
+    background: var(--cal-single-future-bg);
+    color: var(--cal-single-future-label);
+}
+
+.cal-row > .cc-single-future .cc-label-secondary {
+    color: var(--cal-single-future-label-secondary);
+}
+
+.cal-row > a.cc-single-future:hover,
+.cal-row > a.cc-single-future:focus-visible {
+    background-color: var(--cal-single-future-bg-hover);
+}
+
+/* Subscription: an accent on the leading edge, detail line in the series colour. */
+.cal-row > .cc-series {
+    box-shadow: inset 3px 0 0 var(--cal-series-accent);
+}
+
+.cal-row > .cc-series .cc-label-secondary {
+    color: var(--cal-series-label);
+}
+
+.cal-row > .cc-own.cc-series {
+    box-shadow: inset 3px 0 0 var(--cal-own-accent);
+}
+
+.cal-row > .cc-own.cc-series .cc-label-secondary {
+    color: var(--cal-own-label-secondary);
+}
+
+/* Past: hatched, booked past slots keep their text in the muted colour. */
+.cal-row > .slot-cell--past {
+    background: repeating-linear-gradient(135deg, var(--cal-past-bg) 0 4px, var(--cal-past-bg-alt) 4px 8px);
+    box-shadow: none;
+    color: var(--cal-past-label);
+}
+
+.cal-row > .slot-cell--past .cc-label-secondary,
+.cal-row > .slot-cell--past .cc-label-own {
+    color: var(--cal-past-label);
+}
+
+/*
+ * Events: one surface over several hours. The first and middle hours reach
+ * over the row gap into the next hour, so the parts join into one block.
+ */
+.cal-row > .event-cell {
+    background: var(--cal-event-bg);
+    box-shadow: inset 3px 0 0 var(--cal-event-accent);
+    color: var(--cal-event-label);
+}
+
+.cal-row > .event-cell--single {
+    border-radius: var(--radius-sm);
+}
+
+.cal-row > .event-cell--start,
+.cal-row > .event-cell--middle {
+    height: calc(var(--cal-cell) + var(--cal-gap));
+    margin-bottom: calc(-1 * var(--cal-gap));
+}
+
+.cal-row > .event-cell--start {
+    padding: 4px 10px 8px;
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+
+.cal-row > .event-cell--middle {
+    border-radius: 0;
+}
+
+.cal-row > .event-cell--end {
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+}
+
+/* Only the first hour carries the visible label on desktop. */
+.cal-row > .event-cell--middle .event-label,
+.cal-row > .event-cell--end .event-label {
+    visibility: hidden;
+}
+
+.cal-row > .event-cell--editable:hover,
+.cal-row > .event-cell--editable:focus-within {
+    background-color: var(--cal-event-bg-hover);
+}
+
+.cal-row > .event-cell--editable a.event-label:hover,
+.cal-row > .event-cell--editable a.event-label:focus-visible {
+    text-decoration: underline;
+}
+
+/* Tournament match last, so it wins over the past hatch. */
+.cal-row > .cc-turnier {
+    background: var(--cal-tournament-bg);
+    box-shadow: inset 0 0 0 1px var(--cal-tournament-line);
+    color: var(--cal-tournament-label);
+}
+
+.cal-row > .cc-turnier .cc-label-secondary,
+.cal-row > .cc-turnier .cc-label-own {
+    color: var(--cal-tournament-label);
+}
+
+.cal-row > a.cc-turnier:hover,
+.cal-row > a.cc-turnier:focus-visible {
+    background-color: var(--cal-tournament-bg);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -263,8 +450,55 @@
         border-radius: var(--radius-md);
     }
 
-    .event-cell--middle .event-label,
-    .event-cell--end .event-label {
+    .cal-row > .cc-own,
+    .cal-row > .cc-single-future,
+    .cal-row > .cc-turnier,
+    .cal-row > .event-cell {
+        gap: 0;
+        padding: 4px 6px;
+        font-size: var(--text-label);
+        line-height: 1.15;
+    }
+
+    .cal-row .cc-label-primary,
+    .cal-row .event-label {
+        font-size: var(--text-label);
+    }
+
+    /* Own: name plus "Mine"; every other booking: the name on one line. */
+    .cal-row > .cc-own .cc-label-secondary {
+        display: none;
+    }
+
+    .cal-row > .cc-own .cc-label-own {
         display: block;
+    }
+
+    .cal-row > .calendar-cell:not(.cc-own) .cc-label-primary {
+        font-weight: 600;
+    }
+
+    .cal-row > .calendar-cell:not(.cc-own) .cc-label-secondary {
+        display: none;
+    }
+
+    /* Events: every hour is its own block with the label repeated. */
+    .cal-row > .event-cell--single,
+    .cal-row > .event-cell--start,
+    .cal-row > .event-cell--middle,
+    .cal-row > .event-cell--end {
+        height: var(--cal-cell);
+        margin-bottom: 0;
+        padding: 4px 6px;
+        border-radius: var(--radius-md);
+    }
+
+    .cal-row > .event-cell--middle .event-label,
+    .cal-row > .event-cell--end .event-label {
+        visibility: visible;
+    }
+
+    .cal-row .event-range {
+        display: none;
     }
 }

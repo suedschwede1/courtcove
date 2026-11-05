@@ -27,8 +27,13 @@
 
     $canManageBooking = $reservation && $isAdmin;
     $isSeriesBooking = $reservation?->booking?->isSubscription() ?? false;
+    $isTournament = $reservation?->booking?->isChampionshipMatch() ?? false;
+    $state = \App\Support\Calendar\CellState::for((bool) $reservation, $isPast, $isOwn, $isSeriesBooking, $isTournament)->value;
 
     $secondaryLabel = $isLoggedIn ? $reservation?->booking?->player_names_label : null;
+    if ($secondaryLabel === null && $isSeriesBooking) {
+        $secondaryLabel = __('booking.calendar.series_hint');
+    }
 
     $cellClass = 'cc-over';
     $slotClass = $isPast ? ' slot-cell--past' : '';
@@ -63,14 +68,27 @@
             : ($squareLabel . ' – ' . __('booking.calendar.occupied'));
     }
 
-    if ($reservation?->booking?->isChampionshipMatch()) {
+    if ($isTournament) {
         $cellClass .= ' cc-turnier';
     }
+
+    // Text lines of a booked slot: name, detail (players or the subscription hint)
+    // and, on own bookings, the short label that replaces the detail on phones.
+    $labels = array_filter([
+        'cc-label-primary' => $primaryLabel,
+        'cc-label-secondary' => $reservation ? $secondaryLabel : null,
+        'cc-label-own' => $isOwn ? __('booking.calendar.own_short') : null,
+    ], fn ($text) => $text !== null && $text !== '');
+
+    $bookLabel = __('booking.calendar.book_cell', ['court' => $squareLabel, 'time' => $timeLabel]);
+    $adminCreateUrl = route('admin.bookings.create') . '?sid=' . $sid . '&date=' . $dateKey . '&time_start=' . ($h * 3600) . '&time_end=' . (($h + 1) * 3600);
 @endphp
 
 @if($action === 'book')
-    <a href="#"
+    <a href="{{ route('bookings.create', ['sid' => $sid, 'date' => $dateKey, 'time_start' => $h]) }}"
        class="calendar-cell {{ $cellClass }}{{ $slotClass }}"
+       data-state="{{ $state }}"
+       aria-label="{{ $bookLabel }}"
        title="{{ $cellTitle }}"
        @click.prevent="$dispatch('open-booking', {
            sid: {{ $sid }},
@@ -84,8 +102,10 @@
            timeLabel: @js($timeRangeLabel)
        })"></a>
 @elseif($action === 'admin-book')
-    <a href="#"
+    <a href="{{ $adminCreateUrl }}"
        class="calendar-cell {{ $cellClass }}{{ $slotClass }} booking-trigger"
+       data-state="{{ $state }}"
+       aria-label="{{ $bookLabel }}"
        title="{{ $cellTitle }}"
        data-action="admin-book"
        data-sid="{{ $sid }}"
@@ -95,10 +115,11 @@
        data-square-name="{{ $squareFullLabel }}"
        data-date-label="{{ $dateLabel }}"
        data-time-label="{{ $timeRangeLabel }}"
-       data-create-url="{{ route('admin.bookings.create') }}?sid={{ $sid }}&date={{ $dateKey }}&time_start={{ $h * 3600 }}&time_end={{ ($h + 1) * 3600 }}"></a>
+       data-create-url="{{ $adminCreateUrl }}"></a>
 @elseif($action === 'cancel' && $isAdmin)
     <a href="#"
-       class="calendar-cell {{ $cellClass }}{{ $slotClass }}{{ $seriesClass }} booking-trigger"
+       class="calendar-cell {{ $cellClass }}{{ $seriesClass }}{{ $slotClass }} booking-trigger"
+       data-state="{{ $state }}"
        title="{{ $cellTitle }}"
        data-action="cancel"
        data-bid="{{ $reservation->booking->bid }}"
@@ -107,14 +128,14 @@
        data-time-label="{{ $timeRangeLabel }}"
        data-edit-url="{{ route('admin.bookings.edit', $reservation->booking) }}?occurrence={{ $dateKey }}"
        data-delete-url="{{ route('admin.bookings.destroy', $reservation->booking) }}">
-        <span class="cc-label-primary">{{ $primaryLabel }}</span>
-        @if($secondaryLabel)
-            <span class="cc-label-secondary">{{ $secondaryLabel }}</span>
-        @endif
+        @foreach($labels as $labelClass => $labelText)
+            <span class="{{ $labelClass }}">{{ $labelText }}</span>
+        @endforeach
     </a>
 @elseif($action === 'cancel' && $isOwn)
     <a href="#"
-       class="calendar-cell {{ $cellClass }}{{ $slotClass }}{{ $seriesClass }}"
+       class="calendar-cell {{ $cellClass }}{{ $seriesClass }}{{ $slotClass }}"
+       data-state="{{ $state }}"
        title="{{ $cellTitle }}"
        @click.prevent="$dispatch('open-cancel', {
            bid: @js((string) $reservation->booking->bid),
@@ -124,29 +145,20 @@
            quantity: @js((string) $reservation->booking->quantity),
            mitspieler: @js($reservation->booking->player_names[0] ?? '')
        })">
-        <span class="cc-label-primary">{{ $primaryLabel }}</span>
-        @if($secondaryLabel)
-            <span class="cc-label-secondary">{{ $secondaryLabel }}</span>
-        @endif
+        @foreach($labels as $labelClass => $labelText)
+            <span class="{{ $labelClass }}">{{ $labelText }}</span>
+        @endforeach
     </a>
-@elseif($action === 'cancel')
-    <span class="calendar-cell {{ $cellClass }}{{ $slotClass }}{{ $seriesClass }}" title="{{ $cellTitle }}">
-        <span class="cc-label-primary">{{ $primaryLabel }}</span>
-        @if($secondaryLabel)
-            <span class="cc-label-secondary">{{ $secondaryLabel }}</span>
-        @endif
-    </span>
 @elseif($action === 'login')
     <a href="{{ route('login', ['redirect_to' => route('calendar.index', ['date' => $date->format('Y-m-d')])]) }}"
        class="calendar-cell {{ $cellClass }}{{ $slotClass }} guest-login-cell"
+       data-state="{{ $state }}"
+       aria-label="{{ __('booking.calendar.login_cell', ['court' => $squareLabel, 'time' => $timeLabel]) }}"
        title="{{ $cellTitle }}"></a>
 @else
-    <span class="calendar-cell {{ $cellClass }}{{ $slotClass }}{{ $seriesClass }}" title="{{ $cellTitle }}">
-        @if($primaryLabel)
-            <span class="cc-label-primary">{{ $primaryLabel }}</span>
-        @endif
-        @if($secondaryLabel)
-            <span class="cc-label-secondary">{{ $secondaryLabel }}</span>
-        @endif
+    <span class="calendar-cell {{ $cellClass }}{{ $seriesClass }}{{ $slotClass }}" data-state="{{ $state }}" title="{{ $cellTitle }}">
+        @foreach($labels as $labelClass => $labelText)
+            <span class="{{ $labelClass }}">{{ $labelText }}</span>
+        @endforeach
     </span>
 @endif

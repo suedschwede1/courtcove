@@ -176,6 +176,11 @@ return [
         'occupied' => 'Occupied',
         'court_number' => 'Court :number',
         'until_hour' => 'to :hour',
+        'book_cell' => 'Book :court, :time',
+        'login_cell' => ':court, :time – log in to book',
+        'series_hint' => 'Subscription',
+        'event_range' => ':from – :to',
+        'own_short' => 'Mine',
     ],
     'modal' => [
         'confirm_cancel' => 'Do you want to cancel this booking?',
