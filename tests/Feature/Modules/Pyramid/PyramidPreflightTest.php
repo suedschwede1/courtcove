@@ -18,6 +18,12 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\Concerns\BuildsPyramidLadders;
 use Tests\TestCase;
 
+/**
+ * Preflight checks on the SQLite test database. Checks that need a real MySQL server are skipped there
+ * (charset: "[SKIP] ... not MySQL"), and `FOR UPDATE` lock detection is not possible on SQLite at all
+ * (`lockForUpdate()` compiles to nothing): lock order and ladder-row serialisation are only proven by
+ * `PyramidMysqlLockTest`, which runs with `composer test:mysql`.
+ */
 class PyramidPreflightTest extends TestCase
 {
     use BuildsPyramidLadders;
