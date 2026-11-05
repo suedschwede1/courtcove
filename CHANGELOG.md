@@ -28,6 +28,19 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 - Fix: links styled with Tailwind utilities (Pyramid ranking, rules menu) no longer turn clay because of the legacy link rule; it now sits in a cascade layer below the utilities.
 - Phase 2: Pyramid overdue decisions, result corrections, settings, season close and grants in Laravel.
 - Fix: Pyramid admin rejects granting rights to a non-existent member, a blank ladder title and over-long correction score/note, and closing a season twice no longer logs a second event.
+- Front-end bundle rebuilt for the new login and account pages.
+
+- Auth layout: the sticky court panel no longer covers the form just above 900px, and only the sign-in page hides its intro on phones.
+- Login, registration, password and account pages address members with "du".
+- My account uses the new cards and fields; every field is now linked to its label.
+- The page header title is 40px like the design mockup instead of 32px.
+- My bookings uses the new cards, status badges and filter form; on phones each booking is a card.
+- The clay court panel stays viewport-high beside tall forms such as registration on wide screens.
+- Registration uses the new auth layout with grouped sections; old login stylesheet rules removed.
+- A long club name stays on one line with an ellipsis on the phone band and wraps to two lines on the desktop panel instead of crowding the court lines.
+- Password reset and login confirmation pages use the new auth layout.
+- New login page: clay court panel, larger fields and a dark full-width sign-in button.
+- Login and account access pages get a shared split layout with the clay court panel (used from the next commits on).
 
 - Phase 2: Pyramid seeding, waiting list, player status and edits administered in Laravel.
 - Phase 2: the unique-key preflight check is shared by Draw and Pyramid, and the Pyramid preflight gained fault-injection tests and a stricter read-only guard.

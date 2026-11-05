@@ -60,7 +60,7 @@ final class LoginTest extends DuskTestCase
                     ->waitFor('input[name="email"]')
                     ->assertPathIs('/login')
                     ->assertInputValue('email', (string) $user->email)
-                    ->assertPresent('div.text-sm.text-red-600, p.text-xs.text-red-600');
+                    ->assertPresent('.ds-notice--problem, p.ds-field__error');
             });
         } finally {
             $this->deleteTestUser('dusk_badlogin');

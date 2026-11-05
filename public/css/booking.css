@@ -196,17 +196,6 @@ input[type="text"]:where(:not([class^="ds-"], [class*=" ds-"])) {
     margin-top: 8px;
 }
 
-.success-message,
-.error-message {
-    margin-bottom: 10px;
-    padding: 8px 10px;
-    border-radius: 3px;
-    color: #fff;
-}
-
-.success-message { background: #5f8a3b; }
-.error-message { background: #a84433; }
-
 .help-panel {
     margin-bottom: 12px;
 }
@@ -680,38 +669,6 @@ a.event-label {
     padding: 24px;
 }
 
-.login-page-panel {
-    display: grid;
-    grid-template-columns: 1fr 320px;
-    gap: 20px;
-}
-
-.login-page-copy h1 {
-    font-family: var(--font-display);
-    margin-bottom: 10px;
-}
-
-.auth-form {
-    display: grid;
-    gap: 8px;
-}
-
-.auth-label {
-    color: #666;
-    font-size: 11px;
-}
-
-.auth-checkbox {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    color: #666;
-}
-
-.auth-submit {
-    width: 100%;
-}
-
 @media screen and (max-width: 1240px) {
     .booking-grid {
         min-width: 1080px;
@@ -774,10 +731,6 @@ a.event-label {
     width: 112px;
     height: auto;
 }
-
-    .login-page-panel {
-        grid-template-columns: 1fr;
-    }
 
     .booking-grid {
         min-width: 980px;

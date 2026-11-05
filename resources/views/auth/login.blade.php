@@ -4,77 +4,43 @@
     {{ str_replace(':system', $bookingName, __('booking.auth.title')) }}
 @endsection
 
-@section('body-class', 'min-h-screen bg-[#f0ede6] flex flex-col')
-
 @section('body')
-    <header class="bg-white border-b border-[#e0ddd7] px-4 sm:px-6 py-3 sm:h-14 flex items-center gap-3">
-        @if($bookingLogoPath && file_exists(public_path($bookingLogoPath)))
-            <img src="{{ asset($bookingLogoPath) }}" alt="{{ $bookingName }}" class="h-9 w-auto object-contain">
+    <x-layout.auth-shell :title="__('booking.auth.heading')" :intro="__('booking.auth.intro')" :intro-desktop-only="true">
+        @if(session('registered'))
+            <x-ui.notice tone="good">{{ str_replace(':system', $bookingName, $registrationContent['success']) }}</x-ui.notice>
         @endif
-        <span class="font-semibold text-[#151515] text-sm" style="font-family: var(--font-display)">{{ $bookingName }}</span>
-    </header>
 
-    @if(session('registered'))
-        <div class="mx-auto mt-6 max-w-2xl px-4">
-            <div class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-                {{ str_replace(':system', $bookingName, $registrationContent['success']) }}
+        <form method="POST" action="{{ route('login') }}" class="ds-auth__form">
+            @csrf
+            @if(request('redirect_to'))
+                <input type="hidden" name="redirect_to" value="{{ request('redirect_to') }}">
+            @endif
+
+            <x-ui.field :label="__('booking.auth.email')" for="email">
+                <x-ui.input type="email" required autofocus autocomplete="email" :placeholder="__('booking.auth.email_placeholder')" />
+            </x-ui.field>
+
+            <div class="ds-auth__field-wrap">
+                <x-ui.field :label="__('booking.auth.password')" for="password">
+                    <x-ui.input type="password" value="" required autocomplete="current-password" />
+                </x-ui.field>
+                <a class="ds-auth__field-link" href="{{ route('password.forgot') }}">{{ __('booking.auth.forgot_password') }}</a>
             </div>
-        </div>
-    @endif
 
-    <main class="flex-1 flex items-center justify-center p-4 sm:p-6">
-        <div class="w-full max-w-2xl bg-white rounded-xl shadow-sm border border-[#e0ddd7] overflow-hidden grid grid-cols-1 md:grid-cols-2">
-            <div class="p-6 sm:p-10 flex flex-col justify-center gap-4 border-b md:border-b-0 md:border-r border-[#f0ede6]">
-                <p class="text-xs font-semibold uppercase tracking-widest text-[#6a6e73]">{{ __('booking.auth.eyebrow') }}</p>
-                <h1 class="text-2xl sm:text-3xl font-bold text-[#151515] leading-tight" style="font-family: var(--font-display)">{{ __('booking.auth.heading') }}</h1>
-                <p class="text-sm text-[#6a6e73] leading-relaxed">{{ __('booking.auth.intro') }}</p>
-            </div>
+            <label class="ds-auth__check" for="remember">
+                <input type="checkbox" id="remember" name="remember">
+                <span>{{ __('booking.auth.remember') }}</span>
+            </label>
 
-            <div class="p-6 sm:p-10 bg-[#fafaf9] flex flex-col gap-5">
-                <form method="POST" action="{{ route('login') }}" class="flex flex-col gap-5">
-                    @csrf
-                    @if(request('redirect_to'))
-                        <input type="hidden" name="redirect_to" value="{{ request('redirect_to') }}">
-                    @endif
+            @if($errors->any() && ! $errors->has('alias') && ! $errors->has('password') && ! $errors->has('email'))
+                <x-ui.notice tone="problem">{{ $errors->first() }}</x-ui.notice>
+            @endif
 
-                    <div class="flex flex-col gap-1">
-                        <label for="email" class="text-sm font-medium text-[#151515]">{{ __('booking.auth.email') }}</label>
-                        <input type="email" id="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="email" placeholder="{{ __('booking.auth.email_placeholder') }}" class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent {{ $errors->has('email') ? 'border-red-400' : 'border-[#cccccc]' }}">
-                        @error('email')
-                            <p class="text-xs text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
+            <x-ui.button type="submit" variant="dark">{{ __('booking.auth.submit') }}</x-ui.button>
+        </form>
 
-                    <div class="flex flex-col gap-1">
-                        <div class="flex items-center justify-between">
-                            <label for="password" class="text-sm font-medium text-[#151515]">{{ __('booking.auth.password') }}</label>
-                            <a href="{{ route('password.forgot') }}" class="text-xs text-[#bf4316] hover:underline">{{ __('booking.auth.forgot_password') }}</a>
-                        </div>
-                        <input type="password" id="password" name="password" required autocomplete="current-password" class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent {{ $errors->has('password') ? 'border-red-400' : 'border-[#cccccc]' }}">
-                        @error('password')
-                            <p class="text-xs text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div class="flex items-center gap-2">
-                        <input type="checkbox" id="remember" name="remember" class="accent-[#bf4316] w-4 h-4 cursor-pointer">
-                        <label for="remember" class="text-sm text-[#151515] cursor-pointer">{{ __('booking.auth.remember') }}</label>
-                    </div>
-
-                    @if($errors->any() && !$errors->has('alias') && !$errors->has('password'))
-                        <div class="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
-                            {{ $errors->first() }}
-                        </div>
-                    @endif
-
-                    <button type="submit" class="w-full bg-[#bf4316] hover:bg-[#9e3412] text-white font-medium py-2 px-4 rounded transition-colors mt-1">{{ __('booking.auth.submit') }}</button>
-                </form>
-
-                <p class="mt-2 text-center text-xs text-[#6a6e73]">
-                    {{ __('booking.auth.no_account') }}
-                    <a href="{{ route('register') }}" class="text-[#bf4316] hover:underline">{{ __('booking.auth.register_now') }}</a>
-                </p>
-            </div>
-        </div>
-    </main>
+        <x-slot:footer>
+            <p>{{ __('booking.auth.no_account') }} <a class="ds-auth__link" href="{{ route('register') }}">{{ __('booking.auth.register_now') }}</a> – {{ __('booking.auth.register_note') }}</p>
+        </x-slot:footer>
+    </x-layout.auth-shell>
 @endsection

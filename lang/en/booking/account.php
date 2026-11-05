@@ -5,6 +5,8 @@ declare(strict_types=1);
 return [
     'account' => [
         'my_bookings' => 'My Bookings',
+        'eyebrow' => 'My area',
+        'actions' => 'Actions',
         'my_account' => 'My Account',
         'intro' => 'Manage your personal information here.',
         'bookings_intro' => 'Search and filter your current and past bookings.',
