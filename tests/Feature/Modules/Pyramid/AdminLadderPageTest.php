@@ -319,7 +319,7 @@ class AdminLadderPageTest extends TestCase
         $html = $this->actingAs($this->admin())->get('/pyramide/admin/ladder/'.$ladder->id)->assertOk()->getContent();
 
         preg_match_all('#<form[^>]*player/\d+/status"[^>]*>.*?</form>#s', $html, $forms);
-        $this->assertCount(2, $forms[0]);
+        $this->assertCount(4, $forms[0]);
         foreach ($forms[0] as $form) {
             $this->assertStringNotContainsString('Bearbeiten', $form);
         }
