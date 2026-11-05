@@ -8,7 +8,7 @@
     <div class="ui-popup-shell">
         <div class="ui-popup-header">
             <h1>@yield('title', config('app.name'))</h1>
-            <button type="button" class="text-[#8a8d90] text-xl leading-none" onclick="window.parent?.postMessage({ type: 'booking-modal-close' }, '*'); window.close();">&times;</button>
+            <x-ui.icon-button icon="close" variant="text" :label="__('booking.modal.close')" onclick="window.parent?.postMessage({ type: 'popup-close' }, '*'); window.close();" />
         </div>
 
         <div class="ui-popup-body">

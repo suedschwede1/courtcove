@@ -16,6 +16,9 @@ final class BuildFreshnessTest extends TestCase
         $files = array_merge(
             glob(resource_path('views/components/ui/*.blade.php')) ?: [],
             glob(resource_path('views/components/layout/*.blade.php')) ?: [],
+            [resource_path('views/components/calendar/modals.blade.php')],
+            glob(resource_path('views/bookings/*.blade.php')) ?: [],
+            [resource_path('views/layouts/app.blade.php')],
         );
 
         $missing = [];
