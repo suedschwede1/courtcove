@@ -8,6 +8,10 @@ reference point is `mobile-view-stable` (see [README.md](README.md#layout-refere
 When adding an entry: describe the *why*/user-facing effect in one line, not the diff —
 `git log` already has that. Add new entries at the top, under today's date.
 
+## 2026-11-05
+
+- Fix saving on the full-page admin "edit booking" form: it posts the players as `player_name_2..4`, but the controller only accepted `mitspieler`, so every save failed with "mitspieler is required". The controller now accepts both field sets and the three players are stored separately.
+
 ## 2026-11-04
 
 - Fix HTTP 500 when `public/` is served through a symlink (Apache + PHP-FPM keeps `__DIR__` unresolved): `public/index.php` and `public/zf2-bridge.php` now derive the application root from `realpath(__DIR__)`, so vendor, bootstrap, maintenance file, `zf2.path` and the default ZF2 dir are found at the real location.
