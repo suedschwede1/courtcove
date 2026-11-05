@@ -11,6 +11,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 ## 2026-11-05
 - Fix: links styled with Tailwind utilities (Pyramid ranking, rules menu) no longer turn clay because of the legacy link rule; it now sits in a cascade layer below the utilities.
 - Phase 2: Pyramid overdue decisions, result corrections, settings, season close and grants in Laravel.
+- Fix: Pyramid admin rejects granting rights to a non-existent member, a blank ladder title and over-long correction score/note, and closing a season twice no longer logs a second event.
 
 - Phase 2: Pyramid seeding, waiting list, player status and edits administered in Laravel.
 - Phase 2: Pyramid ladder administration page; the member picker now searches on demand instead of embedding all members.

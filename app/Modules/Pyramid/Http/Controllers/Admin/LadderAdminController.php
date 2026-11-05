@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Pyramid\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Modules\Pyramid\Http\Controllers\Concerns\ResolvesPyramidViewer;
 use App\Modules\Pyramid\Models\PyramidChallenge;
 use App\Modules\Pyramid\Models\PyramidLadder;
@@ -238,10 +239,13 @@ class LadderAdminController extends Controller
     {
         $ladder = $this->administeredLadder($ladderId);
 
-        $this->admin->close($ladder, $this->actorUid());
+        $back = redirect()->to(PyramidLinks::adminLadder((int) $ladder->id));
 
-        return redirect()->to(PyramidLinks::adminLadder((int) $ladder->id))
-            ->with('success', __('pyramid::admin.flash.closed'));
+        if (! $this->admin->close($ladder, $this->actorUid())) {
+            return $back->with('info', __('pyramid::admin.flash.already_closed'));
+        }
+
+        return $back->with('success', __('pyramid::admin.flash.closed'));
     }
 
     /**
@@ -256,6 +260,10 @@ class LadderAdminController extends Controller
 
         if ($uid <= 0) {
             return $back->with('error', __('pyramid::admin.grant_uid_required'));
+        }
+
+        if (! User::query()->whereKey($uid)->exists()) {
+            return $back->with('error', __('pyramid::admin.grant_uid_unknown'));
         }
 
         $this->repo->addGrant((int) $ladder->id, $uid);

@@ -286,6 +286,56 @@ class AdminChallengeActionsTest extends TestCase
     }
 
     #[Test]
+    public function grant_rejects_an_unknown_user_number(): void
+    {
+        $this->actingAs($this->admin())->post($this->ladderUrl(null, 'grant'), ['uid' => '987654'])
+            ->assertSessionHas('error', 'Mitglied nicht gefunden.');
+        $this->actingAs($this->admin())->post($this->ladderUrl(null, 'grant'), ['uid' => '-5'])
+            ->assertSessionHas('error', 'Bitte eine Benutzernummer angeben.');
+
+        $this->assertSame(0, PyramidGrant::query()->where('ladder_id', $this->ladder->id)->count());
+    }
+
+    #[Test]
+    public function a_second_close_adds_no_second_event_and_says_so(): void
+    {
+        $url = $this->ladderUrl(null, 'close');
+        $this->actingAs($this->admin())->post($url)->assertSessionHas('success', 'Saison abgeschlossen.');
+        $this->actingAs($this->admin())->post($url)->assertSessionHas('info', 'Die Saison war bereits abgeschlossen.');
+
+        $this->assertSame(1, PyramidEvent::query()->where('ladder_id', $this->ladder->id)->where('type', 'admin')->count());
+    }
+
+    #[Test]
+    public function config_rejects_a_blank_title_but_keeps_the_old_one_when_the_key_is_absent(): void
+    {
+        $old = $this->ladder->title;
+        $days = ['days_to_play' => 14, 'winner_protected_days' => 7, 'loser_cooldown_days' => 3];
+
+        $this->actingAs($this->admin())->post($this->ladderUrl(null, 'config'), ['title' => '  '] + $days)
+            ->assertSessionHas('error', 'Bitte einen Titel angeben.');
+        $this->assertSame($old, $this->ladder->fresh()->title);
+
+        $this->actingAs($this->admin())->post($this->ladderUrl(null, 'config'), $days)
+            ->assertSessionHas('success', 'Einstellungen gespeichert.');
+        $this->assertSame($old, $this->ladder->fresh()->title);
+    }
+
+    #[Test]
+    public function correction_rejects_overlong_score_and_note_with_a_message(): void
+    {
+        $played = $this->challenge('played', ['winner_id' => $this->playerAt(8)->id, 'score' => '6:3 6:3', 'resolved' => '2020-01-05 12:00:00']);
+        $url = '/pyramide/admin/challenge/'.$played->id.'/correct-result';
+
+        $this->actingAs($this->admin())->post($url, ['winner_id' => $this->playerAt(5)->id, 'score' => str_repeat('6', 41), 'admin_note' => 'x'])
+            ->assertSessionHas('error', 'Das Ergebnis darf höchstens 40 Zeichen lang sein.');
+        $this->actingAs($this->admin())->post($url, ['winner_id' => $this->playerAt(5)->id, 'score' => '6:0 6:0', 'admin_note' => str_repeat('n', 161)])
+            ->assertSessionHas('error', 'Die Begründung darf höchstens 160 Zeichen lang sein.');
+
+        $this->assertSame('6:3 6:3', $played->fresh()->score);
+    }
+
+    #[Test]
     public function grant_then_revoke(): void
     {
         $holder = User::factory()->create();

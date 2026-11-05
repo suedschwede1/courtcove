@@ -442,7 +442,12 @@ final class LadderAdminService
             $data[$field] = $value;
         }
 
-        $data['title'] = trim((string) ($input['title'] ?? $ladder->title));
+        $data['title'] = array_key_exists('title', $input) ? trim((string) $input['title']) : $ladder->title;
+
+        if ($data['title'] === '') {
+            throw $this->error('title_required');
+        }
+
         $data['category'] = trim((string) ($input['category'] ?? '')) ?: null;
         $data['is_default'] = ! empty($input['is_default']) ? 1 : 0;
 
@@ -514,12 +519,22 @@ final class LadderAdminService
         }
     }
 
-    public function close(PyramidLadder $ladder, ?int $actorUid): void
+    /**
+     * @return bool false when the ladder was already closed (nothing changed, no second event)
+     */
+    public function close(PyramidLadder $ladder, ?int $actorUid): bool
     {
-        DB::transaction(function () use ($ladder, $actorUid): void {
-            PyramidLadder::query()->whereKey($ladder->id)->lockForUpdate()->first();
+        return DB::transaction(function () use ($ladder, $actorUid): bool {
+            $current = PyramidLadder::query()->whereKey($ladder->id)->lockForUpdate()->first();
+
+            if ($current !== null && $current->status === 'closed') {
+                return false;
+            }
+
             PyramidLadder::query()->whereKey($ladder->id)->update(['status' => 'closed']);
             $this->repo->addEvent((int) $ladder->id, 'admin', ['message' => EventText::CLOSED], null, $actorUid);
+
+            return true;
         });
     }
 
@@ -624,6 +639,15 @@ final class LadderAdminService
 
             if ($note === '') {
                 throw $this->error('note_required');
+            }
+
+            // Column sizes of bs_pyramid_challenges: score 40, admin_note 160.
+            if (mb_strlen(trim($score)) > 40) {
+                throw $this->error('score_too_long');
+            }
+
+            if (mb_strlen($note) > 160) {
+                throw $this->error('note_too_long');
             }
 
             PyramidChallenge::query()->whereKey($current->id)->update([

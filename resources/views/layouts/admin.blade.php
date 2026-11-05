@@ -39,6 +39,9 @@
         @if(session('success'))
             <div class="mx-6 mt-6 ui-flash ui-flash-success">{{ session('success') }}</div>
         @endif
+        @if(session('info'))
+            <div class="mx-6 mt-6 ui-flash ui-flash-success">{{ session('info') }}</div>
+        @endif
         @if(session('error'))
             <div class="mx-6 mt-6 ui-flash ui-flash-error">{{ session('error') }}</div>
         @endif
