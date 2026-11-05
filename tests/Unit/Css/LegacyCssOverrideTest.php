@@ -64,9 +64,27 @@ final class LegacyCssOverrideTest extends TestCase
         $this->assertMatchesRegularExpression('/background\s*:\s*var\(--color-ground\)/', $b[1]);
         $this->assertMatchesRegularExpression('/(?<![-\w])color\s*:\s*var\(--color-ink\)/', $b[1]);
         $this->assertMatchesRegularExpression('/font-family\s*:\s*var\(--font-body\)/', $b[1]);
-        $this->assertSame(1, preg_match('/(?:^|\n)a\s*\{([^}]*)\}/', $css, $a));
+        $this->assertSame(1, preg_match('/(?:^|\n)a:not\(\[class\*="ds-"\]\)\s*\{([^}]*)\}/', $css, $a));
         $this->assertMatchesRegularExpression('/(?<![-\w])color\s*:\s*var\(--color-clay\)/', $a[1]);
         $this->assertDoesNotMatchRegularExpression('/outline[^;]*!important/', $css);
+    }
+
+    #[Test]
+    public function legacy_element_rules_never_hit_ds_components(): void
+    {
+        $css = (string) preg_replace('#/\*.*?\*/#s', '', $this->booking());
+        preg_match_all('/(?:^|[;{}])\s*([^;{}@]+)\{/', $css, $m);
+        $bare = '/^(?:a|button|input(?:\[[^\]]*\])?|select|textarea|label|table|th|td|tr|h[1-6]|p|ul|ol|li|img|hr)(?::[\w-]+)*$/';
+        $offenders = [];
+        foreach ($m[1] as $list) {
+            foreach (explode(',', $list) as $selector) {
+                $selector = trim($selector);
+                if (preg_match($bare, $selector)) {
+                    $offenders[] = $selector;
+                }
+            }
+        }
+        $this->assertSame([], $offenders, 'Bare element selectors in booking.css must carry :not([class*="ds-"]).');
     }
 
     #[Test]

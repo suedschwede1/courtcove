@@ -3,6 +3,25 @@
 }
 
 @layer components {
+    /* The legacy body is 12px; ds components own their size and never inherit it. */
+    .ds-header,
+    .ds-phone-menu,
+    .ds-subbar,
+    .ds-card,
+    .ds-notice,
+    .ds-field,
+    .ds-options,
+    .ds-tabs,
+    .ds-tabs__tab,
+    .ds-pagination,
+    .ds-disclosure,
+    .ds-kpi,
+    .ds-table-wrap,
+    .ds-locale,
+    .ds-switch {
+        font-size: var(--text-body);
+    }
+
     .ds-icon {
         flex-shrink: 0;
     }
