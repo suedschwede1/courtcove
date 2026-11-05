@@ -5,6 +5,9 @@ declare(strict_types=1);
 return [
     'area' => 'Tournament area',
     'csrf_expired' => 'Invalid or expired form key. Please reload the page.',
+    'match' => [
+        'no_date' => 'no date yet',
+    ],
     'page_of' => 'Page :page of :last',
     'test_mode' => [
         'title' => 'Test mode',

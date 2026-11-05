@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Phase 2: tournament matches shown as match cards (new design).
 - Phase 2: tournament areas redirect guests to the Laravel login with a module message and explain expired forms.
 - Phase 2: championship access levels (member, participant, admin) and "view as player" ported.
 - Phase 2: match generation runs in one transaction and reads fresh player rows.
