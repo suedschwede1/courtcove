@@ -16,8 +16,6 @@ class TournamentBaseServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->mergeConfigFrom(__DIR__.'/config/tournament-base.php', 'tournament-base');
-
         // bind (not singleton): every consumer gets a fresh randomizer; tests swap in a seeded one
         $this->app->bind(Randomizer::class, fn () => new Randomizer(new Secure));
     }

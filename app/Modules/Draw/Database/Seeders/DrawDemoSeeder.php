@@ -38,14 +38,14 @@ class DrawDemoSeeder extends Seeder
 
         $picking = $this->base('demo-picking', 4, $user, 'AC')
             ->executed($this->beacon('demo-picking'))
-            ->create();
+            ->createOne();
         $this->eligible($picking);
         $this->claim($picking, [1 => 'pick', 2 => 'pick']);
 
         $closed = $this->base('demo-closed', 5, $user, 'DG')
             ->executed($this->beacon('demo-closed'))
             ->closed()
-            ->create();
+            ->createOne();
         $this->eligible($closed);
         $this->claim($closed, [1 => 'pick', 2 => 'pick', 3 => 'pick', 4 => 'pick', 5 => 'fallback', 6 => 'fallback']);
     }

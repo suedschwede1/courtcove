@@ -166,7 +166,7 @@ final class BookingController extends Controller
 
         $repeatType = $this->bookingService->detectRepeatType($reservations->all());
         $detectedRepeatType = $repeatType;
-        $repeatEndDate = $reservations->last()?->date ?? $reservation?->date;
+        $repeatEndDate = $reservations->last()->date ?? $reservation?->date;
         $followingRepeatType = $repeatType;
         $followingRepeatEndDate = $repeatEndDate;
 
@@ -176,7 +176,7 @@ final class BookingController extends Controller
                 ->values()
                 ->all();
             $followingRepeatType = $this->bookingService->detectRepeatType($followingReservations);
-            $followingRepeatEndDate = $reservations->last()?->date ?? $occurrenceReservation->date;
+            $followingRepeatEndDate = $reservations->last()->date ?? $occurrenceReservation->date;
             $repeatType = 'once';
             $repeatEndDate = $occurrenceReservation->date;
         }
