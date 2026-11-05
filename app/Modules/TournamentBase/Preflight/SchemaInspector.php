@@ -160,6 +160,35 @@ class SchemaInspector
             ->count();
     }
 
+    /**
+     * The foreign key on $table.$column (MySQL only, null elsewhere or when there is none).
+     *
+     * @return array{name: string, table: string, column: string, delete_rule: string}|null
+     */
+    public function foreignKey(string $table, string $column): ?array
+    {
+        if (! $this->isMysql()) {
+            return null;
+        }
+
+        $row = DB::selectOne(
+            'SELECT k.CONSTRAINT_NAME AS name, k.REFERENCED_TABLE_NAME AS ref_table, k.REFERENCED_COLUMN_NAME AS ref_column, r.DELETE_RULE AS delete_rule '
+            .'FROM information_schema.KEY_COLUMN_USAGE k '
+            .'JOIN information_schema.REFERENTIAL_CONSTRAINTS r '
+            .'ON r.CONSTRAINT_SCHEMA = k.CONSTRAINT_SCHEMA AND r.CONSTRAINT_NAME = k.CONSTRAINT_NAME AND r.TABLE_NAME = k.TABLE_NAME '
+            .'WHERE k.TABLE_SCHEMA = DATABASE() AND k.TABLE_NAME = ? AND k.COLUMN_NAME = ? AND k.REFERENCED_TABLE_NAME IS NOT NULL '
+            .'ORDER BY k.CONSTRAINT_NAME LIMIT 1',
+            [$table, $column]
+        );
+
+        return $row === null ? null : [
+            'name' => (string) $row->name,
+            'table' => (string) $row->ref_table,
+            'column' => (string) $row->ref_column,
+            'delete_rule' => strtoupper((string) $row->delete_rule),
+        ];
+    }
+
     private function normalizeType(string $type): string
     {
         return (string) preg_replace('/\b((?:tiny|small|medium|big)?int)\(\d+\)/', '$1', strtolower(trim($type)));

@@ -6,6 +6,7 @@ namespace App\Modules\MixedTournament;
 
 use App\Modules\MixedTournament\Models\MixedEvent;
 use App\Modules\MixedTournament\Policies\MixedEventPolicy;
+use App\Modules\MixedTournament\Preflight\MixedPreflight;
 use App\Modules\TournamentBase\Routing\ModuleRoutes;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
@@ -13,6 +14,11 @@ use Illuminate\Support\ServiceProvider;
 
 class MixedTournamentServiceProvider extends ServiceProvider
 {
+    public function register(): void
+    {
+        $this->app->tag([MixedPreflight::class], 'phase2.preflight');
+    }
+
     public function boot(): void
     {
         $this->loadMigrationsFrom(__DIR__.'/Database/Migrations');

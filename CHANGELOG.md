@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Phase 2: phase2:preflight mixed checks columns, charset, schema version, unique keys, the grant foreign key, orphans and data rules.
 - Phase 2: Mixed round creation, proposal check, player swap and result entry in the new design.
 - Phase 2: Mixed admin forms refuse over-long titles and names, out-of-range ITN and court counts, and oversized or non-text CSV files with a message instead of a server error.
 - Phase 2: Mixed participant management and configuration in the new design; the member picker searches on demand instead of embedding the whole roster.
