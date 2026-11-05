@@ -35,6 +35,9 @@
             </ul>
         @endif
         <p class="mbr-card-foot">
+            @if($openDuesTop->count() < $openDuesCount)
+                <span class="text-body-s text-ink-2">{{ __('members::admin.dashboard.open_list_shown', ['shown' => $openDuesTop->count(), 'total' => $openDuesCount]) }}</span>
+            @endif
             <span class="text-body-s text-ink-2">{{ __('members::admin.dashboard.paid_dues') }}: {{ $paidDuesCount }} · {{ $money($paidDuesSum) }}</span>
             <a href="{{ route('members.dues.index') }}" class="mbr-text-link">{{ __('members::admin.dashboard.all_dues') }}</a>
         </p>

@@ -56,7 +56,7 @@
             <tr>
                 <th scope="col">{{ __('members::admin.dues.fiscal_year') }}</th>
                 <th scope="col">{{ __('members::admin.members.fee_category') }}</th>
-                <th scope="col">{{ __('members::admin.fee_categories.amount') }}</th>
+                <th scope="col">{{ __('members::admin.dues.amount') }}</th>
                 <th scope="col">{{ __('members::admin.dues.status') }}</th>
                 <th scope="col">{{ __('members::admin.dues.paid_through') }}</th>
                 <th scope="col">{{ __('members::admin.dues.teilbetrag') }}</th>
@@ -70,7 +70,7 @@
             <tr>
                 <td class="ds-cell--title" data-label="{{ __('members::admin.dues.fiscal_year') }}">{{ $due->fiscalYear->name }}</td>
                 <td class="text-ink-2" data-label="{{ __('members::admin.members.fee_category') }}">{{ $due->feeCategory->name }}</td>
-                <td class="tabular-nums" data-label="{{ __('members::admin.fee_categories.amount') }}">{{ MembersFormat::money($due->amount) }}</td>
+                <td class="tabular-nums" data-label="{{ __('members::admin.dues.amount') }}">{{ MembersFormat::money($due->amount) }}</td>
                 <td class="cursor-pointer"
                     data-field="status"
                     data-label="{{ __('members::admin.dues.status') }}"
@@ -169,7 +169,8 @@
             if (result.ok) { this.linked = false; this.$dispatch('member-unlinked'); } else { this.error = result.message; }
         }
     }">
-        <p class="text-body-s text-ink-2">{{ __('members::admin.members.user_account_help') }}</p>
+        <div class="mbr-account-card">
+        <p class="m-0 text-body-s text-ink-2">{{ __('members::admin.members.user_account_help') }}</p>
         @if($member->user)
             <div x-show="linked" class="flex flex-col items-start gap-3">
                 <p class="font-semibold text-ink">{{ $member->user->alias }}@if($member->user->email) · {{ $member->user->email }}@endif</p>
@@ -179,6 +180,7 @@
         @endif
         <div x-show="!linked"@if($member->user !== null) x-cloak @endif>
             @include('members::members._user-picker', ['member' => $member, 'formId' => 'member-edit-form', 'label' => __('members::admin.members.link_user'), 'help' => __('members::admin.members.link_hint')])
+        </div>
         </div>
     </x-ui.card>
 
