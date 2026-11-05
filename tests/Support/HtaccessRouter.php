@@ -10,7 +10,8 @@ namespace Tests\Support;
  *
  * Understood rules: "%1 [L,R=301]" -> redirect, "index.php [L]" -> laravel,
  * "zf2-bridge.php [L]" -> zf2. Rules with other targets (guard 404, env setters) and the
- * catch-all patterns "^" / ".*" are skipped. First match wins, default laravel.
+ * catch-all patterns "^" / ".*" are skipped. A rule to one of those three targets with other
+ * flags makes the helper throw instead of being silently ignored (no false greens). RewriteCond lines are not modelled. First match wins, default laravel.
  */
 final class HtaccessRouter
 {
@@ -43,6 +44,10 @@ final class HtaccessRouter
                 $target === 'zf2-bridge.php' && $flags === 'L' => 'zf2',
                 default => null,
             };
+
+            if ($outcome === null && in_array($target, ['index.php', 'zf2-bridge.php', '%1'], true)) {
+                throw new \LogicException("HtaccessRouter cannot model: {$line}");
+            }
 
             if ($outcome !== null) {
                 $rules[] = [$pattern, $outcome];
