@@ -1,4 +1,4 @@
-{{-- Ladder settings. Needs: $ladder. --}}
+{{-- Ladder settings. Needs: $ladder, $globalAdmin (only global admins see the default checkbox). --}}
 @php
     use App\Modules\Pyramid\Support\PyramidLinks;
 
@@ -22,9 +22,11 @@
                 <x-ui.input type="number" :name="$field" :id="'pyramid-set-'.$field" :value="(string) $value" min="0" max="365" inputmode="numeric" />
             </x-ui.field>
         @endforeach
-        <x-ui.option-group :columns="2">
-            <x-ui.option-tile type="checkbox" name="is_default" value="1" :label="__('pyramid::admin.ladder.settings.is_default')" :checked="(bool) $ladder->is_default" />
-        </x-ui.option-group>
+        @if ($globalAdmin)
+            <x-ui.option-group :columns="2">
+                <x-ui.option-tile type="checkbox" name="is_default" value="1" :label="__('pyramid::admin.ladder.settings.is_default')" :checked="(bool) $ladder->is_default" />
+            </x-ui.option-group>
+        @endif
         <x-ui.button type="submit">{{ __('pyramid::admin.ladder.settings.save') }}</x-ui.button>
     </form>
 </x-ui.card>

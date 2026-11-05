@@ -425,10 +425,12 @@ final class LadderAdminService
 
     /**
      * @param  array<string, mixed>  $input  days_to_play, winner_protected_days, loser_cooldown_days, title, category, is_default
+     * @param  bool  $mayChangeDefault  false = is_default is ignored (neither set nor cleared, other ladders untouched);
+     *                                  only global Pyramid admins decide which ladder /pyramide shows
      *
      * @throws PyramidRuleException
      */
-    public function configure(PyramidLadder $ladder, array $input): void
+    public function configure(PyramidLadder $ladder, array $input, bool $mayChangeDefault = true): void
     {
         $data = [];
 
@@ -449,11 +451,14 @@ final class LadderAdminService
         }
 
         $data['category'] = trim((string) ($input['category'] ?? '')) ?: null;
-        $data['is_default'] = ! empty($input['is_default']) ? 1 : 0;
+
+        if ($mayChangeDefault) {
+            $data['is_default'] = ! empty($input['is_default']) ? 1 : 0;
+        }
 
         DB::transaction(function () use ($ladder, $data): void {
             // Only one default ladder, otherwise the sort order decides which one /pyramide shows.
-            if ($data['is_default'] === 1) {
+            if (($data['is_default'] ?? 0) === 1) {
                 PyramidLadder::query()->update(['is_default' => 0]);
             }
 

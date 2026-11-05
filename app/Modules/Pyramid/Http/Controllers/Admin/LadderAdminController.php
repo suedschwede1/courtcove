@@ -228,7 +228,7 @@ class LadderAdminController extends Controller
         try {
             $this->admin->configure($ladder, $request->only([
                 'title', 'category', 'days_to_play', 'winner_protected_days', 'loser_cooldown_days', 'is_default',
-            ]));
+            ]), $this->canAdmin());
         } catch (PyramidRuleException $e) {
             return $back->with('error', $e->verdict->message());
         }
