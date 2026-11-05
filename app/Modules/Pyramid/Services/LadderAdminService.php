@@ -535,7 +535,7 @@ final class LadderAdminService
      */
     public function extendDeadline(PyramidChallenge $challenge, string $rawDate, string $note, ?int $actorUid, ?CarbonImmutable $now = null): string
     {
-        $this->requireNote($note);
+        $note = $this->requireNote($note);
         $now ??= CarbonImmutable::now();
         $when = $this->parser->forDeadline($rawDate, $now);
 
@@ -566,7 +566,7 @@ final class LadderAdminService
      */
     public function expire(PyramidChallenge $challenge, string $note, ?int $actorUid, ?CarbonImmutable $now = null): void
     {
-        $this->requireNote($note);
+        $note = $this->requireNote($note);
 
         $this->challenges->transition((int) $challenge->id, [
             'status' => 'expired',
@@ -584,7 +584,7 @@ final class LadderAdminService
      */
     public function forfeit(PyramidChallenge $challenge, bool $challengerWon, string $note, ?int $actorUid): void
     {
-        $this->requireNote($note);
+        $note = $this->requireNote($note);
         $ladder = $this->repo->ladder((int) $challenge->ladder_id);
 
         if (! $ladder) {
@@ -680,11 +680,18 @@ final class LadderAdminService
         }
     }
 
-    private function requireNote(string $note): void
+    /**
+     * @return string the trimmed note (ZF2 stored it trimmed)
+     */
+    private function requireNote(string $note): string
     {
-        if (trim($note) === '') {
+        $note = trim($note);
+
+        if ($note === '') {
             throw $this->error('note_required');
         }
+
+        return $note;
     }
 
     private function error(string $key): PyramidRuleException

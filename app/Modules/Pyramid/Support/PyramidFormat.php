@@ -22,13 +22,24 @@ final class PyramidFormat
         return number_format((float) $itn, 1, $decimal, '');
     }
 
-    public static function date(string $sql): string
+    /**
+     * Nullable legacy columns (e.g. a challenge's `resolved`) render as a dash instead of "now".
+     */
+    public static function date(?string $sql): string
     {
+        if ($sql === null || trim($sql) === '') {
+            return '–';
+        }
+
         return CarbonImmutable::parse($sql)->format('d.m.Y');
     }
 
-    public static function dateTime(string $sql): string
+    public static function dateTime(?string $sql): string
     {
+        if ($sql === null || trim($sql) === '') {
+            return '–';
+        }
+
         return CarbonImmutable::parse($sql)->format('d.m.Y H:i');
     }
 }

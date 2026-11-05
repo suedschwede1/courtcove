@@ -14,12 +14,22 @@ class ScheduleParserTest extends TestCase
 {
     private CarbonImmutable $now;
 
+    private string $originalTimezone;
+
     protected function setUp(): void
     {
         parent::setUp();
 
+        $this->originalTimezone = date_default_timezone_get();
         date_default_timezone_set('Europe/Vienna');
         $this->now = CarbonImmutable::parse('2026-11-04 10:00:00', 'Europe/Vienna');
+    }
+
+    protected function tearDown(): void
+    {
+        date_default_timezone_set($this->originalTimezone);
+
+        parent::tearDown();
     }
 
     private function parser(): ScheduleParser
