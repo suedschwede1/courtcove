@@ -280,7 +280,7 @@ final class BookingService
      * form or the API — as opposed to createSingle(), which is the simple self-service
      * single-slot path used by the member-facing booking flow.
      *
-     * @param  array{sid: int|string, quantity: int|string, status?: ?string, mitspieler?: ?string, admin_note?: ?string}  $data
+     * @param  array{sid: int|string, quantity: int|string, status?: ?string, mitspieler?: ?string, player_names?: array<int, string|null>, admin_note?: ?string}  $data
      * @param  array{uid: int, ownerName: ?string}  $owner
      * @param  list<Carbon>  $occurrenceStarts
      */
@@ -308,7 +308,7 @@ final class BookingService
 
             $this->insertReservations($booking, $occurrenceStarts, $durationSeconds);
 
-            $this->syncPlayerMeta($booking, [2 => $data['mitspieler'] ?? null]);
+            $this->syncPlayerMeta($booking, $data['player_names'] ?? [2 => $data['mitspieler'] ?? null]);
             $this->syncBookingMeta($booking, 'owner-name', $owner['ownerName']);
             $this->syncBookingMeta($booking, 'admin-note', $data['admin_note'] ?? null);
 
@@ -320,7 +320,7 @@ final class BookingService
      * Update a (possibly repeating) booking for a resolved owner, replacing its
      * reservations — the update counterpart to createSeries().
      *
-     * @param  array{sid: int|string, quantity: int|string, status?: ?string, mitspieler?: ?string, admin_note?: ?string}  $data
+     * @param  array{sid: int|string, quantity: int|string, status?: ?string, mitspieler?: ?string, player_names?: array<int, string|null>, admin_note?: ?string}  $data
      * @param  array{uid: int, ownerName: ?string}  $owner
      * @param  list<Carbon>  $occurrenceStarts
      */
@@ -364,7 +364,7 @@ final class BookingService
 
             $this->insertReservations($targetBooking, $occurrenceStarts, $durationSeconds);
 
-            $this->syncPlayerMeta($targetBooking, [2 => $data['mitspieler'] ?? null]);
+            $this->syncPlayerMeta($targetBooking, $data['player_names'] ?? [2 => $data['mitspieler'] ?? null]);
             $this->syncBookingMeta($targetBooking, 'owner-name', $owner['ownerName']);
             $this->syncBookingMeta($targetBooking, 'admin-note', $data['admin_note'] ?? null);
 

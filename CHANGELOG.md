@@ -76,6 +76,8 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 - New repeat bookings are limited to once, weekly and every two weeks (the club no longer offers daily/monthly/custom); existing legacy series with other intervals are still shown, editable (incl. single-occurrence and this-and-following) and deletable; the REST API and MCP tools follow the same rule (create limited, update of a legacy series still accepted).
 - Removed unused price, product and coupon code from the Laravel app (legacy tables and bill cleanup on delete are unchanged).
 
+- Fix saving on the full-page admin "edit booking" form: it posts the players as `player_name_2..4`, but the controller only accepted `mitspieler`, so every save failed with "mitspieler is required". The controller now accepts both field sets and the three players are stored separately.
+
 ## 2026-11-04
 
 - Tests: the draw record page tests also cover closed token draws and hidden seeds of unrevealed draws.
