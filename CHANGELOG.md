@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-05
 
+- Phase 2: Pyramid challenge rules (positions, open-challenge lock, winner protection, loser cooldown, entry) ported unchanged.
 - Phase 2: Pyramid admin rights (global right or per-ladder grant) ported to a Laravel policy.
 - Phase 2: Pyramid data access ported; feed events keep ZF2's JSON and German wording.
 - Phase 2: Pyramid rules (challengeable positions, shifts, seeding) ported unchanged, checked against golden files from the old code.
