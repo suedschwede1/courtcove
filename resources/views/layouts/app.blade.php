@@ -14,9 +14,9 @@
 @endpush
 
 @section('body')
-<div class="page-shell">
-    <x-layout.header />
+<x-layout.header />
 
+<div class="page-shell">
     <main id="content">
         @if(session('success') || session('error'))
             <div x-data="{ open: true, timer: null }" x-init="timer = setTimeout(() => open = false, 4000)" @pointerdown="clearTimeout(timer)" @keydown="clearTimeout(timer)">

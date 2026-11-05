@@ -18,6 +18,7 @@ final class Icons
         'close' => '<path d="M6 6l12 12M18 6L6 18"/>',
         'chevron-left' => '<path d="M15 18l-6-6 6-6"/>',
         'chevron-right' => '<path d="M9 6l6 6-6 6"/>',
+        'chevron-down' => '<path d="M6 9l6 6 6-6"/>',
         'plus' => '<path d="M12 5v14M5 12h14"/>',
         'check' => '<path d="M5 12l5 5 9-10"/>',
         'calendar' => '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',

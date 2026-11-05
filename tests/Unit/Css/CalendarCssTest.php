@@ -52,11 +52,11 @@ final class CalendarCssTest extends TestCase
         // calendar page; it brings its own page padding (and is full-bleed on phones).
         $css = $this->toolbar();
 
-        // Only the inline inset goes, and the header gets it back, so it sits where
-        // it does on every other page (booking.css .page-shell: 8px 12px 16px).
+        // Only the inline inset goes. The header sits outside the shell (full width),
+        // so it needs no inset of its own here.
         $this->assertMatchesRegularExpression('/\.page-shell:has\(\.cal-page\)\s*\{[^}]*padding-inline:\s*0;/', $css);
         $this->assertDoesNotMatchRegularExpression('/\.page-shell:has\(\.cal-page\)\s*\{[^}]*padding:/', $css);
-        $this->assertMatchesRegularExpression('/\.page-shell:has\(\.cal-page\) > \.ds-header\s*\{[^}]*margin-inline:\s*12px;/', $css);
+        $this->assertStringNotContainsString('.ds-header', $css);
         $this->assertMatchesRegularExpression('/#content:has\(\.cal-page\)\s*\{[^}]*margin-top:\s*0;/', $css);
         $this->assertStringNotContainsString(':has(> .cal-page)', $css);
     }
@@ -113,5 +113,21 @@ final class CalendarCssTest extends TestCase
             $variable = '--cal-'.str_replace(['_', '.'], '-', $key);
             $this->assertStringContainsString('var('.$variable.')', $css, $variable);
         }
+    }
+
+    #[Test]
+    public function calendar_page_shares_the_header_gutter(): void
+    {
+        // Header content and calendar share one frame: full width, same side gutter,
+        // so their left and right edges line up at every width.
+        preg_match('/(?<![\w-])\.cal-page\s*\{([^}]*)\}/', $this->toolbar(), $page);
+        $this->assertStringNotContainsString('max-width', $page[1]);
+        $this->assertMatchesRegularExpression('/padding:\s*16px var\(--spacing-page-gutter\) 32px;/', $page[1]);
+
+        preg_match('/\.ds-header__bar\s*\{([^}]*)\}/', (string) file_get_contents(resource_path('css/ds.css')), $bar);
+        $this->assertStringNotContainsString('max-width', $bar[1]);
+        $this->assertStringContainsString('var(--spacing-page-gutter)', $bar[1]);
+
+        $this->assertMatchesRegularExpression('/--spacing-page-gutter:\s*24px;/', (string) file_get_contents(resource_path('css/app.css')));
     }
 }

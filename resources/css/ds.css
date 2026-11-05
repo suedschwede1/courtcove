@@ -731,17 +731,19 @@
         color: var(--color-surface);
     }
 
+    /* Full width, one 72px row; the side gutter is the calendar's, so both share their edges. */
     .ds-header__bar {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 14px 24px;
+        box-sizing: border-box;
+        min-height: 72px;
+        padding: 14px var(--spacing-page-gutter);
         display: flex;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
         align-items: center;
         gap: 16px 28px;
     }
 
     .ds-header__brand {
+        flex: 0 0 auto;
         display: flex;
         align-items: center;
         gap: 12px;
@@ -767,42 +769,101 @@
     }
 
     .ds-header__nav {
-        flex: 1 1 520px;
+        flex: 1 1 auto;
+        min-width: 0;
         display: flex;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
+    }
+
+    .ds-header__list,
+    .ds-header__menu {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .ds-header__list {
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
         gap: 4px;
     }
 
-    .ds-header__link {
+    .ds-header__link,
+    .ds-header__menu-link {
         display: inline-flex;
         align-items: center;
+        gap: 6px;
         min-height: var(--spacing-touch-min);
         padding: 10px 14px;
+        border: 0;
         border-radius: var(--radius-sm);
+        background: none;
         color: var(--color-chrome-ink);
-        font-weight: 500;
+        font: 500 var(--text-body) / 1.2 var(--font-body);
         text-decoration: none;
+        white-space: nowrap;
+        cursor: pointer;
     }
 
     .ds-header__link:hover,
-    .ds-header__link[aria-current="page"] {
+    .ds-header__link[aria-current],
+    .ds-header__link[aria-expanded="true"],
+    .ds-header__menu-link:hover,
+    .ds-header__menu-link[aria-current="page"] {
         background: rgb(255 255 255 / 0.1);
         color: var(--color-surface);
     }
 
-    .ds-header__link[aria-current="page"] {
+    .ds-header__link[aria-current],
+    .ds-header__menu-link[aria-current="page"] {
         font-weight: 600;
     }
 
-    .ds-header__tools {
+    .ds-header__group {
+        position: relative;
+    }
+
+    .ds-header__chevron {
+        transition: transform 0.15s ease;
+    }
+
+    .ds-header__group-button[aria-expanded="true"] .ds-header__chevron {
+        transform: rotate(180deg);
+    }
+
+    .ds-header__menu {
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 0;
+        z-index: 40;
+        min-width: 240px;
+        padding: 6px;
+        border: 1px solid var(--color-chrome-line);
+        border-radius: var(--radius-md);
+        background: var(--color-chrome);
+        box-shadow: var(--shadow-dialog);
+    }
+
+    .ds-header__menu-link {
         display: flex;
-        flex-wrap: wrap;
+    }
+
+    .ds-header__tools {
+        flex: 0 0 auto;
+        display: flex;
+        flex-wrap: nowrap;
         align-items: center;
         gap: 14px;
     }
 
     .ds-header__logout-form {
         margin: 0;
+    }
+
+    /* Buttons in the bar (log in / log out) keep the 44px tap height so the bar stays 72px. */
+    .ds-header__tools .ds-btn {
+        min-height: var(--spacing-touch-min);
     }
 
     .ds-header__logout {
@@ -1048,7 +1109,8 @@
         color: var(--color-chrome-ink);
     }
 
-    @media (width >= 48rem) {
+    /* The phone header and menu also serve tablets: below 64rem the full bar does not fit in one row. */
+    @media (width >= 64rem) {
         .ds-phone-menu {
             display: none !important;
         }
@@ -1060,10 +1122,34 @@
         }
     }
 
-    @media (width < 48rem) {
+    /* Narrow desktops: tighten spacing and drop secondary text so the bar stays one row. */
+    @media (64rem <= width < 80rem) {
         .ds-header__bar {
-            padding: 14px 16px;
-            flex-wrap: nowrap;
+            gap: 16px;
+        }
+
+        .ds-header__link {
+            padding-inline: 10px;
+        }
+
+        .ds-header__tools {
+            gap: 10px;
+        }
+
+        .ds-header__titles,
+        .ds-switch--bar .ds-switch__label {
+            display: none;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .ds-header__chevron {
+            transition: none;
+        }
+    }
+
+    @media (width < 64rem) {
+        .ds-header__bar {
             gap: 12px;
         }
 
@@ -1096,6 +1182,13 @@
 
         .ds-header .ds-logo__initials {
             font-size: 15px;
+        }
+    }
+
+    /* Phones: the calendar is full-bleed, the bar keeps a 16px inset. */
+    @media (width < 48rem) {
+        .ds-header__bar {
+            padding-inline: 16px;
         }
     }
 

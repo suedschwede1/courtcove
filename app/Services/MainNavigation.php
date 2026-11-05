@@ -11,6 +11,9 @@ use Illuminate\Support\Facades\Gate;
 
 /**
  * Builds the main navigation once for the header bar and the phone menu.
+ *
+ * items() is the flat list (phone menu); bar() folds it into at most four top-level
+ * entries for the desktop header so the bar never wraps.
  */
 final class MainNavigation
 {
@@ -59,5 +62,71 @@ final class MainNavigation
         }
 
         return $items;
+    }
+
+    /** Item keys folded into one "Tournaments" dropdown in the header bar. */
+    private const TOURNAMENT_KEYS = ['championship', 'pyramid', 'mixed'];
+
+    /** Item keys folded into one "Administration" dropdown in the header bar. */
+    private const ADMIN_KEYS = ['admin', 'members'];
+
+    /**
+     * The header bar's entries: bar-only items, tournaments and administration each
+     * collapsed into one group. A group with a single entry shows that entry directly.
+     *
+     * @param  list<NavItem>  $items  as returned by items()
+     * @return list<NavItem>
+     */
+    public function bar(array $items): array
+    {
+        $groups = [
+            'tournaments' => ['label' => __('booking.nav.tournaments'), 'icon' => 'trophy', 'keys' => self::TOURNAMENT_KEYS],
+            'administration' => ['label' => __('booking.nav.admin'), 'icon' => 'settings', 'keys' => self::ADMIN_KEYS],
+        ];
+
+        $bar = [];
+        $placed = [];
+        foreach ($items as $item) {
+            if (! $item->inBar) {
+                continue;
+            }
+
+            $groupKey = null;
+            foreach ($groups as $key => $group) {
+                if (in_array($item->key, $group['keys'], true)) {
+                    $groupKey = $key;
+                }
+            }
+
+            if ($groupKey === null) {
+                $bar[] = $item;
+
+                continue;
+            }
+
+            if (isset($placed[$groupKey])) {
+                continue;
+            }
+            $placed[$groupKey] = true;
+
+            $children = array_values(array_filter($items, fn (NavItem $i) => $i->inBar && in_array($i->key, $groups[$groupKey]['keys'], true)));
+            if (count($children) === 1) {
+                $bar[] = $children[0];
+
+                continue;
+            }
+
+            if ($groupKey === 'administration') {
+                // Under the "Administration" button the dashboard entry reads "Overview".
+                $children = array_map(fn (NavItem $i) => $i->key === 'admin'
+                    ? new NavItem($i->key, __('booking.nav.admin_overview'), $i->url, $i->icon, $i->active, $i->inBar)
+                    : $i, $children);
+            }
+
+            $active = array_filter($children, fn (NavItem $i) => $i->active) !== [];
+            $bar[] = new NavItem($groupKey, $groups[$groupKey]['label'], $children[0]->url, $groups[$groupKey]['icon'], $active, true, $children);
+        }
+
+        return $bar;
     }
 }

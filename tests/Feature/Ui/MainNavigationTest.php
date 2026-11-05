@@ -127,4 +127,70 @@ class MainNavigationTest extends TestCase
         $this->assertFalse($account->inBar);
         $this->assertSame(['account'], $this->activeKeys($items));
     }
+
+    #[Test]
+    public function bar_groups_the_tournaments_under_one_item(): void
+    {
+        $this->createTournamentsTable();
+        DB::table('bs_tournaments')->insert(['title' => 'VM 2026', 'status' => 'running', 'season' => 2026, 'active' => 1, 'is_test' => 0]);
+
+        $bar = app(MainNavigation::class)->bar($this->items(User::factory()->create()));
+
+        $this->assertSame(['calendar', 'bookings', 'tournaments'], $this->keys($bar));
+        $this->assertSame('Turniere', $bar[2]->label);
+        $this->assertSame(['championship', 'pyramid', 'mixed'], $this->keys($bar[2]->children));
+        $this->assertFalse($bar[2]->active);
+    }
+
+    #[Test]
+    public function bar_puts_members_under_administration(): void
+    {
+        $bar = app(MainNavigation::class)->bar($this->items(User::factory()->status('admin')->create()));
+
+        $this->assertSame(['calendar', 'bookings', 'tournaments', 'administration'], $this->keys($bar));
+        $admin = $bar[3];
+        $this->assertSame('Administration', $admin->label);
+        $this->assertSame(['admin', 'members'], $this->keys($admin->children));
+        $this->assertSame(['Übersicht', 'Mitglieder'], array_map(fn (NavItem $i) => $i->label, $admin->children));
+        $this->assertSame(route('admin.dashboard'), $admin->children[0]->url);
+    }
+
+    #[Test]
+    public function group_is_active_when_a_child_is_active(): void
+    {
+        $bar = app(MainNavigation::class)->bar($this->items(User::factory()->create(), '/pyramide/ladder/1'));
+        $group = collect($bar)->firstWhere('key', 'tournaments');
+
+        $this->assertTrue($group->active);
+        $this->assertSame(['pyramid'], $this->activeKeys($group->children));
+        $this->assertSame(['tournaments'], $this->activeKeys($bar));
+    }
+
+    #[Test]
+    public function a_single_child_is_shown_directly_without_a_group(): void
+    {
+        $items = [
+            new NavItem('calendar', 'Kalender', '/calendar', 'calendar', false),
+            new NavItem('pyramid', 'Forderungspyramide', '/pyramide', 'pyramid', true),
+            new NavItem('members', 'Mitglieder', '/members', 'members', false),
+        ];
+
+        $bar = app(MainNavigation::class)->bar($items);
+
+        $this->assertSame(['calendar', 'pyramid', 'members'], $this->keys($bar));
+        $this->assertSame([], $bar[1]->children);
+        $this->assertSame('Forderungspyramide', $bar[1]->label);
+        $this->assertTrue($bar[1]->active);
+    }
+
+    #[Test]
+    public function bar_never_has_more_than_four_top_level_items(): void
+    {
+        $this->createTournamentsTable();
+        DB::table('bs_tournaments')->insert(['title' => 'VM 2026', 'status' => 'running', 'season' => 2026, 'active' => 1, 'is_test' => 0]);
+
+        $bar = app(MainNavigation::class)->bar($this->items(User::factory()->status('admin')->create()));
+
+        $this->assertCount(4, $bar);
+    }
 }

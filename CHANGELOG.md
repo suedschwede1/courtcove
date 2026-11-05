@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Header bar spans the full width in one 72px row with the calendar's 24px gutter (header content and calendar share their left/right edges, no inset above the bar); tournaments collapse into a keyboard-accessible "Turniere" dropdown and Mitglieder moves under Administration, so the nav never wraps; below 1024px the phone menu takes over.
 - Pyramid admin ladder page: the ladder chips list only ladders the user may administer (a single-ladder grant holder no longer sees category, season or player count of foreign ladders).
 - Pyramid public pages follow the mockups more closely: abbreviated player names (K. Huber), one chip per category/season, bold 'A – B' pairings with short dates, challenge and player pages with a back bar instead of the ladder header, beige avatar, readable disabled Fordern button, shorter phone hints, layout tokens instead of arbitrary Tailwind values.
 - Pyramid: scheduling a date after the deadline flashes the info notice before the confirmation, as in ZF2.

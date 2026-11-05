@@ -6,6 +6,8 @@ use App\Models\User;
 use DOMDocument;
 use DOMXPath;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Blade;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -140,5 +142,105 @@ class HeaderTest extends TestCase
         $css = (string) file_get_contents(resource_path('css/ds.css'));
 
         $this->assertMatchesRegularExpression('/\.ds-header__brand\s*\{\s*min-height:\s*44px;/', $css);
+    }
+
+    #[Test]
+    public function header_spans_the_viewport_outside_the_page_shell(): void
+    {
+        $xp = $this->xpath($this->get('/calendar')->assertOk()->getContent());
+
+        $this->assertSame(1, $xp->query('//body/header[contains(concat(" ", @class, " "), " ds-header ")]')->length);
+        $this->assertSame(0, $xp->query('//*[contains(concat(" ", @class, " "), " page-shell ")]//header')->length);
+    }
+
+    #[Test]
+    public function header_bar_is_one_full_width_72px_row(): void
+    {
+        $css = (string) file_get_contents(resource_path('css/ds.css'));
+        $this->assertMatchesRegularExpression('/\.ds-header__bar\s*\{([^}]*)\}/', $css);
+        preg_match('/\.ds-header__bar\s*\{([^}]*)\}/', $css, $m);
+
+        $this->assertStringNotContainsString('max-width', $m[1]);
+        $this->assertMatchesRegularExpression('/min-height:\s*72px;/', $m[1]);
+        $this->assertMatchesRegularExpression('/flex-wrap:\s*nowrap;/', $m[1]);
+        $this->assertMatchesRegularExpression('/padding:\s*14px var\(--spacing-page-gutter\);/', $m[1]);
+
+        preg_match('/\.ds-header__nav\s*\{([^}]*)\}/', $css, $nav);
+        $this->assertMatchesRegularExpression('/flex-wrap:\s*nowrap;/', $nav[1]);
+    }
+
+    #[Test]
+    public function tournaments_collapse_into_one_dropdown(): void
+    {
+        $member = User::factory()->create(['status' => 'enabled']);
+        $xp = $this->xpath($this->actingAs($member)->get('/calendar')->assertOk()->getContent());
+        $nav = '//nav[@aria-label="Hauptmenü"]';
+
+        $this->assertSame(3, $xp->query($nav.'/ul/li')->length); // Kalender, Meine Buchungen, Turniere
+
+        $button = $xp->query($nav.'//button[@aria-controls="nav-group-tournaments"]');
+        $this->assertSame(1, $button->length);
+        $btn = $button->item(0);
+        $this->assertSame('button', $btn->getAttribute('type'));
+        $this->assertSame('false', $btn->getAttribute('aria-expanded'));
+        $this->assertStringContainsString('open', $btn->getAttribute('x-bind:aria-expanded'));
+        $this->assertStringContainsString('Turniere', $btn->textContent);
+        $this->assertFalse($btn->hasAttribute('aria-current'));
+
+        $panel = $xp->query($nav.'//*[@id="nav-group-tournaments"]');
+        $this->assertSame(1, $panel->length);
+        $this->assertTrue($panel->item(0)->hasAttribute('x-cloak'));
+        $this->assertSame('open', $panel->item(0)->getAttribute('x-show'));
+        $labels = array_map(fn ($a) => trim($a->textContent), iterator_to_array($xp->query('.//a', $panel->item(0))));
+        $this->assertSame(['Forderungspyramide', 'Mixed-/Fun-Turnier'], $labels);
+
+        $group = $xp->query($nav.'//*[@x-data="dsNavGroup"]');
+        $this->assertSame(1, $group->length);
+        $this->assertNotSame('', $group->item(0)->getAttribute('x-on:keydown.escape'));
+        $this->assertNotSame('', $group->item(0)->getAttribute('x-on:click.outside'));
+    }
+
+    #[Test]
+    public function administration_group_is_current_on_admin_pages(): void
+    {
+        $admin = User::factory()->create(['status' => 'admin']);
+        $xp = $this->xpath($this->actingAs($admin)->get('/calendar')->assertOk()->getContent());
+        $nav = '//nav[@aria-label="Hauptmenü"]';
+
+        $this->assertSame(4, $xp->query($nav.'/ul/li')->length);
+        $panel = $xp->query($nav.'//*[@id="nav-group-administration"]//a');
+        $this->assertSame([route('admin.dashboard'), route('members.dashboard')], array_map(fn ($a) => $a->getAttribute('href'), iterator_to_array($panel)));
+        $this->assertSame(0, $xp->query($nav.'/ul/li/a[@href="'.route('members.dashboard').'"]')->length);
+
+        // Admin pages bring their own bar, so render the header for such a request directly.
+        $this->actingAs($admin);
+        $xp = $this->xpath($this->renderHeader(route('members.dashboard')));
+        $button = $xp->query($nav.'//button[@aria-controls="nav-group-administration"]');
+        $this->assertSame('true', $button->item(0)->getAttribute('aria-current'));
+        $current = $xp->query($nav.'//a[@aria-current="page"]');
+        $this->assertSame(1, $current->length);
+        $this->assertSame(route('members.dashboard'), $current->item(0)->getAttribute('href'));
+    }
+
+    #[Test]
+    public function tournaments_group_is_current_on_a_tournament_page(): void
+    {
+        $this->actingAs(User::factory()->create(['status' => 'enabled']));
+        $xp = $this->xpath($this->renderHeader(url('/pyramide/regeln')));
+        $nav = '//nav[@aria-label="Hauptmenü"]';
+
+        $this->assertSame('true', $xp->query($nav.'//button[@aria-controls="nav-group-tournaments"]')->item(0)->getAttribute('aria-current'));
+        $current = $xp->query($nav.'//a[@aria-current="page"]');
+        $this->assertSame(1, $current->length);
+        $this->assertSame('Forderungspyramide', trim($current->item(0)->textContent));
+    }
+
+    private function renderHeader(string $url): string
+    {
+        $request = Request::create($url);
+        $request->setRouteResolver(fn () => app('router')->getRoutes()->match($request));
+        $this->app->instance('request', $request);
+
+        return Blade::render('<x-layout.header />');
     }
 }

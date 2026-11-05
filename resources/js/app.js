@@ -1,8 +1,10 @@
 import Alpine from 'alpinejs'
 import { dsModal } from './modal'
+import { dsNavGroup } from './nav-group'
 window.__wm = 'src:hm-b26c8c89'
 window.Alpine = Alpine
 Alpine.data('dsModal', dsModal)
+Alpine.data('dsNavGroup', dsNavGroup)
 Alpine.start()
 
 function openDatePicker(input) {

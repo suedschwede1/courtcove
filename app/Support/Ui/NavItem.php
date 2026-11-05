@@ -6,6 +6,9 @@ namespace App\Support\Ui;
 
 final readonly class NavItem
 {
+    /**
+     * @param  list<NavItem>  $children  a non-empty list makes this item a dropdown group in the header bar
+     */
     public function __construct(
         public string $key,
         public string $label,
@@ -13,5 +16,6 @@ final readonly class NavItem
         public string $icon,
         public bool $active,
         public bool $inBar = true,
+        public array $children = [],
     ) {}
 }
