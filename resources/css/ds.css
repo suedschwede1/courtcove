@@ -1192,6 +1192,65 @@
         }
     }
 
+    /*
+     * Phone top bar (x-layout.phone-bar): back arrow, optional eyebrow, page title on the chrome colour. Phones only;
+     * a page that brings one hides the site header below 48rem (layouts.app), so the bar takes the header's place.
+     * Same measures as the admin phone bar.
+     */
+    .ds-phone-bar {
+        position: sticky;
+        top: 0;
+        z-index: 40;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 12px 12px 8px;
+        background: var(--color-chrome);
+        color: var(--color-surface);
+    }
+
+    .ds-phone-bar .ds-phone-bar__lead {
+        background: transparent;
+    }
+
+    .ds-phone-bar__text {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        min-width: 0;
+        line-height: 1.05;
+    }
+
+    .ds-phone-bar__eyebrow {
+        margin: 0;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--color-chrome-muted);
+    }
+
+    .ds-phone-bar__title {
+        margin: 0;
+        overflow: hidden;
+        font: 700 22px / 1.05 var(--font-display);
+        color: var(--color-surface);
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    @media (width >= 48rem) {
+        .ds-phone-bar {
+            display: none;
+        }
+    }
+
+    @media (width < 48rem) {
+        .ds-header-host--phone-bar {
+            display: none;
+        }
+    }
+
     /* Full-page booking and edit forms: one centred card, same parts as the dialog. */
     .ds-booking-page {
         display: flex;

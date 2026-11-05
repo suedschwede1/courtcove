@@ -70,6 +70,42 @@ class DetailPagesLayoutTest extends TestCase
     }
 
     #[Test]
+    public function detail_pages_bring_the_phone_top_bar_which_replaces_the_site_header_on_phones(): void
+    {
+        [$ladder, $viewer, $challenge] = $this->scheduledChallenge();
+        $back = 'href="'.url('/pyramide/'.$ladder->id).'"';
+        // The confirm page needs a participant without a running challenge.
+        $free = User::factory()->create();
+        $this->playerAt($ladder, 8)->update(['uid' => $free->uid]);
+
+        $pages = [
+            '/pyramide/forderung/'.$challenge->id => ['Forderung', $viewer],
+            '/pyramide/spieler/'.$this->playerAt($ladder, 6)->id => ['Spielerprofil', $viewer],
+            '/pyramide/fordern/'.$this->playerAt($ladder, 5)->id => ['Forderung aussprechen', $free],
+        ];
+
+        foreach ($pages as $url => [$title, $user]) {
+            $html = (string) $this->actingAs($user)->get($url)->assertOk()->getContent();
+
+            $this->assertStringContainsString('<div class="ds-header-host--phone-bar">', $html, $url);
+            $this->assertMatchesRegularExpression('#<header class="ds-phone-bar ds-on-chrome no-print">.*?'.preg_quote($back, '#').'.*?<h1 class="ds-phone-bar__title">'.preg_quote($title, '#').'</h1>#s', $html, $url);
+            // The desktop head stays, hidden on phones.
+            $this->assertStringContainsString('<div class="flex items-center gap-2 max-md:hidden">', $html, $url);
+        }
+    }
+
+    #[Test]
+    public function the_ladder_page_keeps_the_plain_site_header(): void
+    {
+        $this->ladder();
+
+        $html = (string) $this->get('/pyramide')->assertOk()->getContent();
+
+        $this->assertStringNotContainsString('ds-phone-bar', $html);
+        $this->assertStringNotContainsString('ds-header-host--phone-bar', $html);
+    }
+
+    #[Test]
     public function the_result_form_heads_its_columns_with_the_abbreviated_players(): void
     {
         [, $viewer, $challenge] = $this->scheduledChallenge();

@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Pyramid: challenge, player profile and challenge confirmation get the phone top bar of the mockups (back arrow and title in place of the site header on phones); desktop unchanged.
 - Pyramid: an unknown ladder, player or challenge shows a friendly not-found page with a way back (status stays 404; the administration gets it in the admin shell).
 - Pyramid: the result form shows live whether the entered score is valid and who won (same check as on saving; without JavaScript the form still checks on submit).
 - Tournament config (live-DB guard name, court names) moved to config/tournament-base.php so env values survive config:cache; static analysis is clean again.

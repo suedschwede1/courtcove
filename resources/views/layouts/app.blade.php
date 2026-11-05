@@ -14,7 +14,13 @@
 @endpush
 
 @section('body')
-<x-layout.header />
+@hasSection('phone-bar')
+    {{-- The page brings its own phone top bar (x-layout.phone-bar): the site header steps aside below 48rem. --}}
+    <div class="ds-header-host--phone-bar"><x-layout.header /></div>
+    @yield('phone-bar')
+@else
+    <x-layout.header />
+@endif
 
 <div class="page-shell">
     <main id="content">
