@@ -56,6 +56,7 @@ return [
         'anonymize_button' => 'Anonymize',
         'anonymized_at' => 'Anonymized on :date',
         'anonymize_field_locked' => 'Field locked because this member has been anonymized.',
+        'send_mail' => 'Send group mail',
     ],
     'payments' => [
         'new_payment' => 'Record payment',
@@ -77,6 +78,9 @@ return [
         'actions' => 'Actions',
         'yes' => 'Yes',
         'no' => 'No',
+        'save_failed' => 'Could not save.',
+        'select_all' => 'Select all',
+        'select_row' => 'Select :name',
     ],
     'fiscal_years' => [
         'title' => 'Fiscal years',
@@ -137,6 +141,7 @@ return [
         'created' => 'Created',
         'no_changes' => 'No field changes.',
         'empty' => 'No changes recorded.',
+        'change' => ':field: :old → :new',
     ],
     'functions' => [
         'title' => 'Roles',
@@ -151,6 +156,7 @@ return [
     'mail' => [
         'title' => 'Mail',
         'config_title' => 'Mail Settings',
+        'bcc' => 'BCC',
         'to_all' => 'Mail to all members',
         'to_board' => 'Mail to board',
         'to_dormant' => 'Mail to dormant members',

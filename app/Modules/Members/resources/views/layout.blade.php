@@ -4,6 +4,10 @@
     {{ __('booking.nav.members') }} - @yield('admin-title', __('members::admin.dashboard.title'))
 @endsection
 
+@push('head')
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+@endpush
+
 @section('body')
 <div class="flex min-h-screen bg-[#f0f0f0]">
     <aside style="width:180px; height:100vh; position:sticky; top:0; overflow-y:auto; background:#151515; flex-shrink:0; display:flex; flex-direction:column;">

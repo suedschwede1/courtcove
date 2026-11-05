@@ -266,59 +266,10 @@
     </div>
     </form>
 </div>
-<script>
-    window.saveDueField = async (dueId, field, value) => {
-        const token = document.querySelector('input[name="_token"]')?.value ?? '';
 
-        try {
-            const response = await fetch(`{{ url('/members') }}/dues/${dueId}/field`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': token,
-                },
-                body: JSON.stringify({ field, value }),
-            });
-            const data = await response.json();
-
-            if (!response.ok) {
-                return { ok: false, message: data.message || 'Fehler beim Speichern.' };
-            }
-
-            return { ok: true, value: data.value };
-        } catch (e) {
-            return { ok: false, message: 'Fehler beim Speichern.' };
-        }
-    };
-
-    window.saveDuePaidThrough = async (dueId, fiscalYearId) => {
-        if (!fiscalYearId) return;
-        const token = document.querySelector('input[name="_token"]')?.value ?? '';
-
-        try {
-            const response = await fetch(`{{ url('/members') }}/dues/${dueId}/paid-through`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': token,
-                },
-                body: JSON.stringify({ fiscal_year_id: fiscalYearId }),
-            });
-
-            if (response.ok) {
-                window.location.reload();
-                return;
-            }
-
-            const data = await response.json();
-            alert(data.message || 'Fehler beim Speichern.');
-            window.location.reload();
-        } catch (e) {
-            alert('Fehler beim Speichern.');
-            window.location.reload();
-        }
-    };
-</script>
+@once
+    @push('scripts')
+        @include('members::partials.inline-save')
+    @endpush
+@endonce
 @endsection

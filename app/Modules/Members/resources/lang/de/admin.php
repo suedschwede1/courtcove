@@ -56,6 +56,7 @@ return [
         'anonymize_button' => 'Anonymisieren',
         'anonymized_at' => 'Anonymisiert am :date',
         'anonymize_field_locked' => 'Feld gesperrt, da dieses Mitglied anonymisiert wurde.',
+        'send_mail' => 'Rundmail senden',
     ],
     'payments' => [
         'new_payment' => 'Zahlung erfassen',
@@ -77,6 +78,9 @@ return [
         'actions' => 'Aktionen',
         'yes' => 'Ja',
         'no' => 'Nein',
+        'save_failed' => 'Fehler beim Speichern.',
+        'select_all' => 'Alle auswählen',
+        'select_row' => ':name auswählen',
     ],
     'fiscal_years' => [
         'title' => 'Fiskaljahre',
@@ -137,6 +141,7 @@ return [
         'created' => 'Angelegt',
         'no_changes' => 'Keine Feldänderungen.',
         'empty' => 'Keine Änderungen protokolliert.',
+        'change' => ':field: :old → :new',
     ],
     'functions' => [
         'title' => 'Funktionen',
@@ -151,6 +156,7 @@ return [
     'mail' => [
         'title' => 'Mail',
         'config_title' => 'Mail-Einstellungen',
+        'bcc' => 'BCC',
         'to_all' => 'Mail an alle Mitglieder',
         'to_board' => 'Mail an Vorstand',
         'to_dormant' => 'Mail an ruhende Mitglieder',

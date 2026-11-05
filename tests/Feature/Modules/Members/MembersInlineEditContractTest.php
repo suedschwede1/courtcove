@@ -106,6 +106,29 @@ class MembersInlineEditContractTest extends TestCase
         $this->assertStringContainsString(url('/members').'/dues/${dueId}/paid-through', $html);
     }
 
+    #[Test]
+    #[DataProvider('pageUrls')]
+    public function save_helpers_read_the_token_from_the_head_meta(string $page): void
+    {
+        $html = $this->render($page);
+
+        $this->assertStringContainsString('<meta name="csrf-token" content="', $html);
+        $this->assertStringContainsString('meta[name="csrf-token"]', $html);
+    }
+
+    #[Test]
+    public function save_helper_partial_has_no_hardcoded_german_message(): void
+    {
+        $partial = app_path('Modules/Members/resources/views/partials/inline-save.blade.php');
+
+        $this->assertFileExists($partial);
+        $source = (string) file_get_contents($partial);
+        $this->assertStringNotContainsString('Fehler', $source);
+        $this->assertStringContainsString("__('members::admin.common.save_failed')", $source);
+        $this->assertSame('Could not save.', __('members::admin.common.save_failed', [], 'en'));
+        $this->assertSame('Fehler beim Speichern.', __('members::admin.common.save_failed', [], 'de'));
+    }
+
     private function render(string $page): string
     {
         $admin = User::factory()->create(['status' => 'admin']);
