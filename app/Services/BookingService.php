@@ -280,27 +280,26 @@ final class BookingService
      * form or the API — as opposed to createSingle(), which is the simple self-service
      * single-slot path used by the member-facing booking flow.
      *
-     * @param  array{sid: int|string, quantity: int|string, status?: ?string, mitspieler?: ?string, player_names?: array<int, string|null>, admin_note?: ?string}  $data
+     * @param  array{sid: int|string, quantity: int|string, mitspieler?: ?string, player_names?: array<int, string|null>, admin_note?: ?string}  $data
      * @param  array{uid: int, ownerName: ?string}  $owner
      * @param  list<Carbon>  $occurrenceStarts
      */
     public function createSeries(array $data, array $owner, array $occurrenceStarts, int $durationSeconds): Booking
     {
         return DB::transaction(function () use ($data, $owner, $occurrenceStarts, $durationSeconds): Booking {
-            if (($data['status'] ?? null) !== 'cancelled') {
-                // Serialize with concurrent bookings on this square, then check conflicts.
-                Square::query()->whereKey((int) $data['sid'])->lockForUpdate()->get();
-                $conflictError = $this->batchCheckConflicts((int) $data['sid'], $occurrenceStarts, $durationSeconds, null);
-                if ($conflictError !== null) {
-                    throw new BookingValidationException($conflictError);
-                }
+            // Serialize with concurrent bookings on this square, then check conflicts.
+            Square::query()->whereKey((int) $data['sid'])->lockForUpdate()->get();
+            $conflictError = $this->batchCheckConflicts((int) $data['sid'], $occurrenceStarts, $durationSeconds, null);
+            if ($conflictError !== null) {
+                throw new BookingValidationException($conflictError);
             }
 
             $booking = Booking::create([
                 'uid' => $owner['uid'],
                 'sid' => (int) $data['sid'],
                 'quantity' => (int) $data['quantity'],
-                'status' => ($data['status'] ?? null) === 'cancelled' ? 'cancelled' : (count($occurrenceStarts) > 1 ? 'subscription' : 'single'),
+                // The status follows from the data (one slot or a series); it is never taken from input.
+                'status' => count($occurrenceStarts) > 1 ? 'subscription' : 'single',
                 'status_billing' => 'pending',
                 'visibility' => 'public',
                 'created' => now()->format('Y-m-d H:i:s'),
@@ -320,7 +319,7 @@ final class BookingService
      * Update a (possibly repeating) booking for a resolved owner, replacing its
      * reservations — the update counterpart to createSeries().
      *
-     * @param  array{sid: int|string, quantity: int|string, status?: ?string, mitspieler?: ?string, player_names?: array<int, string|null>, admin_note?: ?string}  $data
+     * @param  array{sid: int|string, quantity: int|string, mitspieler?: ?string, player_names?: array<int, string|null>, admin_note?: ?string}  $data
      * @param  array{uid: int, ownerName: ?string}  $owner
      * @param  list<Carbon>  $occurrenceStarts
      */
@@ -336,7 +335,10 @@ final class BookingService
         return DB::transaction(function () use ($booking, $data, $owner, $occurrenceStarts, $durationSeconds, $occurrenceDate, $scope): Booking {
             $targetBooking = $this->splitForScope($booking, $occurrenceDate, $scope);
 
-            if (($data['status'] ?? null) !== 'cancelled') {
+            // A cancelled booking stays cancelled (only the cancel action sets that) and holds no slot to check.
+            $isCancelled = $targetBooking->status === 'cancelled';
+
+            if (! $isCancelled) {
                 // Serialize with concurrent bookings on this square, then check conflicts.
                 Square::query()->whereKey((int) $data['sid'])->lockForUpdate()->get();
                 $conflictError = $this->batchCheckConflicts((int) $data['sid'], $occurrenceStarts, $durationSeconds, $targetBooking->bid);
@@ -345,7 +347,7 @@ final class BookingService
                 }
             }
 
-            $effectiveStatus = ($data['status'] ?? null) === 'cancelled'
+            $effectiveStatus = $isCancelled
                 ? 'cancelled'
                 : (count($occurrenceStarts) > 1 ? 'subscription' : 'single');
 

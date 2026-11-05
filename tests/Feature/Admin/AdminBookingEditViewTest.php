@@ -94,15 +94,15 @@ final class AdminBookingEditViewTest extends TestCase
     }
 
     #[Test]
-    public function quantity_and_status_are_option_tiles(): void
+    public function quantity_is_an_option_tile_and_status_is_not_editable(): void
     {
         $this->getEdit();
 
         $this->assertSame(1, $this->nodes('//fieldset['.self::cls('ds-options').']//input[@type="radio"][@name="quantity"][@value="4"][@checked]')->length);
         $this->assertSame(1, $this->nodes('//input[@type="radio"][@name="quantity"][@value="2"][@id="admin-booking-quantity-2"][not(@checked)]')->length);
         $this->assertSame(1, $this->nodes('//input[@id="admin-booking-quantity-4"]')->length);
-        $this->assertSame(1, $this->nodes('//fieldset['.self::cls('ds-options').']//input[@type="radio"][@name="status"][@value="subscription"][@checked]')->length);
-        $this->assertSame(3, $this->nodes('//input[@type="radio"][@name="status"]')->length);
+        $this->assertSame(0, $this->nodes('//*[@name="status"]')->length);
+        $this->assertSame(0, $this->nodes('//*[@name="status_billing"]')->length);
         $this->assertSame(1, $this->nodes('//fieldset['.self::cls('ds-options').']//input[@type="radio"][@name="edit_scope"][@value="single_occurrence"][@checked]')->length);
         $this->assertSame(3, $this->nodes('//select[@id="admin-booking-repeat"]/option')->length);
     }
