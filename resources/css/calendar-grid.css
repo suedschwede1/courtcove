@@ -25,6 +25,10 @@
     padding-top: 9px;
 }
 
+.cal-times__spacer {
+    flex: none;
+}
+
 .cal-times__spacer--head {
     height: 36px;
 }

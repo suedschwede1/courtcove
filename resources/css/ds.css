@@ -1074,6 +1074,10 @@
             display: none;
         }
 
+        .ds-header__brand {
+            min-height: 44px;
+        }
+
         .ds-header__section {
             display: block;
             flex: 1;
