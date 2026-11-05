@@ -305,6 +305,8 @@ return [
             'intro_index' => 'Manage users and assign permissions.',
             'intro_create' => 'Create a new user and assign permissions.',
             'intro_edit' => 'Edit user data and permissions.',
+            'linked_member' => 'Member',
+            'linked_member_number' => 'No. :number',
             'filter_heading' => 'Filter',
             'results_count' => ':count results',
             'members' => 'Users',

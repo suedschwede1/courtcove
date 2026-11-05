@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Admin user edit: a user linked to a member shows "Mitglied: Nr. …"; the number links to the member page for users with the members permission; nothing is shown for unlinked users.
 - Members detail: "Anonymisieren" (in a "Datenschutz" side card, as in the mockup) only appears once the retention period after leaving has really passed; before that the card says from which date anonymisation is possible; the header no longer shows a red "Löschen" button for every departed member.
 - Members: all amounts (dues list, member detail, overview totals, payment check) use one format, German "3.800,00 €" and English "€3,800.00", instead of a mix with "3,800.00 €".
 - Admin users: placeholder accounts are hidden from the list (and its total) unless the status filter picks "Platzhalter" or "Platzhalter anzeigen" is ticked; a hint with a link says when they are hidden.
