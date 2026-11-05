@@ -42,6 +42,12 @@ return [
         'close' => 'Close',
     ],
     'auth' => [
+        'back_to_calendar' => 'Back to calendar',
+        'panel' => [
+            'line1' => 'Your court.',
+            'line2' => 'Your time.',
+            'text' => 'Book courts, add partners and keep your dates in view.',
+        ],
         'title' => 'Log In - :system',
         'eyebrow' => 'Member Area',
         'heading' => 'Log In',
