@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-05
 
+- Members area restyle complete: committed build contains the module styles.
 - Mail send confirmation keeps keyboard focus inside the dialog and returns it to the send button; subject and body errors are announced with their fields.
 - Mail settings and club function forms use the shared fields and buttons.
 - Mail composer uses audience chips, cards and a labelled confirmation dialog that closes with Escape.
