@@ -51,7 +51,12 @@ final class CalendarCssTest extends TestCase
         // calendar page; it brings its own page padding (and is full-bleed on phones).
         $css = $this->toolbar();
 
-        $this->assertMatchesRegularExpression('/\.page-shell:has\(\.cal-page\)\s*\{[^}]*padding:\s*0;/', $css);
-        $this->assertMatchesRegularExpression('/#content:has\(> \.cal-page\)\s*\{[^}]*margin-top:\s*0;/', $css);
+        // Only the inline inset goes, and the header gets it back, so it sits where
+        // it does on every other page (booking.css .page-shell: 8px 12px 16px).
+        $this->assertMatchesRegularExpression('/\.page-shell:has\(\.cal-page\)\s*\{[^}]*padding-inline:\s*0;/', $css);
+        $this->assertDoesNotMatchRegularExpression('/\.page-shell:has\(\.cal-page\)\s*\{[^}]*padding:/', $css);
+        $this->assertMatchesRegularExpression('/\.page-shell:has\(\.cal-page\) > \.ds-header\s*\{[^}]*margin-inline:\s*12px;/', $css);
+        $this->assertMatchesRegularExpression('/#content:has\(\.cal-page\)\s*\{[^}]*margin-top:\s*0;/', $css);
+        $this->assertStringNotContainsString(':has(> .cal-page)', $css);
     }
 }

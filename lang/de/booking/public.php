@@ -174,7 +174,6 @@ return [
         'cancel_title' => 'Buchung auf :court stornieren',
         'edit_title' => 'Buchung auf :court bearbeiten',
         'occupied' => 'Belegt',
-        'to_time' => 'bis :time Uhr',
         'court_number' => 'Platz :number',
         'until_hour' => 'bis :hour',
     ],

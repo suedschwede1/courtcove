@@ -253,6 +253,29 @@ final class CalendarGridTest extends TestCase
     }
 
     #[Test]
+    public function event_starting_before_the_first_row_leads_in_the_first_row(): void
+    {
+        $this->event($this->squares[0]->sid, '2026-11-04 06:00', '2026-11-04 09:00', 'Example Early');
+        $this->event($this->squares[1]->sid, '2026-11-04 06:00', '2026-11-04 10:00', 'Example Dawn');
+
+        $admin = User::factory()->create(['status' => 'admin']);
+        $xp = $this->xpath($this->actingAs($admin)->get('/calendar?date=2026-11-04')->assertOk()->getContent());
+
+        $row8 = $this->slots($this->row($xp, '1', 8));
+        foreach ([[$row8[0], 'Example Early', 'single'], [$row8[1], 'Example Dawn', 'start']] as [$slot, $name, $part]) {
+            $this->assertStringContainsString('event-cell--'.$part, $slot->getAttribute('class'));
+            $link = $this->element($xp, './/a[@data-action="event-edit"][contains(@class,"event-label")]', $slot);
+            $this->assertSame($name, $this->norm($link->textContent));
+            $this->assertFalse($link->hasAttribute('aria-hidden'));
+        }
+
+        $row9 = $this->slots($this->row($xp, '1', 9));
+        $this->assertStringContainsString('event-cell--end', $row9[1]->getAttribute('class'));
+        $this->assertSame(0, $xp->query('.//a[@data-action="event-edit"]', $row9[1])->length);
+        $this->assertStringNotContainsString('event-cell', $row9[0]->getAttribute('class'));
+    }
+
+    #[Test]
     public function old_day_window_script_is_gone(): void
     {
         $member = User::factory()->create(['status' => 'enabled']);

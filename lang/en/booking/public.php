@@ -174,7 +174,6 @@ return [
         'cancel_title' => 'Cancel booking on :court',
         'edit_title' => 'Edit booking on :court',
         'occupied' => 'Occupied',
-        'to_time' => 'until :time',
         'court_number' => 'Court :number',
         'until_hour' => 'to :hour',
     ],

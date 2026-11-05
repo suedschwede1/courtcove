@@ -16,16 +16,22 @@
 }
 
 /* The calendar page brings its own page padding (and is full-bleed on phones):
-   drop the layout shell's inset on this page only. */
+   drop the layout shell's side inset for the content on this page only. The
+   header keeps the shell's 12px side inset (booking.css .page-shell) so it sits
+   exactly where it does on every other page. */
 .page-shell:has(.cal-page) {
-    padding: 0;
+    padding-inline: 0;
 }
 
-#content:has(> .cal-page) {
+.page-shell:has(.cal-page) > .ds-header {
+    margin-inline: 12px;
+}
+
+#content:has(.cal-page) {
     margin-top: 0;
 }
 
-#content:has(> .cal-page) > .help-panel {
+#content:has(.cal-page) > .help-panel {
     box-sizing: content-box;
     max-width: 1400px;
     margin: 16px auto 0;
@@ -253,7 +259,7 @@
 
     .cal-toolbar__panels,
     .cal-page__legend,
-    #content:has(> .cal-page) > .help-panel {
+    #content:has(.cal-page) > .help-panel {
         padding: 0 16px;
     }
 }
