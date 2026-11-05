@@ -84,6 +84,8 @@ final class BookingController extends Controller
             return back()->withErrors(['booking' => $msg])->with('error', $msg);
         }
 
+        $quote = null;
+
         if (Option::getValue('service.quotes.enabled', '1') === '1') {
             $locale = app()->getLocale();
             $pool = QuoteGroups::baseQuotes($locale, __('booking.quotes'));
@@ -110,13 +112,18 @@ final class BookingController extends Controller
             }
 
             $quote = str_replace(':name', (string) auth()->user()?->alias, $pool[array_rand($pool)]);
-            session()->flash('booking_quote', $quote);
         }
 
         if ($request->ajax()) {
-            session()->flash('success', __('booking.messages.booking_created_public'));
+            // The sheet shows the quote itself, so nothing is flashed here.
+            return response()->json([
+                'redirect' => route('calendar.index', ['date' => Carbon::parse($data['date'])->format('Y-m-d')]),
+                'quote' => $quote,
+            ]);
+        }
 
-            return response()->json(['redirect' => route('calendar.index', ['date' => Carbon::parse($data['date'])->format('Y-m-d')])]);
+        if ($quote !== null) {
+            session()->flash('booking_quote', $quote);
         }
 
         return redirect()->route('calendar.index', ['date' => Carbon::parse($data['date'])->format('Y-m-d')])

@@ -77,6 +77,16 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 - The calendar shows a legend of all cell states, and the help texts describe the new colours.
 - The calendar date, day arrows, date picker and Infos/Hinweise now sit in a toolbar above the plan instead of under the header.
 - Calendar colours default to the new design tokens; CAL_COLOR_* and the local override file still win, tournament matches get their own colour keys.
+- The feedback dialog closes by itself after four seconds again, and the close button of the admin popup closes its dialog.
+
+- Old booking dialog styles removed; the new booking flow ships in the built assets.
+- The booking and edit pages without JavaScript use the same tiles and buttons as the dialog.
+- Admin event form and booking popup use the new dialog; the popup fills the screen on phones.
+- Own bookings open a details view with Bearbeiten, Stornieren and Abbrechen; editing uses the same tiles as booking.
+- After booking, the sheet shows "Platz gebucht" with the quote and links to the calendar and to my bookings.
+- Booking opens as a dialog on desktop and a bottom sheet on phones, with Einzel/Doppel as tiles and a summary of date, time and court.
+- Success and error messages use the new dialog (sheet on phones) and close after 4 seconds unless you interact with them.
+- Shared dialog component: centred dialog on desktop, bottom sheet on phones, keeps focus inside and locks page scroll.
 - Legacy element rules use zero-specificity guards so existing buttons, links and inputs keep their original cascade.
 - Admin and Members pages show their prefix in the browser tab again even when a view sets its own title.
 - Legacy element rules (links, text inputs, touch-action) no longer restyle the new ds components, which now carry their own base font size.

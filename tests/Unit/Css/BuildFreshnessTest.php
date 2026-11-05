@@ -16,6 +16,9 @@ final class BuildFreshnessTest extends TestCase
         $files = array_merge(
             glob(resource_path('views/components/ui/*.blade.php')) ?: [],
             glob(resource_path('views/components/layout/*.blade.php')) ?: [],
+            [resource_path('views/components/calendar/modals.blade.php')],
+            glob(resource_path('views/bookings/*.blade.php')) ?: [],
+            [resource_path('views/layouts/app.blade.php')],
         );
 
         $missing = [];
@@ -30,6 +33,9 @@ final class BuildFreshnessTest extends TestCase
             foreach ($strings as $s) {
                 preg_match_all('/\bds-[a-z0-9_-]+/', $s, $t);
                 foreach ($t[0] as $token) {
+                    if (str_ends_with($token, '-')) {
+                        continue; // dynamic prefix such as ds-modal__panel--{{ $size }}
+                    }
                     if (! preg_match('/\.'.preg_quote($token, '/').'(?![\w-])/', $css)) {
                         $missing[$token] = basename($file);
                     }

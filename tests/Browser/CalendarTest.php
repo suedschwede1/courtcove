@@ -63,8 +63,8 @@ final class CalendarTest extends DuskTestCase
                 $browser->loginAs($user)
                     ->visit('/calendar?date='.$date)
                     ->click('.cc-free')
-                    ->waitFor('[data-testid="new-booking-dialog"]', 5)
-                    ->assertVisible('[data-testid="new-booking-dialog"]');
+                    ->waitFor('#booking-dialog .ds-modal__panel', 5)
+                    ->assertVisible('#booking-dialog .ds-modal__panel');
             });
         } finally {
             $this->deleteTestUser('dusk_modal');

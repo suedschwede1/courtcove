@@ -6,6 +6,7 @@ namespace Tests\Feature;
 
 use App\Models\Booking;
 use App\Models\Event;
+use App\Models\Option;
 use App\Models\Reservation;
 use App\Models\Square;
 use App\Models\User;
@@ -89,6 +90,67 @@ class BookingControllerTest extends TestCase
         );
         $this->assertContains($quote, $englishPool);
         $this->assertStringNotContainsString('Besenbesen', $quote);
+    }
+
+    #[Test]
+    public function ajax_booking_returns_redirect_and_quote_without_flashing(): void
+    {
+        $this->travelTo('2026-07-01 10:00:00');
+
+        app()->setLocale('en');
+
+        $user = User::factory()->create();
+        $square = Square::factory()->create([
+            'status' => 'enabled', 'time_block_bookable_max' => 0, 'range_book' => 0,
+        ]);
+
+        $response = $this->actingAs($user)
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->post('/bookings', [
+                'sid' => $square->sid,
+                'date' => '2026-07-10',
+                'time_start' => 36000,
+                'time_end' => 39600,
+                'quantity' => 2,
+                'mitspieler' => 'Partner Mustermann',
+            ]);
+
+        $response->assertOk();
+        $this->assertSame(route('calendar.index', ['date' => '2026-07-10']), $response->json('redirect'));
+
+        $englishPool = array_map(
+            fn (string $q) => str_replace(':name', (string) $user->alias, $q),
+            array_merge(__('booking.quotes'), __('booking.quotes_named')),
+        );
+        $this->assertContains($response->json('quote'), $englishPool);
+        $response->assertSessionMissing('success');
+        $response->assertSessionMissing('booking_quote');
+    }
+
+    #[Test]
+    public function ajax_booking_quote_is_null_when_quotes_are_disabled(): void
+    {
+        $this->travelTo('2026-07-01 10:00:00');
+
+        Option::create(['key' => 'service.quotes.enabled', 'value' => '0', 'locale' => null]);
+
+        $user = User::factory()->create();
+        $square = Square::factory()->create([
+            'status' => 'enabled', 'time_block_bookable_max' => 0, 'range_book' => 0,
+        ]);
+
+        $this->actingAs($user)
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->post('/bookings', [
+                'sid' => $square->sid,
+                'date' => '2026-07-10',
+                'time_start' => 36000,
+                'time_end' => 39600,
+                'quantity' => 2,
+                'mitspieler' => 'Partner Mustermann',
+            ])
+            ->assertOk()
+            ->assertJsonPath('quote', null);
     }
 
     #[Test]
