@@ -210,6 +210,24 @@ class ProposalGeneratorTest extends TestCase
     }
 
     #[Test]
+    public function failed_regenerate_keeps_the_old_proposal(): void
+    {
+        $this->seedRandomizer(3);
+        $event = MixedEvent::factory()->create(['mode' => 'americano']);
+        $ids = $this->participants($event, 8);
+        $round = $this->generator()->createAndPropose($event, '4_only', 'random', $ids);
+        $before = $this->dump($round);
+
+        $this->assertRule('min_four', fn () => $this->generator()->regenerate($round, array_slice($ids, 0, 3)));
+        $this->assertSame($before, $this->dump($round));
+
+        // 9 selected with 4_only is impossible (see failed_generation_...): still the old rows
+        $nine = [...$ids, ...$this->participants($event, 1)];
+        $this->assertRule('extra_group_impossible', fn () => $this->generator()->regenerate($round, $nine));
+        $this->assertSame($before, $this->dump($round));
+    }
+
+    #[Test]
     public function americano_invariants_hold_for_many_seeds(): void
     {
         $event = MixedEvent::factory()->create(['mode' => 'americano']);
@@ -381,6 +399,25 @@ class ProposalGeneratorTest extends TestCase
                 $this->assertStringContainsString('missing', $e->getMessage());
             }
             $this->assertFileDoesNotExist($dir.'/x.json');
+
+            // the DEFAULT path (no explicit $update) must read the env flag: unset means "do not write"
+            $original = getenv('UPDATE_MIXED_SNAPSHOTS');
+            putenv('UPDATE_MIXED_SNAPSHOTS');
+            try {
+                try {
+                    $this->assertSnapshot('y', ['a' => 1], null, $dir);
+                    $this->fail('unreachable: default path must not write');
+                } catch (AssertionFailedError $e) {
+                    $this->assertStringContainsString('missing', $e->getMessage());
+                }
+                $this->assertFileDoesNotExist($dir.'/y.json');
+            } finally {
+                if ($original === false) {
+                    putenv('UPDATE_MIXED_SNAPSHOTS');
+                } else {
+                    putenv('UPDATE_MIXED_SNAPSHOTS='.$original);
+                }
+            }
 
             // with the flag it is written ...
             $this->assertSnapshot('x', ['a' => 1], true, $dir);
