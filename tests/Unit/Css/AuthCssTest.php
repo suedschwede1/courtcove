@@ -67,4 +67,14 @@ final class AuthCssTest extends TestCase
     {
         $this->assertMatchesRegularExpression('/@media \(width >= 56rem\)\s*\{\s*\.ds-auth__panel\s*\{[^}]*position:\s*sticky[^}]*min-height:\s*100vh/', $this->css());
     }
+
+    #[Test]
+    public function side_by_side_layout_never_wraps_and_phone_hides_only_the_flagged_intro(): void
+    {
+        $css = $this->css();
+
+        $this->assertMatchesRegularExpression('/@media \(width >= 56rem\)\s*\{.*?\.ds-auth\s*\{\s*flex-wrap:\s*nowrap/s', $css);
+        $this->assertStringContainsString('.ds-auth__intro--desktop', $css);
+        $this->assertStringNotContainsString('.ds-auth__head .ds-auth__intro', $css);
+    }
 }

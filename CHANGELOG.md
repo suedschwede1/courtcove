@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-05
 
+- Auth layout: the sticky court panel no longer covers the form just above 900px, and only the sign-in page hides its intro on phones.
 - Login, registration, password and account pages address members with "du".
 - My account uses the new cards and fields; every field is now linked to its label.
 - The page header title is 40px like the design mockup instead of 32px.

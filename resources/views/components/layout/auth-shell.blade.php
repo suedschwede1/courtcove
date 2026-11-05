@@ -1,4 +1,4 @@
-@props(['title', 'intro' => null, 'footer' => null])
+@props(['title', 'intro' => null, 'footer' => null, 'introDesktopOnly' => false])
 @php
     $hasFooter = $footer !== null && trim((string) $footer) !== '';
 @endphp
@@ -29,7 +29,7 @@
             <div class="ds-auth__head">
                 <h1 class="ds-auth__title">{{ $title }}</h1>
                 @if($intro !== null && trim((string) $intro) !== '')
-                    <p class="ds-auth__intro">{{ $intro }}</p>
+                    <p class="ds-auth__intro{{ $introDesktopOnly ? ' ds-auth__intro--desktop' : '' }}">{{ $intro }}</p>
                 @endif
             </div>
             {{ $slot }}

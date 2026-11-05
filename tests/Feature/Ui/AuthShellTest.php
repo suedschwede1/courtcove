@@ -61,4 +61,14 @@ class AuthShellTest extends TestCase
         $this->assertStringNotContainsString('style=', $html);
         $this->assertSame(1, substr_count($html, '<h1'));
     }
+
+    #[Test]
+    public function intro_is_hidden_on_phones_only_when_the_page_asks_for_it(): void
+    {
+        $this->assertStringContainsString('<p class="ds-auth__intro">I</p>', $this->shell('<x-layout.auth-shell title="T" intro="I"></x-layout.auth-shell>'));
+        $this->assertStringContainsString(
+            '<p class="ds-auth__intro ds-auth__intro--desktop">I</p>',
+            $this->shell('<x-layout.auth-shell title="T" intro="I" :intro-desktop-only="true"></x-layout.auth-shell>'),
+        );
+    }
 }

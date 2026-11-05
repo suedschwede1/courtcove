@@ -5,7 +5,7 @@
 @endsection
 
 @section('body')
-    <x-layout.auth-shell :title="__('booking.auth.heading')" :intro="__('booking.auth.intro')">
+    <x-layout.auth-shell :title="__('booking.auth.heading')" :intro="__('booking.auth.intro')" :intro-desktop-only="true">
         @if(session('registered'))
             <x-ui.notice tone="good">{{ str_replace(':system', $bookingName, $registrationContent['success']) }}</x-ui.notice>
         @endif

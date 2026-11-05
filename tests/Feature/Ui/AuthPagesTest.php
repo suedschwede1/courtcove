@@ -189,4 +189,11 @@ class AuthPagesTest extends TestCase
             ->assertSee('id="firstname-error"', false)
             ->assertSee('id="lastname-error"', false);
     }
+
+    #[Test]
+    public function only_the_login_page_drops_its_intro_on_phones(): void
+    {
+        $this->get('/login')->assertSee('ds-auth__intro ds-auth__intro--desktop', false);
+        $this->get('/password/forgot')->assertSee('class="ds-auth__intro"', false)->assertDontSee('ds-auth__intro--desktop', false);
+    }
 }

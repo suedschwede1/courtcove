@@ -87,6 +87,8 @@
         display: flex;
         align-items: center;
         gap: 12px;
+        box-sizing: border-box;
+        max-width: 100%;
         padding: 8px 12px 8px 0;
     }
 
@@ -97,11 +99,6 @@
     }
 
     /* A long club name wraps (two lines at most) instead of running past the panel. */
-    .ds-auth__brand {
-        max-width: 100%;
-        box-sizing: border-box;
-    }
-
     .ds-auth__club {
         display: -webkit-box;
         min-width: 0;
@@ -331,6 +328,11 @@
             min-height: 100vh;
             min-height: 100dvh;
         }
+
+        /* Never wrap here: a stacked panel must not be sticky over the form. */
+        .ds-auth {
+            flex-wrap: nowrap;
+        }
     }
 
     @media (width >= 48rem) {
@@ -366,7 +368,7 @@
         .ds-auth__line--service,
         .ds-auth__line--center,
         .ds-auth__panel-text,
-        .ds-auth__head .ds-auth__intro {
+        .ds-auth__intro--desktop {
             display: none;
         }
 
