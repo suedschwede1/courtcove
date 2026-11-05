@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Modules\Members\Models\FeeCategory;
 use App\Modules\Members\Models\FiscalYear;
 use App\Modules\Members\Models\Member;
+use App\Modules\Members\Models\MemberChange;
 use App\Modules\Members\Models\MemberDue;
 use App\Modules\Members\Models\Payment;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
@@ -83,7 +84,7 @@ class DashboardTest extends TestCase
 
         $this->actingAs($this->admin())->get('/members/dashboard')
             ->assertOk()
-            ->assertSeeTextInOrder(['Offene Beiträge', '1', '50.00 €'])
+            ->assertSeeTextInOrder(['Beitrag 2025/26 offen', '1', '50.00 €'])
             ->assertSeeTextInOrder(['Bezahlte Beiträge', '1', '100.00 €']);
     }
 
@@ -119,7 +120,55 @@ class DashboardTest extends TestCase
 
         $this->actingAs($this->admin())->get('/members/dashboard')
             ->assertOk()
-            ->assertSeeTextInOrder(['Offene Beiträge', '1', '50.00 €'])
+            ->assertSeeTextInOrder(['Beitrag 2025/26 offen', '1', '50.00 €'])
             ->assertSeeTextInOrder(['Bezahlte Beiträge', '1', '100.00 €']);
+    }
+
+    #[Test]
+    public function kpis_count_members_youth_active_dormant_and_members_without_account(): void
+    {
+        $user = User::factory()->create();
+        Member::factory()->create(['status' => 'aktiv', 'birthdate' => now()->subYears(15)->toDateString(), 'user_id' => $user->uid]);
+        Member::factory()->create(['status' => 'aktiv', 'birthdate' => now()->subYears(40)->toDateString()]);
+        Member::factory()->create(['status' => 'ruhend', 'birthdate' => null]);
+        Member::factory()->create(['status' => 'ausgetreten', 'left_at' => '2025-01-01', 'birthdate' => now()->subYears(12)->toDateString()]);
+
+        $html = (string) $this->actingAs($this->admin())->get('/members/dashboard')->assertOk()->getContent();
+
+        $kpi = fn (string $label, string $value, string $meta) => '#<p class="ds-kpi__label">'.preg_quote($label, '#').'</p>\s*<p class="ds-kpi__value">'.preg_quote($value, '#').'</p>\s*<p class="ds-kpi__meta">'.preg_quote($meta, '#').'</p>#';
+        $this->assertMatchesRegularExpression($kpi('Mitglieder', '3', 'davon 1 Jugend'), $html);
+        $this->assertMatchesRegularExpression($kpi('Aktiv', '2', '1 ruhend'), $html);
+        $this->assertMatchesRegularExpression($kpi('Ohne Benutzerkonto', '2', 'nur Vereinsmitglied'), $html);
+    }
+
+    #[Test]
+    public function overview_lists_open_dues_and_recent_changes_with_links(): void
+    {
+        $this->travelTo('2026-07-01 10:00:00');
+        $admin = $this->admin();
+        $category = FeeCategory::create(['name' => 'Erwachsene']);
+        $year = FiscalYear::create(['name' => '2025/26', 'starts_on' => '2025-09-01', 'ends_on' => '2026-08-31']);
+        foreach (['Aigner', 'Berger', 'Cerny', 'Doppler', 'Egger', 'Fink'] as $lastname) {
+            $member = Member::factory()->create(['firstname' => 'Test', 'lastname' => $lastname]);
+            MemberDue::create(['member_id' => $member->id, 'fiscal_year_id' => $year->id, 'fee_category_id' => $category->id, 'amount' => 80, 'status' => 'ausstehend']);
+        }
+        $paid = Member::factory()->create(['firstname' => 'Test', 'lastname' => 'Bezahlt']);
+        MemberDue::create(['member_id' => $paid->id, 'fiscal_year_id' => $year->id, 'fee_category_id' => $category->id, 'amount' => 80, 'status' => 'bezahlt']);
+        $changed = Member::factory()->create(['firstname' => 'Gerda', 'lastname' => 'Geaendert']);
+        MemberChange::create(['member_id' => $changed->id, 'admin_user_id' => $admin->uid, 'action' => 'updated', 'before' => ['phone' => '1'], 'after' => ['phone' => '2']]);
+
+        $html = (string) $this->actingAs($admin)->get('/members/dashboard')->assertOk()->getContent();
+
+        $open = substr($html, (int) strpos($html, 'Beitrag offen</h2>'));
+        $this->assertSame(5, substr_count(substr($open, 0, (int) strpos($open, '</section>')), 'class="mbr-due-row"'));
+        $this->assertStringNotContainsString('Bezahlt, Test', $open);
+        $this->assertStringContainsString('Aigner, Test', $open);
+        $this->assertStringContainsString('href="'.route('members.dues.index').'"', $html);
+
+        $this->assertStringContainsString('Geaendert, Gerda', $html);
+        $this->assertStringContainsString('Telefon geändert', $html);
+        $this->assertStringContainsString('href="'.route('members.changes.index').'"', $html);
+
+        $this->assertStringContainsString('href="'.route('members.create').'"', $html);
     }
 }

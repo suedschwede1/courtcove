@@ -7,6 +7,7 @@ namespace App\Modules\Members\Http\Controllers;
 use App\Modules\Members\Models\FeeCategory;
 use App\Modules\Members\Models\FiscalYear;
 use App\Modules\Members\Models\Member;
+use App\Modules\Members\Models\MemberChange;
 use App\Modules\Members\Models\MemberDue;
 use Illuminate\Contracts\View\View;
 
@@ -15,6 +16,8 @@ class DashboardController
     public function index(): View
     {
         $activeCount = Member::query()->active()->count();
+        // Current members: active or dormant, not departed.
+        $current = fn () => Member::query()->whereIn('status', ['aktiv', 'ruhend']);
 
         $fiscalYears = FiscalYear::query()->orderBy('starts_on')->get();
         $currentFiscalYear = $fiscalYears->first(
@@ -27,10 +30,19 @@ class DashboardController
             $openDuesQuery->where('fiscal_year_id', $currentFiscalYear->id);
             $paidDuesQuery->where('fiscal_year_id', $currentFiscalYear->id);
         }
-        $openDues = $openDuesQuery->get();
+        $openDues = $openDuesQuery->with(['member', 'feeCategory'])->get();
         $paidDues = $paidDuesQuery->get();
 
         return view('members::dashboard', [
+            'memberCount' => $current()->count(),
+            // Youth: 18 or younger today.
+            'youthCount' => $current()->where('birthdate', '>', now()->subYears(19)->toDateString())->count(),
+            'dormantCount' => Member::query()->where('status', 'ruhend')->count(),
+            // Informational only: the link to a booking-system account is optional.
+            'withoutAccountCount' => $current()->whereNull('user_id')->count(),
+            'openDuesTop' => $openDues->sortBy(fn (MemberDue $due) => [$due->member->lastname ?? '', $due->member->firstname ?? ''])->take(5)->values(),
+            'recentChanges' => MemberChange::query()->with(['member', 'adminUser'])->orderByDesc('created_at')->orderByDesc('id')->limit(5)->get(),
+            'categoryNames' => FeeCategory::query()->pluck('name', 'id')->all(),
             'activeCount' => $activeCount,
             'openDuesCount' => $openDues->count(),
             'openDuesSum' => $openDues->sum('amount'),

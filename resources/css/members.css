@@ -410,12 +410,45 @@
     text-decoration: underline;
 }
 
+.mbr-text-link {
+    color: var(--color-clay);
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+.mbr-text-link:hover {
+    color: var(--color-clay-hover);
+}
+
 /* Dashboard and configuration lists. */
 @layer components {
     .mbr-kpis {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 16px;
+    }
+
+    /* Overview "Beitrag offen": name left, category right. */
+    .mbr-due-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 0;
+        border-top: 1px solid var(--color-line-soft);
+    }
+
+    .mbr-due-row:first-child {
+        padding-top: 0;
+        border-top: 0;
+    }
+
+    .mbr-card-foot {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin: 12px 0 0;
     }
 
     .mbr-kpis .ds-kpi {
@@ -497,8 +530,17 @@
         margin-top: 16px;
     }
 
+    @media (width < 64rem) {
+        .mbr-kpis {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
     @media (width < 48rem) {
-        .mbr-kpis,
+        .mbr-kpis {
+            gap: 10px;
+        }
+
         .mbr-split {
             grid-template-columns: minmax(0, 1fr);
         }
