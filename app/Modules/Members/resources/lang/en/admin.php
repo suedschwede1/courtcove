@@ -3,9 +3,18 @@
 declare(strict_types=1);
 
 return [
+    'area' => [
+        'eyebrow' => 'Member management',
+        'tabs' => 'Member management',
+    ],
+    'settings' => [
+        'title' => 'Settings',
+    ],
     'members' => [
         'title' => 'Members',
         'new_member' => 'New member',
+        'create' => 'Add member',
+        'export' => 'Export',
         'section_person' => 'Person',
         'section_contact' => 'Contact',
         'section_club' => 'Club',

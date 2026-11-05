@@ -1,5 +1,5 @@
 @extends('members::layout')
-@section('admin-title', __('members::admin.members.title'))
+@section('members-title', __('members::admin.members.title'))
 @section('members-content')
 @php
     use App\Modules\Members\Support\StatusTone;
@@ -21,9 +21,12 @@
 @endphp
 <x-members::page-header :title="__('members::admin.members.title')">
     <x-slot:actions>
-        <x-ui.button variant="secondary" :block="false" :href="route('members.mail.index')">{{ __('members::admin.members.send_mail') }}</x-ui.button>
-        <x-ui.button :block="false" icon="plus" :href="route('members.create')" class="mbr-phone-hidden">{{ __('members::admin.members.new_member') }}</x-ui.button>
+        <x-ui.button variant="secondary" :block="false" :href="route('members.export')" class="mbr-phone-hidden">{{ __('members::admin.members.export') }}</x-ui.button>
+        <x-ui.button :block="false" icon="plus" :href="route('members.create')" class="mbr-phone-hidden">{{ __('members::admin.members.create') }}</x-ui.button>
     </x-slot:actions>
+    <x-slot:phoneAction>
+        <x-ui.button :href="route('members.create')">{{ __('members::admin.members.create') }}</x-ui.button>
+    </x-slot:phoneAction>
 </x-members::page-header>
 
 <x-ui.card class="mbr-filter-card" as="div">
@@ -309,8 +312,6 @@
         </div>
     @endif
 </x-ui.card>
-
-<a href="{{ route('members.create') }}" class="mbr-fab mbr-phone-only" aria-label="{{ __('members::admin.members.new_member') }}"><x-ui.icon name="plus" :size="24" /></a>
 
 @once
     @push('scripts')

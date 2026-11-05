@@ -1,5 +1,5 @@
 @extends('members::layout')
-@section('admin-title', __('members::admin.mail.title'))
+@section('members-title', __('members::admin.mail.title'))
 @section('members-content')
 @php
     $mailSendItems = $mailSends ?? collect();

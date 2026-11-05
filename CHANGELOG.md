@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Members area stands on its own: the pages use the normal app header instead of the admin shell (no admin sidebar), with eyebrow "Mitgliederverwaltung" and one tab row Übersicht · Mitglieder · Beiträge · Rundmail · Einstellungen (settings pages get a second row); the list offers Export, and on phones "Mitglied anlegen"/"Speichern" is a full-width button pinned at the bottom.
 - Header: "Mitglieder" is its own top-level entry right before the administration (also in the phone menu) instead of sitting in the administration dropdown; it only lights up on member pages.
 - German validation messages for every framework rule (decimal, list, prohibited and others showed the raw key "validation.…" in German before).
 - Admin "Texte" page: new section "Absender der Turnier-Mails" (sender, Reply-To, signature club/website/text); a filled field wins over .env, an emptied field falls back again.

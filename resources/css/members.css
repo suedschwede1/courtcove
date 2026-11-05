@@ -1,6 +1,6 @@
-/* Members module (restyle step 6). Tokens only. The pages render in the shared admin shell (layouts.admin). */
+/* Members module. Tokens only. The pages render in the app layout (light header, no admin sidebar) with module tabs. */
 @layer components {
-    /* Page header: eyebrow + the page's only h1 + actions; the section tabs follow it. */
+    /* Page header: eyebrow + the page's only h1 + actions; the module tabs follow it. */
     .mbr-page-header {
         display: flex;
         flex-wrap: wrap;
@@ -39,27 +39,68 @@
         gap: 8px;
     }
 
+    /* Module tabs: one row, 3px clay underline on the active tab at every width (phones scroll the row). */
+    .ds-tabs.mbr-tabs {
+        margin-top: -8px;
+    }
+
+    /* Settings pages: second row with the five settings pages. */
+    .mbr-subnav {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 2px;
+    }
+
+    .mbr-subnav .ds-chip {
+        flex-shrink: 0;
+    }
+
+    /* Primary action pinned at the bottom on phones: full width, 52px. */
+    .mbr-phone-action .ds-btn {
+        width: 100%;
+        min-height: var(--spacing-control-h-mobile);
+    }
+
     @media (width < 48rem) {
-        .mbr-page-header__eyebrow {
-            display: none;
+        .mbr-page-header {
+            gap: 8px;
         }
 
-        /* The phone admin bar shows the title (as on the other admin pages); the h1 stays for screen readers. */
+        .mbr-page-header__eyebrow {
+            font-size: 11px;
+            line-height: 14px;
+            letter-spacing: 0.14em;
+        }
+
         .mbr-page-header__title {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            margin: -1px;
-            padding: 0;
-            overflow: hidden;
-            clip: rect(0 0 0 0);
-            white-space: nowrap;
+            font-size: 28px;
+            line-height: 1.05;
+        }
+
+        .ds-tabs.mbr-tabs {
+            gap: 4px;
+            margin-top: 0;
+            border-bottom: 1px solid var(--color-line);
+        }
+
+        .ds-tabs.mbr-tabs .ds-tabs__tab {
+            padding: 0 10px;
             border: 0;
+            border-bottom: 3px solid transparent;
+            border-radius: 0;
+            background: transparent;
+        }
+
+        .ds-tabs.mbr-tabs .ds-tabs__tab[aria-current='page'] {
+            border-bottom-color: var(--color-clay);
+            background: transparent;
+            color: var(--color-ink);
         }
     }
 }
 
-/* Members list: filters, table card, phone cards, floating "new member". */
+/* Members list: filters, table card, phone cards. */
 @layer components {
     .mbr-filter-card {
         padding: 16px 20px;
@@ -281,21 +322,6 @@
             padding: 8px 0 0;
             border-top: 0;
         }
-
-        .mbr-fab {
-            position: fixed;
-            right: 16px;
-            bottom: 24px;
-            z-index: 40;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: var(--color-clay);
-            box-shadow: 0 6px 18px rgb(0 0 0 / 0.25); /* mockup value (no shadow token) */
-        }
     }
 }
 
@@ -310,10 +336,6 @@
 
 .mbr-row-link:hover {
     text-decoration: underline;
-}
-
-.mbr-fab {
-    color: var(--color-on-clay);
 }
 
 /* Dashboard and configuration lists. */

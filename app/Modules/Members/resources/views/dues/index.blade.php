@@ -1,5 +1,5 @@
 @extends('members::layout')
-@section('admin-title', __('members::admin.dues.title'))
+@section('members-title', __('members::admin.dues.title'))
 @section('members-content')
 @php
     use App\Modules\Members\Support\StatusTone;

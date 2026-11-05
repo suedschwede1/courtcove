@@ -1,5 +1,5 @@
 @extends('members::layout')
-@section('admin-title', __('members::admin.dsgvo.title'))
+@section('members-title', __('members::admin.dsgvo.title'))
 @section('members-content')
 <x-members::page-header :title="__('members::admin.dsgvo.title')" />
 <form method="POST" action="{{ route('members.dsgvo.update') }}" class="ui-form-shell">

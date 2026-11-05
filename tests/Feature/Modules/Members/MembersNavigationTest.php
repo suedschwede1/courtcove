@@ -12,92 +12,64 @@ use Tests\TestCase;
 class MembersNavigationTest extends TestCase
 {
     #[Test]
-    public function groups_list_labels_and_items_in_order(): void
+    public function tabs_list_the_module_areas_in_order(): void
     {
-        $groups = MembersNavigation::groups($this->requestFor('members.dashboard'));
+        $tabs = MembersNavigation::tabs($this->requestFor('members.dashboard'));
 
-        $this->assertSame(
-            [__('booking.nav.members'), __('members::admin.dashboard.configuration')],
-            array_column($groups, 'label'),
-        );
-        $this->assertSame(['members', 'configuration'], array_column($groups, 'key'));
-        $this->assertSame(['dashboard', 'members', 'dues', 'mail'], array_column($groups[0]['items'], 'key'));
-        $this->assertSame(
-            ['fiscal_years', 'fee_categories', 'functions', 'mail_config', 'dsgvo'],
-            array_column($groups[1]['items'], 'key'),
-        );
-
-        $items = $this->items($groups);
+        $this->assertSame(['dashboard', 'members', 'dues', 'mail', 'settings'], array_column($tabs, 'key'));
         $expected = [
             'dashboard' => ['members.dashboard', 'members::admin.dashboard.title'],
             'members' => ['members.index', 'members::admin.members.title'],
             'dues' => ['members.dues.index', 'members::admin.dues.title'],
             'mail' => ['members.mail.index', 'members::admin.mail.title'],
-            'fiscal_years' => ['members.fiscal-years.index', 'members::admin.fiscal_years.title'],
-            'fee_categories' => ['members.fee-categories.index', 'members::admin.fee_categories.title'],
-            'functions' => ['members.functions.index', 'members::admin.functions.title'],
-            'mail_config' => ['members.mail.config', 'members::admin.mail.config_title'],
-            'dsgvo' => ['members.dsgvo.index', 'members::admin.dsgvo.title'],
+            'settings' => ['members.fiscal-years.index', 'members::admin.settings.title'],
         ];
-        foreach ($expected as $key => [$route, $label]) {
-            $this->assertSame(route($route), $items[$key]['url'], $key);
-            $this->assertSame(__($label), $items[$key]['label'], $key);
+        foreach ($tabs as $tab) {
+            [$route, $label] = $expected[$tab['key']];
+            $this->assertSame(route($route), $tab['url'], $tab['key']);
+            $this->assertSame(__($label), $tab['label'], $tab['key']);
         }
 
-        $this->assertSame(['dashboard'], $this->activeKeys($groups));
+        $this->assertSame(['dashboard'], $this->activeKeys($tabs));
     }
 
     #[Test]
-    public function member_edit_marks_only_members_active(): void
+    public function member_pages_mark_the_members_tab(): void
     {
-        $this->assertSame(['members'], $this->activeKeys(
-            MembersNavigation::groups($this->requestFor('members.edit', ['member' => 1])),
-        ));
+        $this->assertSame(['members'], $this->activeKeys(MembersNavigation::tabs($this->requestFor('members.edit', ['member' => 1]))));
+        $this->assertSame(['members'], $this->activeKeys(MembersNavigation::tabs($this->requestFor('members.payments.create', ['member' => 1]))));
+        $this->assertSame(['mail'], $this->activeKeys(MembersNavigation::tabs($this->requestFor('members.mail.templates.update', ['mailTemplate' => 1], 'PUT'))));
     }
 
     #[Test]
-    public function payment_page_marks_members_active(): void
+    public function every_settings_page_marks_the_settings_tab_and_its_own_entry(): void
     {
-        $this->assertSame(['members'], $this->activeKeys(
-            MembersNavigation::groups($this->requestFor('members.payments.create', ['member' => 1])),
-        ));
+        $pages = [
+            'members.fiscal-years.index' => [[], 'fiscal_years'],
+            'members.fiscal-years.edit' => [['fiscalYear' => 1], 'fiscal_years'],
+            'members.fee-categories.index' => [[], 'fee_categories'],
+            'members.functions.edit' => [['clubRole' => 1], 'functions'],
+            'members.mail.config' => [[], 'mail_config'],
+            'members.dsgvo.index' => [[], 'dsgvo'],
+        ];
+
+        foreach ($pages as $route => [$parameters, $key]) {
+            $request = $this->requestFor($route, $parameters);
+            $this->assertSame(['settings'], $this->activeKeys(MembersNavigation::tabs($request)), $route);
+
+            $settings = MembersNavigation::settings($request);
+            $this->assertNotNull($settings, $route);
+            $this->assertSame(['fiscal_years', 'fee_categories', 'functions', 'mail_config', 'dsgvo'], array_column($settings, 'key'));
+            $this->assertSame([$key], $this->activeKeys($settings), $route);
+        }
     }
 
     #[Test]
-    public function mail_config_marks_only_mail_config_active(): void
+    public function the_settings_row_is_only_shown_on_settings_pages(): void
     {
-        $this->assertSame(['mail_config'], $this->activeKeys(
-            MembersNavigation::groups($this->requestFor('members.mail.config')),
-        ));
-    }
-
-    #[Test]
-    public function template_update_marks_mail_active(): void
-    {
-        $this->assertSame(['mail'], $this->activeKeys(
-            MembersNavigation::groups($this->requestFor('members.mail.templates.update', ['mailTemplate' => 1], 'PUT')),
-        ));
-    }
-
-    #[Test]
-    public function current_returns_the_section_of_the_page(): void
-    {
-        $this->assertSame('members', MembersNavigation::current($this->requestFor('members.dues.index'))['key'] ?? null);
-        $this->assertSame('configuration', MembersNavigation::current($this->requestFor('members.functions.edit', ['clubRole' => 1]))['key'] ?? null);
-        $this->assertNull(MembersNavigation::current($this->requestFor('admin.dashboard')));
-    }
-
-    #[Test]
-    public function patterns_join_the_item_patterns_of_a_section(): void
-    {
-        $this->assertSame(
-            ['members.dashboard', 'members.index', 'members.create', 'members.edit', 'members.payments.*', 'members.dues.*', 'members.mail.index', 'members.mail.templates.*'],
-            MembersNavigation::patterns('members'),
-        );
-        $this->assertSame(
-            ['members.fiscal-years.*', 'members.fee-categories.*', 'members.functions.*', 'members.mail.config', 'members.dsgvo.*'],
-            MembersNavigation::patterns('configuration'),
-        );
+        $this->assertNull(MembersNavigation::settings($this->requestFor('members.index')));
+        $this->assertNull(MembersNavigation::settings($this->requestFor('members.mail.index')));
+        $this->assertSame([], $this->activeKeys(MembersNavigation::tabs($this->requestFor('admin.dashboard'))));
     }
 
     /**
@@ -113,30 +85,11 @@ class MembersNavigationTest extends TestCase
     }
 
     /**
-     * @param  list<array{key: string, label: string, items: list<array{key: string, label: string, url: string, active: bool}>}>  $groups
-     * @return array<string, array{key: string, label: string, url: string, active: bool}>
-     */
-    private function items(array $groups): array
-    {
-        $items = [];
-        foreach ($groups as $group) {
-            foreach ($group['items'] as $item) {
-                $items[$item['key']] = $item;
-            }
-        }
-
-        return $items;
-    }
-
-    /**
-     * @param  list<array{key: string, label: string, items: list<array{key: string, label: string, url: string, active: bool}>}>  $groups
+     * @param  list<array{key: string, label: string, url: string, active: bool}>  $items
      * @return list<string>
      */
-    private function activeKeys(array $groups): array
+    private function activeKeys(array $items): array
     {
-        return array_keys(array_filter(
-            $this->items($groups),
-            fn (array $item): bool => $item['active'],
-        ));
+        return array_values(array_column(array_filter($items, fn (array $item): bool => $item['active']), 'key'));
     }
 }

@@ -1,5 +1,5 @@
 @extends('members::layout')
-@section('admin-title', $member->fullName())
+@section('members-title', $member->fullName())
 @section('members-content')
 @php
     use App\Modules\Members\Support\StatusTone;
@@ -21,8 +21,11 @@
             </form>
         @endif
         <x-ui.button variant="secondary" :block="false" :href="route('members.index')">{{ __('members::admin.common.cancel') }}</x-ui.button>
-        <x-ui.button type="submit" :block="false" form="member-edit-form">{{ __('members::admin.common.save') }}</x-ui.button>
+        <x-ui.button type="submit" :block="false" form="member-edit-form" class="mbr-phone-hidden">{{ __('members::admin.common.save') }}</x-ui.button>
     </x-slot:actions>
+    <x-slot:phoneAction>
+        <x-ui.button type="submit" form="member-edit-form">{{ __('members::admin.common.save') }}</x-ui.button>
+    </x-slot:phoneAction>
 </x-members::page-header>
 
 <form id="member-edit-form" method="POST" action="{{ route('members.update', $member) }}" class="ui-form-shell">

@@ -1,5 +1,5 @@
 @extends('members::layout')
-@section('admin-title', __('members::admin.dashboard.title'))
+@section('members-title', __('members::admin.dashboard.title'))
 @section('members-content')
 <x-members::page-header :title="__('members::admin.dashboard.title')" />
 

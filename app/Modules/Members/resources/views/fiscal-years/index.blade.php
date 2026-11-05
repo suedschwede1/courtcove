@@ -1,5 +1,5 @@
 @extends('members::layout')
-@section('admin-title', __('members::admin.fiscal_years.title'))
+@section('members-title', __('members::admin.fiscal_years.title'))
 @section('members-content')
 <x-members::page-header :title="__('members::admin.fiscal_years.title')">
     <x-slot:actions>
