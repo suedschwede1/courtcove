@@ -36,7 +36,7 @@ class TournamentBaseProviderTest extends TestCase
         $load = function (string $json): array {
             putenv('TOURNAMENT_COURTS='.$json);
             try {
-                return (require base_path('app/Modules/TournamentBase/config/tournament-base.php'))['courts'];
+                return (require base_path('config/tournament-base.php'))['courts'];
             } finally {
                 putenv('TOURNAMENT_COURTS');
             }

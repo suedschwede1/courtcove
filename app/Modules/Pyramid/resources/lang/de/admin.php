@@ -135,6 +135,7 @@ return [
             'remove' => 'Entfernen',
             'summary' => 'Seite :page von :pages (:total Teilnehmer)',
             'renumber' => 'Rangliste neu durchnummerieren',
+            'phone_line' => 'ITN :itn · :status',
             'f_position' => 'Platz',
             'f_label' => 'Name',
             'f_itn' => 'ITN',

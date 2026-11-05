@@ -1,6 +1,6 @@
 @extends('members::layout')
-@section('admin-title', __('members::admin.payments.new_payment'))
-@section('admin-content')
+@section('admin-title', __('members::admin.payments.new_payment').' — '.$member->fullName())
+@section('members-content')
 <x-members::page-header :title="__('members::admin.payments.new_payment').' — '.$member->fullName()" />
 
 <form method="POST" action="{{ route('members.payments.store', $member) }}" class="ui-form-shell">

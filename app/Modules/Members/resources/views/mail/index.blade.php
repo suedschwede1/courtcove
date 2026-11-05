@@ -1,6 +1,6 @@
 @extends('members::layout')
 @section('admin-title', __('members::admin.mail.title'))
-@section('admin-content')
+@section('members-content')
 @php
     $mailSendItems = $mailSends ?? collect();
     $audiences = $audienceOptions->values();

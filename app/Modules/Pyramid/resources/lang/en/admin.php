@@ -135,6 +135,7 @@ return [
             'remove' => 'Remove',
             'summary' => 'Page :page of :pages (:total participants)',
             'renumber' => 'Renumber the ladder',
+            'phone_line' => 'ITN :itn · :status',
             'f_position' => 'Rank',
             'f_label' => 'Name',
             'f_itn' => 'ITN',

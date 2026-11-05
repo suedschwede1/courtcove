@@ -102,10 +102,11 @@ class PlayerPagesTest extends TestCase
 
         $response = $this->actingAs($this->member())->get('/mixed-tournament/event/'.$event->id)->assertOk();
 
+        // Word match: a hashed asset name may contain the letters ITN.
+        $this->assertDoesNotMatchRegularExpression('/\bITN\b/', (string) $response->getContent());
         $response->assertSee('Herbst-Beispiel')
             ->assertSee('Sa, 7. November · 2 Teilnehmer · 1 Runde · Americano')
             ->assertSee('Beispiel Anna')
-            ->assertDontSee('ITN')
             ->assertSee('pausiert')
             ->assertSee('(1 aktiv / 2 gesamt)')
             ->assertSeeInOrder(['Teilnehmer', 'Runde 1', 'Durchmischung', 'Wertung'])
@@ -217,11 +218,13 @@ class PlayerPagesTest extends TestCase
         $event = MixedEvent::factory()->create();
         MixedParticipant::factory()->create(['event_id' => $event->id, 'label' => 'Beispiel Anna', 'gender' => 'f', 'itn' => '7.35', 'age' => 117]);
 
-        $this->actingAs($this->member())->get('/mixed-tournament/event/'.$event->id)
+        $response = $this->actingAs($this->member())->get('/mixed-tournament/event/'.$event->id);
+        // Word match: a hashed asset name may contain the letters ITN.
+        $this->assertDoesNotMatchRegularExpression('/\bITN\b/', (string) $response->getContent());
+        $response
             ->assertOk()
             ->assertSee('Beispiel Anna')
             ->assertSeeInOrder(['Beispiel Anna', '>D<'], false)
-            ->assertDontSee('ITN')
             ->assertDontSee('7,4')
             ->assertDontSee('7,35')
             ->assertDontSee('117');

@@ -41,7 +41,7 @@ final class ResultService
      */
     public function record(PyramidLadder $ladder, PyramidChallenge $challenge, array $input, ?int $actorUid): array
     {
-        $evaluated = $this->scores->evaluate($input);
+        $evaluated = $this->evaluate($input);
 
         return DB::transaction(function () use ($ladder, $challenge, $evaluated, $actorUid): array {
             [$ladder, $challenge, $challenger, $opponent] = $this->lockAndFetch($ladder, $challenge);
@@ -70,6 +70,19 @@ final class ResultService
 
             return $evaluated;
         });
+    }
+
+    /**
+     * The score check of record() without touching anything; the live check of the result form asks the same question.
+     *
+     * @param  array<string, mixed>  $input  s1a, s1b, s2a, s2b and optional mtba, mtbb; side a is the challenger
+     * @return array<string, mixed> the ScoreService result (score, winner_side, ...)
+     *
+     * @throws InvalidScoreException
+     */
+    public function evaluate(array $input): array
+    {
+        return $this->scores->evaluate($input);
     }
 
     /**

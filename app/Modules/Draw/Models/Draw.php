@@ -60,11 +60,13 @@ class Draw extends Model
         return DrawFactory::new();
     }
 
+    /** @return HasMany<DrawToken, $this> */
     public function tokens(): HasMany
     {
         return $this->hasMany(DrawToken::class, 'did', 'did')->orderBy('position');
     }
 
+    /** @return HasMany<DrawEligible, $this> */
     public function eligible(): HasMany
     {
         return $this->hasMany(DrawEligible::class, 'did', 'did')->orderBy('deid');

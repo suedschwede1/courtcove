@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Modules\Pyramid\Services\LadderAdminService;
 use App\Modules\Pyramid\Services\PyramidRepository;
 use App\Modules\Pyramid\Support\PyramidLinks;
+use App\Modules\Pyramid\Support\PyramidNotFound;
 use App\Modules\Pyramid\Support\PyramidRuleException;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
@@ -31,7 +32,7 @@ class JoinController extends Controller
         $ladder = $this->repo->ladder((int) $request->input('ladderId'));
 
         if ($ladder === null) {
-            abort(404, __('pyramid::ui.no_ladder'));
+            PyramidNotFound::abort(__('pyramid::ui.unknown_ladder'));
         }
 
         $target = redirect()->to(PyramidLinks::ladder((int) $ladder->id));

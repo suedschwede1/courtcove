@@ -11,6 +11,8 @@ use App\Modules\Draw\Services\TokenService;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
+ * @extends Factory<Draw>
+ *
  * Datetimes are plain "Y-m-d H:i:s" strings, exactly as the legacy app stores them.
  * Apply token() before executed(): executed() derives the result from the payload
  * present at that point.

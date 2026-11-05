@@ -556,7 +556,7 @@ final class LadderAdminService
         }
 
         $list = $running->take(self::CLOSE_LIST_LIMIT)
-            ->map(static fn (PyramidChallenge $challenge): string => ($challenge->challenger?->label ?? '?').' – '.($challenge->opponent?->label ?? '?'))
+            ->map(static fn (PyramidChallenge $challenge): string => ($challenge->challenger->label ?? '?').' – '.($challenge->opponent->label ?? '?'))
             ->implode('; ');
         $more = $running->count() - self::CLOSE_LIST_LIMIT;
 

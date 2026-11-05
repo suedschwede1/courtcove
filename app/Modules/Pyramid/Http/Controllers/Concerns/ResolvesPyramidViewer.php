@@ -6,6 +6,7 @@ namespace App\Modules\Pyramid\Http\Controllers\Concerns;
 
 use App\Modules\Pyramid\Models\PyramidLadder;
 use App\Modules\Pyramid\Models\PyramidPlayer;
+use App\Modules\Pyramid\Support\PyramidNotFound;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 
@@ -17,16 +18,20 @@ trait ResolvesPyramidViewer
 {
     /**
      * The ladder of the route, else the default ladder (no id and id 0 mean "the default", as in ZF2);
-     * an unknown id or no ladder at all is a 404 with the old text.
+     * no ladder at all is a 404 with the old text, an unknown id a 404 naming the unknown ladder. Both render the
+     * module's friendly not-found page (PyramidNotFound).
      *
      * Uses the controller's own injected `$repo`.
      */
     protected function resolveLadder(?int $ladderId = null): PyramidLadder
     {
-        $ladder = $ladderId !== null && $ladderId !== 0 ? $this->repo->ladder($ladderId) : $this->repo->defaultLadder();
+        $byId = $ladderId !== null && $ladderId !== 0;
+        $ladder = $byId ? $this->repo->ladder($ladderId) : $this->repo->defaultLadder();
 
         if ($ladder === null) {
-            abort(404, __('pyramid::ui.no_ladder'));
+            $fallback = $byId ? $this->repo->defaultLadder() : null;
+
+            PyramidNotFound::abort(__($byId ? 'pyramid::ui.unknown_ladder' : 'pyramid::ui.no_ladder'), false, $fallback !== null);
         }
 
         return $ladder;

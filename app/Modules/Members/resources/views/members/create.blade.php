@@ -1,6 +1,6 @@
 @extends('members::layout')
-@section('admin-title', __('members::admin.members.title'))
-@section('admin-content')
+@section('admin-title', __('members::admin.members.new_member'))
+@section('members-content')
 <x-members::page-header :title="__('members::admin.members.new_member')" />
 <form method="POST" action="{{ route('members.store') }}" class="ui-form-shell">
     @include('members::members._form', ['nextNumber' => $nextNumber])

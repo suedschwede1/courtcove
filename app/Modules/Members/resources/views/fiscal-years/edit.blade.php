@@ -1,6 +1,6 @@
 @extends('members::layout')
-@section('admin-title', __('members::admin.fiscal_years.title'))
-@section('admin-content')
+@section('admin-title', $fiscalYear->name)
+@section('members-content')
 <x-members::page-header :title="$fiscalYear->name" />
 <form method="POST" action="{{ route('members.fiscal-years.update', $fiscalYear) }}" class="ui-form-shell">
     @csrf

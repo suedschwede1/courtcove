@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Modules\Pyramid\Http\Controllers\Concerns\ResolvesPyramidViewer;
 use App\Modules\Pyramid\Services\ChallengeService;
 use App\Modules\Pyramid\Services\PyramidRepository;
+use App\Modules\Pyramid\Support\PyramidNotFound;
 use Illuminate\Contracts\View\View;
 
 /**
@@ -27,7 +28,7 @@ class PlayerController extends Controller
         $player = $this->repo->player($playerId);
 
         if ($player === null) {
-            abort(404, __('pyramid::ui.player.missing'));
+            PyramidNotFound::abort(__('pyramid::ui.player.missing'));
         }
 
         $ladder = $this->resolveLadder((int) $player->ladder_id);

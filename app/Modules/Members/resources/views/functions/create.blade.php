@@ -1,6 +1,6 @@
 @extends('members::layout')
-@section('admin-title', __('members::admin.functions.title'))
-@section('admin-content')
+@section('admin-title', __('members::admin.functions.new'))
+@section('members-content')
 <x-members::page-header :title="__('members::admin.functions.new')" />
 <form method="POST" action="{{ route('members.functions.store') }}" class="ui-form-shell">
     @csrf
