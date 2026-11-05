@@ -63,8 +63,8 @@ class FeedbackModalTest extends TestCase
         $this->assertStringContainsString('Nicht möglich.', $alert->item(0)->textContent);
 
         $this->assertStringContainsString('setTimeout(() => open = false, 4000)', $html);
-        $this->assertStringContainsString('@pointerenter="clearTimeout(timer)"', $html);
-        $this->assertStringContainsString('@focusin="clearTimeout(timer)"', $html);
+        $this->assertStringContainsString('@pointerdown="clearTimeout(timer)"', $html);
+        $this->assertStringContainsString('@keydown="clearTimeout(timer)"', $html);
     }
 
     #[Test]

@@ -10,6 +10,8 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-05
 
+- The feedback dialog closes by itself after four seconds again, and the close button of the admin popup closes its dialog.
+
 - Old booking dialog styles removed; the new booking flow ships in the built assets.
 - The booking and edit pages without JavaScript use the same tiles and buttons as the dialog.
 - Admin event form and booking popup use the new dialog; the popup fills the screen on phones.

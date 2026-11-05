@@ -31,7 +31,7 @@
 
     <main id="content">
         @if(session('success') || session('error'))
-            <div x-data="{ open: true, timer: null }" x-init="timer = setTimeout(() => open = false, 4000)" @pointerenter="clearTimeout(timer)" @focusin="clearTimeout(timer)">
+            <div x-data="{ open: true, timer: null }" x-init="timer = setTimeout(() => open = false, 4000)" @pointerdown="clearTimeout(timer)" @keydown="clearTimeout(timer)">
                 <x-ui.modal id="feedback-modal" show="open">
                     <x-slot:title>{{ session('success') ? __('booking.feedback.success') : __('booking.feedback.notice') }}</x-slot:title>
                     @if(session('success'))
