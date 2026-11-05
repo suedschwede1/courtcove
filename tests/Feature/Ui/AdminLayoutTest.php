@@ -158,7 +158,7 @@ final class AdminLayoutTest extends TestCase
         $close = '//header['.self::cls('ds-popup__head').']//button[@aria-label="Schließen"]';
         $this->assertSame(1, $this->nodes($close)->length);
         $click = (string) $this->attr($close, 'x-on:click');
-        $this->assertStringContainsString('booking-modal-close', $click);
+        $this->assertStringContainsString('popup-close', $click);
         $this->assertStringContainsString('window.close()', $click);
         $this->assertStringNotContainsString('&times;', $html);
     }

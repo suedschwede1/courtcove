@@ -32,7 +32,7 @@
             <x-ui.notice tone="good">{{ session('success') }}</x-ui.notice>
         @endif
         @if(session('info'))
-            <div class="mx-6 mt-6 ui-flash ui-flash-success">{{ session('info') }}</div>
+            <x-ui.notice tone="neutral">{{ session('info') }}</x-ui.notice>
         @endif
         @if(session('error'))
             <x-ui.notice tone="problem">{{ session('error') }}</x-ui.notice>

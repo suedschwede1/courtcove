@@ -50,11 +50,12 @@ final class AdminNavigationTest extends TestCase
         $admin = User::factory()->create(['status' => 'admin']);
         $groups = $this->groupsFor($admin, route('admin.dashboard'));
 
-        $this->assertSame(['operations', 'members', 'settings'], array_map(fn ($g) => $g->key, $groups));
+        $this->assertSame(['operations', 'members', 'tournaments', 'settings'], array_map(fn ($g) => $g->key, $groups));
         $this->assertSame(
             [
                 ['dashboard', 'bookings', 'events', 'statistics'],
                 ['users', 'login_history'],
+                ['pyramid'],
                 ['squares', 'texts', 'behavior', 'database', 'api_tokens', 'testmail'],
             ],
             array_map(fn ($g) => array_map(fn ($i) => $i->key, $g->items), $groups),
@@ -98,16 +99,13 @@ final class AdminNavigationTest extends TestCase
         $assist->syncPrivileges(['admin.see-menu']);
 
         $keys = fn (array $groups) => array_map(fn ($g) => $g->key, $groups);
-        $this->assertNotContains('tournaments', $keys($this->groupsFor($admin, route('admin.dashboard'))));
 
-        Route::get('/_test-pyramid', fn () => '')->name('pyramide.admin.index');
-        app('router')->getRoutes()->refreshNameLookups();
-
+        // Only entries whose routes exist show up: Pyramid is a Laravel module, the rest still lives in ZF2.
         $groups = $this->groupsFor($admin, route('admin.dashboard'));
         $this->assertContains('tournaments', $keys($groups));
         $tournaments = collect($groups)->firstWhere('key', 'tournaments');
         $this->assertSame(['pyramid'], array_map(fn ($i) => $i->key, $tournaments->items));
-        $this->assertSame(url('/_test-pyramid'), $tournaments->items[0]->url);
+        $this->assertSame(route('pyramide.admin.index'), $tournaments->items[0]->url);
 
         $this->assertNotContains('tournaments', $keys($this->groupsFor($assist->fresh(), route('admin.dashboard'))));
     }

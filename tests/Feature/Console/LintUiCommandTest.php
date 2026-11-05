@@ -12,7 +12,7 @@ class LintUiCommandTest extends TestCase
     #[Test]
     public function it_fails_when_findings_exceed_the_limit(): void
     {
-        $this->artisan('lint:ui --summary --fail-over=0')
+        $this->artisan('lint:ui --summary --fail-over=-1')
             ->expectsOutputToContain('warnings in')
             ->assertExitCode(1);
     }

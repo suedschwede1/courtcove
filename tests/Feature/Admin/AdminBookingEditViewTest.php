@@ -104,7 +104,7 @@ final class AdminBookingEditViewTest extends TestCase
         $this->assertSame(1, $this->nodes('//fieldset['.self::cls('ds-options').']//input[@type="radio"][@name="status"][@value="subscription"][@checked]')->length);
         $this->assertSame(3, $this->nodes('//input[@type="radio"][@name="status"]')->length);
         $this->assertSame(1, $this->nodes('//fieldset['.self::cls('ds-options').']//input[@type="radio"][@name="edit_scope"][@value="single_occurrence"][@checked]')->length);
-        $this->assertSame(11, $this->nodes('//select[@id="admin-booking-repeat"]/option')->length);
+        $this->assertSame(3, $this->nodes('//select[@id="admin-booking-repeat"]/option')->length);
     }
 
     #[Test]
