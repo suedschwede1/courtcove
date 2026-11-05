@@ -8,6 +8,9 @@ use App\Models\User;
 
 /**
  * Member lookup for the player pickers. Exposes uid, alias and email only (never phone numbers).
+ *
+ * Because emails are returned, callers MUST sit behind login/admin authorisation; never expose
+ * this to guests.
  */
 class MemberSearch
 {
@@ -22,12 +25,13 @@ class MemberSearch
             return [];
         }
 
-        $like = '%'.addcslashes($q, '\\%_').'%';
+        // '!' is the explicit ESCAPE char so wildcards stay literal on MySQL and SQLite alike.
+        $like = '%'.preg_replace('/[!%_]/', '!$0', $q).'%';
 
         $users = User::query()
             ->whereNotIn('status', ['deleted', 'disabled'])
             ->where(function ($query) use ($like, $q): void {
-                $query->where('alias', 'like', $like)->orWhere('email', 'like', $like);
+                $query->whereRaw("alias like ? escape '!'", [$like])->orWhereRaw("email like ? escape '!'", [$like]);
 
                 if (ctype_digit($q)) {
                     $query->orWhere('uid', (int) $q);

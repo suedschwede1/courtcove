@@ -36,6 +36,28 @@ class ModulePlumbingTest extends TestCase
         $response->assertSessionHas('error', 'Turnierbereich');
     }
 
+    /** @return array<string,string> */
+    private function bookingBase(): array
+    {
+        return ['SCRIPT_NAME' => '/booking/index.php', 'SCRIPT_FILENAME' => base_path('public/index.php'), 'PHP_SELF' => '/booking/index.php'];
+    }
+
+    #[Test]
+    public function login_redirect_keeps_base_path_and_query_for_get(): void
+    {
+        $response = $this->withServerVariables($this->bookingBase())->get('/booking/pyramide/_probe?x=1');
+
+        $response->assertRedirect(route('login', ['redirect_to' => '/booking/pyramide/_probe?x=1']));
+    }
+
+    #[Test]
+    public function login_redirect_keeps_base_path_but_drops_query_for_post(): void
+    {
+        $response = $this->withServerVariables($this->bookingBase())->post('/booking/pyramide/_probe?x=1');
+
+        $response->assertRedirect(route('login', ['redirect_to' => '/booking/pyramide/_probe']));
+    }
+
     #[Test]
     public function logged_in_user_passes_the_login_middleware(): void
     {
@@ -50,10 +72,40 @@ class ModulePlumbingTest extends TestCase
         $this->withMiddleware();
         $this->app['env'] = 'local'; // CSRF verification is skipped while the env is "testing"
 
-        $response = $this->from('/pyramide')->post('/pyramide/_probe');
+        $response = $this->from(url('/pyramide'))->post('/pyramide/_probe');
 
-        $response->assertRedirect('/pyramide');
+        $response->assertRedirect(url('/pyramide'));
         $response->assertSessionHas('error', 'Ungültiger oder abgelaufener Formularschlüssel. Bitte Seite neu laden.');
+    }
+
+    #[Test]
+    public function expired_csrf_without_referer_goes_to_login(): void
+    {
+        $this->actingAs(User::factory()->create(['status' => 'enabled']));
+        $this->withMiddleware();
+        $this->app['env'] = 'local';
+
+        $this->post('/pyramide/_probe')->assertRedirect(route('login'));
+    }
+
+    #[Test]
+    public function expired_csrf_with_foreign_referer_goes_to_login(): void
+    {
+        $this->actingAs(User::factory()->create(['status' => 'enabled']));
+        $this->withMiddleware();
+        $this->app['env'] = 'local';
+
+        $this->from('https://evil.example.net/page')->post('/pyramide/_probe')->assertRedirect(route('login'));
+    }
+
+    #[Test]
+    public function expired_csrf_for_json_requests_stays_419(): void
+    {
+        $this->actingAs(User::factory()->create(['status' => 'enabled']));
+        $this->withMiddleware();
+        $this->app['env'] = 'local';
+
+        $this->from('/pyramide')->postJson('/pyramide/_probe')->assertStatus(419);
     }
 
     #[Test]
@@ -82,6 +134,20 @@ class ModulePlumbingTest extends TestCase
         $this->assertSame([], $search->search('  d '));
         $this->assertSame([$match->uid], array_column($search->search((string) $match->uid), 'uid'));
         $this->assertSame([$match->uid], array_column($search->search('one@example'), 'uid'));
+    }
+
+    #[Test]
+    public function member_search_treats_like_wildcards_literally(): void
+    {
+        User::factory()->create(['alias' => 'Demo Spieler 01', 'email' => 'one@example.test', 'status' => 'enabled']);
+        User::factory()->create(['alias' => 'Demo_Spieler%X', 'email' => 'two@example.test', 'status' => 'enabled']);
+
+        $search = new MemberSearch;
+
+        $this->assertSame([], $search->search('%%'));
+        $this->assertSame([], $search->search('__'));
+        $this->assertSame(['Demo_Spieler%X'], array_column($search->search('o_S'), 'alias'));
+        $this->assertSame(['Demo_Spieler%X'], array_column($search->search('r%X'), 'alias'));
     }
 
     #[Test]

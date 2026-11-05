@@ -32,10 +32,30 @@ class CsrfExpiredRedirect
                 return null;
             }
 
-            return back()->with('error', __('tournament-base::common.csrf_expired'));
+            // API/AJAX callers keep the plain 419.
+            if ($request->expectsJson()) {
+                return null;
+            }
+
+            return redirect()->to(self::safePreviousUrl($request))->with('error', __('tournament-base::common.csrf_expired'));
         };
 
         $exceptions->render(fn (TokenMismatchException $e, Request $request) => $handler($e, $request));
         $exceptions->render(fn (HttpException $e, Request $request) => $handler($e, $request));
+    }
+
+    /**
+     * The Referer only when it points at this host; otherwise the login page.
+     */
+    private static function safePreviousUrl(Request $request): string
+    {
+        $previous = (string) $request->headers->get('referer', '');
+        $host = $previous !== '' ? parse_url($previous, PHP_URL_HOST) : null;
+
+        if (is_string($host) && strcasecmp($host, $request->getHost()) === 0) {
+            return $previous;
+        }
+
+        return route('login');
     }
 }

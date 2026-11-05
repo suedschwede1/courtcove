@@ -20,8 +20,16 @@ class RequireModuleLogin
             return $next($request);
         }
 
-        $query = $request->isMethod('GET') ? $request->getQueryString() : null;
-        $target = '/'.$request->path().($query ? '?'.$query : '');
+        // Keeps the base path (e.g. /booking) so the login form returns into the app; the query
+        // string only survives for GET (a POST target is re-opened as a plain GET).
+        $target = $request->isMethod('GET')
+            ? $request->getRequestUri()
+            : $request->getBaseUrl().'/'.$request->path();
+
+        // Always an in-app absolute path; anything odd falls back to the login default.
+        if (! str_starts_with($target, '/') || str_starts_with($target, '//')) {
+            $target = '/';
+        }
 
         $redirect = redirect()->route('login', ['redirect_to' => $target]);
 
