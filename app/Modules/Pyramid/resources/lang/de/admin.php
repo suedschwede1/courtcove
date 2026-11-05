@@ -18,4 +18,6 @@ return [
     'problem_orphans' => ':count aktive oder pausierte Teilnehmer ohne Position',
     'problem_stray' => ':count wartende oder entfernte Teilnehmer mit gesetzter Position',
     'problem_gaps' => 'Lücken oder Dubletten in der Positionsfolge',
+
+    'login_required' => 'Für die Verwaltung der Forderungspyramide musst du angemeldet sein.',
 ];

@@ -18,4 +18,6 @@ return [
     'problem_orphans' => ':count active or paused participants without a position',
     'problem_stray' => ':count waiting or removed participants with a position',
     'problem_gaps' => 'Gaps or duplicates in the position sequence',
+
+    'login_required' => 'You need to be logged in to administer the challenge ladder.',
 ];
