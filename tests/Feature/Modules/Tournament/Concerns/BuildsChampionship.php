@@ -12,7 +12,7 @@ use App\Modules\Tournament\Services\GenerationService;
 
 /**
  * A small generated championship for the page tests: format small-two-groups (groups A and B with three
- * players each, then a 4-line KO), six fictional players "Demo Spieler 01..06" with seed = number.
+ * players each, matches A-0..A-2 and B-0..B-2, then a 4-line KO), six fictional players "Demo Spieler 01..06" with seed = number.
  * Group A: seeds 1, 4, 5; group B: seeds 2, 3, 6.
  */
 trait BuildsChampionship

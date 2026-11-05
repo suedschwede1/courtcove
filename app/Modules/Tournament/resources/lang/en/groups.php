@@ -1,0 +1,37 @@
+<?php
+
+return [
+    'cleaned' => '(runner-up comparison without the match against :name, 4th: :points pts, sets :sets, games :games)',
+    'col_games' => 'Games',
+    'col_played' => 'Pl',
+    'col_player' => 'Player',
+    'col_points' => 'Pts',
+    'col_rank' => '#',
+    'col_sets' => 'Sets',
+    'decided' => [
+        'game_diff' => 'order decided by game difference',
+        'head_to_head' => 'order decided by the direct match',
+        'lot' => 'equal in every criterion – lots have to be drawn here',
+        'lot_drawn' => 'equal in every criterion – decided by lot',
+        'set_diff' => 'order decided by set difference',
+    ],
+    'filter_label' => 'Groups',
+    'footnote' => 'Ranking: points, direct match, set difference, game difference, lot. The Sets and Games columns show the difference scored for the ranking.',
+    'group' => 'Group :group',
+    'info_ac' => 'All players of this competition qualify for KO A. The placement decides the seeding.',
+    'info_default' => 'Group winners and the two best runners-up are promoted to KO A, the others play KO B.',
+    'itn' => 'ITN :itn',
+    'lot_badge' => 'Lot',
+    'matches_summary' => ':played played, :scheduled scheduled, :open without a date',
+    'matches_title' => 'Matches of the group',
+    'meta' => ':size players · round robin',
+    'no_matches' => 'No matches created yet.',
+    'not_drawn' => 'This group has not been drawn yet.',
+    'status' => [
+        'ko_b' => 'KO B',
+        'possible' => 'promotion possible',
+        'qualified' => 'qualified KO A',
+        'winner' => 'promoted KO A',
+    ],
+    'you' => 'you',
+];

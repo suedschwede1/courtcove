@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Modules\Tournament\Http\Controllers\GroupsController;
 use App\Modules\Tournament\Http\Controllers\MatchController;
 use App\Modules\Tournament\Http\Controllers\OverviewController;
 use Illuminate\Support\Facades\Route;
@@ -15,6 +16,7 @@ Route::prefix('tournament')->name('tournament.')
     ->middleware('tournament-base.login:tournament::common.login_required')
     ->group(function (): void {
         Route::get('', [OverviewController::class, 'index'])->name('index');
+        Route::get('groups/{group?}', [GroupsController::class, 'show'])->where('group', '[A-Z]')->name('groups');
         Route::get('modus', [OverviewController::class, 'mode'])->name('mode');
 
         // The match page: name and URL are final (the match cards link here); the page itself and the

@@ -61,6 +61,15 @@ final class MatchPresenter
         ];
     }
 
+    /**
+     * @param  array<string, mixed>  $match
+     * @return 'played'|'scheduled'|'open'
+     */
+    public function state(array $match): string
+    {
+        return $this->m->matchState($match);
+    }
+
     /** @param  array<string, mixed>  $match */
     private function context(array $match, Tournament $t): string
     {

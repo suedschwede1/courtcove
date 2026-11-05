@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Phase 2: group tables with tie-break explanation in the new design.
 - Phase 2: championship overview and rules pages in the new design (not live yet).
 - Phase 2: a non-string match_format or runner_up mode in a stored tournament format falls back to the default instead of failing.
 - Phase 2: tournament matches shown as match cards (new design).
