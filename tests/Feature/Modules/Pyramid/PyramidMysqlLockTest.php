@@ -38,6 +38,9 @@ class PyramidMysqlLockTest extends MysqlTestCase
     /** @var list<string> */
     private array $locks = [];
 
+    /** True once setUp passed the MySQL guard and registered the second connection. */
+    private bool $ready = false;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -56,10 +59,17 @@ class PyramidMysqlLockTest extends MysqlTestCase
         DB::purge('mysql_second');
 
         $this->locks = [];
+        $this->ready = true;
     }
 
     protected function tearDown(): void
     {
+        if (! $this->ready) {
+            parent::tearDown();
+
+            return;
+        }
+
         if (DB::connection('mysql_second')->transactionLevel() > 0) {
             DB::connection('mysql_second')->rollBack();
         }
