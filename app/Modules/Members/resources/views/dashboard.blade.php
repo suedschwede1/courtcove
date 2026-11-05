@@ -1,77 +1,46 @@
 @extends('members::layout')
 @section('admin-title', __('members::admin.dashboard.title'))
 @section('admin-content')
-<div class="ui-page">
-    <div class="ui-page-header"><h1>{{ __('members::admin.dashboard.title') }}</h1></div>
+<x-members::page-header :title="__('members::admin.dashboard.title')" />
 
-    <div class="ui-grid-3">
-        <div class="ui-card ui-kpi">
-            <div class="ui-card-body">
-                <p class="ui-kpi-label">{{ __('members::admin.dashboard.active_members') }}</p>
-                <p class="ui-kpi-value">{{ $activeCount }}</p>
-            </div>
-        </div>
-        <div class="ui-card ui-kpi">
-            <div class="ui-card-body">
-                <p class="ui-kpi-label">{{ __('members::admin.dashboard.open_dues') }}</p>
-                <p class="ui-kpi-value">{{ $openDuesCount }}</p>
-                <p class="ui-kpi-meta">{{ number_format((float) $openDuesSum, 2) }} €</p>
-            </div>
-        </div>
-        <div class="ui-card ui-kpi">
-            <div class="ui-card-body">
-                <p class="ui-kpi-label">{{ __('members::admin.dashboard.paid_dues') }}</p>
-                <p class="ui-kpi-value">{{ $paidDuesCount }}</p>
-                <p class="ui-kpi-meta">{{ number_format((float) $paidDuesSum, 2) }} €</p>
-            </div>
-        </div>
-    </div>
+<div class="mbr-kpis">
+    <x-ui.kpi :label="__('members::admin.dashboard.active_members')" :value="$activeCount" />
+    <x-ui.kpi :label="__('members::admin.dashboard.open_dues')" :value="$openDuesCount" :meta="number_format((float) $openDuesSum, 2).' €'" />
+    <x-ui.kpi :label="__('members::admin.dashboard.paid_dues')" :value="$paidDuesCount" :meta="number_format((float) $paidDuesSum, 2).' €'" />
+</div>
 
-    <div class="ui-grid-2">
-        <div class="ui-card">
-            <div class="ui-card-header"><h2>{{ __('members::admin.dashboard.age_structure') }}</h2></div>
-            <div class="ui-card-body">
-                @php $maxAgeCount = max([...array_values($ageStructure['buckets']), $ageStructure['unknown']]) ?: 0; @endphp
-                @foreach($ageStructure['buckets'] as $bucket => $count)
-                    <div class="ui-category-bar-row">
-                        <div class="ui-category-bar-label">
-                            <span>{{ __('members::admin.dashboard.age_'.$bucket) }}</span>
-                            <span>{{ $count }}</span>
-                        </div>
-                        <div class="ui-category-bar-track">
-                            <div class="ui-category-bar-fill" style="width: {{ $maxAgeCount > 0 ? round($count / $maxAgeCount * 100) : 0 }}%"></div>
-                        </div>
-                    </div>
-                @endforeach
-                <div class="ui-category-bar-row">
-                    <div class="ui-category-bar-label">
-                        <span>{{ __('members::admin.dashboard.age_unknown') }}</span>
-                        <span>{{ $ageStructure['unknown'] }}</span>
-                    </div>
-                    <div class="ui-category-bar-track">
-                        <div class="ui-category-bar-fill" style="width: {{ $maxAgeCount > 0 ? round($ageStructure['unknown'] / $maxAgeCount * 100) : 0 }}%"></div>
-                    </div>
+<div class="mbr-split">
+    <x-ui.card :title="__('members::admin.dashboard.age_structure')">
+        @php
+            $maxAgeCount = max([...array_values($ageStructure['buckets']), $ageStructure['unknown']]) ?: 0;
+            $ageRows = [];
+            foreach ($ageStructure['buckets'] as $bucket => $count) {
+                $ageRows[__('members::admin.dashboard.age_'.$bucket)] = $count;
+            }
+            $ageRows[__('members::admin.dashboard.age_unknown')] = $ageStructure['unknown'];
+        @endphp
+        @foreach($ageRows as $label => $count)
+            <div class="mbr-bar-row">
+                <div class="mbr-bar-row__label">
+                    <span>{{ $label }}</span>
+                    <span>{{ $count }}</span>
                 </div>
+                <progress class="mbr-bar" max="{{ $maxAgeCount }}" value="{{ $count }}" aria-label="{{ $label }}"></progress>
             </div>
-        </div>
+        @endforeach
+    </x-ui.card>
 
-        <div class="ui-card">
-            <div class="ui-card-header"><h2>{{ __('members::admin.dashboard.members_by_category') }}</h2></div>
-            <div class="ui-card-body">
-                @php $maxCategoryCount = $categoryBreakdown ? max($categoryBreakdown) : 0; @endphp
-                @foreach($categoryBreakdown as $name => $count)
-                    <div class="ui-category-bar-row">
-                        <div class="ui-category-bar-label">
-                            <span>{{ $name }}</span>
-                            <span>{{ $count }}</span>
-                        </div>
-                        <div class="ui-category-bar-track">
-                            <div class="ui-category-bar-fill" style="width: {{ $maxCategoryCount > 0 ? round($count / $maxCategoryCount * 100) : 0 }}%"></div>
-                        </div>
-                    </div>
-                @endforeach
+    <x-ui.card :title="__('members::admin.dashboard.members_by_category')">
+        @php $maxCategoryCount = $categoryBreakdown ? max($categoryBreakdown) : 0; @endphp
+        @foreach($categoryBreakdown as $name => $count)
+            <div class="mbr-bar-row">
+                <div class="mbr-bar-row__label">
+                    <span>{{ $name }}</span>
+                    <span>{{ $count }}</span>
+                </div>
+                <progress class="mbr-bar" max="{{ $maxCategoryCount }}" value="{{ $count }}" aria-label="{{ $name }}"></progress>
             </div>
-        </div>
-    </div>
+        @endforeach
+    </x-ui.card>
 </div>
 @endsection

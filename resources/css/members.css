@@ -598,3 +598,102 @@
 .mbr-fab {
     color: var(--color-on-clay);
 }
+
+/* Dashboard and configuration lists. */
+@layer components {
+    .mbr-kpis {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    .mbr-kpis .ds-kpi {
+        padding: 16px 20px;
+        border: 1px solid var(--color-line);
+        border-radius: var(--radius-lg);
+        background: var(--color-surface);
+    }
+
+    .mbr-split {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+        align-items: start;
+    }
+
+    .mbr-bar-row + .mbr-bar-row {
+        margin-top: 14px;
+    }
+
+    .mbr-bar-row__label {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 6px;
+        font-size: 14px;
+        line-height: 20px;
+        color: var(--color-ink-2);
+    }
+
+    .mbr-bar {
+        display: block;
+        width: 100%;
+        height: 8px;
+        border: 0;
+        border-radius: var(--radius-pill);
+        background: var(--color-sand);
+        overflow: hidden;
+        appearance: none;
+    }
+
+    .mbr-bar::-webkit-progress-bar {
+        background: var(--color-sand);
+    }
+
+    .mbr-bar::-webkit-progress-value {
+        background: var(--color-court);
+        border-radius: var(--radius-pill);
+    }
+
+    .mbr-bar::-moz-progress-bar {
+        background: var(--color-court);
+        border-radius: var(--radius-pill);
+    }
+
+    .mbr-row-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+        white-space: nowrap;
+    }
+
+    .mbr-inline-form {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: 12px;
+    }
+
+    .mbr-inline-form__field {
+        flex: 0 1 16rem;
+    }
+
+    .mbr-rates-form {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        margin-top: 16px;
+    }
+
+    @media (width < 48rem) {
+        .mbr-kpis,
+        .mbr-split {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        .mbr-row-actions {
+            justify-content: flex-start;
+        }
+    }
+}
