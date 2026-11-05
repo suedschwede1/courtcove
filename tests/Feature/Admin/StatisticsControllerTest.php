@@ -8,7 +8,9 @@ use App\Models\Booking;
 use App\Models\Reservation;
 use App\Models\Square;
 use App\Models\User;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -191,5 +193,66 @@ class StatisticsControllerTest extends TestCase
         $summary = $response->viewData('summary');
         $this->assertSame(2, $summary['membersThisYear']);
         $this->assertSame(1, $summary['membersThisMonth']);
+    }
+
+    /**
+     * Counts the queries of the page with 5 and then with 50 members, each with
+     * bookings on three courts (one with a meta alias) and reservations.
+     *
+     * @return array{int, int}
+     */
+    private function queriesFor5And50Members(string $query): array
+    {
+        $admin = $this->admin();
+        $courts = Square::factory()->count(3)->create();
+        $courts[2]->setMeta('alias', 'Halle');
+
+        $addMembers = function (int $count) use ($courts): void {
+            User::factory()->count($count)->create(['status' => 'enabled'])->each(function (User $user) use ($courts): void {
+                // Court 0: cancelled, court 1: once, court 2 (the hall): twice, so it is the top court.
+                foreach ([0, 1, 2, 2] as $index) {
+                    $booking = Booking::factory()->create(['uid' => $user->uid, 'sid' => $courts[$index]->sid, 'status' => $index === 0 ? 'cancelled' : 'single']);
+                    Reservation::factory()->create(['bid' => $booking->bid]);
+                }
+            });
+        };
+
+        // Session user meta and layout options are read once per request, whatever the page.
+        $queries = 0;
+        DB::listen(function (QueryExecuted $query) use (&$queries): void {
+            if (! str_contains($query->sql, 'bs_users_meta') && ! str_contains($query->sql, 'bs_options')) {
+                $queries++;
+            }
+        });
+        $this->actingAs($admin);
+
+        $addMembers(5);
+        $queries = 0;
+        $this->get('/admin/statistics'.$query)->assertOk();
+        $few = $queries;
+
+        $addMembers(45);
+        $queries = 0;
+        $this->get('/admin/statistics'.$query)->assertOk();
+
+        return [$few, $queries];
+    }
+
+    #[Test]
+    public function the_table_costs_the_same_small_number_of_queries_for_5_or_50_members(): void
+    {
+        [$few, $many] = $this->queriesFor5And50Members('?searched=1');
+
+        $this->assertSame($few, $many);
+        $this->assertLessThanOrEqual(5, $many);
+    }
+
+    #[Test]
+    public function the_summary_alone_costs_one_query_for_5_or_50_members(): void
+    {
+        [$few, $many] = $this->queriesFor5And50Members('');
+
+        $this->assertSame($few, $many);
+        $this->assertSame(1, $many);
     }
 }

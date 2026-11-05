@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Admin statistics: the page is computed with a few grouped SQL queries instead of loading every booking (about 28 s down to well under 0.1 s on a demo club with 200 members and 20,000 bookings); without a submitted search only the summary is computed; results unchanged.
 - German validation messages for every framework rule (decimal, list, prohibited and others showed the raw key "validation.…" in German before).
 - Admin "Texte" page: new section "Absender der Turnier-Mails" (sender, Reply-To, signature club/website/text); a filled field wins over .env, an emptied field falls back again.
 - Tournament mails (Pyramid now, later tournament modules): From, Reply-To and signature come from one shared TournamentBase helper, configurable via .env (TOURNAMENT_MAIL_*, MAIL_REPLY_TO_*); unchanged when nothing is set, and MAIL_REPLY_TO_* no longer adds a Reply-To to the booking mails.
