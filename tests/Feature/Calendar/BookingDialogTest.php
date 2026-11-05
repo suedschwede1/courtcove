@@ -157,4 +157,37 @@ class BookingDialogTest extends TestCase
             $this->assertStringContainsString($needle, $data);
         }
     }
+
+    #[Test]
+    public function success_view_offers_calendar_and_my_bookings(): void
+    {
+        $x = $this->page();
+
+        $success = $this->node($x, '//div[@id="booking-dialog"]//*[@x-show="state === \'success\'"][@role="status"]');
+        $this->assertGreaterThan(0, $x->query('.//*[contains(@class,"ds-success__icon")]//svg', $success)->length);
+        $this->assertStringContainsString(__('booking.modal.success_title'), $success->textContent);
+        $this->assertGreaterThan(0, $x->query('.//*[@x-text="quote"]', $success)->length);
+
+        $footer = $this->node($x, '//div[@id="booking-dialog"]//div[contains(@class,"ds-modal__footer")]//*[@x-show="state === \'success\'"]');
+        $calendar = $this->node($x, '//div[@id="booking-dialog"]//a[contains(@class,"ds-btn--dark")][@*[name()="x-bind:href"]="redirect"][@data-modal-initial]');
+        $this->assertSame(__('booking.modal.to_calendar'), trim($calendar->textContent));
+        $this->assertTrue($footer->isSameNode($calendar) || $this->isInside($calendar, $footer));
+
+        $mine = $this->node($x, '//div[@id="booking-dialog"]//a[contains(@class,"ds-btn--text")][@href="'.route('account.bookings').'"]');
+        $this->assertSame(__('booking.modal.view_my_bookings'), trim($mine->textContent));
+        $this->assertGreaterThan(0, $x->query('//a[@*[name()="x-bind:href"]="redirect"]/following::a[contains(@class,"ds-btn--text")][1][@href="'.route('account.bookings').'"]')->length);
+
+        $this->node($x, '//div[@id="booking-dialog"]//div[contains(@class,"ds-modal__footer")]//*[@x-show="state === \'form\'"]//button[@type="submit"]');
+    }
+
+    private function isInside(\DOMNode $node, \DOMNode $ancestor): bool
+    {
+        for ($p = $node->parentNode; $p !== null; $p = $p->parentNode) {
+            if ($p->isSameNode($ancestor)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

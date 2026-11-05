@@ -53,5 +53,6 @@ class BasePathUrlsTest extends TestCase
         }
 
         $this->assertMatchesRegularExpression('#fetch\(\s*[\'"](https?://[^/]+)?/booking/bookings/players#', $html);
+        $this->assertMatchesRegularExpression('#href="(https?://[^/]+)?/booking/my-bookings"#', $html);
     }
 }

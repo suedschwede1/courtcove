@@ -1241,6 +1241,86 @@
         color: var(--color-ink-2);
     }
 
+    .ds-modal__footer-part {
+        display: flex;
+        flex: 1 1 auto;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    .ds-modal__footer-part--stack {
+        flex-direction: column;
+        justify-content: flex-start;
+        gap: 6px;
+    }
+
+    .ds-modal__footer .ds-modal__footer-part--stack .ds-btn {
+        width: 100%;
+    }
+
+    .ds-modal__footer .ds-modal__footer-part--stack .ds-btn--dark {
+        min-height: 54px;
+        border-radius: var(--radius-lg);
+        font-size: 17px;
+    }
+
+    .ds-modal__footer .ds-modal__footer-part--stack .ds-btn--text {
+        min-height: 44px;
+        font-weight: 600;
+    }
+
+    .ds-modal[data-state="success"] .ds-modal__heading {
+        display: none;
+    }
+
+    .ds-modal[data-state="success"] .ds-modal__header {
+        justify-content: flex-end;
+        border-bottom: 0;
+    }
+
+    .ds-modal[data-state="success"] .ds-modal__body {
+        padding: 0;
+    }
+
+    .ds-modal[data-state="success"] .ds-modal__footer {
+        padding: 0 20px 32px;
+        background: var(--color-surface);
+        border-top: 0;
+    }
+
+    .ds-success {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+        padding: 24px 20px 32px;
+        text-align: center;
+    }
+
+    .ds-success__icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: var(--color-court-soft);
+        color: var(--color-court);
+    }
+
+    .ds-success__title {
+        margin: 0;
+        font: 700 30px / 1 var(--font-display);
+        color: var(--color-ink);
+    }
+
+    .ds-success__text {
+        margin: 0;
+        font-size: 16px;
+        line-height: 1.45;
+        color: var(--color-ink-2);
+    }
+
     .ds-modal .ds-field,
     .ds-modal .ds-options {
         gap: 8px;
@@ -1425,6 +1505,16 @@
 
         .ds-only-phone {
             display: inline;
+        }
+
+        .ds-modal__footer-part {
+            flex-direction: column-reverse;
+            justify-content: flex-start;
+            gap: 6px;
+        }
+
+        .ds-modal__footer-part--stack {
+            flex-direction: column;
         }
 
         .ds-modal__form {

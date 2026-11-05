@@ -10,8 +10,8 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-05
 
+- After booking, the sheet shows "Platz gebucht" with the quote and links to the calendar and to my bookings.
 - Booking opens as a dialog on desktop and a bottom sheet on phones, with Einzel/Doppel as tiles and a summary of date, time and court.
-
 - Success and error messages use the new dialog (sheet on phones) and close after 4 seconds unless you interact with them.
 - Shared dialog component: centred dialog on desktop, bottom sheet on phones, keeps focus inside and locks page scroll.
 - Legacy element rules use zero-specificity guards so existing buttons, links and inputs keep their original cascade.

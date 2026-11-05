@@ -263,7 +263,10 @@
                 });
                 const json = await res.json();
                 if (res.ok && json.redirect) {
-                    window.location.href = json.redirect;
+                    this.redirect = json.redirect;
+                    this.quote = json.quote ?? null;
+                    this.state = 'success';
+                    this.$nextTick(() => document.querySelector('#booking-dialog [data-modal-initial]')?.focus());
                 } else {
                     this.error = json.error ?? @js(__('booking.messages.booking_failed'));
                 }
@@ -275,18 +278,20 @@
         }
      }"
      @open-booking.window="openBooking($event.detail)">
-    <x-ui.modal id="booking-dialog" show="open" close="close()" :eyebrow="__('booking.modal.new_booking')">
+    <x-ui.modal id="booking-dialog" show="open" close="close()" :eyebrow="__('booking.modal.new_booking')" x-bind:data-state="state">
         <x-slot:title>
-            <span x-text="@js(__('booking.calendar.book_court', ['court' => '__COURT__'])).replace('__COURT__', courtAlias)"></span>
+            <span x-text="state === 'success' ? @js(__('booking.modal.success_title')) : @js(__('booking.calendar.book_court', ['court' => '__COURT__'])).replace('__COURT__', courtAlias)"></span>
         </x-slot:title>
 
-        <x-ui.summary-tiles :items="[
-            ['label' => __('booking.calendar.date'), 'bind' => 'dateLabel'],
-            ['label' => __('booking.calendar.time'), 'bind' => 'timeRange'],
-            ['label' => __('booking.calendar.court'), 'bind' => 'courtLabel'],
-        ]" />
+        <div x-show="state === 'form'">
+            <x-ui.summary-tiles :items="[
+                ['label' => __('booking.calendar.date'), 'bind' => 'dateLabel'],
+                ['label' => __('booking.calendar.time'), 'bind' => 'timeRange'],
+                ['label' => __('booking.calendar.court'), 'bind' => 'courtLabel'],
+            ]" />
+        </div>
 
-        <form id="booking-form" method="POST" action="{{ route('bookings.store') }}" @submit.prevent="submitBooking($el)" class="ds-modal__form">
+        <form id="booking-form" method="POST" action="{{ route('bookings.store') }}" @submit.prevent="submitBooking($el)" class="ds-modal__form" x-show="state === 'form'">
             @csrf
             <input type="hidden" name="sid" x-bind:value="sid">
             <input type="hidden" name="date" x-bind:value="date">
@@ -310,9 +315,22 @@
             <x-ui.notice tone="problem" x-show="error"><span x-text="error"></span></x-ui.notice>
         </form>
 
+        <div class="ds-success" role="status" x-show="state === 'success'">
+            <span class="ds-success__icon"><x-ui.icon name="check" :size="32" /></span>
+            <p class="ds-success__title">{{ __('booking.modal.success_title') }}</p>
+            <p class="ds-success__text" x-text="dateLabel + ' · ' + timeRange + ' · ' + courtLabel"></p>
+            <p class="ds-modal__quote" x-show="quote" x-text="quote"></p>
+        </div>
+
         <x-slot:footer>
-            <x-ui.button variant="secondary" :block="false" class="ds-modal__dismiss" x-on:click="close()">{{ __('booking.modal.cancel') }}</x-ui.button>
-            <x-ui.button type="submit" form="booking-form" :block="false" x-bind:disabled="loading"><span x-text="loading ? @js(__('booking.modal.saving')) : @js(__('booking.modal.book_binding'))"></span><span class="ds-only-phone" x-text="' · ' + timeRange"></span></x-ui.button>
+            <div class="ds-modal__footer-part" x-show="state === 'form'">
+                <x-ui.button variant="secondary" :block="false" class="ds-modal__dismiss" x-on:click="close()">{{ __('booking.modal.cancel') }}</x-ui.button>
+                <x-ui.button type="submit" form="booking-form" :block="false" x-bind:disabled="loading"><span x-text="loading ? @js(__('booking.modal.saving')) : @js(__('booking.modal.book_binding'))"></span><span class="ds-only-phone" x-text="' · ' + timeRange"></span></x-ui.button>
+            </div>
+            <div class="ds-modal__footer-part ds-modal__footer-part--stack" x-show="state === 'success'">
+                <x-ui.button variant="dark" :href="route('calendar.index')" x-bind:href="redirect" data-modal-initial>{{ __('booking.modal.to_calendar') }}</x-ui.button>
+                <x-ui.button variant="text" :href="route('account.bookings')">{{ __('booking.modal.view_my_bookings') }}</x-ui.button>
+            </div>
         </x-slot:footer>
     </x-ui.modal>
 </div>

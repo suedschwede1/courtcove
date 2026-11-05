@@ -73,14 +73,18 @@ final class BookingController extends Controller
             if ($request->ajax()) {
                 return response()->json(['error' => $e->getMessage()], 422);
             }
+
             return back()->withErrors(['booking' => $e->getMessage()])->with('error', $e->getMessage());
         } catch (\Throwable) {
             $msg = __('booking.messages.booking_failed');
             if ($request->ajax()) {
                 return response()->json(['error' => $msg], 422);
             }
+
             return back()->withErrors(['booking' => $msg])->with('error', $msg);
         }
+
+        $quote = null;
 
         if (Option::getValue('service.quotes.enabled', '1') === '1') {
             $locale = app()->getLocale();
@@ -108,12 +112,18 @@ final class BookingController extends Controller
             }
 
             $quote = str_replace(':name', (string) auth()->user()?->alias, $pool[array_rand($pool)]);
-            session()->flash('booking_quote', $quote);
         }
 
         if ($request->ajax()) {
-            session()->flash('success', __('booking.messages.booking_created_public'));
-            return response()->json(['redirect' => route('calendar.index', ['date' => Carbon::parse($data['date'])->format('Y-m-d')])]);
+            // The sheet shows the quote itself, so nothing is flashed here.
+            return response()->json([
+                'redirect' => route('calendar.index', ['date' => Carbon::parse($data['date'])->format('Y-m-d')]),
+                'quote' => $quote,
+            ]);
+        }
+
+        if ($quote !== null) {
+            session()->flash('booking_quote', $quote);
         }
 
         return redirect()->route('calendar.index', ['date' => Carbon::parse($data['date'])->format('Y-m-d')])
@@ -209,6 +219,7 @@ final class BookingController extends Controller
             if ($request->ajax()) {
                 return response()->json(['error' => $msg], 422);
             }
+
             return back()->withErrors(['booking' => $msg])->with('error', $msg);
         }
 
@@ -225,12 +236,14 @@ final class BookingController extends Controller
             if ($request->ajax()) {
                 return response()->json(['error' => $e->getMessage()], 422);
             }
+
             return back()->withErrors(['booking' => $e->getMessage()])->with('error', $e->getMessage());
         } catch (\Throwable) {
             $msg = __('booking.messages.booking_failed');
             if ($request->ajax()) {
                 return response()->json(['error' => $msg], 422);
             }
+
             return back()->withErrors(['booking' => $msg])->with('error', $msg);
         }
 
@@ -246,6 +259,7 @@ final class BookingController extends Controller
         return redirect()->route('calendar.index', ['date' => $reservation?->date])
             ->with('success', __('booking.messages.booking_updated'));
     }
+
     private function parseTimeToSeconds(string $time): int
     {
         if (str_contains($time, ':')) {
