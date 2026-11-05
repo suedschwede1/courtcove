@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-06
+- Phase 2: admins create, activate and test-copy championships in Laravel.
 - Phase 2: championship admin in the new design (not live yet).
 
 ## 2026-11-05

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Modules\Tournament\Http\Controllers\Admin\AdminOverviewController;
+use App\Modules\Tournament\Http\Controllers\Admin\TournamentLifecycleController;
 use App\Modules\Tournament\Http\Controllers\BracketController;
 use App\Modules\Tournament\Http\Controllers\GroupsController;
 use App\Modules\Tournament\Http\Controllers\MatchController;
@@ -43,4 +44,13 @@ Route::prefix('tournament/admin')->name('tournament.admin')
     ->middleware(['tournament-base.login:tournament::common.login_required', 'can:admin.tournament'])
     ->group(function (): void {
         Route::get('', [AdminOverviewController::class, 'index'])->name('');
+
+        Route::post('create', [TournamentLifecycleController::class, 'create'])->name('.create');
+        Route::post('activate', [TournamentLifecycleController::class, 'activate'])->name('.activate');
+        Route::post('clone-test', [TournamentLifecycleController::class, 'cloneTest'])->name('.clone-test');
+        Route::post('select-tournament', [TournamentLifecycleController::class, 'select'])->name('.select');
+
+        // A GET on a POST-only action returns to the admin page (ZF2).
+        Route::get('{postAction}', [TournamentLifecycleController::class, 'redirectToAdmin'])
+            ->whereIn('postAction', ['create', 'activate', 'clone-test', 'select-tournament'])->name('.redirect');
     });

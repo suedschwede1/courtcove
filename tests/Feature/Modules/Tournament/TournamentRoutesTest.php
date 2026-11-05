@@ -154,7 +154,7 @@ class TournamentRoutesTest extends TestCase
     public function guests_are_sent_to_login_on_every_route(): void
     {
         foreach ($this->tournamentRoutes() as $route) {
-            $uri = '/'.str_replace(['{group?}', '{filter?}', '{phase?}', '{tmid}', '{action}', '{tpid}', '{did}'], ['A', 'alle', 'KO_A', '1', 'save', '1', '1'], $route->uri());
+            $uri = '/'.str_replace(['{group?}', '{filter?}', '{phase?}', '{tmid}', '{action}', '{tpid}', '{did}', '{postAction}'], ['A', 'alle', 'KO_A', '1', 'save', '1', '1', 'create'], $route->uri());
             $method = in_array('POST', $route->methods(), true) ? 'post' : 'get';
 
             $this->{$method}($uri)

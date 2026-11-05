@@ -28,6 +28,11 @@ class TournamentAdminRoutesTest extends TestCase
     {
         return [
             'admin' => ['GET', 'tournament/admin', 'tournament.admin'],
+            'create' => ['POST', 'tournament/admin/create', 'tournament.admin.create'],
+            'activate' => ['POST', 'tournament/admin/activate', 'tournament.admin.activate'],
+            'clone-test' => ['POST', 'tournament/admin/clone-test', 'tournament.admin.clone-test'],
+            'select-tournament' => ['POST', 'tournament/admin/select-tournament', 'tournament.admin.select'],
+            'GET create' => ['GET', 'tournament/admin/create', 'tournament.admin.redirect'],
         ];
     }
 
@@ -71,7 +76,7 @@ class TournamentAdminRoutesTest extends TestCase
         $member = $this->member();
 
         foreach ($this->adminRoutes() as $route) {
-            $uri = '/'.str_replace(['{tpid}', '{did}'], ['999999', '999999'], $route->uri());
+            $uri = '/'.str_replace(['{tpid}', '{did}', '{postAction}'], ['999999', '999999', 'create'], $route->uri());
             $method = in_array('POST', $route->methods(), true) ? 'post' : 'get';
 
             $this->actingAs($member)->{$method}($uri, ['tid' => '999999', 'tpid_a' => '999999'])->assertForbidden();
