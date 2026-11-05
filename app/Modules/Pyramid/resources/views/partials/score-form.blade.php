@@ -16,7 +16,49 @@
     ];
     $hintTone = ['error' => 'problem', 'warning' => 'attention', 'success' => 'good'][$scoreHint['state'] ?? ''] ?? 'neutral';
 @endphp
-<form method="POST" action="{{ route('pyramide.challenge.result', ['challengeId' => (int) $challenge->id]) }}" class="flex flex-col gap-4">
+{{--
+    Live check (Alpine): every change asks the score-check route, which runs the validator of the submit; only x-text
+    reaches the page. Without scripts nothing of it shows and the submit validates as before.
+--}}
+<form
+    method="POST"
+    action="{{ route('pyramide.challenge.result', ['challengeId' => (int) $challenge->id]) }}"
+    class="flex flex-col gap-4"
+    x-data="{
+        url: @js(route('pyramide.challenge.score-check', ['challengeId' => (int) $challenge->id])),
+        state: '',
+        message: '',
+        ticket: 0,
+        async check(form) {
+            const params = new URLSearchParams();
+            let filled = false;
+            for (const key of ['s1a', 's1b', 's2a', 's2b', 'mtba', 'mtbb']) {
+                const value = (form.elements[key]?.value ?? '').trim();
+                params.set(key, value);
+                filled = filled || value !== '';
+            }
+            const ticket = ++this.ticket;
+            if (!filled) {
+                this.state = '';
+                this.message = '';
+                return;
+            }
+            try {
+                const response = await fetch(this.url + '?' + params.toString(), { headers: { Accept: 'application/json' }, credentials: 'same-origin' });
+                const data = response.ok ? await response.json() : null;
+                if (ticket !== this.ticket) { return; }
+                this.state = data?.state === 'empty' ? '' : (data?.state ?? '');
+                this.message = data?.message ?? '';
+            } catch (error) {
+                if (ticket === this.ticket) {
+                    this.state = '';
+                    this.message = '';
+                }
+            }
+        },
+    }"
+    x-on:input.debounce.350ms="check($el)"
+>
     @csrf
 
     <div class="grid grid-cols-3 items-center gap-2">
@@ -39,8 +81,16 @@
     <p class="text-body-s text-ink-2">{{ __('pyramid::ui.detail.result_help', ['name' => $challenger->label]) }}</p>
 
     @if ($scoreHint !== null && ! empty($scoreHint['message']))
-        <x-ui.notice :tone="$hintTone">{{ __($scoreHint['message'], $scoreHint['replace'] ?? []) }}</x-ui.notice>
+        {{-- The explanation after a refused submit; it steps aside as soon as the live check has something to say. --}}
+        <div x-show="state === ''">
+            <x-ui.notice :tone="$hintTone">{{ __($scoreHint['message'], $scoreHint['replace'] ?? []) }}</x-ui.notice>
+        </div>
     @endif
+
+    {{-- Always in the page so screen readers hear every change; empty until the first check. --}}
+    <div aria-live="polite" aria-atomic="true">
+        <p class="ds-notice" x-cloak x-show="state !== '' && message !== ''" x-bind:class="{ 'ds-notice--good font-bold': state === 'valid', 'ds-notice--problem': state === 'invalid', 'ds-notice--neutral': state === 'incomplete' }" x-text="message"></p>
+    </div>
 
     <div class="sticky bottom-0 border-t border-line bg-surface py-3 md:static md:border-0 md:py-0">
         <x-ui.button type="submit">{{ __('pyramid::ui.detail.result_submit') }}</x-ui.button>

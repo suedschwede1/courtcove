@@ -22,6 +22,7 @@ use App\Modules\TournamentBase\Services\InvalidScoreException;
 use App\Modules\TournamentBase\Services\ScoreService;
 use App\Modules\TournamentBase\Support\WhatsApp;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -168,6 +169,60 @@ class ChallengeController extends Controller
             'contact' => $contact,
             'adminContacts' => $adminContacts,
             'scoreHint' => $scoreHint,
+        ]);
+    }
+
+    /**
+     * Live check of the result form: the validator of the submit (ResultService::evaluate), nothing is written.
+     * Only the two parties may ask, like for the submit itself. States: empty, incomplete, invalid, valid.
+     */
+    public function scoreCheck(Request $request, int $challengeId): JsonResponse
+    {
+        $challenge = $this->repo->challenge($challengeId);
+
+        if ($challenge === null) {
+            abort(404, __('pyramid::ui.detail.missing'));
+        }
+
+        $viewer = $this->viewerFor($this->resolveLadder((int) $challenge->ladder_id));
+
+        if ($viewer === null || ! in_array((int) $viewer->id, [(int) $challenge->challenger_id, (int) $challenge->opponent_id], true)) {
+            abort(403, __('pyramid::ui.detail.not_involved'));
+        }
+
+        $input = [];
+
+        foreach (['s1a', 's1b', 's2a', 's2b', 'mtba', 'mtbb'] as $key) {
+            $value = $request->query($key);
+            $input[$key] = is_scalar($value) ? (string) $value : null;
+        }
+
+        if (array_filter($input, static fn (?string $value): bool => $value !== null && trim($value) !== '') === []) {
+            return response()->json(['valid' => false, 'state' => 'empty']);
+        }
+
+        try {
+            $evaluated = $this->results->evaluate($input);
+        } catch (InvalidScoreException $e) {
+            // Not finished yet is no mistake: the form says what is missing, not that it is wrong.
+            $incomplete = in_array($e->key, ['tournament-base::score.sets_incomplete', 'tournament-base::score.mtb_required', 'tournament-base::score.mtb_both_scores'], true);
+
+            return response()->json([
+                'valid' => false,
+                'state' => $incomplete ? 'incomplete' : 'invalid',
+                'message' => __($e->key, $e->replace),
+            ]);
+        }
+
+        $winnerId = $evaluated['winner_side'] === 'a' ? (int) $challenge->challenger_id : (int) $challenge->opponent_id;
+        $winner = (string) ($this->repo->player($winnerId)?->label ?? '');
+
+        return response()->json([
+            'valid' => true,
+            'state' => 'valid',
+            'winner' => $winner,
+            'score' => (string) $evaluated['score'],
+            'message' => __('pyramid::ui.detail.score_valid', ['name' => $winner]),
         ]);
     }
 

@@ -37,6 +37,12 @@ Route::middleware('tournament-base.login:pyramid::ui.login_to_play')->group(func
             ->name('pyramide.challenge.'.$action);
     }
 
+    // Live check of the score form (JSON, writes nothing); the form itself still validates on submit.
+    Route::get('pyramide/forderung/{challengeId}/score-check', [ChallengeController::class, 'scoreCheck'])
+        ->whereNumber('challengeId')
+        ->middleware('throttle:120,1')
+        ->name('pyramide.challenge.score-check');
+
     Route::get('pyramide/fordern/{playerId}', [ChallengeController::class, 'confirm'])
         ->whereNumber('playerId')
         ->name('pyramide.challenge.confirm');

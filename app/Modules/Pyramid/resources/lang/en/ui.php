@@ -111,6 +111,7 @@ return [
         'tiebreak' => 'Match tiebreak',
         'tiebreak_only' => 'only at 1:1',
         'score_aria' => ':label :name',
+        'score_valid' => 'Valid · Winner: :name',
         'result_submit' => 'Save result',
         'decline_title' => 'Decline the challenge',
         'decline_help' => 'Permitted when another challenge match is still open, or for injury and illness (rule 5.2).',

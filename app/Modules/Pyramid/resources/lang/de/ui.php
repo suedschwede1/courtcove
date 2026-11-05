@@ -111,6 +111,7 @@ return [
         'tiebreak' => 'Match-Tiebreak',
         'tiebreak_only' => 'nur bei 1:1',
         'score_aria' => ':label :name',
+        'score_valid' => 'Gültig · Sieger: :name',
         'result_submit' => 'Ergebnis speichern',
         'decline_title' => 'Forderung ablehnen',
         'decline_help' => 'Zulässig, wenn noch ein anderes Forderungsspiel offen ist oder bei Verletzung und Krankheit (Regel 5.2).',
