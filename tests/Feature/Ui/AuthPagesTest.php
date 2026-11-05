@@ -139,4 +139,54 @@ class AuthPagesTest extends TestCase
             ->assertSee('action="'.route('login.verify.resend').'"', false)
             ->assertSee('ds-btn--text', false);
     }
+
+    /** @return array<string, string> */
+    private function registerPayload(): array
+    {
+        return [
+            'email' => 'new@example.test',
+            'email_confirm' => 'new@example.test',
+            'password' => 'Secret-Value-123',
+            'password_confirm' => 'Secret-Value-123',
+            'firstname' => 'Test',
+            'lastname' => 'User',
+            'phone' => '0123456789',
+            'privacy' => '1',
+        ];
+    }
+
+    #[Test]
+    public function register_page_uses_the_shell_with_labelled_fields(): void
+    {
+        $response = $this->get('/register')
+            ->assertOk()
+            ->assertSee('<div class="ds-auth">', false)
+            ->assertSee('class="ds-auth__link"', false)
+            ->assertSee('name="privacy"', false)
+            ->assertSee('ds-btn--dark', false);
+
+        foreach (['email', 'email_confirm', 'password', 'password_confirm', 'gender', 'firstname', 'lastname', 'street', 'zip', 'city', 'phone'] as $id) {
+            $response->assertSee('for="'.$id.'"', false)->assertSee('id="'.$id.'"', false);
+        }
+    }
+
+    #[Test]
+    public function register_never_echoes_passwords_after_a_failed_submit(): void
+    {
+        $this->from('/register')->followingRedirects()
+            ->post('/register', ['email_confirm' => 'other@example.test'] + $this->registerPayload())
+            ->assertSee('id="email_confirm-error"', false)
+            ->assertDontSee('Secret-Value-123');
+    }
+
+    #[Test]
+    public function register_shows_name_errors_under_their_fields(): void
+    {
+        $payload = $this->registerPayload();
+        unset($payload['firstname'], $payload['lastname']);
+
+        $this->from('/register')->followingRedirects()->post('/register', $payload)
+            ->assertSee('id="firstname-error"', false)
+            ->assertSee('id="lastname-error"', false);
+    }
 }

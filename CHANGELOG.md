@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-05
 
+- Registration uses the new auth layout with grouped sections; old login stylesheet rules removed.
 - A long club name stays on one line with an ellipsis on the phone band and wraps to two lines on the desktop panel instead of crowding the court lines.
 - Password reset and login confirmation pages use the new auth layout.
 - New login page: clay court panel, larger fields and a dark full-width sign-in button.
