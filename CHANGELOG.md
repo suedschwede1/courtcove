@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Pyramid: late sign-up stores player and join event in one transaction and a double click shows the already-registered notice instead of an error.
 - Member picker for Pyramid administrators no longer offers placeholder and blocked accounts (still no phone numbers).
 - Pyramid mails carry an optional Reply-To from MAIL_REPLY_TO_ADDRESS / MAIL_REPLY_TO_NAME (none when unset).
 - Pyramid: a ladder can only be closed once no challenge is open or scheduled; the refusal lists them and the admin page disables the close button with the same note.
