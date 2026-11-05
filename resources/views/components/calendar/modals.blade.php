@@ -396,7 +396,7 @@
 @auth
 <div x-data="{ open: false, src: 'about:blank' }"
      @open-admin-frame.window="src = $event.detail.url; open = true"
-     @message.window="if ($event.data && $event.data.type === 'popup-close') open = false">
+     @message.window="if ($event.origin === window.location.origin && $event.data && $event.data.type === 'popup-close') { open = false; src = 'about:blank' }">
     <x-ui.modal id="admin-booking-modal" show="open" close="open = false; src = 'about:blank'" size="frame" :label="__('booking.modal.admin_form')">
         <iframe id="abm-iframe" class="ds-modal__frame" x-bind:src="src" title="{{ __('booking.modal.admin_form') }}"></iframe>
     </x-ui.modal>

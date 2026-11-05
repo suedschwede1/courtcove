@@ -13,12 +13,6 @@
         'cancelled' => ['cancelled', __('booking.admin.bookings.status_cancelled')],
     ][$booking->status] ?? null;
     $currentQuantity = (int) old('quantity', $booking->quantity);
-    $currentStatus = (string) old('status', $booking->status);
-    $statusOptions = [
-        'single' => __('booking.admin.bookings.status_active'),
-        'subscription' => __('booking.admin.bookings.status_series'),
-        'cancelled' => __('booking.admin.bookings.status_cancelled'),
-    ];
 @endphp
 <div class="ds-admin-stack ds-admin-booking">
     <x-admin.page-header :title="$headTitle !== '' ? $headTitle : __('booking.admin.bookings.edit_title')" :back-url="route('admin.bookings.index')" :back-label="__('booking.admin.bookings.title')">
@@ -66,6 +60,10 @@
                                 @endforeach
                             </select>
                         </x-ui.field>
+                        <x-ui.option-group :legend="__('booking.admin.bookings.player_count')">
+                            <x-ui.option-tile name="quantity" value="2" :label="__('booking.modal.single_option')" :checked="$currentQuantity === 2" id="admin-booking-quantity-2" />
+                            <x-ui.option-tile name="quantity" value="4" :label="__('booking.modal.double_option')" :checked="$currentQuantity === 4" id="admin-booking-quantity-4" />
+                        </x-ui.option-group>
                         <x-ui.field :label="__('booking.admin.bookings.teammates')" for="admin-player2">
                             <input type="text" id="admin-player2" name="player_name_2" value="{{ old('player_name_2', $playerNames[2]) }}" list="admin-player-suggestions" maxlength="120" required class="ds-input">
                         </x-ui.field>
@@ -75,17 +73,6 @@
                         <x-ui.field :label="__('booking.admin.bookings.player_name_4')" for="admin-player4" id="admin-player4-field">
                             <input type="text" id="admin-player4" name="player_name_4" value="{{ old('player_name_4', $playerNames[4]) }}" list="admin-player-suggestions" maxlength="120" class="ds-input">
                         </x-ui.field>
-                    </div>
-                    <div class="ds-admin-form-grid ds-admin-form-grid--2 ds-admin-form-grid--tiles">
-                        <x-ui.option-group :legend="__('booking.admin.bookings.player_count')">
-                            <x-ui.option-tile name="quantity" value="2" :label="__('booking.modal.single_option')" :checked="$currentQuantity === 2" id="admin-booking-quantity-2" />
-                            <x-ui.option-tile name="quantity" value="4" :label="__('booking.modal.double_option')" :checked="$currentQuantity === 4" id="admin-booking-quantity-4" />
-                        </x-ui.option-group>
-                        <x-ui.option-group :legend="__('booking.admin.bookings.booking_status')" :columns="3">
-                            @foreach ($statusOptions as $statusValue => $statusLabel)
-                                <x-ui.option-tile name="status" :value="$statusValue" :label="$statusLabel" :checked="$currentStatus === $statusValue" />
-                            @endforeach
-                        </x-ui.option-group>
                     </div>
                     <datalist id="admin-player-suggestions">
                         @foreach ($users as $user)

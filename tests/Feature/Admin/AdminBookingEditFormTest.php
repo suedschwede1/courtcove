@@ -47,7 +47,6 @@ class AdminBookingEditFormTest extends TestCase
             'time_start' => '10:00',
             'time_end' => '11:00',
             'quantity' => $quantity,
-            'status' => 'single',
             'player_name_2' => 'Partner Eins',
             'player_name_3' => '',
             'player_name_4' => '',
@@ -102,5 +101,42 @@ class AdminBookingEditFormTest extends TestCase
         $this->actingAs($admin)->put("/admin/bookings/{$booking->bid}", $this->formPayload($square, 2, [
             'player_name_2' => '',
         ]))->assertSessionHasErrors();
+    }
+
+    #[Test]
+    public function a_posted_status_cannot_cancel_a_booking_on_update(): void
+    {
+        [$admin, $booking, $square] = $this->seedBooking(2);
+
+        $this->actingAs($admin)->put("/admin/bookings/{$booking->bid}", $this->formPayload($square, 2, ['status' => 'cancelled']))
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame('single', $booking->fresh()->status);
+    }
+
+    #[Test]
+    public function a_posted_status_cannot_cancel_a_booking_on_create(): void
+    {
+        [$admin, , $square] = $this->seedBooking(2);
+
+        $this->actingAs($admin)->post('/admin/bookings', $this->formPayload($square, 2, ['date' => '2026-07-10', 'date_end' => '2026-07-10', 'status' => 'cancelled']))
+            ->assertSessionHasNoErrors();
+
+        $created = Booking::query()->orderByDesc('bid')->first();
+        $this->assertSame('single', $created->status);
+    }
+
+    #[Test]
+    public function the_status_follows_the_repeat_not_the_input(): void
+    {
+        [$admin, $booking, $square] = $this->seedBooking(2);
+
+        $this->actingAs($admin)->put("/admin/bookings/{$booking->bid}", $this->formPayload($square, 2, [
+            'repeat_type' => 'weekly',
+            'date_end' => '2026-07-17',
+            'status' => 'single',
+        ]))->assertSessionHasNoErrors();
+
+        $this->assertSame('subscription', $booking->fresh()->status);
     }
 }

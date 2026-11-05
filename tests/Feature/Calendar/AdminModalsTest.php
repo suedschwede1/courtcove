@@ -98,6 +98,24 @@ class AdminModalsTest extends TestCase
         $this->assertStringContainsString('ds-modal__frame', $iframe->getAttribute('class'));
 
         $this->assertStringContainsString("src = 'about:blank'", html_entity_decode($this->html));
+
+        $this->assertSame(0, $x->query('//div[@id="admin-booking-modal"]//button')->length, 'the shell adds no close button above the framed header');
+        $this->assertSame(0, $x->query('//div[@id="admin-booking-modal"]//header')->length);
+    }
+
+    #[Test]
+    public function admin_frame_closes_on_the_popup_close_message_and_the_popup_posts_it(): void
+    {
+        $this->page();
+
+        $this->assertStringContainsString('popup-close', $this->html);
+        $this->assertStringContainsString('$event.origin === window.location.origin', html_entity_decode($this->html));
+
+        $css = (string) file_get_contents(resource_path('css/admin.css'));
+        $this->assertStringContainsString('scroll-padding-bottom: 96px', $css, 'focused fields are not hidden behind the action bar');
+
+        $js = (string) file_get_contents(resource_path('js/modal.js'));
+        $this->assertStringContainsString("panel.querySelector('iframe')", $js, 'focus lands on the frame when the shell has no close button');
     }
 
     #[Test]

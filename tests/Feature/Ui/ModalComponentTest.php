@@ -84,6 +84,10 @@ Body
         $this->assertSame('Admin-Formular', $root->getAttribute('aria-label'));
         $this->assertFalse($root->hasAttribute('aria-labelledby'));
         $this->assertSame(0, $xp->query('//h2')->length);
+        // The framed page brings its own title bar and close button: no shell header, handle or close.
+        $this->assertSame(0, $xp->query('//header')->length);
+        $this->assertSame(0, $xp->query('//*['.$this->hasClass('ds-modal__close').']')->length);
+        $this->assertSame(0, $xp->query('//*['.$this->hasClass('ds-modal__handle').']')->length);
         $this->assertSame('ds-modal__panel ds-modal__panel--frame', $xp->query('//div['.$this->hasClass('ds-modal__panel').']')->item(0)->getAttribute('class'));
         $this->assertSame(0, $xp->query('//div['.$this->hasClass('ds-modal__footer').']')->length);
     }

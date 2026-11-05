@@ -293,7 +293,6 @@ final class BookingController extends Controller
             'time_start' => ['required', 'date_format:H:i'],
             'time_end' => ['required', 'date_format:H:i'],
             'quantity' => ['required', 'integer', 'in:2,4'],
-            'status' => ['nullable', 'in:single,subscription,cancelled'],
             // The create/popup form sends one free-text `mitspieler` field; the full-page
             // edit form sends the players separately as player_name_2..4.
             'mitspieler' => ['required_without:player_name_2', 'nullable', 'string', 'max:255'],

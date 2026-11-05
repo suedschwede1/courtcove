@@ -222,7 +222,6 @@ return [
             'date_end' => 'Date (End)',
             'repeat' => 'Repeat',
             'player_count' => 'Number of Players',
-            'booking_status' => 'Booking Status',
             'player_names' => 'Player Names',
             'status_active' => 'Active',
             'status_series' => 'Series',
