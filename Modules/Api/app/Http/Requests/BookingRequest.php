@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Api\Http\Requests;
 
+use App\Models\Booking;
 use App\Services\BookingService;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -14,6 +15,24 @@ class BookingRequest extends FormRequest
         return true;
     }
 
+    /**
+     * Legacy repeat types of the booking being updated (derived from its stored
+     * reservations, never from the request). Empty on create.
+     *
+     * @return list<string>
+     */
+    private function allowedLegacyRepeat(): array
+    {
+        $booking = $this->route('booking');
+        if (! $booking instanceof Booking) {
+            return [];
+        }
+
+        $occurrence = $this->input('occurrence');
+
+        return app(BookingService::class)->legacyRepeatTypesOf($booking, is_string($occurrence) && $occurrence !== '' ? $occurrence : null);
+    }
+
     public function rules(): array
     {
         return [
@@ -21,7 +40,7 @@ class BookingRequest extends FormRequest
             'sid' => ['required', 'integer', 'exists:bs_squares,sid'],
             'date' => ['required', 'date_format:Y-m-d'],
             'date_end' => ['nullable', 'date_format:Y-m-d'],
-            'repeat_type' => ['required', 'in:'.implode(',', BookingService::REPEAT_KEYS)],
+            'repeat_type' => ['required', 'in:'.implode(',', array_merge(BookingService::REPEAT_KEYS, $this->allowedLegacyRepeat()))],
             'time_start' => ['required', 'date_format:H:i'],
             'time_end' => ['required', 'date_format:H:i'],
             'quantity' => ['required', 'integer', 'in:2,4'],

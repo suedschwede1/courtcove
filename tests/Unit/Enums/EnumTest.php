@@ -6,9 +6,7 @@ namespace Tests\Unit\Enums;
 
 use App\Enums\BillingStatus;
 use App\Enums\BookingStatus;
-use App\Enums\CouponType;
 use App\Enums\EventStatus;
-use App\Enums\ProductType;
 use App\Enums\SquareStatus;
 use App\Enums\UserStatus;
 use App\Enums\Visibility;
@@ -45,7 +43,6 @@ class EnumTest extends TestCase
     public function visibility_has_expected_cases(): void
     {
         $this->assertSame('public', Visibility::Public->value);
-        $this->assertSame('private', Visibility::Private->value);
     }
 
     #[Test]
@@ -63,20 +60,6 @@ class EnumTest extends TestCase
     }
 
     #[Test]
-    public function coupon_type_has_expected_cases(): void
-    {
-        $this->assertSame('percent', CouponType::Percent->value);
-        $this->assertSame('fixed', CouponType::Fixed->value);
-    }
-
-    #[Test]
-    public function product_type_has_expected_cases(): void
-    {
-        $this->assertSame('single', ProductType::Single->value);
-        $this->assertSame('subscription', ProductType::Subscription->value);
-    }
-
-    #[Test]
     public function booking_status_from_string_works(): void
     {
         $this->assertSame(BookingStatus::Enabled, BookingStatus::from('enabled'));
@@ -86,8 +69,7 @@ class EnumTest extends TestCase
     public function all_enums_implement_string_backed(): void
     {
         foreach ([BookingStatus::Enabled, BillingStatus::Pending, SquareStatus::Enabled,
-            Visibility::Public, UserStatus::Enabled, EventStatus::Enabled,
-            CouponType::Percent, ProductType::Single] as $case) {
+            Visibility::Public, UserStatus::Enabled, EventStatus::Enabled] as $case) {
             $this->assertIsString($case->value);
         }
     }

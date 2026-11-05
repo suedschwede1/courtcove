@@ -9,7 +9,6 @@ use App\Models\Option;
 use App\Models\Square;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 final class SquareController extends Controller
@@ -97,7 +96,6 @@ final class SquareController extends Controller
             'status' => $square->status->value,
             'readonly_message' => (string) $square->getMeta('readonly.message'),
             'priority' => $square->priority,
-            'capacity_ask_names' => (string) $square->getMeta('capacity-ask-names', ''),
             'allow_notes' => (bool) $square->allow_notes,
             'name_visibility' => $visibility,
             'time_start' => substr((string) $square->time_start, 0, 5),
@@ -125,7 +123,6 @@ final class SquareController extends Controller
             'status' => ['required', 'in:enabled,readonly,disabled'],
             'readonly_message' => ['nullable', 'string'],
             'priority' => ['required', 'numeric'],
-            'capacity_ask_names' => ['nullable', Rule::in(Square::ASK_NAMES_OPTIONS)],
             'name_visibility' => ['required', 'in:none,private,public'],
             'time_start' => ['required', 'regex:/^\d{2}:\d{2}$/'],
             'time_end' => ['required', 'regex:/^\d{2}:\d{2}$/'],
@@ -168,7 +165,6 @@ final class SquareController extends Controller
         $meta = [
             'alias' => $this->nullIfBlank($data['alias'] ?? null),
             'readonly.message' => $this->nullIfBlank($data['readonly_message'] ?? null),
-            'capacity-ask-names' => $this->nullIfBlank($data['capacity_ask_names'] ?? null),
             'private_names' => $privateNames,
             'public_names' => $publicNames,
             'pseudo-time-block-bookable' => $request->boolean('pseudo_time_block_bookable') ? 'true' : 'false',
@@ -200,7 +196,7 @@ final class SquareController extends Controller
     {
         return [
             'name' => '', 'alias' => '', 'status' => 'enabled', 'readonly_message' => '',
-            'priority' => 1, 'capacity_ask_names' => '',
+            'priority' => 1,
             'allow_notes' => false, 'name_visibility' => 'private',
             'time_start' => '08:00', 'time_end' => '23:00', 'time_block' => 60,
             'time_block_bookable' => 30, 'pseudo_time_block_bookable' => false,

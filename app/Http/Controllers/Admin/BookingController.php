@@ -20,13 +20,21 @@ use Illuminate\View\View;
 
 final class BookingController extends Controller
 {
-    /** @return array<string,string> */
-    private static function repeatOptions(): array
+    /**
+     * Offered repeat options plus any legacy type of the series being edited, so an
+     * existing legacy series is still displayed with its label.
+     *
+     * @param  list<string>  $extraKeys
+     * @return array<string,string>
+     */
+    private static function repeatOptions(array $extraKeys = []): array
     {
-        return array_combine(
+        $keys = array_values(array_unique(array_merge(
             BookingService::REPEAT_KEYS,
-            array_map(fn (string $k) => __('booking.repeat.'.$k), BookingService::REPEAT_KEYS),
-        );
+            array_intersect(BookingService::LEGACY_REPEAT_KEYS, $extraKeys),
+        )));
+
+        return array_combine($keys, array_map(fn (string $k) => __('booking.repeat.'.$k), $keys));
     }
 
     public function __construct(private readonly BookingService $bookingService) {}
@@ -156,7 +164,8 @@ final class BookingController extends Controller
         $showScopeChoice = $booking->isSubscription() && $occurrenceReservation !== null;
         $reservation = $occurrenceReservation ?? $reservations->first();
 
-        $repeatType = $this->detectRepeatType($reservations->all());
+        $repeatType = $this->bookingService->detectRepeatType($reservations->all());
+        $detectedRepeatType = $repeatType;
         $repeatEndDate = $reservations->last()?->date ?? $reservation?->date;
         $followingRepeatType = $repeatType;
         $followingRepeatEndDate = $repeatEndDate;
@@ -166,7 +175,7 @@ final class BookingController extends Controller
                 ->filter(fn (Reservation $r): bool => $r->date >= $occurrenceReservation->date)
                 ->values()
                 ->all();
-            $followingRepeatType = $this->detectRepeatType($followingReservations);
+            $followingRepeatType = $this->bookingService->detectRepeatType($followingReservations);
             $followingRepeatEndDate = $reservations->last()?->date ?? $occurrenceReservation->date;
             $repeatType = 'once';
             $repeatEndDate = $occurrenceReservation->date;
@@ -184,7 +193,7 @@ final class BookingController extends Controller
                 4 => $booking->player_names[2] ?? '',
             ],
             'adminNote' => $booking->meta->firstWhere('key', 'admin-note')?->value ?? '',
-            'repeatOptions' => self::repeatOptions(),
+            'repeatOptions' => self::repeatOptions([$detectedRepeatType, $followingRepeatType]),
             'repeatType' => $repeatType,
             'repeatEndDate' => $repeatEndDate,
             'isCreate' => false,
@@ -204,10 +213,10 @@ final class BookingController extends Controller
         }
 
         try {
-            $data = $this->validateBookingData($request);
+            [$occurrenceDate, $scope] = $this->resolveOccurrenceScope($request);
+            $data = $this->validateBookingData($request, $this->bookingService->legacyRepeatTypesOf($booking, $occurrenceDate));
             $owner = $this->bookingService->resolveOwner($data['booked_for']);
             [, , $occurrenceStarts, $durationSeconds] = $this->bookingService->buildOccurrenceTimeline($data);
-            [$occurrenceDate, $scope] = $this->resolveOccurrenceScope($request);
 
             $this->bookingService->updateSeries($booking, $data, $owner, $occurrenceStarts, $durationSeconds, $occurrenceDate, $scope);
         } catch (BookingValidationException $e) {
@@ -272,14 +281,15 @@ final class BookingController extends Controller
         ];
     }
 
-    private function validateBookingData(Request $request): array
+    /** @param list<string> $allowedLegacyRepeat */
+    private function validateBookingData(Request $request, array $allowedLegacyRepeat = []): array
     {
         $data = $request->validate([
             'booked_for' => ['required', 'string', 'max:120'],
             'sid' => ['required', 'integer', 'exists:bs_squares,sid'],
             'date' => ['required', 'date_format:Y-m-d'],
             'date_end' => ['nullable', 'date_format:Y-m-d'],
-            'repeat_type' => ['required', 'in:'.implode(',', BookingService::REPEAT_KEYS)],
+            'repeat_type' => ['required', 'in:'.implode(',', array_merge(BookingService::REPEAT_KEYS, $allowedLegacyRepeat))],
             'time_start' => ['required', 'date_format:H:i'],
             'time_end' => ['required', 'date_format:H:i'],
             'quantity' => ['required', 'integer', 'in:2,4'],
@@ -289,53 +299,5 @@ final class BookingController extends Controller
         ]);
 
         return $data;
-    }
-
-    /** @param list<Reservation> $reservations */
-    private function detectRepeatType(array $reservations): string
-    {
-        if (count($reservations) <= 1) {
-            return 'once';
-        }
-
-        $dates = array_map(
-            static fn (Reservation $reservation): Carbon => Carbon::createFromFormat('Y-m-d', $reservation->date),
-            $reservations,
-        );
-
-        $allMonthly = true;
-        $daySteps = [];
-
-        for ($i = 1, $count = count($dates); $i < $count; $i++) {
-            $previous = $dates[$i - 1]->copy();
-            $current = $dates[$i]->copy();
-            // diffInDays() returns a float in Carbon 3; cast to int so the match
-            // arms below (1, 2, … 7, 14) compare correctly instead of always failing.
-            $daySteps[] = (int) $previous->diffInDays($current);
-            if (! $previous->copy()->addMonthNoOverflow()->isSameDay($current)) {
-                $allMonthly = false;
-            }
-        }
-
-        if ($allMonthly) {
-            return 'monthly';
-        }
-
-        $uniqueSteps = array_values(array_unique($daySteps));
-        if (count($uniqueSteps) !== 1) {
-            return 'custom';
-        }
-
-        return match ($uniqueSteps[0]) {
-            1 => 'daily',
-            2 => 'every_2_days',
-            3 => 'every_3_days',
-            4 => 'every_4_days',
-            5 => 'every_5_days',
-            6 => 'every_6_days',
-            7 => 'weekly',
-            14 => 'every_2_weeks',
-            default => 'custom',
-        };
     }
 }

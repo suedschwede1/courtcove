@@ -119,6 +119,7 @@ class AdminBookingTest extends TestCase
             'sid' => $square->sid,
         ]);
     }
+
     #[Test]
     public function store_resolves_booked_for_to_matching_member(): void
     {
@@ -311,7 +312,6 @@ class AdminBookingTest extends TestCase
         $this->actingAs($this->admin())->post("/admin/bookings/{$b->bid}/cancel")->assertRedirect(route('admin.bookings.index'));
         $this->assertSame('cancelled', $b->fresh()->status);
     }
-
 
     #[Test]
     public function popup_edit_page_contains_calendar_redirect(): void
@@ -560,5 +560,158 @@ class AdminBookingTest extends TestCase
         $this->actingAs($admin)->get("/admin/bookings/{$booking->bid}/edit")
             ->assertOk()
             ->assertDontSee('name="edit_scope"', false);
+    }
+
+    #[Test]
+    public function store_rejects_daily_repeat(): void
+    {
+        $admin = $this->admin();
+        $square = Square::factory()->create();
+
+        $this->actingAs($admin)->post('/admin/bookings', $this->bookingPayload([
+            'booked_for' => $admin->alias, 'sid' => $square->sid,
+            'date_end' => '2026-07-06', 'repeat_type' => 'daily',
+        ]))->assertSessionHasErrors('repeat_type');
+
+        $this->assertSame(0, Booking::count());
+    }
+
+    #[Test]
+    public function store_accepts_every_2_weeks(): void
+    {
+        $admin = $this->admin();
+        $square = Square::factory()->create();
+
+        $this->actingAs($admin)->post('/admin/bookings', $this->bookingPayload([
+            'booked_for' => $admin->alias, 'sid' => $square->sid,
+            'date' => '2026-07-06', 'date_end' => '2026-07-20', 'repeat_type' => 'every_2_weeks',
+        ]))->assertSessionHasNoErrors();
+
+        $booking = Booking::firstOrFail();
+        $this->assertEqualsCanonicalizing(['2026-07-06', '2026-07-20'], $booking->reservations()->pluck('date')->all());
+    }
+
+    #[Test]
+    public function create_page_lists_only_once_weekly_every_2_weeks(): void
+    {
+        $admin = $this->admin();
+        $square = Square::factory()->create();
+
+        $response = $this->actingAs($admin)->get('/admin/bookings/create?sid='.$square->sid.'&date=2026-07-06');
+
+        $response->assertOk();
+        $this->assertSame(['once', 'weekly', 'every_2_weeks'], array_keys($response->viewData('repeatOptions')));
+    }
+
+    #[Test]
+    public function edit_page_of_legacy_daily_series_shows_daily_and_update_keeps_it(): void
+    {
+        $admin = $this->admin();
+        $square = Square::factory()->create();
+        $booking = $this->subscriptionBooking($admin, $square, ['2026-07-06', '2026-07-07', '2026-07-08']);
+
+        $response = $this->actingAs($admin)->get("/admin/bookings/{$booking->bid}/edit");
+        $response->assertOk();
+        $this->assertSame('daily', $response->viewData('repeatType'));
+        $this->assertSame(['once', 'weekly', 'every_2_weeks', 'daily'], array_keys($response->viewData('repeatOptions')));
+
+        $this->actingAs($admin)->put("/admin/bookings/{$booking->bid}", $this->bookingPayload([
+            'booked_for' => $admin->alias, 'sid' => $square->sid,
+            'date' => '2026-07-06', 'date_end' => '2026-07-09', 'repeat_type' => 'daily',
+        ]))->assertSessionHasNoErrors()->assertRedirect(route('admin.bookings.index'));
+
+        $this->assertCount(4, $booking->fresh()->reservations);
+    }
+
+    #[Test]
+    public function legacy_series_can_be_changed_to_weekly(): void
+    {
+        $admin = $this->admin();
+        $square = Square::factory()->create();
+        $booking = $this->subscriptionBooking($admin, $square, ['2026-07-06', '2026-07-07', '2026-07-08']);
+
+        $this->actingAs($admin)->put("/admin/bookings/{$booking->bid}", $this->bookingPayload([
+            'booked_for' => $admin->alias, 'sid' => $square->sid,
+            'date' => '2026-07-06', 'date_end' => '2026-07-20', 'repeat_type' => 'weekly',
+        ]))->assertSessionHasNoErrors()->assertRedirect(route('admin.bookings.index'));
+
+        $this->assertEqualsCanonicalizing(
+            ['2026-07-06', '2026-07-13', '2026-07-20'],
+            $booking->fresh()->reservations()->pluck('date')->all()
+        );
+    }
+
+    #[Test]
+    public function saving_a_custom_series_as_custom_is_rejected_and_keeps_reservations(): void
+    {
+        $admin = $this->admin();
+        $square = Square::factory()->create();
+        $booking = $this->subscriptionBooking($admin, $square, ['2026-07-06', '2026-07-13', '2026-07-27']);
+
+        $response = $this->actingAs($admin)->get("/admin/bookings/{$booking->bid}/edit");
+        $this->assertSame('custom', $response->viewData('repeatType'));
+        $this->assertArrayHasKey('custom', $response->viewData('repeatOptions'));
+
+        $this->actingAs($admin)->put("/admin/bookings/{$booking->bid}", $this->bookingPayload([
+            'booked_for' => $admin->alias, 'sid' => $square->sid,
+            'date' => '2026-07-06', 'date_end' => '2026-07-27', 'repeat_type' => 'custom',
+        ]))->assertSessionHasErrors('booking');
+
+        $this->assertCount(3, $booking->fresh()->reservations);
+
+        $this->actingAs($admin)->put("/admin/bookings/{$booking->bid}", $this->bookingPayload([
+            'booked_for' => $admin->alias, 'sid' => $square->sid,
+            'date' => '2026-07-06', 'date_end' => '2026-07-27', 'repeat_type' => 'weekly',
+        ]))->assertSessionHasNoErrors();
+
+        $this->assertCount(4, $booking->fresh()->reservations);
+    }
+
+    #[Test]
+    public function mixed_series_with_daily_tail_keeps_daily_under_this_and_following(): void
+    {
+        $admin = $this->admin();
+        $square = Square::factory()->create();
+        $booking = $this->subscriptionBooking($admin, $square, [
+            '2026-07-06', '2026-07-13', '2026-07-20', '2026-07-21', '2026-07-22',
+        ]);
+
+        $this->actingAs($admin)->put("/admin/bookings/{$booking->bid}", $this->bookingPayload([
+            'booked_for' => $admin->alias, 'sid' => $square->sid,
+            'date' => '2026-07-20', 'date_end' => '2026-07-23', 'repeat_type' => 'daily',
+            'occurrence' => '2026-07-20', 'edit_scope' => 'this_and_following',
+        ]))->assertSessionHasNoErrors()->assertRedirect(route('admin.bookings.index'));
+
+        $this->assertEqualsCanonicalizing(['2026-07-06', '2026-07-13'], $booking->fresh()->reservations()->pluck('date')->all());
+        $tail = Booking::where('bid', '!=', $booking->bid)->firstOrFail();
+        $this->assertCount(4, $tail->reservations);
+    }
+
+    #[Test]
+    public function legacy_series_occurrence_scopes_and_delete_still_work(): void
+    {
+        $admin = $this->admin();
+        $square = Square::factory()->create();
+        $booking = $this->subscriptionBooking($admin, $square, ['2026-07-06', '2026-07-07', '2026-07-08', '2026-07-09']);
+
+        // this-and-following keeps the legacy daily type for the tail
+        $this->actingAs($admin)->put("/admin/bookings/{$booking->bid}", $this->bookingPayload([
+            'booked_for' => $admin->alias, 'sid' => $square->sid,
+            'date' => '2026-07-08', 'date_end' => '2026-07-09', 'repeat_type' => 'daily',
+            'occurrence' => '2026-07-08', 'edit_scope' => 'this_and_following',
+        ]))->assertSessionHasNoErrors()->assertRedirect(route('admin.bookings.index'));
+        $this->assertEqualsCanonicalizing(['2026-07-06', '2026-07-07'], $booking->fresh()->reservations()->pluck('date')->all());
+
+        // single occurrence edit of the remaining legacy series
+        $this->actingAs($admin)->put("/admin/bookings/{$booking->bid}", $this->bookingPayload([
+            'booked_for' => $admin->alias, 'sid' => $square->sid,
+            'date' => '2026-07-07', 'date_end' => '2026-07-07', 'time_start' => '14:00', 'time_end' => '15:00',
+            'occurrence' => '2026-07-07', 'edit_scope' => 'single_occurrence',
+        ]))->assertSessionHasNoErrors()->assertRedirect(route('admin.bookings.index'));
+        $this->assertEqualsCanonicalizing(['2026-07-06'], $booking->fresh()->reservations()->pluck('date')->all());
+
+        $this->actingAs($admin)->delete("/admin/bookings/{$booking->bid}")
+            ->assertRedirect(route('admin.bookings.index'));
+        $this->assertDatabaseMissing('bs_bookings', ['bid' => $booking->bid]);
     }
 }

@@ -46,6 +46,10 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 - Shared card, key figure and notice components of the new design.
 - Status badges use one shared colour map (good, neutral, attention, problem, you).
 - Shared button components with 46/52 px touch targets.
+- Saving a legacy series with irregular dates (repeat "custom") is now rejected with a clear message instead of silently collapsing it to one booking; such series can still be viewed, deleted or switched to once/weekly/every 2 weeks.
+- Removed the legacy "names of other players" setting from the square admin form; the stored `capacity-ask-names` value is left untouched for the old system.
+- New repeat bookings are limited to once, weekly and every two weeks (the club no longer offers daily/monthly/custom); existing legacy series with other intervals are still shown, editable (incl. single-occurrence and this-and-following) and deletable; the REST API and MCP tools follow the same rule (create limited, update of a legacy series still accepted).
+- Removed unused price, product and coupon code from the Laravel app (legacy tables and bill cleanup on delete are unchanged).
 
 ## 2026-11-04
 

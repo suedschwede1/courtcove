@@ -18,8 +18,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $name
  * @property SquareStatus $status
  * @property float $priority Display sort order
- * @property int $capacity Max concurrent players
- * @property int $capacity_heterogenic Allow mixed player counts (0/1)
+ * @property int $capacity Legacy, unused: one booking occupies the whole court
+ * @property int $capacity_heterogenic Legacy, unused: one booking occupies the whole court
  * @property int $allow_notes Allow user notes (0/1)
  * @property string $time_start Opening time 'H:i:s'
  * @property string $time_end Closing time 'H:i:s'
@@ -34,12 +34,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Square extends Model
 {
     use HasFactory;
-
-    /** Allowed values for the bs_squares_meta 'capacity-ask-names' dropdown. */
-    public const ASK_NAMES_OPTIONS = [
-        '', 'optional-names', 'optional-names-email', 'optional-names-phone', 'optional-names-email-phone',
-        'required-names', 'required-names-email', 'required-names-phone', 'required-names-email-phone',
-    ];
 
     protected $table = 'bs_squares';
 
@@ -65,18 +59,6 @@ class Square extends Model
     public function meta(): HasMany
     {
         return $this->hasMany(SquareMeta::class, 'sid', 'sid');
-    }
-
-    /** @return HasMany<SquareProduct, $this> */
-    public function products(): HasMany
-    {
-        return $this->hasMany(SquareProduct::class, 'sid', 'sid');
-    }
-
-    /** @return HasMany<SquarePricing, $this> */
-    public function pricing(): HasMany
-    {
-        return $this->hasMany(SquarePricing::class, 'sid', 'sid');
     }
 
     /** @return HasMany<Event, $this> */
