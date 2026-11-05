@@ -123,15 +123,16 @@ class LadderAdminController extends Controller
         );
         $players->appends(array_filter(['q' => $search, 'status' => $status], static fn (string $value): bool => $value !== ''));
 
-        $ladders = $this->repo->ladders();
+        // Chips and copy sources list only ladders the user may administer (copyPlayers refuses the rest):
+        // no titles, seasons or counts of foreign ladders. Global admins see all.
+        $ladders = $this->repo->ladders()->filter(fn (PyramidLadder $each): bool => $this->canAdmin($each))->values();
         $activeCounts = $this->repo->activeCounts();
 
         return view('pyramid::admin.ladder', [
             'ladder' => $ladder,
             'ladders' => $ladders,
             'counts' => $ladders->mapWithKeys(fn (PyramidLadder $each): array => [(int) $each->id => $activeCounts[(int) $each->id] ?? 0])->all(),
-            // Only sources the user may copy from too (copyPlayers refuses the rest): no names of foreign ladders.
-            'otherLadders' => $ladders->filter(fn (PyramidLadder $other): bool => (int) $other->id !== $ladderId && $this->canAdmin($other))->values(),
+            'otherLadders' => $ladders->filter(fn (PyramidLadder $other): bool => (int) $other->id !== $ladderId)->values(),
             'ranking' => $ranking,
             'players' => $players,
             'page' => $page,

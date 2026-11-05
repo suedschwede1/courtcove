@@ -207,6 +207,25 @@ class AdminLadderPageTest extends TestCase
     }
 
     #[Test]
+    public function ladder_chips_list_only_ladders_the_user_administers(): void
+    {
+        $a = PyramidLadder::factory()->create(['title' => 'Liga A', 'category' => 'Herren', 'season' => 2027]);
+        PyramidLadder::factory()->create(['title' => 'Liga B', 'category' => 'Damen', 'season' => 2026]);
+        $holder = User::factory()->create();
+        $this->grantTo($holder, $a);
+
+        $this->actingAs($holder)->get('/pyramide/admin/ladder/'.$a->id)
+            ->assertOk()
+            ->assertDontSee('Damen 2026')
+            ->assertDontSee('Liga B');
+
+        $this->actingAs($this->admin())->get('/pyramide/admin/ladder/'.$a->id)
+            ->assertOk()
+            ->assertSee('Herren 2027 · Laufend · 0')
+            ->assertSee('Damen 2026 · Laufend · 0');
+    }
+
+    #[Test]
     public function copy_dropdown_lists_only_ladders_the_user_administers(): void
     {
         $target = PyramidLadder::factory()->create(['title' => 'Ziel', 'season' => 2027]);
