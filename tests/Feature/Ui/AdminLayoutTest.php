@@ -137,4 +137,26 @@ final class AdminLayoutTest extends TestCase
         request()->merge(['popup' => 1]);
         $this->assertStringNotContainsString('<nav', (string) $this->blade($template));
     }
+
+    #[Test]
+    public function popup_mode_renders_no_shell_and_posts_close(): void
+    {
+        $html = $this->actingAs($this->admin())->get(route('admin.events.create', ['popup' => 1]))->assertOk()->getContent();
+        $this->load($html);
+
+        $this->assertSame(0, $this->nodes('//*[@id="admin-nav"]')->length);
+        $this->assertSame(0, $this->nodes('//*['.self::cls('ds-admin-bar').']')->length);
+        $this->assertSame(0, $this->nodes('//*['.self::cls('ds-admin-crumbs').']')->length);
+
+        $title = $this->nodes('//header['.self::cls('ds-popup__head').']/h1['.self::cls('ds-popup__title').']');
+        $this->assertSame(1, $title->length);
+        $this->assertSame(__('booking.admin.events.create_title'), trim($title->item(0)->textContent));
+
+        $close = '//header['.self::cls('ds-popup__head').']//button[@aria-label="Schließen"]';
+        $this->assertSame(1, $this->nodes($close)->length);
+        $click = (string) $this->attr($close, 'x-on:click');
+        $this->assertStringContainsString('booking-modal-close', $click);
+        $this->assertStringContainsString('window.close()', $click);
+        $this->assertStringNotContainsString('&times;', $html);
+    }
 }

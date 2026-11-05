@@ -393,6 +393,51 @@
             transition: none;
         }
     }
+
+    /* Popup frame (layouts.popup): dark title bar with a close button, content below. */
+    .ds-popup {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        background: var(--color-ground);
+        color: var(--color-ink);
+        font: 400 var(--text-body) var(--font-body);
+    }
+
+    .ds-popup__head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        min-height: 64px;
+        padding: 10px 12px 10px 20px;
+        box-sizing: border-box;
+        background: var(--color-chrome);
+    }
+
+    .ds-popup__title {
+        margin: 0;
+        min-width: 0;
+        font: 700 24px / 26px var(--font-display);
+        color: var(--color-surface);
+    }
+
+    .ds-popup__body {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        flex: 1 1 auto;
+        min-width: 0;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+
+    /* The popup is an iframe about 660px wide on desktop; only a real phone width gets the tighter gutter. */
+    @media (width < 30rem) {
+        .ds-popup__body {
+            padding: 16px;
+        }
+    }
 }
 
 /*

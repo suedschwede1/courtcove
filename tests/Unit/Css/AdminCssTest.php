@@ -53,6 +53,14 @@ final class AdminCssTest extends TestCase
         $this->assertStringNotContainsString('.ds-popup', $ds);
     }
 
+    #[Test]
+    public function booking_css_has_no_admin_rules(): void
+    {
+        $css = (string) file_get_contents(public_path('css/booking.css'));
+
+        $this->assertDoesNotMatchRegularExpression('/(^|[\s,}])\.admin-[a-z]/m', $css);
+    }
+
     /**
      * @return list<string>
      */
