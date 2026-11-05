@@ -20,6 +20,7 @@ use App\Modules\TournamentBase\Preflight\PreflightResult;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
+use Random\Engine\Mt19937;
 use Random\Randomizer;
 use Tests\TestCase;
 
@@ -161,7 +162,7 @@ class MixedDemoSeederTest extends TestCase
     }
 
     #[Test]
-    public function seeder_keeps_a_previously_bound_randomizer(): void
+    public function seeder_keeps_a_previously_bound_randomizer_instance(): void
     {
         $mine = new Randomizer;
         $this->app->instance(Randomizer::class, $mine);
@@ -169,6 +170,41 @@ class MixedDemoSeederTest extends TestCase
         $this->seed(MixedDemoSeeder::class);
 
         $this->assertSame($mine, $this->app->make(Randomizer::class));
+    }
+
+    #[Test]
+    public function seeder_keeps_the_production_style_randomizer_factory(): void
+    {
+        $this->app->bind(Randomizer::class, fn () => new Randomizer(new Mt19937(1)));
+        $binding = $this->app->getBindings()[Randomizer::class];
+
+        $this->seed(MixedDemoSeeder::class);
+
+        $this->assertSame($binding, $this->app->getBindings()[Randomizer::class]);
+        $this->assertNotSame($this->app->make(Randomizer::class), $this->app->make(Randomizer::class));
+    }
+
+    #[Test]
+    public function seeder_leaves_no_randomizer_binding_behind_when_there_was_none(): void
+    {
+        $this->app->offsetUnset(Randomizer::class);
+
+        $this->seed(MixedDemoSeeder::class);
+
+        $this->assertArrayNotHasKey(Randomizer::class, $this->app->getBindings());
+    }
+
+    #[Test]
+    public function roster_names_and_gender_fit(): void
+    {
+        $this->seed(MixedDemoSeeder::class);
+
+        $female = ['Anna', 'Clara', 'Emma', 'Frieda', 'Greta', 'Hanna', 'Ida', 'Julia', 'Klara', 'Lena', 'Marta', 'Nora', 'Olga', 'Paula', 'Rosa'];
+        foreach (MixedMember::query()->get() as $member) {
+            $first = substr((string) $member->label, strlen('Beispiel '));
+            $this->assertSame(in_array($first, $female, true) ? 'f' : 'm', $member->gender, $member->label);
+        }
+        $this->assertSame(15, MixedMember::query()->where('gender', 'f')->count());
     }
 
     #[Test]

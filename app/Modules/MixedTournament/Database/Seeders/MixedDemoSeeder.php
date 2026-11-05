@@ -33,11 +33,14 @@ class MixedDemoSeeder extends Seeder
 
     private const FORMAT = 'Y-m-d H:i:s';
 
-    /** Fictional first names; the roster labels are "Beispiel <name>". */
+    /** Fictional first names with their gender (f = D, m = H), alternating so every slice of the roster has both. */
     private const FIRST_NAMES = [
-        'Anna', 'Berta', 'Clara', 'Dora', 'Emma', 'Frieda', 'Greta', 'Hanna', 'Ida', 'Julia',
-        'Klara', 'Lena', 'Marta', 'Nora', 'Olga', 'Paula', 'Rosa', 'Sofia', 'Tilda', 'Uma',
-        'Vera', 'Wanda', 'Xenia', 'Yara', 'Zora', 'Alois', 'Bruno', 'Cäsar', 'Dario', 'Emil',
+        'Anna' => 'f', 'Bruno' => 'm', 'Clara' => 'f', 'Dario' => 'm', 'Emma' => 'f',
+        'Emil' => 'm', 'Frieda' => 'f', 'Felix' => 'm', 'Greta' => 'f', 'Gustav' => 'm',
+        'Hanna' => 'f', 'Hugo' => 'm', 'Ida' => 'f', 'Ivo' => 'm', 'Julia' => 'f',
+        'Jonas' => 'm', 'Klara' => 'f', 'Kilian' => 'm', 'Lena' => 'f', 'Leo' => 'm',
+        'Marta' => 'f', 'Max' => 'm', 'Nora' => 'f', 'Noah' => 'm', 'Olga' => 'f',
+        'Oskar' => 'm', 'Paula' => 'f', 'Paul' => 'm', 'Rosa' => 'f', 'Rudi' => 'm',
     ];
 
     /** The scores handed out one after the other (Americano rounds always add up to four games). */
@@ -60,8 +63,14 @@ class MixedDemoSeeder extends Seeder
 
         // The generator draws from the container's Randomizer: bind a fixed one for the demo data only.
         $app = $this->container;
-        $hadBinding = $app->bound(Randomizer::class);
-        $previous = $hadBinding ? $app->make(Randomizer::class) : null;
+        // Production binds a factory (new Randomizer per resolve): that binding is never touched, only an
+        // instance entry is layered on top and removed again. A previously registered instance (the same
+        // object on every resolve) is put back afterwards.
+        $previous = null;
+        if ($app->bound(Randomizer::class)) {
+            $probe = $app->make(Randomizer::class);
+            $previous = $probe === $app->make(Randomizer::class) ? $probe : null;
+        }
         $app->instance(Randomizer::class, new Randomizer(new Mt19937(self::SEED)));
 
         try {
@@ -69,10 +78,9 @@ class MixedDemoSeeder extends Seeder
             $this->seedMexicano($labels);
             $this->seedTestEvent($labels);
         } finally {
+            $app->forgetInstance(Randomizer::class);
             if ($previous !== null) {
                 $app->instance(Randomizer::class, $previous);
-            } else {
-                $app->forgetInstance(Randomizer::class);
             }
         }
     }
@@ -84,17 +92,18 @@ class MixedDemoSeeder extends Seeder
     {
         $labels = [];
 
-        foreach (self::FIRST_NAMES as $i => $first) {
+        $i = 0;
+        foreach (self::FIRST_NAMES as $first => $gender) {
             $label = 'Beispiel '.$first;
             $labels[] = $label;
 
             MixedMember::query()->create([
                 'label' => $label,
-                // Alternating, so every slice of the roster has both genders.
-                'gender' => $i % 2 === 0 ? 'f' : 'm',
+                'gender' => $gender,
                 'itn' => number_format(3.0 + (($i * 13) % 14) * 0.5, 1, '.', ''),
                 'birth_date' => sprintf('%04d-%02d-%02d', 1960 + (($i * 7) % 49), 1 + ($i * 5) % 12, 1 + ($i * 11) % 28),
             ]);
+            $i++;
         }
 
         return $labels;
