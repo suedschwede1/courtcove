@@ -45,8 +45,8 @@ class LangUsageTest extends TestCase
         'pyramid::ui.not_found.*',
         'tournament-base::score.*',
         'tournament-base::mail.*',
-        'booking.admin.nav.group_members',
-        'booking.admin.nav.members_settings',
+        'booking.admin.nav.group_users',
+        'booking.admin.users.accounts',
         'booking.admin.cfg.section_tournament_mail',
     ];
 
@@ -143,7 +143,7 @@ class LangUsageTest extends TestCase
 
         $this->assertArrayHasKey('pyramid::mail.prefix', $keys);
         $this->assertArrayHasKey('tournament-base::mail.signature', $keys);
-        $this->assertArrayHasKey('booking.admin.nav.group_members', $keys);
+        $this->assertArrayHasKey('booking.admin.nav.group_users', $keys);
         $this->assertArrayHasKey('mixed::common.status.', $keys);
         $this->assertArrayNotHasKey('pyramid::mail.notification', $keys, 'view names are not keys');
     }

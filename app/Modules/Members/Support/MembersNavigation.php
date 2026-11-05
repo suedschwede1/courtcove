@@ -75,26 +75,6 @@ final class MembersNavigation
     }
 
     /**
-     * All active route patterns of the module ('members') or of its settings pages ('configuration'),
-     * for the admin sidebar entries.
-     *
-     * @return list<string>
-     */
-    public static function patterns(string $section): array
-    {
-        if ($section === 'configuration') {
-            return self::settingsPatterns();
-        }
-
-        $patterns = [];
-        foreach (self::TABS as $key => [, $tabPatterns]) {
-            array_push($patterns, ...$tabPatterns);
-        }
-
-        return $patterns;
-    }
-
-    /**
      * @return list<string>
      */
     private static function settingsPatterns(): array

@@ -76,7 +76,7 @@ final class AdminSidebarTest extends TestCase
 
         $active = $this->nodes('//aside//a[@aria-current="page"]');
         $this->assertSame(1, $active->length);
-        $this->assertSame(__('booking.admin.users.members'), trim($active->item(0)->textContent));
+        $this->assertSame('Benutzerkonten', trim($active->item(0)->textContent));
     }
 
     #[Test]
