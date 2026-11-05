@@ -156,7 +156,10 @@ final class RoundService
             $this->requireStatus($round, 'proposed');
             $this->assertConfig($groupSizeMode, $distribution);
 
-            $this->conditionalUpdate($round, 'proposed', [
+            // No affected-row check: the status is verified under the lock,
+            // and MySQL counts only CHANGED rows, so resubmitting the same
+            // config would report 0 and must not be an error.
+            MixedRound::query()->whereKey($round->id)->where('status', 'proposed')->update([
                 'group_size_mode' => $groupSizeMode,
                 'distribution' => $distribution,
             ]);
@@ -318,19 +321,21 @@ final class RoundService
     /**
      * @param  string  $result  one of self::RESULTS (exactly four games)
      *
+     * @throws MixedRuleException invalid_result (checked first), round_state
      * @throws ModelNotFoundException match not in this round
-     * @throws MixedRuleException round_state, invalid_result
      */
     public function recordScore(MixedRound $r, int $matchId, string $result): void
     {
         DB::transaction(function () use ($r, $matchId, $result): void {
+            // Result first, as the old controller rejected it before any lookup.
+            if (! in_array($result, self::RESULTS, true)) {
+                throw new MixedRuleException('invalid_result');
+            }
+
             [, $round] = $this->lock($r);
             $match = MixedMatch::query()->where('round_id', $round->id)->whereKey($matchId)->firstOrFail();
             $this->requireStatus($round, 'confirmed');
 
-            if (! in_array($result, self::RESULTS, true)) {
-                throw new MixedRuleException('invalid_result');
-            }
             [$gamesA, $gamesB] = array_map('intval', explode(':', $result));
 
             MixedMatch::query()->whereKey($match->id)->update(['games_a' => $gamesA, 'games_b' => $gamesB]);
@@ -499,7 +504,14 @@ final class RoundService
         }
     }
 
-    /** @param  array<string, string>  $values */
+    /**
+     * Status transitions only: every caller changes `status`, so MySQL (which
+     * counts changed rather than matched rows) reports 1 exactly when the
+     * expected status still held. Never use this for writes that may store
+     * identical values.
+     *
+     * @param  array{status: string}  $values
+     */
     private function conditionalUpdate(MixedRound $round, string $expected, array $values): void
     {
         $updated = MixedRound::query()->whereKey($round->id)->where('status', $expected)->update($values);

@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Phase 2: Mixed round config can be resubmitted unchanged (no false state error on MySQL); an invalid score is reported before the round state.
 - Phase 2: creating a Mixed round and its proposal is atomic; a failed proposal leaves no empty round.
 - Phase 2: Mixed round lifecycle ported; player swap is now refused on Mexicano rounds.
 - Phase 2: Mixed round preview (repeated encounters from the second repeat, avoid-pair collisions, match counts) ported unchanged.

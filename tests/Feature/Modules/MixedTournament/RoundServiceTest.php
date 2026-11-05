@@ -321,6 +321,22 @@ class RoundServiceTest extends TestCase
     }
 
     #[Test]
+    public function update_config_accepts_an_unchanged_config(): void
+    {
+        // MySQL reports 0 affected rows for an identical update (changed, not
+        // matched rows); SQLite counts matched rows, so the MySQL case itself
+        // is covered by the Task 26 MySQL suite. Here: no affected-row check.
+        $event = $this->event();
+        $round = $this->round($event);
+
+        $this->service()->updateConfig($round, '4_and_5', 'itn');
+        $this->service()->updateConfig($round, '4_and_5', 'itn');
+
+        $fresh = $round->fresh();
+        $this->assertSame(['4_and_5', 'itn', 'proposed'], [$fresh->group_size_mode, $fresh->distribution, $fresh->status]);
+    }
+
+    #[Test]
     public function score_only_while_confirmed_and_four_games(): void
     {
         $event = $this->event();
@@ -330,6 +346,8 @@ class RoundServiceTest extends TestCase
         $matchId = (int) MixedMatch::query()->where('round_id', $round->id)->orderBy('id')->value('id');
 
         $this->assertRule('round_state', fn () => $this->service()->recordScore($round, $matchId, '3:1'));
+        // The result is validated before the round state (old controller order).
+        $this->assertRule('invalid_result', fn () => $this->service()->recordScore($round, $matchId, '5:0'));
 
         $this->service()->confirm($round);
         $this->assertRule('invalid_result', fn () => $this->service()->recordScore($round, $matchId, '5:0'));
