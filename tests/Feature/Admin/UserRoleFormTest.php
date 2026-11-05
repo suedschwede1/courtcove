@@ -215,7 +215,7 @@ final class UserRoleFormTest extends TestCase
 
         $this->actingAs($this->admin())->get("/admin/users/{$u->uid}/edit")
             ->assertOk()
-            ->assertSeeInOrder(['Platzhalter', 'aktiviert', 'auf Aktivierung wartend', 'gesperrt', 'gelöscht'])
+            ->assertSeeInOrder(['Platzhalter', 'Aktiviert', 'Auf Aktivierung wartend', 'Gesperrt', 'Gelöscht'])
             ->assertSeeInOrder(['Berechtigung', 'Mitglied', 'Assistent', 'Admin'])
             ->assertDontSee('<option value="assist" selected>', false)
             ->assertSee('x-show="role === \'assist\'"', false);
