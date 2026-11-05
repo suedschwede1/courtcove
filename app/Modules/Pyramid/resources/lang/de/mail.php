@@ -2,7 +2,6 @@
 
 return [
     'prefix' => 'Forderungspyramide: ',
-    'signature' => "\nViele Grüße\n:club\n:url\n",
 
     'challenge_created' => [
         'subject' => 'Du wurdest gefordert',

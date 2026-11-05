@@ -9,6 +9,9 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- German validation messages for every framework rule (decimal, list, prohibited and others showed the raw key "validation.…" in German before).
+- Admin "Texte" page: new section "Absender der Turnier-Mails" (sender, Reply-To, signature club/website/text); a filled field wins over .env, an emptied field falls back again.
+- Tournament mails (Pyramid now, later tournament modules): From, Reply-To and signature come from one shared TournamentBase helper, configurable via .env (TOURNAMENT_MAIL_*, MAIL_REPLY_TO_*); unchanged when nothing is set, and MAIL_REPLY_TO_* no longer adds a Reply-To to the booking mails.
 - Admin booking form: the booking status can no longer be picked (it follows from single slot vs. series; only the cancel action cancels), and the player count sits next to court and booked-for.
 - Admin dialogs (booking, event and other framed forms): the white shell strip with a second close button is gone, so the dialog starts with the form's own dark title bar and one close button; Escape in the form closes it, and focused fields are no longer hidden behind the action bar.
 - Users: artisan users:split-role (--dry-run) moves admin/assist from the status into the role column once USERS_SPLIT_ROLE is on; idempotent, refuses while the flag is off, never run by a migration.

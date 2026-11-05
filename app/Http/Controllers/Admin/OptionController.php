@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Option;
+use App\Modules\TournamentBase\Support\MailSender;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -40,6 +41,20 @@ final class OptionController extends Controller
         'registration_success' => 'service.user.registration.success',
     ];
 
+    /**
+     * Sender of the tournament mails (read by TournamentBase MailSender). Unlike the fields
+     * above, an emptied field removes its option, so the .env value or default applies again.
+     */
+    private const TOURNAMENT_MAIL_MAP = [
+        'tournament_mail_from_address' => MailSender::OPTION_FROM_ADDRESS,
+        'tournament_mail_from_name' => MailSender::OPTION_FROM_NAME,
+        'tournament_mail_reply_to_address' => MailSender::OPTION_REPLY_TO_ADDRESS,
+        'tournament_mail_reply_to_name' => MailSender::OPTION_REPLY_TO_NAME,
+        'tournament_mail_signature_club' => MailSender::OPTION_SIGNATURE_CLUB,
+        'tournament_mail_signature_url' => MailSender::OPTION_SIGNATURE_URL,
+        'tournament_mail_signature_text' => MailSender::OPTION_SIGNATURE_TEXT,
+    ];
+
     private const BEHAVIOR_MAP = [
         'registration' => 'service.user.registration',
         'activation' => 'service.user.activation',
@@ -56,7 +71,7 @@ final class OptionController extends Controller
     public function edit(): View
     {
         return view('admin.config.edit', [
-            'values' => $this->loadValues(self::GENERAL_MAP) + [
+            'values' => $this->loadValues(self::GENERAL_MAP) + $this->loadValues(self::TOURNAMENT_MAIL_MAP) + [
                 'registration' => '',
                 'activation' => '',
                 'maintenance' => '',
@@ -71,8 +86,9 @@ final class OptionController extends Controller
 
     public function update(Request $request): RedirectResponse
     {
-        $data = $request->validate($this->generalRules());
+        $data = $request->validate($this->generalRules() + $this->tournamentMailRules());
         $this->persist(self::GENERAL_MAP, $data);
+        $this->persistClearable(self::TOURNAMENT_MAIL_MAP, $data);
         $this->flushCaches();
 
         return redirect()->route('admin.config.edit')->with('success', __('booking.messages.config_saved'));
@@ -130,6 +146,28 @@ final class OptionController extends Controller
         }
     }
 
+    /**
+     * Like persist(), but a submitted empty field deletes the option instead of being skipped.
+     */
+    private function persistClearable(array $map, array $data): void
+    {
+        foreach ($map as $field => $key) {
+            if (! array_key_exists($field, $data)) {
+                continue;
+            }
+
+            $value = trim((string) $data[$field]);
+
+            if ($value === '') {
+                Option::where('key', $key)->whereNull('locale')->delete();
+
+                continue;
+            }
+
+            Option::updateOrCreate(['key' => $key, 'locale' => null], ['value' => $value]);
+        }
+    }
+
     private function flushCaches(): void
     {
         Cache::forget('booking.service_name');
@@ -163,6 +201,25 @@ final class OptionController extends Controller
             'registration_email_help' => ['nullable', 'string', 'max:255'],
             'registration_privacy' => ['nullable', 'string', 'max:1000'],
             'registration_success' => ['nullable', 'string', 'max:1000'],
+        ];
+    }
+
+    /**
+     * Values end up in mail headers: names and the club line must stay on one line.
+     * Addresses are capped at 254 characters (RFC 5321); bs_options.value is TEXT.
+     */
+    private function tournamentMailRules(): array
+    {
+        $singleLine = ['nullable', 'string', 'max:255', 'not_regex:/[\r\n]/'];
+
+        return [
+            'tournament_mail_from_address' => ['nullable', 'string', 'email', 'max:254'],
+            'tournament_mail_from_name' => $singleLine,
+            'tournament_mail_reply_to_address' => ['nullable', 'string', 'email', 'max:254'],
+            'tournament_mail_reply_to_name' => $singleLine,
+            'tournament_mail_signature_club' => $singleLine,
+            'tournament_mail_signature_url' => ['nullable', 'string', 'url', 'max:255'],
+            'tournament_mail_signature_text' => ['nullable', 'string', 'max:1000'],
         ];
     }
 
