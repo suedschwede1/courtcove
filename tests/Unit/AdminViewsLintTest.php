@@ -20,6 +20,8 @@ final class AdminViewsLintTest extends TestCase
     {
         $paths = [
             'components/layout/admin-sidebar.blade.php',
+            'layouts/admin.blade.php',
+            'components/admin/page-header.blade.php',
         ];
 
         return array_combine($paths, array_map(fn (string $p) => [$p], $paths));

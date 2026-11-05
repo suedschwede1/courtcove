@@ -35,6 +35,16 @@ final class AdminCssTest extends TestCase
     }
 
     #[Test]
+    public function phone_sidebar_is_hidden_from_focus_when_closed(): void
+    {
+        $manifest = json_decode((string) file_get_contents(public_path('build/manifest.json')), true, flags: JSON_THROW_ON_ERROR);
+        $css = (string) file_get_contents(public_path('build/'.$manifest['resources/css/app.css']['file']));
+
+        $this->assertMatchesRegularExpression('/\.ds-admin-sidebar\{[^}]*visibility:hidden/', $css);
+        $this->assertMatchesRegularExpression('/\.ds-admin-sidebar\.is-open\{[^}]*visibility:visible/', $css);
+    }
+
+    #[Test]
     public function admin_rules_live_only_in_admin_css(): void
     {
         $ds = (string) file_get_contents(resource_path('css/ds.css'));

@@ -4,15 +4,21 @@
  * Colours come from var(--color-*) tokens.
  */
 @layer components {
-    /* Sidebar (desktop column; the phone slide-in comes with the layout). */
+    /* Shell: sidebar column + content on desktop, stacked bar + content on phone. */
+    .ds-admin {
+        display: flex;
+        flex-wrap: wrap;
+        min-height: 100vh;
+        background: var(--color-ground);
+        color: var(--color-ink);
+        font: 400 var(--text-body) var(--font-body);
+    }
+
+    /* Sidebar: sticky column from 48rem, slide-in panel below (see the media blocks at the end). */
     .ds-admin-sidebar {
         display: flex;
-        flex: 0 0 240px;
         flex-direction: column;
         gap: 18px;
-        width: 240px;
-        max-width: 100%;
-        min-height: 100vh;
         padding: 20px 14px;
         box-sizing: border-box;
         background: var(--color-chrome);
@@ -167,4 +173,234 @@
         background: rgb(255 255 255 / 0.08);
         color: var(--color-surface);
     }
+
+    .ds-admin-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 55;
+        background: rgb(29 27 24 / 0.5);
+    }
+
+    /* Phone bar (hidden from 48rem). */
+    .ds-admin-bar {
+        position: sticky;
+        top: 0;
+        z-index: 40;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 12px 12px 8px;
+        background: var(--color-chrome);
+        color: var(--color-surface);
+    }
+
+    .ds-admin-bar .ds-admin-bar__lead {
+        background: transparent;
+    }
+
+    .ds-admin-bar__text {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        min-width: 0;
+        line-height: 1.05;
+    }
+
+    .ds-admin-bar__eyebrow {
+        margin: 0;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--color-chrome-muted);
+    }
+
+    .ds-admin-bar__title {
+        margin: 0;
+        overflow: hidden;
+        font: 700 22px / 1.05 var(--font-display);
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* Content column. */
+    .ds-admin-main {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        min-width: 0;
+        padding: 28px 32px 48px;
+        box-sizing: border-box;
+    }
+
+    /* Page head (x-admin.page-header). */
+    .ds-admin-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 16px;
+    }
+
+    .ds-admin-crumbs {
+        display: flex;
+        flex: 0 0 100%;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        color: var(--color-ink-3);
+    }
+
+    .ds-admin-head__text {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+    }
+
+    .ds-admin-head__eyebrow {
+        margin: 0;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--color-ink-3);
+    }
+
+    .ds-admin-head__title {
+        margin: 0;
+        font: 700 40px / 1 var(--font-display);
+        color: var(--color-ink);
+    }
+
+    .ds-admin-head__meta {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--color-ink-2);
+    }
+
+    .ds-admin-head__actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+    }
+
+    @media (width >= 48rem) {
+        .ds-admin-sidebar {
+            position: sticky;
+            top: 0;
+            flex: 0 0 240px;
+            width: 240px;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .ds-admin-main {
+            flex: 999 1 560px;
+        }
+
+        .ds-admin-bar,
+        .ds-admin-backdrop,
+        .ds-admin-sidebar__close {
+            display: none;
+        }
+    }
+
+    @media (width < 48rem) {
+        .ds-admin {
+            flex-direction: column;
+            flex-wrap: nowrap;
+        }
+
+        .ds-admin-sidebar {
+            position: fixed;
+            inset: 0 auto 0 0;
+            z-index: 60;
+            width: 310px;
+            max-width: 85vw;
+            gap: 14px;
+            padding: 16px 12px;
+            overflow-y: auto;
+            transform: translateX(-100%);
+            visibility: hidden;
+            transition: transform 0.15s, visibility 0.15s;
+        }
+
+        .ds-admin-sidebar.is-open {
+            transform: none;
+            visibility: visible;
+        }
+
+        .ds-admin-sidebar .ds-admin-sidebar__close {
+            display: inline-flex;
+            flex: none;
+            background: transparent;
+        }
+
+        .ds-admin-sidebar__link {
+            min-height: 48px;
+            padding: 0 12px;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+
+        /* The mockup puts "Zum Kalender" at the bottom of the phone menu. */
+        .ds-admin-sidebar__back {
+            order: 1;
+            justify-content: center;
+            min-height: 48px;
+            margin-top: auto;
+            border-radius: 10px;
+        }
+
+        .ds-admin-sidebar__foot {
+            order: 2;
+            margin-top: 0;
+        }
+
+        .ds-admin-main {
+            flex: 1 1 auto;
+            gap: 14px;
+            padding: 14px 16px 96px;
+        }
+
+        /* The phone bar shows the title; the h1 stays for screen readers. */
+        .ds-admin-head__title {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            margin: -1px;
+            padding: 0;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        .ds-admin-head__actions {
+            flex: 1 1 100%;
+        }
+
+        .ds-admin-head__actions > * {
+            flex: 1 1 auto;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .ds-admin-sidebar {
+            transition: none;
+        }
+    }
+}
+
+/*
+ * Unlayered on purpose: the breadcrumb link has no class (component contract), so the
+ * unlayered legacy `a` rule in public/css/booking.css would beat any layered rule.
+ */
+.ds-admin-crumbs a {
+    color: var(--color-clay);
+    text-decoration: underline;
+    text-underline-offset: 2px;
 }
