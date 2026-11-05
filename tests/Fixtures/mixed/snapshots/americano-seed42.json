@@ -1,0 +1,187 @@
+{
+    "groups": [
+        [
+            13,
+            11,
+            7,
+            1
+        ],
+        [
+            12,
+            9,
+            5,
+            2
+        ],
+        [
+            8,
+            10,
+            4,
+            3
+        ],
+        [
+            6,
+            13,
+            12,
+            8
+        ]
+    ],
+    "sitters": [],
+    "matches": [
+        {
+            "group": 0,
+            "match_no": 0,
+            "a": [
+                13,
+                11
+            ],
+            "b": [
+                7,
+                1
+            ],
+            "is_extra": false
+        },
+        {
+            "group": 0,
+            "match_no": 1,
+            "a": [
+                13,
+                7
+            ],
+            "b": [
+                11,
+                1
+            ],
+            "is_extra": false
+        },
+        {
+            "group": 0,
+            "match_no": 2,
+            "a": [
+                13,
+                1
+            ],
+            "b": [
+                11,
+                7
+            ],
+            "is_extra": false
+        },
+        {
+            "group": 1,
+            "match_no": 0,
+            "a": [
+                12,
+                9
+            ],
+            "b": [
+                5,
+                2
+            ],
+            "is_extra": false
+        },
+        {
+            "group": 1,
+            "match_no": 1,
+            "a": [
+                12,
+                5
+            ],
+            "b": [
+                9,
+                2
+            ],
+            "is_extra": false
+        },
+        {
+            "group": 1,
+            "match_no": 2,
+            "a": [
+                12,
+                2
+            ],
+            "b": [
+                9,
+                5
+            ],
+            "is_extra": false
+        },
+        {
+            "group": 2,
+            "match_no": 0,
+            "a": [
+                8,
+                10
+            ],
+            "b": [
+                4,
+                3
+            ],
+            "is_extra": false
+        },
+        {
+            "group": 2,
+            "match_no": 1,
+            "a": [
+                8,
+                4
+            ],
+            "b": [
+                10,
+                3
+            ],
+            "is_extra": false
+        },
+        {
+            "group": 2,
+            "match_no": 2,
+            "a": [
+                8,
+                3
+            ],
+            "b": [
+                10,
+                4
+            ],
+            "is_extra": false
+        },
+        {
+            "group": 3,
+            "match_no": 0,
+            "a": [
+                6,
+                13
+            ],
+            "b": [
+                12,
+                8
+            ],
+            "is_extra": true
+        },
+        {
+            "group": 3,
+            "match_no": 1,
+            "a": [
+                6,
+                12
+            ],
+            "b": [
+                13,
+                8
+            ],
+            "is_extra": true
+        },
+        {
+            "group": 3,
+            "match_no": 2,
+            "a": [
+                6,
+                8
+            ],
+            "b": [
+                13,
+                12
+            ],
+            "is_extra": true
+        }
+    ]
+}

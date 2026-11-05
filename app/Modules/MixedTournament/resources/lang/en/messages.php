@@ -19,4 +19,6 @@ return [
     'delete_confirmed' => 'Confirmed rounds cannot be deleted.',
     'round_state' => 'The round is not in the right state for this.',
     'invalid_result' => 'Invalid result.',
+    'min_four' => 'Select at least 4 participants.',
+    'extra_group_impossible' => 'Too few groups for the extra group with this many leftover players - select more participants, use the "4s and 5s" mode, or exclude fewer participants from extra matches.',
 ];

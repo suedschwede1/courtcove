@@ -19,4 +19,6 @@ return [
     'delete_confirmed' => 'Bestätigte Runden können nicht gelöscht werden.',
     'round_state' => 'Die Runde ist dafür nicht im passenden Zustand.',
     'invalid_result' => 'Ungültiges Ergebnis.',
+    'min_four' => 'Mindestens 4 Teilnehmer auswählen.',
+    'extra_group_impossible' => 'Zu wenige Gruppen für die Zusatzgruppe bei so vielen Restspielern - bitte mehr Teilnehmer auswählen, den Modus "4er und 5er" verwenden, oder weniger Teilnehmer von Zusatzspielen ausnehmen.',
 ];
