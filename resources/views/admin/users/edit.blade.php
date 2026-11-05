@@ -1,55 +1,50 @@
 @extends('layouts.admin')
 @section('admin-title', __('booking.admin.users.edit_title'))
+@section('admin-back', route('admin.users.index'))
 @section('admin-content')
-<div class="ui-page">
-    <div class="ui-page-header">
-        <h1>{{ __('booking.admin.users.edit_title') }}</h1>
-        <p>{{ __('booking.admin.users.intro_edit') }}</p>
-    </div>
+<div class="ds-admin-stack ds-admin-form-page">
+    <x-admin.page-header :title="__('booking.admin.users.edit_title')" :eyebrow="__('booking.admin.nav.eyebrow')" :back-url="route('admin.users.index')" :back-label="__('booking.admin.users.title')">
+        <p class="ds-admin-note">{{ __('booking.admin.users.intro_edit') }}</p>
+        <p class="ds-admin-note">{{ __('booking.admin.users.login_history_risk_score') }}: <x-ui.badge :tone="$riskScore > 0 ? 'attention' : 'neutral'">{{ $riskScore }}</x-ui.badge></p>
+        <x-slot:actions>
+            <x-ui.button :href="route('admin.users.login-history', $user)" variant="secondary" :block="false">{{ __('booking.admin.users.login_history_title') }}</x-ui.button>
+        </x-slot:actions>
+    </x-admin.page-header>
 
-    <div class="flex items-center gap-3">
-        <a href="{{ route('admin.users.login-history', $user) }}" class="ui-btn ui-btn-outline">{{ __('booking.admin.users.login_history_title') }}</a>
-        <span class="text-sm text-[#6a6e73]">{{ __('booking.admin.users.login_history_risk_score') }}: <strong class="text-[#151515]">{{ $riskScore }}</strong></span>
-    </div>
-
-    <form method="POST" action="{{ route('admin.users.update', $user) }}" class="ui-form-shell">
+    <form method="POST" action="{{ route('admin.users.update', $user) }}" class="ds-admin-stack">
         @method('PUT')
         @include('admin.users._form', ['privileges' => $privileges, 'user' => $user, 'profile' => $profile, 'granted' => $granted])
-        <div class="ui-card">
-            <div class="ui-card-body ui-form-actions">
-                <div class="ui-form-actions-group">
-                    <button type="submit" class="ui-btn ui-btn-primary">{{ __('booking.admin.common.save') }}</button>
-                    <a href="{{ route('admin.users.index') }}" class="ui-btn ui-btn-ghost">{{ __('booking.admin.common.abort') }}</a>
-                </div>
+        <div class="ds-admin-actions">
+            <div class="ds-admin-actions__group ds-admin-actions__group--main">
+                <x-ui.button :href="route('admin.users.index')" variant="secondary" :block="false">{{ __('booking.admin.common.abort') }}</x-ui.button>
+                <x-ui.button type="submit" :block="false">{{ __('booking.admin.common.save') }}</x-ui.button>
             </div>
         </div>
     </form>
 
-    <form method="POST" action="{{ route('admin.users.password', $user) }}" class="ui-card">
+    <form method="POST" action="{{ route('admin.users.password', $user) }}">
         @csrf
-        <div class="ui-card-header"><h2>{{ __('booking.admin.users.reset_password') }}</h2></div>
-        <div class="ui-card-body ui-form-divider">
-            <p class="ui-section-label !mb-0">{{ __('booking.admin.users.security') }}</p>
-            <div class="ui-row">
-                <div class="ui-field min-w-[18rem]">
-                    <label class="ui-label" for="uf-new-pw">{{ __('booking.admin.users.new_password') }}</label>
-                    <input id="uf-new-pw" type="password" name="password" class="ui-input">
-                </div>
-                <button type="submit" class="ui-btn ui-btn-outline">{{ __('booking.admin.users.reset_password') }}</button>
+        <x-ui.card :title="__('booking.admin.users.reset_password')" padding="lg" class="ds-admin-form-card">
+            <div class="ds-admin-form-grid">
+                <x-ui.field :label="__('booking.admin.users.new_password')" for="uf-new-pw">
+                    <x-ui.input id="uf-new-pw" name="password" type="password" autocomplete="new-password" />
+                </x-ui.field>
             </div>
-        </div>
+            <div class="ds-admin-actions__group">
+                <x-ui.button type="submit" variant="secondary" :block="false">{{ __('booking.admin.users.reset_password') }}</x-ui.button>
+            </div>
+        </x-ui.card>
     </form>
 
-    <form method="POST" action="{{ route('admin.users.destroy', $user) }}" class="ui-card" onsubmit="return confirm({{ Js::from(__('booking.admin.users.confirm_delete')) }})">
+    <form method="POST" action="{{ route('admin.users.destroy', $user) }}" onsubmit="return confirm({{ Js::from(__('booking.admin.users.confirm_delete')) }})">
         @method('DELETE')
         @csrf
-        <div class="ui-card-header"><h2>{{ __('booking.admin.users.delete_user') }}</h2></div>
-        <div class="ui-card-body ui-form-actions">
-            <p class="ui-note">{{ __('booking.admin.users.delete_note') }}</p>
-            <div class="ui-form-actions-group">
-                <button type="submit" class="ui-btn ui-btn-danger">{{ __('booking.admin.users.delete_user') }}</button>
+        <x-ui.card :title="__('booking.admin.users.delete_user')" padding="lg" class="ds-admin-form-card">
+            <p class="ds-admin-note">{{ __('booking.admin.users.delete_note') }}</p>
+            <div class="ds-admin-actions__group">
+                <x-ui.button type="submit" variant="danger" :block="false">{{ __('booking.admin.users.delete_user') }}</x-ui.button>
             </div>
-        </div>
+        </x-ui.card>
     </form>
 </div>
 @endsection

@@ -38,6 +38,12 @@ final class AdminPagesRenderTest extends TestCase
 
                 return route('admin.users.index', ['q' => 'Example']);
             }],
+            'users_create' => [fn (): string => route('admin.users.create')],
+            'users_edit' => [function (): string {
+                $user = User::factory()->create(['alias' => 'Pat Example', 'status' => 'assist']);
+
+                return route('admin.users.edit', $user);
+            }],
             'booking_edit' => [function (): string {
                 $square = Square::factory()->create(['name' => 'Court A']);
                 $booking = Booking::factory()->create(['sid' => $square->sid, 'status' => 'subscription', 'quantity' => 4]);

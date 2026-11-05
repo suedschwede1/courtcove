@@ -755,6 +755,16 @@
         gap: 16px;
     }
 
+    /* Multi-select for member privileges: tall list, option rows with breathing room. */
+    .ds-select.ds-admin-privileges {
+        min-height: 220px;
+        padding: 10px 12px;
+    }
+
+    .ds-admin-privileges option {
+        padding: 4px 6px;
+    }
+
     .ds-admin-form-grid__pair {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -890,8 +900,18 @@
         }
 
         /* The bar's back button replaces the breadcrumb, as in the phone mockup. */
-        .ds-admin-booking .ds-admin-crumbs {
+        .ds-admin-booking .ds-admin-crumbs,
+        .ds-admin-form-page .ds-admin-crumbs {
             display: none;
+        }
+
+        /* Form pages: action groups span the width, their buttons share it (52px full-width buttons). */
+        .ds-admin-main .ds-admin-form-page .ds-admin-actions__group {
+            width: 100%;
+        }
+
+        .ds-admin-main .ds-admin-form-page .ds-admin-actions__group > .ds-btn {
+            flex: 1 1 0;
         }
 
         .ds-popup .ds-admin-head__title {
