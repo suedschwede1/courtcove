@@ -832,3 +832,59 @@
         }
     }
 }
+
+/* Mail composer: audience chips, template list, confirmation dialog. */
+@layer components {
+    .mbr-audiences {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .mbr-audiences .ds-chip {
+        min-height: 40px;
+        font-size: 14px;
+    }
+
+    .mbr-audiences .ds-chip[aria-pressed='true'] {
+        font-weight: 700;
+    }
+
+    .mbr-templates {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    /* Selected template. Resets the dues "selected count" text rules of .mbr-selected. */
+    .mbr-templates > .mbr-selected {
+        align-self: stretch;
+        margin-right: 0;
+        font-size: inherit;
+        font-weight: inherit;
+        color: inherit;
+        outline: 2px solid var(--color-clay);
+        outline-offset: 2px;
+    }
+
+    .mbr-dialog {
+        width: 100%;
+        max-width: 32rem;
+        box-shadow: var(--shadow-dialog);
+    }
+
+    .mbr-dialog__title {
+        font-size: var(--text-display-l);
+        line-height: var(--text-display-l--line-height);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        /* Alpine's x-transition writes inline transition styles; only !important outranks them. */
+        .mbr-dialog-backdrop {
+            transition: none !important;
+        }
+    }
+}
