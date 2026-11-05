@@ -1,0 +1,7 @@
+/*
+ * Admin area styles (restyle step 5).
+ * Classes use the ds-admin-* / ds-popup prefix and live in @layer components.
+ * Colours come from var(--color-*) tokens.
+ */
+@layer components {
+}
