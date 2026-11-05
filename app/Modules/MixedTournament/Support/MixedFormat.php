@@ -30,7 +30,8 @@ final class MixedFormat
     /** "Sa, 7. November" / "Sat, November 7"; a broken stored value is shown as it is. */
     public static function date(?string $sql): string
     {
-        if ($sql === null || trim($sql) === '') {
+        // Legacy zero dates ("0000-00-00") parse without an error into a bogus day: show a dash.
+        if ($sql === null || trim($sql) === '' || str_starts_with(trim($sql), '0000')) {
             return '–';
         }
 

@@ -14,13 +14,16 @@
     ];
     $cell = 'flex h-8 w-9 shrink-0 items-center justify-center rounded-sm text-body-s tabular-nums';
 @endphp
-{{-- relative: the sr-only texts are absolutely positioned and must not widen the page beyond the scroll box. --}}
-<div class="relative overflow-x-auto">
+{{--
+    relative: the sr-only texts are absolutely positioned and must not widen the page beyond the scroll box.
+    tabindex + label: keyboard users can focus the box and scroll it with the arrow keys.
+--}}
+<div class="relative overflow-x-auto" role="region" tabindex="0" aria-label="{{ __('mixed::common.matrix_label') }}">
     <div role="table" aria-label="{{ __('mixed::common.matrix_label') }}" class="flex w-max flex-col gap-[3px] text-body-s">
         <div role="row" class="flex gap-[3px]">
             <span role="columnheader" class="w-28 shrink-0"><span class="sr-only">{{ __('mixed::common.col_name') }}</span></span>
             @foreach ($matrix['rows'] as $index => $row)
-                <span role="columnheader" class="w-9 shrink-0 truncate text-center font-bold text-ink-2"><abbr title="{{ $row['label'] }}" class="no-underline">{{ $matrix['heads'][$index] }}</abbr></span>
+                <span role="columnheader" aria-label="{{ $row['label'] }}" title="{{ $row['label'] }}" class="w-9 shrink-0 truncate text-center font-bold text-ink-2"><span aria-hidden="true">{{ $matrix['heads'][$index] }}</span></span>
             @endforeach
         </div>
         @foreach ($matrix['rows'] as $row)

@@ -38,6 +38,15 @@ class MixingMatrixTest extends TestCase
     }
 
     #[Test]
+    public function different_participants_never_share_a_column_head(): void
+    {
+        $result = $this->matrix()->build([3 => 'Anna Muster', 5 => 'Clara Probe', 8 => 'Bernd Muster', 9 => 'Mustermann'], [], []);
+
+        $this->assertSame(['Mus1', 'Pro', 'Mus3', 'Mus4'], $result['heads']);
+        $this->assertSame(count($result['heads']), count(array_unique($result['heads'])));
+    }
+
+    #[Test]
     public function self_cells_are_empty(): void
     {
         $result = $this->matrix()->build([7 => 'Anna Beispiel', 9 => 'Bernd Muster'], ['7:9' => 1], []);

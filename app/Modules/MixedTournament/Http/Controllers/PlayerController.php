@@ -62,8 +62,9 @@ class PlayerController extends Controller
 
     public function round(Request $request, MixedRound $round, RoundViewData $data): View
     {
-        $view = $data->build($round, $this->user($request));
-        $this->authorizeView($request, $view['event']);
+        // Authorize on the round's own event first; the view data (standings, waves) is built only afterwards.
+        $user = $this->authorizeView($request, MixedEvent::query()->whereKey($round->event_id)->firstOrFail());
+        $view = $data->build($round, $user);
 
         return view($view['event']->isMexicano() ? 'mixed::player.round-mexicano' : 'mixed::player.round', $view);
     }

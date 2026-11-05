@@ -105,7 +105,7 @@ class PlayerPagesTest extends TestCase
         $response->assertSee('Herbst-Beispiel')
             ->assertSee('Sa, 7. November · 2 Teilnehmer · 1 Runde · Americano')
             ->assertSee('Beispiel Anna')
-            ->assertSee('ITN 4,1')
+            ->assertDontSee('ITN')
             ->assertSee('pausiert')
             ->assertSee('(1 aktiv / 2 gesamt)')
             ->assertSeeInOrder(['Teilnehmer', 'Runde 1', 'Durchmischung', 'Wertung'])
@@ -205,8 +205,48 @@ class PlayerPagesTest extends TestCase
     {
         $event = MixedEvent::factory()->create();
 
-        $this->get('/mixed-tournament/event/'.$event->id)->assertRedirect();
+        $this->get('/mixed-tournament/event/'.$event->id)
+            ->assertRedirect(route('login', ['redirect_to' => '/mixed-tournament/event/'.$event->id]))
+            ->assertSessionHas('error', __('mixed::messages.login_required'));
         $this->assertGuest();
+    }
+
+    #[Test]
+    public function event_page_shows_the_gender_letter_but_never_itn(): void
+    {
+        $event = MixedEvent::factory()->create();
+        MixedParticipant::factory()->create(['event_id' => $event->id, 'label' => 'Beispiel Anna', 'gender' => 'f', 'itn' => '7.35', 'age' => 117]);
+
+        $this->actingAs($this->member())->get('/mixed-tournament/event/'.$event->id)
+            ->assertOk()
+            ->assertSee('Beispiel Anna')
+            ->assertSeeInOrder(['Beispiel Anna', '>D<'], false)
+            ->assertDontSee('ITN')
+            ->assertDontSee('7,4')
+            ->assertDontSee('7,35')
+            ->assertDontSee('117');
+    }
+
+    #[Test]
+    public function legacy_zero_dates_render_as_a_dash(): void
+    {
+        $event = MixedEvent::factory()->create(['event_date' => '0000-00-00']);
+
+        $this->actingAs($this->member())->get('/mixed-tournament/event/'.$event->id)
+            ->assertOk()
+            ->assertSee('– · 0 Teilnehmer · 0 Runden · Americano')
+            ->assertDontSee('November');
+    }
+
+    #[Test]
+    public function the_active_tab_carries_aria_current(): void
+    {
+        $event = MixedEvent::factory()->create();
+
+        $this->actingAs($this->member())->get('/mixed-tournament/event/'.$event->id.'/standings')
+            ->assertOk()
+            ->assertSee('class="ds-tabs__tab" aria-current="page">Wertung</a>', false)
+            ->assertDontSee('aria-current="page">Teilnehmer', false);
     }
 
     /**

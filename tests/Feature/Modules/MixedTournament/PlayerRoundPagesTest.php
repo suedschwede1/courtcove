@@ -300,5 +300,133 @@ class PlayerRoundPagesTest extends TestCase
         $this->actingAs($this->member())->get('/mixed-tournament/round/999')
             ->assertRedirect(route('mixed.index'))
             ->assertSessionHas('error');
+        $this->actingAs($this->member())->get('/mixed-tournament/event/999/standings')
+            ->assertRedirect(route('mixed.index'))
+            ->assertSessionHas('error');
+    }
+
+    #[Test]
+    public function player_pages_never_show_itn_age_or_contact_data(): void
+    {
+        $event = MixedEvent::factory()->create();
+        $linked = User::factory()->status('enabled')->create(['email' => 'kontakt-geheim@example.test']);
+        $p = [];
+        foreach (range(0, 3) as $i) {
+            $p[] = (int) MixedParticipant::factory()->create([
+                'event_id' => $event->id, 'label' => 'Spieler '.chr(65 + $i), 'gender' => 'f',
+                'itn' => '7.35', 'age' => 117, 'uid' => $i === 0 ? $linked->uid : null,
+            ])->id;
+        }
+        $confirmed = MixedRound::factory()->create(['event_id' => $event->id, 'round_no' => 1, 'status' => 'confirmed']);
+        $this->group($confirmed, 0, $p, true);
+        $proposed = MixedRound::factory()->create(['event_id' => $event->id, 'round_no' => 2, 'status' => 'proposed']);
+        $this->group($proposed, 0, $p);
+        $user = $this->member();
+
+        foreach (['/event/'.$event->id, '/round/'.$confirmed->id, '/round/'.$proposed->id, '/event/'.$event->id.'/standings', '/event/'.$event->id.'/durchmischung'] as $url) {
+            $response = $this->actingAs($user)->get('/mixed-tournament'.$url)->assertOk()->assertSee('Spieler A');
+            foreach (['ITN', '7,4', '7,35', '7.35', '117', 'kontakt-geheim', 'Jahre'] as $secret) {
+                $response->assertDontSee($secret);
+            }
+        }
+    }
+
+    #[Test]
+    public function participants_of_another_event_never_show_their_data(): void
+    {
+        $event = MixedEvent::factory()->create();
+        $other = MixedEvent::factory()->create();
+        $p = $this->participants($event, 3);
+        $foreign = (int) MixedParticipant::factory()->create(['event_id' => $other->id, 'label' => 'Fremde Person'])->id;
+        $round = MixedRound::factory()->create(['event_id' => $event->id, 'status' => 'confirmed']);
+        $this->match($round, 0, 1, [$p[0], $p[1], $p[2], $foreign], 3, 1);
+        $otherRound = MixedRound::factory()->create(['event_id' => $other->id, 'round_no' => 7]);
+        $user = $this->member();
+
+        $this->actingAs($user)->get('/mixed-tournament/round/'.$round->id)
+            ->assertOk()
+            ->assertSee('Spieler C &amp; ?', false)
+            ->assertDontSee('Fremde Person')
+            ->assertDontSee(route('mixed.round', ['round' => $otherRound->id]));
+        foreach (['/standings', '/durchmischung'] as $page) {
+            $this->actingAs($user)->get('/mixed-tournament/event/'.$event->id.$page)
+                ->assertOk()->assertDontSee('Fremde Person');
+        }
+    }
+
+    #[Test]
+    public function round_standings_and_matrix_escape_labels(): void
+    {
+        $event = MixedEvent::factory()->create();
+        $p = [];
+        foreach (range(0, 3) as $i) {
+            $p[] = (int) MixedParticipant::factory()->create(['event_id' => $event->id, 'label' => '<b>x'.$i.'</b>'])->id;
+        }
+        $round = MixedRound::factory()->create(['event_id' => $event->id, 'status' => 'confirmed']);
+        $this->match($round, 0, 1, $p, 3, 1);
+        $user = $this->member();
+
+        foreach (['/round/'.$round->id, '/event/'.$event->id.'/standings', '/event/'.$event->id.'/durchmischung'] as $url) {
+            $this->actingAs($user)->get('/mixed-tournament'.$url)
+                ->assertOk()
+                ->assertSee('&lt;b&gt;x0&lt;/b&gt;', false)
+                ->assertDontSee('<b>x0</b>', false);
+        }
+    }
+
+    #[Test]
+    public function mexicano_round_shows_the_wave_hint_with_more_groups_than_courts(): void
+    {
+        config(['tournament-base.courts' => [1 => 'Alpha', 2 => 'Beta']]);
+        $event = MixedEvent::factory()->create(['mode' => 'mexicano', 'court_count' => 2]);
+        $p = $this->participants($event, 12);
+        $round = MixedRound::factory()->create(['event_id' => $event->id, 'status' => 'confirmed']);
+        foreach ([0, 1, 2] as $g) {
+            $this->match($round, $g, 1, array_slice($p, $g * 4, 4));
+        }
+
+        $this->actingAs($this->member())->get('/mixed-tournament/round/'.$round->id)
+            ->assertOk()
+            ->assertSee('2 Plätze, 3 Gruppen, also 2 Wellen. Die Runde ist erst fertig, wenn alle Wellen gespielt sind.')
+            ->assertSee('Gruppe 3 · Platz 1 – Alpha · Welle 2')
+            ->assertSee('Gruppe 2 · Platz 2 – Beta · Welle 1');
+    }
+
+    #[Test]
+    public function round_tab_is_marked_current_and_player_pages_have_no_scroll_restore(): void
+    {
+        $event = MixedEvent::factory()->create();
+        $p = $this->participants($event, 4);
+        MixedRound::factory()->create(['event_id' => $event->id, 'round_no' => 1, 'status' => 'completed']);
+        $round = MixedRound::factory()->create(['event_id' => $event->id, 'round_no' => 2, 'status' => 'confirmed']);
+        $this->group($round, 0, $p);
+
+        $this->actingAs($this->member())->get('/mixed-tournament/round/'.$round->id)
+            ->assertOk()
+            ->assertSee('aria-current="page">Runde 2</a>', false)
+            ->assertDontSee('data-scroll-restore', false)
+            ->assertDontSee('mixed-scroll:', false)
+            ->assertDontSee('data-scroll-save', false);
+    }
+
+    #[Test]
+    public function scroll_restore_is_one_shot_and_saves_only_on_marked_forms(): void
+    {
+        $html = view('mixed::partials.scroll-restore', ['scrollId' => 7])->render();
+
+        $this->assertStringContainsString('data-scroll-restore="mixed-scroll:mixed:7"', $html);
+        $this->assertStringContainsString('sessionStorage.removeItem(this.key)', $html);
+        $this->assertStringContainsString("closest('[data-scroll-save]')", $html);
+        $this->assertStringContainsString("addEventListener('submit'", $html);
+        $this->assertStringNotContainsString('pagehide', $html);
+        $this->assertStringNotContainsString('beforeunload', $html);
+
+        $event = MixedEvent::factory()->create();
+        $round = MixedRound::factory()->create(['event_id' => $event->id, 'status' => 'confirmed']);
+        $match = $this->match($round, 0, 1, $this->participants($event, 4), 3, 1);
+        $card = view('mixed::partials.match-card', ['match' => $match, 'labels' => [], 'context' => 'Gruppe 1', 'withResults' => true])->render();
+
+        $this->assertSame(5, substr_count($card, 'data-scroll-save'));
+        $this->assertStringContainsString('aria-pressed="true"', $card);
     }
 }

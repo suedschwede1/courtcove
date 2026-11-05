@@ -41,6 +41,14 @@ final class MixingMatrix
         foreach ($participants as $label) {
             $heads[] = self::head($label);
         }
+        // Two participants must never share a column head ("Anna Muster" / "Bernd Muster" -> "Mus"):
+        // colliding heads get the participant's position in the matrix appended ("Mus2", "Mus5").
+        $counts = array_count_values($heads);
+        foreach ($heads as $index => $head) {
+            if ($counts[$head] > 1) {
+                $heads[$index] = $head.($index + 1);
+            }
+        }
 
         $rows = [];
         foreach ($participants as $a => $labelA) {

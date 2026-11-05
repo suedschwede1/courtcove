@@ -1,6 +1,6 @@
 {{--
     Event overview for players: participants and rounds. No own mockup: Turnier-Mixed header and tabs,
-    Turnier-Teilnehmer-Mobil list pattern.
+    Turnier-Teilnehmer-Mobil list pattern. Participants show label, D/H and the paused badge only.
 --}}
 @extends('mixed::layout')
 
@@ -41,7 +41,8 @@
                                 <span class="w-7 shrink-0 font-display text-display-s tabular-nums text-ink-3">{{ $index + 1 }}</span>
                                 <span class="flex min-w-0 flex-1 flex-col">
                                     <span class="truncate font-bold text-ink">{{ $participant->label }}</span>
-                                    <span class="text-body-s text-ink-2">{{ MixedFormat::gender($participant->gender) }} · {{ __('mixed::common.itn', ['itn' => MixedFormat::itn($participant->itn)]) }}</span>
+                                    {{-- Privacy: players see the gender letter only (as on the ZF2 round chips), never ITN or age. --}}
+                                    <span class="text-body-s text-ink-2">{{ MixedFormat::gender($participant->gender) }}</span>
                                 </span>
                                 @if ($participant->status === 'paused')
                                     <x-ui.badge tone="neutral">{{ __('mixed::common.paused') }}</x-ui.badge>

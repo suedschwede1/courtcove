@@ -3,7 +3,7 @@
     "A & B" against "C & D" centred, the score or "noch offen".
     Needs: $match (MixedMatch), $labels (participant id => label), $context.
     Optional: $withResults (admin scoring) adds the result buttons 4:0 .. 0:4, one POST form each; the
-    stored result is marked with aria-pressed.
+    stored result is marked with aria-pressed; the forms carry data-scroll-save for mixed::partials.scroll-restore.
 --}}
 @php
     use App\Modules\MixedTournament\Domain\RoundService;
@@ -35,7 +35,7 @@
         @if (! empty($withResults))
             <div class="grid grid-cols-5 gap-2" role="group" aria-label="{{ __('mixed::common.result') }}">
                 @foreach (RoundService::RESULTS as $result)
-                    <form method="POST" action="{{ route('mixed.admin.score', ['round' => (int) $match->round_id]) }}">
+                    <form method="POST" action="{{ route('mixed.admin.score', ['round' => (int) $match->round_id]) }}" data-scroll-save>
                         @csrf
                         <input type="hidden" name="match_id" value="{{ (int) $match->id }}">
                         <input type="hidden" name="result" value="{{ $result }}">

@@ -69,6 +69,4 @@
         @include('mixed::partials.top5', ['top5' => $top5, 'labels' => $labels, 'event' => $event])
     </div>
 @endif
-
-@include('mixed::partials.scroll-restore', ['scrollId' => (int) $round->id])
 @endsection
