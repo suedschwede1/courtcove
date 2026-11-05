@@ -11,23 +11,40 @@ use Illuminate\Mail\Mailables\Envelope;
 /**
  * The one plain-text mail behind all eleven Pyramid notifications.
  *
- * Deliberately not queued: it is sent synchronously after the database commit,
- * and the notifier swallows (and logs) a failing mail server.
+ * Greeting, From and signature follow the booking mails: the greeting reuses the booking
+ * lang key, the From address and name come from config mail.from (nothing is set here)
+ * and, like the booking mails, no Reply-To is set. Texts are pinned to German.
+ *
+ * Deliberately not queued: callers send it synchronously after their DB::transaction
+ * has returned, and the notifier swallows (and logs) a failing mail server.
  */
 final class PyramidNotificationMail extends Mailable
 {
+    private const LOCALE = 'de';
+
     public function __construct(
         public string $subjectLine,
         public string $body,
+        public string $alias = '',
     ) {}
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: __('pyramid::mail.prefix', [], 'de').$this->subjectLine);
+        return new Envelope(subject: __('pyramid::mail.prefix', [], self::LOCALE).$this->subjectLine);
     }
 
     public function content(): Content
     {
-        return new Content(text: 'pyramid::mail.notification');
+        return new Content(
+            text: 'pyramid::mail.notification',
+            with: [
+                'greeting' => __('booking.mail.greeting_confirmed', ['name' => $this->alias], self::LOCALE),
+                'body' => $this->body,
+                'signature' => __('pyramid::mail.signature', [
+                    'club' => (string) config('booking.name'),
+                    'url' => (string) config('app.url'),
+                ], self::LOCALE),
+            ],
+        );
     }
 }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Modules\Pyramid;
 
+use App\Mail\BookingConfirmed;
+use App\Models\Booking;
 use App\Models\User;
 use App\Modules\Pyramid\Mail\PyramidNotificationMail;
 use App\Modules\Pyramid\Models\PyramidChallenge;
@@ -91,6 +93,49 @@ class PyramidNotifierTest extends TestCase
             && $mail->envelope()->subject === 'Forderungspyramide: Termin für dein Forderungsspiel'
             && str_contains($mail->render(), 'Das Forderungsspiel Spieler 8 gegen Spieler 5 findet am 09.11.2026 18:30 Uhr statt.'));
         Mail::assertSent(PyramidNotificationMail::class, fn ($mail) => $mail->hasTo($opponentUser->email));
+    }
+
+    #[Test]
+    public function mail_carries_greeting_signature_from_and_addressee_name(): void
+    {
+        Mail::fake();
+        config(['mail.from.address' => 'club@example.test', 'mail.from.name' => 'Club Name']);
+        [$challenge, , , , $opponentUser] = $this->challengeWithUsers();
+
+        $this->notifier()->challengeCreated($challenge->id);
+
+        Mail::assertSent(PyramidNotificationMail::class, function (PyramidNotificationMail $mail) use ($opponentUser) {
+            $text = $mail->render();
+            $mailable = new PyramidNotificationMail('x', 'y', 'z');
+            $booking = new BookingConfirmed(new Booking);
+
+            return $mail->hasTo($opponentUser->email, $opponentUser->alias)
+                && str_starts_with($text, 'Hallo '.$opponentUser->alias.",\n\nSpieler 8 hat dich")
+                && str_contains($text, "\nViele Grüße\n".config('booking.name')."\n".config('app.url'))
+                && $mail->from === $booking->from
+                && $mail->replyTo === $booking->replyTo
+                && $mailable->from === [] && $mailable->replyTo === [];
+        });
+        $this->assertSame('club@example.test', config('mail.from.address'));
+    }
+
+    #[Test]
+    public function body_is_not_html_escaped_and_the_mail_has_no_html_part(): void
+    {
+        Mail::fake();
+        [$challenge] = $this->challengeWithUsers();
+
+        $this->notifier()->deadlineExtended($challenge->id, "O'Brien & Soehne");
+
+        Mail::assertSent(PyramidNotificationMail::class, 2);
+        Mail::assertSent(PyramidNotificationMail::class, function (PyramidNotificationMail $mail) {
+            $text = $mail->render();
+
+            return str_contains($text, "O'Brien & Soehne")
+                && ! str_contains($text, '&amp;') && ! str_contains($text, '&#039;')
+                && $mail->content()->html === null && $mail->content()->view === null
+                && $mail->content()->text === 'pyramid::mail.notification';
+        });
     }
 
     #[Test]

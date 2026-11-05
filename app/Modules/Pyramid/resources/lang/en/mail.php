@@ -3,6 +3,7 @@
 // English reference texts. The mails themselves are always sent in German.
 return [
     'prefix' => 'Challenge ladder: ',
+    'signature' => "\nKind regards\n:club\n:url\n",
 
     'challenge_created' => [
         'subject' => 'You have been challenged',

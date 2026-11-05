@@ -1,1 +1,4 @@
+{!! $greeting !!}
+
 {!! $body !!}
+{!! $signature !!}

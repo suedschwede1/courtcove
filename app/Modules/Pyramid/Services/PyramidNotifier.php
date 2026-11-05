@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Modules\Pyramid\Mail\PyramidNotificationMail;
 use App\Modules\Pyramid\Models\PyramidChallenge;
 use App\Modules\Pyramid\Models\PyramidPlayer;
+use Illuminate\Mail\Mailables\Address;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
@@ -50,7 +51,7 @@ final class PyramidNotifier
         $replace = [
             'challenger' => $challenger->label,
             'opponent' => $opponent->label,
-            'date' => date('d.m.Y H:i', strtotime($challenge->scheduled_at)),
+            'date' => date('d.m.Y H:i', strtotime((string) $challenge->scheduled_at)),
         ];
 
         $this->send($challenger, 'scheduled', $replace);
@@ -231,9 +232,10 @@ final class PyramidNotifier
                 return;
             }
 
-            Mail::to($user->email)->send(new PyramidNotificationMail(
+            Mail::to(new Address($user->email, (string) $user->alias))->send(new PyramidNotificationMail(
                 __("pyramid::mail.{$type}.subject", [], self::LOCALE),
                 __("pyramid::mail.{$type}.body", $replace, self::LOCALE),
+                (string) $user->alias,
             ));
         } catch (\Throwable $e) {
             Log::error('[Pyramid] Mailversand fehlgeschlagen: '.$e->getMessage());
