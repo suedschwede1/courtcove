@@ -140,6 +140,7 @@ class LadderAdminController extends Controller
             'problems' => array_map(static fn (Verdict $problem): string => $problem->message(), $this->admin->diagnose($ladder)),
             'labels' => $this->repo->labels($ladderId),
             'suggestedDeadline' => CarbonImmutable::now()->addDays(7)->format('Y-m-d'),
+            'globalAdmin' => $this->canAdmin(),
         ]);
     }
 
@@ -249,11 +250,14 @@ class LadderAdminController extends Controller
     }
 
     /**
-     * Same rule as ZF2: whoever administers the ladder may grant and revoke on THIS ladder (the ladder comes from
-     * the URL and is checked through the Gate; the target user number is free input, like the old form).
+     * Club decision (ZF2 let every ladder admin do this): only global Pyramid admins grant and revoke ladder
+     * rights. A grant holder administers the ladder but cannot hand the right on. The ladder comes from the URL;
+     * the target user number is free input, like the old form.
      */
     public function grant(Request $request, int $ladderId): RedirectResponse
     {
+        $this->requireGlobalAdmin();
+
         $ladder = $this->administeredLadder($ladderId);
         $back = redirect()->to(PyramidLinks::adminLadder((int) $ladder->id));
         $uid = (int) $request->input('uid', 0);
@@ -273,6 +277,8 @@ class LadderAdminController extends Controller
 
     public function revoke(Request $request, int $ladderId): RedirectResponse
     {
+        $this->requireGlobalAdmin();
+
         $ladder = $this->administeredLadder($ladderId);
 
         $this->repo->removeGrant((int) $ladder->id, (int) $request->input('uid', 0));

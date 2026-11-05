@@ -67,7 +67,11 @@
         @endif
 
         @include('pyramid::admin.partials.settings')
-        @include('pyramid::admin.partials.grants')
+
+        @if ($globalAdmin)
+            @include('pyramid::admin.partials.grants')
+        @endif
+
         @include('pyramid::admin.partials.season')
     </div>
 </div>
