@@ -6,6 +6,7 @@ namespace Tests\Feature\Modules\Members;
 
 use App\Models\User;
 use App\Modules\Members\Models\FeeCategory;
+use App\Modules\Members\Models\FeeCategoryRate;
 use App\Modules\Members\Models\FiscalYear;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
@@ -63,7 +64,7 @@ class FeeCategoryManagementTest extends TestCase
             'rates' => [$category->id => '130.00'],
         ]);
 
-        $this->assertSame(1, \App\Modules\Members\Models\FeeCategoryRate::count());
+        $this->assertSame(1, FeeCategoryRate::count());
         $this->assertDatabaseHas('fee_category_rates', ['amount' => 130.00]);
     }
 }

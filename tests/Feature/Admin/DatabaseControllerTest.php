@@ -243,7 +243,7 @@ class DatabaseControllerTest extends TestCase
     public function admin_can_download_a_backup(): void
     {
         Storage::fake('local');
-        $filename = (new DatabaseBackupService())->create();
+        $filename = (new DatabaseBackupService)->create();
 
         $this->actingAs($this->admin())
             ->get("/admin/database/backups/{$filename}/download")
@@ -255,7 +255,7 @@ class DatabaseControllerTest extends TestCase
     public function admin_can_delete_a_backup(): void
     {
         Storage::fake('local');
-        $filename = (new DatabaseBackupService())->create();
+        $filename = (new DatabaseBackupService)->create();
 
         $this->actingAs($this->admin())
             ->post("/admin/database/backups/{$filename}/delete")
@@ -269,7 +269,7 @@ class DatabaseControllerTest extends TestCase
     public function restore_requires_typed_confirmation(): void
     {
         Storage::fake('local');
-        $filename = (new DatabaseBackupService())->create();
+        $filename = (new DatabaseBackupService)->create();
 
         $this->from('/admin/database')
             ->actingAs($this->admin())
@@ -282,7 +282,7 @@ class DatabaseControllerTest extends TestCase
     public function admin_can_restore_with_valid_confirmation(): void
     {
         Storage::fake('local');
-        $filename = (new DatabaseBackupService())->create();
+        $filename = (new DatabaseBackupService)->create();
 
         $this->actingAs($this->admin())
             ->post("/admin/database/backups/{$filename}/restore", ['confirmation' => 'RESTORE'])
@@ -295,7 +295,7 @@ class DatabaseControllerTest extends TestCase
     public function regular_member_cannot_manage_backups(): void
     {
         Storage::fake('local');
-        $filename = (new DatabaseBackupService())->create();
+        $filename = (new DatabaseBackupService)->create();
         $member = User::factory()->create(['status' => 'enabled']);
 
         $this->actingAs($member)->post('/admin/database/backups')->assertForbidden();
@@ -315,7 +315,7 @@ class DatabaseControllerTest extends TestCase
     public function database_page_lists_an_existing_backup(): void
     {
         Storage::fake('local');
-        $filename = (new DatabaseBackupService())->create();
+        $filename = (new DatabaseBackupService)->create();
 
         $this->actingAs($this->admin())
             ->get('/admin/database')

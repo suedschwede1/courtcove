@@ -215,7 +215,7 @@ class ImportMembersCommand extends Command
      * unparsbare, nicht-leere Werte und Kollisionen mit bereits vergebenen IDs
      * (in dieser DB oder bereits in dieser CSV verarbeitet) werden verwarnt und als NULL behandelt.
      *
-     * @param  array<int, string>  $usedNuligaIds  in diesem Lauf bereits vergebene Nuliga-IDs => Member-ID
+     * @param  array<int, int>  $usedNuligaIds  in diesem Lauf bereits vergebene Nuliga-IDs => Member-ID
      */
     private function resolveNuligaId(array $row, string $firstname, string $lastname, ?int $currentMemberId, array $usedNuligaIds): ?int
     {
@@ -292,7 +292,7 @@ class ImportMembersCommand extends Command
 
         $date = Carbon::createFromFormat('d.m.Y', $value);
 
-        return $date === false ? null : $date->startOfDay();
+        return $date === null ? null : $date->startOfDay();
     }
 
     private function nullable(string $value): ?string

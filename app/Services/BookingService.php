@@ -556,7 +556,7 @@ final class BookingService
 
         $target->loadMissing('user');
 
-        $email = $target->user?->email ?? null;
+        $email = $target->user->email ?? null;
         if (! empty($email) && $this->isMailConfigured()) {
             dispatch(function () use ($email, $target): void {
                 try {

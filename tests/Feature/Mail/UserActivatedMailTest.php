@@ -26,9 +26,9 @@ class UserActivatedMailTest extends TestCase
         Mail::fake();
 
         $this->actingAs($this->admin())->post('/admin/users', [
-            'alias'    => 'Neues Mitglied',
-            'email'    => 'neu@example.com',
-            'status'   => 'enabled',
+            'alias' => 'Neues Mitglied',
+            'email' => 'neu@example.com',
+            'status' => 'enabled',
             'password' => 'secret123',
         ])->assertRedirect();
 
@@ -41,9 +41,9 @@ class UserActivatedMailTest extends TestCase
         Mail::fake();
 
         $this->actingAs($this->admin())->post('/admin/users', [
-            'alias'    => 'Gesperrtes Mitglied',
-            'email'    => 'gesperrt@example.com',
-            'status'   => 'disabled',
+            'alias' => 'Gesperrtes Mitglied',
+            'email' => 'gesperrt@example.com',
+            'status' => 'disabled',
             'password' => 'secret123',
         ])->assertRedirect();
 
@@ -58,8 +58,8 @@ class UserActivatedMailTest extends TestCase
         $user = User::factory()->create(['status' => 'disabled', 'email' => 'member@example.com']);
 
         $this->actingAs($this->admin())->put("/admin/users/{$user->uid}", [
-            'alias'  => $user->alias,
-            'email'  => $user->email,
+            'alias' => $user->alias,
+            'email' => $user->email,
             'status' => 'enabled',
         ])->assertRedirect();
 
@@ -74,8 +74,8 @@ class UserActivatedMailTest extends TestCase
         $user = User::factory()->create(['status' => 'enabled', 'email' => 'member@example.com']);
 
         $this->actingAs($this->admin())->put("/admin/users/{$user->uid}", [
-            'alias'  => 'Neuer Alias',
-            'email'  => $user->email,
+            'alias' => 'Neuer Alias',
+            'email' => $user->email,
             'status' => 'enabled',
         ])->assertRedirect();
 
@@ -90,8 +90,8 @@ class UserActivatedMailTest extends TestCase
         $user = User::factory()->create(['status' => 'disabled', 'email' => null]);
 
         $this->actingAs($this->admin())->put("/admin/users/{$user->uid}", [
-            'alias'  => $user->alias,
-            'email'  => null,
+            'alias' => $user->alias,
+            'email' => null,
             'status' => 'enabled',
         ])->assertRedirect();
 

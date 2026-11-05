@@ -76,8 +76,16 @@ final class LoginTest extends DuskTestCase
         try {
             $this->browse(function (Browser $browser) use ($user): void {
                 $browser->loginAs($user)
-                    ->visit('/calendar')
-                    ->click('form[action$="/logout"] button[type="submit"]')
+                    ->visit('/calendar');
+
+                // On narrow viewports the header actions are collapsed behind a trigger.
+                if ($browser->element('.app-header__action-trigger')?->isDisplayed()) {
+                    $browser->click('.app-header__action-trigger')
+                        ->waitFor('.app-header__actions.is-open');
+                }
+
+                $browser->waitFor('.app-header__desktop-logout button[type="submit"]')
+                    ->click('.app-header__desktop-logout button[type="submit"]')
                     ->waitForLocation('/login')
                     ->assertPathIs('/login');
             });

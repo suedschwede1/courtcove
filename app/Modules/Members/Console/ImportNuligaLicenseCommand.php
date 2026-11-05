@@ -107,7 +107,7 @@ class ImportNuligaLicenseCommand extends Command
         });
 
         $this->info(
-            "Lizenzabgleich".($dryRun ? ' (Dry-Run, keine Änderungen gespeichert)' : '').": ".
+            'Lizenzabgleich'.($dryRun ? ' (Dry-Run, keine Änderungen gespeichert)' : '').': '.
             "{$updated} aktualisiert, {$unchanged} bereits korrekt, ".
             "{$skippedNoLicense} ohne Lizenz übersprungen, {$unmatched} nicht gefunden, {$conflicts} Konflikte."
         );
@@ -154,7 +154,7 @@ class ImportNuligaLicenseCommand extends Command
 
         $date = Carbon::createFromFormat('d.m.Y', $value);
 
-        return $date === false ? null : $date->startOfDay();
+        return $date === null ? null : $date->startOfDay();
     }
 
     /** "-", leere Werte und der Platzhalter "000000" (= keine Lizenz in nuLiga) werden als "keine Lizenz" behandelt. */

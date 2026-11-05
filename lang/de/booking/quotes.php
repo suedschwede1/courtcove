@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 return [
-'quotes' => [
+    'quotes' => [
         '🎾 Möge der erste Aufschlag sitzen!',
         '🏆 Heute gehört der Platz dir!',
         '💪 Gut aufgewärmt ist halb gewonnen.',

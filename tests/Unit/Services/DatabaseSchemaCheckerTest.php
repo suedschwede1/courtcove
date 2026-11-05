@@ -6,10 +6,10 @@ namespace Tests\Unit\Services;
 
 use App\Services\DatabaseSchemaChecker;
 use Illuminate\Database\Schema\Blueprint;
-use InvalidArgumentException;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -22,7 +22,7 @@ class DatabaseSchemaCheckerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->checker = new DatabaseSchemaChecker();
+        $this->checker = new DatabaseSchemaChecker;
     }
 
     #[Test]

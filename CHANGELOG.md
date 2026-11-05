@@ -10,6 +10,8 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-05
 
+- Tests and code quality: PHPStan findings fixed with accurate model typing, each PHPUnit directory registered once, Dusk selectors fixed and visual tests skipped without baselines, Pint style applied.
+
 - Phase 2: Pyramid ladder administration page; the member picker now searches on demand instead of embedding all members.
 - Phase 2: Pyramid administration overview and ladder creation in Laravel.
 - Phase 2: Pyramid challenge page (date, result, decline, withdraw) and self-registration in Laravel.

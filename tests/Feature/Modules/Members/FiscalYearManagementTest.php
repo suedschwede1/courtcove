@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Modules\Members;
 
 use App\Models\User;
+use App\Modules\Members\Models\FiscalYear;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -33,7 +34,7 @@ class FiscalYearManagementTest extends TestCase
     #[Test]
     public function admin_can_update_a_fiscal_year(): void
     {
-        $fiscalYear = \App\Modules\Members\Models\FiscalYear::create([
+        $fiscalYear = FiscalYear::create([
             'name' => '2025/26', 'starts_on' => '2025-09-01', 'ends_on' => '2026-08-31',
         ]);
 
@@ -56,15 +57,15 @@ class FiscalYearManagementTest extends TestCase
             'faellig_am' => '2025-10-15',
         ])->assertRedirect(route('members.fiscal-years.index'));
 
-        $fiscalYear = \App\Modules\Members\Models\FiscalYear::where('name', '2025/26')->first();
+        $fiscalYear = FiscalYear::where('name', '2025/26')->first();
         $this->assertSame('2025-10-15', $fiscalYear->faellig_am->toDateString());
     }
 
     #[Test]
     public function index_lists_fiscal_years_ordered_by_start_date(): void
     {
-        \App\Modules\Members\Models\FiscalYear::create(['name' => '2026/27', 'starts_on' => '2026-09-01', 'ends_on' => '2027-08-31']);
-        \App\Modules\Members\Models\FiscalYear::create(['name' => '2025/26', 'starts_on' => '2025-09-01', 'ends_on' => '2026-08-31']);
+        FiscalYear::create(['name' => '2026/27', 'starts_on' => '2026-09-01', 'ends_on' => '2027-08-31']);
+        FiscalYear::create(['name' => '2025/26', 'starts_on' => '2025-09-01', 'ends_on' => '2026-08-31']);
 
         $this->actingAs($this->admin())->get('/members/fiscal-years')
             ->assertOk()->assertSeeInOrder(['2025/26', '2026/27']);

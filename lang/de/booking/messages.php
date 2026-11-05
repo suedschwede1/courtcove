@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 return [
-'messages' => [
+    'messages' => [
         'booking_created_public' => 'Ihre Buchung wurde erfolgreich abgeschlossen!',
         'booking_created' => 'Buchung angelegt.',
         'booking_updated' => 'Buchung aktualisiert.',
@@ -42,4 +42,3 @@ return [
         'event_default_name' => 'Veranstaltung',
     ],
 ];
-

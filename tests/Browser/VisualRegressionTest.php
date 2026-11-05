@@ -22,6 +22,10 @@ final class VisualRegressionTest extends DuskTestCase
     use DatabaseMigrations;
 
     private const CALENDAR_DATE = '2026-07-01';
+
+    /** Fixed far-future date so free slots stay bookable (past slots are never clickable). */
+    private const MODAL_DATE = '2030-07-01';
+
     private const UPDATE_ENV = 'UPDATE_DUSK_SNAPSHOTS';
 
     public function test_calendar_desktop_visual_regression(): void
@@ -59,7 +63,7 @@ final class VisualRegressionTest extends DuskTestCase
         $this->browse(function (Browser $browser) use ($member): void {
             $browser->resize(1024, 768)
                 ->loginAs($member)
-                ->visit('/calendar?date='.self::CALENDAR_DATE)
+                ->visit('/calendar?date='.self::MODAL_DATE)
                 ->waitFor('#calendar-grid', 10)
                 ->script("document.querySelector('.cc-free')?.click();");
 
@@ -159,21 +163,31 @@ final class VisualRegressionTest extends DuskTestCase
 
     private function assertScreenshotMatchesBaseline(Browser $browser, string $name, float $allowedMismatchRatio = 0.002): void
     {
+        $baseline = base_path('tests/Browser/baselines/'.$name.'.png');
+
+        if (! $this->shouldUpdateSnapshots()) {
+            if (! is_file($baseline)) {
+                $this->markTestSkipped("Missing visual baseline tests/Browser/baselines/{$name}.png. See tests/Browser/README.md to create and approve it.");
+            }
+
+            if (! extension_loaded('gd')) {
+                $this->markTestSkipped('The PHP gd extension is required for visual screenshot comparison. See tests/Browser/README.md.');
+            }
+        }
+
         $browser->screenshot($name);
 
         $actual = base_path('tests/Browser/screenshots/'.$name.'.png');
-        $baseline = base_path('tests/Browser/baselines/'.$name.'.png');
 
         if ($this->shouldUpdateSnapshots()) {
+            if (! is_dir(dirname($baseline))) {
+                mkdir(dirname($baseline), 0777, true);
+            }
+
             copy($actual, $baseline);
             $this->addToAssertionCount(1);
+
             return;
-        }
-
-        Assert::assertFileExists($baseline, "Missing visual baseline for {$name}. Run with ".self::UPDATE_ENV.'=1 to create it.');
-
-        if (! extension_loaded('gd')) {
-            $this->markTestSkipped('The gd extension is required for visual screenshot comparison.');
         }
 
         [$widthA, $heightA] = getimagesize($actual) ?: [0, 0];
