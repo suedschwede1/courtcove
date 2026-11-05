@@ -1,27 +1,60 @@
 /* Calendar page frame and toolbar: date heading, day navigation, Infos/Hinweise toggles. */
-.cal-page {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    grid-template-areas:
-        "toolbar panels"
-        "legend legend"
-        "board board";
-    gap: 12px 8px;
-    align-items: center;
-    /* Full width with the page gutter: the same left/right edges as the header bar content. */
-    padding: 16px var(--spacing-page-gutter) 32px;
+
+/*
+ * The calendar page is exactly one screen high: header plus calendar fill the
+ * viewport and nothing (no footer, no legend row) sits below the grid. The page
+ * shell, #content and .cal-page hand the remaining height down to the board.
+ * When the window is too low for the minimum rows, #content scrolls below the
+ * header. Open Infos/Hinweise panels take their room from the board the same way.
+ */
+body:has(.cal-page) {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
 }
 
 /* The calendar page brings its own page padding (and is full-bleed on phones):
    drop the layout shell's side and top inset for the content on this page only.
    The header sits outside the shell at full width. */
 .page-shell:has(.cal-page) {
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
     padding-inline: 0;
     padding-top: 0;
+    padding-bottom: 0;
 }
 
 #content:has(.cal-page) {
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
     margin-top: 0;
+    overflow-y: auto;
+}
+
+#content:has(.cal-page) > .help-panel {
+    flex: none;
+}
+
+.cal-page {
+    /* Takes the height left under the header (and under an open panel); the
+       board inside scrolls when that is too low for the minimum rows. */
+    flex: 1 0 0;
+    min-height: 22rem;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas:
+        "toolbar panels"
+        "board board";
+    gap: 8px;
+    align-items: center;
+    box-sizing: border-box;
+    /* Full width with the page gutter: the same left/right edges as the header bar content. */
+    padding: 10px var(--spacing-page-gutter) 12px;
 }
 
 #content:has(.cal-page) > .help-panel {
@@ -47,6 +80,28 @@
     display: none;
 }
 
+/* Desktop: one row, the date heading on the left, the date controls and the
+   Infos/Hinweise toggles on the right; the controls never wrap under the
+   heading (a long heading is cut instead) until the phone layout takes over. */
+@media (width >= 48rem) {
+    .cal-toolbar {
+        flex-wrap: nowrap;
+        justify-content: space-between;
+    }
+
+    .cal-toolbar__title {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .cal-toolbar__nav {
+        flex: none;
+        margin-left: auto;
+    }
+}
+
 .cal-toolbar__nav {
     display: flex;
     align-items: center;
@@ -60,14 +115,17 @@
     gap: 8px;
 }
 
-.cal-page__legend {
-    grid-area: legend;
-}
-
 .cal-page__board {
     grid-area: board;
     min-width: 0;
+    min-height: 0;
     align-self: stretch;
+    box-sizing: border-box;
+}
+
+/* The legend sits in the Infos panel. */
+.help-card .cal-legend {
+    margin-top: 12px;
 }
 
 .cal-toolbar .ds-btn,
@@ -146,13 +204,15 @@
 }
 
 @media (width < 48rem) {
+    /* Phone: day bar, the board filling the screen, then the panel toggles.
+       The board never shrinks below its minimum rows; #content scrolls then. */
     .cal-page {
         grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr auto;
         grid-template-areas:
             "toolbar"
             "board"
-            "panels"
-            "legend";
+            "panels";
         gap: 0;
         padding: 0;
     }
@@ -248,7 +308,6 @@
     }
 
     .cal-toolbar__panels,
-    .cal-page__legend,
     #content:has(.cal-page) > .help-panel {
         padding: 0 16px;
     }

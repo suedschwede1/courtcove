@@ -122,12 +122,134 @@ final class CalendarCssTest extends TestCase
         // so their left and right edges line up at every width.
         preg_match('/(?<![\w-])\.cal-page\s*\{([^}]*)\}/', $this->toolbar(), $page);
         $this->assertStringNotContainsString('max-width', $page[1]);
-        $this->assertMatchesRegularExpression('/padding:\s*16px var\(--spacing-page-gutter\) 32px;/', $page[1]);
+        $this->assertMatchesRegularExpression('/padding:\s*10px var\(--spacing-page-gutter\) 12px;/', $page[1]);
 
         preg_match('/\.ds-header__bar\s*\{([^}]*)\}/', (string) file_get_contents(resource_path('css/ds.css')), $bar);
         $this->assertStringNotContainsString('max-width', $bar[1]);
         $this->assertStringContainsString('var(--spacing-page-gutter)', $bar[1]);
 
         $this->assertMatchesRegularExpression('/--spacing-page-gutter:\s*24px;/', (string) file_get_contents(resource_path('css/app.css')));
+    }
+
+    /** The body of the first rule whose selector list is exactly $selector. */
+    private function rule(string $css, string $selector): string
+    {
+        $this->assertMatchesRegularExpression('/(?<![\w.-])'.preg_quote($selector, '/').'\s*\{([^}]*)\}/', $css, $selector);
+        preg_match('/(?<![\w.-])'.preg_quote($selector, '/').'\s*\{([^}]*)\}/', $css, $match);
+
+        return $match[1];
+    }
+
+    #[Test]
+    public function calendar_page_is_exactly_one_screen_high(): void
+    {
+        // Header plus calendar fill the viewport; the page shell, #content and
+        // the calendar page pass the remaining height down to the board.
+        $css = $this->toolbar();
+
+        $body = $this->rule($css, 'body:has(.cal-page)');
+        $this->assertMatchesRegularExpression('/display:\s*flex;/', $body);
+        $this->assertMatchesRegularExpression('/flex-direction:\s*column;/', $body);
+        $this->assertMatchesRegularExpression('/height:\s*100dvh;/', $body);
+
+        foreach (['.page-shell:has(.cal-page)', '#content:has(.cal-page)'] as $selector) {
+            $rule = $this->rule($css, $selector);
+            $this->assertMatchesRegularExpression('/flex:\s*1 1 0;/', $rule, $selector);
+            $this->assertMatchesRegularExpression('/min-height:\s*0;/', $rule, $selector);
+        }
+
+        // The calendar takes the rest; too low for the minimum rows, the board
+        // scrolls (and #content, should an open panel leave too little room).
+        $page = $this->rule($css, '.cal-page');
+        $this->assertMatchesRegularExpression('/flex:\s*1 0 0;/', $page);
+        $this->assertMatchesRegularExpression('/grid-template-rows:\s*auto minmax\(0, 1fr\);/', $page);
+        $this->assertMatchesRegularExpression('/overflow-y:\s*auto;/', $this->rule($css, '#content:has(.cal-page)'));
+        $board = $this->rule($this->grid(), '.cal-page__board');
+        $this->assertMatchesRegularExpression('/overflow:\s*auto;/', $board);
+        // The ring padding is cancelled inline, so card edges stay on the gutter (= toolbar edges).
+        $this->assertMatchesRegularExpression('/padding:\s*2px;\s*margin-inline:\s*-2px;/', $board);
+    }
+
+    #[Test]
+    public function hour_rows_share_the_height_with_a_minimum(): void
+    {
+        $css = $this->grid();
+        $rows = 'grid-template-rows: 30px 34px repeat(12, minmax(var(--cal-cell), 1fr));';
+
+        // Day cards and the time column use the same row template, so the hours line up.
+        $this->assertStringContainsString($rows, $this->rule($css, '.cal-day'));
+        $this->assertStringContainsString($rows, $this->rule($css, '.cal-times'));
+        $this->assertMatchesRegularExpression('/height:\s*100%;/', $this->rule($css, '.cal-board'));
+
+        // Cells follow the row instead of a fixed height.
+        $cell = $this->rule($css, '.cal-row > .calendar-cell');
+        $this->assertMatchesRegularExpression('/height:\s*100%;/', $cell);
+        $this->assertStringNotContainsString('var(--cal-cell)', $cell);
+        $this->assertDoesNotMatchRegularExpression('/(?<![\w-])height:/', $this->rule($css, '.cal-times__row'));
+
+        // The minimum: 42px on desktop, 44px (tap target) on phones.
+        $this->assertMatchesRegularExpression('/--cal-cell:\s*var\(--spacing-cell-h\);/', $this->rule($css, '.cal-board'));
+        $this->assertMatchesRegularExpression('/@media \(width < 48rem\)\s*\{.*--cal-cell:\s*var\(--spacing-cell-h-mobile\);/s', $css);
+        $tokens = (string) file_get_contents(resource_path('css/app.css'));
+        $this->assertMatchesRegularExpression('/--spacing-cell-h:\s*42px;/', $tokens);
+        $this->assertMatchesRegularExpression('/--spacing-cell-h-mobile:\s*44px;/', $tokens);
+    }
+
+    #[Test]
+    public function phone_rows_fill_the_screen_below_the_toolbar(): void
+    {
+        preg_match('/@media \(width < 48rem\)\s*\{(.*)\}\s*$/s', $this->grid(), $phone);
+        $this->assertNotEmpty($phone);
+
+        $this->assertStringContainsString(
+            'grid-template-rows: auto repeat(12, minmax(var(--cal-cell), 1fr));',
+            $this->rule($phone[1], '.cal-day'),
+        );
+    }
+
+    #[Test]
+    public function multi_hour_events_stay_one_block_at_any_row_height(): void
+    {
+        // The first and middle hours reach over the gap into the next row by
+        // a share of their own (growing) row, not by a fixed cell height.
+        $css = $this->grid();
+        $join = $this->rule($css, '.cal-row > .event-cell--start,
+.cal-row > .event-cell--middle');
+
+        $this->assertStringContainsString('height: calc(100% + var(--cal-gap));', $join);
+        $this->assertStringContainsString('margin-bottom: calc(-1 * var(--cal-gap));', $join);
+        $this->assertStringNotContainsString('calc(var(--cal-cell) + var(--cal-gap))', $css);
+    }
+
+    #[Test]
+    public function desktop_toolbar_keeps_the_heading_left_and_the_controls_right(): void
+    {
+        $css = $this->toolbar();
+        preg_match('/@media \(width >= 48rem\)\s*\{(.*?)\n\}/s', $css, $desktop);
+        $this->assertNotEmpty($desktop);
+
+        // One row: heading left, date controls right (then the panel toggles), no wrapping.
+        $bar = $this->rule($desktop[1], '.cal-toolbar');
+        $this->assertMatchesRegularExpression('/flex-wrap:\s*nowrap;/', $bar);
+        $this->assertMatchesRegularExpression('/justify-content:\s*space-between;/', $bar);
+        $this->assertMatchesRegularExpression('/margin-left:\s*auto;/', $this->rule($desktop[1], '.cal-toolbar__nav'));
+        $this->assertMatchesRegularExpression('/text-overflow:\s*ellipsis;/', $this->rule($desktop[1], '.cal-toolbar__title'));
+        $this->assertStringNotContainsString('clip:', $desktop[1]);
+        $this->assertMatchesRegularExpression('/"toolbar panels"\s*"board board";/', $css);
+
+        // The legend row is gone from the page grid (it sits in the Infos panel).
+        $this->assertStringNotContainsString('legend', $this->rule($css, '.cal-page'));
+    }
+
+    #[Test]
+    public function today_card_has_a_clay_ring(): void
+    {
+        $css = $this->grid();
+
+        $this->assertMatchesRegularExpression('/box-shadow:\s*0 0 0 2px var\(--color-clay\);/', $this->rule($css, '.cal-day--today'));
+        $this->assertMatchesRegularExpression('/color:\s*var\(--color-clay\);/', $this->rule($css, '.cal-day--today .cal-day__name'));
+        $pill = $this->rule($css, '.cal-day__today');
+        $this->assertMatchesRegularExpression('/background:\s*var\(--color-clay\);/', $pill);
+        $this->assertMatchesRegularExpression('/color:\s*var\(--color-on-clay\);/', $pill);
     }
 }

@@ -27,6 +27,13 @@
         </ul>
     </section>
 
+    {{-- The legend lives here, not above the grid, so the grid gets the full screen height. --}}
+    <section class="help-card">
+        <h2 class="help-card__title">{{ __('booking.calendar.legend.label') }}</h2>
+        <x-calendar.legend :logged-in="$isLoggedIn" />
+    </section>
+
+    {{-- The calendar page has no footer: contact, imprint and privacy links are listed here. --}}
     @if(collect($operator)->contains(fn ($value) => $value !== ''))
         <section class="help-card">
             <p class="help-card__eyebrow">{{ __('booking.calendar.operator_eyebrow') }}</p>
@@ -125,8 +132,6 @@
             @endif
         </div>
     @endif
-
-    <x-calendar.legend class="cal-page__legend no-print" :logged-in="$isLoggedIn" />
 
     <div class="cal-page__board">
         <x-calendar.grid

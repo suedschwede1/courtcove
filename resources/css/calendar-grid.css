@@ -2,10 +2,17 @@
  * Calendar board layout: a shared time column plus one card per day.
  * Desktop shows the selected day and the next two; phones show one day with a
  * sticky court row. Cell fills and text live with the cell rules (not here).
+ *
+ * The board takes the height left under the toolbar and the 12 hour rows share
+ * it (1fr each), so cells grow with the window; --cal-cell is only the minimum.
+ * Below that minimum the board scrolls instead of squeezing the rows.
  */
 .cal-page__board {
-    overflow-x: auto;
-    padding-bottom: 4px;
+    overflow: auto;
+    /* Room for the today ring, which the scroll box would otherwise clip; the
+       negative inline margin keeps the card edges on the page gutter. */
+    padding: 2px;
+    margin-inline: -2px;
 }
 
 .cal-board {
@@ -13,32 +20,36 @@
     --cal-cell: var(--spacing-cell-h);
     display: grid;
     grid-template-columns: 60px repeat(3, minmax(0, 1fr));
+    grid-template-rows: 1fr;
     gap: 14px;
     min-width: 980px;
+    height: 100%;
+    box-sizing: border-box;
 }
 
-/* Time column: spacers line the hours up with the card rows (card border + padding = 9px). */
+/* Time column: the same row template as the day cards; the block padding
+   matches the card's border + padding (9px), so every hour lines up. */
 .cal-times {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-rows: 30px 34px repeat(12, minmax(var(--cal-cell), 1fr));
     gap: var(--cal-gap);
-    padding-top: 9px;
+    padding-block: 9px;
 }
 
+/* Placeholders for the card's day header (row 1) and court row (row 2). */
 .cal-times__spacer {
-    flex: none;
+    min-height: 0;
 }
 
 .cal-times__spacer--head {
-    height: 36px;
+    grid-row: 1;
 }
 
 .cal-times__spacer--courts {
-    height: 34px;
+    grid-row: 2;
 }
 
 .cal-times__row {
-    height: var(--cal-cell);
     display: flex;
     flex-direction: column;
     align-items: flex-end;
@@ -61,8 +72,8 @@
 /* Day card */
 .cal-day {
     min-width: 0;
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-rows: 30px 34px repeat(12, minmax(var(--cal-cell), 1fr));
     gap: var(--cal-gap);
     padding: 8px;
     background: var(--color-surface);
@@ -70,8 +81,17 @@
     border-radius: var(--radius-lg);
 }
 
+/* Today: a clay ring (box-shadow, so nothing shifts), clay day name and pill. */
+.cal-day--today {
+    box-shadow: 0 0 0 2px var(--color-clay);
+}
+
+.cal-day--today .cal-day__name {
+    color: var(--color-clay);
+}
+
 .cal-day__head {
-    height: 36px;
+    min-height: 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -104,8 +124,8 @@
 .cal-day__today {
     padding: 4px 10px;
     border-radius: var(--radius-pill);
-    background: var(--color-clay-soft);
-    color: var(--color-clay-hover);
+    background: var(--color-clay);
+    color: var(--color-on-clay);
     font-size: var(--text-label);
     font-weight: 700;
     line-height: 1.2;
@@ -124,7 +144,7 @@
 }
 
 .cal-day__courts {
-    height: 34px;
+    min-height: 0;
 }
 
 .cal-court {
@@ -179,7 +199,7 @@
     box-sizing: border-box;
     width: auto;
     min-width: 0;
-    height: var(--cal-cell);
+    height: 100%;
     margin: 0;
     border-radius: var(--radius-sm);
     color: inherit;
@@ -312,7 +332,8 @@
 
 /*
  * Events: one surface over several hours. The first and middle hours reach
- * over the row gap into the next hour, so the parts join into one block.
+ * over the row gap into the next hour (100% of their own, growing row plus the
+ * gap), so the parts join into one block at any row height.
  */
 .cal-row > .event-cell {
     background: var(--cal-event-bg);
@@ -327,7 +348,7 @@
 
 .cal-row > .event-cell--start,
 .cal-row > .event-cell--middle {
-    height: calc(var(--cal-cell) + var(--cal-gap));
+    height: calc(100% + var(--cal-gap));
     margin-bottom: calc(-1 * var(--cal-gap));
 }
 
@@ -386,7 +407,8 @@
 @media (width < 48rem) {
     .cal-page__board {
         overflow: visible;
-        padding-bottom: 0;
+        padding: 0;
+        margin-inline: 0;
     }
 
     .cal-board {
@@ -401,11 +423,19 @@
         display: none;
     }
 
+    /* One day: the sticky court row, then 12 rows that fill the rest of the screen. */
     .cal-day {
-        padding: 0 0 16px;
+        box-sizing: border-box;
+        height: 100%;
+        grid-template-rows: auto repeat(12, minmax(var(--cal-cell), 1fr));
+        padding: 0 0 8px;
         background: transparent;
         border: 0;
         border-radius: 0;
+    }
+
+    .cal-day--today {
+        box-shadow: none;
     }
 
     .cal-day__courts {
@@ -413,7 +443,8 @@
         top: 0;
         z-index: 3;
         height: auto;
-        margin-bottom: 4px;
+        /* With the 4px row gap: the design's 6px above the first hour. */
+        margin-bottom: 2px;
         /* 2px on top of the toolbar's 10px bottom padding = the design's 12px gap. */
         padding: 2px 16px 10px;
         grid-template-columns: 52px;
@@ -438,7 +469,7 @@
     }
 
     .cal-row__time {
-        height: var(--cal-cell);
+        height: auto;
         display: flex;
         align-items: center;
         font-size: 14px;
@@ -496,7 +527,7 @@
     .cal-row > .event-cell--start,
     .cal-row > .event-cell--middle,
     .cal-row > .event-cell--end {
-        height: var(--cal-cell);
+        height: 100%;
         margin-bottom: 0;
         padding: 4px 6px;
         border-radius: var(--radius-md);

@@ -66,7 +66,7 @@
             $dateKey = $d->format('Y-m-d');
             $titleId = 'cal-day-'.$dayIndex.'-title';
         @endphp
-        <section @class(['cal-day', 'cal-extra-day' => $dayIndex > 1]) data-day="{{ $dayIndex }}" aria-labelledby="{{ $titleId }}">
+        <section @class(['cal-day', 'cal-day--today' => $dateKey === $today, 'cal-extra-day' => $dayIndex > 1]) data-day="{{ $dayIndex }}" aria-labelledby="{{ $titleId }}">
             <div class="cal-day__head">
                 <h2 id="{{ $titleId }}" class="cal-day__title">
                     <span class="cal-day__name">{{ $dateLabels[$dateKey]['short'] }}</span>
