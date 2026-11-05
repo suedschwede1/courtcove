@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Phase 2: MixedTournament module skeleton (provider, German/English texts).
 - Calendar: the large date heading above the day cards is gone on desktop (the cards name their dates; the h1 stays for screen readers), the date controls stay right-aligned in one row.
 - Calendar fills exactly one screen: the 12 hour rows share the height under the toolbar and grow with the window (min 42px desktop, 44px phone, the grid scrolls below that), multi-hour events stay one block, today's card gets a clay ring and the legend moves into the Infos panel next to the contact, imprint and privacy links (the calendar page has no footer row); the date controls stay right of the heading on every desktop width.
 - Header bar spans the full width in one 72px row with the calendar's 24px gutter (header content and calendar share their left/right edges, no inset above the bar); tournaments collapse into a keyboard-accessible "Turniere" dropdown and Mitglieder moves under Administration, so the nav never wraps; below 1024px the phone menu takes over.
