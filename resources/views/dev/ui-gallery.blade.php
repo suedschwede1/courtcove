@@ -66,5 +66,28 @@
                 @endforeach
             </div>
         </section>
+
+        <section>
+            <h2>Form fields</h2>
+            <div class="grid gap-4 max-w-md">
+                <x-ui.field label="Email" for="g-email" help="Used for booking confirmations only.">
+                    <x-ui.input name="g-email" type="email" />
+                </x-ui.field>
+                <x-ui.field label="Email with error" for="g-email-err" error="Invalid address">
+                    <x-ui.input name="g-email-err" type="email" value="player@example" />
+                </x-ui.field>
+                <x-ui.field label="Court" for="g-court">
+                    <x-ui.select name="g-court" :options="['1' => 'Court A', '2' => 'Court B']" placeholder="Please choose" />
+                </x-ui.field>
+                <x-ui.field label="Note" for="g-note">
+                    <x-ui.textarea name="g-note" :rows="3" />
+                </x-ui.field>
+                <x-ui.input name="g-score" variant="score" value="6" />
+                <x-ui.option-group legend="Game type">
+                    <x-ui.option-tile name="g-type" value="2" label="Singles" checked />
+                    <x-ui.option-tile name="g-type" value="4" label="Doubles" />
+                </x-ui.option-group>
+            </div>
+        </section>
     </div>
 @endsection
