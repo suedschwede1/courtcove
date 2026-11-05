@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
+use Tests\Support\HtaccessRouter;
 
 class PublicHtaccessTest extends TestCase
 {
@@ -131,5 +132,40 @@ class PublicHtaccessTest extends TestCase
         $this->assertSame(1, preg_match('#zf2-bridge#i', 'GET /booking/ZF2-Bridge.php/x HTTP/1.1'));
         $this->assertSame(0, preg_match('#zf2-bridge#i', 'GET /mixed-tournament?x=1 HTTP/1.1'));
         $this->assertSame(0, preg_match('#zf2-bridge#i', 'GET /mixed-tournament HTTP/1.1'));
+    }
+
+    public function test_draw_record_is_served_by_laravel_and_the_rest_of_draw_stays_bridged(): void
+    {
+        $r = HtaccessRouter::fromFile(dirname(__DIR__, 2).'/public/.htaccess');
+
+        foreach (['draw/record', 'draw/record/x', 'draw/record/x/json', 'draw/record/0123456789ab', 'draw/record/0123456789ab/json'] as $p) {
+            $this->assertSame('laravel', $r->route($p), $p);
+        }
+
+        foreach (['draw', 'draw/1', 'draw/tokens/1', 'draw/tokens/1/pick', 'draw/commit', 'draw/open/3', 'draw/close/3', 'draw/execute/3', 'draw/delete/3', 'draw/recordx', 'draw/records/x'] as $p) {
+            $this->assertSame('zf2', $r->route($p), $p);
+        }
+
+        foreach (['draw/record/x/', 'draw/record/x/json/'] as $p) {
+            $this->assertSame('redirect', $r->route($p), $p);
+        }
+
+        foreach (['calendar', 'members/dashboard', 'drawing'] as $p) {
+            $this->assertSame('laravel', $r->route($p), $p);
+        }
+    }
+
+    public function test_carve_outs_sit_between_the_slash_redirect_and_the_bridge(): void
+    {
+        $contents = file_get_contents(dirname(__DIR__, 2).'/public/.htaccess');
+
+        $redirect = strpos($contents, '%1 [L,R=301]');
+        $carve = strpos($contents, 'RewriteRule ^draw/record(/|$) index.php [L]');
+        $bridge = strpos($contents, 'zf2-bridge.php [L]');
+
+        $this->assertNotFalse($redirect);
+        $this->assertNotFalse($carve);
+        $this->assertLessThan($carve, $redirect);
+        $this->assertLessThan($bridge, $carve);
     }
 }
