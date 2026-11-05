@@ -29,7 +29,7 @@
     <x-ui.notice tone="attention">{{ __('pyramid::ui.notice_championship') }}</x-ui.notice>
 @endif
 
-@include('pyramid::partials.my-challenges', ['variant' => 'banner', 'viewer' => $viewer, 'openChallenges' => $openChallenges, 'ranking' => $ranking, 'labels' => $labels])
+@include('pyramid::partials.my-challenges', ['variant' => 'banner', 'viewer' => $viewer, 'isLoggedIn' => $isLoggedIn, 'openChallenges' => $openChallenges, 'ranking' => $ranking, 'labels' => $labels])
 
 <div class="flex flex-wrap items-start gap-5">
     <x-ui.card :aria-label="__('pyramid::ui.ranking')" padding="lg" class="min-w-0 flex-[999_1_640px]">
@@ -37,7 +37,7 @@
     </x-ui.card>
 
     <aside class="flex flex-[1_1_300px] flex-col gap-4">
-        @include('pyramid::partials.my-challenges', ['variant' => 'card', 'viewer' => $viewer, 'openChallenges' => $openChallenges, 'ranking' => $ranking, 'labels' => $labels])
+        @include('pyramid::partials.my-challenges', ['variant' => 'card', 'viewer' => $viewer, 'isLoggedIn' => $isLoggedIn, 'openChallenges' => $openChallenges, 'ranking' => $ranking, 'labels' => $labels])
 
         <x-ui.card :title="__('pyramid::ui.waiting.title')">
             <div class="flex flex-col gap-3">

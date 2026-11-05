@@ -59,9 +59,6 @@ return [
         'hint_entering' => 'Du bist zum Einfordern freigegeben – :name ist forderbar.',
         'history' => 'Match-Historie',
         'history_none' => 'Noch keine gespielten Partien.',
-        'col_date' => 'Datum',
-        'col_opponent' => 'Gegner',
-        'col_result' => 'Ergebnis',
         'won' => 'gewonnen',
         'lost' => 'verloren',
         'back' => 'Zurück zur Pyramide',
@@ -70,7 +67,6 @@ return [
     'challenge' => [
         'title' => 'Forderung aussprechen',
         'not_participating' => 'Du nimmst an dieser Pyramide nicht teil, oder bist noch nicht zum Einfordern freigegeben.',
-        'you_challenge' => 'Du forderst :name (Platz :position).',
         'info' => 'Danach machst du den Termin selbst mit ihm aus. Zwischen Forderung und Spiel sollen nicht mehr als :days Tage liegen. Bis zum Spiel könnt ihr beide keine weitere Forderung aussprechen oder annehmen.',
         'scheduled_at' => 'Spieltermin',
         'scheduled_at_help' => 'Optional, kann später nachgetragen werden.',

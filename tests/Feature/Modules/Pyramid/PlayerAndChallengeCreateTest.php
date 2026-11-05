@@ -373,4 +373,26 @@ class PlayerAndChallengeCreateTest extends TestCase
             ->assertRedirect('/pyramide/'.$ladder->id)
             ->assertSessionHas('error', 'Diese Pyramide läuft derzeit nicht.');
     }
+
+    #[Test]
+    public function record_is_counted_over_all_matches_not_only_the_listed_ones(): void
+    {
+        $ladder = $this->ladder();
+        $target = $this->playerAt($ladder, 5);
+
+        // 52 wins and 3 losses: the history lists 50, the tiles must still say 52 and 3.
+        for ($i = 0; $i < 52; $i++) {
+            $this->resolved($ladder, 5, 9, ['resolved' => '2020-01-01 12:00:00']);
+        }
+
+        for ($i = 0; $i < 3; $i++) {
+            $this->resolved($ladder, 2, 5, ['resolved' => '2020-02-01 12:00:00']);
+        }
+
+        $html = $this->get('/pyramide/spieler/'.$target->id)->assertOk()->getContent();
+
+        $this->assertMatchesRegularExpression('/Siege<\/p>\s*<p class="ds-kpi__value">52</', $html);
+        $this->assertMatchesRegularExpression('/Niederlagen<\/p>\s*<p class="ds-kpi__value">3</', $html);
+        $this->assertSame(50, substr_count($html, '(gewonnen)') + substr_count($html, '(verloren)'));
+    }
 }

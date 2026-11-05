@@ -45,7 +45,7 @@ class LadderController extends Controller
             )->all(),
             'viewer' => $viewer,
             'isLoggedIn' => Auth::check(),
-            'blocked' => $this->challenges->annotate($ladder, $viewer, $ranking),
+            'blocked' => $this->challenges->annotate($ladder, $viewer, $ranking, null, Auth::check()),
             'openChallenges' => $this->repo->openChallenges((int) $ladder->id),
             'waiting' => $waiting,
             'feed' => $this->repo->feed((int) $ladder->id),

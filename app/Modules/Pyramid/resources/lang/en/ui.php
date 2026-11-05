@@ -59,9 +59,6 @@ return [
         'hint_entering' => 'You are released to challenge – :name can be challenged.',
         'history' => 'Match history',
         'history_none' => 'No matches played yet.',
-        'col_date' => 'Date',
-        'col_opponent' => 'Opponent',
-        'col_result' => 'Result',
         'won' => 'won',
         'lost' => 'lost',
         'back' => 'Back to the pyramid',
@@ -70,7 +67,6 @@ return [
     'challenge' => [
         'title' => 'Issue a challenge',
         'not_participating' => 'You do not take part in this pyramid, or you are not yet released to challenge.',
-        'you_challenge' => 'You challenge :name (rank :position).',
         'info' => 'Afterwards you arrange the date with them yourself. No more than :days days should pass between challenge and match. Until the match, neither of you can issue or accept another challenge.',
         'scheduled_at' => 'Match date',
         'scheduled_at_help' => 'Optional, can be added later.',

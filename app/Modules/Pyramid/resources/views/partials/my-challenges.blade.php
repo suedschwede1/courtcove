@@ -1,7 +1,7 @@
 {{--
     The viewer's running challenges. $variant 'card' is the side card (tablet and up),
     'banner' the highlighted card above the list on phones (only when there is something to show).
-    Needs: $variant, $viewer, $openChallenges, $ranking, $labels.
+    Needs: $variant, $viewer, $isLoggedIn, $openChallenges, $ranking, $labels.
 --}}
 @php
     use App\Modules\Pyramid\Support\PyramidFormat;
@@ -47,7 +47,7 @@
 @else
     <x-ui.card :title="__('pyramid::ui.mine.title')" class="hidden md:block">
         <div class="flex flex-col gap-2.5">
-            @if ($viewer === null)
+            @if ($viewer === null && ! $isLoggedIn)
                 <p class="text-ink-2">{{ __('pyramid::ui.mine.login') }}</p>
             @elseif ($entries->isEmpty())
                 <p class="text-ink-2">{{ __('pyramid::ui.mine.none') }}</p>

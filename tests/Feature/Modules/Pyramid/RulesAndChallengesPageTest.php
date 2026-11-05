@@ -171,4 +171,78 @@ class RulesAndChallengesPageTest extends TestCase
             $this->assertSame($group, PyramidStatus::badgeGroup($status), $status);
         }
     }
+
+    #[Test]
+    public function list_is_ordered_newest_first(): void
+    {
+        $ladder = $this->ladder();
+        $this->challenge($ladder, 9, 6, ['status' => 'played', 'score' => '6:1 6:1', 'created' => '2027-01-01 10:00:00']);
+        $this->challenge($ladder, 8, 5, ['status' => 'played', 'score' => '6:2 6:2', 'created' => '2027-01-03 10:00:00']);
+        $this->challenge($ladder, 7, 4, ['status' => 'played', 'score' => '6:3 6:3', 'created' => '2027-01-02 10:00:00']);
+
+        $this->get('/pyramide/forderungen')
+            ->assertOk()
+            ->assertSeeInOrder(['6:2 6:2', '6:3 6:3', '6:1 6:1']);
+    }
+
+    #[Test]
+    public function the_oldest_challenge_lands_on_page_two(): void
+    {
+        $ladder = $this->ladder();
+        $this->challenge($ladder, 9, 6, ['status' => 'played', 'score' => '7:6 7:6', 'created' => '2020-01-01 10:00:00']);
+        PyramidChallenge::factory()->count(100)->create([
+            'ladder_id' => $ladder->id,
+            'challenger_id' => $this->playerAt($ladder, 5)->id,
+            'opponent_id' => $this->playerAt($ladder, 4)->id,
+            'challenger_pos' => 5,
+            'opponent_pos' => 4,
+            'status' => 'open',
+            'created' => '2027-01-01 10:00:00',
+        ]);
+
+        $this->get('/pyramide/forderungen')->assertOk()->assertDontSee('7:6 7:6');
+        $this->get('/pyramide/forderungen?page=2')->assertOk()->assertSee('7:6 7:6');
+    }
+
+    #[Test]
+    public function the_search_ignores_case_and_handles_umlauts(): void
+    {
+        $ladder = $this->ladder();
+        $this->playerAt($ladder, 5)->update(['label' => 'Jürgen Müller']);
+        $this->challenge($ladder, 5, 2, ['status' => 'played', 'score' => '6:4 6:3']);
+        $this->challenge($ladder, 8, 7, ['status' => 'played', 'score' => '7:5 6:1']);
+
+        foreach (['müller', 'MÜLLER', 'jÜrg'] as $term) {
+            $this->get('/pyramide/forderungen?q='.rawurlencode($term))
+                ->assertOk()
+                ->assertSee('6:4 6:3')
+                ->assertDontSee('7:5 6:1');
+        }
+    }
+
+    #[Test]
+    public function a_player_without_a_label_in_the_lists_is_shown_as_unknown(): void
+    {
+        $ladder = $this->ladder();
+        $removed = PyramidPlayer::factory()->create(['ladder_id' => $ladder->id, 'status' => 'removed', 'position' => null, 'label' => 'Entfernter Spieler']);
+        $this->challenge($ladder, 5, 4, ['challenger_id' => $removed->id, 'challenger_pos' => null, 'status' => 'expired']);
+
+        $this->get('/pyramide/forderungen')
+            ->assertOk()
+            ->assertSee('Unbekannt')
+            ->assertDontSee('Entfernter Spieler');
+    }
+
+    #[Test]
+    public function the_status_badge_markup_is_rendered_per_row(): void
+    {
+        $ladder = $this->ladder();
+        $this->challenge($ladder, 9, 6, ['status' => 'scheduled', 'scheduled_at' => '2027-03-07 10:00:00']);
+        $this->challenge($ladder, 4, 3, ['status' => 'open']);
+
+        $this->get('/pyramide/forderungen')
+            ->assertOk()
+            ->assertSee('ds-badge--neutral">Termin vereinbart</span>', false)
+            ->assertSee('ds-badge--attention">Offen</span>', false);
+    }
 }

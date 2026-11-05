@@ -255,4 +255,111 @@ class LadderPageTest extends TestCase
             $this->assertMatchesRegularExpression('#^(https?://[^/]+)?/booking/pyramide#', $url, $url);
         }
     }
+
+    #[Test]
+    public function logged_in_non_participant_is_not_asked_to_log_in(): void
+    {
+        $this->ladder();
+
+        $this->actingAs(User::factory()->create())
+            ->get('/pyramide')
+            ->assertOk()
+            ->assertDontSee('Zum Mitspielen bitte anmelden.')
+            ->assertDontSee('Zum Fordern bitte anmelden.')
+            ->assertSee('Du hast derzeit keine offene Forderung.');
+    }
+
+    #[Test]
+    public function a_guest_gets_no_challenge_button_in_either_layout(): void
+    {
+        $this->ladder();
+
+        $html = $this->get('/pyramide')->assertOk()->getContent();
+
+        // The pyramid is rendered twice (tablet+ and phone): neither copy may carry a challenge button or link.
+        $this->assertStringNotContainsString('pyramide/fordern/', $html);
+        $this->assertStringNotContainsString('>Fordern<', $html);
+        $this->assertStringNotContainsString('text-on-court', $html);
+    }
+
+    #[Test]
+    public function a_participant_gets_the_challenge_button_in_the_phone_layout_too(): void
+    {
+        $ladder = $this->ladder();
+        $viewer = $this->viewerAt($ladder, 8);
+        $target = $this->playerAt($ladder, 5);
+
+        $html = $this->actingAs($viewer)->get('/pyramide')->assertOk()->getContent();
+
+        // One link in the phone row (the button), none in the tablet cell (that one opens the profile).
+        $this->assertSame(1, substr_count($html, 'pyramide/fordern/'.$target->id));
+    }
+
+    #[Test]
+    public function a_paused_player_is_marked_and_cannot_be_challenged(): void
+    {
+        $ladder = $this->ladder();
+        $viewer = $this->viewerAt($ladder, 8);
+        $this->playerAt($ladder, 5)->update(['status' => 'paused']);
+
+        $response = $this->actingAs($viewer)->get('/pyramide')->assertOk();
+
+        $response->assertSee('pausiert')
+            ->assertDontSee('pyramide/fordern/'.$this->playerAt($ladder, 5)->id, false)
+            ->assertSee('pyramide/fordern/'.$this->playerAt($ladder, 7)->id, false);
+    }
+
+    #[Test]
+    public function a_blocked_cell_carries_the_rule_text(): void
+    {
+        $ladder = $this->ladder();
+        $viewer = $this->viewerAt($ladder, 8);
+
+        $this->actingAs($viewer)
+            ->get('/pyramide')
+            ->assertOk()
+            ->assertSee('Von Platz 8 darfst du nur die Plätze');
+    }
+
+    #[Test]
+    public function a_closed_or_setup_ladder_never_offers_a_challenge(): void
+    {
+        $closed = PyramidLadder::factory()->closed()->asDefault()->withRanking(10)->create();
+        $viewer = $this->viewerAt($closed, 8);
+
+        $this->actingAs($viewer)
+            ->get('/pyramide')
+            ->assertOk()
+            ->assertDontSee('pyramide/fordern/', false)
+            ->assertSee('Diese Pyramide läuft derzeit nicht.');
+
+        $closed->update(['status' => 'setup']);
+
+        $this->actingAs($viewer)
+            ->get('/pyramide')
+            ->assertOk()
+            ->assertDontSee('pyramide/fordern/', false);
+    }
+
+    #[Test]
+    public function ladder_id_zero_falls_back_to_the_default_ladder(): void
+    {
+        $this->ladder();
+
+        $this->get('/pyramide/0')->assertOk()->assertSee('Testpyramide');
+    }
+
+    #[Test]
+    public function a_broken_schedule_payload_in_the_feed_does_not_fail_the_page(): void
+    {
+        $ladder = $this->ladder();
+        PyramidEvent::query()->create([
+            'ladder_id' => $ladder->id,
+            'type' => 'schedule',
+            'payload' => json_encode(['challenger' => $this->playerAt($ladder, 8)->id, 'opponent' => $this->playerAt($ladder, 5)->id, 'scheduled_at' => 'not a date']),
+            'created' => '2027-03-03 09:00:00',
+        ]);
+
+        $this->get('/pyramide')->assertOk()->assertSee('findet am');
+    }
 }

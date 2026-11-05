@@ -42,13 +42,11 @@ class PlayerController extends Controller
         }
 
         $labels = $this->repo->labels((int) $ladder->id);
-        $won = 0;
-        $lost = 0;
+        $record = $this->repo->matchRecord((int) $player->id);
         $history = [];
 
         foreach ($this->repo->matchHistory((int) $player->id, 50) as $match) {
             $isWinner = (int) $match->winner_id === (int) $player->id;
-            $isWinner ? $won++ : $lost++;
 
             $opponentId = (int) $match->challenger_id === (int) $player->id ? (int) $match->opponent_id : (int) $match->challenger_id;
             // strtotime() instead of a parse that throws: a broken stored date renders as a dash.
@@ -69,8 +67,8 @@ class PlayerController extends Controller
             'viewer' => $viewer,
             'challengeVerdict' => $verdict,
             'history' => $history,
-            'won' => $won,
-            'lost' => $lost,
+            'won' => $record['won'],
+            'lost' => $record['lost'],
             // Phone numbers belong to the administration only; this page has no challenge context.
             'canAdmin' => $this->canAdmin($ladder),
         ]);

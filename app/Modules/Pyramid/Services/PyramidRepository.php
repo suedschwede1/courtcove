@@ -192,6 +192,21 @@ final class PyramidRepository
     }
 
     /**
+     * Won and lost matches of a player over all of their played or forfeited challenges (two count queries,
+     * independent of how many rows the history lists).
+     *
+     * @return array{won: int, lost: int}
+     */
+    public function matchRecord(int $playerId): array
+    {
+        $played = $this->involving($playerId)->whereIn('status', ['played', 'forfeited']);
+        $total = (clone $played)->count();
+        $won = (clone $played)->where('winner_id', $playerId)->count();
+
+        return ['won' => $won, 'lost' => $total - $won];
+    }
+
+    /**
      * @return Collection<int, PyramidEvent>
      */
     public function feed(int $ladderId, int $limit = 30): Collection

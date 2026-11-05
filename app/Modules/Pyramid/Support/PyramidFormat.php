@@ -47,6 +47,34 @@ final class PyramidFormat
         }
     }
 
+    /**
+     * Time of day (H:i) of a stored value; an unparseable value renders as a dash.
+     */
+    public static function safeTime(?string $sql): string
+    {
+        if ($sql === null || trim($sql) === '') {
+            return '–';
+        }
+
+        try {
+            return CarbonImmutable::parse($sql)->format('H:i');
+        } catch (\Throwable) {
+            return '–';
+        }
+    }
+
+    /**
+     * Like dateTime(), for stored values that may hold anything: a dash instead of a failing page.
+     */
+    public static function safeDateTime(?string $sql): string
+    {
+        try {
+            return self::dateTime($sql);
+        } catch (\Throwable) {
+            return '–';
+        }
+    }
+
     public static function dateTime(?string $sql): string
     {
         if ($sql === null || trim($sql) === '') {

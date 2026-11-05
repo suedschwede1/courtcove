@@ -6,7 +6,6 @@
 @php
     use App\Modules\Pyramid\Support\EventText;
     use App\Modules\Pyramid\Support\PyramidFormat;
-    use Carbon\CarbonImmutable;
 
     $name = fn ($id) => $labels[(int) $id] ?? __('pyramid::ui.unknown');
     $lines = $feed->map(function ($event) use ($name): array {
@@ -21,8 +20,9 @@
             'schedule' => __('pyramid::ui.feed.schedule', [
                 'challenger' => $name($data['challenger'] ?? 0),
                 'opponent' => $name($data['opponent'] ?? 0),
-                'day' => PyramidFormat::date($data['scheduled_at'] ?? null),
-                'time' => isset($data['scheduled_at']) ? CarbonImmutable::parse($data['scheduled_at'])->format('H:i') : '–',
+                // The payload is stored data: a broken value renders as a dash instead of failing the page.
+                'day' => PyramidFormat::safeDate(is_scalar($data['scheduled_at'] ?? null) ? (string) $data['scheduled_at'] : null),
+                'time' => PyramidFormat::safeTime(is_scalar($data['scheduled_at'] ?? null) ? (string) $data['scheduled_at'] : null),
             ]),
             'result' => __('pyramid::ui.feed.result', [
                 'winner' => $name($data['winner'] ?? 0),
@@ -35,7 +35,7 @@
             default => $data['message'] ?? __('pyramid::ui.feed.admin'),
         };
 
-        return ['text' => $text, 'when' => __('pyramid::ui.feed.when', ['date' => PyramidFormat::dateTime($event->created)])];
+        return ['text' => $text, 'when' => __('pyramid::ui.feed.when', ['date' => PyramidFormat::safeDateTime($event->created)])];
     });
 @endphp
 <x-ui.card :title="__('pyramid::ui.feed.title')">

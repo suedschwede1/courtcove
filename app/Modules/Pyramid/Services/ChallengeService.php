@@ -220,18 +220,19 @@ final class ChallengeService
 
     /**
      * For the pyramid view: per player either null (challengeable) or the reason why not.
+     * Without a participant row the reason is "log in" for a guest and "not taking part" for a logged-in user.
      *
      * @param  Collection<int, PyramidPlayer>  $ranking
      * @return array<int, Verdict|null>
      */
-    public function annotate(PyramidLadder $ladder, ?PyramidPlayer $viewer, Collection $ranking, ?CarbonImmutable $now = null): array
+    public function annotate(PyramidLadder $ladder, ?PyramidPlayer $viewer, Collection $ranking, ?CarbonImmutable $now = null, bool $loggedIn = false): array
     {
         $result = [];
 
         foreach ($ranking as $player) {
             $result[(int) $player->id] = $viewer
                 ? $this->check($ladder, $viewer, $player, $now)
-                : new Verdict('pyramid::check.login');
+                : new Verdict($loggedIn ? 'pyramid::check.not_participating' : 'pyramid::check.login');
         }
 
         return $result;
