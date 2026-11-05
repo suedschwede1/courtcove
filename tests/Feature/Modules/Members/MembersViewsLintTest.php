@@ -10,54 +10,22 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
- * Keeps restyled Members views free of UI lint findings. Each restyle task
- * appends the views it migrated (relative to the module's views directory).
+ * The whole Members module (views and its stylesheet) is free of UI lint findings.
  */
 class MembersViewsLintTest extends TestCase
 {
-    /** @var list<string> */
-    public const MIGRATED = [
-        'layout.blade.php',
-        'components/sidebar.blade.php',
-        'components/page-header.blade.php',
-        'partials/inline-save.blade.php',
-        'members/index.blade.php',
-        'dashboard.blade.php',
-        'fiscal-years/index.blade.php',
-        'functions/index.blade.php',
-        'fee-categories/index.blade.php',
-        'members/edit.blade.php',
-        'members/_history.blade.php',
-        'members/_form.blade.php',
-        'members/create.blade.php',
-        'payments/create.blade.php',
-        'dues/index.blade.php',
-        'fiscal-years/_form.blade.php',
-        'fiscal-years/create.blade.php',
-        'fiscal-years/edit.blade.php',
-        'dsgvo/index.blade.php',
-        'mail/index.blade.php',
-        'mail/config.blade.php',
-        'functions/_form.blade.php',
-        'functions/create.blade.php',
-        'functions/edit.blade.php',
-    ];
-
-    private const VIEWS_PREFIX = 'Modules/Members/resources/views/';
-
     #[Test]
-    public function migrated_views_have_no_ui_lint_findings(): void
+    public function module_has_no_ui_lint_findings(): void
     {
-        $findings = (new UiLinter([app_path('Modules/Members/resources/views')], UiRules::all(), base_path()))->run();
+        $roots = [app_path('Modules/Members/resources/views'), resource_path('css')];
+        $findings = (new UiLinter($roots, UiRules::all(), base_path()))->run();
 
         $offending = [];
         foreach ($findings as $finding) {
             $file = str_replace('\\', '/', $finding['file']);
-            $position = strpos($file, self::VIEWS_PREFIX);
-            $relative = $position === false ? $file : substr($file, $position + strlen(self::VIEWS_PREFIX));
 
-            if (in_array($relative, self::MIGRATED, true)) {
-                $offending[] = "{$finding['rule']} {$relative}:{$finding['line']}";
+            if (str_contains($file, 'Modules/Members/resources/views/') || str_ends_with($file, 'resources/css/members.css')) {
+                $offending[] = "{$finding['rule']} {$file}:{$finding['line']}";
             }
         }
 
