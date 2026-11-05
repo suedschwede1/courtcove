@@ -1,6 +1,6 @@
-/* Members module (restyle step 6). Tokens only. The pages render in the shared admin shell (layouts.admin). */
+/* Members module. Tokens only. The pages render in the app layout (light header, no admin sidebar) with module tabs. */
 @layer components {
-    /* Page header: eyebrow + the page's only h1 + actions; the section tabs follow it. */
+    /* Page header: eyebrow + the page's only h1 + actions; the module tabs follow it. */
     .mbr-page-header {
         display: flex;
         flex-wrap: wrap;
@@ -39,27 +39,131 @@
         gap: 8px;
     }
 
+    /* Module tabs: one row, 3px clay underline on the active tab at every width (phones scroll the row). */
+    .ds-tabs.mbr-tabs {
+        margin-top: -8px;
+    }
+
+    /* Settings pages: second row with the five settings pages. */
+    .mbr-subnav {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 2px;
+    }
+
+    .mbr-subnav .ds-chip {
+        flex-shrink: 0;
+    }
+
+    /* Primary action pinned at the bottom on phones: full width, 52px. */
+    .mbr-phone-action .ds-btn {
+        width: 100%;
+        min-height: var(--spacing-control-h-mobile);
+    }
+
     @media (width < 48rem) {
-        .mbr-page-header__eyebrow {
-            display: none;
+        .mbr-page-header {
+            gap: 8px;
         }
 
-        /* The phone admin bar shows the title (as on the other admin pages); the h1 stays for screen readers. */
+        .mbr-page-header__eyebrow {
+            font-size: 11px;
+            line-height: 14px;
+            letter-spacing: 0.14em;
+        }
+
         .mbr-page-header__title {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            margin: -1px;
-            padding: 0;
-            overflow: hidden;
-            clip: rect(0 0 0 0);
-            white-space: nowrap;
+            font-size: 28px;
+            line-height: 1.05;
+        }
+
+        .ds-tabs.mbr-tabs {
+            gap: 4px;
+            margin-top: 0;
+            border-bottom: 1px solid var(--color-line);
+        }
+
+        .ds-tabs.mbr-tabs .ds-tabs__tab {
+            padding: 0 10px;
             border: 0;
+            border-bottom: 3px solid transparent;
+            border-radius: 0;
+            background: transparent;
+        }
+
+        .ds-tabs.mbr-tabs .ds-tabs__tab[aria-current='page'] {
+            border-bottom-color: var(--color-clay);
+            background: transparent;
+            color: var(--color-ink);
         }
     }
 }
 
-/* Members list: filters, table card, phone cards, floating "new member". */
+/* Change rows (Protokoll tab, overview "Zuletzt geändert"): what changed, then when and who. */
+@layer components {
+    .mbr-changes {
+        display: flex;
+        flex-direction: column;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .mbr-change {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding: 12px 0;
+        border-top: 1px solid var(--color-line-soft);
+    }
+
+    .mbr-change:first-child {
+        padding-top: 0;
+        border-top: 0;
+    }
+
+    .mbr-change:last-child {
+        padding-bottom: 0;
+    }
+
+    .mbr-change__what {
+        margin: 0;
+        font-weight: 600;
+        color: var(--color-ink);
+    }
+
+    .mbr-change__meta {
+        margin: 0;
+        font-size: var(--text-body-s);
+        color: var(--color-ink-3);
+    }
+}
+
+/* Member detail: main column (master data, dues) and side column (account link, history); stacked on phones. */
+@layer components {
+    .mbr-detail {
+        display: grid;
+        gap: 24px;
+    }
+
+    .mbr-detail__main,
+    .mbr-detail__side {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        min-width: 0;
+    }
+
+    @media (width >= 64rem) {
+        .mbr-detail {
+            grid-template-columns: minmax(0, 1fr) 320px;
+            align-items: start;
+        }
+    }
+}
+
+/* Members list: filters, table card, phone cards. */
 @layer components {
     .mbr-filter-card {
         padding: 16px 20px;
@@ -281,21 +385,6 @@
             padding: 8px 0 0;
             border-top: 0;
         }
-
-        .mbr-fab {
-            position: fixed;
-            right: 16px;
-            bottom: 24px;
-            z-index: 40;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: var(--color-clay);
-            box-shadow: 0 6px 18px rgb(0 0 0 / 0.25); /* mockup value (no shadow token) */
-        }
     }
 }
 
@@ -312,16 +401,54 @@
     text-decoration: underline;
 }
 
-.mbr-fab {
-    color: var(--color-on-clay);
+.mbr-change__name {
+    color: var(--color-ink);
+    font-weight: 700;
+}
+
+.mbr-change__name:hover {
+    text-decoration: underline;
+}
+
+.mbr-text-link {
+    color: var(--color-clay);
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+.mbr-text-link:hover {
+    color: var(--color-clay-hover);
 }
 
 /* Dashboard and configuration lists. */
 @layer components {
     .mbr-kpis {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 16px;
+    }
+
+    /* Overview "Beitrag offen": name left, category right. */
+    .mbr-due-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 0;
+        border-top: 1px solid var(--color-line-soft);
+    }
+
+    .mbr-due-row:first-child {
+        padding-top: 0;
+        border-top: 0;
+    }
+
+    .mbr-card-foot {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin: 12px 0 0;
     }
 
     .mbr-kpis .ds-kpi {
@@ -403,8 +530,17 @@
         margin-top: 16px;
     }
 
+    @media (width < 64rem) {
+        .mbr-kpis {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
     @media (width < 48rem) {
-        .mbr-kpis,
+        .mbr-kpis {
+            gap: 10px;
+        }
+
         .mbr-split {
             grid-template-columns: minmax(0, 1fr);
         }

@@ -101,11 +101,38 @@ class MainNavigationTest extends TestCase
     }
 
     #[Test]
-    public function admin_gets_admin_and_members_last(): void
+    public function admin_gets_members_then_admin_last(): void
     {
         $keys = $this->keys($this->items(User::factory()->status('admin')->create()));
 
-        $this->assertSame(['admin', 'members'], array_slice($keys, -2));
+        $this->assertSame(['members', 'admin'], array_slice($keys, -2));
+    }
+
+    #[Test]
+    public function members_pages_activate_members_and_not_admin(): void
+    {
+        $admin = User::factory()->status('admin')->create();
+
+        $this->assertSame(['members'], $this->activeKeys($this->items($admin, '/members/dashboard')));
+        $this->assertSame(['members'], $this->activeKeys($this->items($admin, '/members/fiscal-years')));
+        $this->assertSame(['admin'], $this->activeKeys($this->items($admin, '/admin')));
+    }
+
+    #[Test]
+    public function members_and_admin_follow_their_own_gates(): void
+    {
+        $menuOnly = User::factory()->status('assist')->create();
+        $menuOnly->syncPrivileges(['admin.see-menu']);
+        $keys = $this->keys($this->items($menuOnly->fresh()));
+        $this->assertContains('admin', $keys);
+        $this->assertNotContains('members', $keys);
+
+        $membersOnly = User::factory()->status('assist')->create();
+        $membersOnly->syncPrivileges(['admin.members']);
+        $items = $this->items($membersOnly->fresh());
+        $this->assertContains('members', $this->keys($items));
+        $this->assertNotContains('admin', $this->keys($items));
+        $this->assertSame(['calendar', 'bookings', 'tournaments', 'members'], $this->keys(app(MainNavigation::class)->bar($items)));
     }
 
     #[Test]
@@ -143,16 +170,24 @@ class MainNavigationTest extends TestCase
     }
 
     #[Test]
-    public function bar_puts_members_under_administration(): void
+    public function bar_shows_members_and_admin_as_own_entries(): void
     {
         $bar = app(MainNavigation::class)->bar($this->items(User::factory()->status('admin')->create()));
 
-        $this->assertSame(['calendar', 'bookings', 'tournaments', 'administration'], $this->keys($bar));
-        $admin = $bar[3];
-        $this->assertSame('Administration', $admin->label);
-        $this->assertSame(['admin', 'members'], $this->keys($admin->children));
-        $this->assertSame(['Übersicht', 'Mitglieder'], array_map(fn (NavItem $i) => $i->label, $admin->children));
-        $this->assertSame(route('admin.dashboard'), $admin->children[0]->url);
+        $this->assertSame(['calendar', 'bookings', 'tournaments', 'members', 'admin'], $this->keys($bar));
+        $this->assertSame([], $bar[3]->children);
+        $this->assertSame([], $bar[4]->children);
+        $this->assertSame('Mitglieder', $bar[3]->label);
+        $this->assertSame(route('members.dashboard'), $bar[3]->url);
+        $this->assertSame(route('admin.dashboard'), $bar[4]->url);
+    }
+
+    #[Test]
+    public function bar_marks_only_members_active_on_member_pages(): void
+    {
+        $bar = app(MainNavigation::class)->bar($this->items(User::factory()->status('admin')->create(), '/members'));
+
+        $this->assertSame(['members'], $this->activeKeys($bar));
     }
 
     #[Test]
@@ -184,13 +219,13 @@ class MainNavigationTest extends TestCase
     }
 
     #[Test]
-    public function bar_never_has_more_than_four_top_level_items(): void
+    public function bar_never_has_more_than_five_top_level_items(): void
     {
         $this->createTournamentsTable();
         DB::table('bs_tournaments')->insert(['title' => 'VM 2026', 'status' => 'running', 'season' => 2026, 'active' => 1, 'is_test' => 0]);
 
         $bar = app(MainNavigation::class)->bar($this->items(User::factory()->status('admin')->create()));
 
-        $this->assertCount(4, $bar);
+        $this->assertCount(5, $bar);
     }
 }

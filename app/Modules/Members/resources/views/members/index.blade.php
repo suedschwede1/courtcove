@@ -1,9 +1,10 @@
 @extends('members::layout')
-@section('admin-title', __('members::admin.members.title'))
+@section('members-title', __('members::admin.members.title'))
 @section('members-content')
 @php
     use App\Modules\Members\Support\StatusTone;
     use App\Support\Ui\Initials;
+    use Illuminate\Support\Facades\Gate;
 
     $statusFilter = $filters['status'] ?? 'aktiv';
     $statusLabels = [
@@ -18,12 +19,16 @@
         'ueberfaellig' => __('members::admin.dues.status_ueberfaellig'),
     ];
     $moreFiltersActive = isset($filters['fee_category']) || isset($filters['zahlung']);
+    $canEditUsers = Gate::allows('admin.user');
 @endphp
 <x-members::page-header :title="__('members::admin.members.title')">
     <x-slot:actions>
-        <x-ui.button variant="secondary" :block="false" :href="route('members.mail.index')">{{ __('members::admin.members.send_mail') }}</x-ui.button>
-        <x-ui.button :block="false" icon="plus" :href="route('members.create')" class="mbr-phone-hidden">{{ __('members::admin.members.new_member') }}</x-ui.button>
+        <x-ui.button variant="secondary" :block="false" :href="route('members.export')" class="mbr-phone-hidden">{{ __('members::admin.members.export') }}</x-ui.button>
+        <x-ui.button :block="false" icon="plus" :href="route('members.create')" class="mbr-phone-hidden">{{ __('members::admin.members.create') }}</x-ui.button>
     </x-slot:actions>
+    <x-slot:phoneAction>
+        <x-ui.button :href="route('members.create')">{{ __('members::admin.members.create') }}</x-ui.button>
+    </x-slot:phoneAction>
 </x-members::page-header>
 
 <x-ui.card class="mbr-filter-card" as="div">
@@ -65,7 +70,7 @@
                 <th scope="col">{{ __('members::admin.members.fee_category') }}</th>
                 <th scope="col" class="mbr-phone-hidden">{{ __('members::admin.members.email') }}</th>
                 <th scope="col" class="mbr-phone-hidden">{{ __('members::admin.members.phone') }}</th>
-                <th scope="col" class="mbr-phone-hidden">{{ __('members::admin.members.booking_user_short') }}</th>
+                <th scope="col" class="mbr-phone-hidden">{{ __('members::admin.members.user_account') }} <span class="text-ink-3 font-normal normal-case">({{ __('members::admin.members.optional') }})</span></th>
                 <th scope="col" class="mbr-cell-actions">{{ __('members::admin.common.actions') }}</th>
             </tr>
         </x-slot:head>
@@ -290,11 +295,14 @@
                         <p class="ds-field__error" x-show="error" x-text="error"></p>
                     </div>
                 </td>
-                <td class="mbr-phone-hidden" data-label="{{ __('members::admin.members.booking_user_short') }}">
-                    @if($member->user_id !== null)
-                        <x-ui.badge tone="good">{{ __('members::admin.common.yes') }}</x-ui.badge>
+                {{-- Optional link to a booking-system account: informational only, no filter or feature depends on it. --}}
+                <td class="mbr-phone-hidden text-ink-2" data-label="{{ __('members::admin.members.user_account') }}">
+                    @if($member->user_id === null)
+                        –
+                    @elseif($canEditUsers)
+                        <a href="{{ route('admin.users.edit', $member->user_id) }}" class="mbr-row-link">{{ __('members::admin.members.linked') }}</a>
                     @else
-                        <x-ui.badge tone="neutral">{{ __('members::admin.common.no') }}</x-ui.badge>
+                        {{ __('members::admin.members.linked') }}
                     @endif
                 </td>
                 <td class="mbr-cell-actions" data-label="{{ __('members::admin.common.actions') }}">
@@ -309,8 +317,6 @@
         </div>
     @endif
 </x-ui.card>
-
-<a href="{{ route('members.create') }}" class="mbr-fab mbr-phone-only" aria-label="{{ __('members::admin.members.new_member') }}"><x-ui.icon name="plus" :size="24" /></a>
 
 @once
     @push('scripts')

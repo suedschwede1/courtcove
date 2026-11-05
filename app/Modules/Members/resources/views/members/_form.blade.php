@@ -8,15 +8,6 @@
     }
     $categoryOptions = ['' => ''] + $feeCategories->pluck('name', 'id')->all();
 
-    $users = $users ?? collect();
-    $selectedUser = $users->firstWhere('uid', (int) old('user_id', $member->user_id ?? 0));
-    $userPicker = [
-        'label' => $selectedUser ? $selectedUser->alias.($selectedUser->email ? " ({$selectedUser->email})" : '') : '',
-        'options' => $users->map(fn ($user) => ['id' => $user->uid, 'label' => $user->alias.($user->email ? " ({$user->email})" : '')])->values(),
-        'userId' => (int) old('user_id', $member->user_id ?? 0) ?: '',
-    ];
-    $userError = $errors->first('user_id');
-
     $selectedRoleIds = old('club_roles', ($member ?? null)?->clubRoles->pluck('id')->all() ?? []);
     $boardRoles = ($clubRoles ?? collect())->where('is_board', true);
     $otherRoles = ($clubRoles ?? collect())->where('is_board', false);
@@ -65,25 +56,10 @@
         <x-ui.field :label="__('members::admin.members.nuliga_id')" for="mf-nuliga-id" :error="$errors->first('nuliga_id')">
             <x-ui.input type="number" min="1" name="nuliga_id" :value="old('nuliga_id', $member->nuliga_id ?? '')" />
         </x-ui.field>
-        <div x-data="{
-            label: {{ Js::from($userPicker['label']) }},
-            options: {{ Js::from($userPicker['options']) }},
-            userId: {{ Js::from($userPicker['userId']) }},
-            resolve() {
-                const match = this.options.find(o => o.label === this.label);
-                this.userId = match ? match.id : '';
-            }
-        }">
-            <x-ui.field :label="__('members::admin.members.booking_user_short')" for="mf-user-id" :error="$userError">
-                <input id="mf-user-id" type="text" list="mf-user-id-list" x-model="label" @input="resolve()" @change="resolve()" placeholder="{{ __('members::admin.members.search_booking_user') }}" class="ds-input" autocomplete="off"@if($userError) aria-invalid="true" aria-describedby="mf-user-id-error"@endif>
-                <datalist id="mf-user-id-list">
-                    <template x-for="option in options" :key="option.id">
-                        <option :value="option.label"></option>
-                    </template>
-                </datalist>
-                <input type="hidden" name="user_id" :value="userId">
-            </x-ui.field>
-        </div>
+        @unless($member ?? null)
+            {{-- The detail page shows the optional account link in its own side card. --}}
+            @include('members::members._user-picker', ['help' => __('members::admin.members.user_account_help')])
+        @endunless
         <x-ui.field :label="__('members::admin.members.fee_category')" for="mf-fee-category" :error="$errors->first('fee_category_id')">
             <x-ui.select name="fee_category_id" :options="$categoryOptions" :selected="(string) ((int) old('fee_category_id', $member->fee_category_id ?? 0) ?: '')" />
         </x-ui.field>

@@ -1,5 +1,5 @@
 @extends('members::layout')
-@section('admin-title', __('members::admin.payments.new_payment').' — '.$member->fullName())
+@section('members-title', __('members::admin.payments.new_payment').' — '.$member->fullName())
 @section('members-content')
 <x-members::page-header :title="__('members::admin.payments.new_payment').' — '.$member->fullName()" />
 

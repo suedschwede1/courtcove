@@ -1,5 +1,5 @@
 @extends('members::layout')
-@section('admin-title', __('members::admin.members.new_member'))
+@section('members-title', __('members::admin.members.new_member'))
 @section('members-content')
 <x-members::page-header :title="__('members::admin.members.new_member')" />
 <form method="POST" action="{{ route('members.store') }}" class="ui-form-shell">

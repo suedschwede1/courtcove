@@ -169,6 +169,8 @@ class MemberController
             'joined_at' => ['required', 'date'],
             'left_at' => ['nullable', 'date'],
             'status' => ['required', 'string', Rule::in(['aktiv', 'ruhend'])],
+            // Optional link to a booking-system account; null unlinks (the account itself stays).
+            'user_id' => ['nullable', 'integer', 'exists:bs_users,uid', Rule::unique('members', 'user_id')->ignore($member->id)],
         ];
 
         $field = $request->string('field')->value();
@@ -213,6 +215,7 @@ class MemberController
                 'fee_category_id' => $member->feeCategory->name ?? '—',
                 'email' => $member->email ?? '—',
                 'phone' => $member->phone ?? '—',
+                'user_id' => $member->user->alias ?? '–',
                 default => (string) $member->{$validated['field']},
             },
         ]);

@@ -3,9 +3,26 @@
 declare(strict_types=1);
 
 return [
+    'area' => [
+        'eyebrow' => 'Member management',
+        'tabs' => 'Member management',
+    ],
+    'settings' => [
+        'title' => 'Settings',
+    ],
     'members' => [
         'title' => 'Members',
         'new_member' => 'New member',
+        'create' => 'Add member',
+        'export' => 'Export',
+        'user_account' => 'User account',
+        'optional' => 'optional',
+        'user_account_card' => 'User account · optional',
+        'user_account_help' => 'A member does not need an account in the booking system, and a user does not need to be a member.',
+        'linked' => 'linked',
+        'unlink' => 'Unlink',
+        'link_user' => 'Link to a user account',
+        'link_hint' => 'Applied with “Save”.',
         'section_person' => 'Person',
         'section_contact' => 'Contact',
         'section_club' => 'Club',
@@ -136,6 +153,19 @@ return [
         'age_unknown' => 'no date of birth',
         'members_by_category' => 'Members per fee category',
         'no_category' => 'No category',
+        'members' => 'Members',
+        'youth' => ':count of them youth',
+        'active' => 'Active',
+        'dormant' => ':count dormant',
+        'dues_open' => 'Dues :year open',
+        'dues_open_sum' => 'Total :sum',
+        'without_account' => 'Without user account',
+        'without_account_meta' => 'club member only',
+        'open_list' => 'Open dues',
+        'no_open_dues' => 'No open dues.',
+        'all_dues' => 'All dues',
+        'recent' => 'Recently changed',
+        'all_changes' => 'To the log',
     ],
     'history' => [
         'title' => 'Change history',
@@ -143,6 +173,17 @@ return [
         'no_changes' => 'No field changes.',
         'empty' => 'No changes recorded.',
         'change' => ':field: :old → :new',
+        'changed' => ':field changed',
+        'anonymized' => 'Anonymised',
+    ],
+    'changes' => [
+        'title' => 'Log',
+        'list_title' => 'Changes to members',
+        'search' => 'Member',
+        'from' => 'From',
+        'to' => 'To',
+        'empty' => 'No changes in this period.',
+        'system' => 'System',
     ],
     'functions' => [
         'title' => 'Roles',
@@ -155,7 +196,7 @@ return [
         'confirm_delete' => 'Really delete this role?',
     ],
     'mail' => [
-        'title' => 'Mail',
+        'title' => 'Group mail',
         'config_title' => 'Mail Settings',
         'bcc' => 'BCC',
         'to_all' => 'Mail to all members',

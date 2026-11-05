@@ -95,16 +95,14 @@ class MembersListRestyleTest extends TestCase
     }
 
     #[Test]
-    public function header_offers_new_member_and_group_mail(): void
+    public function header_offers_export_and_new_member(): void
     {
         $html = $this->render('/members');
 
+        // Header button (desktop) and the pinned phone action bar.
         $this->assertSame(2, substr_count($html, 'href="'.route('members.create').'"'));
-        $this->assertMatchesRegularExpression(
-            '#<a href="'.preg_quote(route('members.create'), '#').'" class="mbr-fab[^"]*" aria-label="'
-                .preg_quote(e(__('members::admin.members.new_member')), '#').'"#',
-            $html,
-        );
+        $this->assertStringNotContainsString('mbr-fab', $html);
+        $this->assertStringContainsString('href="'.route('members.export').'"', $html);
         $this->assertStringContainsString('href="'.route('members.mail.index').'"', $html);
         $this->assertSame(1, substr_count($html, '<h1'));
     }

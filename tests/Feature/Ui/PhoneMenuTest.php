@@ -76,6 +76,17 @@ class PhoneMenuTest extends TestCase
     }
 
     #[Test]
+    public function members_is_its_own_row_right_before_admin(): void
+    {
+        $admin = User::factory()->create(['status' => 'admin']);
+        $xp = $this->xpath($this->actingAs($admin)->get('/calendar')->assertOk()->getContent());
+
+        $hrefs = array_map(fn ($a) => $a->getAttribute('href'), iterator_to_array($xp->query('//div[@id="phone-menu"]//nav[@aria-label="Menü"]/a')));
+        $this->assertSame([route('members.dashboard'), route('admin.dashboard')], array_slice($hrefs, -2));
+        $this->assertSame(1, $xp->query('//div[@id="phone-menu"]//nav/a[@href="'.route('members.dashboard').'"]//svg')->length);
+    }
+
+    #[Test]
     public function guest_menu_offers_login_without_avatar(): void
     {
         $xp = $this->xpath($this->get('/calendar')->assertOk()->getContent());

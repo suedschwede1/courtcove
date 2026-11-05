@@ -50,13 +50,13 @@ final class AdminNavigationTest extends TestCase
         $admin = User::factory()->create(['status' => 'admin']);
         $groups = $this->groupsFor($admin, route('admin.dashboard'));
 
-        $this->assertSame(['operations', 'members', 'tournaments', 'settings'], array_map(fn ($g) => $g->key, $groups));
+        $this->assertSame(['operations', 'users', 'tournaments', 'settings'], array_map(fn ($g) => $g->key, $groups));
         $this->assertSame(
             [
                 ['dashboard', 'bookings', 'events', 'statistics'],
-                ['members', 'users', 'login_history'],
+                ['users', 'login_history'],
                 ['pyramid', 'mixed'],
-                ['squares', 'texts', 'behavior', 'database', 'api_tokens', 'testmail', 'members_settings'],
+                ['squares', 'texts', 'behavior', 'database', 'api_tokens', 'testmail'],
             ],
             array_map(fn ($g) => array_map(fn ($i) => $i->key, $g->items), $groups),
         );
@@ -64,8 +64,28 @@ final class AdminNavigationTest extends TestCase
 
         app()->setLocale('de');
         $groups = $this->groupsFor($admin, route('admin.dashboard'));
-        $this->assertSame('Betrieb', $groups[0]->label);
+        $this->assertSame(['Betrieb', 'Benutzer', 'Turniere', 'Einstellungen'], array_map(fn ($g) => $g->label, $groups));
         $this->assertSame('Übersicht', $groups[0]->items[0]->label);
+        $this->assertSame(['Benutzerkonten', 'Anmeldeverlauf'], array_map(fn ($i) => $i->label, $groups[1]->items));
+    }
+
+    #[Test]
+    public function no_entry_leads_into_the_members_module(): void
+    {
+        $admin = User::factory()->create(['status' => 'admin']);
+        $member = Member::factory()->create();
+
+        foreach ([route('admin.dashboard'), route('members.dashboard'), route('members.edit', $member), route('members.dsgvo.index')] as $url) {
+            $groups = $this->groupsFor($admin, $url);
+            foreach ($groups as $group) {
+                foreach ($group->items as $item) {
+                    $this->assertStringNotContainsString('/members', $item->url, $url);
+                }
+            }
+            if ($url !== route('admin.dashboard')) {
+                $this->assertSame([], $this->activeKeys($groups), $url);
+            }
+        }
     }
 
     #[Test]
@@ -92,52 +112,18 @@ final class AdminNavigationTest extends TestCase
     }
 
     #[Test]
-    public function members_module_entries_follow_its_two_sections(): void
-    {
-        $admin = User::factory()->create(['status' => 'admin']);
-        $member = Member::factory()->create();
-
-        $groups = $this->groupsFor($admin, route('members.dashboard'));
-        $members = collect($groups)->firstWhere('key', 'members');
-        $this->assertSame(route('members.dashboard'), $members->items[0]->url);
-        $this->assertSame(__('booking.nav.members'), $members->items[0]->label);
-        $settings = collect($groups)->firstWhere('key', 'settings');
-        $last = $settings->items[count($settings->items) - 1];
-        $this->assertSame(route('members.fiscal-years.index'), $last->url);
-        $this->assertSame(__('booking.admin.nav.members_settings'), $last->label);
-
-        foreach ([
-            route('members.dashboard'), route('members.index'), route('members.create'), route('members.edit', $member),
-            route('members.payments.create', $member), route('members.dues.index'), route('members.mail.index'),
-        ] as $url) {
-            $this->assertSame(['members'], $this->activeKeys($this->groupsFor($admin, $url)), $url);
-        }
-        $this->assertSame(['members'], $this->activeKeys($this->groupsFor($admin, route('members.mail.templates.update', ['mailTemplate' => 1]), 'PUT')));
-
-        foreach ([
-            route('members.fiscal-years.index'), route('members.fiscal-years.create'), route('members.fee-categories.index'),
-            route('members.functions.index'), route('members.functions.create'), route('members.mail.config'), route('members.dsgvo.index'),
-        ] as $url) {
-            $this->assertSame(['members_settings'], $this->activeKeys($this->groupsFor($admin, $url)), $url);
-        }
-    }
-
-    #[Test]
-    public function members_module_entries_need_the_members_privilege(): void
+    public function the_users_group_needs_the_user_privilege_only(): void
     {
         $assist = User::factory()->create(['status' => 'assist']);
-        $assist->syncPrivileges(['admin.see-menu', 'admin.user', 'admin.config']);
+        $assist->syncPrivileges(['admin.see-menu', 'admin.members']);
 
-        $keys = fn (array $groups): array => array_merge(...array_map(fn ($g) => array_map(fn ($i) => $i->key, $g->items), $groups));
+        $groupKeys = fn (array $groups): array => array_map(fn ($g) => $g->key, $groups);
+        $this->assertNotContains('users', $groupKeys($this->groupsFor($assist->fresh(), route('admin.dashboard'))));
 
-        $without = $keys($this->groupsFor($assist->fresh(), route('admin.dashboard')));
-        $this->assertNotContains('members', $without);
-        $this->assertNotContains('members_settings', $without);
-
-        $assist->syncPrivileges(['admin.see-menu', 'admin.user', 'admin.config', 'admin.members']);
-        $with = $keys($this->groupsFor($assist->fresh(), route('admin.dashboard')));
-        $this->assertContains('members', $with);
-        $this->assertContains('members_settings', $with);
+        $assist->syncPrivileges(['admin.see-menu', 'admin.user']);
+        $groups = $this->groupsFor($assist->fresh(), route('admin.dashboard'));
+        $this->assertContains('users', $groupKeys($groups));
+        $this->assertSame(['users', 'login_history'], array_map(fn ($i) => $i->key, collect($groups)->firstWhere('key', 'users')->items));
     }
 
     #[Test]
@@ -163,8 +149,8 @@ final class AdminNavigationTest extends TestCase
     #[Test]
     public function labels_exist_in_both_locales(): void
     {
-        $keys = ['label', 'eyebrow', 'group_operations', 'group_members', 'group_tournaments', 'group_settings',
-            'pyramid', 'championship', 'draws', 'mixed', 'members_settings', 'open', 'close', 'breadcrumb', 'back'];
+        $keys = ['label', 'eyebrow', 'group_operations', 'group_users', 'group_tournaments', 'group_settings',
+            'pyramid', 'championship', 'draws', 'mixed', 'open', 'close', 'breadcrumb', 'back'];
 
         foreach (['de', 'en'] as $locale) {
             app()->setLocale($locale);

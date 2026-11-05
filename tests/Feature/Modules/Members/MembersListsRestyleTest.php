@@ -41,7 +41,7 @@ class MembersListsRestyleTest extends TestCase
     #[Test]
     public function kpis_use_the_shared_tile(): void
     {
-        $this->assertSame(3, substr_count($this->render('/members/dashboard'), 'class="ds-kpi"'));
+        $this->assertSame(4, substr_count($this->render('/members/dashboard'), 'class="ds-kpi"'));
     }
 
     /** @return array<string, array{string}> */

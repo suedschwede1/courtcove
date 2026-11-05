@@ -1,5 +1,5 @@
 @extends('members::layout')
-@section('admin-title', __('members::admin.mail.config_title'))
+@section('members-title', __('members::admin.mail.config_title'))
 @section('members-content')
 <x-members::page-header :title="__('members::admin.mail.config_title')" />
 

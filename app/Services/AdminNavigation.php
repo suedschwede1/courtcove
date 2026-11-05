@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\User;
-use App\Modules\Members\Support\MembersNavigation;
 use App\Support\Ui\AdminNavGroup;
 use App\Support\Ui\NavItem;
 use Illuminate\Http\Request;
@@ -31,9 +30,9 @@ final class AdminNavigation
                 ['events', 'admin.events.index', 'admin.event', 'booking.admin.events.title', ['admin.events.*']],
                 ['statistics', 'admin.statistics.index', 'admin.booking', 'booking.admin.statistics.title', ['admin.statistics.*']],
             ]],
-            ['members', 'booking.admin.nav.group_members', [
-                ['members', 'members.dashboard', 'admin.members', 'booking.nav.members', MembersNavigation::patterns('members'), true],
-                ['users', 'admin.users.index', 'admin.user', 'booking.admin.users.members', ['admin.users.*']],
+            // Booking-system logins only; club member management is its own area (header entry "Mitglieder").
+            ['users', 'booking.admin.nav.group_users', [
+                ['users', 'admin.users.index', 'admin.user', 'booking.admin.users.accounts', ['admin.users.*']],
                 ['login_history', 'admin.login-history.index', 'admin.user', 'booking.admin.login_history.title', ['admin.login-history.*']],
             ]],
             ['tournaments', 'booking.admin.nav.group_tournaments', [
@@ -49,7 +48,6 @@ final class AdminNavigation
                 ['database', 'admin.database.index', 'admin.config', 'booking.admin.database.title', ['admin.database.*']],
                 ['api_tokens', 'admin.api-tokens.index', 'admin.api-tokens', 'booking.admin.api_tokens.title', ['admin.api-tokens.*']],
                 ['testmail', 'admin.testmail.index', 'admin.config', 'booking.admin.testmail.title', ['admin.testmail.*']],
-                ['members_settings', 'members.fiscal-years.index', 'admin.members', 'booking.admin.nav.members_settings', MembersNavigation::patterns('configuration'), true],
             ]],
         ];
     }

@@ -1,5 +1,5 @@
 @extends('members::layout')
-@section('admin-title', $member->fullName())
+@section('members-title', $member->fullName())
 @section('members-content')
 @php
     use App\Modules\Members\Support\StatusTone;
@@ -21,10 +21,15 @@
             </form>
         @endif
         <x-ui.button variant="secondary" :block="false" :href="route('members.index')">{{ __('members::admin.common.cancel') }}</x-ui.button>
-        <x-ui.button type="submit" :block="false" form="member-edit-form">{{ __('members::admin.common.save') }}</x-ui.button>
+        <x-ui.button type="submit" :block="false" form="member-edit-form" class="mbr-phone-hidden">{{ __('members::admin.common.save') }}</x-ui.button>
     </x-slot:actions>
+    <x-slot:phoneAction>
+        <x-ui.button type="submit" form="member-edit-form">{{ __('members::admin.common.save') }}</x-ui.button>
+    </x-slot:phoneAction>
 </x-members::page-header>
 
+<div class="mbr-detail">
+<div class="mbr-detail__main">
 <form id="member-edit-form" method="POST" action="{{ route('members.update', $member) }}" class="ui-form-shell">
     @method('PUT')
     @include('members::members._form', ['member' => $member])
@@ -158,14 +163,40 @@
         @endforelse
     </x-ui.table>
 </x-ui.card>
+</div>
 
-@if($member->anonymized_at !== null)
-    <x-ui.notice tone="neutral">{{ __('members::admin.members.anonymized_at', ['date' => $member->anonymized_at->format('d.m.Y')]) }}</x-ui.notice>
-@elseif($member->left_at !== null)
-    <x-ui.notice tone="attention">{{ __('members::admin.members.anonymize_warning') }}</x-ui.notice>
-@endif
+<div class="mbr-detail__side">
+    {{-- Optional link to a booking-system account; members and users are separate things. --}}
+    <x-ui.card :title="__('members::admin.members.user_account_card')" x-data="{
+        linked: {{ $member->user !== null ? 'true' : 'false' }}, error: null,
+        async unlink() {
+            this.error = null;
+            const result = await window.saveMemberField({{ $member->id }}, 'user_id', null);
+            if (result.ok) { this.linked = false; this.$dispatch('member-unlinked'); } else { this.error = result.message; }
+        }
+    }">
+        <p class="text-body-s text-ink-2">{{ __('members::admin.members.user_account_help') }}</p>
+        @if($member->user)
+            <div x-show="linked" class="flex flex-col items-start gap-3">
+                <p class="font-semibold text-ink">{{ $member->user->alias }}@if($member->user->email) · {{ $member->user->email }}@endif</p>
+                <x-ui.button variant="secondary" :block="false" x-on:click="unlink()">{{ __('members::admin.members.unlink') }}</x-ui.button>
+                <p class="ds-field__error" x-show="error" x-text="error"></p>
+            </div>
+        @endif
+        <div x-show="!linked"@if($member->user !== null) x-cloak @endif>
+            @include('members::members._user-picker', ['member' => $member, 'formId' => 'member-edit-form', 'label' => __('members::admin.members.link_user'), 'help' => __('members::admin.members.link_hint')])
+        </div>
+    </x-ui.card>
 
-@include('members::members._history', ['changes' => $changes])
+    @include('members::members._history', ['changes' => $changes, 'member' => $member])
+
+    @if($member->anonymized_at !== null)
+        <x-ui.notice tone="neutral">{{ __('members::admin.members.anonymized_at', ['date' => $member->anonymized_at->format('d.m.Y')]) }}</x-ui.notice>
+    @elseif($member->left_at !== null)
+        <x-ui.notice tone="attention">{{ __('members::admin.members.anonymize_warning') }}</x-ui.notice>
+    @endif
+</div>
+</div>
 
 @once
     @push('scripts')

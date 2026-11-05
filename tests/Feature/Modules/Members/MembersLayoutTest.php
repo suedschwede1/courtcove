@@ -14,14 +14,17 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
- * Every Members page renders inside the shared admin shell (layouts.admin): one
- * admin sidebar with the Mitglieder entries, and the module's sub-pages as tabs.
+ * The Members area is standalone: every page renders in the normal app layout (light header with
+ * "Mitglieder" active), without the admin sidebar, with one module tab row under the page head.
  */
 class MembersLayoutTest extends TestCase
 {
     use LazilyRefreshDatabase;
 
     private const VIEWS = 'app/Modules/Members/resources/views/';
+
+    /** Tab routes in order. */
+    private const TABS = ['members.dashboard', 'members.index', 'members.dues.index', 'members.mail.index', 'members.changes.index', 'members.fiscal-years.index'];
 
     private function admin(): User
     {
@@ -33,14 +36,9 @@ class MembersLayoutTest extends TestCase
         return (string) $this->actingAs($this->admin())->get($url)->assertOk()->getContent();
     }
 
-    private function sidebar(string $html): string
-    {
-        return $this->between($html, '<aside id="admin-nav"', '</aside>');
-    }
-
     private function tabs(string $html): string
     {
-        return $this->between($html, '<nav class="ds-tabs', '</nav>');
+        return $this->between($html, '<nav class="ds-tabs mbr-tabs', '</nav>');
     }
 
     private function between(string $html, string $open, string $close): string
@@ -54,9 +52,9 @@ class MembersLayoutTest extends TestCase
     }
 
     /**
-     * Every HTML page of the module => [route of the active admin sidebar entry, route of the active tab].
+     * Every HTML page of the module => [route of the active tab, route of the active settings entry or null].
      *
-     * @return array<string, array{0: string, 1: string}>
+     * @return array<string, array{0: string, 1: string|null}>
      */
     private function pages(): array
     {
@@ -65,13 +63,14 @@ class MembersLayoutTest extends TestCase
         $role = ClubRole::create(['name' => 'Kassier', 'is_board' => true]);
 
         return [
-            route('members.dashboard') => ['members.dashboard', 'members.dashboard'],
-            route('members.index') => ['members.dashboard', 'members.index'],
-            route('members.create') => ['members.dashboard', 'members.index'],
-            route('members.edit', $member) => ['members.dashboard', 'members.index'],
-            route('members.payments.create', $member) => ['members.dashboard', 'members.index'],
-            route('members.dues.index') => ['members.dashboard', 'members.dues.index'],
-            route('members.mail.index') => ['members.dashboard', 'members.mail.index'],
+            route('members.dashboard') => ['members.dashboard', null],
+            route('members.index') => ['members.index', null],
+            route('members.create') => ['members.index', null],
+            route('members.edit', $member) => ['members.index', null],
+            route('members.payments.create', $member) => ['members.index', null],
+            route('members.dues.index') => ['members.dues.index', null],
+            route('members.mail.index') => ['members.mail.index', null],
+            route('members.changes.index') => ['members.changes.index', null],
             route('members.fiscal-years.index') => ['members.fiscal-years.index', 'members.fiscal-years.index'],
             route('members.fiscal-years.create') => ['members.fiscal-years.index', 'members.fiscal-years.index'],
             route('members.fiscal-years.edit', $fiscalYear) => ['members.fiscal-years.index', 'members.fiscal-years.index'],
@@ -93,87 +92,94 @@ class MembersLayoutTest extends TestCase
             ->reject(fn (string $name) => $name === 'members.export')
             ->values()->all();
 
-        $this->assertCount(16, $names);
-        $this->assertCount(16, $this->pages());
+        $this->assertCount(17, $names);
+        $this->assertCount(17, $this->pages());
     }
 
     #[Test]
-    public function every_page_renders_in_the_shared_admin_shell(): void
+    public function every_page_renders_in_the_app_layout_without_the_admin_sidebar(): void
     {
         $admin = $this->admin();
 
         foreach (array_keys($this->pages()) as $url) {
             $html = (string) $this->actingAs($admin)->get($url)->assertOk()->getContent();
 
-            $this->assertSame(1, substr_count($html, 'class="ds-admin"'), $url);
-            $this->assertSame(1, substr_count($html, 'id="admin-nav"'), $url);
-            $this->assertSame(1, substr_count($html, '<aside'), $url);
+            $this->assertSame(1, substr_count($html, '<header class="ds-header'), $url);
+            foreach (['class="ds-admin"', 'id="admin-nav"', 'ds-admin-sidebar', 'ds-admin-bar', '<aside'] as $adminShell) {
+                $this->assertStringNotContainsString($adminShell, $html, $url);
+            }
             $this->assertSame(1, substr_count($html, '<h1'), $url);
-            $this->assertStringContainsString('aria-controls="admin-nav"', $html, $url);
+            $this->assertStringContainsString('<p class="mbr-page-header__eyebrow">Mitgliederverwaltung</p>', $html, $url);
             $this->assertStringContainsString('<meta name="csrf-token"', $html, $url);
-            $this->assertStringContainsString('<title>'.e(__('booking.nav.admin')).' - ', $html, $url);
+            $this->assertMatchesRegularExpression('#<title>[^<]+ - '.preg_quote(e(__('members::admin.area.eyebrow')), '#').'\s*</title>#', $html, $url);
 
-            // Phones hide the h1 and show the admin bar title instead, so both carry the same text.
-            $this->assertMatchesRegularExpression('#<h1[^>]*>([^<]+)</h1>#', $html, $url);
-            preg_match('#<h1[^>]*>([^<]+)</h1>#', $html, $h1);
-            preg_match('#<p class="ds-admin-bar__title">([^<]+)</p>#', $html, $bar);
-            $this->assertSame(trim($h1[1]), trim($bar[1] ?? ''), $url);
+            // The header marks "Mitglieder" as the current area, never the administration.
+            $this->assertMatchesRegularExpression('#<a href="'.preg_quote(route('members.dashboard'), '#').'"[^>]*aria-current="page"#', $html, $url);
+            $this->assertDoesNotMatchRegularExpression('#<a href="'.preg_quote(route('admin.dashboard'), '#').'"[^>]*aria-current="page"#', $html, $url);
+        }
+    }
 
-            foreach (['members-sidebar', 'mbr-shell', 'mbr-sidebar', 'mbr-topbar', 'mbr-main', 'mbr-content'] as $old) {
-                $this->assertStringNotContainsString($old, $html, $url);
+    #[Test]
+    public function every_page_has_the_tab_row_with_the_right_tab_active(): void
+    {
+        $admin = $this->admin();
+
+        foreach ($this->pages() as $url => [$tabRoute, $settingsRoute]) {
+            $html = (string) $this->actingAs($admin)->get($url)->assertOk()->getContent();
+
+            $tabs = $this->tabs($html);
+            $this->assertSame(1, substr_count($html, '<nav class="ds-tabs'), $url);
+            $this->assertStringContainsString('aria-label="'.e(__('members::admin.area.tabs')).'"', $tabs, $url);
+            preg_match_all('#<a href="([^"]+)"#', $tabs, $links);
+            $this->assertSame(array_map(fn (string $r) => route($r), self::TABS), $links[1], $url);
+            $this->assertSame(1, substr_count($tabs, 'aria-current="page"'), $url);
+            $this->assertMatchesRegularExpression('#<a href="'.preg_quote(route($tabRoute), '#').'"[^>]*aria-current="page"#', $tabs, $url);
+
+            if ($settingsRoute === null) {
+                $this->assertStringNotContainsString('class="mbr-subnav"', $html, $url);
+
+                continue;
+            }
+            $subnav = $this->between($html, '<nav class="mbr-subnav"', '</nav>');
+            $this->assertSame(5, substr_count($subnav, '<a href='), $url);
+            $this->assertSame(1, substr_count($subnav, 'aria-current="true"'), $url);
+            $this->assertMatchesRegularExpression('#<a href="'.preg_quote(route($settingsRoute), '#').'"[^>]*aria-current="true"#', $subnav, $url);
+        }
+    }
+
+    #[Test]
+    public function pages_work_the_same_with_admin_mode_on_and_off(): void
+    {
+        $admin = $this->admin();
+        $urls = array_keys($this->pages());
+
+        foreach (['0', '1'] as $mode) {
+            foreach ($urls as $url) {
+                $html = (string) $this->actingAs($admin)->withCookie('admin_mode', $mode)->get($url)->assertOk()->getContent();
+                $this->assertStringContainsString('<nav class="ds-tabs mbr-tabs', $html, $url.' admin_mode='.$mode);
+                $this->assertSame(1, substr_count($html, '<h1'), $url.' admin_mode='.$mode);
             }
         }
     }
 
     #[Test]
-    public function the_right_sidebar_entry_and_tab_are_active_on_every_page(): void
+    public function list_and_detail_pin_their_primary_action_on_phones(): void
     {
-        $admin = $this->admin();
+        $html = $this->render(route('members.index'));
+        $bar = $this->between($html, '<div class="ds-phone-actionbar mbr-phone-action">', '</div>');
+        $this->assertStringContainsString('href="'.route('members.create').'"', $bar);
+        $this->assertStringContainsString(e(__('members::admin.members.create')), $bar);
+        $this->assertStringContainsString('class="ds-phone-actionbar-spacer"', $html);
 
-        foreach ($this->pages() as $url => [$sidebarRoute, $tabRoute]) {
-            $html = (string) $this->actingAs($admin)->get($url)->assertOk()->getContent();
+        $html = $this->render(route('members.edit', Member::factory()->create()));
+        $bar = $this->between($html, '<div class="ds-phone-actionbar mbr-phone-action">', '</div>');
+        $this->assertMatchesRegularExpression('#<button type="submit"[^>]*form="member-edit-form"#', $bar);
 
-            $sidebar = $this->sidebar($html);
-            $this->assertSame(1, substr_count($sidebar, 'aria-current="page"'), $url);
-            $this->assertMatchesRegularExpression('#<a href="'.preg_quote(route($sidebarRoute), '#').'"[^>]*aria-current="page"#', $sidebar, $url);
-
-            $tabs = $this->tabs($html);
-            $this->assertSame(1, substr_count($html, '<nav class="ds-tabs'), $url);
-            $this->assertSame(1, substr_count($tabs, 'aria-current="page"'), $url);
-            $this->assertMatchesRegularExpression('#<a href="'.preg_quote(route($tabRoute), '#').'"[^>]*aria-current="page"#', $tabs, $url);
-        }
+        $this->assertStringNotContainsString('ds-phone-actionbar', $this->render(route('members.mail.index')));
     }
 
     #[Test]
-    public function tabs_show_the_sub_pages_of_the_active_section_only(): void
-    {
-        $tabs = $this->tabs($this->render('/members/dues'));
-        $this->assertStringContainsString('aria-label="'.e(__('booking.nav.members')).'"', $tabs);
-        foreach (['members.dashboard', 'members.index', 'members.dues.index', 'members.mail.index'] as $route) {
-            $this->assertStringContainsString('href="'.route($route).'"', $tabs);
-        }
-        $this->assertStringNotContainsString('href="'.route('members.dsgvo.index').'"', $tabs);
-
-        $tabs = $this->tabs($this->render('/members/mail/config'));
-        $this->assertStringContainsString('aria-label="'.e(__('members::admin.dashboard.configuration')).'"', $tabs);
-        foreach (['members.fiscal-years.index', 'members.fee-categories.index', 'members.functions.index', 'members.mail.config', 'members.dsgvo.index'] as $route) {
-            $this->assertStringContainsString('href="'.route($route).'"', $tabs);
-        }
-        $this->assertStringNotContainsString('href="'.route('members.mail.index').'"', $tabs);
-    }
-
-    #[Test]
-    public function phone_menu_closes_on_escape_and_makes_the_page_inert(): void
-    {
-        $html = $this->render('/members/dashboard');
-
-        $this->assertStringContainsString('x-on:keydown.escape.window="if (navOpen) { navOpen = false; $refs.navButton?.focus() }"', $html);
-        $this->assertStringContainsString('<main id="content" class="ds-admin-main" x-bind:inert="navOpen">', $html);
-        $this->assertMatchesRegularExpression('#class="ds-admin-backdrop"[^>]*x-on:click="navOpen = false"#', $html);
-    }
-
-    #[Test]
-    public function layout_keeps_logout_admin_link_and_flashes(): void
+    public function layout_keeps_logout_and_flashes(): void
     {
         $admin = $this->admin();
 
@@ -200,11 +206,11 @@ class MembersLayoutTest extends TestCase
     }
 
     #[Test]
-    public function every_page_view_uses_the_module_layout_which_extends_the_admin_shell(): void
+    public function every_page_view_uses_the_module_layout_which_extends_the_app_layout(): void
     {
         $layout = (string) file_get_contents(base_path(self::VIEWS.'layout.blade.php'));
-        $this->assertStringStartsWith("@extends('layouts.admin')", $layout);
-        $this->assertFileDoesNotExist(base_path(self::VIEWS.'components/sidebar.blade.php'));
+        $this->assertStringContainsString("@extends('layouts.app')", $layout);
+        $this->assertStringNotContainsString('layouts.admin', $layout);
 
         $pages = 0;
         foreach (glob(base_path(self::VIEWS.'{*,*/*}.blade.php'), GLOB_BRACE) ?: [] as $path) {
@@ -216,9 +222,10 @@ class MembersLayoutTest extends TestCase
             $source = (string) file_get_contents($path);
             $this->assertStringStartsWith("@extends('members::layout')", $source, $name);
             $this->assertStringContainsString("@section('members-content')", $source, $name);
+            $this->assertStringNotContainsString("@section('admin-", $source, $name);
             $pages++;
         }
-        $this->assertSame(16, $pages);
+        $this->assertSame(17, $pages);
     }
 
     #[Test]

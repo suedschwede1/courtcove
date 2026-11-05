@@ -12,7 +12,6 @@ return [
         'my_account' => 'Mein Konto',
         'admin' => 'Administration',
         'members' => 'Mitglieder',
-        'admin_overview' => 'Übersicht',
         'tournaments' => 'Turniere',
         'back_to_calendar' => 'Zum Kalender',
         'logout' => 'Abmelden',

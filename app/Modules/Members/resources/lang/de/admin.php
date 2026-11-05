@@ -3,9 +3,26 @@
 declare(strict_types=1);
 
 return [
+    'area' => [
+        'eyebrow' => 'Mitgliederverwaltung',
+        'tabs' => 'Mitgliederverwaltung',
+    ],
+    'settings' => [
+        'title' => 'Einstellungen',
+    ],
     'members' => [
         'title' => 'Mitglieder',
         'new_member' => 'Neues Mitglied',
+        'create' => 'Mitglied anlegen',
+        'export' => 'Export',
+        'user_account' => 'Benutzerkonto',
+        'optional' => 'optional',
+        'user_account_card' => 'Benutzerkonto · optional',
+        'user_account_help' => 'Ein Mitglied braucht kein Konto im Buchungssystem, ein Benutzer muss kein Mitglied sein.',
+        'linked' => 'verknüpft',
+        'unlink' => 'Verknüpfung lösen',
+        'link_user' => 'Mit Benutzerkonto verknüpfen',
+        'link_hint' => 'Wird mit „Speichern“ übernommen.',
         'section_person' => 'Person',
         'section_contact' => 'Kontakt',
         'section_club' => 'Verein',
@@ -136,6 +153,19 @@ return [
         'age_unknown' => 'ohne Geburtsdatum',
         'members_by_category' => 'Mitglieder pro Beitragskategorie',
         'no_category' => 'Ohne Kategorie',
+        'members' => 'Mitglieder',
+        'youth' => 'davon :count Jugend',
+        'active' => 'Aktiv',
+        'dormant' => ':count ruhend',
+        'dues_open' => 'Beitrag :year offen',
+        'dues_open_sum' => 'Summe :sum',
+        'without_account' => 'Ohne Benutzerkonto',
+        'without_account_meta' => 'nur Vereinsmitglied',
+        'open_list' => 'Beitrag offen',
+        'no_open_dues' => 'Keine offenen Beiträge.',
+        'all_dues' => 'Alle Beiträge',
+        'recent' => 'Zuletzt geändert',
+        'all_changes' => 'Zum Protokoll',
     ],
     'history' => [
         'title' => 'Änderungshistorie',
@@ -143,6 +173,17 @@ return [
         'no_changes' => 'Keine Feldänderungen.',
         'empty' => 'Keine Änderungen protokolliert.',
         'change' => ':field: :old → :new',
+        'changed' => ':field geändert',
+        'anonymized' => 'Anonymisiert',
+    ],
+    'changes' => [
+        'title' => 'Protokoll',
+        'list_title' => 'Änderungen an Mitgliedern',
+        'search' => 'Mitglied',
+        'from' => 'Von',
+        'to' => 'Bis',
+        'empty' => 'Keine Änderungen im gewählten Zeitraum.',
+        'system' => 'System',
     ],
     'functions' => [
         'title' => 'Funktionen',
@@ -155,7 +196,7 @@ return [
         'confirm_delete' => 'Diese Funktion wirklich löschen?',
     ],
     'mail' => [
-        'title' => 'Mail',
+        'title' => 'Rundmail',
         'config_title' => 'Mail-Einstellungen',
         'bcc' => 'BCC',
         'to_all' => 'Mail an alle Mitglieder',

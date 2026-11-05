@@ -27,9 +27,9 @@ class MailComposerRestyleTest extends TestCase
     {
         $html = $this->render();
 
-        $this->assertSame(1, preg_match('/<[a-z]+\b[^>]*\brole="dialog"[^>]*>/', $html, $match));
+        // The app header's phone menu is a dialog too; the confirm dialog is the one labelled by its title.
+        $this->assertSame(1, preg_match('/<[a-z]+\b[^>]*\brole="dialog"[^>]*\baria-labelledby="mail-confirm-title"[^>]*>/', $html, $match));
         $this->assertStringContainsString('aria-modal="true"', $match[0]);
-        $this->assertStringContainsString('aria-labelledby="mail-confirm-title"', $match[0]);
         $this->assertMatchesRegularExpression('/<h2\b[^>]*\bid="mail-confirm-title"/', $html);
     }
 
