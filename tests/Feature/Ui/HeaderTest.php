@@ -274,22 +274,20 @@ class HeaderTest extends TestCase
     }
 
     #[Test]
-    public function administration_group_is_current_on_admin_pages(): void
+    public function members_and_admin_are_own_entries_and_members_is_current_on_member_pages(): void
     {
         $admin = User::factory()->create(['status' => 'admin']);
         $xp = $this->xpath($this->actingAs($admin)->get('/calendar')->assertOk()->getContent());
         $nav = '//nav[@aria-label="Hauptmenü"]';
 
-        $this->assertSame(4, $xp->query($nav.'/ul/li')->length);
-        $panel = $xp->query($nav.'//*[@id="nav-group-administration"]//a');
-        $this->assertSame([route('admin.dashboard'), route('members.dashboard')], array_map(fn ($a) => $a->getAttribute('href'), iterator_to_array($panel)));
-        $this->assertSame(0, $xp->query($nav.'/ul/li/a[@href="'.route('members.dashboard').'"]')->length);
+        $this->assertSame(5, $xp->query($nav.'/ul/li')->length);
+        $this->assertSame(0, $xp->query($nav.'//*[@id="nav-group-administration"]')->length);
+        $direct = array_map(fn ($a) => $a->getAttribute('href'), iterator_to_array($xp->query($nav.'/ul/li/a')));
+        $this->assertSame([route('members.dashboard'), route('admin.dashboard')], array_slice($direct, -2));
 
-        // Admin pages bring their own bar, so render the header for such a request directly.
         $this->actingAs($admin);
         $xp = $this->xpath($this->renderHeader(route('members.dashboard')));
-        $button = $xp->query($nav.'//button[@aria-controls="nav-group-administration"]');
-        $this->assertSame('true', $button->item(0)->getAttribute('aria-current'));
+        $this->assertSame(0, $xp->query($nav.'//button[@aria-current="true"]')->length);
         $current = $xp->query($nav.'//a[@aria-current="page"]');
         $this->assertSame(1, $current->length);
         $this->assertSame(route('members.dashboard'), $current->item(0)->getAttribute('href'));

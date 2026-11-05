@@ -12,8 +12,9 @@ use Illuminate\Support\Facades\Gate;
 /**
  * Builds the main navigation once for the header bar and the phone menu.
  *
- * items() is the flat list (phone menu); bar() folds it into at most four top-level
- * entries for the desktop header so the bar never wraps.
+ * items() is the flat list (phone menu); bar() folds the tournaments into one entry so
+ * the desktop header has at most five top-level entries and never wraps:
+ * Calendar, My bookings, Tournaments, Members, Admin.
  */
 final class MainNavigation
 {
@@ -44,12 +45,13 @@ final class MainNavigation
             $add('mixed', __('booking.nav.mixed_tournament'), $this->links->mixedUrl(), 'trophy', $request->is('mixed-tournament', 'mixed-tournament/*'));
             $add('account', __('booking.nav.my_account'), route('account.edit'), 'user', $request->routeIs('account.edit'), false);
 
+            // Members (club membership records) and Admin (booking system) are separate areas with their own gates.
             $gate = Gate::forUser($user);
-            if ($gate->allows('admin.see-menu')) {
-                $add('admin', __('booking.nav.admin'), route('admin.dashboard'), 'settings', $request->routeIs('admin.*'));
-            }
             if ($gate->allows('admin.members')) {
                 $add('members', __('booking.nav.members'), route('members.dashboard'), 'members', $request->routeIs('members.*'));
+            }
+            if ($gate->allows('admin.see-menu')) {
+                $add('admin', __('booking.nav.admin'), route('admin.dashboard'), 'settings', $request->routeIs('admin.*'));
             }
         }
 
@@ -67,12 +69,9 @@ final class MainNavigation
     /** Item keys folded into one "Tournaments" dropdown in the header bar. */
     private const TOURNAMENT_KEYS = ['championship', 'pyramid', 'mixed'];
 
-    /** Item keys folded into one "Administration" dropdown in the header bar. */
-    private const ADMIN_KEYS = ['admin', 'members'];
-
     /**
-     * The header bar's entries: bar-only items, tournaments and administration each
-     * collapsed into one group. A group with a single entry shows that entry directly.
+     * The header bar's entries: bar-only items, the tournaments collapsed into one group.
+     * A group with a single entry shows that entry directly.
      *
      * @param  list<NavItem>  $items  as returned by items()
      * @return list<NavItem>
@@ -81,7 +80,6 @@ final class MainNavigation
     {
         $groups = [
             'tournaments' => ['label' => __('booking.nav.tournaments'), 'icon' => 'trophy', 'keys' => self::TOURNAMENT_KEYS],
-            'administration' => ['label' => __('booking.nav.admin'), 'icon' => 'settings', 'keys' => self::ADMIN_KEYS],
         ];
 
         $bar = [];
@@ -114,13 +112,6 @@ final class MainNavigation
                 $bar[] = $children[0];
 
                 continue;
-            }
-
-            if ($groupKey === 'administration') {
-                // Under the "Administration" button the dashboard entry reads "Overview".
-                $children = array_map(fn (NavItem $i) => $i->key === 'admin'
-                    ? new NavItem($i->key, __('booking.nav.admin_overview'), $i->url, $i->icon, $i->active, $i->inBar)
-                    : $i, $children);
             }
 
             $active = array_filter($children, fn (NavItem $i) => $i->active) !== [];
