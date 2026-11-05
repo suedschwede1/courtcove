@@ -1,56 +1,48 @@
 @extends('members::layout')
 @section('admin-title', __('members::admin.mail.config_title'))
 @section('admin-content')
-<div class="ui-page">
-    <div class="ui-page-header"><h1>{{ __('members::admin.mail.config_title') }}</h1></div>
+<x-members::page-header :title="__('members::admin.mail.config_title')" />
 
-    <div class="ui-card">
-        <div class="ui-card-header"><h2>{{ __('members::admin.mail.sender_settings') }}</h2></div>
-        <div class="ui-card-body">
-            <form method="POST" action="{{ route('members.mail.sender.update') }}" class="ui-stack">
-                @csrf
-                <div class="ui-field">
-                    <label class="ui-label" for="mail-from-name">{{ __('members::admin.mail.from_name') }}</label>
-                    <input id="mail-from-name" type="text" name="from_name" value="{{ old('from_name', $fromName) }}" required class="ui-input">
-                    @error('from_name')<p class="ui-error">{{ $message }}</p>@enderror
-                </div>
-                <div class="ui-field">
-                    <label class="ui-label" for="mail-from-address">{{ __('members::admin.mail.from_address') }}</label>
-                    <input id="mail-from-address" type="email" name="from_address" value="{{ old('from_address', $fromAddress) }}" required class="ui-input">
-                    @error('from_address')<p class="ui-error">{{ $message }}</p>@enderror
-                </div>
-                <div>
-                    <button type="submit" class="ui-btn ui-btn-primary">{{ __('members::admin.mail.save_sender') }}</button>
-                </div>
-            </form>
+<x-ui.card :title="__('members::admin.mail.sender_settings')" class="mb-4">
+    <form method="POST" action="{{ route('members.mail.sender.update') }}" class="grid gap-4">
+        @csrf
+        <x-ui.field :label="__('members::admin.mail.from_name')" for="mail-from-name" :error="$errors->first('from_name')">
+            <x-ui.input name="from_name" :value="old('from_name', $fromName)" required />
+        </x-ui.field>
+        <x-ui.field :label="__('members::admin.mail.from_address')" for="mail-from-address" :error="$errors->first('from_address')">
+            <x-ui.input type="email" name="from_address" :value="old('from_address', $fromAddress)" required />
+        </x-ui.field>
+        <div>
+            <x-ui.button type="submit" :block="false">{{ __('members::admin.mail.save_sender') }}</x-ui.button>
         </div>
-    </div>
+    </form>
+</x-ui.card>
 
-    <div class="ui-card">
-        <div class="ui-card-header"><h2>{{ __('members::admin.mail.categories_title') }}</h2></div>
-        <div class="ui-card-body ui-stack">
-            @forelse($mailCategories as $mailCategory)
-                <form method="POST" action="{{ route('members.mail.categories.update', $mailCategory) }}" class="flex items-center gap-2">
-                    @csrf
-                    @method('PUT')
-                    <input type="text" name="name" value="{{ $mailCategory->name }}" class="ui-input flex-1">
-                    <button type="submit" class="ui-btn ui-btn-outline">{{ __('members::admin.common.save') }}</button>
-                    <button type="submit" form="delete-mail-category-{{ $mailCategory->id }}" class="ui-btn ui-btn-ghost">{{ __('members::admin.common.delete') }}</button>
-                </form>
-                <form id="delete-mail-category-{{ $mailCategory->id }}" method="POST" action="{{ route('members.mail.categories.destroy', $mailCategory) }}" onsubmit="return confirm({{ Js::from(__('members::admin.mail.confirm_delete_category')) }})" style="display:none">
-                    @csrf
-                    @method('DELETE')
-                </form>
-            @empty
-                <div class="ui-readonly-box ui-readonly-box-muted">{{ __('members::admin.mail.no_categories') }}</div>
-            @endforelse
-            <form method="POST" action="{{ route('members.mail.categories.store') }}" class="flex items-center gap-2 pt-2" style="border-top:1px solid var(--ui-border)">
+<x-ui.card :title="__('members::admin.mail.categories_title')">
+    <div class="grid gap-3">
+        @forelse($mailCategories as $mailCategory)
+            <form method="POST" action="{{ route('members.mail.categories.update', $mailCategory) }}" class="flex gap-2">
                 @csrf
-                <input type="text" name="name" placeholder="{{ __('members::admin.mail.new_category_name') }}" class="ui-input flex-1">
-                @error('name')<p class="ui-error">{{ $message }}</p>@enderror
-                <button type="submit" class="ui-btn ui-btn-primary">{{ __('members::admin.functions.add') }}</button>
+                @method('PUT')
+                <input type="text" name="name" value="{{ $mailCategory->name }}" class="ds-input flex-1" aria-label="{{ $mailCategory->name }}">
+                <x-ui.button type="submit" variant="secondary" :block="false">{{ __('members::admin.common.save') }}</x-ui.button>
+                <x-ui.button type="submit" variant="danger" :block="false" form="delete-mail-category-{{ $mailCategory->id }}">{{ __('members::admin.common.delete') }}</x-ui.button>
             </form>
-        </div>
+            <form id="delete-mail-category-{{ $mailCategory->id }}" method="POST" action="{{ route('members.mail.categories.destroy', $mailCategory) }}" onsubmit="return confirm({{ Js::from(__('members::admin.mail.confirm_delete_category')) }})" class="hidden">
+                @csrf
+                @method('DELETE')
+            </form>
+        @empty
+            <p class="text-sm text-ink-2">{{ __('members::admin.mail.no_categories') }}</p>
+        @endforelse
+        <form method="POST" action="{{ route('members.mail.categories.store') }}" class="grid gap-2 border-t border-line pt-3">
+            @csrf
+            <div class="flex gap-2">
+                <input type="text" name="name" placeholder="{{ __('members::admin.mail.new_category_name') }}" class="ds-input flex-1" aria-label="{{ __('members::admin.mail.new_category_name') }}">
+                <x-ui.button type="submit" :block="false">{{ __('members::admin.functions.add') }}</x-ui.button>
+            </div>
+            @error('name')<p class="ds-field__error">{{ $message }}</p>@enderror
+        </form>
     </div>
-</div>
+</x-ui.card>
 @endsection

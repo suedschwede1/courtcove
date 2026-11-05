@@ -37,6 +37,10 @@ class MembersViewsLintTest extends TestCase
         'fiscal-years/edit.blade.php',
         'dsgvo/index.blade.php',
         'mail/index.blade.php',
+        'mail/config.blade.php',
+        'functions/_form.blade.php',
+        'functions/create.blade.php',
+        'functions/edit.blade.php',
     ];
 
     private const VIEWS_PREFIX = 'Modules/Members/resources/views/';
