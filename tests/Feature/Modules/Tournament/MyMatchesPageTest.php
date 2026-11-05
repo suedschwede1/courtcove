@@ -45,10 +45,24 @@ class MyMatchesPageTest extends TestCase
         $this->assertStringContainsString('gegen Demo Spieler 05', $html);
         $this->assertStringNotContainsString('Demo Spieler 02', $html);
         $this->assertStringContainsString('Demo Spieler 01', $html);
-        // own ITN, group and competition; no ITN of the opponents
+        // own ITN, group and competition, and the opponent's ITN on each card (ZF2 mine.phtml)
         $this->assertStringContainsString('ITN 4,1 · Gruppe A · Gruppenphase', $html);
-        $this->assertStringNotContainsString('ITN 4,4', $html);
+        $this->assertMatchesRegularExpression('#gegen Demo Spieler 04.*?· ITN 4,4#s', $html);
+        $this->assertMatchesRegularExpression('#gegen Demo Spieler 05.*?· ITN 4,5#s', $html);
         $this->assertStringContainsString('href="'.e(WhatsApp::url('0664 1234567', 'Hallo Demo! Wann passt Dir unser Vereinsmeisterschafts-Spiel in Gruppe A?')).'"', $html);
+    }
+
+    #[Test]
+    public function whatsapp_text_names_the_ko_competition_for_ko_matches(): void
+    {
+        $this->tournament->players()->where('seed', 2)->update(['phone' => '0664 7654321']);
+        $this->matchRow('KO-R1-1')->update(['tpid_a' => $this->tpid[1], 'tpid_b' => $this->tpid[2]]);
+        $this->app->forgetScopedInstances();
+
+        $html = $this->actingAs($this->user)->get('/tournament/mine')->assertOk()->getContent();
+
+        $this->assertStringContainsString('href="'.e(WhatsApp::url('0664 7654321', 'Hallo Demo! Wann passt Dir unser Vereinsmeisterschafts-Spiel (KO-Runde)?')).'"', $html);
+        $this->assertStringNotContainsString(rawurlencode('in Gruppe KO'), $html);
     }
 
     #[Test]

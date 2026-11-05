@@ -25,7 +25,9 @@ return [
     'view_result' => 'View result',
     'walkover' => '(w.o.)',
     'whatsapp' => 'WhatsApp',
-    'whatsapp_open' => 'Hi :name! When would our club championship match in group :group suit you?',
-    'whatsapp_scheduled' => 'Hi :name! Our club championship match (group :group) is on :date. Does that suit you?',
+    'whatsapp_open_group' => 'Hi :name! When would our club championship match in group :group suit you?',
+    'whatsapp_open_ko' => 'Hi :name! When would our club championship match (:phase) suit you?',
+    'whatsapp_scheduled_group' => 'Hi :name! Our club championship match (group :group) is on :date. Does that suit you?',
+    'whatsapp_scheduled_ko' => 'Hi :name! Our club championship match (:phase) is on :date. Does that suit you?',
     'won' => 'Won :score',
 ];

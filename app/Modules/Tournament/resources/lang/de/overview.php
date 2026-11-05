@@ -37,5 +37,6 @@ return [
     'view_label' => 'Ansicht',
     'whatsapp' => 'WhatsApp',
     'whatsapp_text' => 'Hallo :name! Wann passt Dir unser Vereinsmeisterschafts-Spiel in Gruppe :group?',
+    'whatsapp_text_ko' => 'Hallo :name! Wann passt Dir unser Vereinsmeisterschafts-Spiel (:phase)?',
     'winner' => 'Sieger :phase',
 ];

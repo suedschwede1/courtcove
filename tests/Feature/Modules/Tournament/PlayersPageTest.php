@@ -55,8 +55,9 @@ class PlayersPageTest extends TestCase
         for ($seed = 1; $seed <= 6; $seed++) {
             $this->assertStringContainsString(sprintf('Demo Spieler %02d', $seed), $html);
         }
-        // members see no ITN of other players
-        $this->assertStringNotContainsString('ITN 4,', $html);
+        // names and ITN for every member, contacts not
+        $this->assertStringContainsString('ITN 4,4', $html);
+        $this->assertStringContainsString('ITN 4,6', $html);
     }
 
     #[Test]
@@ -68,7 +69,7 @@ class PlayersPageTest extends TestCase
         $this->assertStringContainsString('href="mailto:spieler04@example.test"', $html);
         $this->assertStringContainsString('href="tel:+436997654321"', $html);
         $this->assertStringNotContainsString('Kontaktdaten sind nur für Turnierteilnehmer sichtbar.', $html);
-        $this->assertStringNotContainsString('ITN 4,', $html);
+        $this->assertStringContainsString('ITN 4,4', $html);
     }
 
     #[Test]
@@ -84,7 +85,8 @@ class PlayersPageTest extends TestCase
         $html = $this->actingAs($admin)->get('/tournament/players')->assertOk()->getContent();
 
         $this->assertNoContacts($html);
-        $this->assertStringNotContainsString('ITN 4,', $html);
+        // a simulated member still sees the ITN
+        $this->assertStringContainsString('ITN 4,4', $html);
     }
 
     #[Test]

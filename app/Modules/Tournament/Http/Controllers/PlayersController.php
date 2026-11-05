@@ -13,9 +13,8 @@ use Illuminate\Http\Request;
 /**
  * Seed list with expandable rows (port of IndexController::playersAction).
  *
- * Names, seed, group and record for every member; contact data (phone, e-mail from bs_users) only from
- * level PARTICIPANT on, and only then are the e-mail addresses read at all. The ITN of other players is
- * shown to admins only.
+ * Names, ITN, seed, group and record for every member; contact data (phone, e-mail from bs_users) only
+ * from level PARTICIPANT on, and only then are the e-mail addresses read at all.
  */
 class PlayersController extends TournamentPageController
 {

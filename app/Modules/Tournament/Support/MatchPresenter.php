@@ -123,7 +123,7 @@ final class MatchPresenter
     }
 
     /**
-     * Date, time and court of a match ("Mo, 3. Mai · 17:00 · Court D"), or null without a date.
+     * Date, time and court of a match ("Mo, 3. Mai · 17:00 · Platz Alpha"), or null without a date.
      *
      * @param  array<string, mixed>  $match
      */

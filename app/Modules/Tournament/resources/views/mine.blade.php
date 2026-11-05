@@ -78,9 +78,12 @@
             $props = $presenter->present($match, $players, $access, $tournament);
             $isNext = $next !== null && (int) $next['tmid'] === (int) $match['tmid'];
             $phone = $showContacts && $opponent !== null ? (string) $opponent['phone'] : '';
+            // ZF2 only knew group matches ("in Gruppe %s"); a KO match names its competition instead.
+            $waKey = $match['grp'] !== null ? 'group' : 'ko';
+            $waReplace = ['name' => $opponent ? PlayerName::first((string) $opponent['label']) : '', 'group' => $groupText, 'phase' => $area];
             $waText = $match['played']
-                ? __('tournament::mine.whatsapp_scheduled', ['name' => $opponent ? PlayerName::first((string) $opponent['label']) : '', 'group' => $groupText, 'date' => date('d.m.Y', (int) strtotime((string) $match['played']))])
-                : __('tournament::mine.whatsapp_open', ['name' => $opponent ? PlayerName::first((string) $opponent['label']) : '', 'group' => $groupText]);
+                ? __('tournament::mine.whatsapp_scheduled_'.$waKey, $waReplace + ['date' => date('d.m.Y', (int) strtotime((string) $match['played']))])
+                : __('tournament::mine.whatsapp_open_'.$waKey, $waReplace);
             $wa = $phone !== '' ? WhatsApp::url($phone, $waText) : '';
         @endphp
         <x-ui.card as="article" :tone="$isNext ? 'highlight' : 'default'" :eyebrow="$isNext ? __('tournament::mine.next') : null">
@@ -98,6 +101,9 @@
                         @endunless
                     @else
                         {{ $presenter->meta($match) ?? __('tournament::mine.no_date') }}
+                    @endif
+                    @if ($opponent !== null)
+                        · {{ __('tournament::mine.itn', ['itn' => number_format((float) $opponent['itn_rated'], 1, ',', '')]) }}
                     @endif
                 </p>
                 @php

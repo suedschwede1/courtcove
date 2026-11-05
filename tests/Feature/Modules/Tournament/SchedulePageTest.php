@@ -93,6 +93,17 @@ class SchedulePageTest extends TestCase
     }
 
     #[Test]
+    public function own_matches_are_tinted_like_zf2(): void
+    {
+        $html = (string) $this->actingAs($this->user)->get('/tournament/schedule')->getContent();
+
+        // A-0 and A-1 are the viewer's matches
+        $this->assertSame(2, substr_count($html, 'data-mine="1"'));
+        $this->assertMatchesRegularExpression('#<article class="ds-card[^"]*bg-clay-soft[^"]*"[^>]*data-mine="1"#', $html);
+        $this->assertSame(0, substr_count((string) $this->actingAs($this->member())->get('/tournament/schedule')->getContent(), 'data-mine="1"'));
+    }
+
+    #[Test]
     public function group_query_combines_with_filter(): void
     {
         $html = $this->actingAs($this->user)->get('/tournament/schedule/offen?grp=A')->assertOk()->getContent();

@@ -25,7 +25,9 @@ return [
     'view_result' => 'Ergebnis ansehen',
     'walkover' => '(w.o.)',
     'whatsapp' => 'WhatsApp',
-    'whatsapp_open' => 'Hallo :name! Wann passt Dir unser Vereinsmeisterschafts-Spiel in Gruppe :group?',
-    'whatsapp_scheduled' => 'Hallo :name! Unser Vereinsmeisterschafts-Spiel (Gruppe :group) steht am :date. Passt das so?',
+    'whatsapp_open_group' => 'Hallo :name! Wann passt Dir unser Vereinsmeisterschafts-Spiel in Gruppe :group?',
+    'whatsapp_open_ko' => 'Hallo :name! Wann passt Dir unser Vereinsmeisterschafts-Spiel (:phase)?',
+    'whatsapp_scheduled_group' => 'Hallo :name! Unser Vereinsmeisterschafts-Spiel (Gruppe :group) steht am :date. Passt das so?',
+    'whatsapp_scheduled_ko' => 'Hallo :name! Unser Vereinsmeisterschafts-Spiel (:phase) steht am :date. Passt das so?',
     'won' => 'Sieg :score',
 ];

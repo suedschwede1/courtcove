@@ -39,7 +39,7 @@
                             <x-ui.button :href="$props['action']['url']" :block="false">{{ $props['action']['label'] }}</x-ui.button>
                         @endif
                         @if ($showContacts && $opponent !== null && WhatsApp::url($opponent['phone'] ?? null) !== '')
-                            <x-ui.button variant="secondary" :block="false" target="_blank" rel="noopener" :href="WhatsApp::url($opponent['phone'], __('tournament::overview.whatsapp_text', ['name' => PlayerName::first((string) $opponent['label']), 'group' => $area]))">{{ __('tournament::overview.whatsapp') }}</x-ui.button>
+                            <x-ui.button variant="secondary" :block="false" target="_blank" rel="noopener" :href="WhatsApp::url($opponent['phone'], __($next['grp'] !== null ? 'tournament::overview.whatsapp_text' : 'tournament::overview.whatsapp_text_ko', ['name' => PlayerName::first((string) $opponent['label']), 'group' => $area, 'phase' => $area]))">{{ __('tournament::overview.whatsapp') }}</x-ui.button>
                         @endif
                     </div>
                 @endif

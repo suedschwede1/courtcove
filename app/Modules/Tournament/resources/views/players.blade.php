@@ -2,7 +2,7 @@
     Participants (old index/players.phtml, mockup Turnier-Teilnehmer-Mobil): seed list as cards with an
     expandable detail part (<details>, no script needed), search and group filter in Alpine (replaces the old
     inline script; without JavaScript every player stays visible). Contacts only for participants and
-    admins, the ITN of other players only for admins.
+    admins; names and ITN for every viewer (ZF2: "Namen und ITN sehen alle Mitglieder").
 --}}
 @extends('tournament::layout')
 
@@ -11,7 +11,6 @@
     use App\Modules\TournamentBase\Support\WhatsApp;
 
     $count = count($players);
-    $isAdmin = $access->isAdmin();
     $itn = fn (array $p): string => number_format((float) $p['itn_rated'], 1, ',', '');
     $competitionOf = function (int $seed) use ($competitions): ?array {
         foreach ($competitions as $comp) {
@@ -41,7 +40,7 @@
         <div role="group" aria-label="{{ __('tournament::players.groups_label') }}" class="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:px-0">
             <x-ui.chip class="shrink-0" :active="true" x-on:click="group = ''" x-bind:aria-pressed="group === '' ? 'true' : 'false'">{{ __('tournament::players.all') }}</x-ui.chip>
             @foreach ($groups as $g)
-                <x-ui.chip class="shrink-0" x-on:click="group = '{{ $g }}'" x-bind:aria-pressed="group === '{{ $g }}' ? 'true' : 'false'">{{ __('tournament::players.group', ['group' => $g]) }}</x-ui.chip>
+                <x-ui.chip class="shrink-0" x-on:click="group = @js($g)" x-bind:aria-pressed="group === @js($g) ? 'true' : 'false'">{{ __('tournament::players.group', ['group' => $g]) }}</x-ui.chip>
             @endforeach
         </div>
     @endif
@@ -59,7 +58,7 @@
                 $phone = $showContacts ? trim((string) $player['phone']) : '';
                 $wa = $phone !== '' ? WhatsApp::url($phone) : '';
                 $line = array_filter([
-                    $isAdmin ? __('tournament::players.itn', ['itn' => $itn($player)]) : null,
+                    __('tournament::players.itn', ['itn' => $itn($player)]),
                     $player['grp'] ? __('tournament::players.group', ['group' => $player['grp']]) : __('tournament::players.not_drawn'),
                 ]);
             @endphp
@@ -89,10 +88,8 @@
 
                         <div class="flex flex-col gap-3 border-t border-line px-4 py-3">
                             <dl class="grid grid-cols-2 gap-x-3 gap-y-1 text-body-s sm:grid-cols-4">
-                                @if ($isAdmin)
-                                    <dt class="text-ink-2">{{ __('tournament::players.itn_label') }}</dt>
-                                    <dd>{{ $itn($player) }}@if ($player['itn'] === null) <span class="text-ink-2">· {{ __('tournament::players.itn_default', ['itn' => number_format((float) $tournament->itn_default, 1, ',', '')]) }}</span>@endif</dd>
-                                @endif
+                                <dt class="text-ink-2">{{ __('tournament::players.itn_label') }}</dt>
+                                <dd>{{ $itn($player) }}@if ($player['itn'] === null) <span class="text-ink-2">· {{ __('tournament::players.itn_default', ['itn' => number_format((float) $tournament->itn_default, 1, ',', '')]) }}</span>@endif</dd>
                                 <dt class="text-ink-2">{{ __('tournament::players.gender') }}</dt>
                                 <dd>{{ in_array($player['gender'], ['m', 'w'], true) ? __('tournament::players.genders.'.$player['gender']) : '–' }}</dd>
                                 <dt class="text-ink-2">{{ __('tournament::players.seed') }}</dt>

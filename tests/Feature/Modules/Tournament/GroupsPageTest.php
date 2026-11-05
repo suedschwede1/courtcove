@@ -51,8 +51,9 @@ class GroupsPageTest extends TestCase
         $this->assertStringContainsString('Spiele der Gruppe', $html);
         $this->assertStringContainsString('2 gespielt, 0 geplant, 1 ohne Termin', $html);
         $this->assertStringContainsString('Reihung: Punkte, direktes Spiel, Satzdifferenz, Gamedifferenz, Los.', $html);
-        // members see no ITN of other players
-        $this->assertStringNotContainsString('ITN', $html);
+        // every viewer sees the ITN of all players (ZF2: Namen und ITN sehen alle Mitglieder)
+        $this->assertStringContainsString('ITN 4,4', $html);
+        $this->assertStringContainsString('ITN 4,5', $html);
     }
 
     #[Test]
@@ -126,8 +127,8 @@ class GroupsPageTest extends TestCase
 
         $this->assertMatchesRegularExpression('#<tr class="bg-clay-soft">.*?Demo Spieler 04.*?>du</span>#s', $html);
         $this->assertSame(1, substr_count($html, 'bg-clay-soft'));
-        // the own ITN is not shown to the player either on this page (only admins see ITN)
-        $this->assertStringNotContainsString('ITN', $html);
+        $this->assertStringContainsString('ITN 4,4', $html);
+        $this->assertStringContainsString('ITN 4,1', $html);
     }
 
     #[Test]

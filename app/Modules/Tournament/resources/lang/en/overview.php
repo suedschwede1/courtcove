@@ -37,5 +37,6 @@ return [
     'view_label' => 'View',
     'whatsapp' => 'WhatsApp',
     'whatsapp_text' => 'Hi :name! When would our club championship match in group :group suit you?',
+    'whatsapp_text_ko' => 'Hi :name! When would our club championship match (:phase) suit you?',
     'winner' => 'Winner :phase',
 ];

@@ -257,4 +257,22 @@ class StandingsServiceTest extends TestCase
 
         $this->assertSame(1, $ranked[0]['points'], '1 win x 2 points - adjust 1');
     }
+
+    /**
+     * Known ZF2 quirk, pinned from the old code (vector zf2-quirk-two-separate-ties-ordered-across-blocks):
+     * one lot order over two separate ties at different points orders across the blocks. Not a target
+     * behaviour; changing it is a rules decision for the club admin, with new vectors.
+     */
+    #[Test]
+    public function zf2_quirk_two_separate_ties_are_ordered_across_blocks(): void
+    {
+        $case = collect(self::vectors()['standings'])->firstWhere('name', 'zf2-quirk-two-separate-ties-ordered-across-blocks');
+        $this->assertNotNull($case);
+
+        $rows = $this->service()->resolveLot($case['rows'], $case['order']);
+
+        $this->assertSame([1, 3, 2, 4], array_column($rows, 'tpid'));
+        $this->assertSame([2, 0, 2, 0], array_column($rows, 'points'));
+        $this->assertSame(array_column($case['result']['ok'], 'tpid'), array_column($rows, 'tpid'));
+    }
 }

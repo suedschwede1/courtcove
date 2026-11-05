@@ -2,7 +2,7 @@
     Groups (old index/groups.phtml, repo version): group chips, the live table of one group and its match
     cards. The Sätze/Games columns show the SCORED differences used for the ranking (with tiebreak_scope
     "tied" only the matches among the tied players count). Own row clay-soft, the winner of a complete group
-    court-soft, an unresolved lot tie carries the "Los" badge. ITN only for admins.
+    court-soft, an unresolved lot tie carries the "Los" badge. The ITN is shown to every viewer (ZF2).
 --}}
 @extends('tournament::layout')
 
@@ -44,12 +44,12 @@
             <x-ui.table :caption="__('tournament::groups.group', ['group' => $active])" :stack="false">
                 <x-slot:head>
                     <tr>
-                        <th scope="col">{{ __('tournament::groups.col_rank') }}</th>
-                        <th scope="col">{{ __('tournament::groups.col_player') }}</th>
-                        <th scope="col" class="text-center">{{ __('tournament::groups.col_points') }}</th>
-                        <th scope="col" class="text-center">{{ __('tournament::groups.col_played') }}</th>
-                        <th scope="col" class="text-center">{{ __('tournament::groups.col_sets') }}</th>
-                        <th scope="col" class="text-center">{{ __('tournament::groups.col_games') }}</th>
+                        <th scope="col" class="max-md:px-2">{{ __('tournament::groups.col_rank') }}</th>
+                        <th scope="col" class="max-md:px-2">{{ __('tournament::groups.col_player') }}</th>
+                        <th scope="col" class="text-center max-md:px-1.5">{{ __('tournament::groups.col_points') }}</th>
+                        <th scope="col" class="text-center max-md:px-1.5">{{ __('tournament::groups.col_played') }}</th>
+                        <th scope="col" class="text-center max-md:px-1.5">{{ __('tournament::groups.col_sets') }}</th>
+                        <th scope="col" class="text-center max-md:px-1.5">{{ __('tournament::groups.col_games') }}</th>
                     </tr>
                 </x-slot:head>
                 @foreach ($table as $row)
@@ -61,7 +61,7 @@
                             $status = $isAc ? 'qualified' : ($rank === 1 ? 'winner' : ($rank === 2 ? 'possible' : 'ko_b'));
                         }
                         $line = array_filter([
-                            $access->isAdmin() ? __('tournament::groups.itn', ['itn' => number_format((float) $row['itn_rated'], 1, ',', '')]) : null,
+                            __('tournament::groups.itn', ['itn' => number_format((float) $row['itn_rated'], 1, ',', '')]),
                             $status !== null ? __('tournament::groups.status.'.$status) : null,
                         ]);
                         $decided = ! empty($row['tied_block']) ? ($row['decided_by'] ?? null) : null;
@@ -73,8 +73,8 @@
                         };
                     @endphp
                     <tr @class(['bg-clay-soft' => $isMe, 'bg-court-soft' => ! $isMe && $complete && $rank === 1])>
-                        <td class="font-display text-display-s tabular-nums">{{ $rank }}</td>
-                        <td>
+                        <td class="max-md:px-1.5 font-display text-display-s tabular-nums">{{ $rank }}</td>
+                        <td class="max-md:px-2">
                             <span class="flex flex-col gap-0.5">
                                 <span class="flex flex-wrap items-center gap-1.5">
                                     <span class="font-bold text-ink">{{ $row['label'] }}</span>
@@ -96,10 +96,10 @@
                                 @endif
                             </span>
                         </td>
-                        <td class="text-center font-bold tabular-nums">{{ (int) $row['points'] }}</td>
-                        <td class="text-center tabular-nums text-ink-2">{{ (int) $row['played'] }}/{{ $phaseOf ? (int) $phaseOf['size'] - 1 : 0 }}</td>
-                        <td class="text-center tabular-nums">{{ $signed($row['scored_set_diff']) }}</td>
-                        <td class="text-center tabular-nums">{{ $signed($row['scored_game_diff']) }}</td>
+                        <td class="max-md:px-1.5 text-center font-bold tabular-nums">{{ (int) $row['points'] }}</td>
+                        <td class="max-md:px-1.5 text-center tabular-nums text-ink-2">{{ (int) $row['played'] }}/{{ $phaseOf ? (int) $phaseOf['size'] - 1 : 0 }}</td>
+                        <td class="max-md:px-1.5 text-center tabular-nums">{{ $signed($row['scored_set_diff']) }}</td>
+                        <td class="max-md:px-1.5 text-center tabular-nums">{{ $signed($row['scored_game_diff']) }}</td>
                     </tr>
                 @endforeach
             </x-ui.table>

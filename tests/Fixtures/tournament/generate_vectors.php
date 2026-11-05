@@ -571,6 +571,16 @@ foreach ([
         'result' => capture(fn () => $tieSvc->resolveLot($tieRows, $order)),
     ];
 }
+// KNOWN ZF2 QUIRK, pinned on purpose (not a target behaviour): two separate needs_lot blocks at different
+// points in one group (1 beat 3, 2 beat 4: {1,2} at 2 points, {3,4} at 0) get ONE derived lot order over all
+// four players, and resolveLot's comparator then orders across the blocks (here 1(2) 3(0) 2(2) 4(0)). Only
+// mid-season tables are affected; changing it is a rules change for the club admin.
+$twoBlocks = [row(1, 3, 1, 2, 0, 12, 6), row(2, 4, 2, 2, 0, 12, 6)];
+$twoBlockRows = $tieSvc->rank(players_of([1, 2, 3, 4]), $twoBlocks);
+$standingsVectors[] = [
+    'op' => 'resolveLot', 'name' => 'zf2-quirk-two-separate-ties-ordered-across-blocks', 'rows' => $twoBlockRows, 'order' => [1, 3, 2, 4],
+    'result' => capture(fn () => $tieSvc->resolveLot($twoBlockRows, [1, 3, 2, 4])),
+];
 $vectors['standings'] = $standingsVectors;
 
 // ------------------------------------------------------------------ runner_up[]
