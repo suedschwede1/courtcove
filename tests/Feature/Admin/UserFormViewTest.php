@@ -77,7 +77,7 @@ final class UserFormViewTest extends TestCase
         $this->assertSame(1, $this->nodes('//select[@id="uf-privileges"][@multiple][contains(@class,"ds-select")]')->length);
         $this->assertSame(0, $this->nodes('//*[contains(@class,"ds-card__title")][self::h1]')->length);
         $this->assertSame(1, $this->nodes('//h1')->length);
-        $this->assertStringContainsString('PRIVILEGE_PRESETS', $this->html);
+        $this->assertStringContainsString('ASSIST_PRESET', $this->html);
     }
 
     #[Test]

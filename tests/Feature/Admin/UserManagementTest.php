@@ -52,7 +52,7 @@ class UserManagementTest extends TestCase
     public function admin_can_create_user_with_password_profile_and_privileges(): void
     {
         $this->actingAs($this->admin())->post('/admin/users', [
-            'alias' => 'Neu Mitglied', 'email' => 'neu@example.com', 'status' => 'assist',
+            'alias' => 'Neu Mitglied', 'email' => 'neu@example.com', 'status' => 'enabled', 'role' => 'assist',
             'password' => 'geheim123', 'firstname' => 'Neu', 'phone' => '+43123',
             'privileges' => ['admin.user', 'calendar.see-data'],
         ])->assertRedirect(route('admin.users.index'));
@@ -81,7 +81,7 @@ class UserManagementTest extends TestCase
         $u->syncPrivileges(['admin.user']);
 
         $this->actingAs($this->admin())->put("/admin/users/{$u->uid}", [
-            'alias' => 'Neu', 'email' => $u->email, 'status' => 'assist',
+            'alias' => 'Neu', 'email' => $u->email, 'status' => 'enabled', 'role' => 'assist',
             'privileges' => ['calendar.see-data'],
         ])->assertRedirect(route('admin.users.index'));
 
@@ -125,14 +125,14 @@ class UserManagementTest extends TestCase
         $admin = $this->admin();
 
         $this->actingAs($admin)->put("/admin/users/{$u->uid}", [
-            'alias' => $u->alias, 'email' => $u->email, 'status' => 'assist',
+            'alias' => $u->alias, 'email' => $u->email, 'status' => 'enabled', 'role' => 'assist',
             'privileges' => ['admin.pyramid'],
         ])->assertRedirect(route('admin.users.index'));
 
         $this->assertSame('true', $u->fresh()->getMeta('allow.admin.pyramid'));
 
         $this->actingAs($admin)->put("/admin/users/{$u->uid}", [
-            'alias' => $u->alias, 'email' => $u->email, 'status' => 'assist',
+            'alias' => $u->alias, 'email' => $u->email, 'status' => 'enabled', 'role' => 'assist',
             'privileges' => ['calendar.see-data'],
         ])->assertRedirect(route('admin.users.index'));
 

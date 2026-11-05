@@ -1,13 +1,21 @@
 @php
+    // Status and permission are separate fields; the controller stores them per config users.split_role.
+    $formStatus = (string) old('status', $currentStatus ?? 'enabled');
+    $formRole = $formStatus === 'enabled' ? (string) old('role', $currentRole ?? 'member') : 'member';
     $statusOptions = [];
-    foreach (['placeholder' => 'status_placeholder', 'deleted' => 'status_deleted', 'blocked' => 'status_blocked', 'enabled' => 'status_enabled', 'disabled' => 'status_disabled', 'assist' => 'status_assist', 'admin' => 'status_admin'] as $val => $key) {
-        $statusOptions[$val] = __('booking.admin.users.'.$key);
+    foreach (\App\Models\User::STATUSES as $val) {
+        $statusOptions[$val] = __('booking.admin.users.status_'.$val);
+    }
+    $roleOptions = [];
+    foreach (\App\Models\User::ROLES as $val) {
+        $roleOptions[$val] = __('booking.admin.users.role_'.$val);
     }
     $groups = $quoteGroups ?? [];
     $currentQuoteGroup = old('quote_group', $profile['quote_group'] ?? '');
     $privLabels = __('booking.admin.users.privileges');
 @endphp
 @csrf
+<div class="ds-admin-stack" x-data="{ status: {{ Js::from($formStatus) }}, role: {{ Js::from($formRole) }} }" x-effect="if (status !== 'enabled') role = 'member'">
 <x-ui.card :title="__('booking.admin.users.section_account')" padding="lg" class="ds-admin-form-card">
     <div class="ds-admin-form-grid">
         <x-ui.field :label="__('booking.admin.users.name')" for="uf-alias">
@@ -16,8 +24,11 @@
         <x-ui.field :label="__('booking.admin.users.email')" for="uf-email">
             <x-ui.input id="uf-email" name="email" type="email" :value="old('email', $user->email ?? '')" />
         </x-ui.field>
-        <x-ui.field :label="__('booking.admin.users.status')" for="uf-status">
-            <x-ui.select id="uf-status" name="status" :options="$statusOptions" :selected="old('status', $user->status ?? 'enabled')" />
+        <x-ui.field :label="__('booking.admin.users.status')" for="uf-status" :error="$errors->first('status')">
+            <x-ui.select id="uf-status" name="status" :options="$statusOptions" :selected="$formStatus" x-model="status" />
+        </x-ui.field>
+        <x-ui.field :label="__('booking.admin.users.role')" for="uf-role" :help="__('booking.admin.users.role_hint')" :error="$errors->first('role')">
+            <x-ui.select id="uf-role" name="role" :options="$roleOptions" :selected="$formRole" x-model="role" x-bind:disabled="status !== 'enabled'" />
         </x-ui.field>
     </div>
 </x-ui.card>
@@ -49,7 +60,8 @@
     </div>
 </x-ui.card>
 
-<x-ui.card :title="__('booking.admin.users.section_access')" padding="lg" class="ds-admin-form-card">
+{{-- On edit the card only holds the single permissions, so it follows the permission field. --}}
+<x-ui.card :title="__('booking.admin.users.section_access')" padding="lg" class="ds-admin-form-card" :x-show="isset($user) ? 'role === \'assist\'' : null">
     @if(!isset($user))
         <div class="ds-admin-form-grid">
             <x-ui.field :label="__('booking.admin.users.password')" for="uf-pw">
@@ -57,7 +69,7 @@
             </x-ui.field>
         </div>
     @endif
-    <x-ui.field :label="__('booking.admin.users.privileges_legend')" for="uf-privileges" :help="__('booking.admin.users.privileges_ctrl_hint')">
+    <x-ui.field :label="__('booking.admin.users.privileges_legend')" for="uf-privileges" :help="__('booking.admin.users.privileges_ctrl_hint')" x-show="role === 'assist'">
         <select id="uf-privileges" name="privileges[]" multiple size="{{ count($privileges) }}" class="ds-select ds-admin-privileges" aria-describedby="uf-privileges-help">
             @foreach($privileges as $priv)
                 <option value="{{ $priv }}" @selected(in_array($priv, old('privileges', $granted ?? []), true))>
@@ -67,20 +79,13 @@
         </select>
     </x-ui.field>
 </x-ui.card>
+</div>
 <script>
-const PRIVILEGE_PRESETS = {
-    admin:   ['admin.user','admin.booking','admin.event','admin.config','admin.see-menu','calendar.see-past','calendar.see-data','calendar.create-single-bookings','calendar.cancel-single-bookings','calendar.delete-single-bookings','calendar.create-subscription-bookings','calendar.cancel-subscription-bookings','calendar.delete-subscription-bookings'],
-    assist:  ['admin.booking','admin.event','admin.see-menu','calendar.see-past','calendar.see-data','calendar.create-single-bookings','calendar.cancel-single-bookings','calendar.delete-single-bookings','calendar.create-subscription-bookings','calendar.cancel-subscription-bookings','calendar.delete-subscription-bookings'],
-    enabled:     [],
-    disabled:    [],
-    blocked:     [],
-    deleted:     [],
-    placeholder: [],
-};
-document.getElementById('uf-status').addEventListener('change', function () {
-    const preset = PRIVILEGE_PRESETS[this.value];
-    if (preset === undefined) return;
+// Choosing "Assistent" on an account without single permissions preselects the usual assistant set.
+const ASSIST_PRESET = ['admin.booking','admin.event','admin.see-menu','calendar.see-past','calendar.see-data','calendar.create-single-bookings','calendar.cancel-single-bookings','calendar.delete-single-bookings','calendar.create-subscription-bookings','calendar.cancel-subscription-bookings','calendar.delete-subscription-bookings'];
+document.getElementById('uf-role').addEventListener('change', function () {
     const select = document.getElementById('uf-privileges');
-    Array.from(select.options).forEach(o => o.selected = preset.includes(o.value));
+    if (this.value !== 'assist' || select.selectedOptions.length > 0) return;
+    Array.from(select.options).forEach(o => o.selected = ASSIST_PRESET.includes(o.value));
 });
 </script>

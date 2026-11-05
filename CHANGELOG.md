@@ -9,6 +9,8 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Admin users: the list shows the permission and the date of the last (not cancelled) booking, also on the phone cards, and filters by permission; bulk actions never change admins or demote assistants; the booking count no longer costs a query per row.
+- Admin users: the form has separate fields for status (Platzhalter, aktiviert, auf Aktivierung wartend, gesperrt, gelöscht) and permission (Mitglied, Assistent, Admin); a permission needs the status "aktiviert", single permissions are only shown and kept for assistants.
 - Users: account status and permission are separate concepts in the code; new additive column bs_users.role and flag USERS_SPLIT_ROLE (default off: the permission stays merged into status as the old system expects).
 - Pyramid: members without admin rights get a 403 (not the admin shell) on unknown admin ids, the not-found page links to the calendar when no ladder exists, the admin phone bar respects the iPhone safe area and the public view stays reachable on phones.
 - Members pages now use the shared admin shell: Mitglieder and Mitglieder-Einstellungen entries in the admin sidebar, module sub-pages as tabs; the separate members sidebar is gone.
