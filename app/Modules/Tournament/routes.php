@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Modules\Tournament\Http\Controllers\GroupsController;
 use App\Modules\Tournament\Http\Controllers\MatchController;
 use App\Modules\Tournament\Http\Controllers\OverviewController;
+use App\Modules\Tournament\Http\Controllers\ScheduleController;
 use Illuminate\Support\Facades\Route;
 
 // Routes of the tournament (club championship) module (URL prefix `tournament`, route names `tournament.*`).
@@ -17,6 +18,7 @@ Route::prefix('tournament')->name('tournament.')
     ->group(function (): void {
         Route::get('', [OverviewController::class, 'index'])->name('index');
         Route::get('groups/{group?}', [GroupsController::class, 'show'])->where('group', '[A-Z]')->name('groups');
+        Route::get('schedule/{filter?}', [ScheduleController::class, 'show'])->where('filter', '[a-z]+')->name('schedule');
         Route::get('modus', [OverviewController::class, 'mode'])->name('mode');
 
         // The match page: name and URL are final (the match cards link here); the page itself and the
