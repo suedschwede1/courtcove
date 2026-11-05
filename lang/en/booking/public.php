@@ -175,6 +175,8 @@ return [
         'edit_title' => 'Edit booking on :court',
         'occupied' => 'Occupied',
         'to_time' => 'until :time',
+        'court_number' => 'Court :number',
+        'until_hour' => 'to :hour',
     ],
     'modal' => [
         'confirm_cancel' => 'Do you want to cancel this booking?',

@@ -742,3 +742,5 @@ input[type="date"]:where(:not([class^="ds-"], [class*=" ds-"]))::-webkit-datetim
 :focus-visible { outline: 2px solid var(--color-ink) !important; outline-offset: 2px !important; }
 .ds-input:focus-visible, .ds-select:focus-visible, .ds-textarea:focus-visible { outline-offset: 1px !important; }
 .ds-on-chrome :focus-visible { outline-color: var(--color-chrome-ink) !important; }
+/* The calendar date field shows focus on its label (focus-within), not on the bare input. */
+.cal-toolbar__date-input:focus-visible { outline: none !important; }

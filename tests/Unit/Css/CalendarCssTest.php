@@ -1,0 +1,57 @@
+<?php
+
+namespace Tests\Unit\Css;
+
+use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
+
+final class CalendarCssTest extends TestCase
+{
+    private function grid(): string
+    {
+        return (string) file_get_contents(resource_path('css/calendar-grid.css'));
+    }
+
+    private function toolbar(): string
+    {
+        return (string) file_get_contents(resource_path('css/calendar-toolbar.css'));
+    }
+
+    #[Test]
+    public function calendar_css_uses_tokens_only(): void
+    {
+        foreach (['calendar-grid.css' => $this->grid(), 'calendar-toolbar.css' => $this->toolbar()] as $name => $css) {
+            $this->assertDoesNotMatchRegularExpression('/(?<![\w&])#(?:[0-9a-f]{6}|[0-9a-f]{3})\b/i', $css, $name);
+            $this->assertStringNotContainsString('Red Hat', $css, $name);
+            $this->assertStringNotContainsString('!important', $css, $name);
+        }
+    }
+
+    #[Test]
+    public function cell_sizes_come_from_tokens(): void
+    {
+        $css = $this->grid();
+
+        $this->assertStringContainsString('var(--spacing-cell-h)', $css);
+        $this->assertStringContainsString('var(--spacing-cell-h-mobile)', $css);
+        $this->assertStringContainsString('@media (width < 48rem)', $css);
+        $this->assertStringContainsString('grid-auto-flow: column', $css);
+    }
+
+    #[Test]
+    public function motion_respects_reduced_motion(): void
+    {
+        $this->assertStringContainsString('prefers-reduced-motion', $this->grid());
+    }
+
+    #[Test]
+    public function calendar_page_drops_the_layout_inset(): void
+    {
+        // The layout's page-shell padding and #content margin would inset the
+        // calendar page; it brings its own page padding (and is full-bleed on phones).
+        $css = $this->toolbar();
+
+        $this->assertMatchesRegularExpression('/\.page-shell:has\(\.cal-page\)\s*\{[^}]*padding:\s*0;/', $css);
+        $this->assertMatchesRegularExpression('/#content:has\(> \.cal-page\)\s*\{[^}]*margin-top:\s*0;/', $css);
+    }
+}

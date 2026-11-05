@@ -8,9 +8,28 @@
         "board board";
     gap: 12px 8px;
     align-items: center;
+    /* Content box as in the design: 1400px of content plus the 24px page padding. */
+    box-sizing: content-box;
     max-width: 1400px;
     margin: 0 auto;
     padding: 16px 24px 32px;
+}
+
+/* The calendar page brings its own page padding (and is full-bleed on phones):
+   drop the layout shell's inset on this page only. */
+.page-shell:has(.cal-page) {
+    padding: 0;
+}
+
+#content:has(> .cal-page) {
+    margin-top: 0;
+}
+
+#content:has(> .cal-page) > .help-panel {
+    box-sizing: content-box;
+    max-width: 1400px;
+    margin: 16px auto 0;
+    padding: 0 24px;
 }
 
 .cal-toolbar {
@@ -113,7 +132,7 @@
 
 .cal-toolbar__date-input:focus,
 .cal-toolbar__date-input:focus-visible {
-    outline: none !important;
+    outline: none;
     box-shadow: none;
 }
 
@@ -153,14 +172,17 @@
         background: var(--color-surface);
     }
 
+    /* The title's own size sets the strut of the date line, so it carries the
+       small date size and the weekday line sets its own. */
     .cal-toolbar__title {
         text-align: center;
-        font-size: 24px;
+        font-size: var(--text-body-s);
         line-height: 1.1;
     }
 
     .cal-toolbar__weekday {
         display: block;
+        font-size: 24px;
     }
 
     .cal-toolbar__sep {
@@ -230,7 +252,8 @@
     }
 
     .cal-toolbar__panels,
-    .cal-page__legend {
+    .cal-page__legend,
+    #content:has(> .cal-page) > .help-panel {
         padding: 0 16px;
     }
 }

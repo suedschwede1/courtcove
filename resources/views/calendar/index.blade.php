@@ -1,5 +1,4 @@
 @extends('layouts.app')
-@section('body-class', 'has-calendar-layout')
 @section('title', __('booking.calendar.title', ['date' => $date->format('d.m.Y')]))
 
 @section('calendar-system-info')
@@ -136,7 +135,6 @@
             :date-labels="$dateLabels"
             :reservations-by-slot="$reservationsBySlot"
             :event-blocks="$eventBlocks"
-            :event-skip="$eventSkip"
             :today="$today"
             :now="$now"
             :is-logged-in="$isLoggedIn"
