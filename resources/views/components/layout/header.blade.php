@@ -1,112 +1,69 @@
 @php
     $bookingName = trim((string) \App\Models\Option::getValue('service.name', config('booking.name')));
     $bookingName = $bookingName !== '' ? $bookingName : config('booking.name');
+
+    $navItems = app(\App\Services\MainNavigation::class)->items(auth()->user(), request());
+    $activeItem = collect($navItems)->first(fn ($item) => $item->active);
+    $sectionTitle = $activeItem?->label ?? $bookingName;
+
+    $hasDateNav = trim($__env->yieldPushContent('header-nav')) !== '';
+    $hasInfo = $__env->hasSection('calendar-system-info');
+    $hasHelp = $__env->hasSection('calendar-help');
 @endphp
-<header x-data="{ actionsOpen: false }" @keydown.escape.window="actionsOpen = false" class="app-header no-print bg-[#eae8e2] px-3 py-3">
-    <div class="app-header__card rounded-[6px] border border-[#d8d2c8] bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)]" @click.outside="actionsOpen = false">
-        <div class="app-header__inner flex items-center gap-6 px-5 py-4">
-            <a href="{{ route('calendar.index') }}" aria-label="{{ $bookingName }}" class="app-header__brand flex min-w-0 shrink-0 items-center gap-4">
-                @if($bookingLogoPath && file_exists(public_path($bookingLogoPath)))
-                    <img src="{{ asset($bookingLogoPath) }}"
-                         width="112"
-                         height="108"
-                         alt="{{ $bookingName }}"
-                         class="app-header__logo object-contain"
-                         style="width: 112px; height: 108px;">
+<header class="ds-header ds-on-chrome no-print" x-data="{ menuOpen: false }" @keydown.escape.window="menuOpen = false">
+    <div class="ds-header__bar">
+        <a href="{{ route('calendar.index') }}" class="ds-header__brand">
+            <x-ui.logo-mark :name="$bookingName" />
+            <span class="ds-header__titles">
+                <span class="ds-header__club">{{ $bookingName }}</span>
+                <span class="ds-header__eyebrow">{{ __('booking.nav.eyebrow') }}</span>
+            </span>
+        </a>
+
+        <span class="ds-header__section">{{ $sectionTitle }}</span>
+
+        <nav class="ds-header__nav" aria-label="{{ __('booking.nav.main_menu') }}">
+            @foreach($navItems as $item)
+                @if($item->inBar)
+                    <a href="{{ $item->url }}" class="ds-header__link"@if($item->active) aria-current="page"@endif>{{ $item->label }}</a>
                 @endif
-                <span class="app-header__title text-[18px] font-bold leading-tight text-[#151515]" style="font-family: var(--font-display)">{{ $bookingName }}</span>
-            </a>
+            @endforeach
+        </nav>
 
-            <div class="app-header__nav-wrap flex flex-1 justify-end">
-                <div class="app-header__nav ui-calendar-nav" id="calendar-header-nav">
-                    @stack('header-nav')
-                </div>
-            </div>
-
-            <div class="app-header__mobile-controls">
-                @guest
-                    <a href="{{ route('login', ['redirect_to' => url()->full()]) }}"
-                       class="header-login-button inline-flex h-8 items-center rounded-[6px] bg-[#bf4316] px-4 text-[13px] font-semibold text-white transition-colors hover:bg-[#9e3412]">{{ __('booking.nav.login') }}</a>
-                @endguest
-                <button type="button"
-                        class="app-header__action-trigger"
-                        @click="actionsOpen = !actionsOpen"
-                        :aria-expanded="actionsOpen ? 'true' : 'false'"
-                        aria-controls="app-header-actions"
-                        aria-label="{{ __('booking.nav.more_actions') }}"
-                        title="{{ __('booking.nav.more_actions') }}">...</button>
-            </div>
-
-            <div id="app-header-actions" class="app-header__actions ml-auto flex shrink-0 items-center gap-2" :class="{ 'is-open': actionsOpen }">
-                @hasSection('calendar-system-info')
-                    <button type="button"
-                            class="inline-flex h-8 items-center rounded-[6px] border border-[#d4cec3] bg-white px-4 text-[13px] font-medium text-[#6a6e73] transition-colors hover:border-[#bf4316] hover:text-[#bf4316]"
-                            data-panel-toggle="system-info-panel">{{ __('booking.nav.info') }}</button>
-                @endif
-                @hasSection('calendar-help')
-                    <button type="button"
-                            class="inline-flex h-8 items-center rounded-[6px] border border-[#d4cec3] bg-white px-4 text-[13px] font-medium text-[#6a6e73] transition-colors hover:border-[#bf4316] hover:text-[#bf4316]"
-                            data-panel-toggle="help-panel">{{ __('booking.nav.help') }}</button>
-                @endif
-
-                @auth
-                    @inject('tournamentLinks', \App\Services\TournamentLinks::class)
-                    @php $championship = $tournamentLinks->currentChampionship(); @endphp
-                    @if($championship)
-                        <a href="{{ $championship['url'] }}"
-                           class="inline-flex h-8 items-center rounded-[6px] border border-[#d4cec3] bg-white px-4 text-[13px] font-medium text-[#6a6e73] transition-colors hover:border-[#bf4316] hover:text-[#bf4316]">{{ $championship['title'] }}</a>
-                    @endif
-                    <a href="{{ $tournamentLinks->pyramidUrl() }}"
-                       class="inline-flex h-8 items-center rounded-[6px] border border-[#d4cec3] bg-white px-4 text-[13px] font-medium text-[#6a6e73] transition-colors hover:border-[#bf4316] hover:text-[#bf4316]">{{ __('booking.nav.challenge_pyramid') }}</a>
-                    <a href="{{ $tournamentLinks->mixedUrl() }}"
-                       class="inline-flex h-8 items-center rounded-[6px] border border-[#d4cec3] bg-white px-4 text-[13px] font-medium text-[#6a6e73] transition-colors hover:border-[#bf4316] hover:text-[#bf4316]">{{ __('booking.nav.mixed_tournament') }}</a>
-                    <a href="{{ route('account.bookings') }}"
-                       class="inline-flex h-8 items-center rounded-[6px] border border-[#d4cec3] bg-white px-4 text-[13px] font-medium text-[#6a6e73] transition-colors hover:border-[#bf4316] hover:text-[#bf4316]">{{ __('booking.nav.my_bookings') }}</a>
-                    <a href="{{ route('account.edit') }}"
-                       class="inline-flex h-8 items-center rounded-[6px] border border-[#d4cec3] bg-white px-4 text-[13px] font-medium text-[#6a6e73] transition-colors hover:border-[#bf4316] hover:text-[#bf4316]">{{ __('booking.nav.my_account') }}</a>
-                    @can('admin.see-menu')
-                        <a href="{{ route('admin.dashboard') }}"
-                           class="inline-flex h-8 items-center rounded-[6px] border border-[#d4cec3] bg-white px-4 text-[13px] font-medium text-[#6a6e73] transition-colors hover:border-[#bf4316] hover:text-[#bf4316]">{{ __('booking.nav.admin') }}</a>
-                    @endcan
-                    @can('admin.members')
-                        <a href="{{ route('members.dashboard') }}"
-                           class="inline-flex h-8 items-center rounded-[6px] border border-[#d4cec3] bg-white px-4 text-[13px] font-medium text-[#6a6e73] transition-colors hover:border-[#bf4316] hover:text-[#bf4316]">{{ __('booking.nav.members') }}</a>
-                    @endcan
-                    <form method="POST" action="{{ route('logout') }}" class="m-0 inline app-header__desktop-logout">
-                        @csrf
-                        <button type="submit"
-                                class="inline-flex h-8 items-center rounded-[6px] border border-[#d4cec3] bg-white px-4 text-[13px] font-medium text-[#6a6e73] transition-colors hover:border-[#bf4316] hover:text-[#bf4316]">{{ __('booking.nav.logout') }}</button>
-                    </form>
-
-                @endauth
-
-                @can('admin.booking')
-                    @php $adminModeOn = request()->cookie('admin_mode') === '1'; @endphp
-                    <a href="{{ route('admin-mode.set', ['state' => $adminModeOn ? 'off' : 'on']) }}"
-                       role="switch"
-                       aria-checked="{{ $adminModeOn ? 'true' : 'false' }}"
-                       aria-label="{{ $adminModeOn ? __('booking.nav.admin_mode_off') : __('booking.nav.admin_mode_on') }}"
-                       class="app-header__admin-mode inline-flex h-8 items-center gap-2 rounded-[6px] border border-[#d4cec3] bg-white px-4 text-[13px] font-medium text-[#6a6e73] transition-colors hover:border-[#bf4316] hover:text-[#bf4316]">
-                        <span>{{ __('booking.nav.admin_mode') }}</span>
-                        <span aria-hidden="true" class="relative inline-flex h-[18px] w-8 shrink-0 items-center rounded-full transition-colors {{ $adminModeOn ? 'bg-[#bf4316]' : 'bg-[#d4cec3]' }}">
-                            <span class="inline-block h-[14px] w-[14px] transform rounded-full bg-white shadow transition-transform {{ $adminModeOn ? 'translate-x-[16px]' : 'translate-x-[2px]' }}"></span>
-                        </span>
-                    </a>
-                @endcan
-
-                <div class="app-header__locale flex items-center gap-1 text-[13px] font-medium text-[#6a6e73]">
-                    @foreach(config('app.available_locales') as $loc)
-                        @if(! $loop->first)
-                            <span aria-hidden="true">|</span>
-                        @endif
-                        @if($loc === app()->getLocale())
-                            <span class="font-bold text-[#151515]">{{ strtoupper($loc) }}</span>
-                        @else
-                            <a href="{{ route('lang.switch', ['locale' => $loc]) }}" class="hover:text-[#bf4316]">{{ strtoupper($loc) }}</a>
-                        @endif
-                    @endforeach
-                </div>
-            </div>
+        <div class="ds-header__tools">
+            @can('admin.booking')
+                <x-layout.admin-mode-switch />
+            @endcan
+            <x-layout.locale-switch />
+            @auth
+                <x-ui.avatar :name="auth()->user()->alias" :href="route('account.edit')" :label="__('booking.nav.account_of', ['name' => auth()->user()->alias])" />
+                <form method="POST" action="{{ route('logout') }}" class="ds-header__logout-form">
+                    @csrf
+                    <x-ui.button variant="text" type="submit" :block="false" class="ds-header__logout">{{ __('booking.nav.logout') }}</x-ui.button>
+                </form>
+            @else
+                <x-ui.button :href="route('login', ['redirect_to' => url()->full()])" :block="false">{{ __('booking.nav.login') }}</x-ui.button>
+            @endauth
         </div>
+
+        <x-ui.icon-button icon="menu" variant="chrome" class="ds-header__menu-button" :label="__('booking.nav.open_menu')" x-ref="menuButton" x-on:click="menuOpen = true" aria-controls="phone-menu" x-bind:aria-expanded="menuOpen ? 'true' : 'false'" aria-expanded="false" />
     </div>
+
+    {{-- Task 17: <x-layout.phone-menu :items="$navItems" … /> goes here. --}}
 </header>
+
+@if($hasDateNav || $hasInfo || $hasHelp)
+    <div class="ds-subbar no-print">
+        <div id="calendar-header-nav" class="ui-calendar-nav">@stack('header-nav')</div>
+        @if($hasInfo || $hasHelp)
+            <div class="ds-subbar__panels">
+                @if($hasInfo)
+                    <x-ui.button variant="text" :block="false" data-panel-toggle="system-info-panel">{{ __('booking.nav.info') }}</x-ui.button>
+                @endif
+                @if($hasHelp)
+                    <x-ui.button variant="text" :block="false" data-panel-toggle="help-panel">{{ __('booking.nav.help') }}</x-ui.button>
+                @endif
+            </div>
+        @endif
+    </div>
+@endif
