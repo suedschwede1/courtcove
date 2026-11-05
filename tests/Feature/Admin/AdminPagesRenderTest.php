@@ -3,6 +3,7 @@
 namespace Tests\Feature\Admin;
 
 use App\Models\Booking;
+use App\Models\Event;
 use App\Models\LoginHistory;
 use App\Models\Reservation;
 use App\Models\Square;
@@ -84,6 +85,23 @@ final class AdminPagesRenderTest extends TestCase
                 Reservation::factory()->create(['bid' => $booking->bid, 'date' => '2026-07-13', 'time_start' => '10:00:00', 'time_end' => '11:00:00']);
 
                 return route('admin.bookings.show', $booking);
+            }],
+            'bookings_index' => [function (): string {
+                $square = Square::factory()->create(['name' => 'Court A']);
+                $booking = Booking::factory()->create(['sid' => $square->sid, 'status' => 'single']);
+                Reservation::factory()->create(['bid' => $booking->bid, 'date' => '2026-07-13', 'time_start' => '10:00:00', 'time_end' => '11:00:00']);
+
+                return route('admin.bookings.index', ['searched' => 1]);
+            }],
+            'events_index' => [function (): string {
+                Event::factory()->create();
+
+                return route('admin.events.index', ['q' => '']);
+            }],
+            'squares_index' => [function (): string {
+                Square::factory()->create(['name' => 'Court A']);
+
+                return route('admin.squares.index');
             }],
         ];
     }

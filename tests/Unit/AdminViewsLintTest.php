@@ -38,6 +38,9 @@ final class AdminViewsLintTest extends TestCase
             'admin/api-tokens/index.blade.php',
             'admin/testmail/index.blade.php',
             'admin/bookings/show.blade.php',
+            'admin/bookings/index.blade.php',
+            'admin/events/index.blade.php',
+            'admin/squares/index.blade.php',
         ];
 
         return array_combine($paths, array_map(fn (string $p) => [$p], $paths));

@@ -1287,6 +1287,63 @@
             font-size: 14px;
         }
     }
+
+    /* Batch 2 lists (bookings, events, courts): several row actions in one cell. */
+    .ds-admin-row-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .ds-admin-row-actions form {
+        margin: 0;
+    }
+
+    @media (width >= 48rem) {
+        .ds-admin-lists .ds-table--list td {
+            padding-block: 10px;
+        }
+
+        .ds-admin-lists .ds-table--list .ds-admin-actions-cell {
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .ds-admin-lists .ds-admin-row-actions {
+            flex-wrap: nowrap;
+            justify-content: flex-end;
+        }
+
+        .ds-admin-lists .ds-table--list td .ds-btn {
+            min-height: 38px;
+            padding: 0 14px;
+            font-size: 14px;
+        }
+    }
+
+    @media (width < 48rem) {
+        .ds-admin-lists .ds-table--stack td.ds-admin-actions-cell {
+            margin-top: 6px;
+        }
+
+        .ds-admin-lists .ds-table--stack td.ds-admin-actions-cell::before {
+            content: none;
+        }
+
+        .ds-admin-lists .ds-admin-row-actions {
+            flex: 1 1 auto;
+        }
+
+        .ds-admin-lists .ds-admin-row-actions > .ds-btn,
+        .ds-admin-lists .ds-admin-row-actions > form {
+            flex: 1 1 auto;
+        }
+
+        .ds-admin-lists .ds-admin-row-actions > form .ds-btn {
+            width: 100%;
+        }
+    }
 }
 
 /*
