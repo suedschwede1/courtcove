@@ -4,6 +4,7 @@ use App\Modules\Draw\DrawServiceProvider;
 use App\Modules\Members\MembersServiceProvider;
 use App\Modules\MixedTournament\MixedTournamentServiceProvider;
 use App\Modules\Pyramid\PyramidServiceProvider;
+use App\Modules\Tournament\TournamentServiceProvider;
 use App\Modules\TournamentBase\TournamentBaseServiceProvider;
 use App\Providers\AppServiceProvider;
 
@@ -14,4 +15,5 @@ return [
     DrawServiceProvider::class,
     PyramidServiceProvider::class,
     MixedTournamentServiceProvider::class,
+    TournamentServiceProvider::class,
 ];
