@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-05
 
+- Admin and Members pages show their prefix in the browser tab again even when a view sets its own title.
 - Legacy element rules (links, text inputs, touch-action) no longer restyle the new ds components, which now carry their own base font size.
 - Phones get a full-screen menu behind one button instead of the "..." actions list; no bottom bar.
 - Header switch no longer animates its knob.

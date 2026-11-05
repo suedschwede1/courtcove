@@ -139,7 +139,7 @@ class MakeModuleCommand extends Command
         return <<<BLADE
         @extends('layouts.base')
 
-        @section('title')
+        @section('layout-title')
             {$name} - @yield('admin-title', '{$name} Dashboard')
         @endsection
 
