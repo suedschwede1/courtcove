@@ -41,10 +41,11 @@ class HeaderTest extends TestCase
     #[Test]
     public function guest_sees_login_not_tournaments(): void
     {
-        $this->get('/calendar')->assertOk()
-            ->assertSee('href="'.route('login', ['redirect_to' => url('/calendar')]).'"', false)
-            ->assertSee('ds-btn')
-            ->assertDontSee('Forderungspyramide');
+        $html = $this->get('/calendar')->assertOk()->assertDontSee('Forderungspyramide')->getContent();
+
+        $login = $this->xpath($html)->query('//a[@href="'.route('login', ['redirect_to' => url('/calendar')]).'"]');
+        $this->assertSame(1, $login->length);
+        $this->assertContains('ds-btn', explode(' ', $login->item(0)->getAttribute('class')));
     }
 
     #[Test]

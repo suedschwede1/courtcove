@@ -825,7 +825,6 @@
         border-radius: 50%;
         background: var(--color-surface);
         transform: translateX(2px);
-        transition: transform 0.15s;
     }
 
     .ds-switch[aria-checked="true"] .ds-switch__track {

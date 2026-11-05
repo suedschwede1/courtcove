@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-05
 
+- Header switch no longer animates its knob.
 - New dark header with main menu, admin mode, language and account; date navigation moves to a bar below until the calendar toolbar arrives.
 - Navigation items are built once for the header and the phone menu; logo falls back to the club initials.
 - Tab counts stay readable on the active phone tab.
