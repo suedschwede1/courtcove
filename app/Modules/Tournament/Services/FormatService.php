@@ -54,7 +54,10 @@ final class FormatService
 
     public function matchFormat(): string
     {
-        return isset($this->format['match_format']) ? $this->format['match_format'] : 'best_of_3_mtb';
+        // Stored data is never rewritten: a non-string value falls back to the default instead of failing.
+        $value = $this->format['match_format'] ?? null;
+
+        return is_string($value) ? $value : 'best_of_3_mtb';
     }
 
     /** @return array<mixed> */
@@ -73,7 +76,11 @@ final class FormatService
 
     public function runnerUpMode(): string
     {
-        return isset($this->format['runner_up']['mode']) ? $this->format['runner_up']['mode'] : 'drop_last';
+        // Non-string stored values fall back to the default (ZF2's setRunnerUpMode did the same).
+        $runnerUp = $this->format['runner_up'] ?? null;
+        $value = is_array($runnerUp) ? ($runnerUp['mode'] ?? null) : null;
+
+        return is_string($value) ? $value : 'drop_last';
     }
 
     /** @return list<array<mixed>> */
