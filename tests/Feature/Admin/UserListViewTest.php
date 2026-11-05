@@ -66,7 +66,10 @@ final class UserListViewTest extends TestCase
         $this->assertSame(1, $this->nodes('//input[@id="users-q"][@name="q"]')->length);
         $this->assertSame(1, $this->nodes('//label[@for="users-status"]')->length);
         $this->assertSame(1, $this->nodes('//select[@id="users-status"][@name="status"]')->length);
-        $this->assertSame(8, $this->nodes('//select[@id="users-status"]/option')->length);
+        // "All" plus the five account states; the permission has its own filter.
+        $this->assertSame(6, $this->nodes('//select[@id="users-status"]/option')->length);
+        $this->assertSame(1, $this->nodes('//label[@for="users-role"]')->length);
+        $this->assertSame(4, $this->nodes('//select[@id="users-role"][@name="role"]/option')->length);
         $this->assertSame(1, $this->nodes('//form[contains(@class,"ds-admin-filter")]//button[@type="submit"][contains(@class,"ds-btn--primary")]')->length);
     }
 

@@ -41,8 +41,8 @@ final class DashboardController extends Controller
             ->all();
 
         // Active members
-        $activeMembersCount = User::whereIn('status', ['enabled', 'assist', 'admin'])->count();
-        $adminCount = User::where('status', 'admin')->count();
+        $activeMembersCount = User::query()->active()->count();
+        $adminCount = User::query()->withRole('admin')->count();
 
         // Bookings this week and last week (via reservations)
         $bookingsThisWeek = Booking::whereIn('status', Booking::ACTIVE_STATUSES)

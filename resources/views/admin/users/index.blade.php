@@ -3,8 +3,12 @@
 @section('admin-content')
 @php
     $statusOptions = [];
-    foreach (['admin' => 'status_admin', 'assist' => 'status_assist', 'enabled' => 'status_enabled', 'disabled' => 'status_disabled', 'blocked' => 'status_blocked', 'deleted' => 'status_deleted', 'placeholder' => 'status_placeholder'] as $val => $key) {
-        $statusOptions[$val] = __('booking.admin.users.'.$key);
+    foreach (\App\Models\User::STATUSES as $val) {
+        $statusOptions[$val] = __('booking.admin.users.status_'.$val);
+    }
+    $roleOptions = [];
+    foreach (\App\Models\User::ROLES as $val) {
+        $roleOptions[$val] = __('booking.admin.users.role_'.$val);
     }
 @endphp
 <div class="ds-admin-stack" x-data="{ selected: [] }">
@@ -22,6 +26,9 @@
             </x-ui.field>
             <x-ui.field :label="__('booking.admin.users.status')" for="users-status">
                 <x-ui.select name="status" id="users-status" :options="$statusOptions" :selected="$filters['status'] ?? ''" :placeholder="__('booking.admin.search_status_all')" />
+            </x-ui.field>
+            <x-ui.field :label="__('booking.admin.users.role')" for="users-role">
+                <x-ui.select name="role" id="users-role" :options="$roleOptions" :selected="$filters['role'] ?? ''" :placeholder="__('booking.admin.users.role_all')" />
             </x-ui.field>
             <x-ui.button type="submit" :block="false">{{ __('booking.admin.common.filter') }}</x-ui.button>
         </form>
@@ -59,7 +66,9 @@
                             </th>
                             <th scope="col">{{ __('booking.admin.users.name') }}</th>
                             <th scope="col">{{ __('booking.admin.users.email') }}</th>
+                            <th scope="col">{{ __('booking.admin.users.role') }}</th>
                             <th scope="col">{{ __('booking.admin.users.status') }}</th>
+                            <th scope="col">{{ __('booking.admin.users.last_booking') }}</th>
                             <th scope="col">{{ __('booking.admin.users.bookings_count') }}</th>
                             <th scope="col">{{ __('booking.admin.users.login_history_risk_score') }}</th>
                             <th scope="col" class="ds-admin-actions-cell">{{ __('booking.admin.users.actions') }}</th>
@@ -75,10 +84,13 @@
                                 <span class="ds-admin-person"><span class="ds-admin-initials" aria-hidden="true">{{ \App\Support\Ui\Initials::from($u->alias) }}</span><span>{{ $u->alias }}</span></span>
                             </td>
                             <td class="ds-admin-users__mail" data-label="{{ __('booking.admin.users.email') }}">{{ $u->email ?: __('booking.account.empty_option') }}</td>
+                            <td data-label="{{ __('booking.admin.users.role') }}">{{ __('booking.admin.users.role_'.$u->effectiveRole()) }}</td>
                             <td class="ds-admin-users__status" data-label="{{ __('booking.admin.users.status') }}">
-                                <x-ui.badge :tone="\App\Support\Ui\UserStatusTone::for($u->status)->value">{{ __('booking.admin.users.status_'.$u->status) }}</x-ui.badge>
+                                @php($accountStatus = $u->accountStatus())
+                                <x-ui.badge :tone="\App\Support\Ui\UserStatusTone::for($accountStatus)->value">{{ in_array($accountStatus, \App\Models\User::STATUSES, true) ? __('booking.admin.users.status_'.$accountStatus) : $accountStatus }}</x-ui.badge>
                             </td>
-                            <td data-label="{{ __('booking.admin.users.bookings_count') }}">{{ $u->bookings()->count() }}</td>
+                            <td data-label="{{ __('booking.admin.users.last_booking') }}">{{ $u->last_booking_date ? \Carbon\Carbon::parse($u->last_booking_date)->translatedFormat(__('booking.admin.users.last_booking_format')) : '–' }}</td>
+                            <td data-label="{{ __('booking.admin.users.bookings_count') }}">{{ $u->bookings_count }}</td>
                             <td data-label="{{ __('booking.admin.users.login_history_risk_score') }}">
                                 <x-ui.badge :tone="$risk > 0 ? 'attention' : 'neutral'">{{ $risk }}</x-ui.badge>
                             </td>

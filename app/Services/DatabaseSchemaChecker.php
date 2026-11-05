@@ -35,6 +35,7 @@ final class DatabaseSchemaChecker
                 'uid' => fn (Blueprint $t) => $t->increments('uid'),
                 'alias' => fn (Blueprint $t) => $t->string('alias', 128)->index(),
                 'status' => fn (Blueprint $t) => $t->string('status', 64)->default('placeholder'),
+                'role' => fn (Blueprint $t) => $t->string('role', 16)->default('member'),
                 'email' => fn (Blueprint $t) => $t->string('email', 128)->nullable()->index(),
                 'pw' => fn (Blueprint $t) => $t->string('pw', 256)->nullable(),
                 'login_attempts' => fn (Blueprint $t) => $t->unsignedTinyInteger('login_attempts')->nullable(),

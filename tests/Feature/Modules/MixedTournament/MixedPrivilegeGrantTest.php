@@ -34,7 +34,7 @@ class MixedPrivilegeGrantTest extends TestCase
         $this->assertFalse(MixedEventPolicy::isGlobalAdmin($assist));
 
         $this->actingAs($admin)->put(route('admin.users.update', $assist), [
-            'alias' => $assist->alias, 'email' => $assist->email, 'status' => 'assist',
+            'alias' => $assist->alias, 'email' => $assist->email, 'status' => 'enabled', 'role' => 'assist',
             'privileges' => ['admin.mixed'],
         ])->assertRedirect(route('admin.users.index'));
 

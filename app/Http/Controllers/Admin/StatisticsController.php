@@ -20,7 +20,7 @@ final class StatisticsController extends Controller
         $searched = $request->boolean('searched');
         $search = trim($request->string('search')->value());
 
-        $users = User::whereIn('status', ['enabled', 'assist', 'admin'])
+        $users = User::query()->active()
             ->when($search !== '', fn ($q) => $q->where('alias', 'like', "%{$search}%"))
             ->orderBy('alias')
             ->get(['uid', 'alias']);
