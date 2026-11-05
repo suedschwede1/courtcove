@@ -3,13 +3,13 @@
 declare(strict_types=1);
 
 return [
-'account' => [
+    'account' => [
         'my_bookings' => 'Meine Buchungen',
         'eyebrow' => 'Mein Bereich',
         'actions' => 'Aktionen',
         'my_account' => 'Mein Konto',
-        'intro' => 'Verwalten Sie hier Ihre persönlichen Daten.',
-        'bookings_intro' => 'Suchen und filtern Sie Ihre aktuellen und vergangenen Buchungen.',
+        'intro' => 'Hier verwaltest du deine persönlichen Daten.',
+        'bookings_intro' => 'Suche und filtere deine aktuellen und vergangenen Buchungen.',
         'profile' => 'Profil',
         'empty_option' => '-',
         'to_calendar' => 'Zum Kalender',
@@ -50,4 +50,3 @@ return [
         'status' => 'Status',
     ],
 ];
-
