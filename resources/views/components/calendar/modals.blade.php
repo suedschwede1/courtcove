@@ -179,8 +179,14 @@
 @endauth
 
 @auth
+@php
+    $courtLookup = $squares->mapWithKeys(fn ($s) => [$s->sid => ['alias' => $s->display_name, 'number' => (string) $s->name]])->all();
+@endphp
 <div x-data="{
         open: false,
+        state: 'form',
+        redirect: null,
+        quote: null,
         sid: null,
         date: null,
         timeStart: null,
@@ -196,6 +202,28 @@
         acOpen: false,
         error: null,
         loading: false,
+        courts: @js($courtLookup),
+        get courtAlias() {
+            const c = this.courts[this.sid];
+            return c ? c.alias : this.squareName;
+        },
+        get courtLabel() {
+            const c = this.courts[this.sid];
+            return c ? c.alias + ' · ' + c.number : this.squareName;
+        },
+        get timeRange() {
+            return this.timeStartFormatted + ' – ' + this.timeEndFormatted;
+        },
+        get placeholder() {
+            return this.quantity === '2' ? @js(__('booking.modal.player_search_placeholder')) : @js(__('booking.admin.bookings.teammates_examples'));
+        },
+        close() {
+            if (this.state === 'success' && this.redirect) {
+                window.location.href = this.redirect;
+            } else {
+                this.open = false;
+            }
+        },
         async fetchAc(v) {
             if (v.length < 2) { this.acResults = []; this.acOpen = false; return; }
             const r = await fetch(@js(route('bookings.players')) + '?q=' + encodeURIComponent(v) + '&quantity=' + encodeURIComponent(this.quantity));
@@ -212,11 +240,15 @@
             this.timeLabel          = detail.timeLabel;
             this.timeStartFormatted = detail.timeStartFormatted;
             this.timeEndFormatted   = detail.timeEndFormatted;
+            this.state = 'form';
             this.quantity = '2';
             this.mitspieler = '';
-            this.acResults  = [];
-            this.acOpen     = false;
+            this.acResults = [];
+            this.acOpen = false;
             this.error = null;
+            this.loading = false;
+            this.redirect = null;
+            this.quote = null;
             this.open = true;
         },
         async submitBooking(form) {
@@ -233,80 +265,56 @@
                 if (res.ok && json.redirect) {
                     window.location.href = json.redirect;
                 } else {
-                    this.error = json.error ?? '{{ __('booking.messages.booking_failed') }}';
+                    this.error = json.error ?? @js(__('booking.messages.booking_failed'));
                 }
             } catch {
-                this.error = '{{ __('booking.messages.booking_failed') }}';
+                this.error = @js(__('booking.messages.booking_failed'));
             } finally {
                 this.loading = false;
             }
         }
      }"
-     @open-booking.window="openBooking($event.detail)"
-     x-show="open"
-     x-transition.opacity
-     @keydown.escape.window="open = false"
-     @click.self="open = false"
-     class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"
-     style="display: none;">
-    <div class="booking-mobile-dialog relative flex max-h-[calc(100dvh-16px)] w-full max-w-[480px] flex-col overflow-hidden rounded-[8px] border border-[#e8e8e8] bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
-        <div class="border-b border-[#ebebeb] bg-white px-6 pt-3 pb-0">
-            <div class="flex items-start justify-between gap-4">
-                <p class="mb-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#6a6e73]">{{ __('booking.modal.new_booking') }}</p>
-                <button type="button" @click="open = false" class="text-[20px] leading-none text-[#8a8d90] transition-colors hover:text-[#151515]">×</button>
-            </div>
-        </div>
+     @open-booking.window="openBooking($event.detail)">
+    <x-ui.modal id="booking-dialog" show="open" close="close()" :eyebrow="__('booking.modal.new_booking')">
+        <x-slot:title>
+            <span x-text="@js(__('booking.calendar.book_court', ['court' => '__COURT__'])).replace('__COURT__', courtAlias)"></span>
+        </x-slot:title>
 
-        <form method="POST" action="{{ route('bookings.store') }}" @submit.prevent="submitBooking($el)" class="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <x-ui.summary-tiles :items="[
+            ['label' => __('booking.calendar.date'), 'bind' => 'dateLabel'],
+            ['label' => __('booking.calendar.time'), 'bind' => 'timeRange'],
+            ['label' => __('booking.calendar.court'), 'bind' => 'courtLabel'],
+        ]" />
+
+        <form id="booking-form" method="POST" action="{{ route('bookings.store') }}" @submit.prevent="submitBooking($el)" class="ds-modal__form">
             @csrf
             <input type="hidden" name="sid" x-bind:value="sid">
+            <input type="hidden" name="date" x-bind:value="date">
             <input type="hidden" name="time_start" x-bind:value="timeStart">
             <input type="hidden" name="time_end" x-bind:value="timeEnd">
 
-            <div class="booking-mobile-dialog__body min-h-0 flex-1 overflow-y-auto px-6 py-4">
-                <div class="space-y-3">
-                    <div class="booking-mobile-dialog__summary-grid flex flex-col gap-3">
-                        <div class="ui-field">
-                            <label class="ui-label text-[#151515]">{{ __('booking.calendar.court') }}</label>
-                            <input type="text" x-bind:value="squareName" readonly class="ui-input bg-[#fafafa] text-[#151515]">
-                        </div>
-                        <div class="ui-field">
-                            <label class="ui-label text-[#151515]">{{ __('booking.calendar.date') }} &amp; {{ __('booking.calendar.time') }}</label>
-                            <p class="ui-input bg-[#fafafa] text-[#151515] m-0" x-text="dateLabel + ', ' + timeLabel.replace(' {{ __('booking.admin.common.clock_suffix') }}', '')"></p>
-                        </div>
-                    </div>
-                    <input type="hidden" name="date" x-bind:value="date">
+            <x-ui.option-group :legend="__('booking.modal.play_type')">
+                <x-ui.option-tile name="quantity" value="2" :label="__('booking.modal.single_tile')" x-model="quantity" />
+                <x-ui.option-tile name="quantity" value="4" :label="__('booking.modal.double_tile')" x-model="quantity" />
+            </x-ui.option-group>
 
-                    <div class="ui-field">
-                        <label class="ui-label text-[#151515]">{{ __('booking.modal.player_count') }}</label>
-                        <select name="quantity" x-model="quantity" class="ui-select">
-                            <option value="2">{{ __('booking.modal.single_option') }}</option>
-                            <option value="4">{{ __('booking.modal.double_option') }}</option>
-                        </select>
-                    </div>
+            <x-ui.field for="booking-mitspieler" :label="__('booking.admin.bookings.teammates')" :help="__('booking.modal.player_help')" x-on:click.outside="acOpen = false">
+                <x-ui.input name="mitspieler" required maxlength="255" autocomplete="off" x-model="mitspieler" x-on:input.debounce.300ms="fetchAc($event.target.value)" x-on:focus="fetchAc(mitspieler)" x-bind:placeholder="placeholder" />
+                <ul class="ds-suggest" x-show="acOpen">
+                    <template x-for="r in acResults" :key="r">
+                        <li><button type="button" class="ds-suggest__item" x-text="r" @mousedown.prevent @click="mitspieler = r; acResults = []; acOpen = false"></button></li>
+                    </template>
+                </ul>
+            </x-ui.field>
 
-                    <div class="ui-field" @click.outside="acOpen=false">
-                        <label class="ui-label text-[#151515]">{{ __('booking.admin.bookings.teammates') }}</label>
-                        <input type="text" name="mitspieler" x-model="mitspieler" @input.debounce.300ms="fetchAc($event.target.value)" @focus="fetchAc(mitspieler)" maxlength="255" :placeholder="quantity==='2' ? '{{ __('booking.modal.player_search_placeholder') }}' : '{{ __('booking.admin.bookings.teammates_examples') }}'" autocomplete="off" required class="ui-input placeholder:text-[#b8b8b8]">
-                        <ul x-show="acOpen" class="mt-1 w-full overflow-hidden rounded border border-[#e0dbd4] bg-white shadow-md">
-                            <template x-for="r in acResults" :key="r">
-                                <li @mousedown.prevent="mitspieler=r; acResults=[]; acOpen=false" x-text="r" class="cursor-pointer px-3 py-2 text-sm hover:bg-[#f7f5f2]"></li>
-                            </template>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <div class="booking-mobile-dialog__actions border-t border-[#ebebeb] bg-[#fafafa] px-6 py-4">
-                <template x-if="error">
-                    <p class="mb-3 text-sm text-red-600" x-text="error"></p>
-                </template>
-                <div class="flex flex-wrap items-center gap-3">
-                    <button type="submit" class="ui-btn ui-btn-primary px-[19px]" :disabled="loading" x-text="loading ? '{{ __('booking.modal.saving') }}' : '{{ __('booking.admin.bookings.save_action') }}'"></button>
-                </div>
-            </div>
+            <x-ui.notice tone="problem" x-show="error"><span x-text="error"></span></x-ui.notice>
         </form>
-    </div>
+
+        <x-slot:footer>
+            <x-ui.button variant="secondary" :block="false" class="ds-modal__dismiss" x-on:click="close()">{{ __('booking.modal.cancel') }}</x-ui.button>
+            <x-ui.button type="submit" form="booking-form" :block="false" x-bind:disabled="loading"><span x-text="loading ? @js(__('booking.modal.saving')) : @js(__('booking.modal.book_binding'))"></span><span class="ds-only-phone" x-text="' · ' + timeRange"></span></x-ui.button>
+        </x-slot:footer>
+    </x-ui.modal>
 </div>
 @endauth
 
