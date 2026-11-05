@@ -72,4 +72,28 @@ class UserRoleMysqlTest extends MysqlTestCase
 
         $this->actingAs($admin)->get('/admin/users?q=')->assertOk()->assertSee('14.09.2026');
     }
+
+    #[Test]
+    public function the_last_booking_filter_and_its_page_count_run_on_mysql(): void
+    {
+        $admin = User::factory()->create(['status' => 'admin', 'alias' => 'Zed Admin']);
+        $booked = User::factory()->create(['status' => 'enabled', 'alias' => 'Ben Booked']);
+        User::factory()->create(['status' => 'placeholder', 'alias' => 'Pia Placeholder']);
+        $bid = DB::table('bs_bookings')->insertGetId([
+            'uid' => $booked->uid, 'sid' => 1, 'status' => 'single', 'status_billing' => 'pending', 'visibility' => 'public', 'quantity' => 2, 'created' => now(),
+        ]);
+        DB::table('bs_reservations')->insert(['bid' => $bid, 'date' => '2026-06-15', 'time_start' => '10:00:00', 'time_end' => '11:00:00']);
+
+        // Inclusive bounds against the DATE column, the paginator's count over the grouped join.
+        // (The signed-in admin's name is always in the shell, so the counts tell who is listed.)
+        $count = fn (int $n): string => __('booking.admin.users.results_count', ['count' => $n]);
+        $this->actingAs($admin)->get('/admin/users?from=2026-06-15&to=2026-06-15&role=member')->assertOk()
+            ->assertSee('Ben Booked')->assertSee($count(1));
+        $this->actingAs($admin)->get('/admin/users?from=2026-06-16')->assertOk()
+            ->assertDontSee('Ben Booked')->assertSee(__('booking.admin.no_results'));
+        $this->actingAs($admin)->get('/admin/users?no_booking=1')->assertOk()
+            ->assertDontSee('Ben Booked')->assertDontSee('Pia Placeholder')->assertSee($count(1));
+        $this->actingAs($admin)->get('/admin/users?no_booking=1&placeholders=1')->assertOk()
+            ->assertSee('Pia Placeholder')->assertSee($count(2));
+    }
 }
