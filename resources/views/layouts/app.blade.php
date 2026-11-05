@@ -4,23 +4,11 @@
     <meta name="format-detection" content="telephone=no">
     <style>
         :root {
-            --cal-free-bg: {{ config('calendar.colors.free.bg') }};
-            --cal-free-bg-hover: {{ config('calendar.colors.free.bg_hover') }};
-            --cal-own-bg: {{ config('calendar.colors.own.bg') }};
-            --cal-own-bg-hover: {{ config('calendar.colors.own.bg_hover') }};
-            --cal-own-accent: {{ config('calendar.colors.own.accent') }};
-            --cal-own-label: {{ config('calendar.colors.own.label') }};
-            --cal-own-label-secondary: {{ config('calendar.colors.own.label_secondary') }};
-            --cal-single-future-bg: {{ config('calendar.colors.single_future.bg') }};
-            --cal-single-future-bg-hover: {{ config('calendar.colors.single_future.bg_hover') }};
-            --cal-series-accent: {{ config('calendar.colors.series.accent') }};
-            --cal-series-label: {{ config('calendar.colors.series.label') }};
-            --cal-past-bg: {{ config('calendar.colors.past.bg') }};
-            --cal-past-label: {{ config('calendar.colors.past.label') }};
-            --cal-event-bg: {{ config('calendar.colors.event.bg') }};
-            --cal-event-bg-hover: {{ config('calendar.colors.event.bg_hover') }};
-            --cal-event-accent: {{ config('calendar.colors.event.accent') }};
-            --cal-event-label: {{ config('calendar.colors.event.label') }};
+            @foreach(config('calendar.colors') as $group => $values)
+                @foreach($values as $key => $value)
+            --cal-{{ str_replace('_', '-', $group) }}-{{ str_replace('_', '-', $key) }}: {{ $value }};
+                @endforeach
+            @endforeach
         }
     </style>
 @endpush
