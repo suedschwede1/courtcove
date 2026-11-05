@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Admin overview and statistics show key figure tiles and card lists on phones in the new style.
 - Admin dialogs opened from the calendar get the dark title bar and a 44 px close button.
 - Admin pages use the new shell; on phones the admin menu slides in behind a menu button.
 - Admin sidebar in the new dark style with groups (Betrieb, Mitglieder, Einstellungen) and a clay marker for the current page.

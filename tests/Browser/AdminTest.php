@@ -25,7 +25,7 @@ final class AdminTest extends DuskTestCase
                 $browser->loginAs($admin)
                     ->visit('/admin')
                     ->assertPathIs('/admin')
-                    ->assertPresent('.ui-grid-4');
+                    ->assertPresent('.ds-admin-kpis');
             });
         } finally {
             $this->deleteTestUser('dusk_admin');

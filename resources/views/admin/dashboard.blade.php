@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('admin-title', __('booking.admin.dashboard.title'))
+@section('admin-title', __('booking.admin.overview'))
 @section('admin-content')
 @php
     $weekDiff = $bookingsThisWeek - $bookingsLastWeek;
@@ -9,103 +9,108 @@
     $todaySorted = $bookingsToday->sortBy(function ($booking) {
         return $booking->reservations->first()?->time_start;
     });
+    $adminMeta = $adminCount . ' ' . ($adminCount === 1 ? __('booking.admin.dashboard.administrator_singular') : __('booking.admin.dashboard.administrator_plural'));
+    if ($weekDiff > 0) {
+        $weekMeta = __('booking.admin.dashboard.week_more', ['count' => $weekDiff]);
+    } elseif ($weekDiff < 0) {
+        $weekMeta = __('booking.admin.dashboard.week_less', ['count' => abs($weekDiff)]);
+    } else {
+        $weekMeta = __('booking.admin.dashboard.week_equal');
+    }
+    $nextEventName = $nextEvent
+        ? ($nextEvent->meta->firstWhere('key', 'name')?->value ?? __('booking.admin.dashboard.next_event_fallback'))
+        : null;
+    $nextEventStart = $nextEvent ? \Carbon\Carbon::parse($nextEvent->datetime_start) : null;
+    $nextEventEnd = $nextEvent ? \Carbon\Carbon::parse($nextEvent->datetime_end) : null;
+    $eventsMeta = $nextEvent
+        ? __('booking.admin.dashboard.next_event_from', ['name' => $nextEventName, 'date' => $nextEventStart->translatedFormat('j. M H:i')])
+        : __('booking.admin.dashboard.none_upcoming');
+    $labelTime = __('booking.admin.dashboard.time');
+    $labelCourt = __('booking.admin.dashboard.court');
+    $labelMember = __('booking.admin.dashboard.member');
+    $labelStatus = __('booking.admin.dashboard.status');
 @endphp
-<div class="ui-page">
-    <div class="ui-page-header">
-        <h1>{{ __('booking.admin.dashboard.heading') }}</h1>
-        <p>{{ now()->translatedFormat('l, j. F Y') }}</p>
+<div class="ds-admin-stack">
+    <x-admin.page-header :title="__('booking.admin.overview')" :eyebrow="now()->translatedFormat('l, j. F Y')">
+        @can('admin.booking')
+            <x-slot:actions>
+                <x-ui.button :href="route('admin.bookings.create')" icon="plus" :block="false" class="ds-admin-fab">{{ __('booking.admin.dashboard.new_booking') }}</x-ui.button>
+            </x-slot:actions>
+        @endcan
+    </x-admin.page-header>
+
+    <div class="ds-admin-kpis">
+        <x-ui.card as="div" class="ds-admin-kpi">
+            <x-ui.kpi :label="__('booking.admin.dashboard.bookings_today')" :value="$bookingsTodayCount" :meta="$bookingsTodayDetail" />
+        </x-ui.card>
+        <x-ui.card as="div" class="ds-admin-kpi">
+            <x-ui.kpi :label="__('booking.admin.dashboard.active_members')" :value="$activeMembersCount" :meta="$adminMeta" />
+        </x-ui.card>
+        <x-ui.card as="div" class="ds-admin-kpi">
+            <x-ui.kpi :label="__('booking.admin.dashboard.this_week')" :value="$bookingsThisWeek" :meta="$weekMeta" />
+        </x-ui.card>
+        <x-ui.card as="div" class="ds-admin-kpi">
+            <x-ui.kpi :label="__('booking.admin.dashboard.events')" :value="$upcomingEventsCount" :meta="$eventsMeta" />
+        </x-ui.card>
     </div>
 
-    <div class="ui-grid-4">
-        <div class="ui-card ui-kpi">
-            <div class="ui-card-body ui-stack">
-                <p class="ui-kpi-label">{{ __('booking.admin.dashboard.bookings_today') }}</p>
-                <p class="ui-kpi-value">{{ $bookingsTodayCount }}</p>
-                <p class="ui-kpi-meta">{{ $bookingsTodayDetail }}</p>
-            </div>
-        </div>
-
-        <div class="ui-card" style="border-top:3px solid #0066cc;">
-            <div class="ui-card-body ui-stack">
-                <p class="ui-kpi-label">{{ __('booking.admin.dashboard.active_members') }}</p>
-                <p class="ui-kpi-value">{{ $activeMembersCount }}</p>
-                <p class="ui-kpi-meta">{{ $adminCount }} {{ $adminCount === 1 ? __('booking.admin.dashboard.administrator_singular') : __('booking.admin.dashboard.administrator_plural') }}</p>
-            </div>
-        </div>
-
-        <div class="ui-card" style="border-top:3px solid #3e8635;">
-            <div class="ui-card-body ui-stack">
-                <p class="ui-kpi-label">{{ __('booking.admin.dashboard.this_week') }}</p>
-                <p class="ui-kpi-value">{{ $bookingsThisWeek }}</p>
-                <p class="ui-kpi-meta">
-                    @if($weekDiff > 0)
-                        {{ __('booking.admin.dashboard.week_more', ['count' => $weekDiff]) }}
-                    @elseif($weekDiff < 0)
-                        {{ __('booking.admin.dashboard.week_less', ['count' => abs($weekDiff)]) }}
-                    @else
-                        {{ __('booking.admin.dashboard.week_equal') }}
-                    @endif
-                </p>
-            </div>
-        </div>
-
-        <div class="ui-card" style="border-top:3px solid #f0ab00;">
-            <div class="ui-card-body ui-stack">
-                <p class="ui-kpi-label">{{ __('booking.admin.dashboard.events') }}</p>
-                <p class="ui-kpi-value">{{ $upcomingEventsCount }}</p>
-                <p class="ui-kpi-meta">
-                    @if($nextEvent)
-                        {{ __('booking.admin.dashboard.next_event_from', ['name' => ($nextEvent->meta->firstWhere('key', 'name')?->value ?? __('booking.admin.dashboard.next_event_fallback')), 'date' => \Carbon\Carbon::parse($nextEvent->datetime_start)->translatedFormat('j. M H:i')]) }}
-                    @else
-                        {{ __('booking.admin.dashboard.none_upcoming') }}
-                    @endif
-                </p>
-            </div>
-        </div>
-    </div>
-
-    <div class="ui-card">
-        <div class="ui-card-header">
-            <h2>{{ __('booking.admin.dashboard.bookings_today') }}</h2>
+    <div class="ds-admin-grid">
+        <x-ui.card :title="__('booking.admin.dashboard.bookings_today')" padding="none" class="ds-admin-grid__main ds-admin-rows ds-admin-today">
             @can('admin.booking')
-                <a href="{{ route('admin.bookings.create') }}" class="ui-btn ui-btn-primary">{{ __('booking.admin.dashboard.new_booking') }}</a>
+                <x-slot:actions>
+                    <a href="{{ route('admin.bookings.index') }}" class="ds-admin-link">{{ __('booking.admin.dashboard.all_bookings') }}</a>
+                </x-slot:actions>
             @endcan
-        </div>
-        <div class="ui-table-wrap">
             @if($bookingsToday->isEmpty())
-                <div class="ui-card-body text-center">
-                    <p class="ui-kpi-meta">{{ __('booking.admin.dashboard.none_today') }}</p>
-                </div>
+                <p class="ds-admin-note">{{ __('booking.admin.dashboard.none_today') }}</p>
             @else
-                <table class="ui-table">
-                    <thead>
+                <x-ui.table :caption="__('booking.admin.dashboard.bookings_today')">
+                    <x-slot:head>
                         <tr>
-                            <th>{{ __('booking.admin.dashboard.member') }}</th>
-                            <th>{{ __('booking.admin.dashboard.court') }}</th>
-                            <th>{{ __('booking.admin.dashboard.time') }}</th>
-                            <th>{{ __('booking.admin.dashboard.status') }}</th>
+                            <th scope="col">{{ $labelTime }}</th>
+                            <th scope="col">{{ $labelCourt }}</th>
+                            <th scope="col">{{ $labelMember }}</th>
+                            <th scope="col">{{ $labelStatus }}</th>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($todaySorted as $booking)
-                            @php
-                                $res = $booking->reservations->first();
-                                $timeStart = $res ? substr($res->time_start, 0, 5) : __('booking.account.empty_option');
-                                $timeEnd = $res ? substr($res->time_end, 0, 5) : '';
-                            @endphp
-                            <tr>
-                                <td>{{ $booking->owner_label }}</td>
-                                <td class="text-[#6a6e73]">{{ $booking->square?->display_name ?? __('booking.account.empty_option') }}</td>
-                                <td class="text-[#6a6e73]">{{ $timeStart }}@if($timeEnd) – {{ $timeEnd }}@endif</td>
-                                <td>
-                                    <span class="ui-badge {{ $booking->isCancelled() ? 'ui-badge-danger' : 'ui-badge-success' }}">{{ $booking->isCancelled() ? __('booking.admin.bookings.status_cancelled') : __('booking.admin.bookings.status_active') }}</span>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                    </x-slot:head>
+                    @foreach($todaySorted as $booking)
+                        @php
+                            $res = $booking->reservations->first();
+                            $timeStart = $res ? substr($res->time_start, 0, 5) : __('booking.account.empty_option');
+                            $timeEnd = $res ? substr($res->time_end, 0, 5) : '';
+                        @endphp
+                        <tr>
+                            <td class="ds-cell--title ds-admin-today__time" data-label="{{ $labelTime }}">{{ $timeStart }}@if($timeEnd)<span class="ds-admin-today__end"> – {{ $timeEnd }}</span>@endif</td>
+                            <td class="ds-admin-today__court" data-label="{{ $labelCourt }}">{{ $booking->square?->display_name ?? __('booking.account.empty_option') }}</td>
+                            <td class="ds-admin-today__member" data-label="{{ $labelMember }}">{{ $booking->owner_label }}</td>
+                            <td class="ds-admin-today__status" data-label="{{ $labelStatus }}">
+                                @if($booking->isCancelled())
+                                    <x-ui.badge status="cancelled">{{ __('booking.admin.bookings.status_cancelled') }}</x-ui.badge>
+                                @else
+                                    <x-ui.badge status="active">{{ __('booking.admin.bookings.status_active') }}</x-ui.badge>
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                </x-ui.table>
             @endif
-        </div>
+        </x-ui.card>
+
+        <x-ui.card :title="__('booking.admin.dashboard.next_events')" class="ds-admin-grid__side">
+            @if($nextEvent)
+                <ul class="ds-admin-list">
+                    <li class="ds-admin-list__item">
+                        <p class="ds-admin-list__title">{{ $nextEventName }}</p>
+                        <p class="ds-admin-note">{{ $nextEventStart->translatedFormat('D, j. M H:i') }} – {{ $nextEventEnd->format('H:i') }}@if($nextEvent->square) · {{ $nextEvent->square->display_name }}@endif</p>
+                    </li>
+                </ul>
+            @else
+                <p class="ds-admin-note">{{ __('booking.admin.dashboard.none_upcoming') }}</p>
+            @endif
+            @can('admin.event')
+                <a href="{{ route('admin.events.index') }}" class="ds-admin-link">{{ __('booking.admin.dashboard.manage_events') }}</a>
+            @endcan
+        </x-ui.card>
     </div>
 </div>
 @endsection

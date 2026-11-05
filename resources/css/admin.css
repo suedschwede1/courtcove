@@ -394,6 +394,335 @@
         }
     }
 
+    /* Overview pages (dashboard, statistics): stack, KPI tiles, two-column grid, card rows. */
+    .ds-admin-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        min-width: 0;
+    }
+
+    .ds-admin-kpis {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+    }
+
+    .ds-card.ds-admin-kpi {
+        padding: 18px 20px;
+    }
+
+    .ds-admin-kpi .ds-kpi {
+        gap: 6px;
+    }
+
+    .ds-admin-kpi .ds-kpi__label {
+        font-size: 13px;
+        letter-spacing: 0.08em;
+    }
+
+    .ds-admin-kpi .ds-kpi__value {
+        font-size: 48px;
+        line-height: 1;
+    }
+
+    .ds-admin-kpi .ds-kpi__meta {
+        font-size: 14px;
+        color: var(--color-ink-2);
+    }
+
+    .ds-admin-grid {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 20px;
+    }
+
+    .ds-admin-grid__main {
+        flex: 999 1 520px;
+        min-width: 0;
+    }
+
+    .ds-card.ds-admin-grid__side {
+        flex: 1 1 300px;
+        gap: 10px;
+        padding: 18px 20px;
+    }
+
+    .ds-admin-grid__side > .ds-card__body {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    /* Cards around a table: header row with a divider, no gap, rounded clip. */
+    .ds-admin-main .ds-card--pad-none {
+        gap: 0;
+        overflow: hidden;
+    }
+
+    .ds-admin-main .ds-card--pad-none > .ds-card__header {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--color-line-soft);
+    }
+
+    .ds-admin-main .ds-card--pad-none > .ds-card__body > .ds-admin-note {
+        padding: 16px 20px;
+    }
+
+    .ds-admin-list {
+        display: flex;
+        flex-direction: column;
+        align-self: stretch;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .ds-admin-list__item {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding: 12px 0 12px 14px;
+        border-left: 4px solid var(--color-court);
+    }
+
+    .ds-admin-list__item + .ds-admin-list__item {
+        margin-top: 10px;
+        border-top: 1px solid var(--color-line-soft);
+    }
+
+    .ds-admin-list__title {
+        margin: 0;
+        font-weight: 700;
+    }
+
+    .ds-admin-note {
+        margin: 0;
+        font-size: 14px;
+        color: var(--color-ink-2);
+    }
+
+    .ds-admin-link {
+        color: var(--color-clay);
+        font-weight: 600;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+    }
+
+    .ds-admin-link:hover {
+        color: var(--color-clay-hover);
+    }
+
+    .ds-admin-fab {
+        padding: 0 20px;
+    }
+
+    .ds-admin-filter {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: 12px;
+    }
+
+    .ds-admin-filter > .ds-field {
+        flex: 1 1 14rem;
+        max-width: 24rem;
+    }
+
+    .ds-admin-sortable {
+        cursor: pointer;
+    }
+
+    @media (width >= 48rem) {
+        /* Admin list tables: 20px outer gutters, 12px between columns, 12px row padding. */
+        .ds-admin-main .ds-table--list th[scope='col'] {
+            padding: 10px 12px;
+        }
+
+        .ds-admin-main .ds-table--list td {
+            padding: 12px;
+        }
+
+        .ds-admin-main .ds-table--list th[scope='col']:first-child,
+        .ds-admin-main .ds-table--list td:first-child {
+            padding-left: 20px;
+        }
+
+        .ds-admin-main .ds-table--list th[scope='col']:last-child,
+        .ds-admin-main .ds-table--list td:last-child {
+            padding-right: 20px;
+        }
+
+        .ds-admin-main .ds-table--list .ds-cell--title {
+            font-weight: 700;
+        }
+
+        .ds-admin-today__time {
+            white-space: nowrap;
+        }
+    }
+
+    @media (width < 48rem) {
+        .ds-admin-stack {
+            gap: 14px;
+        }
+
+        /* The phone bar shows the title; the eyebrow becomes the plain date line. */
+        .ds-admin-head__eyebrow {
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0;
+            text-transform: none;
+            color: var(--color-ink-2);
+        }
+
+        .ds-admin-kpis {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .ds-card.ds-admin-kpi {
+            padding: 12px 14px;
+        }
+
+        .ds-admin-kpi .ds-kpi {
+            gap: 2px;
+        }
+
+        .ds-admin-kpi .ds-kpi__label {
+            font-size: 12px;
+            letter-spacing: 0.06em;
+        }
+
+        .ds-admin-kpi .ds-kpi__value {
+            font-size: 36px;
+        }
+
+        .ds-admin-kpi .ds-kpi__meta {
+            font-size: 13px;
+        }
+
+        .ds-admin-main .ds-card__title {
+            font-size: 22px;
+        }
+
+        .ds-admin-main .ds-badge {
+            padding: 3px 8px;
+            font-size: 12px;
+        }
+
+        /* Floating primary action; the empty actions row collapses. */
+        .ds-admin-head__actions:has(> .ds-admin-fab:only-child) {
+            display: contents;
+        }
+
+        .ds-btn.ds-admin-fab {
+            position: fixed;
+            right: 16px;
+            bottom: 16px;
+            z-index: 30;
+            width: auto;
+            min-height: 56px;
+            padding: 0 20px;
+            border-radius: var(--radius-pill);
+            box-shadow: var(--shadow-dialog);
+            font-size: 16px;
+        }
+
+        /* Table cards become a plain heading followed by one card per row. */
+        .ds-admin-main .ds-card.ds-admin-rows {
+            overflow: visible;
+            border: 0;
+            background: transparent;
+        }
+
+        .ds-admin-main .ds-admin-rows > .ds-card__header {
+            padding: 0 0 10px;
+            border-bottom: 0;
+        }
+
+        .ds-admin-rows .ds-table,
+        .ds-admin-rows .ds-table tbody {
+            display: block;
+        }
+
+        .ds-admin-rows .ds-table tbody {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .ds-admin-rows .ds-table--stack tr {
+            min-height: 60px;
+            padding: 8px 12px;
+            border: 1px solid var(--color-line);
+            border-radius: var(--radius-lg);
+            background: var(--color-surface);
+            box-sizing: border-box;
+        }
+
+        .ds-admin-rows .ds-table tbody tr + tr,
+        .ds-admin-rows .ds-table tbody tr:first-child {
+            border-top: 1px solid var(--color-line);
+        }
+
+        /* The row title (first cell) reads as the card heading, without its column label. */
+        .ds-admin-rows .ds-table--stack td.ds-cell--title[data-label]::before {
+            content: none;
+        }
+
+        /* Dashboard rows: time | member over court | status, as in the phone mockup. */
+        .ds-admin-today .ds-table--stack tr {
+            grid-template-columns: 58px minmax(0, 1fr) auto;
+            grid-template-areas: 'time member status' 'time court status';
+            align-items: center;
+            column-gap: 12px;
+            row-gap: 0;
+        }
+
+        .ds-admin-today .ds-table--stack td {
+            display: block;
+        }
+
+        .ds-admin-today .ds-table--stack td[data-label]::before {
+            content: none;
+        }
+
+        .ds-admin-today__time {
+            grid-area: time;
+            font-weight: 700;
+        }
+
+        .ds-admin-today__end {
+            display: none;
+        }
+
+        .ds-admin-today__member {
+            grid-area: member;
+            font-weight: 700;
+        }
+
+        .ds-admin-today__court {
+            grid-area: court;
+            font-size: 13px;
+            color: var(--color-ink-2);
+        }
+
+        .ds-admin-today__status {
+            grid-area: status;
+        }
+
+        .ds-admin-filter > .ds-field {
+            max-width: none;
+        }
+
+        .ds-admin-filter > .ds-btn {
+            flex: 1 1 100%;
+        }
+    }
+
     /* Popup frame (layouts.popup): dark title bar with a close button, content below. */
     .ds-popup {
         display: flex;

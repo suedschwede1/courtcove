@@ -1,106 +1,82 @@
 @extends('layouts.admin')
 @section('admin-title', __('booking.admin.statistics.title'))
 @section('admin-content')
-<div class="ui-page">
-    <div class="ui-page-header">
-        <h1>{{ __('booking.admin.statistics.title') }}</h1>
-    </div>
+@php
+    $columns = [
+        ['label' => __('booking.admin.statistics.member'), 'sort' => 'text'],
+        ['label' => __('booking.admin.statistics.total'), 'sort' => 'number'],
+        ['label' => __('booking.admin.statistics.single'), 'sort' => 'number'],
+        ['label' => __('booking.admin.statistics.double'), 'sort' => 'number'],
+        ['label' => __('booking.admin.statistics.last_month'), 'sort' => 'number'],
+        ['label' => __('booking.admin.statistics.this_year'), 'sort' => 'number'],
+        ['label' => __('booking.admin.statistics.top_court'), 'sort' => 'text'],
+        ['label' => __('booking.admin.statistics.cancellation_rate'), 'sort' => 'number'],
+    ];
+@endphp
+<div class="ds-admin-stack">
+    <x-admin.page-header :title="__('booking.admin.statistics.title')" />
 
-    <div class="ui-card ui-card--filter">
-        <div class="ui-card-body ui-stack">
-            <form method="GET" action="{{ route('admin.statistics.index') }}" class="ui-row">
-                <input type="hidden" name="searched" value="1">
-                <div class="ui-field min-w-[14rem]">
-                    <label class="ui-label" for="stats-search">{{ __('booking.admin.statistics.search') }}</label>
-                    <input id="stats-search" type="text" name="search" value="{{ $search ?? '' }}" class="ui-input">
-                </div>
-                <button type="submit" class="ui-btn ui-btn-primary">{{ __('booking.admin.common.filter') }}</button>
-            </form>
-        </div>
-    </div>
+    <x-ui.card padding="lg">
+        <form method="GET" action="{{ route('admin.statistics.index') }}" class="ds-admin-filter">
+            <input type="hidden" name="searched" value="1">
+            <x-ui.field :label="__('booking.admin.statistics.search')" for="stats-search">
+                <x-ui.input name="search" id="stats-search" :value="$search ?? ''" />
+            </x-ui.field>
+            <x-ui.button type="submit" :block="false">{{ __('booking.admin.common.filter') }}</x-ui.button>
+        </form>
+    </x-ui.card>
 
-    <div class="ui-grid-4">
-        <div class="ui-card ui-kpi">
-            <div class="ui-card-body ui-stack">
-                <p class="ui-kpi-label">{{ __('booking.admin.statistics.summary_total') }}</p>
-                <p class="ui-kpi-value">{{ $summary['total'] }}</p>
-                <p class="ui-kpi-meta">{{ $summary['single'] }} {{ __('booking.admin.bookings.single') }} · {{ $summary['double'] }} {{ __('booking.admin.bookings.double') }}</p>
-            </div>
-        </div>
-        <div class="ui-card">
-            <div class="ui-card-body ui-stack">
-                <p class="ui-kpi-label">{{ __('booking.admin.statistics.summary_this_year') }}</p>
-                <p class="ui-kpi-value">{{ $summary['thisYear'] }}</p>
-            </div>
-        </div>
-        <div class="ui-card">
-            <div class="ui-card-body ui-stack">
-                <p class="ui-kpi-label">{{ __('booking.admin.statistics.summary_last_month') }}</p>
-                <p class="ui-kpi-value">{{ $summary['lastMonth'] }}</p>
-            </div>
-        </div>
-        <div class="ui-card">
-            <div class="ui-card-body ui-stack">
-                <p class="ui-kpi-label">{{ __('booking.admin.statistics.summary_cancellation_rate') }}</p>
-                <p class="ui-kpi-value">{{ number_format($summary['cancellationRate'], 1) }}%</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="ui-grid-4">
-        <div class="ui-card">
-            <div class="ui-card-body ui-stack">
-                <p class="ui-kpi-label">{{ __('booking.admin.statistics.summary_members_this_year') }}</p>
-                <p class="ui-kpi-value">{{ $summary['membersThisYear'] }}</p>
-            </div>
-        </div>
-        <div class="ui-card">
-            <div class="ui-card-body ui-stack">
-                <p class="ui-kpi-label">{{ __('booking.admin.statistics.summary_members_this_month') }}</p>
-                <p class="ui-kpi-value">{{ $summary['membersThisMonth'] }}</p>
-            </div>
-        </div>
+    <div class="ds-admin-kpis">
+        <x-ui.card as="div" class="ds-admin-kpi">
+            <x-ui.kpi :label="__('booking.admin.statistics.summary_total')" :value="$summary['total']" :meta="$summary['single'] . ' ' . __('booking.admin.bookings.single') . ' · ' . $summary['double'] . ' ' . __('booking.admin.bookings.double')" />
+        </x-ui.card>
+        <x-ui.card as="div" class="ds-admin-kpi">
+            <x-ui.kpi :label="__('booking.admin.statistics.summary_this_year')" :value="$summary['thisYear']" />
+        </x-ui.card>
+        <x-ui.card as="div" class="ds-admin-kpi">
+            <x-ui.kpi :label="__('booking.admin.statistics.summary_last_month')" :value="$summary['lastMonth']" />
+        </x-ui.card>
+        <x-ui.card as="div" class="ds-admin-kpi">
+            <x-ui.kpi :label="__('booking.admin.statistics.summary_cancellation_rate')" :value="number_format($summary['cancellationRate'], 1) . '%'" />
+        </x-ui.card>
+        <x-ui.card as="div" class="ds-admin-kpi">
+            <x-ui.kpi :label="__('booking.admin.statistics.summary_members_this_year')" :value="$summary['membersThisYear']" />
+        </x-ui.card>
+        <x-ui.card as="div" class="ds-admin-kpi">
+            <x-ui.kpi :label="__('booking.admin.statistics.summary_members_this_month')" :value="$summary['membersThisMonth']" />
+        </x-ui.card>
     </div>
 
     @if($searched)
-        <div class="ui-card">
-            <div class="ui-table-wrap">
-                @if($stats->isEmpty())
-                    <div class="ui-card-body"><p class="ui-kpi-meta">{{ __('booking.admin.no_results') }}</p></div>
-                @else
-                    <table class="ui-table" id="statistics-table">
-                        <thead>
-                            <tr>
-                                <th data-sort="text">{{ __('booking.admin.statistics.member') }}</th>
-                                <th data-sort="number">{{ __('booking.admin.statistics.total') }}</th>
-                                <th data-sort="number">{{ __('booking.admin.statistics.single') }}</th>
-                                <th data-sort="number">{{ __('booking.admin.statistics.double') }}</th>
-                                <th data-sort="number">{{ __('booking.admin.statistics.last_month') }}</th>
-                                <th data-sort="number">{{ __('booking.admin.statistics.this_year') }}</th>
-                                <th data-sort="text">{{ __('booking.admin.statistics.top_court') }}</th>
-                                <th data-sort="number">{{ __('booking.admin.statistics.cancellation_rate') }}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($stats as $row)
-                                <tr>
-                                    <td class="font-medium">{{ $row['alias'] }}</td>
-                                    <td>{{ $row['total'] }}</td>
-                                    <td>{{ $row['single'] }}</td>
-                                    <td>{{ $row['double'] }}</td>
-                                    <td>{{ $row['lastMonth'] }}</td>
-                                    <td>{{ $row['thisYear'] }}</td>
-                                    <td>{{ $row['topCourt'] ?? '—' }}</td>
-                                    <td>{{ number_format($row['cancellationRate'], 1) }}%</td>
-                                </tr>
+        @if($stats->isEmpty())
+            <x-ui.card><p class="ds-admin-note">{{ __('booking.admin.no_results') }}</p></x-ui.card>
+        @else
+            <x-ui.card padding="none" class="ds-admin-rows">
+                <x-ui.table id="statistics-table" :caption="__('booking.admin.statistics.title')">
+                    <x-slot:head>
+                        <tr>
+                            @foreach($columns as $column)
+                                <th scope="col" data-sort="{{ $column['sort'] }}" class="ds-admin-sortable">{{ $column['label'] }}</th>
                             @endforeach
-                        </tbody>
-                    </table>
-                @endif
-            </div>
-        </div>
+                        </tr>
+                    </x-slot:head>
+                    @foreach($stats as $row)
+                        <tr>
+                            <td class="ds-cell--title" data-label="{{ $columns[0]['label'] }}">{{ $row['alias'] }}</td>
+                            <td data-label="{{ $columns[1]['label'] }}">{{ $row['total'] }}</td>
+                            <td data-label="{{ $columns[2]['label'] }}">{{ $row['single'] }}</td>
+                            <td data-label="{{ $columns[3]['label'] }}">{{ $row['double'] }}</td>
+                            <td data-label="{{ $columns[4]['label'] }}">{{ $row['lastMonth'] }}</td>
+                            <td data-label="{{ $columns[5]['label'] }}">{{ $row['thisYear'] }}</td>
+                            <td data-label="{{ $columns[6]['label'] }}">{{ $row['topCourt'] ?? '—' }}</td>
+                            <td data-label="{{ $columns[7]['label'] }}">{{ number_format($row['cancellationRate'], 1) }}%</td>
+                        </tr>
+                    @endforeach
+                </x-ui.table>
+            </x-ui.card>
+        @endif
     @else
-        <div class="ui-card"><div class="ui-card-body"><p class="ui-kpi-meta">{{ __('booking.admin.search_hint') }}</p></div></div>
+        <x-ui.card><p class="ds-admin-note">{{ __('booking.admin.search_hint') }}</p></x-ui.card>
     @endif
 </div>
 
@@ -113,7 +89,6 @@
     var currentSort = { index: -1, dir: 1 };
 
     headers.forEach(function (th, index) {
-        th.style.cursor = 'pointer';
         th.addEventListener('click', function () {
             var type = th.getAttribute('data-sort');
             var dir = currentSort.index === index ? -currentSort.dir : 1;
