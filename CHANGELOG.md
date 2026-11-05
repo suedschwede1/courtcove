@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Phase 2: tournament tables adopted in place (guarded create migrations, no-op rollback, schema manifest).
 - Phase 2: Mixed roster entries with a placeholder birth date (e.g. 1900) no longer break adding participants; implausible ITN values in the member export are ignored.
 - Phase 2 go-live (module 3): /mixed-tournament is served by Laravel; rollback = re-add the path to the bridge allowlist.
 - Phase 2: Mixed scorecards and blank scorecards as A4 print pages (page break per wave, no wave number).
