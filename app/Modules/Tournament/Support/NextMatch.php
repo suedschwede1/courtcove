@@ -8,7 +8,8 @@ use App\Modules\Tournament\Services\TournamentManager;
 
 /**
  * The next match of a player (old IndexController::indexAction): his unplayed matches, those without a
- * date first, then by date; equal dates keep the manager's order.
+ * date first, then by date; equal dates keep the manager's order. Deviation from ZF2: a KO match whose
+ * opponent is not known yet is skipped (ZF2 offered "Gegner offen" with a date button).
  */
 final class NextMatch
 {
@@ -18,7 +19,7 @@ final class NextMatch
         $candidates = [];
 
         foreach ($m->playerMatches($tid, $tpid) as $match) {
-            if ($m->matchState($match) !== 'played') {
+            if ($m->matchState($match) !== 'played' && $match['tpid_a'] && $match['tpid_b']) {
                 $candidates[] = $match;
             }
         }

@@ -16,7 +16,7 @@
 @endphp
 
 @if ($active === null)
-    <p class="text-ink-2">{{ __('tournament::bracket.not_drawn') }}</p>
+    <p class="text-body text-ink-2">{{ __('tournament::bracket.not_drawn') }}</p>
 @else
 @php
     $lineLabel = function (int $lineNo) use ($lines, $players, $codeMeaning): array {
@@ -55,9 +55,9 @@
 @endphp
 
 <div class="flex flex-wrap items-center justify-between gap-3">
-    <nav aria-label="{{ __('tournament::bracket.phases_label') }}" class="flex flex-wrap gap-2">
+    <nav aria-label="{{ __('tournament::bracket.phases_label') }}" class="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:px-0">
         @foreach ($phases as $key => $item)
-            <x-ui.chip :href="route('tournament.bracket', ['phase' => $key])" :active="$key === $active">{{ $item['label'] }}</x-ui.chip>
+            <x-ui.chip class="shrink-0" :href="route('tournament.bracket', ['phase' => $key])" :active="$key === $active">{{ $item['label'] }}</x-ui.chip>
         @endforeach
     </nav>
     <p class="text-body-s text-ink-2">
@@ -70,13 +70,13 @@
 
 <x-ui.card>
     <div class="overflow-x-auto">
-        <div class="flex min-w-max items-stretch gap-4">
+        <div class="flex items-stretch gap-4">
             @foreach ($rounds as $index => $roundName)
                 @php
                     $round = $index + 1;
                     $roundMatches = $matches[$round] ?? [];
                 @endphp
-                <section id="runde-{{ $round }}" class="flex w-64 shrink-0 flex-col gap-3" aria-label="{{ $roundName }}">
+                <section id="runde-{{ $round }}" class="flex w-64 shrink-0 grow flex-col gap-3" aria-label="{{ $roundName }}">
                     <h2 class="text-label uppercase text-ink-3">{{ $roundName }}</h2>
                     @if (! $roundMatches)
                         <p class="text-body-s text-ink-2">{{ __('tournament::bracket.no_round_matches') }}</p>

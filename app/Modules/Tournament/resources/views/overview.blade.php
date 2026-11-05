@@ -52,9 +52,9 @@
     @endif
 
     <div class="grid grid-cols-3 gap-3">
-        <x-ui.kpi :label="__('tournament::overview.kpi_played')" :value="(int) $kpis['played'].'/'.(int) $kpis['total']" />
-        <x-ui.kpi :label="__('tournament::overview.kpi_scheduled')" :value="(int) $kpis['scheduled']" />
-        <x-ui.kpi :label="__('tournament::overview.kpi_open')" :value="(int) $kpis['open']" />
+        <x-ui.card as="div"><x-ui.kpi :label="__('tournament::overview.kpi_played')" :value="(int) $kpis['played'].'/'.(int) $kpis['total']" /></x-ui.card>
+        <x-ui.card as="div"><x-ui.kpi :label="__('tournament::overview.kpi_scheduled')" :value="(int) $kpis['scheduled']" /></x-ui.card>
+        <x-ui.card as="div"><x-ui.kpi :label="__('tournament::overview.kpi_open')" :value="(int) $kpis['open']" /></x-ui.card>
     </div>
 </div>
 
@@ -70,7 +70,7 @@
 
 @if ($view === 'ko')
     @if (! $bracket['phases'])
-        <p class="text-ink-2">{{ __('tournament::overview.ko_not_drawn') }}</p>
+        <p class="text-body text-ink-2">{{ __('tournament::overview.ko_not_drawn') }}</p>
     @endif
 
     <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -80,7 +80,7 @@
                     <div class="flex flex-wrap items-baseline justify-between gap-2">
                         <h3 class="font-display text-display-s text-ink">
                             @if (Route::has('tournament.bracket'))
-                                <a class="hover:text-clay-hover" href="{{ route('tournament.bracket', ['phase' => $phaseInfo['key']]).($phaseInfo['round'] ? '#runde-'.$phaseInfo['round'] : '') }}">{{ $phaseInfo['label'] }}</a>
+                                <a class="text-ink hover:text-clay-hover" href="{{ route('tournament.bracket', ['phase' => $phaseInfo['key']]).($phaseInfo['round'] ? '#runde-'.$phaseInfo['round'] : '') }}">{{ $phaseInfo['label'] }}</a>
                             @else
                                 {{ $phaseInfo['label'] }}
                             @endif
@@ -118,17 +118,17 @@
     @endforeach
 @else
     @if (! $progress)
-        <p class="text-ink-2">{{ __('tournament::overview.no_groups') }}</p>
+        <p class="text-body text-ink-2">{{ __('tournament::overview.no_groups') }}</p>
     @endif
 
-    <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+    <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
         @foreach ($progress as $key => $group)
             <x-ui.card as="article" padding="none">
                 <div class="flex flex-col gap-2.5 px-4 pb-2 pt-4">
                     <div class="flex flex-wrap items-baseline justify-between gap-2">
                         <h3 class="font-display text-display-s text-ink">
                             @if (Route::has('tournament.groups'))
-                                <a class="hover:text-clay-hover" href="{{ route('tournament.groups', ['group' => $key]) }}">{{ __('tournament::overview.group', ['group' => $key]) }}</a>
+                                <a class="text-ink hover:text-clay-hover" href="{{ route('tournament.groups', ['group' => $key]) }}">{{ __('tournament::overview.group', ['group' => $key]) }}</a>
                             @else
                                 {{ __('tournament::overview.group', ['group' => $key]) }}
                             @endif

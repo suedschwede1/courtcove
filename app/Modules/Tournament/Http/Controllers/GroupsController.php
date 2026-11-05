@@ -48,7 +48,7 @@ class GroupsController extends TournamentPageController
             // the comparison across groups happens in TournamentManager::promotion() the same way.
             $cleanedSecond = null;
 
-            if ($complete && $c['format']->runnerUpMode() === 'drop_last' && count($table) > 3 && isset($table[1])) {
+            if ($complete && $c['format']->runnerUpMode() === 'drop_last' && count($table) > 3) {
                 $lastRow = $table[count($table) - 1];
 
                 if (empty($lastRow['needs_lot'])) {

@@ -21,15 +21,15 @@
 @endphp
 
 @if ($groups)
-    <nav aria-label="{{ __('tournament::groups.filter_label') }}" class="flex flex-wrap gap-2">
+    <nav aria-label="{{ __('tournament::groups.filter_label') }}" class="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:px-0">
         @foreach ($groups as $key => $info)
-            <x-ui.chip :href="route('tournament.groups', ['group' => $key])" :active="$key === $active">{{ __('tournament::groups.group', ['group' => $key]) }}</x-ui.chip>
+            <x-ui.chip class="shrink-0" :href="route('tournament.groups', ['group' => $key])" :active="$key === $active">{{ __('tournament::groups.group', ['group' => $key]) }}</x-ui.chip>
         @endforeach
     </nav>
 @endif
 
 @if ($active === null)
-    <p class="text-ink-2">{{ __('tournament::overview.no_groups') }}</p>
+    <p class="text-body text-ink-2">{{ __('tournament::overview.no_groups') }}</p>
 @else
 <div class="grid grid-cols-1 items-start gap-4 lg:grid-cols-5">
     <x-ui.card padding="none" class="lg:col-span-3" :title="__('tournament::groups.group', ['group' => $active])">
@@ -112,7 +112,7 @@
         @if ($matches)
             <p class="text-body-s text-ink-2">{{ __('tournament::groups.matches_summary', $byState) }}</p>
         @else
-            <p class="text-ink-2">{{ __('tournament::groups.no_matches') }}</p>
+            <p class="text-body text-ink-2">{{ __('tournament::groups.no_matches') }}</p>
         @endif
         @foreach ($matches as $match)
             @include('tournament::partials.match-card', ['props' => $presenter->present($match, $players, $access, $tournament)])

@@ -38,10 +38,10 @@
     <x-ui.input type="search" name="q" id="player-search" x-model="term" placeholder="{{ __('tournament::players.search') }}" autocomplete="off" />
 
     @if ($groups)
-        <div role="group" aria-label="{{ __('tournament::players.groups_label') }}" class="flex flex-wrap gap-2">
-            <x-ui.chip :active="true" x-on:click="group = ''" x-bind:aria-pressed="group === '' ? 'true' : 'false'">{{ __('tournament::players.all') }}</x-ui.chip>
+        <div role="group" aria-label="{{ __('tournament::players.groups_label') }}" class="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:px-0">
+            <x-ui.chip class="shrink-0" :active="true" x-on:click="group = ''" x-bind:aria-pressed="group === '' ? 'true' : 'false'">{{ __('tournament::players.all') }}</x-ui.chip>
             @foreach ($groups as $g)
-                <x-ui.chip x-on:click="group = '{{ $g }}'" x-bind:aria-pressed="group === '{{ $g }}' ? 'true' : 'false'">{{ __('tournament::players.group', ['group' => $g]) }}</x-ui.chip>
+                <x-ui.chip class="shrink-0" x-on:click="group = '{{ $g }}'" x-bind:aria-pressed="group === '{{ $g }}' ? 'true' : 'false'">{{ __('tournament::players.group', ['group' => $g]) }}</x-ui.chip>
             @endforeach
         </div>
     @endif

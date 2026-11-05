@@ -42,13 +42,13 @@
 
 <div class="flex flex-col gap-1">
     <h2 class="font-display text-display-l text-ink">{{ $me['label'] }}</h2>
-    <p class="text-ink-2">{{ implode(' · ', $meLine) }}</p>
+    <p class="text-body text-ink-2">{{ implode(' · ', $meLine) }}</p>
 </div>
 
 <div class="grid grid-cols-3 gap-3">
-    <x-ui.kpi :label="__('tournament::mine.kpi_wins')" :value="$wins.':'.$losses" />
-    <x-ui.kpi :label="__('tournament::mine.kpi_rank')" :value="$row ? (int) $row['rank'].'.' : '–'" />
-    <x-ui.kpi :label="__('tournament::mine.kpi_open')" :value="$openCount" />
+    <x-ui.card as="div"><x-ui.kpi :label="__('tournament::mine.kpi_wins')" :value="$wins.':'.$losses" /></x-ui.card>
+    <x-ui.card as="div"><x-ui.kpi :label="__('tournament::mine.kpi_rank')" :value="$row ? (int) $row['rank'].'.' : '–'" /></x-ui.card>
+    <x-ui.card as="div"><x-ui.kpi :label="__('tournament::mine.kpi_open')" :value="$openCount" /></x-ui.card>
 </div>
 
 @if ($row && ! empty($row['needs_lot']))
@@ -56,7 +56,7 @@
 @endif
 
 @if (! $matches)
-    <p class="text-ink-2">{{ __('tournament::mine.no_matches') }}</p>
+    <p class="text-body text-ink-2">{{ __('tournament::mine.no_matches') }}</p>
 @endif
 
 <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -101,7 +101,7 @@
                     @endif
                 </p>
                 @php
-                    $button = $props['action'];
+                    $button = $opponent !== null ? $props['action'] : null; // nothing to arrange before the opponent is known
                     if ($match['winner'] && Route::has('tournament.match')) {
                         $button = ['label' => __('tournament::mine.view_result'), 'url' => route('tournament.match', ['tmid' => (int) $match['tmid']]), 'variant' => 'secondary'];
                     }
