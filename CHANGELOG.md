@@ -14,7 +14,6 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 - The phone header logo link is a full 44 px tap target and the calendar time column keeps its spacer heights.
 - Free calendar cells are real links with a spoken label; own, booked, subscription, tournament, event and past slots get the new look; old calendar styles removed.
 - The calendar shows the selected day and the next two as cards with court aliases and numbers and a time column; phones show one day with a sticky court row.
-
 - The calendar shows a legend of all cell states, and the help texts describe the new colours.
 - The calendar date, day arrows, date picker and Infos/Hinweise now sit in a toolbar above the plan instead of under the header.
 - Calendar colours default to the new design tokens; CAL_COLOR_* and the local override file still win, tournament matches get their own colour keys.

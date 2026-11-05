@@ -58,15 +58,25 @@ final class CalendarColorsTest extends TestCase
         return (require config_path('calendar.php'))['colors'];
     }
 
-    private function skipOnCustomisedMachine(): void
+    private function customisationReason(): ?string
     {
         if (file_exists(config_path('calendar.local.php'))) {
-            $this->markTestSkipped('config/calendar.local.php exists on this machine.');
+            return 'config/calendar.local.php exists on this machine.';
         }
         foreach (array_merge(array_keys($_ENV), array_keys($_SERVER)) as $name) {
             if (is_string($name) && str_starts_with($name, 'CAL_COLOR_')) {
-                $this->markTestSkipped('A CAL_COLOR_* environment variable is set on this machine.');
+                return 'A CAL_COLOR_* environment variable is set on this machine.';
             }
+        }
+
+        return null;
+    }
+
+    private function skipOnCustomisedMachine(): void
+    {
+        $reason = $this->customisationReason();
+        if ($reason !== null) {
+            $this->markTestSkipped($reason);
         }
     }
 
@@ -82,6 +92,8 @@ final class CalendarColorsTest extends TestCase
     #[Test]
     public function env_override_still_wins(): void
     {
+        $this->skipOnCustomisedMachine();
+
         $_SERVER['CAL_COLOR_OWN_BG'] = $_ENV['CAL_COLOR_OWN_BG'] = '#123456';
         putenv('CAL_COLOR_OWN_BG=#123456');
 
@@ -96,10 +108,15 @@ final class CalendarColorsTest extends TestCase
     #[Test]
     public function local_override_file_still_wins(): void
     {
+        $this->skipOnCustomisedMachine();
+
         $file = config_path('calendar.local.php');
-        if (file_exists($file)) {
-            $this->markTestSkipped('config/calendar.local.php exists on this machine.');
-        }
+        // A dying process must not leave the override file behind.
+        register_shutdown_function(static function () use ($file): void {
+            if (is_file($file)) {
+                @unlink($file);
+            }
+        });
 
         file_put_contents($file, "<?php return ['tournament' => ['bg' => '#654321']];");
 
@@ -108,7 +125,9 @@ final class CalendarColorsTest extends TestCase
             $this->assertSame('#654321', Arr::get($colors, 'tournament.bg'));
             $this->assertSame('var(--color-court)', Arr::get($colors, 'tournament.line'));
         } finally {
-            unlink($file);
+            if (is_file($file)) {
+                unlink($file);
+            }
         }
     }
 
@@ -123,6 +142,8 @@ final class CalendarColorsTest extends TestCase
             $this->assertStringContainsString($var.': '.$value.';', $html, $key);
         }
 
-        $this->assertStringContainsString('--cal-own-bg: var(--color-clay);', $html);
+        if ($this->customisationReason() === null) {
+            $this->assertStringContainsString('--cal-own-bg: var(--color-clay);', $html);
+        }
     }
 }
