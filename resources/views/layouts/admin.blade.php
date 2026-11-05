@@ -20,7 +20,7 @@
                 <x-ui.icon-button icon="menu" variant="chrome" class="ds-admin-bar__lead" :label="__('booking.admin.nav.open')" x-ref="navButton" x-on:click="navOpen = true; $nextTick(() => $refs.navClose?.focus())" aria-controls="admin-nav" aria-expanded="false" x-bind:aria-expanded="navOpen ? 'true' : 'false'" />
             @endif
             <div class="ds-admin-bar__text">
-                <p class="ds-admin-bar__eyebrow">{{ __('booking.admin.nav.eyebrow') }}</p>
+                <p class="ds-admin-bar__eyebrow">@yield('admin-eyebrow', __('booking.admin.nav.eyebrow'))</p>
                 <p class="ds-admin-bar__title">@yield('admin-title', __('booking.admin.overview'))</p>
             </div>
             <x-ui.icon-button icon="calendar" variant="chrome" :href="route('calendar.index')" :label="__('booking.admin.to_calendar')" />

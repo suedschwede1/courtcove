@@ -2,6 +2,9 @@
 
 @section('title', __('pyramid::admin.ladder.title', ['title' => $ladder->title, 'season' => (int) $ladder->season]))
 @section('admin-title', $ladder->title)
+{{-- Phone admin bar (Admin-Pyramide-Mobil): back to the overview, the pyramid eyebrow above the ladder title. --}}
+@section('admin-back', \App\Modules\Pyramid\Support\PyramidLinks::adminIndex())
+@section('admin-eyebrow', __('pyramid::admin.index.eyebrow'))
 
 {{--
     Dashboard of one ladder. Needs: $ladder, $ladders, $counts (active players per ladder id), $otherLadders,
@@ -18,12 +21,13 @@
         ? PyramidStatus::label($status)
         : $status;
 @endphp
-<div class="flex flex-wrap items-end justify-between gap-3">
+{{-- Phones: the admin bar carries eyebrow and title, so the head stays for screen readers only. --}}
+<div class="flex flex-wrap items-end justify-between gap-3 max-md:sr-only">
     <div class="flex flex-col gap-1.5">
         <p class="text-label uppercase text-ink-3">{{ __('pyramid::admin.index.eyebrow') }}</p>
         <h1 class="font-display text-display-l text-ink md:text-display-xl">{{ __('pyramid::admin.ladder.title', ['title' => $ladder->title, 'season' => (int) $ladder->season]) }}</h1>
     </div>
-    <div class="flex flex-wrap gap-2.5">
+    <div class="flex flex-wrap gap-2.5 max-md:hidden">
         <x-ui.button variant="secondary" :block="false" :href="PyramidLinks::ladder((int) $ladder->id)">{{ __('pyramid::admin.ladder.public_view') }}</x-ui.button>
         <x-ui.button :block="false" :href="PyramidLinks::adminIndex().'#pyramid-admin-new'">{{ __('pyramid::admin.ladder.new_ladder') }}</x-ui.button>
     </div>
@@ -74,5 +78,11 @@
 
         @include('pyramid::admin.partials.season')
     </div>
+</div>
+
+{{-- Phones: the primary action sits in a fixed bar (Admin-Pyramide-Mobil); the anchor works without scripts. --}}
+<div class="h-20 md:hidden" aria-hidden="true"></div>
+<div class="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface px-4 pb-6 pt-3 md:hidden">
+    <x-ui.button href="#pyramid-admin-add" x-data x-on:click="$nextTick(() => document.getElementById('pyramid-add-picker')?.focus({ preventScroll: true }))">{{ __('pyramid::admin.ladder.add.title') }}</x-ui.button>
 </div>
 @endsection
