@@ -1,0 +1,2 @@
+@props(['name', 'size' => 20, 'label' => null, 'stroke' => 2])
+<svg xmlns="http://www.w3.org/2000/svg" width="{{ $size }}" height="{{ $size }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="{{ $stroke }}" stroke-linecap="round" stroke-linejoin="round" {{ $attributes->class('ds-icon') }} @if ($label !== null) role="img" aria-label="{{ $label }}"@else aria-hidden="true" focusable="false"@endif>{!! \App\Support\Ui\Icons::svg($name) !!}</svg>

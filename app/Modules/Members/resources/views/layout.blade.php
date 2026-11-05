@@ -1,16 +1,10 @@
-<!doctype html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ __('booking.nav.members') }} - @yield('admin-title', __('members::admin.dashboard.title'))</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@600;700&family=Red+Hat+Text:wght@400;500;600&display=swap" rel="stylesheet">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <link rel="stylesheet" href="{{ asset('css/booking.css') }}">
-</head>
-<body style="font-family: var(--font-body)">
+@extends('layouts.base')
+
+@section('layout-title')
+    {{ __('booking.nav.members') }} - @yield('admin-title', __('members::admin.dashboard.title'))
+@endsection
+
+@section('body')
 <div class="flex min-h-screen bg-[#f0f0f0]">
     <aside style="width:180px; height:100vh; position:sticky; top:0; overflow-y:auto; background:#151515; flex-shrink:0; display:flex; flex-direction:column;">
         <a href="{{ route('calendar.index') }}" onmouseover="this.style.color='#7fb3e8';" onmouseout="this.style.color='#4d8fdb';" style="display:block; padding:14px 14px 10px; border-bottom:1px solid rgba(255,255,255,0.08); margin-bottom:8px; font-family:var(--font-body); font-size:16px; font-weight:600; text-decoration:none; color:#4d8fdb; transition:color 0.15s ease;">
@@ -92,5 +86,4 @@
         <main class="flex-1 p-6">@yield('admin-content')</main>
     </div>
 </div>
-</body>
-</html>
+@endsection

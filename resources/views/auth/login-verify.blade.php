@@ -1,16 +1,12 @@
-<!doctype html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ str_replace(':system', $bookingName, __('booking.auth.verify.title')) }}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@600;700&family=Red+Hat+Text:wght@400;500;600&display=swap" rel="stylesheet">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <link rel="stylesheet" href="{{ asset('css/booking.css') }}">
-</head>
-<body class="min-h-screen bg-[#f0ede6] flex flex-col" style="font-family: var(--font-body)">
+@extends('layouts.base')
+
+@section('title')
+    {{ str_replace(':system', $bookingName, __('booking.auth.verify.title')) }}
+@endsection
+
+@section('body-class', 'min-h-screen bg-[#f0ede6] flex flex-col')
+
+@section('body')
     <header class="bg-white border-b border-[#e0ddd7] px-4 sm:px-6 py-3 sm:h-14 flex items-center gap-3">
         @if($bookingLogoPath && file_exists(public_path($bookingLogoPath)))
             <img src="{{ asset($bookingLogoPath) }}" alt="{{ $bookingName }}" class="h-9 w-auto object-contain">
@@ -42,6 +38,4 @@
             </form>
         </div>
     </main>
-</body>
-<!-- {{ config('booking.watermark') }} -->
-</html>
+@endsection

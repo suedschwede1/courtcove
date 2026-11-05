@@ -1,0 +1,31 @@
+{
+    "title": "numeric-slots",
+    "status": "executed",
+    "payload": {
+        "entries": [
+            11,
+            12,
+            13
+        ],
+        "slots": [
+            "0",
+            "1",
+            "2"
+        ],
+        "rule": "Gruppenkoepfe"
+    },
+    "commitment": "8ab68cc2e76e2d352484cf4071d51ad516b5e966f300ea2ca28a496d89494982",
+    "beacon_source": "drand:round:1",
+    "created": "2026-01-01 00:00:00",
+    "discarded": null,
+    "discarded_reason": null,
+    "server_seed": "d55c1cd7bc1c16f62a9d719985616b5eb16a95a1196c52a1eddf4b1d76e2056f",
+    "beacon_value": "756eb4d308073abffaadfbe0acf228a8de68c8a6d95356e141608d9e98ab875f",
+    "final_seed": "a12866df1c3daa347bed1e20f6ebd6394e7c78ae13047610fd4a3c1f8664a74d",
+    "assignment": [
+        13,
+        12,
+        11
+    ],
+    "executed": "2026-01-01 00:00:00"
+}

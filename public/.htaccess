@@ -19,6 +19,10 @@
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^((tournament|mixed-tournament|pyramide|draw|service)(/.*)?|user/(login|logout|password(-reset)?))/$ %1 [L,R=301]
 
+    # Phase 2: ported module paths go to Laravel although their prefix is still bridged.
+    # Rollback for one module = delete its line.
+    RewriteRule ^draw/record(/|$) index.php [L]
+
     RewriteRule ^(tournament|mixed-tournament|pyramide|draw|service)(/|$) zf2-bridge.php [L]
     RewriteRule ^user/(login|logout|password(-reset)?)(/|$) zf2-bridge.php [L]
 

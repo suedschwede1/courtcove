@@ -1,0 +1,31 @@
+{
+    "title": "unicode-slash-rule",
+    "status": "executed",
+    "payload": {
+        "entries": [
+            101,
+            102,
+            103
+        ],
+        "slots": [
+            "A2",
+            "B2",
+            "C2"
+        ],
+        "rule": "Gruppen A/B – Setzliste für Damen & Herren \"2027\" ✓"
+    },
+    "commitment": "81e28bcf50fbf80aa7c92e29a988e35d05fca8381c9d36b5fb87882164c6348c",
+    "beacon_source": "drand:round:1",
+    "created": "2026-01-01 00:00:00",
+    "discarded": null,
+    "discarded_reason": null,
+    "server_seed": "eda748a27c2b074c7a109bbb84515d56fc9c15e175f0e968bc62735491ffe103",
+    "beacon_value": "83a2a66abc6518db4bb4a357bacccc2c49fc354e733df33a6b14d82cdac38b59",
+    "final_seed": "2e557988345ccbc7bb8bb2b34ad4bb23efa9ce95d1ddeaadac442cb2036bf39d",
+    "assignment": {
+        "A2": 103,
+        "B2": 101,
+        "C2": 102
+    },
+    "executed": "2026-01-01 00:00:00"
+}

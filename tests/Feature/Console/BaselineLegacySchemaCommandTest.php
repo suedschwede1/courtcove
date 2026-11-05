@@ -17,10 +17,11 @@ class BaselineLegacySchemaCommandTest extends TestCase
 
     private const CREATE_BS_COUNT = 15;
 
+    // The baseline covers the 15 core tables only; the guarded module adoption migrations (draw*) run on their own.
     private function forgetCreateBsMigrations(): void
     {
         foreach (DB::table('migrations')->pluck('migration') as $name) {
-            if (preg_match('/create_bs_[a-z_]+_table$/', $name)) {
+            if (preg_match('/create_bs_(?!draw|pyramid)[a-z_]+_table$/', $name)) {
                 DB::table('migrations')->where('migration', $name)->delete();
             }
         }
@@ -29,7 +30,7 @@ class BaselineLegacySchemaCommandTest extends TestCase
     private function createBsNames(): array
     {
         return DB::table('migrations')->pluck('migration')
-            ->filter(fn ($n) => preg_match('/create_bs_[a-z_]+_table$/', $n) === 1)
+            ->filter(fn ($n) => preg_match('/create_bs_(?!draw|pyramid)[a-z_]+_table$/', $n) === 1)
             ->sort()->values()->all();
     }
 

@@ -1,0 +1,26 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Modules\Pyramid;
+
+use App\Modules\Pyramid\Models\PyramidLadder;
+use App\Modules\Pyramid\Policies\PyramidLadderPolicy;
+use App\Modules\TournamentBase\Routing\ModuleRoutes;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\ServiceProvider;
+
+class PyramidServiceProvider extends ServiceProvider
+{
+    public function boot(): void
+    {
+        $this->loadMigrationsFrom(__DIR__.'/Database/Migrations');
+        $this->loadViewsFrom(__DIR__.'/resources/views', 'pyramid');
+        $this->loadTranslationsFrom(__DIR__.'/resources/lang', 'pyramid');
+
+        Gate::policy(PyramidLadder::class, PyramidLadderPolicy::class);
+
+        Route::middleware(ModuleRoutes::middleware())->group(fn () => $this->loadRoutesFrom(__DIR__.'/routes.php'));
+    }
+}

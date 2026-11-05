@@ -44,3 +44,6 @@ Thumbs.db
 /scripts/
 /.env.dusk.local
 private/
+
+# Local agent workspace (also keeps Tailwind from scanning it)
+.superpowers/

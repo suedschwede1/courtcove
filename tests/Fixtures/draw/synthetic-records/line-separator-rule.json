@@ -1,0 +1,31 @@
+{
+    "title": "line-separator-rule",
+    "status": "executed",
+    "payload": {
+        "entries": [
+            101,
+            102,
+            103
+        ],
+        "slots": [
+            "A2",
+            "B2",
+            "C2"
+        ],
+        "rule": "a\u2028b"
+    },
+    "commitment": "00929bf597b7b664ee5f7b7dae12938c0b598c4454c04a71443c3fb0c361f1ec",
+    "beacon_source": "drand:round:1",
+    "created": "2026-01-01 00:00:00",
+    "discarded": null,
+    "discarded_reason": null,
+    "server_seed": "e4b82037eeb5728651c77e5788b615389dc49f807832678e1345b4ca21744a8d",
+    "beacon_value": "d655025411b59bdd6fff1502cb22eea2c909c6c98835513d9adde2f2f4d47eaa",
+    "final_seed": "afb280482dc5ef806ae2bdab10c6eba0c79d84b485d8b803d095679d387ed168",
+    "assignment": {
+        "A2": 102,
+        "B2": 103,
+        "C2": 101
+    },
+    "executed": "2026-01-01 00:00:00"
+}

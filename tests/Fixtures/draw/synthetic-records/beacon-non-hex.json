@@ -1,0 +1,31 @@
+{
+    "title": "beacon-non-hex",
+    "status": "executed",
+    "payload": {
+        "entries": [
+            101,
+            102,
+            103
+        ],
+        "slots": [
+            "A2",
+            "B2",
+            "C2"
+        ],
+        "rule": "Gruppenkoepfe"
+    },
+    "commitment": "c828e6efb391f02a9e215b3c791c5dfc5988991347fba23ab23cceaa4f320ea1",
+    "beacon_source": "drand:round:1",
+    "created": "2026-01-01 00:00:00",
+    "discarded": null,
+    "discarded_reason": null,
+    "server_seed": "80766f3bb4f9a23c00d79dbc75120aae5168e088178dc7019756088cfc4ad461",
+    "beacon_value": "drand-randomness-not-hex",
+    "final_seed": "24e4f6bb2b5f4ee5a50f77eac30658840feeb5cffd2d51bda4ad52d6cae8d4e4",
+    "assignment": {
+        "A2": 103,
+        "B2": 101,
+        "C2": 102
+    },
+    "executed": "2026-01-01 00:00:00"
+}

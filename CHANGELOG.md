@@ -8,8 +8,78 @@ reference point is `mobile-view-stable` (see [README.md](README.md#layout-refere
 When adding an entry: describe the *why*/user-facing effect in one line, not the diff —
 `git log` already has that. Add new entries at the top, under today's date.
 
+## 2026-11-05
+
+- Phase 2: Pyramid ladder administration page; the member picker now searches on demand instead of embedding all members.
+- Phase 2: Pyramid administration overview and ladder creation in Laravel.
+- Phase 2: Pyramid challenge page (date, result, decline, withdraw) and self-registration in Laravel.
+- Phase 2: Pyramid player profile and "Fordern" flow in Laravel.
+- Phase 2: public Pyramid ladder page in Laravel (not yet routed by .htaccess).
+- Phase 2: Pyramid rules page and searchable challenge list in the new design.
+- Phase 2: login return path keeps the /booking prefix; expired-form notice only redirects within the site; member search treats % and _ literally.
+- Phase 2: tournament modules send guests to the Laravel login with a return path and show expired forms as a notice.
+- Phase 2: Pyramid adoption, lock order and writer races checked against a real MySQL server; no behaviour change.
+- Phase 2: more Pyramid tests (ranking order, rule boundaries, forfeits, admin notes); no behaviour change.
+- Phase 2: Pyramid admin notes are stored trimmed (as in ZF2); empty dates render as a dash.
+- Phase 2: Pyramid mails (challenge, date, result, decline, withdrawal, deadline, forfeit, expiry, correction, admission, entry release) sent from Laravel.
+- Phase 2: Pyramid mails now carry a greeting with the player name, a club signature with website line and are addressed by name, like the booking mails.
+- Phase 2: Pyramid administration (seeding, waiting list, moves, normalising, deadlines, forfeits, corrections) ported unchanged.
+- Phase 2: Pyramid results and forfeits move the ladder exactly as before.
+- Phase 2: Pyramid challenge rules (positions, open-challenge lock, winner protection, loser cooldown, entry) ported unchanged.
+- Phase 2: Pyramid admin rights (global right or per-ladder grant) ported to a Laravel policy.
+- Phase 2: Pyramid data access ported; feed events keep ZF2's JSON and German wording.
+- Phase 2: Pyramid rules (challengeable positions, shifts, seeding) ported unchanged, checked against golden files from the old code.
+- Phase 2: Pyramid tables adopted in place (guarded create migrations, additive email column, no-op rollback, schema manifest).
+- Phase 2 go-live (module 1): the public draw record pages /draw/record/* are served by Laravel; the rest of /draw stays on ZF2.
+- Phase 2: public draw record page in the new design (German/English), same content and reveal rule as ZF2.
+- Legacy element rules use zero-specificity guards so existing buttons, links and inputs keep their original cascade.
+- Admin and Members pages show their prefix in the browser tab again even when a view sets its own title.
+- Legacy element rules (links, text inputs, touch-action) no longer restyle the new ds components, which now carry their own base font size.
+- Phones get a full-screen menu behind one button instead of the "..." actions list; no bottom bar.
+- Header switch no longer animates its knob.
+- New dark header with main menu, admin mode, language and account; date navigation moves to a bar below until the calendar toolbar arrives.
+- Navigation items are built once for the header and the phone menu; logo falls back to the club initials.
+- Tab counts stay readable on the active phone tab.
+- One shared tab bar for module sub-pages; chips on phones.
+- Shared table component: header row, highlighted rows and card layout on phones.
+- Shared form fields with visible labels, help and error text linked for screen readers.
+- Shared card, key figure and notice components of the new design.
+- Status badges use one shared colour map (good, neutral, attention, problem, you).
+- Shared button components with 46/52 px touch targets.
+
 ## 2026-11-04
 
+- Tests: the draw record page tests also cover closed token draws and hidden seeds of unrevealed draws.
+
+- Tests: the test-mode session test no longer uses a helper name that collides with the test method naming.
+- Phase 2: php artisan phase2:scrub-staging (staging only) replaces module data with fictional demo draws.
+- Phase 2: PHASE2_LIVE_DB_DATABASE must be set on the staging host (name of the live database); phase2:scrub-staging refuses to run without it.
+- Phase 2: admin "view as player" test mode state ported (used by the Tournament module).
+- Tests: the legacy baseline test ignores the guarded draw adoption migrations, which are not part of the 15-table baseline.
+- Tests: MySQL tests now hard-fail unless they target the local booking_test database (no DB_URL, local host), so a stray environment can never reach real data.
+- Tests: composer test:mysql runs MySQL-only adoption and preflight checks.
+- Phase 2: read-only php artisan phase2:preflight draw checks columns, ENUMs, charset, unique keys, orphans and recomputes every draw.
+- Phase 2: draw preflight now reports duplicate counts even when a unique index is missing.
+- Phase 2: draw:verify --compare-dir proves the Laravel JSON equals the ZF2 JSON for every captured live draw.
+- Phase 2: shared WhatsApp link and court name helpers for the tournament modules.
+- Phase 2: match score rules (best of three, match tie-break) ported unchanged with German/English messages.
+- Phase 2: /draw/record/{slug}/json implemented in Laravel with the same keys, reveal rule and no-cache headers (not yet routed by .htaccess).
+- Phase 2: shared module route group helper (`ModuleRoutes::middleware()`), module routes rely on the global 4-byte stripping.
+- Phase 2: php artisan draw:verify {slug?} --all recomputes commitment, seed and assignment of stored draws.
+- Phase 2: draw adoption tests now pin column types, plain indexes, no date casts and the existing-table guard for all three tables.
+- Phase 2: draw tables adopted in place (guarded create migrations, no-op rollback, schema manifest).
+- Phase 2: token draw helpers ported unchanged (golden vectors).
+- Phase 2: stored draw payloads are checked to be exactly canonical JSON.
+- Phase 2: Draw module with a byte-exact port of the commit/reveal draw maths (golden vectors from the old code).
+- Phase 2 groundwork: golden draw/token/score vectors captured from the old services (`tests/Fixtures/draw`, regenerable with `generate_vectors.php`) plus the public `tools/verify_draw.py` verifier, so the port can be checked byte for byte.
+- Phase 2 groundwork: shared TournamentBase module (config with environment-supplied court names, translations, injectable Randomizer).
+- Shared SVG icon set for the new design (no icon font, no emoji).
+- English members area no longer falls back to German for the short booking-system label.
+- The UI linter now checks the new design rules (tokens, 46/52 px controls, no inline styles, emoji or character icons) across all views, module views and CSS.
+- All pages share one page frame (fonts, styles, head) instead of five copies.
+- Site-wide switch to the new palette and fonts on existing pages, with a visible keyboard focus outline everywhere.
+- Fonts are served from the app itself (Barlow); no request to an external font service.
+- Design tokens of the new look (sand, clay, court, Barlow scale) defined in one place; dark values prepared, not switched on.
 - Fix HTTP 500 when `public/` is served through a symlink (Apache + PHP-FPM keeps `__DIR__` unresolved): `public/index.php` and `public/zf2-bridge.php` now derive the application root from `realpath(__DIR__)`, so vendor, bootstrap, maintenance file, `zf2.path` and the default ZF2 dir are found at the real location.
 - Emoji stripping no longer touches password/token fields (an emoji password was silently altered) and skips the utf8mb4-only API member/due endpoints.
 - Emoji and other 4-byte characters are stripped from request input (web and api) before they reach the utf8mb3 legacy tables, which previously failed with an HTTP 500; the Members module (utf8mb4) is exempt and keeps emoji.

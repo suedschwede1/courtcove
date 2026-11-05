@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\StripFourByteCharacters;
+use App\Modules\TournamentBase\Support\CsrfExpiredRedirect;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -17,6 +18,4 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [SetLocale::class, StripFourByteCharacters::class]);
         $middleware->api(append: [StripFourByteCharacters::class]);
     })
-    ->withExceptions(function (Exceptions $exceptions): void {
-        //
-    })->create();
+    ->withExceptions(fn (Exceptions $exceptions) => CsrfExpiredRedirect::register($exceptions))->create();

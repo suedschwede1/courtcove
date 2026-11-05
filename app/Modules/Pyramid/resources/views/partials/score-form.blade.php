@@ -1,0 +1,50 @@
+{{--
+    Score entry for a scheduled challenge: header row with both surnames, Satz 1, Satz 2 and the
+    match tiebreak, then the sticky save bar. Side a is always the challenger.
+    Needs: $challenge, $challenger, $opponent, $scoreHint (ScoreService::describe of the kept input, or null).
+--}}
+@php
+    $surname = static function (string $label): string {
+        $parts = preg_split('/\s+/u', trim($label)) ?: [];
+
+        return (string) (end($parts) ?: $label);
+    };
+    $nameA = $surname((string) $challenger->label);
+    $nameB = $surname((string) $opponent->label);
+    $rows = [
+        ['label' => __('pyramid::ui.detail.set', ['n' => 1]), 'a' => 's1a', 'b' => 's1b', 'max' => 7, 'sub' => null],
+        ['label' => __('pyramid::ui.detail.set', ['n' => 2]), 'a' => 's2a', 'b' => 's2b', 'max' => 7, 'sub' => null],
+        ['label' => __('pyramid::ui.detail.tiebreak'), 'a' => 'mtba', 'b' => 'mtbb', 'max' => null, 'sub' => __('pyramid::ui.detail.tiebreak_only')],
+    ];
+    $hintTone = ['error' => 'problem', 'warning' => 'attention', 'success' => 'good'][$scoreHint['state'] ?? ''] ?? 'neutral';
+@endphp
+<form method="POST" action="{{ route('pyramide.challenge.result', ['challengeId' => (int) $challenge->id]) }}" class="flex flex-col gap-4">
+    @csrf
+
+    <div class="grid grid-cols-3 items-center gap-2">
+        <span></span>
+        <span class="text-center text-body-s font-bold text-ink-2">{{ $nameA }}</span>
+        <span class="text-center text-body-s font-bold text-ink-2">{{ $nameB }}</span>
+
+        @foreach ($rows as $row)
+            <span class="flex flex-col font-bold leading-tight">
+                {{ $row['label'] }}
+                @if ($row['sub'] !== null)
+                    <span class="text-body-s font-medium text-ink-3">{{ $row['sub'] }}</span>
+                @endif
+            </span>
+            <x-ui.input type="number" variant="score" :name="$row['a']" id="pyramid-{{ $row['a'] }}" min="0" :max="$row['max']" :aria-label="__('pyramid::ui.detail.score_aria', ['label' => $row['label'], 'name' => $nameA])" />
+            <x-ui.input type="number" variant="score" :name="$row['b']" id="pyramid-{{ $row['b'] }}" min="0" :max="$row['max']" :aria-label="__('pyramid::ui.detail.score_aria', ['label' => $row['label'], 'name' => $nameB])" />
+        @endforeach
+    </div>
+
+    <p class="text-body-s text-ink-2">{{ __('pyramid::ui.detail.result_help', ['name' => $challenger->label]) }}</p>
+
+    @if ($scoreHint !== null && ! empty($scoreHint['message']))
+        <x-ui.notice :tone="$hintTone">{{ __($scoreHint['message'], $scoreHint['replace'] ?? []) }}</x-ui.notice>
+    @endif
+
+    <div class="sticky bottom-0 border-t border-line bg-surface py-3 md:static md:border-0 md:py-0">
+        <x-ui.button type="submit">{{ __('pyramid::ui.detail.result_submit') }}</x-ui.button>
+    </div>
+</form>

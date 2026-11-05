@@ -23,6 +23,7 @@ use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\LocaleController;
+use App\Http\Controllers\UiGalleryController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/login', [LoginController::class, 'showForm'])->name('login');
@@ -43,6 +44,7 @@ Route::get('/password/reset/{token}', [ResetPasswordController::class, 'showForm
 Route::post('/password/reset', [ResetPasswordController::class, 'reset'])
     ->middleware('throttle:5,1')->name('password.update');
 
+Route::get('/_ui', UiGalleryController::class)->name('ui.gallery');
 Route::get('/lang/{locale}', [LocaleController::class, 'switch'])->name('lang.switch');
 
 Route::get('/admin-mode/{state}', [AdminModeController::class, 'set'])

@@ -1,15 +1,7 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+@extends('layouts.base')
+
+@push('head')
     <meta name="format-detection" content="telephone=no">
-    <title>@yield('title', config('booking.name'))</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@600;700&family=Red+Hat+Text:wght@400;500;600&display=swap" rel="stylesheet">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <link rel="stylesheet" href="{{ asset('css/booking.css') }}?v={{ filemtime(public_path('css/booking.css')) }}">
     <style>
         :root {
             --cal-free-bg: {{ config('calendar.colors.free.bg') }};
@@ -31,9 +23,9 @@
             --cal-event-label: {{ config('calendar.colors.event.label') }};
         }
     </style>
-    @stack('head')
-</head>
-<body @hasSection('body-class') class="@yield('body-class')" @endif>
+@endpush
+
+@section('body')
 <div class="page-shell">
     <x-layout.header />
 
@@ -77,8 +69,4 @@
 </div>
 
 <script src="{{ asset('js/booking.js') }}?v={{ filemtime(public_path('js/booking.js')) }}"></script>
-@stack('scripts')
-</body>
-<!-- {{ config('booking.watermark') }} -->
-</html>
-
+@endsection

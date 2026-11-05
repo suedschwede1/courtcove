@@ -1,0 +1,31 @@
+{
+    "title": "n3-int",
+    "status": "executed",
+    "payload": {
+        "entries": [
+            101,
+            102,
+            103
+        ],
+        "slots": [
+            "A2",
+            "B2",
+            "C2"
+        ],
+        "rule": "Gruppenkoepfe"
+    },
+    "commitment": "518aa5bb3bfbe39180c88cc747f58fb7c3f589e40232604f7cf83481cb62150a",
+    "beacon_source": "drand:round:1",
+    "created": "2026-01-01 00:00:00",
+    "discarded": null,
+    "discarded_reason": null,
+    "server_seed": "5cfe1623ac6a4196e0d904ef7e0ae4e59016f6e3360d19ae374286aae75eb8ce",
+    "beacon_value": "d88b405f195f0b95658aed6f682e579961af3507ef512728dce7dc80b5c0fb0c",
+    "final_seed": "7f41da68d39013a5ccd904a8d66fc1627a38c407a65a6390afffc24f4ce3808c",
+    "assignment": {
+        "A2": 103,
+        "B2": 101,
+        "C2": 102
+    },
+    "executed": "2026-01-01 00:00:00"
+}
