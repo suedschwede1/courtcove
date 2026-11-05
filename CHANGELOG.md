@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Phase 2: Mixed admin overview with to-dos, event creation and member roster import in the new design.
 - Phase 2: Mixed round (Americano/Mexicano), standings and Durchmischung pages in the new design.
 - Phase 2: Mixed overview, help and event pages in the new design (German/English).
 - Phase 2: /mixed-tournament routes registered in Laravel (same URLs); the path leaves the ZF2 bridge with the deploy of this branch.
