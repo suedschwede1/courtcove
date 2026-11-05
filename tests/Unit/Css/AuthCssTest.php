@@ -61,4 +61,10 @@ final class AuthCssTest extends TestCase
         $this->assertMatchesRegularExpression('/\.ds-auth__club\s*\{[^}]*-webkit-line-clamp:\s*2/', $css);
         $this->assertMatchesRegularExpression('/\.ds-auth__club\s*\{[^}]*text-overflow:\s*ellipsis/', $css);
     }
+
+    #[Test]
+    public function panel_stays_viewport_high_beside_tall_forms(): void
+    {
+        $this->assertMatchesRegularExpression('/@media \(width >= 56rem\)\s*\{\s*\.ds-auth__panel\s*\{[^}]*position:\s*sticky[^}]*min-height:\s*100vh/', $this->css());
+    }
 }

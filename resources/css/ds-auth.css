@@ -322,6 +322,17 @@
         font-size: 17px;
     }
 
+    /* Side by side (panel basis 420 + main basis 480): the panel stays viewport-high beside a tall form. */
+    @media (width >= 56rem) {
+        .ds-auth__panel {
+            position: sticky;
+            top: 0;
+            align-self: flex-start;
+            min-height: 100vh;
+            min-height: 100dvh;
+        }
+    }
+
     @media (width >= 48rem) {
         .ds-auth .ds-input,
         .ds-auth .ds-select {
