@@ -8,13 +8,12 @@
     $activeItem = collect($navItems)->first(fn ($item) => $item->active);
     $sectionTitle = $activeItem?->label ?? $bookingName;
 @endphp
-<header class="ds-header ds-on-chrome no-print" x-data="{ menuOpen: false }" @keydown.escape.window="if (menuOpen) { menuOpen = false; $refs.menuButton.focus() }" @resize.window="if (menuOpen && window.innerWidth >= 1024) menuOpen = false">
+<header class="ds-header no-print" x-data="{ menuOpen: false }" @keydown.escape.window="if (menuOpen) { menuOpen = false; $refs.menuButton.focus() }" @resize.window="if (menuOpen && window.innerWidth >= 1024) menuOpen = false">
     <div class="ds-header__bar">
         <a href="{{ route('calendar.index') }}" class="ds-header__brand">
             <x-ui.logo-mark :name="$bookingName" />
             <span class="ds-header__titles">
                 <span class="ds-header__club">{{ $bookingName }}</span>
-                <span class="ds-header__eyebrow">{{ __('booking.nav.eyebrow') }}</span>
             </span>
         </a>
 
@@ -57,7 +56,7 @@
             @endauth
         </div>
 
-        <x-ui.icon-button icon="menu" variant="chrome" class="ds-header__menu-button" :label="__('booking.nav.open_menu')" x-ref="menuButton" x-on:click="menuOpen = true" aria-controls="phone-menu" x-bind:aria-expanded="menuOpen ? 'true' : 'false'" aria-expanded="false" />
+        <x-ui.icon-button icon="menu" variant="secondary" class="ds-header__menu-button" :label="__('booking.nav.open_menu')" x-ref="menuButton" x-on:click="menuOpen = true" aria-controls="phone-menu" x-bind:aria-expanded="menuOpen ? 'true' : 'false'" aria-expanded="false" />
     </div>
 
     <x-layout.phone-menu :items="$navItems" :club-name="$bookingName" />
