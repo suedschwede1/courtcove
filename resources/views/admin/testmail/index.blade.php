@@ -1,49 +1,21 @@
 @extends('layouts.admin')
-
 @section('admin-title', __('booking.admin.testmail.title'))
-
 @section('admin-content')
-<div class="flex flex-col gap-6">
+<div class="ds-admin-stack">
+    <x-admin.page-header :title="__('booking.admin.testmail.title')" :eyebrow="__('booking.admin.nav.eyebrow')">
+        <p class="ds-admin-note">{{ __('booking.admin.testmail.intro') }}</p>
+    </x-admin.page-header>
 
-    <h1 class="text-2xl font-bold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.admin.testmail.title') }}</h1>
-
-    <div class="bg-white rounded-xl border border-[#e0ddd7] shadow-sm overflow-hidden">
-        <div class="px-6 py-4 border-b border-[#f0ede6]">
-            <h2 class="text-base font-semibold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.admin.testmail.send_title') }}</h2>
-        </div>
-        <div class="px-6 py-5 flex flex-col gap-4">
-
-            <p class="text-sm text-[#6a6e73]">{{ __('booking.admin.testmail.intro') }}</p>
-
-            <form method="POST" action="{{ route('admin.testmail.send') }}">
-                @csrf
-                <div class="flex flex-col gap-4">
-
-                    <div class="flex flex-col gap-1">
-                        <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="email">{{ __('booking.admin.testmail.recipient') }}</label>
-                        <input
-                            id="email"
-                            type="email"
-                            name="email"
-                            value="{{ old('email', auth()->user()?->email) }}"
-                            class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent"
-                            required
-                            autofocus
-                        >
-                        @error('email')
-                            <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div class="flex justify-end pt-2">
-                        <button type="submit" class="bg-[#bf4316] hover:bg-[#9e3412] text-white text-sm font-medium px-5 py-2 rounded transition-colors">{{ __('booking.admin.testmail.submit') }}</button>
-                    </div>
-
-                </div>
-            </form>
-
-        </div>
-    </div>
-
+    <x-ui.card padding="lg" :title="__('booking.admin.testmail.send_title')">
+        <form method="POST" action="{{ route('admin.testmail.send') }}" class="ds-admin-stack">
+            @csrf
+            <x-ui.field :label="__('booking.admin.testmail.recipient')" for="email">
+                <x-ui.input type="email" name="email" id="email" :value="old('email', auth()->user()?->email)" required autofocus />
+            </x-ui.field>
+            <div class="ds-admin-actions">
+                <x-ui.button type="submit" :block="false">{{ __('booking.admin.testmail.submit') }}</x-ui.button>
+            </div>
+        </form>
+    </x-ui.card>
 </div>
 @endsection

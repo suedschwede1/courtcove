@@ -87,6 +87,21 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 - Booking opens as a dialog on desktop and a bottom sheet on phones, with Einzel/Doppel as tiles and a summary of date, time and court.
 - Success and error messages use the new dialog (sheet on phones) and close after 4 seconds unless you interact with them.
 - Shared dialog component: centred dialog on desktop, bottom sheet on phones, keeps focus inside and locks page scroll.
+- Admin area shipped on the new design with a rebuilt asset bundle.
+- Database page shows a wrong migrate confirmation as an inline error under its field.
+- Texts, behaviour and database admin pages in the new cards; destructive actions marked as such.
+- Event and court forms (also in the calendar popup) use the new cards, fields and date/time order.
+- Admin lists for bookings, events and courts use the new tables with card rows on phones.
+- Login history, API tokens, test mail and booking detail use the new admin look.
+- Admin booking create page has its own title and breadcrumb; the phone bar and page are inert while the admin menu is open; dashboard dates follow the language.
+- Admin member create and edit forms in section cards with clear save, password and delete areas.
+- Admin member list with search card, status badges, initials and card rows on phones.
+- Admin booking form in cards (who and where, when, note) with tiles for players, status and series scope; works the same in the calendar popup.
+- Admin overview and statistics show key figure tiles and card lists on phones in the new style.
+- Admin dialogs opened from the calendar get the dark title bar and a 44 px close button.
+- Admin pages use the new shell; on phones the admin menu slides in behind a menu button.
+- Admin sidebar in the new dark style with groups (Betrieb, Mitglieder, Einstellungen) and a clay marker for the current page.
+- Admin navigation is built from one grouped list; tournament entries appear only once their pages exist.
 - Legacy element rules use zero-specificity guards so existing buttons, links and inputs keep their original cascade.
 - Admin and Members pages show their prefix in the browser tab again even when a view sets its own title.
 - Legacy element rules (links, text inputs, touch-action) no longer restyle the new ds components, which now carry their own base font size.

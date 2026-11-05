@@ -1,12 +1,17 @@
 @extends('layouts.admin')
 @section('admin-title', __('booking.admin.squares.create_title'))
+@section('admin-back', route('admin.squares.index'))
 @section('admin-content')
-<div class="flex flex-col gap-6">
-    <h1 class="text-2xl font-bold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.admin.squares.create_title') }}</h1>
-    <form method="POST" action="{{ route('admin.squares.store') }}" class="flex flex-col gap-6">
+<div class="ds-admin-stack ds-admin-form-page">
+    <x-admin.page-header :title="__('booking.admin.squares.create_title')" :eyebrow="__('booking.admin.nav.eyebrow')" :back-url="route('admin.squares.index')" :back-label="__('booking.admin.squares.title')" />
+
+    <form method="POST" action="{{ route('admin.squares.store') }}" class="ds-admin-stack">
         @include('admin.squares._form', ['form' => $form, 'square' => $square])
-        <div>
-            <button type="submit" class="bg-[#bf4316] hover:bg-[#9e3412] text-white text-sm font-medium px-5 py-2 rounded transition-colors">{{ __('booking.admin.common.create') }}</button>
+        <div class="ds-admin-actions">
+            <div class="ds-admin-actions__group ds-admin-actions__group--main">
+                <x-ui.button :href="route('admin.squares.index')" variant="secondary" :block="false">{{ __('booking.admin.common.abort') }}</x-ui.button>
+                <x-ui.button type="submit" :block="false">{{ __('booking.admin.common.create') }}</x-ui.button>
+            </div>
         </div>
     </form>
 </div>

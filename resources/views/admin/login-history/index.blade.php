@@ -1,139 +1,109 @@
 @extends('layouts.admin')
 @section('admin-title', __('booking.admin.login_history.title'))
 @section('admin-content')
-<div class="ui-page">
-    <div class="ui-page-header">
-        <h1>{{ __('booking.admin.login_history.title') }}</h1>
-        <p>{{ __('booking.admin.login_history.intro') }}</p>
+@php
+    $statusTone = ['success' => 'good', 'failed' => 'problem', 'throttled' => 'attention'];
+    $statusOptions = [];
+    foreach (['success', 'failed', 'throttled'] as $status) {
+        $statusOptions[$status] = __('booking.admin.users.login_history_status_'.$status);
+    }
+@endphp
+<div class="ds-admin-stack">
+    <x-admin.page-header :title="__('booking.admin.login_history.title')" :eyebrow="__('booking.admin.nav.eyebrow')">
+        <p class="ds-admin-note">{{ __('booking.admin.login_history.intro') }}</p>
+    </x-admin.page-header>
+
+    <x-ui.card padding="lg">
+        <form method="GET" action="{{ route('admin.login-history.index') }}" class="ds-admin-filter">
+            <x-ui.field :label="__('booking.admin.login_history.filter_user')" for="lh-user" class="ds-admin-filter__wide">
+                <x-ui.input name="user" id="lh-user" :value="$filters['user'] ?? ''" />
+            </x-ui.field>
+            <x-ui.field :label="__('booking.admin.users.login_history_status')" for="lh-status">
+                <x-ui.select name="status" id="lh-status" :options="$statusOptions" :selected="$filters['status'] ?? ''" :placeholder="__('booking.admin.search_status_all')" />
+            </x-ui.field>
+            <x-ui.field :label="__('booking.admin.users.login_history_country')" for="lh-country">
+                <x-ui.input name="country" id="lh-country" maxlength="2" :value="$filters['country'] ?? ''" />
+            </x-ui.field>
+            <x-ui.field :label="__('booking.admin.login_history.filter_date_from')" for="lh-date-from">
+                <x-ui.input name="date_from" id="lh-date-from" type="date" :value="$filters['date_from'] ?? ''" />
+            </x-ui.field>
+            <x-ui.field :label="__('booking.admin.login_history.filter_date_to')" for="lh-date-to">
+                <x-ui.input name="date_to" id="lh-date-to" type="date" :value="$filters['date_to'] ?? ''" />
+            </x-ui.field>
+            <x-ui.button type="submit" :block="false">{{ __('booking.admin.common.filter') }}</x-ui.button>
+        </form>
+    </x-ui.card>
+
+    <div class="ds-admin-kpis">
+        <x-ui.card as="div" class="ds-admin-kpi">
+            <x-ui.kpi :label="__('booking.admin.login_history.stat_success')" :value="$statusCounts['success'] ?? 0" />
+        </x-ui.card>
+        <x-ui.card as="div" class="ds-admin-kpi">
+            <x-ui.kpi :label="__('booking.admin.login_history.stat_failed')" :value="($statusCounts['failed'] ?? 0) + ($statusCounts['throttled'] ?? 0)" :meta="($statusCounts['failed'] ?? 0).' '.__('booking.admin.users.login_history_status_failed').' · '.($statusCounts['throttled'] ?? 0).' '.__('booking.admin.users.login_history_status_throttled')" />
+        </x-ui.card>
+        <x-ui.card as="div" class="ds-admin-kpi">
+            <x-ui.kpi :label="__('booking.admin.login_history.stat_today')" :value="$todayCount" />
+        </x-ui.card>
+        <x-ui.card as="div" class="ds-admin-kpi">
+            <x-ui.kpi :label="__('booking.admin.login_history.stat_month')" :value="$monthCount" />
+        </x-ui.card>
     </div>
 
-    <div class="ui-card ui-card--filter">
-        <div class="ui-card-body ui-stack">
-            <p class="ui-section-label !mb-0">{{ __('booking.admin.users.filter_heading') }}</p>
-            <form method="GET" action="{{ route('admin.login-history.index') }}" class="ui-row">
-                <div class="ui-field min-w-[14rem] flex-1">
-                    <label class="ui-label">{{ __('booking.admin.login_history.filter_user') }}</label>
-                    <input type="text" name="user" value="{{ $filters['user'] ?? '' }}" class="ui-input">
-                </div>
-                <div class="ui-field min-w-[10rem]">
-                    <label class="ui-label">{{ __('booking.admin.users.login_history_status') }}</label>
-                    <select name="status" class="ui-select">
-                        <option value="">{{ __('booking.admin.search_status_all') }}</option>
-                        @foreach(['success', 'failed', 'throttled'] as $status)
-                            <option value="{{ $status }}" @selected(($filters['status'] ?? '') === $status)>{{ __('booking.admin.users.login_history_status_'.$status) }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="ui-field min-w-[8rem]">
-                    <label class="ui-label">{{ __('booking.admin.users.login_history_country') }}</label>
-                    <input type="text" name="country" maxlength="2" value="{{ $filters['country'] ?? '' }}" class="ui-input">
-                </div>
-                <div class="ui-field min-w-[10rem]">
-                    <label class="ui-label">{{ __('booking.admin.login_history.filter_date_from') }}</label>
-                    <input type="date" name="date_from" value="{{ $filters['date_from'] ?? '' }}" class="ui-input">
-                </div>
-                <div class="ui-field min-w-[10rem]">
-                    <label class="ui-label">{{ __('booking.admin.login_history.filter_date_to') }}</label>
-                    <input type="date" name="date_to" value="{{ $filters['date_to'] ?? '' }}" class="ui-input">
-                </div>
-                <button type="submit" class="ui-btn ui-btn-primary">{{ __('booking.admin.common.filter') }}</button>
-            </form>
-        </div>
-    </div>
+    <x-ui.card :title="__('booking.admin.login_history.stat_countries')">
+        @if($countryCounts->isEmpty())
+            <p class="ds-admin-note">{{ __('booking.admin.users.login_history_empty') }}</p>
+        @else
+            <div class="ds-admin-badges">
+                @foreach($countryCounts as $country => $count)
+                    <x-ui.badge tone="neutral">{{ $country }}: {{ $count }}</x-ui.badge>
+                @endforeach
+            </div>
+        @endif
+    </x-ui.card>
 
-    <div class="ui-grid-4">
-        <div class="ui-card ui-kpi">
-            <div class="ui-card-body ui-stack">
-                <p class="ui-kpi-label">{{ __('booking.admin.login_history.stat_success') }}</p>
-                <p class="ui-kpi-value">{{ $statusCounts['success'] ?? 0 }}</p>
-            </div>
-        </div>
-        <div class="ui-card">
-            <div class="ui-card-body ui-stack">
-                <p class="ui-kpi-label">{{ __('booking.admin.login_history.stat_failed') }}</p>
-                <p class="ui-kpi-value">{{ ($statusCounts['failed'] ?? 0) + ($statusCounts['throttled'] ?? 0) }}</p>
-                <p class="ui-kpi-meta">
-                    {{ $statusCounts['failed'] ?? 0 }} {{ __('booking.admin.users.login_history_status_failed') }}
-                    · {{ $statusCounts['throttled'] ?? 0 }} {{ __('booking.admin.users.login_history_status_throttled') }}
-                </p>
-            </div>
-        </div>
-        <div class="ui-card">
-            <div class="ui-card-body ui-stack">
-                <p class="ui-kpi-label">{{ __('booking.admin.login_history.stat_today') }}</p>
-                <p class="ui-kpi-value">{{ $todayCount }}</p>
-            </div>
-        </div>
-        <div class="ui-card">
-            <div class="ui-card-body ui-stack">
-                <p class="ui-kpi-label">{{ __('booking.admin.login_history.stat_month') }}</p>
-                <p class="ui-kpi-value">{{ $monthCount }}</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="ui-card">
-        <div class="ui-card-header">
-            <h2>{{ __('booking.admin.login_history.stat_countries') }}</h2>
-        </div>
-        <div class="ui-card-body">
-            @if($countryCounts->isEmpty())
-                <p class="ui-kpi-meta">{{ __('booking.admin.users.login_history_empty') }}</p>
-            @else
-                <div class="flex flex-wrap gap-2">
-                    @foreach($countryCounts as $country => $count)
-                        <span class="ui-badge ui-badge-info">{{ $country }}: {{ $count }}</span>
-                    @endforeach
-                </div>
-            @endif
-        </div>
-    </div>
-
-    <div class="ui-card">
-        <div class="ui-table-wrap">
-            <table class="ui-table">
-                <thead>
+    @if($history->isEmpty())
+        <x-ui.card><p class="ds-admin-note">{{ __('booking.admin.users.login_history_empty') }}</p></x-ui.card>
+    @else
+        <x-ui.card padding="none" class="ds-admin-rows" :title="__('booking.admin.login_history.title')">
+            <x-ui.table :caption="__('booking.admin.login_history.title')">
+                <x-slot:head>
                     <tr>
-                        <th>{{ __('booking.admin.login_history.user') }}</th>
-                        <th>{{ __('booking.admin.users.login_history_time') }}</th>
-                        <th>{{ __('booking.admin.users.login_history_ip') }}</th>
-                        <th>{{ __('booking.admin.users.login_history_country') }}</th>
-                        <th>{{ __('booking.admin.users.login_history_status') }}</th>
-                        <th>{{ __('booking.admin.users.login_history_flags') }}</th>
+                        <th scope="col">{{ __('booking.admin.login_history.user') }}</th>
+                        <th scope="col">{{ __('booking.admin.users.login_history_time') }}</th>
+                        <th scope="col">{{ __('booking.admin.users.login_history_ip') }}</th>
+                        <th scope="col">{{ __('booking.admin.users.login_history_country') }}</th>
+                        <th scope="col">{{ __('booking.admin.users.login_history_status') }}</th>
+                        <th scope="col">{{ __('booking.admin.users.login_history_flags') }}</th>
                     </tr>
-                </thead>
-                <tbody>
-                    @forelse($history as $entry)
-                        <tr>
-                            <td>
-                                @if($entry->user)
-                                    <a href="{{ route('admin.users.edit', $entry->user) }}">{{ $entry->user->alias }}</a>
-                                @else
-                                    —
-                                @endif
-                            </td>
-                            <td>{{ $entry->created_at?->format('d.m.Y H:i') }}</td>
-                            <td>{{ $entry->ip }}</td>
-                            <td>{{ $entry->country_code ?? '—' }}</td>
-                            <td>{{ __('booking.admin.users.login_history_status_'.$entry->status) }}</td>
-                            <td>
-                                @if($entry->risk_flags)
-                                    {{ collect(explode(',', $entry->risk_flags))->map(fn (string $flag): string => __('booking.admin.users.login_history_flag_'.$flag))->join(', ') }}
-                                @else
-                                    {{ __('booking.admin.users.login_history_flags_none') }}
-                                @endif
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6">{{ __('booking.admin.users.login_history_empty') }}</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
+                </x-slot:head>
+                @foreach($history as $entry)
+                    <tr>
+                        <td class="ds-cell--title" data-label="{{ __('booking.admin.login_history.user') }}">
+                            @if($entry->user)
+                                <a href="{{ route('admin.users.edit', $entry->user) }}" class="ds-admin-link">{{ $entry->user->alias }}</a>
+                            @else
+                                —
+                            @endif
+                        </td>
+                        <td data-label="{{ __('booking.admin.users.login_history_time') }}">{{ $entry->created_at?->format('d.m.Y H:i') }}</td>
+                        <td data-label="{{ __('booking.admin.users.login_history_ip') }}">{{ $entry->ip }}</td>
+                        <td data-label="{{ __('booking.admin.users.login_history_country') }}">{{ $entry->country_code ?? '—' }}</td>
+                        <td data-label="{{ __('booking.admin.users.login_history_status') }}">
+                            <x-ui.badge :tone="$statusTone[$entry->status] ?? 'neutral'">{{ __('booking.admin.users.login_history_status_'.$entry->status) }}</x-ui.badge>
+                        </td>
+                        <td data-label="{{ __('booking.admin.users.login_history_flags') }}">
+                            @if($entry->risk_flags)
+                                {{ collect(explode(',', $entry->risk_flags))->map(fn (string $flag): string => __('booking.admin.users.login_history_flag_'.$flag))->join(', ') }}
+                            @else
+                                {{ __('booking.admin.users.login_history_flags_none') }}
+                            @endif
+                        </td>
+                    </tr>
+                @endforeach
+            </x-ui.table>
+        </x-ui.card>
+    @endif
 
-    {{ $history->links() }}
+    <x-ui.pagination :paginator="$history" />
 </div>
 @endsection

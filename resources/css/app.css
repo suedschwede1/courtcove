@@ -16,6 +16,7 @@
 @import '@fontsource/barlow-condensed/latin-ext-700.css';
 @import './ds.css';
 @import './ds-auth.css';
+@import './admin.css';
 
 :root {
     --wm-src: 'hm-b26c8c89';

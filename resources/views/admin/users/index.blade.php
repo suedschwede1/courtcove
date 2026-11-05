@@ -1,110 +1,97 @@
 @extends('layouts.admin')
 @section('admin-title', __('booking.admin.users.title'))
 @section('admin-content')
-<div class="ui-page" x-data="{ selected: [] }">
-    <div class="ui-page-header flex flex-wrap items-start justify-between gap-4">
-        <div>
-            <h1>{{ __('booking.admin.users.title') }}</h1>
-            <p>{{ __('booking.admin.users.intro_index') }}</p>
-        </div>
-        <a href="{{ route('admin.users.create') }}" class="ui-btn ui-btn-primary">{{ __('booking.admin.users.new_user') }}</a>
-    </div>
+@php
+    $statusOptions = [];
+    foreach (['admin' => 'status_admin', 'assist' => 'status_assist', 'enabled' => 'status_enabled', 'disabled' => 'status_disabled', 'blocked' => 'status_blocked', 'deleted' => 'status_deleted', 'placeholder' => 'status_placeholder'] as $val => $key) {
+        $statusOptions[$val] = __('booking.admin.users.'.$key);
+    }
+@endphp
+<div class="ds-admin-stack" x-data="{ selected: [] }">
+    <x-admin.page-header :title="__('booking.admin.users.title')" :eyebrow="__('booking.admin.nav.eyebrow')">
+        <p class="ds-admin-note">{{ __('booking.admin.users.intro_index') }}</p>
+        <x-slot:actions>
+            <x-ui.button :href="route('admin.users.create')" icon="plus" :block="false" class="ds-admin-fab">{{ __('booking.admin.users.new_user') }}</x-ui.button>
+        </x-slot:actions>
+    </x-admin.page-header>
 
-    <div class="ui-card ui-card--filter">
-        <div class="ui-card-body ui-stack">
-            <p class="ui-section-label !mb-0">{{ __('booking.admin.users.filter_heading') }}</p>
-            <form method="GET" action="{{ route('admin.users.index') }}" class="ui-row">
-                <div class="ui-field min-w-[16rem] flex-1">
-                    <label class="ui-label">{{ __('booking.admin.search_placeholder') }}</label>
-                    <input type="text" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="{{ __('booking.admin.search_placeholder') }}" class="ui-input">
-                </div>
-                <div class="ui-field min-w-[12rem]">
-                    <label class="ui-label">{{ __('booking.admin.users.status') }}</label>
-                    <select name="status" class="ui-select">
-                        <option value="">{{ __('booking.admin.search_status_all') }}</option>
-                        @foreach(['admin' => 'status_admin', 'assist' => 'status_assist', 'enabled' => 'status_enabled', 'disabled' => 'status_disabled', 'blocked' => 'status_blocked', 'deleted' => 'status_deleted', 'placeholder' => 'status_placeholder'] as $val => $key)
-                            <option value="{{ $val }}" @selected(($filters['status'] ?? '') === $val)>{{ __('booking.admin.users.'.$key) }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <button type="submit" class="ui-btn ui-btn-primary">{{ __('booking.admin.common.filter') }}</button>
-            </form>
-        </div>
-    </div>
+    <x-ui.card padding="lg">
+        <form method="GET" action="{{ route('admin.users.index') }}" class="ds-admin-filter">
+            <x-ui.field :label="__('booking.admin.search_placeholder')" for="users-q" class="ds-admin-filter__wide">
+                <x-ui.input name="q" id="users-q" type="search" :value="$filters['q'] ?? ''" :placeholder="__('booking.admin.search_placeholder')" />
+            </x-ui.field>
+            <x-ui.field :label="__('booking.admin.users.status')" for="users-status">
+                <x-ui.select name="status" id="users-status" :options="$statusOptions" :selected="$filters['status'] ?? ''" :placeholder="__('booking.admin.search_status_all')" />
+            </x-ui.field>
+            <x-ui.button type="submit" :block="false">{{ __('booking.admin.common.filter') }}</x-ui.button>
+        </form>
+    </x-ui.card>
 
     @if($searched)
-        <div class="ui-card">
-            <div class="ui-card-header">
-                <div>
-                    <h2>{{ __('booking.admin.users.members') }}</h2>
-                    <p class="ui-kpi-meta mt-1">{{ __('booking.admin.users.results_count', ['count' => $users->count()]) }}</p>
-                </div>
-            </div>
-            @if($users->isEmpty())
-                <div class="ui-card-body"><p class="ui-kpi-meta">{{ __('booking.admin.no_results') }}</p></div>
-            @else
-                <div x-show="selected.length > 0" x-cloak class="flex items-center gap-3 px-5 py-3 bg-[#fff8f6] border-b border-[#ebebeb]">
-                    <span class="text-sm text-[#6a6e73]" x-text="selected.length + ' ausgewählt'"></span>
-                    <form method="POST" action="{{ route('admin.users.bulk') }}" class="flex items-center gap-2">
+        @if($users->isEmpty())
+            <x-ui.card :title="__('booking.admin.users.members')">
+                <p class="ds-admin-note">{{ __('booking.admin.no_results') }}</p>
+            </x-ui.card>
+        @else
+            <x-ui.card padding="none" class="ds-admin-rows ds-admin-users" :title="__('booking.admin.users.members')">
+                <x-slot:actions>
+                    <span class="ds-admin-note">{{ __('booking.admin.users.results_count', ['count' => $users->count()]) }}</span>
+                </x-slot:actions>
+
+                <div x-show="selected.length > 0" x-cloak class="ds-admin-bulk">
+                    <span class="ds-admin-bulk__count" x-text="{{ Js::from(__('booking.admin.users.selected_count')) }}.replace(':count', selected.length)"></span>
+                    <form method="POST" action="{{ route('admin.users.bulk') }}" class="ds-admin-bulk__actions">
                         @csrf
                         <template x-for="uid in selected" :key="uid">
                             <input type="hidden" name="uids[]" :value="uid">
                         </template>
-                        <button type="submit" name="action" value="blocked" class="ui-btn ui-btn-ghost text-[#c9190b] border border-[#c9190b] hover:bg-[#fff0f0]" onclick="return confirm({{ Js::from(__('booking.admin.users.confirm_bulk_block')) }})">
-                            {{ __('booking.admin.users.bulk_block') }}
-                        </button>
-                        <button type="submit" name="action" value="enabled" class="ui-btn ui-btn-ghost" onclick="return confirm({{ Js::from(__('booking.admin.users.confirm_bulk_enable')) }})">
-                            {{ __('booking.admin.users.bulk_enable') }}
-                        </button>
+                        <x-ui.button type="submit" variant="danger" :block="false" name="action" value="blocked" onclick="return confirm({{ Js::from(__('booking.admin.users.confirm_bulk_block')) }})">{{ __('booking.admin.users.bulk_block') }}</x-ui.button>
+                        <x-ui.button type="submit" variant="secondary" :block="false" name="action" value="enabled" onclick="return confirm({{ Js::from(__('booking.admin.users.confirm_bulk_enable')) }})">{{ __('booking.admin.users.bulk_enable') }}</x-ui.button>
                     </form>
-                    <button type="button" class="text-sm text-[#6a6e73] hover:text-[#151515] ml-auto" @click="selected = []">{{ __('booking.admin.users.bulk_clear') }}</button>
+                    <x-ui.button variant="text" :block="false" class="ds-admin-bulk__clear" @click="selected = []">{{ __('booking.admin.users.bulk_clear') }}</x-ui.button>
                 </div>
 
-                <div class="ui-table-wrap">
-                    <table class="ui-table">
-                        <thead>
-                            <tr>
-                                <th class="w-10">
-                                    <input type="checkbox" @change="selected = $event.target.checked ? {{ json_encode($users->pluck('uid')->all()) }}.map(Number) : []" :checked="selected.length === {{ $users->count() }} && {{ $users->count() }} > 0" class="cursor-pointer">
-                                </th>
-                                <th>{{ __('booking.admin.users.name') }}</th>
-                                <th>{{ __('booking.admin.users.email') }}</th>
-                                <th>{{ __('booking.admin.users.status') }}</th>
-                                <th>{{ __('booking.admin.users.bookings_count') }}</th>
-                                <th>{{ __('booking.admin.users.login_history_risk_score') }}</th>
-                                <th class="text-right">{{ __('booking.admin.users.actions') }}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($users as $u)
-                                <tr :class="selected.includes({{ $u->uid }}) ? 'bg-[#fff8f6]' : ''">
-                                    <td>
-                                        <input type="checkbox" :value="{{ $u->uid }}" x-model.number="selected" class="cursor-pointer">
-                                    </td>
-                                    <td class="font-medium">{{ $u->alias }}</td>
-                                    <td class="text-[#6a6e73]">{{ $u->email ?: __('booking.account.empty_option') }}</td>
-                                    <td>
-                                        <span class="ui-badge {{ in_array($u->status, ['enabled', 'assist', 'admin'], true) ? 'ui-badge-success' : 'ui-badge-info' }}">{{ __('booking.admin.users.status_' . $u->status) }}</span>
-                                    </td>
-                                    <td class="text-[#6a6e73]">{{ $u->bookings()->count() }}</td>
-                                    <td>
-                                        @php($risk = $riskScores[$u->uid] ?? 0)
-                                        <span class="ui-badge {{ $risk > 0 ? 'ui-badge-warning' : 'ui-badge-info' }}">{{ $risk }}</span>
-                                    </td>
-                                    <td>
-                                        <div class="flex items-center justify-end gap-2 whitespace-nowrap">
-                                            <a href="{{ route('admin.users.edit', $u) }}" class="ui-btn ui-btn-ghost">{{ __('booking.admin.common.edit') }}</a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            @endif
-        </div>
+                <x-ui.table :caption="__('booking.admin.users.members')">
+                    <x-slot:head>
+                        <tr>
+                            <th scope="col" class="ds-admin-check-cell">
+                                <input type="checkbox" class="ds-admin-check" aria-label="{{ __('booking.admin.users.select_all') }}" @change="selected = $event.target.checked ? {{ json_encode($users->pluck('uid')->all()) }}.map(Number) : []" :checked="selected.length === {{ $users->count() }} && {{ $users->count() }} > 0">
+                            </th>
+                            <th scope="col">{{ __('booking.admin.users.name') }}</th>
+                            <th scope="col">{{ __('booking.admin.users.email') }}</th>
+                            <th scope="col">{{ __('booking.admin.users.status') }}</th>
+                            <th scope="col">{{ __('booking.admin.users.bookings_count') }}</th>
+                            <th scope="col">{{ __('booking.admin.users.login_history_risk_score') }}</th>
+                            <th scope="col" class="ds-admin-actions-cell">{{ __('booking.admin.users.actions') }}</th>
+                        </tr>
+                    </x-slot:head>
+                    @foreach($users as $u)
+                        @php($risk = $riskScores[$u->uid] ?? 0)
+                        <tr :class="selected.includes({{ $u->uid }}) ? 'ds-row--own' : ''">
+                            <td class="ds-admin-check-cell" data-label="{{ __('booking.admin.users.select_user', ['name' => $u->alias]) }}">
+                                <input type="checkbox" class="ds-admin-check" aria-label="{{ __('booking.admin.users.select_user', ['name' => $u->alias]) }}" :value="{{ $u->uid }}" x-model.number="selected">
+                            </td>
+                            <td class="ds-cell--title" data-label="{{ __('booking.admin.users.name') }}">
+                                <span class="ds-admin-person"><span class="ds-admin-initials" aria-hidden="true">{{ \App\Support\Ui\Initials::from($u->alias) }}</span><span>{{ $u->alias }}</span></span>
+                            </td>
+                            <td class="ds-admin-users__mail" data-label="{{ __('booking.admin.users.email') }}">{{ $u->email ?: __('booking.account.empty_option') }}</td>
+                            <td class="ds-admin-users__status" data-label="{{ __('booking.admin.users.status') }}">
+                                <x-ui.badge :tone="\App\Support\Ui\UserStatusTone::for($u->status)->value">{{ __('booking.admin.users.status_'.$u->status) }}</x-ui.badge>
+                            </td>
+                            <td data-label="{{ __('booking.admin.users.bookings_count') }}">{{ $u->bookings()->count() }}</td>
+                            <td data-label="{{ __('booking.admin.users.login_history_risk_score') }}">
+                                <x-ui.badge :tone="$risk > 0 ? 'attention' : 'neutral'">{{ $risk }}</x-ui.badge>
+                            </td>
+                            <td class="ds-admin-actions-cell" data-label="{{ __('booking.admin.users.actions') }}">
+                                <x-ui.button :href="route('admin.users.edit', $u)" variant="secondary" :block="false">{{ __('booking.admin.common.edit') }}</x-ui.button>
+                            </td>
+                        </tr>
+                    @endforeach
+                </x-ui.table>
+            </x-ui.card>
+        @endif
     @else
-        <div class="ui-card"><div class="ui-card-body"><p class="ui-kpi-meta">{{ __('booking.admin.search_hint') }}</p></div></div>
+        <x-ui.card><p class="ds-admin-note">{{ __('booking.admin.search_hint') }}</p></x-ui.card>
     @endif
 </div>
 @endsection

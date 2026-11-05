@@ -1,0 +1,1507 @@
+/*
+ * Admin area styles (restyle step 5).
+ * Classes use the ds-admin-* / ds-popup prefix and live in @layer components.
+ * Colours come from var(--color-*) tokens.
+ */
+@layer components {
+    /* Shell: sidebar column + content on desktop, stacked bar + content on phone. */
+    .ds-admin {
+        display: flex;
+        flex-wrap: wrap;
+        min-height: 100vh;
+        background: var(--color-ground);
+        color: var(--color-ink);
+        font: 400 var(--text-body) var(--font-body);
+    }
+
+    /* Sidebar: sticky column from 48rem, slide-in panel below (see the media blocks at the end). */
+    .ds-admin-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        padding: 20px 14px;
+        box-sizing: border-box;
+        background: var(--color-chrome);
+        color: var(--color-chrome-ink);
+    }
+
+    .ds-admin-sidebar__top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .ds-admin-sidebar__brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+        padding: 0 6px;
+        color: var(--color-surface);
+        text-decoration: none;
+    }
+
+    .ds-admin-sidebar__titles {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        line-height: 1.05;
+    }
+
+    .ds-admin-sidebar__club {
+        font: 700 20px / 1.05 var(--font-display);
+    }
+
+    .ds-admin-sidebar__eyebrow {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--color-chrome-muted);
+    }
+
+    .ds-admin-sidebar__close {
+        display: none;
+    }
+
+    .ds-admin-sidebar__back {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 44px;
+        padding: 0 10px;
+        border: 1px solid var(--color-chrome-line);
+        border-radius: var(--radius-md);
+        color: var(--color-chrome-ink);
+        font-weight: 600;
+        text-decoration: none;
+        transition: background-color 0.12s, color 0.12s;
+    }
+
+    .ds-admin-sidebar__nav {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .ds-admin-sidebar__section {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .ds-admin-sidebar__group {
+        margin: 0;
+        padding: 0 10px 4px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        /* DESIGN.md "Admin": the sidebar group label colour has no light token. */
+        color: rgb(167 157 143);
+    }
+
+    .ds-admin-sidebar__list {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .ds-admin-sidebar__link {
+        display: flex;
+        align-items: center;
+        min-height: 40px;
+        padding: 0 10px;
+        border-radius: var(--radius-md);
+        color: var(--color-chrome-ink);
+        font-size: 15px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: background-color 0.12s, color 0.12s;
+    }
+
+    .ds-admin-sidebar__link:hover,
+    .ds-admin-sidebar__back:hover {
+        background: color-mix(in srgb, var(--color-surface) 8%, transparent);
+        color: var(--color-surface);
+    }
+
+    .ds-admin-sidebar__link[aria-current="page"] {
+        background: var(--color-clay);
+        color: var(--color-on-clay);
+        font-weight: 700;
+    }
+
+    .ds-admin-sidebar__foot {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: auto;
+        padding: 14px 0 0;
+        border-top: 1px solid var(--color-chrome-line);
+    }
+
+    .ds-admin-sidebar__alias {
+        padding: 0 10px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--color-chrome-muted);
+        overflow-wrap: anywhere;
+    }
+
+    .ds-admin-sidebar__logout {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        min-height: 40px;
+        padding: 0 10px;
+        border: 0;
+        border-radius: var(--radius-md);
+        background: transparent;
+        color: var(--color-chrome-ink);
+        font: 500 15px / 1.2 var(--font-body);
+        text-align: left;
+        cursor: pointer;
+        transition: background-color 0.12s, color 0.12s;
+    }
+
+    .ds-admin-sidebar__logout:hover {
+        background: color-mix(in srgb, var(--color-surface) 8%, transparent);
+        color: var(--color-surface);
+    }
+
+    .ds-admin-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 55;
+        background: color-mix(in srgb, var(--color-chrome) 50%, transparent);
+    }
+
+    /* Phone bar (hidden from 48rem). */
+    .ds-admin-bar {
+        position: sticky;
+        top: 0;
+        z-index: 40;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 12px 12px 8px;
+        background: var(--color-chrome);
+        color: var(--color-surface);
+    }
+
+    .ds-admin-bar .ds-admin-bar__lead {
+        background: transparent;
+    }
+
+    .ds-admin-bar__text {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        min-width: 0;
+        line-height: 1.05;
+    }
+
+    .ds-admin-bar__eyebrow {
+        margin: 0;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--color-chrome-muted);
+    }
+
+    .ds-admin-bar__title {
+        margin: 0;
+        overflow: hidden;
+        font: 700 22px / 1.05 var(--font-display);
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* Content column. */
+    .ds-admin-main {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        min-width: 0;
+        padding: 28px 32px 48px;
+        box-sizing: border-box;
+    }
+
+    /* Page head (x-admin.page-header). */
+    .ds-admin-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 16px;
+    }
+
+    .ds-admin-crumbs {
+        display: flex;
+        flex: 0 0 100%;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        color: var(--color-ink-3);
+    }
+
+    .ds-admin-head__text {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+    }
+
+    .ds-admin-head__eyebrow {
+        margin: 0;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--color-ink-3);
+    }
+
+    .ds-admin-head__title {
+        margin: 0;
+        font: 700 40px / 1 var(--font-display);
+        color: var(--color-ink);
+    }
+
+    .ds-admin-head__meta {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--color-ink-2);
+    }
+
+    .ds-admin-head__actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+    }
+
+    @media (width >= 48rem) {
+        .ds-admin-sidebar {
+            position: sticky;
+            top: 0;
+            flex: 0 0 240px;
+            width: 240px;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .ds-admin-main {
+            flex: 999 1 560px;
+        }
+
+        .ds-admin-bar,
+        .ds-admin-backdrop,
+        .ds-admin-sidebar__close {
+            display: none;
+        }
+    }
+
+    @media (width < 48rem) {
+        .ds-admin {
+            flex-direction: column;
+            flex-wrap: nowrap;
+        }
+
+        .ds-admin-sidebar {
+            position: fixed;
+            inset: 0 auto 0 0;
+            z-index: 60;
+            width: 310px;
+            max-width: 85vw;
+            gap: 14px;
+            padding: 16px 12px;
+            overflow-y: auto;
+            transform: translateX(-100%);
+            visibility: hidden;
+            transition: transform 0.15s, visibility 0.15s;
+        }
+
+        .ds-admin-sidebar.is-open {
+            transform: none;
+            visibility: visible;
+        }
+
+        .ds-admin-sidebar .ds-admin-sidebar__close {
+            display: inline-flex;
+            flex: none;
+            background: transparent;
+        }
+
+        .ds-admin-sidebar__link {
+            min-height: 48px;
+            padding: 0 12px;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+
+        /* The mockup puts "Zum Kalender" at the bottom of the phone menu. */
+        .ds-admin-sidebar__back {
+            order: 1;
+            justify-content: center;
+            min-height: 48px;
+            margin-top: auto;
+            border-radius: 10px;
+        }
+
+        .ds-admin-sidebar__foot {
+            order: 2;
+            margin-top: 0;
+        }
+
+        .ds-admin-main {
+            flex: 1 1 auto;
+            gap: 14px;
+            padding: 14px 16px 96px;
+        }
+
+        /* The phone bar shows the title; the h1 stays for screen readers. */
+        .ds-admin-main .ds-admin-head__title {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            margin: -1px;
+            padding: 0;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        .ds-admin-head__actions {
+            flex: 1 1 100%;
+        }
+
+        .ds-admin-head__actions > * {
+            flex: 1 1 auto;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .ds-admin-sidebar {
+            transition: none;
+        }
+    }
+
+    /* Overview pages (dashboard, statistics): stack, KPI tiles, two-column grid, card rows. */
+    .ds-admin-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        min-width: 0;
+    }
+
+    .ds-admin-kpis {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+    }
+
+    .ds-card.ds-admin-kpi {
+        padding: 18px 20px;
+    }
+
+    .ds-admin-kpi .ds-kpi {
+        gap: 6px;
+    }
+
+    .ds-admin-kpi .ds-kpi__label {
+        font-size: 13px;
+        letter-spacing: 0.08em;
+    }
+
+    .ds-admin-kpi .ds-kpi__value {
+        font-size: 48px;
+        line-height: 1;
+    }
+
+    .ds-admin-kpi .ds-kpi__meta {
+        font-size: 14px;
+        color: var(--color-ink-2);
+    }
+
+    .ds-admin-grid {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 20px;
+    }
+
+    .ds-admin-grid__main {
+        flex: 999 1 520px;
+        min-width: 0;
+    }
+
+    .ds-card.ds-admin-grid__side {
+        flex: 1 1 300px;
+        gap: 10px;
+        padding: 18px 20px;
+    }
+
+    .ds-admin-grid__side > .ds-card__body {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    /* Cards around a table: header row with a divider, no gap, rounded clip. */
+    .ds-admin-main .ds-card--pad-none {
+        gap: 0;
+        overflow: hidden;
+    }
+
+    .ds-admin-main .ds-card--pad-none > .ds-card__header {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--color-line-soft);
+    }
+
+    .ds-admin-main .ds-card--pad-none > .ds-card__body > .ds-admin-note {
+        padding: 16px 20px;
+    }
+
+    .ds-admin-list {
+        display: flex;
+        flex-direction: column;
+        align-self: stretch;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .ds-admin-list__item {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding: 12px 0 12px 14px;
+        border-left: 4px solid var(--color-court);
+    }
+
+    .ds-admin-list__item + .ds-admin-list__item {
+        margin-top: 10px;
+        border-top: 1px solid var(--color-line-soft);
+    }
+
+    .ds-admin-list__title {
+        margin: 0;
+        font-weight: 700;
+    }
+
+    .ds-admin-note {
+        margin: 0;
+        font-size: 14px;
+        color: var(--color-ink-2);
+    }
+
+    /* Sub-heading inside a form card (e.g. the event period), styled like the KPI label. */
+    .ds-admin-section-label {
+        margin: 0;
+        color: var(--color-ink-3);
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    /* Checkbox flag tiles (court form): one tile per row on phones, as in the phone mockup. */
+    @media (width < 48rem) {
+        .ds-admin-flags .ds-options__grid {
+            grid-template-columns: minmax(0, 1fr);
+        }
+    }
+
+    .ds-admin-link {
+        color: var(--color-clay);
+        font-weight: 600;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+    }
+
+    .ds-admin-link:hover {
+        color: var(--color-clay-hover);
+    }
+
+    .ds-admin-fab {
+        padding: 0 20px;
+    }
+
+    .ds-admin-filter {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: 12px;
+    }
+
+    .ds-admin-filter > .ds-field {
+        flex: 1 1 14rem;
+        max-width: 24rem;
+    }
+
+    .ds-admin-sortable {
+        cursor: pointer;
+    }
+
+    @media (width >= 48rem) {
+        /* Admin list tables: 20px outer gutters, 12px between columns, 12px row padding. */
+        .ds-admin-main .ds-table--list th[scope='col'] {
+            padding: 10px 12px;
+        }
+
+        .ds-admin-main .ds-table--list td {
+            padding: 12px;
+        }
+
+        .ds-admin-main .ds-table--list th[scope='col']:first-child,
+        .ds-admin-main .ds-table--list td:first-child {
+            padding-left: 20px;
+        }
+
+        .ds-admin-main .ds-table--list th[scope='col']:last-child,
+        .ds-admin-main .ds-table--list td:last-child {
+            padding-right: 20px;
+        }
+
+        .ds-admin-main .ds-table--list .ds-cell--title {
+            font-weight: 700;
+        }
+
+        .ds-admin-today__time {
+            white-space: nowrap;
+        }
+    }
+
+    @media (width < 48rem) {
+        .ds-admin-stack {
+            gap: 14px;
+        }
+
+        /* The phone bar shows the title; the eyebrow becomes the plain date line. */
+        .ds-admin-head__eyebrow {
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0;
+            text-transform: none;
+            color: var(--color-ink-2);
+        }
+
+        .ds-admin-kpis {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .ds-card.ds-admin-kpi {
+            padding: 12px 14px;
+        }
+
+        .ds-admin-kpi .ds-kpi {
+            gap: 2px;
+        }
+
+        .ds-admin-kpi .ds-kpi__label {
+            font-size: 12px;
+            letter-spacing: 0.06em;
+        }
+
+        .ds-admin-kpi .ds-kpi__value {
+            font-size: 36px;
+        }
+
+        .ds-admin-kpi .ds-kpi__meta {
+            font-size: 13px;
+        }
+
+        .ds-admin-main .ds-card__title {
+            font-size: 22px;
+        }
+
+        .ds-admin-main .ds-badge {
+            padding: 3px 8px;
+            font-size: 12px;
+        }
+
+        /* Floating primary action; the empty actions row collapses. */
+        .ds-admin-head__actions:has(> .ds-admin-fab:only-child) {
+            display: contents;
+        }
+
+        .ds-btn.ds-admin-fab {
+            position: fixed;
+            right: 16px;
+            bottom: 16px;
+            z-index: 30;
+            width: auto;
+            min-height: 56px;
+            padding: 0 20px;
+            border-radius: var(--radius-pill);
+            box-shadow: var(--shadow-dialog);
+            font-size: 16px;
+        }
+
+        /* Table cards become a plain heading followed by one card per row. */
+        .ds-admin-main .ds-card.ds-admin-rows {
+            overflow: visible;
+            border: 0;
+            background: transparent;
+        }
+
+        .ds-admin-main .ds-admin-rows > .ds-card__header {
+            padding: 0 0 10px;
+            border-bottom: 0;
+        }
+
+        .ds-admin-rows .ds-table,
+        .ds-admin-rows .ds-table tbody {
+            display: block;
+        }
+
+        .ds-admin-rows .ds-table tbody {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .ds-admin-rows .ds-table--stack tr {
+            min-height: 60px;
+            padding: 8px 12px;
+            border: 1px solid var(--color-line);
+            border-radius: var(--radius-lg);
+            background: var(--color-surface);
+            box-sizing: border-box;
+        }
+
+        .ds-admin-rows .ds-table tbody tr + tr,
+        .ds-admin-rows .ds-table tbody tr:first-child {
+            border-top: 1px solid var(--color-line);
+        }
+
+        /* The row title (first cell) reads as the card heading, without its column label. */
+        .ds-admin-rows .ds-table--stack td.ds-cell--title[data-label]::before {
+            content: none;
+        }
+
+        /* Dashboard rows: time | member over court | status, as in the phone mockup. */
+        .ds-admin-today .ds-table--stack tr {
+            grid-template-columns: 58px minmax(0, 1fr) auto;
+            grid-template-areas: 'time member status' 'time court status';
+            align-items: center;
+            column-gap: 12px;
+            row-gap: 0;
+        }
+
+        .ds-admin-today .ds-table--stack td {
+            display: block;
+        }
+
+        .ds-admin-today .ds-table--stack td[data-label]::before {
+            content: none;
+        }
+
+        .ds-admin-today__time {
+            grid-area: time;
+            font-weight: 700;
+        }
+
+        .ds-admin-today__end {
+            display: none;
+        }
+
+        .ds-admin-today__member {
+            grid-area: member;
+            font-weight: 700;
+        }
+
+        .ds-admin-today__court {
+            grid-area: court;
+            font-size: 13px;
+            color: var(--color-ink-2);
+        }
+
+        .ds-admin-today__status {
+            grid-area: status;
+        }
+
+        .ds-admin-filter > .ds-field {
+            max-width: none;
+        }
+
+        .ds-admin-filter > .ds-btn {
+            flex: 1 1 100%;
+        }
+    }
+
+
+    /* Popup form pages (admin booking edit/create): form cards, field grids, sticky actions. */
+    .ds-admin-main:has(> .ds-admin-booking),
+    .ds-admin-stack.ds-admin-booking,
+    .ds-admin-stack.ds-admin-booking__form {
+        gap: 20px;
+    }
+
+    .ds-admin-form-cards {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        min-width: 0;
+    }
+
+    .ds-card.ds-admin-form-card {
+        gap: 16px;
+        padding: 20px;
+    }
+
+    .ds-admin-form-card > .ds-card__body {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .ds-admin-form-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 16px;
+    }
+
+    /* Multi-select for member privileges: tall list, option rows with breathing room. */
+    .ds-select.ds-admin-privileges {
+        min-height: 220px;
+        padding: 10px 12px;
+    }
+
+    .ds-admin-privileges option {
+        padding: 4px 6px;
+    }
+
+    .ds-admin-form-grid__pair {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    .ds-admin-scope .ds-options {
+        align-self: stretch;
+    }
+
+    .ds-admin-scope .ds-options__grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .ds-admin-scope__created {
+        align-self: stretch;
+        padding-top: 10px;
+        border-top: 1px solid var(--color-line-soft);
+        font-size: 13px;
+    }
+
+    .ds-admin-field-link {
+        align-self: flex-start;
+        font-size: 14px;
+    }
+
+    .ds-admin-errors {
+        margin: 0;
+        padding-left: 18px;
+    }
+
+    .ds-admin-main .ds-option,
+    .ds-popup .ds-option {
+        padding: 0 14px;
+    }
+
+    .ds-input.is-disabled,
+    .ds-input[readonly] {
+        background: var(--color-surface-sunk);
+        color: var(--color-ink-3);
+    }
+
+    /* In-page tabs: buttons with aria-selected get the look of the linked tabs' current page. */
+    button.ds-tabs__tab {
+        font-family: var(--font-body);
+        font-size: var(--text-body);
+        cursor: pointer;
+    }
+
+    .ds-tabs__tab[aria-selected='true'] {
+        border-bottom-color: var(--color-clay);
+        color: var(--color-ink);
+        font-weight: 700;
+    }
+
+    .ds-admin-suggest {
+        position: relative;
+    }
+
+    .ds-admin-suggest__list {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        left: 0;
+        z-index: 20;
+        margin: 4px 0 0;
+        padding: 4px 0;
+        overflow: hidden;
+        border: 1px solid var(--color-line);
+        border-radius: var(--radius-md);
+        background: var(--color-surface);
+        box-shadow: var(--shadow-dialog);
+        list-style: none;
+    }
+
+    .ds-admin-suggest__item {
+        padding: 8px 12px;
+        cursor: pointer;
+    }
+
+    .ds-admin-suggest__item:hover {
+        background: var(--color-surface-sunk);
+    }
+
+    .ds-admin-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .ds-admin-actions__group {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .ds-admin-actions__group--main {
+        margin-left: auto;
+    }
+
+    .ds-admin-actions .ds-btn--primary {
+        padding: 0 22px;
+    }
+
+    @media (width >= 48rem) {
+        button.ds-tabs__tab {
+            border-width: 0 0 3px;
+            border-style: solid;
+            border-color: transparent;
+            background: transparent;
+        }
+
+        button.ds-tabs__tab[aria-selected='true'] {
+            border-bottom-color: var(--color-clay);
+        }
+    }
+
+    @media (width < 48rem) {
+        .ds-tabs__tab[aria-selected='true'] {
+            border-color: var(--color-chrome);
+            background: var(--color-chrome);
+            color: var(--color-surface);
+        }
+
+        .ds-admin-main:has(> .ds-admin-booking),
+        .ds-admin-stack.ds-admin-booking,
+        .ds-admin-stack.ds-admin-booking__form,
+        .ds-admin-form-cards {
+            gap: 14px;
+        }
+
+        /* The bar's back button replaces the breadcrumb, as in the phone mockup. */
+        .ds-admin-booking .ds-admin-crumbs,
+        .ds-admin-form-page .ds-admin-crumbs {
+            display: none;
+        }
+
+        /* Form pages: action groups span the width, their buttons share it (52px full-width buttons). */
+        .ds-admin-main .ds-admin-form-page .ds-admin-actions__group {
+            width: 100%;
+        }
+
+        .ds-admin-main .ds-admin-form-page .ds-admin-actions__group > .ds-btn {
+            flex: 1 1 0;
+        }
+
+        /* Forms wrapping a single button (cancel/delete/revoke) share the row like direct buttons. */
+        .ds-admin-main .ds-admin-form-page .ds-admin-actions__group > form {
+            flex: 1 1 0;
+        }
+
+        .ds-admin-main .ds-admin-form-page .ds-admin-actions__group > form > .ds-btn {
+            width: 100%;
+        }
+
+        .ds-popup .ds-admin-head__title {
+            font-size: 28px;
+        }
+    }
+
+    /*
+     * Wide form layout: 3-column field grid and an in-flow sticky action bar. The admin page
+     * switches at 48rem; the calendar popup (an iframe about 760px wide on desktop) at 36rem.
+     */
+    @media (width >= 48rem) {
+        .ds-admin-main .ds-admin-form-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .ds-admin-main .ds-admin-form-grid--2 {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        /* Two tiles next to three tiles: give the three-tile group the wider column. */
+        .ds-admin-main .ds-admin-form-grid--tiles {
+            grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+        }
+
+        .ds-admin-main .ds-admin-form-grid__pair {
+            display: contents;
+        }
+
+        .ds-admin-main .ds-admin-actions--sticky {
+            position: sticky;
+            bottom: 0;
+            z-index: 10;
+            padding: 14px 16px;
+            border: 1px solid var(--color-line);
+            border-radius: var(--radius-lg);
+            background: color-mix(in srgb, var(--color-surface) 96%, transparent);
+        }
+    }
+
+    @media (width >= 36rem) {
+        .ds-popup .ds-admin-form-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .ds-popup .ds-admin-form-grid--2 {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        /* Two tiles next to three tiles: give the three-tile group the wider column. */
+        .ds-popup .ds-admin-form-grid--tiles {
+            grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+        }
+
+        .ds-popup .ds-admin-form-grid__pair {
+            display: contents;
+        }
+
+        .ds-popup .ds-admin-actions--sticky {
+            position: sticky;
+            bottom: 0;
+            z-index: 10;
+            padding: 14px 16px;
+            border: 1px solid var(--color-line);
+            border-radius: var(--radius-lg);
+            background: color-mix(in srgb, var(--color-surface) 96%, transparent);
+        }
+    }
+
+    /* Phone: the danger buttons stay in the flow; Abbrechen + Speichern become a full-width bottom bar. */
+    @media (width < 48rem) {
+        .ds-admin-main .ds-admin-actions--sticky {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .ds-admin-main .ds-admin-actions--sticky > .ds-admin-actions__group {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .ds-admin-main .ds-admin-actions--sticky > .ds-admin-actions__group--main {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 30;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            margin: 0;
+            padding: 14px 16px;
+            border-top: 1px solid var(--color-line);
+            border-radius: 0;
+            background: color-mix(in srgb, var(--color-surface) 96%, transparent);
+        }
+
+        .ds-admin-main .ds-admin-actions__group--main > .ds-btn {
+            flex: 0 0 auto;
+        }
+
+        .ds-admin-main .ds-admin-actions__group--main > .ds-admin-actions__save {
+            flex: 1 1 auto;
+        }
+    }
+
+    @media (width < 36rem) {
+        .ds-popup .ds-admin-actions--sticky {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .ds-popup .ds-admin-actions--sticky > .ds-admin-actions__group {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .ds-popup .ds-admin-actions--sticky > .ds-admin-actions__group--main {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 30;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            margin: 0;
+            padding: 14px 16px;
+            border-top: 1px solid var(--color-line);
+            border-radius: 0;
+            background: color-mix(in srgb, var(--color-surface) 96%, transparent);
+        }
+
+        .ds-popup .ds-admin-actions__group--main > .ds-btn {
+            flex: 0 0 auto;
+        }
+
+        .ds-popup .ds-admin-actions__group--main > .ds-admin-actions__save {
+            flex: 1 1 auto;
+        }
+
+        .ds-popup__body:has(.ds-admin-actions--sticky) {
+            padding-bottom: 96px;
+        }
+    }
+
+    /* Popup frame (layouts.popup): dark title bar with a close button, content below. */
+    .ds-popup {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        background: var(--color-ground);
+        color: var(--color-ink);
+        font: 400 var(--text-body) var(--font-body);
+    }
+
+    .ds-popup__head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        min-height: 64px;
+        padding: 10px 12px 10px 20px;
+        box-sizing: border-box;
+        background: var(--color-chrome);
+    }
+
+    .ds-popup__title {
+        margin: 0;
+        min-width: 0;
+        font: 700 24px / 26px var(--font-display);
+        color: var(--color-surface);
+    }
+
+    .ds-popup__body {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        flex: 1 1 auto;
+        min-width: 0;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+
+    /* List pattern (member list): filter card, bulk bar, initials cell, checkbox column. */
+    .ds-admin-filter > .ds-field.ds-admin-filter__wide {
+        flex: 3 1 16rem;
+        max-width: none;
+    }
+
+    .ds-admin-bulk {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 20px;
+        background: var(--color-clay-soft);
+        border-bottom: 1px solid var(--color-line);
+    }
+
+    .ds-admin-bulk__count {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--color-ink-2);
+    }
+
+    .ds-admin-bulk__actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .ds-admin-bulk__clear {
+        margin-left: auto;
+    }
+
+    .ds-admin-person {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+    }
+
+    .ds-admin-initials {
+        display: inline-flex;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: var(--color-sand);
+        color: var(--color-ink-2);
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .ds-admin-check {
+        width: 20px;
+        height: 20px;
+        margin: 0;
+        accent-color: var(--color-clay);
+        cursor: pointer;
+    }
+
+    @media (width >= 48rem) {
+        .ds-admin-users .ds-table--list td {
+            padding-block: 10px;
+        }
+
+        .ds-admin-users .ds-table--list .ds-admin-check-cell {
+            width: 1%;
+        }
+
+        .ds-admin-users .ds-table--list .ds-admin-actions-cell {
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .ds-admin-users .ds-table--list td .ds-btn {
+            min-height: 38px;
+            padding: 0 14px;
+            font-size: 14px;
+        }
+    }
+
+    @media (width < 48rem) {
+        .ds-admin-bulk {
+            padding: 10px 12px;
+            border: 1px solid var(--color-line);
+            border-radius: var(--radius-lg);
+            margin-bottom: 8px;
+        }
+
+        .ds-admin-users .ds-table--stack tr {
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            column-gap: 12px;
+            align-items: center;
+        }
+
+        .ds-admin-rows.ds-admin-users .ds-table--stack tr.ds-row--own {
+            background: var(--color-clay-soft);
+        }
+
+        .ds-admin-users .ds-table--stack td {
+            grid-column: 2 / -1;
+        }
+
+        .ds-admin-users .ds-table--stack td.ds-admin-check-cell {
+            grid-column: 1;
+            grid-row: 1 / span 2;
+        }
+
+        .ds-admin-users .ds-table--stack td.ds-cell--title {
+            grid-column: 2;
+            grid-row: 1;
+        }
+
+        .ds-admin-users .ds-table--stack td.ds-admin-users__status {
+            grid-column: 3;
+            grid-row: 1;
+        }
+
+        .ds-admin-users .ds-table--stack td.ds-admin-users__mail {
+            grid-column: 2;
+            grid-row: 2;
+            font-size: 13px;
+            color: var(--color-ink-2);
+        }
+
+        .ds-admin-users .ds-table--stack td.ds-admin-actions-cell {
+            grid-column: 1 / -1;
+            margin-top: 6px;
+        }
+
+        .ds-admin-users .ds-table--stack td.ds-admin-check-cell::before,
+        .ds-admin-users .ds-table--stack td.ds-admin-users__mail::before,
+        .ds-admin-users .ds-table--stack td.ds-admin-users__status::before,
+        .ds-admin-users .ds-table--stack td.ds-admin-actions-cell::before {
+            content: none;
+        }
+
+        .ds-admin-users .ds-admin-actions-cell .ds-btn {
+            flex: 1 1 auto;
+        }
+
+        .ds-admin-initials {
+            width: 40px;
+            height: 40px;
+            font-size: 14px;
+        }
+    }
+
+    /* The popup is an iframe about 660px wide on desktop; only a real phone width gets the tighter gutter. */
+    @media (width < 30rem) {
+        .ds-popup__body {
+            padding: 16px;
+        }
+    }
+
+    /* Batch 1 pages: country chips, token row action. */
+    .ds-admin-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .ds-admin-rows .ds-admin-actions-cell form {
+        margin: 0;
+    }
+
+    @media (width >= 48rem) {
+        .ds-admin-rows .ds-table--list .ds-admin-actions-cell {
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .ds-admin-tokens .ds-table--list td {
+            padding-block: 10px;
+        }
+
+        .ds-admin-tokens .ds-table--list td .ds-btn {
+            min-height: 38px;
+            padding: 0 14px;
+            font-size: 14px;
+        }
+    }
+
+    /* Batch 2 lists (bookings, events, courts): several row actions in one cell. */
+    .ds-admin-row-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .ds-admin-row-actions form {
+        margin: 0;
+    }
+
+    @media (width >= 48rem) {
+        .ds-admin-lists .ds-table--list td {
+            padding-block: 10px;
+        }
+
+        .ds-admin-lists .ds-table--list .ds-admin-actions-cell {
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .ds-admin-lists .ds-admin-row-actions {
+            flex-wrap: nowrap;
+            justify-content: flex-end;
+        }
+
+        .ds-admin-lists .ds-table--list td .ds-btn {
+            min-height: 38px;
+            padding: 0 14px;
+            font-size: 14px;
+        }
+    }
+
+    @media (width < 48rem) {
+        .ds-admin-lists .ds-table--stack td.ds-admin-actions-cell {
+            margin-top: 6px;
+        }
+
+        .ds-admin-lists .ds-table--stack td.ds-admin-actions-cell::before {
+            content: none;
+        }
+
+        .ds-admin-lists .ds-admin-row-actions {
+            flex: 1 1 auto;
+        }
+
+        .ds-admin-lists .ds-admin-row-actions > .ds-btn,
+        .ds-admin-lists .ds-admin-row-actions > form {
+            flex: 1 1 auto;
+        }
+
+        .ds-admin-lists .ds-admin-row-actions > form .ds-btn {
+            width: 100%;
+        }
+    }
+
+    /* Batch 4: texts, behaviour and database settings. */
+    .ds-admin-form-grid__wide {
+        grid-column: 1 / -1;
+    }
+
+    /* A single long checkbox tile: one column at every width. */
+    .ds-admin-flags--single .ds-options__grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    /* Long tile labels wrap on phones: keep them off the tile border (single-line tiles stay 44px). */
+    .ds-admin-choice .ds-option,
+    .ds-admin-flags--single .ds-option {
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+
+    /* Option group plus its help line (behaviour choices, peak limit flag). */
+    .ds-admin-choice {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 0;
+    }
+
+    /* Two short fields side by side at every width (singular/plural, time windows). */
+    .ds-admin-split {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    /* Command output (migrate, repair, restore): DESIGN.md mono/code, lines kept as printed. */
+    .ds-admin-output {
+        margin: 0;
+        padding: 12px;
+        overflow-x: auto;
+        border-radius: var(--radius-md);
+        background: var(--color-surface-sunk);
+        color: var(--color-ink);
+        font-family: var(--font-mono);
+        font-size: 13px;
+        line-height: 1.5;
+        white-space: pre;
+    }
+
+    /* Migration, table and backup file names. */
+    .ds-admin-mono {
+        font-family: var(--font-mono);
+        font-size: 13px;
+        overflow-wrap: anywhere;
+    }
+
+    /* A form strip above a table inside a padding-less card (migrate confirmation). */
+    .ds-admin-main .ds-card--pad-none > .ds-card__body > .ds-admin-panel {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--color-line-soft);
+    }
+
+    .ds-admin-migrate {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .ds-admin-migrate > .ds-field {
+        width: min(100%, 24rem);
+    }
+
+    .ds-admin-repair {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .ds-admin-repair form,
+    .ds-admin-restore {
+        margin: 0;
+    }
+
+    .ds-admin-restore {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .ds-input.ds-admin-restore__input {
+        width: 11rem;
+        min-width: 0;
+    }
+
+    @media (width >= 48rem) {
+        /* Same height as the compact row buttons next to it. */
+        .ds-admin-lists .ds-table--list td .ds-input.ds-admin-restore__input {
+            height: 38px;
+            min-height: 38px;
+            font-size: 14px;
+        }
+    }
+
+    @media (width < 48rem) {
+        /* Database cards: the migrate strip and empty notes sit in the row rhythm. */
+        .ds-admin-main .ds-admin-db > .ds-card__body > .ds-admin-panel {
+            margin-bottom: 8px;
+            padding: 14px 12px;
+            border: 1px solid var(--color-line);
+            border-radius: var(--radius-lg);
+            background: var(--color-surface);
+        }
+
+        .ds-admin-main .ds-admin-db > .ds-card__body > .ds-admin-note {
+            padding: 0;
+        }
+
+        .ds-admin-lists .ds-admin-row-actions > form.ds-admin-restore {
+            flex: 1 1 100%;
+            min-width: 0;
+        }
+
+        /* Zero basis: the input takes the room the button leaves instead of its intrinsic width. */
+        .ds-admin-lists .ds-admin-row-actions > form.ds-admin-restore .ds-input.ds-admin-restore__input {
+            flex: 1 1 0;
+            width: 0;
+        }
+
+        .ds-admin-lists .ds-admin-row-actions > form.ds-admin-restore .ds-btn {
+            flex: 0 0 auto;
+            width: auto;
+        }
+    }
+}
+
+/*
+ * Unlayered on purpose: the breadcrumb link has no class (component contract), so the
+ * unlayered legacy `a` rule in public/css/booking.css would beat any layered rule.
+ */
+.ds-admin-crumbs a {
+    color: var(--color-clay);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}

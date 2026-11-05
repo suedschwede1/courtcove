@@ -2,23 +2,30 @@
 
 @section('title', config('app.name'))
 
-@section('body-class', 'ui-admin-popup')
+@section('body-class', 'admin-popup-mode')
 
 @section('body')
-    <div class="ui-popup-shell">
-        <div class="ui-popup-header">
-            <h1>@yield('title', config('app.name'))</h1>
-            <x-ui.icon-button icon="close" variant="text" :label="__('booking.modal.close')" onclick="window.parent?.postMessage({ type: 'popup-close' }, '*'); window.close();" />
-        </div>
+<div class="ds-popup">
+    <header class="ds-popup__head ds-on-chrome">
+        <h1 class="ds-popup__title">@yield('title', config('app.name'))</h1>
+        <x-ui.icon-button icon="close" variant="chrome" :label="__('booking.admin.common.close')" x-data x-on:click="window.parent?.postMessage({ type: 'booking-modal-close' }, '*'); window.close()" />
+    </header>
 
-        <div class="ui-popup-body">
-            @if(session('success'))
-                <div class="mb-4 ui-flash ui-flash-success">{{ session('success') }}</div>
-            @endif
-            @if($errors->any())
-                <div class="mb-4 ui-flash ui-flash-error">{{ $errors->first() }}</div>
-            @endif
+    <main id="content" class="ds-popup__body">
+        @if(session('success'))
+            <x-ui.notice tone="good">{{ session('success') }}</x-ui.notice>
+        @endif
+        @if(session('error'))
+            <x-ui.notice tone="problem">{{ session('error') }}</x-ui.notice>
+        @endif
+        @if($errors->any())
+            <x-ui.notice tone="problem">{{ $errors->first() }}</x-ui.notice>
+        @endif
+        @hasSection('content')
             @yield('content')
-        </div>
-    </div>
+        @else
+            @yield('admin-content')
+        @endif
+    </main>
+</div>
 @endsection
