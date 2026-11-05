@@ -29,11 +29,13 @@ final class DatabaseViewTest extends TestCase
 
     private string $backup;
 
+    private User $admin;
+
     protected function setUp(): void
     {
         parent::setUp();
 
-        $admin = User::factory()->create(['status' => 'admin']);
+        $admin = $this->admin = User::factory()->create(['status' => 'admin']);
         Storage::fake('local');
         $this->backup = (new DatabaseBackupService)->create();
         DB::table('migrations')->where('migration', '2026_06_28_155630_create_jobs_table')->delete();
@@ -71,6 +73,23 @@ final class DatabaseViewTest extends TestCase
     {
         $this->assertGreaterThan(0, $this->nodes('//table[contains(@class,"ds-table")]//span[contains(@class,"ds-badge--good")][normalize-space()="'.__('booking.admin.database.status_ran').'"]')->length);
         $this->assertSame(1, $this->nodes('//table[contains(@class,"ds-table")]//span[contains(@class,"ds-badge--attention")][normalize-space()="'.__('booking.admin.database.status_pending').'"]')->length);
+    }
+
+    #[Test]
+    public function migrate_confirmation_error_is_shown_under_its_field(): void
+    {
+        $html = $this->actingAs($this->admin)
+            ->followingRedirects()
+            ->post(route('admin.database.migrate'), ['confirmation' => 'wrong'])
+            ->getContent();
+
+        $dom = new DOMDocument;
+        libxml_use_internal_errors(true);
+        $dom->loadHTML('<?xml encoding="utf-8"?>'.$html);
+        libxml_clear_errors();
+        $nodes = (new DOMXPath($dom))->query('//p[@id="db-migrate-confirmation-error"][contains(@class,"ds-field__error")][normalize-space()="'.__('booking.admin.database.migrate_confirmation_invalid', ['value' => 'MIGRATE']).'"]');
+        $this->assertNotFalse($nodes);
+        $this->assertSame(1, $nodes->length);
     }
 
     #[Test]

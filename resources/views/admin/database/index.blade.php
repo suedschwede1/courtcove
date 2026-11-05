@@ -14,7 +14,7 @@
         @if($hasPending)
             <form method="POST" action="{{ route('admin.database.migrate') }}" class="ds-admin-panel ds-admin-migrate" onsubmit="return confirm({{ Js::from(__('booking.admin.database.migrate_confirm')) }})">
                 @csrf
-                <x-ui.field :label="__('booking.admin.database.migrate_confirmation_label')" for="db-migrate-confirmation" :help="__('booking.admin.database.migrate_confirmation_help', ['value' => $migrationConfirmationValue])">
+                <x-ui.field :label="__('booking.admin.database.migrate_confirmation_label')" for="db-migrate-confirmation" :help="__('booking.admin.database.migrate_confirmation_help', ['value' => $migrationConfirmationValue])" :error="$errors->first('confirmation')">
                     <x-ui.input id="db-migrate-confirmation" name="confirmation" :value="old('confirmation')" :placeholder="__('booking.admin.database.migrate_confirmation_placeholder')" autocomplete="off" spellcheck="false" />
                 </x-ui.field>
                 <x-ui.button type="submit" variant="danger" :block="false">{{ __('booking.admin.database.migrate_button') }}</x-ui.button>
