@@ -524,8 +524,45 @@ final class LadderAdminService
         }
     }
 
+    /** How many running challenges the "cannot close" note names before it says "and N more". */
+    private const CLOSE_LIST_LIMIT = 10;
+
+    /**
+     * Why the ladder cannot be closed yet: it still has challenges that are open or scheduled (club decision;
+     * ZF2 closed regardless and left them stuck). Null when nothing stands in the way or it is closed already.
+     */
+    public function closeBlock(PyramidLadder $ladder): ?Verdict
+    {
+        if ($ladder->status === 'closed') {
+            return null;
+        }
+
+        $running = PyramidChallenge::query()
+            ->with(['challenger', 'opponent'])
+            ->where('ladder_id', $ladder->id)
+            ->whereIn('status', ['open', 'scheduled'])
+            ->orderBy('created')
+            ->orderBy('id')
+            ->get();
+
+        if ($running->isEmpty()) {
+            return null;
+        }
+
+        $list = $running->take(self::CLOSE_LIST_LIMIT)
+            ->map(static fn (PyramidChallenge $challenge): string => ($challenge->challenger?->label ?? '?').' – '.($challenge->opponent?->label ?? '?'))
+            ->implode('; ');
+        $more = $running->count() - self::CLOSE_LIST_LIMIT;
+
+        return $more > 0
+            ? new Verdict('pyramid::admin.close_blocked_more', ['list' => $list, 'count' => $more])
+            : new Verdict('pyramid::admin.close_blocked', ['list' => $list]);
+    }
+
     /**
      * @return bool false when the ladder was already closed (nothing changed, no second event)
+     *
+     * @throws PyramidRuleException while challenges are still open or scheduled
      */
     public function close(PyramidLadder $ladder, ?int $actorUid): bool
     {
@@ -534,6 +571,12 @@ final class LadderAdminService
 
             if ($current !== null && $current->status === 'closed') {
                 return false;
+            }
+
+            $block = $this->closeBlock($current ?? $ladder);
+
+            if ($block !== null) {
+                throw new PyramidRuleException($block);
             }
 
             PyramidLadder::query()->whereKey($ladder->id)->update(['status' => 'closed']);

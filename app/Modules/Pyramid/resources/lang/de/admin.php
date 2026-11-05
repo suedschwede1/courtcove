@@ -13,6 +13,8 @@ return [
     'copy_source' => 'Bitte eine andere Rangliste als Quelle wählen.',
     'copy_failed' => 'Die Teilnehmer konnten nicht übernommen werden: ein Mitglied steht in der Zielrangliste bereits unter anderem Namen. Es wurde nichts übernommen.',
     'extend_limit' => 'Die neue Frist darf höchstens 28 Tage über der alten liegen.',
+    'close_blocked' => 'Die Saison kann noch nicht abgeschlossen werden: Es laufen noch Forderungen (offen oder terminiert): :list. Bitte diese zuerst beenden, etwa mit einem Ergebnis, als verfallen oder als nicht angetreten.',
+    'close_blocked_more' => 'Die Saison kann noch nicht abgeschlossen werden: Es laufen noch Forderungen (offen oder terminiert): :list und :count weitere. Bitte diese zuerst beenden, etwa mit einem Ergebnis, als verfallen oder als nicht angetreten.',
     'grant_uid_required' => 'Bitte eine Benutzernummer angeben.',
     'grant_uid_unknown' => 'Mitglied nicht gefunden.',
     'score_too_long' => 'Das Ergebnis darf höchstens 40 Zeichen lang sein.',

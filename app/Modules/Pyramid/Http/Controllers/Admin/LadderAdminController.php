@@ -141,6 +141,7 @@ class LadderAdminController extends Controller
             'labels' => $this->repo->labels($ladderId),
             'suggestedDeadline' => CarbonImmutable::now()->addDays(7)->format('Y-m-d'),
             'globalAdmin' => $this->canAdmin(),
+            'closeBlock' => $this->admin->closeBlock($ladder)?->message(),
         ]);
     }
 
@@ -242,8 +243,12 @@ class LadderAdminController extends Controller
 
         $back = redirect()->to(PyramidLinks::adminLadder((int) $ladder->id));
 
-        if (! $this->admin->close($ladder, $this->actorUid())) {
-            return $back->with('info', __('pyramid::admin.flash.already_closed'));
+        try {
+            if (! $this->admin->close($ladder, $this->actorUid())) {
+                return $back->with('info', __('pyramid::admin.flash.already_closed'));
+            }
+        } catch (PyramidRuleException $e) {
+            return $back->with('error', $e->verdict->message());
         }
 
         return $back->with('success', __('pyramid::admin.flash.closed'));

@@ -272,7 +272,8 @@ class AdminChallengeActionsTest extends TestCase
     {
         $user = User::factory()->create(['email' => 'spieler8@example.test']);
         $this->playerAt(8)->update(['uid' => $user->uid]);
-        $challenge = $this->challenge('scheduled', ['scheduled_at' => now()->addDays(2)->format('Y-m-d H:i:s')]);
+        // Closing needs a ladder without running challenges; a stuck one is put back afterwards to see the guard.
+        $challenge = $this->challenge('expired', ['scheduled_at' => now()->addDays(2)->format('Y-m-d H:i:s')]);
 
         $this->actingAs($this->admin())->post($this->ladderUrl(null, 'close'))
             ->assertRedirect($this->ladderUrl())
@@ -280,6 +281,7 @@ class AdminChallengeActionsTest extends TestCase
         $this->assertSame('closed', $this->ladder->fresh()->status);
         $this->assertTrue(PyramidEvent::query()->where('ladder_id', $this->ladder->id)->where('type', 'admin')->exists());
 
+        $challenge->update(['status' => 'scheduled']);
         $this->actingAs($user)->post('/pyramide/forderung/'.$challenge->id.'/ergebnis', ['s1a' => 6, 's1b' => 4, 's2a' => 6, 's2b' => 3])
             ->assertSessionHas('error', 'Diese Pyramide ist abgeschlossen und kann nicht mehr bespielt werden.');
         $this->assertSame('scheduled', $challenge->fresh()->status);

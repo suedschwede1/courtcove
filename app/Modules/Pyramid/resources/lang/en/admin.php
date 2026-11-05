@@ -13,6 +13,8 @@ return [
     'copy_source' => 'Please choose a different ladder as the source.',
     'copy_failed' => 'The participants could not be copied: a member is already in the target ladder under a different name. Nothing was copied.',
     'extend_limit' => 'The new deadline may be at most 28 days after the old one.',
+    'close_blocked' => 'The season cannot be closed yet: challenges are still running (open or scheduled): :list. Please finish them first, for example with a result, as expired or as forfeited.',
+    'close_blocked_more' => 'The season cannot be closed yet: challenges are still running (open or scheduled): :list and :count more. Please finish them first, for example with a result, as expired or as forfeited.',
     'grant_uid_required' => 'Please enter a user number.',
     'grant_uid_unknown' => 'Member not found.',
     'score_too_long' => 'The result may be at most 40 characters long.',

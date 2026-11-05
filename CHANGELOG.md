@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Pyramid: a ladder can only be closed once no challenge is open or scheduled; the refusal lists them and the admin page disables the close button with the same note.
 - Pyramid: only global Pyramid admins can change which ladder is the default; for ladder admins the checkbox is hidden and the field ignored.
 - Pyramid: ladder rights can only be granted and revoked by global Pyramid admins (ZF2: any ladder admin); holders of a single ladder no longer see the grants card.
 - Phase 2 go-live (module 2): the challenge ladder /pyramide is served by Laravel with the Laravel login; rollback = re-add the prefix to the bridge rule.
