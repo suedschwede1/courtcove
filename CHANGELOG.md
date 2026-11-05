@@ -9,13 +9,13 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+
 - Mail send confirmation keeps keyboard focus inside the dialog and returns it to the send button; subject and body errors are announced with their fields.
 - Mail settings and club function forms use the shared fields and buttons.
 - Mail composer uses audience chips, cards and a labelled confirmation dialog that closes with Escape.
 - Fiscal year and privacy settings forms use the shared fields.
 - Dues page uses the new table, labelled filters and a bulk bar; the status message no longer appears twice.
 - Member and payment forms use the shared fields with labels and error text linked for screen readers.
-
 - Member edit page uses the new header actions, dues card and change history; partial payments are highlighted without inline colours.
 - Members dashboard shows key figures and age/category bars in the new style; fiscal years, functions and fee categories use the shared table.
 - Members list uses the new table, badges and filters; on phones each member becomes a card with status, payment and category still editable in place.

@@ -198,7 +198,7 @@
                                     <option value="{{ $fiscalYear->id }}">{{ $fiscalYear->name }}</option>
                                 @endforeach
                             </select>
-                            <input type="text" x-model="kommentar" @blur="saveKommentar()" @keydown.enter.prevent="$event.target.blur()" placeholder="{{ __('members::admin.dues.kommentar') }}" aria-label="{{ __('members::admin.dues.kommentar') }}" class="ds-input">
+                            <input type="text" x-model="kommentar" @blur="saveKommentar()" @keydown.enter.prevent="$event.target.blur()" placeholder="{{ __('members::admin.dues.kommentar') }}" aria-label="{{ __('members::admin.dues.kommentar') }}" class="ds-input" :class="{ 'ds-input--invalid': error }">
                             <p class="ds-field__error" x-show="error" x-text="error"></p>
                         </div>
                     @else
