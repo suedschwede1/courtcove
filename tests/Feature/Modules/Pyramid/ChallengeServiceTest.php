@@ -201,6 +201,21 @@ class ChallengeServiceTest extends TestCase
     }
 
     #[Test]
+    public function cooldown_ends_exactly_after_seven_days(): void
+    {
+        $ladder = $this->makeLadder(8);
+        $challenge = $this->open($ladder, 8, 5);
+        $loser = $this->at($ladder, 8);
+        $this->resolve($challenge, $this->at($ladder, 5), now()->subSeconds(604800)->format('Y-m-d H:i:s'));
+
+        $this->assertNull($this->key($ladder, $loser, $this->at($ladder, 7)));
+        $this->assertSame(
+            'pyramid::check.cooldown',
+            $this->key($ladder, $loser, $this->at($ladder, 7), CarbonImmutable::now()->subSecond())
+        );
+    }
+
+    #[Test]
     public function forfeit_starts_the_loser_cooldown(): void
     {
         $ladder = $this->makeLadder(6);

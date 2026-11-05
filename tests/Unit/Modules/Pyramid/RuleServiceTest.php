@@ -154,6 +154,22 @@ class RuleServiceTest extends TestCase
     }
 
     #[Test]
+    public function position_0_is_invalid_for_col_of(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        $this->rules->colOf(0);
+    }
+
+    #[Test]
+    public function negative_row_is_invalid_for_last_of_row(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        $this->rules->lastOfRow(-1);
+    }
+
+    #[Test]
     public function numeric_string_positions_are_accepted(): void
     {
         $this->assertSame(4, $this->rules->rowOf('10'));

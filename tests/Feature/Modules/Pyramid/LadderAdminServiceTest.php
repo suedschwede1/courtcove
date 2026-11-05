@@ -17,6 +17,7 @@ use App\Modules\Pyramid\Support\EventText;
 use App\Modules\Pyramid\Support\PyramidRuleException;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Concerns\BuildsPyramidLadders;
 use Tests\TestCase;
@@ -162,6 +163,23 @@ class LadderAdminServiceTest extends TestCase
         $this->assertEquals(10.0, (float) $player->itn_rated);
         $this->assertNull($player->gender);
         $this->assertNull($player->age);
+    }
+
+    #[Test]
+    public function email_match_ignores_disabled_accounts(): void
+    {
+        $ladder = PyramidLadder::factory()->setup()->create();
+        $user = User::factory()->create(['alias' => 'Demo Spieler 09', 'email' => 'demo09@example.test', 'status' => 'disabled']);
+        UserMeta::query()->create(['uid' => $user->uid, 'key' => 'phone', 'value' => '+43 000 000 0009']);
+
+        $player = $this->service()->addPlayer($ladder, [
+            'label' => 'Spieler Y', 'uid' => 0, 'phone' => '111', 'email' => 'demo09@example.test',
+        ]);
+
+        $this->assertNull($player->uid);
+        $this->assertSame('Spieler Y', $player->label);
+        $this->assertSame('111', $player->phone);
+        $this->assertSame('demo09@example.test', $player->email);
     }
 
     #[Test]
@@ -316,6 +334,97 @@ class LadderAdminServiceTest extends TestCase
     }
 
     #[Test]
+    public function update_player_requires_a_label_and_changes_nothing_without_one(): void
+    {
+        $ladder = $this->makeLadder(4);
+        $player = $this->playerAt($ladder, 4);
+
+        $this->assertRuleKey('pyramid::admin.label_required', fn () => $this->service()->updatePlayer($player, [
+            'label' => '   ', 'itn' => '5', 'note' => 'x',
+        ], 1));
+
+        $row = PyramidPlayer::query()->findOrFail($player->id);
+        $this->assertSame('Spieler 4', $row->label);
+        $this->assertSame(4, (int) $row->position);
+        $this->assertNull($row->note);
+    }
+
+    #[Test]
+    public function move_writes_null_first_and_only_the_changed_rows(): void
+    {
+        $ladder = $this->makeLadder(6);
+        $ids = [];
+
+        foreach (range(1, 6) as $position) {
+            $ids[$position] = (int) $this->playerAt($ladder, $position)->id;
+        }
+
+        DB::enableQueryLog();
+        $this->service()->movePlayer($ladder, $this->playerAt($ladder, 2), 5);
+        $queries = DB::getQueryLog();
+        DB::disableQueryLog();
+
+        $updates = array_values(array_filter(
+            $queries,
+            fn (array $q): bool => str_contains($q['query'], 'update "bs_pyramid_players" set "position"')
+        ));
+
+        // Players 2..5 change: four clears, then four new values; players 1 and 6 are never written.
+        $this->assertCount(8, $updates);
+
+        foreach (array_slice($updates, 0, 4) as $update) {
+            $this->assertNull($update['bindings'][0]);
+        }
+
+        foreach (array_slice($updates, 4) as $update) {
+            $this->assertNotNull($update['bindings'][0]);
+        }
+
+        $expected = [$ids[2], $ids[3], $ids[4], $ids[5]];
+        $cleared = array_map(fn (array $q): int => (int) $q['bindings'][1], array_slice($updates, 0, 4));
+        $set = array_map(fn (array $q): int => (int) $q['bindings'][1], array_slice($updates, 4));
+        sort($cleared);
+        sort($set);
+        $this->assertSame($expected, $cleared);
+        $this->assertSame($expected, $set);
+        $this->assertRankingIntact((int) $ladder->id);
+    }
+
+    #[Test]
+    public function moving_to_the_own_position_writes_nothing(): void
+    {
+        $ladder = $this->makeLadder(4);
+        $player = $this->playerAt($ladder, 3);
+
+        DB::enableQueryLog();
+        $this->service()->movePlayer($ladder, $player, 3);
+        $queries = DB::getQueryLog();
+        DB::disableQueryLog();
+
+        $this->assertSame([], array_values(array_filter(
+            $queries,
+            fn (array $q): bool => str_contains($q['query'], 'update "bs_pyramid_players"')
+        )));
+    }
+
+    #[Test]
+    public function diagnose_texts_carry_the_counts(): void
+    {
+        $ladder = $this->makeLadder(4);
+        PyramidPlayer::query()->where('ladder_id', $ladder->id)->whereIn('position', [2, 4])->update(['position' => null]);
+        PyramidPlayer::query()->where('ladder_id', $ladder->id)->where('position', 3)->update(['position' => 7]);
+        PyramidPlayer::factory()->waiting()->create(['ladder_id' => $ladder->id, 'label' => 'Spieler S', 'position' => 9]);
+
+        $messages = array_map(fn ($verdict) => $verdict->message('de'), $this->service()->diagnose($ladder));
+
+        $this->assertSame([
+            '2 aktive oder pausierte Teilnehmer ohne Position',
+            '1 wartende oder entfernte Teilnehmer mit gesetzter Position',
+            'Lücken oder Dubletten in der Positionsfolge',
+        ], $messages);
+    }
+
+    #[Test]
     public function diagnose_reports_each_problem(): void
     {
         $ladder = $this->makeLadder(3);
@@ -343,6 +452,50 @@ class LadderAdminServiceTest extends TestCase
         $this->assertSame('2026-11-28', $this->service()->extendDeadline($challenge, '2026-11-28', 'Urlaub', 42));
         $this->assertSame('2026-11-28', PyramidChallenge::query()->findOrFail($challenge->id)->deadline);
         $this->assertSame(['message' => 'Frist verlängert bis 2026-11-28: Urlaub'], $this->lastEventPayload((int) $ladder->id, 'admin'));
+    }
+
+    #[Test]
+    public function extend_expire_and_forfeit_require_a_note(): void
+    {
+        $ladder = $this->makeLadder(6);
+        $challenge = $this->app->make(ChallengeService::class)->create($ladder, $this->playerAt($ladder, 5), $this->playerAt($ladder, 3), 42);
+        $before = $this->positionsByLabel((int) $ladder->id);
+        $events = PyramidEvent::query()->count();
+        $deadline = PyramidChallenge::query()->findOrFail($challenge->id)->deadline;
+
+        foreach (['', "  \t "] as $note) {
+            $this->assertRuleKey('pyramid::admin.note_required', fn () => $this->service()->extendDeadline($challenge, date('Y-m-d'), $note, 42));
+            $this->assertRuleKey('pyramid::admin.note_required', fn () => $this->service()->expire($challenge, $note, 42));
+            $this->assertRuleKey('pyramid::admin.note_required', fn () => $this->service()->forfeit($challenge, true, $note, 42));
+        }
+
+        $row = PyramidChallenge::query()->findOrFail($challenge->id);
+        $this->assertSame('open', $row->status);
+        $this->assertSame($deadline, $row->deadline);
+        $this->assertNull($row->admin_note);
+        $this->assertSame($before, $this->positionsByLabel((int) $ladder->id));
+        $this->assertSame($events, PyramidEvent::query()->count());
+    }
+
+    #[Test]
+    public function notes_are_stored_trimmed(): void
+    {
+        $this->travelTo(CarbonImmutable::parse('2026-10-25 10:00:00'));
+        $ladder = $this->makeLadder(8);
+        $challenges = $this->app->make(ChallengeService::class);
+        $extend = $challenges->create($ladder, $this->playerAt($ladder, 5), $this->playerAt($ladder, 3), 42);
+        $expire = $challenges->create($ladder, $this->playerAt($ladder, 8), $this->playerAt($ladder, 6), 42);
+        $forfeit = $challenges->create($ladder, $this->playerAt($ladder, 7), $this->playerAt($ladder, 4), 42);
+
+        $this->service()->extendDeadline($extend, '2026-11-02', "  Urlaub \n", 42);
+        $this->assertSame(['message' => 'Frist verlängert bis 2026-11-02: Urlaub'], $this->lastEventPayload((int) $ladder->id, 'admin'));
+
+        $this->service()->expire($expire, '  kein Termin ', 42);
+        $this->assertSame('kein Termin', PyramidChallenge::query()->findOrFail($expire->id)->admin_note);
+        $this->assertSame(['message' => 'Eine Forderung ist ohne Spiel verfallen: kein Termin'], $this->lastEventPayload((int) $ladder->id, 'admin'));
+
+        $this->service()->forfeit($forfeit, true, "\tnicht erschienen  ", 42);
+        $this->assertSame('nicht erschienen', PyramidChallenge::query()->findOrFail($forfeit->id)->admin_note);
     }
 
     #[Test]

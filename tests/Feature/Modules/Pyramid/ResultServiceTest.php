@@ -180,6 +180,15 @@ class ResultServiceTest extends TestCase
             $this->fail('InvalidScoreException expected');
         } catch (InvalidScoreException $e) {
             $this->assertSame('tournament-base::score.sets_incomplete', $e->key);
+            $this->assertSame([], $e->replace);
+        }
+
+        try {
+            $this->service()->record($ladder, $challenge, ['s1a' => 6, 's1b' => 5, 's2a' => 6, 's2b' => 0], null);
+            $this->fail('InvalidScoreException expected');
+        } catch (InvalidScoreException $e) {
+            $this->assertSame('tournament-base::score.set_invalid', $e->key);
+            $this->assertSame(['number' => 1, 'score' => '6:5'], $e->replace);
         }
 
         $this->assertSame('open', PyramidChallenge::query()->findOrFail($challenge->id)->status);
@@ -251,6 +260,11 @@ class ResultServiceTest extends TestCase
     {
         $ladder = $this->makeLadder(8);
         $challenge = $this->open($ladder, $this->playerAt($ladder, 8), $this->playerAt($ladder, 4));
+        $shiftedIds = [];
+
+        foreach (range(4, 8) as $position) {
+            $shiftedIds[] = (int) $this->playerAt($ladder, $position)->id;
+        }
 
         DB::enableQueryLog();
         $this->service()->record($ladder, $challenge, $this->win(), null);
@@ -277,8 +291,22 @@ class ResultServiceTest extends TestCase
             array_column(array_slice($updates, 0, 5), 'bindings'),
             array_map(fn (array $q): array => [null, $q['bindings'][1]], array_slice($updates, 5))
         );
+        // Exactly the players on 4..8 are cleared (and later set again); 1..3 are never touched.
+        $clearedIds = array_map(fn (array $q): int => (int) $q['bindings'][1], array_slice($updates, 0, 5));
+        $setIds = array_map(fn (array $q): int => (int) $q['bindings'][1], array_slice($updates, 5));
+        sort($clearedIds);
+        sort($setIds);
+        $this->assertSame($shiftedIds, $clearedIds);
+        $this->assertSame($shiftedIds, $setIds);
+
         $this->assertRankingIntact((int) $ladder->id);
-        $this->assertSame(4, $this->positionsByLabel((int) $ladder->id)['Spieler 8']);
+        $this->assertSame(
+            [
+                'Spieler 1' => 1, 'Spieler 2' => 2, 'Spieler 3' => 3,
+                'Spieler 8' => 4, 'Spieler 4' => 5, 'Spieler 5' => 6, 'Spieler 6' => 7, 'Spieler 7' => 8,
+            ],
+            $this->positionsByLabel((int) $ladder->id)
+        );
     }
 
     // Kampflose Wertung und Verfall
@@ -316,6 +344,76 @@ class ResultServiceTest extends TestCase
             $this->playerAt($ladder, 2)
         );
         $this->assertSame('pyramid::check.cooldown', $cooldown?->key);
+    }
+
+    private function newcomer(PyramidLadder $ladder): PyramidPlayer
+    {
+        return PyramidPlayer::factory()->create([
+            'ladder_id' => $ladder->id,
+            'label' => 'Neuling',
+            'position' => null,
+            'status' => 'entering',
+            'uid' => null,
+            'joined' => now()->format('Y-m-d H:i:s'),
+        ]);
+    }
+
+    #[Test]
+    public function forfeit_by_an_unpositioned_challenger_enters_at_the_opponents_place(): void
+    {
+        $ladder = $this->makeLadder(5);
+        $newcomer = $this->newcomer($ladder);
+        $challenge = $this->open($ladder, $newcomer, $this->playerAt($ladder, 3));
+
+        $this->service()->recordForfeit($ladder, $challenge, true, 'Gegner nicht erschienen', 7);
+
+        $this->assertSame(
+            ['Spieler 1' => 1, 'Spieler 2' => 2, 'Neuling' => 3, 'Spieler 3' => 4, 'Spieler 4' => 5, 'Spieler 5' => 6],
+            $this->positionsByLabel((int) $ladder->id)
+        );
+        $this->assertSame('active', PyramidPlayer::query()->findOrFail($newcomer->id)->status);
+        $this->assertSame('forfeited', PyramidChallenge::query()->findOrFail($challenge->id)->status);
+        $this->assertRankingIntact((int) $ladder->id);
+    }
+
+    #[Test]
+    public function forfeit_win_of_the_opponent_over_an_entrant_appends_the_entrant(): void
+    {
+        $ladder = $this->makeLadder(5);
+        $newcomer = $this->newcomer($ladder);
+        $challenge = $this->open($ladder, $newcomer, $this->playerAt($ladder, 3));
+
+        $this->service()->recordForfeit($ladder, $challenge, false, 'Neuling nicht erschienen', null);
+
+        $positions = $this->positionsByLabel((int) $ladder->id);
+        $this->assertSame(6, $positions['Neuling']);
+        $this->assertSame(3, $positions['Spieler 3']);
+        $this->assertSame('active', PyramidPlayer::query()->findOrFail($newcomer->id)->status);
+        $this->assertSame((int) $challenge->opponent_id, (int) PyramidChallenge::query()->findOrFail($challenge->id)->winner_id);
+        $this->assertRankingIntact((int) $ladder->id);
+    }
+
+    #[Test]
+    public function forfeit_on_a_closed_challenge_is_rejected_and_changes_nothing(): void
+    {
+        $ladder = $this->makeLadder(6);
+        $challenge = $this->open($ladder, $this->playerAt($ladder, 5), $this->playerAt($ladder, 3));
+        $before = $this->positionsByLabel((int) $ladder->id);
+        $events = PyramidEvent::query()->count();
+
+        // The caller still holds the 'open' row, the database no longer does.
+        PyramidChallenge::query()->whereKey($challenge->id)->update(['status' => 'withdrawn']);
+
+        try {
+            $this->service()->recordForfeit($ladder, $challenge, true, 'zu spaet', null);
+            $this->fail('PyramidRuleException expected');
+        } catch (PyramidRuleException $e) {
+            $this->assertSame('pyramid::check.challenge_closed', $e->verdict->key);
+        }
+
+        $this->assertSame($before, $this->positionsByLabel((int) $ladder->id));
+        $this->assertSame('withdrawn', PyramidChallenge::query()->findOrFail($challenge->id)->status);
+        $this->assertSame($events, PyramidEvent::query()->count());
     }
 
     #[Test]

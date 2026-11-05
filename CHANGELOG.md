@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-05
 
+- Phase 2: more Pyramid tests (ranking order, rule boundaries, forfeits, admin notes); no behaviour change.
 - Phase 2: Pyramid admin notes are stored trimmed (as in ZF2); empty dates render as a dash.
 - Phase 2: Pyramid mails (challenge, date, result, decline, withdrawal, deadline, forfeit, expiry, correction, admission, entry release) sent from Laravel.
 - Phase 2: Pyramid administration (seeding, waiting list, moves, normalising, deadlines, forfeits, corrections) ported unchanged.

@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Modules\Pyramid\Models\PyramidGrant;
 use App\Modules\Pyramid\Models\PyramidLadder;
 use App\Modules\Pyramid\Policies\PyramidLadderPolicy;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\Gate;
 use PHPUnit\Framework\Attributes\Test;
@@ -92,11 +93,40 @@ class PyramidLadderPolicyTest extends TestCase
     }
 
     #[Test]
+    public function a_read_grant_row_cannot_exist_so_the_policy_never_sees_one(): void
+    {
+        // The legacy column is ENUM('admin'), so a 'read' grant is rejected by the schema itself; the policy's
+        // role check is defence in depth and a user without a row stays 'read'.
+        $ladder = PyramidLadder::factory()->create();
+        $user = User::factory()->create();
+
+        try {
+            PyramidGrant::query()->create(['ladder_id' => $ladder->id, 'uid' => $user->uid, 'role' => 'read', 'created' => '2026-01-01 00:00:00']);
+            $this->fail('The schema must reject a non-admin grant role');
+        } catch (QueryException) {
+            $this->addToAssertionCount(1);
+        }
+
+        $this->assertSame('read', $this->policy()->roleFor($user, $ladder));
+        $this->assertFalse(Gate::forUser($user)->allows('administer', $ladder));
+    }
+
+    #[Test]
+    public function guest_is_denied_through_the_gate(): void
+    {
+        $ladder = PyramidLadder::factory()->create();
+
+        $this->assertFalse(Gate::allows('administer', $ladder));
+        $this->assertFalse(Gate::allows('administer', PyramidLadder::class));
+    }
+
+    #[Test]
     public function user_can_is_not_the_policy(): void
     {
         $ladderA = PyramidLadder::factory()->create();
         $grantHolder = $this->grantHolder($ladderA);
 
+        $this->assertNotContains($grantHolder->status, ['admin', 'assist']);
         $this->assertFalse($grantHolder->can('administer', $ladderA)); // privilege check, NOT the policy
         $this->assertTrue(Gate::forUser($grantHolder)->allows('administer', $ladderA));
     }

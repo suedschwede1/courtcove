@@ -69,6 +69,9 @@ class PyramidGoldenVectorsTest extends TestCase
     {
         $rules = new RuleService;
 
+        $this->assertNotEmpty($this->golden()['rows']['positions']);
+        $this->assertNotEmpty($this->golden()['rows']['rows']);
+
         foreach ($this->golden()['rows']['positions'] as $c) {
             $this->assertSame($c['row'], $rules->rowOf($c['position']), 'row '.$c['position']);
             $this->assertSame($c['col'], $rules->colOf($c['position']), 'col '.$c['position']);
@@ -98,6 +101,8 @@ class PyramidGoldenVectorsTest extends TestCase
     {
         $rules = new RuleService;
 
+        $this->assertNotEmpty($this->golden()['challengeable']);
+
         foreach ($this->golden()['challengeable'] as $c) {
             $this->check($c, fn () => $rules->challengeable($c['position'], $c['count']), 'challengeable '.$c['position'].'/'.json_encode($c['count']));
         }
@@ -108,6 +113,8 @@ class PyramidGoldenVectorsTest extends TestCase
     {
         $rules = new RuleService;
         $errors = 0;
+
+        $this->assertNotEmpty($this->golden()['shift_win']);
 
         foreach ($this->golden()['shift_win'] as $i => $c) {
             $errors += isset($c['error']) ? 1 : 0;
@@ -122,6 +129,8 @@ class PyramidGoldenVectorsTest extends TestCase
     {
         $rules = new RuleService;
 
+        $this->assertNotEmpty($this->golden()['shift_entry']);
+
         foreach ($this->golden()['shift_entry'] as $i => $c) {
             $this->check($c, fn () => $rules->shiftForEntry($c['positions'], $c['loserPos']), 'shift_entry #'.$i.' '.$c['name']);
         }
@@ -131,6 +140,8 @@ class PyramidGoldenVectorsTest extends TestCase
     public function pyramid_rows(): void
     {
         $rules = new RuleService;
+
+        $this->assertNotEmpty($this->golden()['pyramid_rows']);
 
         foreach ($this->golden()['pyramid_rows'] as $c) {
             $players = array_map(fn (int $p): array => ['position' => $p], $c['n'] > 0 ? range(1, $c['n']) : []);
@@ -143,6 +154,8 @@ class PyramidGoldenVectorsTest extends TestCase
     public function seeding(): void
     {
         $seeder = new SeedService;
+
+        $this->assertNotEmpty($this->golden()['seed']);
 
         foreach ($this->golden()['seed'] as $c) {
             $this->check($c, fn () => $seeder->seed($c['players'], $c['itnDefault']), 'seed '.$c['name']);
