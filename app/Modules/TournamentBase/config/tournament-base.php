@@ -11,7 +11,7 @@ return [
 
     // Where an expired token goes when the Referer is missing or from another host (default: the login page,
     // also while the named route does not exist yet).
-    'csrf_redirect_fallbacks' => ['mixed.*' => 'mixed.index', 'tournament.*' => 'tournament.index'],
+    'csrf_redirect_fallbacks' => ['mixed.*' => 'mixed.index', 'tournament.*' => 'tournament.index', 'draw.*' => 'draw.index'],
 
     // Optional court names, supplied per environment as JSON, e.g. {"1":"Alpha","2":"Beta"}.
     // Invalid or missing JSON yields no names.
