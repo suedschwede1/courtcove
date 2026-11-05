@@ -356,6 +356,23 @@
     border-radius: var(--radius-sm);
 }
 
+/* Club event: a green outline around the whole joined block (no line between the hours). */
+.cal-row > .event-cell--single:not(.event-cell--blocked) {
+    box-shadow: inset 0 0 0 1px var(--cal-event-line);
+}
+
+.cal-row > .event-cell--start:not(.event-cell--blocked) {
+    box-shadow: inset 1px 0 0 0 var(--cal-event-line), inset -1px 0 0 0 var(--cal-event-line), inset 0 1px 0 0 var(--cal-event-line);
+}
+
+.cal-row > .event-cell--middle:not(.event-cell--blocked) {
+    box-shadow: inset 1px 0 0 0 var(--cal-event-line), inset -1px 0 0 0 var(--cal-event-line);
+}
+
+.cal-row > .event-cell--end:not(.event-cell--blocked) {
+    box-shadow: inset 1px 0 0 0 var(--cal-event-line), inset -1px 0 0 0 var(--cal-event-line), inset 0 -1px 0 0 var(--cal-event-line);
+}
+
 .cal-row > .event-cell--start,
 .cal-row > .event-cell--middle {
     height: calc(100% + var(--cal-gap));
@@ -537,6 +554,13 @@
         margin-bottom: 0;
         padding: 4px 6px;
         border-radius: var(--radius-md);
+    }
+
+    .cal-row > .event-cell--single:not(.event-cell--blocked),
+    .cal-row > .event-cell--start:not(.event-cell--blocked),
+    .cal-row > .event-cell--middle:not(.event-cell--blocked),
+    .cal-row > .event-cell--end:not(.event-cell--blocked) {
+        box-shadow: inset 0 0 0 1px var(--cal-event-line);
     }
 
     .cal-row > .event-cell--middle .event-label,

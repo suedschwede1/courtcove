@@ -32,6 +32,7 @@ $colors = [
     ],
     'event' => [
         'bg' => env('CAL_COLOR_EVENT_BG', 'var(--color-cell-event)'),
+        'line' => env('CAL_COLOR_EVENT_LINE', 'var(--color-cell-event-line)'),
         'label' => env('CAL_COLOR_EVENT_LABEL', 'var(--color-cell-event-ink)'),
     ],
     // Court closure: diagonal hatching in two stripe colours, text in the muted ink.

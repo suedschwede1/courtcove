@@ -34,6 +34,7 @@ final class CalendarColorsTest extends TestCase
             'past.bg_alt' => 'var(--color-cell-past-b)',
             'past.label' => 'var(--color-ink-3)',
             'event.bg' => 'var(--color-cell-event)',
+            'event.line' => 'var(--color-cell-event-line)',
             'event.label' => 'var(--color-cell-event-ink)',
             'blocked.a' => 'var(--color-cell-blocked-a)',
             'blocked.b' => 'var(--color-cell-blocked-b)',
