@@ -1116,6 +1116,24 @@
         }
     }
 
+    /* Full-page booking and edit forms: one centred card, same parts as the dialog. */
+    .ds-booking-page {
+        display: flex;
+        justify-content: center;
+        padding: 24px 16px;
+    }
+
+    .ds-booking-page__card {
+        width: 100%;
+        max-width: 560px;
+    }
+
+    .ds-booking-page__stack {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
     /* Shared modal: centred dialog on desktop, bottom sheet below 48rem. */
     .ds-modal {
         position: fixed;
