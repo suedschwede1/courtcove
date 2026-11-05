@@ -325,7 +325,9 @@ class PlayerRoundPagesTest extends TestCase
 
         foreach (['/event/'.$event->id, '/round/'.$confirmed->id, '/round/'.$proposed->id, '/event/'.$event->id.'/standings', '/event/'.$event->id.'/durchmischung'] as $url) {
             $response = $this->actingAs($user)->get('/mixed-tournament'.$url)->assertOk()->assertSee('Spieler A');
-            foreach (['ITN', '7,4', '7,35', '7.35', '117', 'kontakt-geheim', 'Jahre'] as $secret) {
+            // Word match: a hashed asset name may contain the letters ITN.
+            $this->assertDoesNotMatchRegularExpression('/\bITN\b/', (string) $response->getContent(), $url);
+            foreach (['7,4', '7,35', '7.35', '117', 'kontakt-geheim', 'Jahre'] as $secret) {
                 $response->assertDontSee($secret);
             }
         }
