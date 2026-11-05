@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Phase 2: Mixed participants, avoid pairs and the member roster ported; the roster import now runs in one transaction.
 - Phase 2: Mixed events, default event, court count, test mode and per-event grants ported.
 - Phase 2: Mixed roles (read/score/admin, test mode, per-event grants) ported; admin.mixed is grantable in the user admin.
 - Phase 2: Mixed tables adopted in place (guarded create migrations, no-op rollback, schema manifest).
