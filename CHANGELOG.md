@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Phase 2: public randomness beacon client ported (two endpoints, 10 s timeout).
 - Phase 2: championship pages show the ITN to every member again (as before), tint your own matches in the schedule and word KO WhatsApp messages correctly.
 - Phase 2: championship result entry with live validation and confirmation by the opponent.
 - Phase 2: championship pages polished after the visual check (phone chip rows, key figure cards).
