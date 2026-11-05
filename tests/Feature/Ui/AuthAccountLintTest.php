@@ -16,6 +16,9 @@ class AuthAccountLintTest extends TestCase
         return [
             'auth-shell' => ['resources/views/components/layout/auth-shell.blade.php'],
             'login' => ['resources/views/auth/login.blade.php'],
+            'forgot-password' => ['resources/views/auth/forgot-password.blade.php'],
+            'reset-password' => ['resources/views/auth/reset-password.blade.php'],
+            'login-verify' => ['resources/views/auth/login-verify.blade.php'],
         ]; // later tasks append
     }
 

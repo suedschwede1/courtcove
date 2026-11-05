@@ -79,4 +79,64 @@ class AuthPagesTest extends TestCase
             ->assertSee('ds-notice--good', false)
             ->assertSee(str_replace(':system', config('booking.name'), __('booking.register.success_message')));
     }
+
+    #[Test]
+    public function forgot_password_shows_the_form_in_the_shell(): void
+    {
+        $this->get('/password/forgot')
+            ->assertOk()
+            ->assertSee('<div class="ds-auth">', false)
+            ->assertSee('action="'.route('password.email').'"', false)
+            ->assertSee('for="email"', false)
+            ->assertSee('ds-btn--dark', false)
+            ->assertSee('href="'.route('login').'"', false);
+    }
+
+    #[Test]
+    public function forgot_password_shows_only_the_status_after_sending(): void
+    {
+        $this->withSession(['status' => 'Sent X'])
+            ->get('/password/forgot')
+            ->assertSee('Sent X')
+            ->assertSee('role="status"', false)
+            ->assertDontSee('action="'.route('password.email').'"', false);
+    }
+
+    #[Test]
+    public function reset_password_keeps_token_and_email_and_empty_passwords(): void
+    {
+        $html = $this->get('/password/reset/tok-1?email=user@example.test')
+            ->assertOk()
+            ->assertSee('name="token" value="tok-1"', false)
+            ->assertSee('name="email" value="user@example.test"', false)
+            ->assertSee('id="password"', false)
+            ->assertSee('id="password_confirmation"', false)
+            ->getContent();
+
+        $this->assertSame(2, preg_match_all('/<input type="password"[^>]*value=""/', $html));
+    }
+
+    #[Test]
+    public function reset_password_shows_an_invalid_link_error(): void
+    {
+        $this->withViewErrors(['email' => 'Bad link X'])
+            ->view('auth.reset-password', ['token' => 't', 'email' => 'e@example.test'])
+            ->assertSee('Bad link X')
+            ->assertSee('ds-notice--problem', false);
+    }
+
+    #[Test]
+    public function verify_page_has_code_field_and_resend(): void
+    {
+        $this->withViewErrors([])
+            ->view('auth.login-verify')
+            ->assertSee('name="code"', false)
+            ->assertSee('inputmode="numeric"', false)
+            ->assertSee('pattern="[0-9]*"', false)
+            ->assertSee('maxlength="6"', false)
+            ->assertSee('ds-input--score', false)
+            ->assertSee('action="'.route('login.verify.submit').'"', false)
+            ->assertSee('action="'.route('login.verify.resend').'"', false)
+            ->assertSee('ds-btn--text', false);
+    }
 }
