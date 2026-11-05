@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Pyramid: members without admin rights get a 403 (not the admin shell) on unknown admin ids, the not-found page links to the calendar when no ladder exists, the admin phone bar respects the iPhone safe area and the public view stays reachable on phones.
 - Members pages now use the shared admin shell: Mitglieder and Mitglieder-Einstellungen entries in the admin sidebar, module sub-pages as tabs; the separate members sidebar is gone.
 - Pyramid admin on phones: compact participant rows with one pause/activate action (name opens the edit area), back arrow with pyramid eyebrow in the admin bar and a fixed "Teilnehmer anlegen" bar; desktop keeps the table.
 - Pyramid: challenge, player profile and challenge confirmation get the phone top bar of the mockups (back arrow and title in place of the site header on phones); desktop unchanged.

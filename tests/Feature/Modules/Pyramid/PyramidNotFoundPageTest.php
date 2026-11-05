@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Tests\Feature\Modules\Pyramid;
 
 use App\Models\User;
+use App\Modules\Pyramid\Models\PyramidGrant;
 use App\Modules\Pyramid\Models\PyramidLadder;
 use App\Modules\Pyramid\Support\PyramidNotFound;
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -80,6 +82,50 @@ class PyramidNotFoundPageTest extends TestCase
             ->assertSee('Diese Pyramide gibt es nicht.')
             ->assertSee('ds-admin-main', false)
             ->assertSee('href="'.route('pyramide.admin.index').'"', false);
+    }
+
+    #[Test]
+    public function missing_players_and_challenges_without_any_ladder_never_link_to_a_second_404(): void
+    {
+        foreach (['/pyramide/spieler/9999', '/pyramide/forderung/9999'] as $url) {
+            $this->get($url)
+                ->assertNotFound()
+                ->assertSee('href="'.route('calendar.index').'"', false)
+                ->assertDontSee('Zur Pyramide');
+        }
+    }
+
+    #[Test]
+    public function members_who_administer_nothing_get_a_403_on_unknown_admin_ids_never_the_admin_shell(): void
+    {
+        $this->withoutMiddleware(VerifyCsrfToken::class);
+        $member = User::factory()->create();
+
+        $requests = [
+            ['GET', '/pyramide/admin/ladder/9999'],
+            ['POST', '/pyramide/admin/ladder/9999/seed'],
+            ['POST', '/pyramide/admin/player/9999/status'],
+            ['POST', '/pyramide/admin/challenge/9999/override'],
+        ];
+
+        foreach ($requests as [$method, $uri]) {
+            $this->actingAs($member)->call($method, $uri)
+                ->assertForbidden()
+                ->assertDontSee('ds-admin-main', false);
+        }
+    }
+
+    #[Test]
+    public function a_grant_holder_still_gets_the_admin_404_for_unknown_ids(): void
+    {
+        $ladder = PyramidLadder::factory()->withRanking(2)->create();
+        $holder = User::factory()->create();
+        PyramidGrant::query()->create(['ladder_id' => $ladder->id, 'uid' => $holder->uid, 'role' => 'admin', 'created' => '2027-01-01 00:00:00']);
+
+        $this->actingAs($holder)->get('/pyramide/admin/ladder/9999')
+            ->assertNotFound()
+            ->assertSee('ds-admin-main', false)
+            ->assertSee('Diese Pyramide gibt es nicht.');
     }
 
     #[Test]

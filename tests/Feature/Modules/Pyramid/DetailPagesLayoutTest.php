@@ -36,8 +36,8 @@ class DetailPagesLayoutTest extends TestCase
     {
         $ladder = $this->ladder();
         $viewer = User::factory()->create();
-        $this->playerAt($ladder, 9)->update(['uid' => $viewer->uid, 'label' => 'Heinz Mayer']);
-        $this->playerAt($ladder, 6)->update(['label' => 'Lukas Hofer']);
+        $this->playerAt($ladder, 9)->update(['uid' => $viewer->uid, 'label' => 'Anna Beispiel']);
+        $this->playerAt($ladder, 6)->update(['label' => 'Berta Muster']);
 
         $challenge = PyramidChallenge::factory()->create([
             'ladder_id' => $ladder->id,
@@ -61,7 +61,7 @@ class DetailPagesLayoutTest extends TestCase
         $this->actingAs($viewer)
             ->get('/pyramide/forderung/'.$challenge->id)
             ->assertOk()
-            ->assertSee('Heinz Mayer fordert Lukas Hofer')
+            ->assertSee('Anna Beispiel fordert Berta Muster')
             ->assertSee('So, 7. Mär 10:00')
             ->assertSee('Frist 18.03.2027')
             ->assertSee('href="'.url('/pyramide/'.$ladder->id).'"', false)
@@ -112,8 +112,8 @@ class DetailPagesLayoutTest extends TestCase
 
         $html = $this->actingAs($viewer)->get('/pyramide/forderung/'.$challenge->id)->assertOk()->getContent();
 
-        $this->assertStringContainsString('title="Heinz Mayer">H. Mayer</span>', $html);
-        $this->assertStringContainsString('title="Lukas Hofer">L. Hofer</span>', $html);
+        $this->assertStringContainsString('title="Anna Beispiel">A. Beispiel</span>', $html);
+        $this->assertStringContainsString('title="Berta Muster">B. Muster</span>', $html);
     }
 
     #[Test]
@@ -133,12 +133,12 @@ class DetailPagesLayoutTest extends TestCase
     {
         $ladder = $this->ladder();
         $target = $this->playerAt($ladder, 5);
-        $target->update(['label' => 'Lukas Hofer']);
+        $target->update(['label' => 'Berta Muster']);
 
         $this->get('/pyramide/spieler/'.$target->id)
             ->assertOk()
             ->assertSee('Spielerprofil')
-            ->assertSee('Lukas Hofer')
+            ->assertSee('Berta Muster')
             ->assertSee('href="'.url('/pyramide/'.$ladder->id).'"', false)
             ->assertDontSee('aria-label="Pyramide"', false);
     }

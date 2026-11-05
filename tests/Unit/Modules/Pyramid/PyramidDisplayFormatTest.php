@@ -19,12 +19,12 @@ class PyramidDisplayFormatTest extends TestCase
     public static function names(): array
     {
         return [
-            'first and last name' => ['Karl Huber', 'K. Huber'],
+            'first and last name' => ['Karl Beispiel', 'K. Beispiel'],
             'several last-name words' => ['Anna van der Berg', 'A. van der Berg'],
-            'single word' => ['Huber', 'Huber'],
-            'already an initial' => ['K. Huber', 'K. Huber'],
-            'single letter first name' => ['K Huber', 'K Huber'],
-            'extra blanks' => ["  Karl   Huber \n", 'K. Huber'],
+            'single word' => ['Beispiel', 'Beispiel'],
+            'already an initial' => ['K. Beispiel', 'K. Beispiel'],
+            'single letter first name' => ['K Beispiel', 'K Beispiel'],
+            'extra blanks' => ["  Karl   Beispiel \n", 'K. Beispiel'],
             'umlaut initial' => ['Ümit Kaya', 'Ü. Kaya'],
             'empty' => ['', ''],
             'null' => [null, ''],

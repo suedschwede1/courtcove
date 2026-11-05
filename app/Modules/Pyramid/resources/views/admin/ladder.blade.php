@@ -33,6 +33,9 @@
     </div>
 </div>
 
+{{-- Phones: the head above is for screen readers only, so the public view gets its own link. --}}
+<x-ui.button variant="text" :block="false" class="self-start md:hidden" :href="PyramidLinks::ladder((int) $ladder->id)">{{ __('pyramid::admin.ladder.public_view') }}</x-ui.button>
+
 @if (count($ladders) > 1)
     <div role="group" aria-label="{{ __('pyramid::admin.ladder.ladders_label') }}" class="flex flex-wrap gap-2">
         @foreach ($ladders as $chipLadder)
@@ -81,8 +84,8 @@
 </div>
 
 {{-- Phones: the primary action sits in a fixed bar (Admin-Pyramide-Mobil); the anchor works without scripts. --}}
-<div class="h-20 md:hidden" aria-hidden="true"></div>
-<div class="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface px-4 pb-6 pt-3 md:hidden">
+<div class="ds-phone-actionbar-spacer" aria-hidden="true"></div>
+<div class="ds-phone-actionbar">
     <x-ui.button href="#pyramid-admin-add" x-data x-on:click="$nextTick(() => document.getElementById('pyramid-add-picker')?.focus({ preventScroll: true }))">{{ __('pyramid::admin.ladder.add.title') }}</x-ui.button>
 </div>
 @endsection

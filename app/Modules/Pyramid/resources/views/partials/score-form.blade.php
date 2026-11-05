@@ -1,5 +1,5 @@
 {{--
-    Score entry for a scheduled challenge: header row with both players (abbreviated like "H. Mayer"), Satz 1, Satz 2 and the
+    Score entry for a scheduled challenge: header row with both players (abbreviated like "A. Beispiel"), Satz 1, Satz 2 and the
     match tiebreak, then the sticky save bar. Side a is always the challenger.
     Needs: $challenge, $challenger, $opponent, $scoreHint (ScoreService::describe of the kept input, or null).
 --}}
