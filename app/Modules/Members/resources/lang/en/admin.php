@@ -83,7 +83,7 @@ return [
         'note' => 'Note',
         'covers' => 'Covers the following dues',
         'due_already_paid' => 'One of the selected dues has already been paid.',
-        'amount_mismatch' => 'The amount must match the sum of the selected dues (:sum €).',
+        'amount_mismatch' => 'The amount must match the sum of the selected dues (:sum).',
     ],
     'common' => [
         'all' => 'All',

@@ -2,7 +2,7 @@
 @section('members-title', __('members::admin.dashboard.title'))
 @section('members-content')
 @php
-    $money = fn ($sum) => number_format((float) $sum, 2).' €';
+    $money = fn ($sum) => \App\Modules\Members\Support\MembersFormat::money($sum);
 @endphp
 <x-members::page-header :title="__('members::admin.dashboard.title')">
     <x-slot:actions>

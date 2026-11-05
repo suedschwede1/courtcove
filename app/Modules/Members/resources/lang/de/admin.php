@@ -83,7 +83,7 @@ return [
         'note' => 'Notiz',
         'covers' => 'Deckt folgende Beiträge ab',
         'due_already_paid' => 'Einer der ausgewählten Beiträge wurde bereits bezahlt.',
-        'amount_mismatch' => 'Der Betrag muss der Summe der ausgewählten Beiträge entsprechen (:sum €).',
+        'amount_mismatch' => 'Der Betrag muss der Summe der ausgewählten Beiträge entsprechen (:sum).',
     ],
     'common' => [
         'all' => 'Alle',

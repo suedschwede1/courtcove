@@ -84,8 +84,8 @@ class DashboardTest extends TestCase
 
         $this->actingAs($this->admin())->get('/members/dashboard')
             ->assertOk()
-            ->assertSeeTextInOrder(['Beitrag 2025/26 offen', '1', '50.00 €'])
-            ->assertSeeTextInOrder(['Bezahlte Beiträge', '1', '100.00 €']);
+            ->assertSeeTextInOrder(['Beitrag 2025/26 offen', '1', '50,00 €'])
+            ->assertSeeTextInOrder(['Bezahlte Beiträge', '1', '100,00 €']);
     }
 
     #[Test]
@@ -120,8 +120,8 @@ class DashboardTest extends TestCase
 
         $this->actingAs($this->admin())->get('/members/dashboard')
             ->assertOk()
-            ->assertSeeTextInOrder(['Beitrag 2025/26 offen', '1', '50.00 €'])
-            ->assertSeeTextInOrder(['Bezahlte Beiträge', '1', '100.00 €']);
+            ->assertSeeTextInOrder(['Beitrag 2025/26 offen', '1', '50,00 €'])
+            ->assertSeeTextInOrder(['Bezahlte Beiträge', '1', '100,00 €']);
     }
 
     #[Test]

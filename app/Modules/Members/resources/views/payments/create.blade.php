@@ -33,7 +33,7 @@
                     <td><input type="checkbox" name="member_due_ids[]" value="{{ $due->id }}" aria-label="{{ __('members::admin.common.select_row', ['name' => $due->fiscalYear->name]) }}"></td>
                     <td class="ds-cell--title" data-label="{{ __('members::admin.fiscal_years.title') }}">{{ $due->fiscalYear->name }}</td>
                     <td class="text-ink-2" data-label="{{ __('members::admin.fee_categories.title') }}">{{ $due->feeCategory->name }}</td>
-                    <td class="tabular-nums" data-label="{{ __('members::admin.payments.amount') }}">{{ number_format((float) $due->amount, 2) }} €</td>
+                    <td class="tabular-nums" data-label="{{ __('members::admin.payments.amount') }}">{{ \App\Modules\Members\Support\MembersFormat::money($due->amount) }}</td>
                 </tr>
             @endforeach
         </x-ui.table>

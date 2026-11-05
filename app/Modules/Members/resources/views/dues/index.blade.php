@@ -2,6 +2,7 @@
 @section('members-title', __('members::admin.dues.title'))
 @section('members-content')
 @php
+    use App\Modules\Members\Support\MembersFormat;
     use App\Modules\Members\Support\StatusTone;
 
     $dueLabels = [
@@ -124,14 +125,14 @@
             </x-slot:head>
             @forelse($dues as $due)
                 @php
-                    $teilbetragDisplay = $due->teilbetrag !== null ? number_format((float) $due->teilbetrag, 2, ',', '.').' €' : '–';
+                    $teilbetragDisplay = MembersFormat::optionalMoney($due->teilbetrag);
                 @endphp
                 <tr>
                     <td class="mbr-check-cell"><label class="mbr-check"><input type="checkbox" name="due_ids[]" value="{{ $due->id }}" x-model="selected" aria-label="{{ __('members::admin.common.select_row', ['name' => $due->member->fullName()]) }}"></label></td>
                     <td class="ds-cell--title" data-label="{{ __('members::admin.members.name') }}">{{ $due->member->fullName() }}</td>
                     <td class="mbr-phone-hidden text-ink-2" data-label="{{ __('members::admin.fiscal_years.title') }}">{{ $due->fiscalYear->name }}</td>
                     <td class="mbr-phone-hidden text-ink-2" data-label="{{ __('members::admin.fee_categories.title') }}">{{ $due->feeCategory->name }}</td>
-                    <td class="tabular-nums" data-label="{{ __('members::admin.fee_categories.amount') }}">{{ number_format((float) $due->amount, 2) }} €</td>
+                    <td class="tabular-nums" data-label="{{ __('members::admin.fee_categories.amount') }}">{{ MembersFormat::money($due->amount) }}</td>
                     <td class="cursor-pointer"
                         data-field="status"
                         data-label="{{ __('members::admin.dues.status') }}"

@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Members: all amounts (dues list, member detail, overview totals, payment check) use one format, German "3.800,00 €" and English "€3,800.00", instead of a mix with "3,800.00 €".
 - Admin users: placeholder accounts are hidden from the list (and its total) unless the status filter picks "Platzhalter" or "Platzhalter anzeigen" is ticked; a hint with a link says when they are hidden.
 - Admin users: filter by the date of the last booking ("Letzte Buchung von/bis", inclusive) or "Ohne Buchung" (wins over the dates), combinable with status, permission and search; the list is paginated (50 per page) and the pager keeps the filter; invalid filter values are ignored with a message instead of failing.
 - Admin statistics: the page is computed with a few grouped SQL queries instead of loading every booking (about 28 s down to well under 0.1 s on a demo club with 200 members and 20,000 bookings); without a submitted search only the summary is computed; results unchanged.
