@@ -5,27 +5,55 @@ declare(strict_types=1);
 namespace App\Modules\MixedTournament\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
+use App\Modules\MixedTournament\Domain\EventService;
 use App\Modules\MixedTournament\Models\MixedEvent;
+use App\Modules\MixedTournament\Models\MixedParticipant;
 use App\Modules\MixedTournament\Models\MixedRound;
+use App\Modules\MixedTournament\Policies\MixedEventPolicy;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 /**
- * Placeholder: the actions are filled in by the UI tasks (17-22) and answer 501 until then.
+ * Player side of the Mixed tournament (old IndexController): every logged-in user reads every event.
  */
 class PlayerController extends Controller
 {
-    public function index(): never
+    /** The default event opens directly; without one the list of all events. */
+    public function index(Request $request, EventService $events): View|RedirectResponse
     {
-        abort(501);
+        $default = $events->defaultEvent();
+
+        if ($default !== null) {
+            return redirect()->route('mixed.event', ['event' => (int) $default->id]);
+        }
+
+        return view('mixed::player.index', [
+            'events' => MixedEvent::query()->withCount(['participants', 'rounds'])->orderBy('id')->get(),
+            'isGlobalAdmin' => MixedEventPolicy::isGlobalAdmin($this->user($request)),
+        ]);
     }
 
-    public function info(): never
+    /** Static help page; the avoid-pair section and the admin link only for global administrators (as in ZF2). */
+    public function info(Request $request): View
     {
-        abort(501);
+        return view('mixed::player.info', [
+            'isGlobalAdmin' => MixedEventPolicy::isGlobalAdmin($this->user($request)),
+        ]);
     }
 
-    public function event(MixedEvent $event): never
+    public function event(Request $request, MixedEvent $event): View
     {
-        abort(501);
+        $user = $this->authorizeView($request, $event);
+
+        return view('mixed::player.event', [
+            'event' => $event,
+            'participants' => MixedParticipant::query()->where('event_id', $event->id)->orderBy('id')->get(),
+            'rounds' => MixedRound::query()->where('event_id', $event->id)->orderBy('id')->get(),
+            'canAdmin' => Gate::forUser($user)->allows('administer', $event),
+        ]);
     }
 
     public function round(MixedRound $round): never
@@ -41,5 +69,20 @@ class PlayerController extends Controller
     public function standings(MixedEvent $event): never
     {
         abort(501);
+    }
+
+    private function authorizeView(Request $request, MixedEvent $event): User
+    {
+        $user = $this->user($request);
+        abort_unless($user !== null && Gate::forUser($user)->allows('view', $event), 403);
+
+        return $user;
+    }
+
+    private function user(Request $request): ?User
+    {
+        $user = $request->user();
+
+        return $user instanceof User ? $user : null;
     }
 }
