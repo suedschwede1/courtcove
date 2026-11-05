@@ -37,7 +37,7 @@ class CsrfExpiredRedirect
                 return null;
             }
 
-            return redirect()->to(self::safePreviousUrl($request))->with('error', __('tournament-base::common.csrf_expired'));
+            return redirect()->to(self::safePreviousUrl($request, self::fallbackRoute($request)))->with('error', __('tournament-base::common.csrf_expired'));
         };
 
         $exceptions->render(fn (TokenMismatchException $e, Request $request) => $handler($e, $request));
@@ -45,9 +45,20 @@ class CsrfExpiredRedirect
     }
 
     /**
-     * The Referer only when it points at this host; otherwise the login page.
+     * The Referer only when it points at this host; otherwise the module's fallback route (default: the login page).
      */
-    private static function safePreviousUrl(Request $request): string
+    private static function fallbackRoute(Request $request): string
+    {
+        foreach ((array) config('tournament-base.csrf_redirect_fallbacks', []) as $pattern => $name) {
+            if ($request->routeIs((string) $pattern)) {
+                return (string) $name;
+            }
+        }
+
+        return 'login';
+    }
+
+    private static function safePreviousUrl(Request $request, string $fallback = 'login'): string
     {
         $previous = (string) $request->headers->get('referer', '');
         $host = $previous !== '' ? parse_url($previous, PHP_URL_HOST) : null;
@@ -56,6 +67,6 @@ class CsrfExpiredRedirect
             return $previous;
         }
 
-        return route('login');
+        return route($fallback);
     }
 }

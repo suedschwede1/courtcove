@@ -125,31 +125,34 @@ class MixedRoutesTest extends TestCase
     }
 
     #[Test]
-    public function expired_csrf_redirects_back_with_a_flash(): void
+    public function expired_csrf_redirects_back_with_a_flash_and_never_to_a_foreign_host(): void
     {
-        $handler = app(ExceptionHandler::class);
         $text = 'Ungültiger oder abgelaufener Formularschlüssel. Bitte Seite neu laden.';
+        $render = function (string $uri, ?string $referer) {
+            $request = Request::create($uri, 'POST', server: $referer === null ? [] : ['HTTP_REFERER' => $referer]);
+            $request->setLaravelSession($session = app('session.store'));
+            $session->start();
+            $this->app->instance('request', $request);
+            $request->setRouteResolver(fn () => str_starts_with($uri, '/mixed-tournament') ? app('router')->getRoutes()->match($request) : null);
 
-        $request = Request::create('/mixed-tournament/admin/create-event', 'POST', server: ['HTTP_REFERER' => 'http://localhost/mixed-tournament/admin']);
-        $request->setLaravelSession($session = app('session.store'));
-        $this->app->instance('request', $request);
-        app('url')->setRequest($request);
-        $session->start();
-        $response = $handler->render($request, new TokenMismatchException);
+            return [app(ExceptionHandler::class)->render($request, new TokenMismatchException), $session];
+        };
 
+        [$response, $session] = $render('/mixed-tournament/admin/create-event', 'http://localhost/mixed-tournament/admin');
         $this->assertSame(302, $response->getStatusCode());
         $this->assertSame('http://localhost/mixed-tournament/admin', $response->headers->get('Location'));
         $this->assertSame($text, $session->get('error'));
 
-        $other = Request::create('/calendar', 'POST', server: ['HTTP_REFERER' => 'http://localhost/calendar']);
-        $other->setLaravelSession($session2 = app('session.store'));
-        $this->app->instance('request', $other);
-        app('url')->setRequest($other);
-        $session2->start();
-        $session2->forget('error');
-        $handler->render($other, new TokenMismatchException);
+        foreach (['http://evil.example.test/x', null] as $referer) {
+            [$response, $session] = $render('/mixed-tournament/admin/create-event', $referer);
+            $this->assertSame(302, $response->getStatusCode());
+            $this->assertSame(route('mixed.index'), $response->headers->get('Location'));
+            $this->assertSame($text, $session->get('error'));
+        }
 
-        $this->assertNotSame($text, $session2->get('error'));
+        // Another area keeps the framework 419.
+        [$response] = $render('/calendar', 'http://localhost/calendar');
+        $this->assertNotSame(302, $response->getStatusCode());
     }
 
     #[Test]
