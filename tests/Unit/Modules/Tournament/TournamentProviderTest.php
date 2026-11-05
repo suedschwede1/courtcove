@@ -52,5 +52,11 @@ class TournamentProviderTest extends TestCase
     public function manager_is_bound_scoped(): void
     {
         $this->assertTrue(app()->bound(TournamentManager::class));
+
+        $first = app(TournamentManager::class);
+        $this->assertSame($first, app(TournamentManager::class), 'one instance within a request');
+
+        app()->forgetScopedInstances();
+        $this->assertNotSame($first, app(TournamentManager::class), 'a new request gets a new instance (and cache)');
     }
 }

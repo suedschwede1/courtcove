@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Modules\Tournament;
 
+use App\Models\User;
 use App\Modules\Tournament\Models\Tournament;
 use App\Modules\Tournament\Models\TournamentMatch;
 use App\Modules\Tournament\Models\TournamentPlayer;
@@ -222,5 +223,42 @@ class TournamentManagerTest extends TestCase
         $this->assertSame($a->tpid, $m->player($t->tid, $a->tpid)['tpid']);
         $this->assertNull($m->player($t->tid, 99999));
         $this->assertArrayNotHasKey('relations', $players[$a->tpid]);
+    }
+
+    #[Test]
+    public function player_by_uid_finds_the_participant_or_null(): void
+    {
+        $t = Tournament::factory()->create();
+        $user = User::factory()->create();
+        $mine = TournamentPlayer::factory()->forUser($user)->seeded(1)->create(['tid' => $t->tid]);
+        TournamentPlayer::factory()->seeded(2)->create(['tid' => $t->tid]);
+        $m = $this->app->make(TournamentManager::class);
+
+        $this->assertSame($mine->tpid, $m->playerByUid($t->tid, $user->uid)['tpid']);
+        $this->assertNull($m->playerByUid($t->tid, $user->uid + 1000));
+    }
+
+    #[Test]
+    public function a_tournament_without_a_format_cannot_be_read_as_one(): void
+    {
+        $t = Tournament::factory()->create(['format' => null]);
+        $m = $this->app->make(TournamentManager::class);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage(sprintf('tournament %u has no format configuration - see sql/tournament_schema_04_format.sql', $t->tid));
+        $m->format($t->tid);
+    }
+
+    #[Test]
+    public function draw_pool_needs_a_seed_range(): void
+    {
+        $format = json_decode((string) file_get_contents(base_path('tests/Fixtures/tournament/formats/reference.json')), true);
+        unset($format['phases'][0]['seed_range']);
+        $t = Tournament::factory()->withFormat($format)->create();
+        $m = $this->app->make(TournamentManager::class);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('phase "AC" has no seed_range');
+        $m->drawPool($t->tid, 'AC');
     }
 }

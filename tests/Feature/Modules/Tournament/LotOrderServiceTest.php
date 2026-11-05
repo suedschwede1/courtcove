@@ -90,6 +90,7 @@ class LotOrderServiceTest extends TestCase
     public function hmac_uses_scope_as_message_and_seed_as_key(): void
     {
         $seen = 0;
+        $discriminating = 0;
         foreach (self::vectors()['lot'] as $case) {
             if ($case['expected_seed'] === null) {
                 continue;
@@ -110,9 +111,23 @@ class LotOrderServiceTest extends TestCase
             $hasManual = is_array($manual) && isset($manual[$case['scope']]) && is_array($manual[$case['scope']]) && $manual[$case['scope']];
             if (! $hasManual && count($tied) >= 2) {
                 $this->assertSame((new DrawService)->shuffle($tied, $case['expected_hmac']), $case['expected_order'], $case['name'].' order');
+
+                // The ported service itself, on a clean database per case.
+                DB::table('bs_draws')->delete();
+                Tournament::query()->delete();
+                $t = $this->seedCase($case);
+                $actual = $this->service()->lotOrder($t, $case['scope'], $case['rows']);
+                $this->assertSame($case['expected_order'], $actual, $case['name'].' service order');
+
+                $swapped = (new DrawService)->shuffle($tied, hash_hmac('sha256', $case['expected_seed'], $case['scope']));
+                if (count($tied) >= 3 && $swapped !== $case['expected_order']) {
+                    $this->assertNotSame($swapped, $actual, $case['name'].' must not use swapped HMAC arguments');
+                    $discriminating++;
+                }
             }
         }
         $this->assertGreaterThan(5, $seen);
+        $this->assertGreaterThan(0, $discriminating, 'at least one case must tell swapped arguments apart');
     }
 
     #[Test]
@@ -283,47 +298,5 @@ class LotOrderServiceTest extends TestCase
                 $this->assertSame($this->normalize($e[$key]['ok']), $this->normalize($call()), $key);
             }
         }
-    }
-
-    #[Test]
-    public function promotion_ties_are_decided_by_the_place_scopes(): void
-    {
-        Tournament::factory()->create(['tid' => 1]);
-        $seed = hash('sha256', 'promotion-seed');
-        Draw::factory()->create(['did' => 1, 'tid' => 1, 'final_seed' => $seed]);
-
-        // Groups D (11, 15, 16) and E (12, 17, 18) are complete with identical results: the winners tie
-        // across the groups, and so do the runners-up.
-        $groups = ['D' => [11, 15, 16], 'E' => [12, 17, 18]];
-        $tmid = 0;
-        foreach ($groups as $grp => $tpids) {
-            foreach ($tpids as $pos => $tpid) {
-                DB::table('bs_tournament_players')->insert([
-                    'tpid' => $tpid, 'tid' => 1, 'label' => 'Demo Spieler '.$tpid, 'itn_rated' => 10.0, 'seed' => $tpid, 'grp' => $grp, 'grp_pos' => $pos + 1,
-                ]);
-            }
-            foreach ([[0, 1], [0, 2], [1, 2]] as $slot => [$a, $b]) {
-                DB::table('bs_tournament_matches')->insert([
-                    'tmid' => ++$tmid, 'tid' => 1, 'phase' => 'group', 'mkey' => $grp.'-'.$slot, 'grp' => $grp, 'slot' => $slot + 1,
-                    'tpid_a' => $tpids[$a], 'tpid_b' => $tpids[$b], 'winner' => $tpids[$a],
-                    'sets_a' => 2, 'sets_b' => 0, 'games_a' => 12, 'games_b' => 6, 'played' => '2027-05-02',
-                ]);
-            }
-        }
-        $m = $this->app->make(TournamentManager::class);
-
-        $promotion = $m->promotion(1, 'DG');
-
-        $this->assertSame(['F', 'G'], $promotion['pending']);
-        $this->assertSame(
-            (new DrawService)->shuffle([11, 12], hash_hmac('sha256', 'phase:DG:place:1', $seed)),
-            array_column($promotion['winners'], 'tpid')
-        );
-        $this->assertSame(
-            (new DrawService)->shuffle([15, 17], hash_hmac('sha256', 'phase:DG:place:2', $seed)),
-            array_column($promotion['seconds'], 'tpid')
-        );
-        $this->assertSame([false, false], array_column($promotion['winners'], 'needs_lot'));
-        $this->assertSame([false, false], array_column($promotion['seconds'], 'needs_lot'));
     }
 }

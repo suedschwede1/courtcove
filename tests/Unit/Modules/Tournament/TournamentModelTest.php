@@ -110,7 +110,7 @@ class TournamentModelTest extends TestCase
         $this->assertSame([4, 'B', 2], [$p->seed, $p->grp, $p->grp_pos]);
         $this->assertStringStartsWith('Demo Spieler', $p->label);
         $this->assertSame(['B-3', 2, 1, 10, 7], [$m->mkey, $m->sets_a, $m->sets_b, $m->mtba, $m->mtbb]);
-        $this->assertSame(10, $m->games_a);
+        $this->assertSame(11, $m->games_a);
         $this->assertSame($user->uid, $m->confirmed_uid);
         $this->assertSame('Demo-Meisterschaft', Tournament::factory()->make()->title);
     }

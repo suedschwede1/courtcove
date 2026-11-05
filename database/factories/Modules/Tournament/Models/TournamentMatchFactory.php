@@ -32,7 +32,8 @@ class TournamentMatchFactory extends Factory
     }
 
     /**
-     * A finished match; `$sets` is a list of [games a, games b] per set (the third entry is the match tie-break).
+     * A finished match; `$sets` is a list of [games a, games b] per set (the third entry is the match tie-break,
+     * counted as a set and as one game for its winner).
      *
      * @param  list<array{int, int}>  $sets
      */
@@ -46,6 +47,10 @@ class TournamentMatchFactory extends Factory
             if ($i < 2) {
                 $gamesA += $a;
                 $gamesB += $b;
+            } elseif ($a > $b) {
+                $gamesA++; // as ZF2's ScoreService: the match tie-break counts as one game for its winner
+            } elseif ($b > $a) {
+                $gamesB++;
             }
             if ($a > $b) {
                 $setsA++;

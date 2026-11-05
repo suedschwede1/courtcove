@@ -195,4 +195,66 @@ class StandingsServiceTest extends TestCase
         $this->assertFalse($resolved[0]['needs_lot']);
         $this->assertSame([1, 2], array_column($resolved, 'rank'));
     }
+
+    #[Test]
+    public function per_match_mode_compares_small_fractional_differences(): void
+    {
+        // 4 points in 3 matches (1.333) against 3 points in 2 matches (1.5): the difference is below 0.5
+        // but far above the 0.0001 tolerance, so the second candidate must win (seed 2 against seed 1).
+        $rows = [
+            ['tpid' => 1, 'seed' => 1, 'grp' => 'A', 'points' => 4, 'played' => 3, 'set_diff' => 0, 'game_diff' => 0],
+            ['tpid' => 2, 'seed' => 2, 'grp' => 'B', 'points' => 3, 'played' => 2, 'set_diff' => 0, 'game_diff' => 0],
+        ];
+
+        $ranked = $this->service(2, 'tied', 'per_match')->rankRunnersUp($rows);
+
+        $this->assertSame([2, 1], array_column($ranked, 'tpid'));
+        $this->assertSame([false, false], array_column($ranked, 'needs_lot'));
+
+        // the same rows in points mode: raw points decide the other way round
+        $points = $this->service(2, 'tied', 'points')->rankRunnersUp($rows);
+        $this->assertSame([1, 2], array_column($points, 'tpid'));
+
+        // differences below the tolerance count as equal and need a lot
+        $equal = [
+            ['tpid' => 1, 'seed' => 1, 'grp' => 'A', 'points' => 2, 'played' => 1, 'set_diff' => 1, 'game_diff' => 1],
+            ['tpid' => 2, 'seed' => 2, 'grp' => 'B', 'points' => 2.00001, 'played' => 1, 'set_diff' => 1, 'game_diff' => 1],
+        ];
+        $this->assertSame([true, true], array_column($this->service(2, 'tied', 'points')->rankRunnersUp($equal), 'needs_lot'));
+    }
+
+    #[Test]
+    public function per_match_mode_gives_zero_to_a_candidate_without_matches(): void
+    {
+        $rows = [
+            ['tpid' => 1, 'seed' => 1, 'grp' => 'A', 'points' => 0, 'played' => 0, 'set_diff' => 0, 'game_diff' => 0],
+            ['tpid' => 2, 'seed' => 2, 'grp' => 'B', 'points' => 2, 'played' => 1, 'set_diff' => 0, 'game_diff' => 0],
+        ];
+
+        $ranked = $this->service(2, 'tied', 'per_match')->rankRunnersUp($rows);
+
+        $this->assertSame([2, 1], array_column($ranked, 'tpid'));
+    }
+
+    #[Test]
+    public function unknown_scope_and_mode_fall_back_to_the_defaults(): void
+    {
+        $svc = (new StandingsService)->setTiebreakScope('bogus')->setRunnerUpMode('bogus');
+        $rows = [['tpid' => 1, 'seed' => 1, 'points' => 2, 'played' => 1, 'set_diff' => 0, 'game_diff' => 0]];
+
+        // drop_last needs the group standings of every candidate group
+        $this->expectException(InvalidArgumentException::class);
+        $svc->rankRunnersUp($rows);
+    }
+
+    #[Test]
+    public function drop_last_keeps_an_explicit_points_adjust(): void
+    {
+        [, $tables, $matches] = $this->runnerUpFixture();
+        $seconds = [['tpid' => 6, 'grp' => 'F', 'seed' => 6, 'points' => 4, 'wins' => 2, 'losses' => 1, 'played' => 3, 'set_diff' => 1, 'game_diff' => 5, 'points_adjust' => 1]];
+
+        $ranked = $this->service()->rankRunnersUp($seconds, $tables, $matches);
+
+        $this->assertSame(1, $ranked[0]['points'], '1 win x 2 points - adjust 1');
+    }
 }

@@ -55,7 +55,7 @@ class TournamentManager
      * Lot decision for a scope: a manual entry wins, otherwise derived from the published draw seed.
      *
      * @param  array<int, array<string, mixed>>  $rows  ranking rows that may carry needs_lot
-     * @return list<int>
+     * @return array<int, int|string> the manual entry as stored, or the derived order
      */
     public function lotOrder(int $tid, string $scope, array $rows = []): array
     {
