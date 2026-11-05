@@ -328,6 +328,246 @@
     }
 }
 
+/* Members list: filters, table card, phone cards, floating "new member". */
+@layer components {
+    .mbr-filter-card {
+        padding: 16px 20px;
+    }
+
+    .mbr-filters {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: 12px;
+    }
+
+    .mbr-filters__search {
+        flex: 3 1 260px;
+    }
+
+    .mbr-filters__field {
+        flex: 1 1 160px;
+    }
+
+    .mbr-chips {
+        gap: 6px;
+        overflow-x: auto;
+        padding-bottom: 2px;
+    }
+
+    .mbr-phone-only {
+        display: none;
+    }
+
+    .mbr-table-card {
+        overflow: hidden;
+    }
+
+    .mbr-table-foot {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        padding: 14px 20px;
+        border-top: 1px solid var(--color-line);
+    }
+
+    .mbr-name {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+    }
+
+    .mbr-initials {
+        display: inline-flex;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: var(--color-sand);
+        color: var(--color-ink-2);
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .mbr-saved {
+        outline: 2px solid var(--color-court);
+        outline-offset: 2px;
+    }
+
+    .mbr-table-card .ds-table .mbr-cell-actions {
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    @media (width >= 48rem) {
+        /* The status select stays in the row; the other two sit inline instead of in a disclosure. */
+        .mbr-filters__more {
+            flex: 2 1 332px;
+            border: 0;
+            border-radius: 0;
+            background: transparent;
+        }
+
+        .mbr-filters__more > .ds-disclosure__summary {
+            display: none;
+        }
+
+        .mbr-filters__more > .ds-disclosure__body {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 0;
+        }
+
+        .mbr-table-card .ds-table th[scope='col'] {
+            padding: 12px;
+        }
+
+        .mbr-table-card .ds-table td {
+            padding: 10px 12px;
+        }
+
+        .mbr-table-card .ds-table :is(th, td):first-child {
+            padding-left: 20px;
+        }
+
+        .mbr-table-card .ds-table :is(th, td):last-child {
+            padding-right: 20px;
+        }
+
+        /* Row action button (mockup: 38px, 14px). */
+        .mbr-table-card .ds-table .ds-btn {
+            min-height: 38px;
+            padding: 0 14px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+    }
+
+    @media (width < 48rem) {
+        .mbr-phone-hidden,
+        .ds-table--stack .mbr-phone-hidden {
+            display: none;
+        }
+
+        .mbr-chips {
+            display: flex;
+            flex: 1 1 100%;
+        }
+
+        .mbr-filter-card {
+            padding: 0;
+            border: 0;
+            border-radius: 0;
+            background: transparent;
+        }
+
+        .mbr-filters {
+            gap: 8px;
+        }
+
+        .mbr-filters__search,
+        .mbr-filters__more,
+        .mbr-filters__submit {
+            flex: 1 1 100%;
+        }
+
+        .mbr-filters__search .ds-input {
+            min-height: 50px;
+            border-radius: var(--radius-lg);
+            font-size: 17px;
+        }
+
+        .mbr-filters__more > .ds-disclosure__body {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .mbr-chips .ds-chip {
+            flex-shrink: 0;
+            min-height: 40px;
+            font-size: 14px;
+        }
+
+        /* Each row becomes a card. */
+        .mbr-table-card {
+            overflow: visible;
+            border: 0;
+            border-radius: 0;
+            background: transparent;
+        }
+
+        .mbr-table-card .ds-table,
+        .mbr-table-card .ds-table tbody {
+            display: block;
+        }
+
+        .mbr-table-card .ds-table tbody {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .mbr-table-card .ds-table tbody tr {
+            gap: 10px;
+            padding: 10px 12px;
+            border: 1px solid var(--color-line);
+            border-radius: var(--radius-lg);
+            background: var(--color-surface);
+        }
+
+        .mbr-table-card .ds-table td {
+            align-items: center;
+            font-size: 13px;
+        }
+
+        .mbr-table-card .ds-table .ds-cell--title {
+            justify-content: flex-start;
+            font-size: 16px;
+        }
+
+        .mbr-table-card .ds-table .mbr-cell-actions {
+            text-align: left;
+        }
+
+        .mbr-table-card .mbr-initials {
+            width: 40px;
+            height: 40px;
+            font-size: 14px;
+        }
+
+        .mbr-table-card .ds-badge {
+            padding: 3px 8px;
+            font-size: 12px;
+        }
+
+        .mbr-table-foot {
+            justify-content: center;
+            padding: 8px 0 0;
+            border-top: 0;
+        }
+
+        .mbr-fab {
+            position: fixed;
+            right: 16px;
+            bottom: 24px;
+            z-index: 40;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--color-clay);
+            box-shadow: 0 6px 18px rgb(0 0 0 / 0.25); /* mockup value (no shadow token) */
+        }
+    }
+}
+
 /*
  * Link colours stay unlayered on purpose: public/css/booking.css colours every
  * <a> without a ds- class (unlayered), which beats any @layer rule regardless
@@ -344,5 +584,17 @@
 }
 
 .mbr-sidebar__link[aria-current="page"] {
+    color: var(--color-on-clay);
+}
+
+.mbr-row-link {
+    color: var(--color-ink-2);
+}
+
+.mbr-row-link:hover {
+    text-decoration: underline;
+}
+
+.mbr-fab {
     color: var(--color-on-clay);
 }

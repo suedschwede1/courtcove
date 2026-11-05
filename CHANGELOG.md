@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-05
 
+- Members list uses the new table, badges and filters; on phones each member becomes a card with status, payment and category still editable in place.
 - Members area gets the dark admin sidebar with grouped links, a phone menu behind one button and the new page header.
 - Members module: inline saves read the CSRF token from the page head and show a translated error message.
 - Legacy element rules use zero-specificity guards so existing buttons, links and inputs keep their original cascade.

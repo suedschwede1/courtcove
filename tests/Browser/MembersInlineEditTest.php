@@ -57,7 +57,7 @@ final class MembersInlineEditTest extends DuskTestCase
                     ->clear('td[data-field="email"] input')
                     ->type('td[data-field="email"] input', 'kein-mail')
                     ->keys('td[data-field="email"] input', '{enter}')
-                    ->waitFor('td[data-field="email"] p.ui-error', 5)
+                    ->waitFor('td[data-field="email"] p.ds-field__error', 5)
                     ->assertVisible('td[data-field="email"] input');
             });
 

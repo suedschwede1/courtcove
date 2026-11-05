@@ -21,6 +21,7 @@ class MembersViewsLintTest extends TestCase
         'components/sidebar.blade.php',
         'components/page-header.blade.php',
         'partials/inline-save.blade.php',
+        'members/index.blade.php',
     ];
 
     private const VIEWS_PREFIX = 'Modules/Members/resources/views/';
