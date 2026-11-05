@@ -441,6 +441,7 @@ return [
         'squares' => [
             'section_general' => 'General',
             'section_booking' => 'Booking',
+            'section_range' => 'Booking range',
             'section_times' => 'Times',
             'section_display' => 'Display',
             'title' => 'Courts',

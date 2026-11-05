@@ -441,6 +441,7 @@ return [
         'squares' => [
             'section_general' => 'Allgemein',
             'section_booking' => 'Buchung',
+            'section_range' => 'Buchungszeitraum',
             'section_times' => 'Zeiten',
             'section_display' => 'Anzeige',
             'title' => 'Plätze',

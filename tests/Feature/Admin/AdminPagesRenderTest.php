@@ -103,6 +103,24 @@ final class AdminPagesRenderTest extends TestCase
 
                 return route('admin.squares.index');
             }],
+            'events_create' => [fn (): string => route('admin.events.create', ['sid' => 1, 'date_start' => '2026-07-05', 'time_start' => '10:00', 'date_end' => '2026-07-05', 'time_end' => '12:00'])],
+            'events_create_popup' => [fn (): string => route('admin.events.create', ['popup' => 1])],
+            'events_edit' => [function (): string {
+                $event = Event::factory()->create();
+
+                return route('admin.events.edit', $event);
+            }],
+            'squares_create' => [fn (): string => route('admin.squares.create')],
+            'squares_edit' => [function (): string {
+                $square = Square::factory()->create(['name' => 'Court A']);
+
+                return route('admin.squares.edit', $square);
+            }],
+            'booking_create_popup' => [function (): string {
+                $square = Square::factory()->create(['name' => 'Court A']);
+
+                return route('admin.bookings.create', ['popup' => 1, 'sid' => $square->sid, 'date' => '2026-07-13', 'time_start' => '10:00', 'time_end' => '11:00']);
+            }],
         ];
     }
 

@@ -504,6 +504,23 @@
         color: var(--color-ink-2);
     }
 
+    /* Sub-heading inside a form card (e.g. the event period), styled like the KPI label. */
+    .ds-admin-section-label {
+        margin: 0;
+        color: var(--color-ink-3);
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    /* Checkbox flag tiles (court form): one tile per row on phones, as in the phone mockup. */
+    @media (width < 48rem) {
+        .ds-admin-flags .ds-options__grid {
+            grid-template-columns: minmax(0, 1fr);
+        }
+    }
+
     .ds-admin-link {
         color: var(--color-clay);
         font-weight: 600;

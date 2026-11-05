@@ -1,118 +1,48 @@
 @csrf
-@if(!empty($popup_mode))
-    <div class="space-y-4">
-        <div class="space-y-1">
-            <label class="block text-[13px] font-medium text-[#151515]" for="ef-name">{{ __('booking.admin.events.name') }}</label>
-            <input id="ef-name" type="text" name="name" value="{{ old('name', $name ?? '') }}" required placeholder="{{ __('booking.admin.events.name_placeholder') }}" class="w-full h-9 rounded-[6px] border border-[#c7c7c7] bg-white px-3 text-sm text-[#151515] outline-none placeholder:text-[#b8b8b8] focus:border-[#151515]">
-        </div>
+@php
+    $courtOptions = ['' => __('booking.admin.events.all_courts')];
+    foreach ($squares as $s) {
+        $courtOptions[$s->sid] = $s->display_name;
+    }
+@endphp
+<x-ui.field :label="__('booking.admin.events.name')" for="ef-name">
+    <x-ui.input id="ef-name" name="name" :value="old('name', $name ?? '')" required :placeholder="!empty($popup_mode) ? __('booking.admin.events.name_placeholder') : null" />
+</x-ui.field>
 
-        <div class="space-y-1">
-            <label class="block text-[13px] font-medium text-[#151515]" for="ef-description">{{ __('booking.admin.events.description') }}</label>
-            <textarea id="ef-description" name="description" rows="4" class="w-full rounded-[6px] border border-[#c7c7c7] bg-white px-3 py-2 text-sm text-[#151515] outline-none focus:border-[#151515]">{{ old('description', $description ?? '') }}</textarea>
-        </div>
+<x-ui.field :label="__('booking.admin.events.description')" for="ef-description">
+    <x-ui.textarea id="ef-description" name="description" rows="4" :value="old('description', $description ?? '')" />
+</x-ui.field>
 
-        <div>
-            <div class="grid grid-cols-4 gap-3">
-                <div class="space-y-1">
-                    <label class="block text-[13px] font-medium text-[#151515]">{{ __('booking.admin.events.date_start') }}</label>
-                    <input type="date" name="date_start" value="{{ old('date_start', $date_start ?? '') }}" class="w-full h-9 rounded-[6px] border border-[#c7c7c7] bg-white px-3 text-sm text-[#151515] outline-none focus:border-[#151515]">
-                </div>
-                <div class="space-y-1">
-                    <label class="block text-[13px] font-medium text-[#151515]">{{ __('booking.admin.events.time_start') }}</label>
-                    <input type="time" name="time_start" value="{{ old('time_start', $time_start ?? '') }}" class="w-full h-9 rounded-[6px] border border-[#c7c7c7] bg-white px-3 text-sm text-[#151515] outline-none focus:border-[#151515]">
-                </div>
-                <div class="space-y-1">
-                    <label class="block text-[13px] font-medium text-[#151515]">{{ __('booking.admin.events.date_end') }}</label>
-                    <input type="date" name="date_end" value="{{ old('date_end', $date_end ?? '') }}" class="w-full h-9 rounded-[6px] border border-[#c7c7c7] bg-white px-3 text-sm text-[#151515] outline-none focus:border-[#151515]">
-                </div>
-                <div class="space-y-1">
-                    <label class="block text-[13px] font-medium text-[#151515]">{{ __('booking.admin.events.time_end') }}</label>
-                    <input type="time" name="time_end" value="{{ old('time_end', $time_end ?? '') }}" class="w-full h-9 rounded-[6px] border border-[#c7c7c7] bg-white px-3 text-sm text-[#151515] outline-none focus:border-[#151515]">
-                </div>
-            </div>
+<div class="ds-admin-form-grid ds-admin-form-grid--2">
+    <x-ui.field :label="__('booking.admin.events.court')" for="ef-sid">
+        <x-ui.select id="ef-sid" name="sid" :options="$courtOptions" :selected="(string) old('sid', $event->sid ?? '')" />
+    </x-ui.field>
+    <x-ui.field :label="__('booking.admin.events.capacity')" for="ef-capacity" :help="!empty($popup_mode) ? __('booking.admin.events.capacity_zero_hint') : __('booking.admin.events.capacity_hint')">
+        <x-ui.input id="ef-capacity" name="capacity" type="number" :value="old('capacity', $event->capacity ?? 0)" min="0" />
+    </x-ui.field>
+</div>
 
-            <div class="mt-3 grid grid-cols-2 gap-3">
-                <div class="space-y-1">
-                    <label class="block text-[13px] font-medium text-[#151515]">{{ __('booking.admin.events.court') }}</label>
-                    <select name="sid" class="w-full h-9 rounded-[6px] border border-[#c7c7c7] bg-white px-3 text-sm text-[#151515] outline-none focus:border-[#151515]">
-                        <option value="">{{ __('booking.admin.events.all_courts') }}</option>
-                        @foreach($squares as $s)
-                            <option value="{{ $s->sid }}" @selected((string) old('sid', $event->sid ?? '') === (string) $s->sid)>{{ $s->display_name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="space-y-1">
-                    <label class="block text-[13px] font-medium text-[#151515]">{{ __('booking.admin.events.capacity') }}</label>
-                    <input type="number" name="capacity" value="{{ old('capacity', $event->capacity ?? 0) }}" min="0" class="w-full h-9 rounded-[6px] border border-[#c7c7c7] bg-white px-3 text-sm text-[#151515] outline-none focus:border-[#151515]">
-                    <p class="text-xs text-[#6a6e73]">{{ __('booking.admin.events.capacity_zero_hint') }}</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="space-y-1">
-            <label class="block text-[13px] font-medium text-[#151515]" for="ef-notes">{{ __('booking.admin.events.notes') }}</label>
-            <textarea id="ef-notes" name="notes" rows="4" class="w-full rounded-[6px] border border-[#c7c7c7] bg-white px-3 py-2 text-sm text-[#151515] outline-none focus:border-[#151515]">{{ old('notes', $notes ?? '') }}</textarea>
-            <p class="text-xs text-[#6a6e73]">{{ __('booking.admin.events.notes_hint') }}</p>
-        </div>
+<p class="ds-admin-section-label">{{ __('booking.admin.events.period') }}</p>
+{{-- DESIGN.md "Date and time fields": date start, time start, date end, time end in two columns. --}}
+<div class="ds-admin-form-grid ds-admin-form-grid--2">
+    <div class="ds-admin-form-grid__pair">
+        <x-ui.field :label="__('booking.admin.events.date_start')" for="ef-date-start">
+            <x-ui.input id="ef-date-start" name="date_start" type="date" :value="old('date_start', $date_start ?? '')" />
+        </x-ui.field>
+        <x-ui.field :label="__('booking.admin.events.time_start')" for="ef-time-start">
+            <x-ui.input id="ef-time-start" name="time_start" type="time" :value="old('time_start', $time_start ?? '')" />
+        </x-ui.field>
     </div>
-@else
-<div class="ui-form-shell">
-    <div class="ui-field">
-        <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="ef-name">{{ __('booking.admin.events.name') }}</label>
-        <input id="ef-name" type="text" name="name" value="{{ old('name', $name ?? '') }}" required class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-    </div>
-
-    <div class="ui-field">
-        <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="ef-description">{{ __('booking.admin.events.description') }}</label>
-        <textarea id="ef-description" name="description" rows="4" class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">{{ old('description', $description ?? '') }}</textarea>
-    </div>
-
-    <div class="ui-form-divider">
-        <p class="ui-section-label !mb-0">{{ __('booking.admin.events.period') }}</p>
-        <div class="ui-grid-4">
-        <div class="ui-field">
-            <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">{{ __('booking.admin.events.date_start') }}</label>
-            <input type="date" name="date_start" value="{{ old('date_start', $date_start ?? '') }}" class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-        </div>
-        <div class="ui-field">
-            <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">{{ __('booking.admin.events.time_start') }}</label>
-            <input type="time" name="time_start" value="{{ old('time_start', $time_start ?? '') }}" class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-        </div>
-        <div class="ui-field">
-            <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">{{ __('booking.admin.events.date_end') }}</label>
-            <input type="date" name="date_end" value="{{ old('date_end', $date_end ?? '') }}" class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-        </div>
-        <div class="ui-field">
-            <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">{{ __('booking.admin.events.time_end') }}</label>
-            <input type="time" name="time_end" value="{{ old('time_end', $time_end ?? '') }}" class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-        </div>
-        </div>
-    </div>
-
-    <div class="ui-grid-2">
-        <div class="ui-field">
-            <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">{{ __('booking.admin.events.court') }}</label>
-            <select name="sid" class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                <option value="">{{ __('booking.admin.events.all_courts') }}</option>
-                @foreach($squares as $s)
-                    <option value="{{ $s->sid }}" @selected((string) old('sid', $event->sid ?? '') === (string) $s->sid)>{{ $s->display_name }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div class="ui-field">
-            <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">{{ __('booking.admin.events.capacity') }}</label>
-            <input type="number" name="capacity" value="{{ old('capacity', $event->capacity ?? 0) }}" min="0" class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-            <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.events.capacity_hint') }}</p>
-        </div>
-    </div>
-
-    <div class="ui-form-divider">
-        <p class="ui-section-label !mb-0">{{ __('booking.admin.events.notes_section') }}</p>
-        <div class="ui-field">
-        <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="ef-notes">{{ __('booking.admin.events.notes') }}</label>
-        <textarea id="ef-notes" name="notes" rows="2" class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">{{ old('notes', $notes ?? '') }}</textarea>
-        <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.events.notes_hint') }}</p>
-        </div>
+    <div class="ds-admin-form-grid__pair">
+        <x-ui.field :label="__('booking.admin.events.date_end')" for="ef-date-end">
+            <x-ui.input id="ef-date-end" name="date_end" type="date" :value="old('date_end', $date_end ?? '')" />
+        </x-ui.field>
+        <x-ui.field :label="__('booking.admin.events.time_end')" for="ef-time-end">
+            <x-ui.input id="ef-time-end" name="time_end" type="time" :value="old('time_end', $time_end ?? '')" />
+        </x-ui.field>
     </div>
 </div>
-@endif
+
+<x-ui.field :label="__('booking.admin.events.notes')" for="ef-notes" :help="__('booking.admin.events.notes_hint')">
+    <x-ui.textarea id="ef-notes" name="notes" :rows="!empty($popup_mode) ? 4 : 2" :value="old('notes', $notes ?? '')" />
+</x-ui.field>
