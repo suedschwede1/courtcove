@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-05
 
+- Phase 2: Pyramid mails (challenge, date, result, decline, withdrawal, deadline, forfeit, expiry, correction, admission, entry release) sent from Laravel.
 - Phase 2: Pyramid administration (seeding, waiting list, moves, normalising, deadlines, forfeits, corrections) ported unchanged.
 - Phase 2: Pyramid results and forfeits move the ladder exactly as before.
 - Phase 2: Pyramid challenge rules (positions, open-challenge lock, winner protection, loser cooldown, entry) ported unchanged.
