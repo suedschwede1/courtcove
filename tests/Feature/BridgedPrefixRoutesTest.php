@@ -13,10 +13,10 @@ class BridgedPrefixRoutesTest extends TestCase
 {
     /**
      * Prefixes whose Laravel routes already exist but which .htaccess still hands to the ZF2 bridge
-     * (the switch happens in the module's decommission task). Their routes are not carved out yet,
+     * (the switch happens in the module's go-live task). Their routes are not carved out yet,
      * so the check below must see the bridge answer them; remove a prefix here when it goes live.
      */
-    private const NOT_YET_LIVE = ['pyramide'];
+    private const NOT_YET_LIVE = [];
 
     #[Test]
     public function every_laravel_route_under_a_bridged_prefix_is_carved_out(): void
@@ -47,7 +47,8 @@ class BridgedPrefixRoutesTest extends TestCase
 
         $this->assertContains('draw/record/{slug}', $checked);
         $this->assertContains('draw/record/{slug}/json', $checked);
-        $this->assertContains('pyramide', $pending);
-        $this->assertContains('pyramide/{ladderId}', $pending);
+        $this->assertContains('pyramide', $checked);
+        $this->assertContains('pyramide/{ladderId}', $checked);
+        $this->assertSame([], $pending);
     }
 }

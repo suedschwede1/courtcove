@@ -45,7 +45,7 @@ class PublicHtaccessTest extends TestCase
         $contents = file_get_contents(dirname(__DIR__, 2).'/public/.htaccess');
 
         $this->assertSame(
-            ['^(tournament|mixed-tournament|pyramide|draw|service)(/|$)', '^user/(login|logout|password(-reset)?)(/|$)'],
+            ['^(tournament|mixed-tournament|draw|service)(/|$)', '^user/(login|logout|password(-reset)?)(/|$)'],
             $this->bridgePatterns($contents),
         );
     }
@@ -60,7 +60,7 @@ class PublicHtaccessTest extends TestCase
         ) !== [];
 
         foreach ([
-            'tournament', 'tournament/standings', 'mixed-tournament', 'mixed-tournament/groups', 'pyramide', 'draw/1',
+            'tournament', 'tournament/standings', 'mixed-tournament', 'mixed-tournament/groups', 'draw/1',
             'service/help', 'service/info', 'user/login', 'user/logout', 'user/password', 'user/password-reset',
             'user/login/',
         ] as $path) {
@@ -70,7 +70,7 @@ class PublicHtaccessTest extends TestCase
         foreach ([
             'calendar', 'square', 'square/booking', 'backend', 'backend/user', 'bookings', 'bookings/create', 'my-bookings',
             'admin', 'login', 'register', 'user/bookings', 'user/settings', 'user/registration', 'user/activation/abc',
-            'tournaments', 'drawing', 'services', 'user/loginx', 'user/password-resetx', 'zf2-bridge.php', '',
+            'pyramide', 'pyramide/5', 'pyramide/admin', 'tournaments', 'drawing', 'services', 'user/loginx', 'user/password-resetx', 'zf2-bridge.php', '',
         ] as $path) {
             $this->assertFalse($matches($path), "$path must stay with Laravel");
         }
@@ -99,7 +99,7 @@ class PublicHtaccessTest extends TestCase
 
         $this->assertSame(1, preg_match('#^\s*RewriteRule\s+(\S+)\s+%1\s+\[L,R=301\]\s*$#m', $contents, $m));
         $this->assertLessThan(
-            strpos($contents, 'RewriteRule ^(tournament|mixed-tournament|pyramide|draw|service)(/|$) zf2-bridge.php'),
+            strpos($contents, 'RewriteRule ^(tournament|mixed-tournament|draw|service)(/|$) zf2-bridge.php'),
             strpos($contents, $m[0]),
         );
         $this->assertStringContainsString('RewriteCond %{REQUEST_URI} (.+)/$
@@ -107,11 +107,11 @@ class PublicHtaccessTest extends TestCase
 
         $matches = static fn (string $path): bool => preg_match('#'.str_replace('#', '\#', $m[1]).'#', $path) === 1;
 
-        foreach (['tournament/', 'mixed-tournament/', 'pyramide/', 'draw/1/', 'service/help/', 'user/login/', 'user/password-reset/'] as $path) {
+        foreach (['tournament/', 'mixed-tournament/', 'draw/1/', 'service/help/', 'user/login/', 'user/password-reset/'] as $path) {
             $this->assertTrue($matches($path), "$path/ must be redirected to the slashless URL");
         }
 
-        foreach (['tournament', 'calendar/', 'login/', 'bookings/', 'user/bookings/', 'square/', 'admin/', 'tournaments/', 'user/loginx/'] as $path) {
+        foreach (['tournament', 'pyramide/', 'calendar/', 'login/', 'bookings/', 'user/bookings/', 'square/', 'admin/', 'tournaments/', 'user/loginx/'] as $path) {
             $this->assertFalse($matches($path), "$path must not be touched");
         }
     }
@@ -153,6 +153,34 @@ class PublicHtaccessTest extends TestCase
         foreach (['calendar', 'members/dashboard', 'drawing'] as $p) {
             $this->assertSame('laravel', $r->route($p), $p);
         }
+    }
+
+    public function test_pyramid_is_served_by_laravel(): void
+    {
+        $r = HtaccessRouter::fromFile(dirname(__DIR__, 2).'/public/.htaccess');
+
+        foreach (['pyramide', 'pyramide/5', 'pyramide/regeln', 'pyramide/forderung/7/ergebnis', 'pyramide/admin/ladder/3/mitglieder'] as $p) {
+            $this->assertSame('laravel', $r->route($p), $p);
+        }
+
+        foreach (['pyramide/', 'pyramide/admin/'] as $p) {
+            $this->assertSame('redirect', $r->route($p), $p);
+        }
+
+        foreach (['tournament', 'mixed-tournament/groups', 'draw', 'draw/tokens/1', 'service/help', 'user/login'] as $p) {
+            $this->assertSame('zf2', $r->route($p), $p);
+        }
+
+        $this->assertSame('laravel', $r->route('draw/record/x/json'));
+    }
+
+    public function test_router_models_the_generic_trailing_slash_rule(): void
+    {
+        $r = HtaccessRouter::fromFile(dirname(__DIR__, 2).'/public/.htaccess');
+
+        $this->assertSame('laravel', $r->route('calendar'));
+        $this->assertSame('redirect', $r->route('calendar/'));
+        $this->assertSame('laravel', $r->route(''));
     }
 
     public function test_carve_outs_sit_between_the_slash_redirect_and_the_bridge(): void

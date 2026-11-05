@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Phase 2 go-live (module 2): the challenge ladder /pyramide is served by Laravel with the Laravel login; rollback = re-add the prefix to the bridge rule.
 - Fix: links styled with Tailwind utilities (Pyramid ranking, rules menu) no longer turn clay because of the legacy link rule; it now sits in a cascade layer below the utilities.
 - Phase 2: Pyramid overdue decisions, result corrections, settings, season close and grants in Laravel.
 - Fix: Pyramid admin rejects granting rights to a non-existent member, a blank ladder title and over-long correction score/note, and closing a season twice no longer logs a second event.
