@@ -1,131 +1,83 @@
 @extends('layouts.admin')
 @section('admin-title', __('booking.admin.behavior'))
 @section('admin-content')
-<div class="flex flex-col gap-6">
+@php
+    // Choice groups keep the names and values of the former selects; an unknown or empty stored
+    // value falls back to the first choice, as the browser did for the select.
+    $choices = [
+        'registration' => ['label' => __('booking.admin.registration'), 'help' => null, 'options' => ['0' => __('booking.admin.no'), '1' => __('booking.admin.yes')]],
+        'activation' => ['label' => __('booking.admin.activation'), 'help' => __('booking.admin.activation_hint'), 'options' => [
+            'immediate' => __('booking.admin.activation_immediate'),
+            'manual' => __('booking.admin.activation_manual'),
+            'manual-email' => __('booking.admin.activation_manual_email'),
+            'email' => __('booking.admin.activation_email'),
+        ]],
+        'maintenance' => ['label' => __('booking.admin.maintenance'), 'help' => null, 'options' => ['0' => __('booking.admin.off'), '1' => __('booking.admin.on')]],
+        'quotes_enabled' => ['label' => __('booking.admin.quotes_enabled'), 'help' => __('booking.admin.quotes_enabled_hint'), 'options' => ['0' => __('booking.admin.off'), '1' => __('booking.admin.on')]],
+    ];
+    foreach ($choices as $name => $choice) {
+        $stored = (string) ($values[$name] ?? '');
+        $choices[$name]['current'] = array_key_exists($stored, $choice['options']) ? $stored : (string) array_key_first($choice['options']);
+    }
+@endphp
+<div class="ds-admin-stack ds-admin-form-page">
+    <x-admin.page-header :title="__('booking.admin.behavior')" :eyebrow="__('booking.admin.nav.eyebrow')" />
 
-    <h1 class="text-2xl font-bold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.admin.behavior') }}</h1>
-
-    <form method="POST" action="{{ route('admin.config.behavior.update') }}">
+    <form method="POST" action="{{ route('admin.config.behavior.update') }}" class="ds-admin-stack">
         @method('PUT')
         @csrf
 
-        {{-- Operation --}}
-        <div class="bg-white rounded-xl border border-[#e0ddd7] shadow-sm overflow-hidden mb-6">
-            <div class="px-6 py-4 border-b border-[#f0ede6]">
-                <h2 class="text-base font-semibold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.admin.cfg.section_operation') }}</h2>
+        <x-ui.card :title="__('booking.admin.cfg.section_operation')" padding="lg" class="ds-admin-form-card">
+            <div class="ds-admin-form-grid ds-admin-form-grid--2">
+                @foreach($choices as $name => $choice)
+                    <div class="ds-admin-choice">
+                        <x-ui.option-group :legend="$choice['label']" :columns="2" :class="$name === 'activation' ? 'ds-admin-flags' : ''" :aria-describedby="$choice['help'] !== null ? 'cf-'.$name.'-help' : null">
+                            @foreach($choice['options'] as $value => $label)
+                                <x-ui.option-tile :name="$name" :value="$value" :label="$label" :checked="(string) $value === $choice['current']" />
+                            @endforeach
+                        </x-ui.option-group>
+                        @if($choice['help'] !== null)
+                            <p class="ds-field__help" id="cf-{{ $name }}-help">{{ $choice['help'] }}</p>
+                        @endif
+                    </div>
+                @endforeach
             </div>
-            <div class="px-6 py-5 flex flex-col gap-4">
+        </x-ui.card>
 
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-reg">{{ __('booking.admin.registration') }}</label>
-                    <select id="cf-reg" name="registration"
-                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                        <option value="0" @selected((string) $values['registration'] === '0')>{{ __('booking.admin.no') }}</option>
-                        <option value="1" @selected((string) $values['registration'] === '1')>{{ __('booking.admin.yes') }}</option>
-                    </select>
-                </div>
+        <x-ui.card :title="__('booking.admin.cfg.section_calendar')" padding="lg" class="ds-admin-form-card">
+            <x-ui.field :label="__('booking.admin.calendar_hide')" for="cf-hide" :help="__('booking.admin.calendar_hide_hint')">
+                <x-ui.textarea id="cf-hide" name="calendar_hide" rows="5" :value="old('calendar_hide', $values['calendar_hide'])" />
+            </x-ui.field>
+        </x-ui.card>
 
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-activation">{{ __('booking.admin.activation') }}</label>
-                    <select id="cf-activation" name="activation"
-                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                        <option value="immediate" @selected(($values['activation'] ?? 'immediate') === 'immediate')>{{ __('booking.admin.activation_immediate') }}</option>
-                        <option value="manual"       @selected(($values['activation'] ?? '') === 'manual')>{{ __('booking.admin.activation_manual') }}</option>
-                        <option value="manual-email" @selected(($values['activation'] ?? '') === 'manual-email')>{{ __('booking.admin.activation_manual_email') }}</option>
-                        <option value="email"        @selected(($values['activation'] ?? '') === 'email')>{{ __('booking.admin.activation_email') }}</option>
-                    </select>
-                    <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.activation_hint') }}</p>
-                </div>
+        <x-ui.card :title="__('booking.admin.peak_limit.title')" padding="lg" class="ds-admin-form-card">
+            <div class="ds-admin-choice">
+                <x-ui.option-group :columns="2" class="ds-admin-flags ds-admin-flags--single" aria-describedby="cf-peak-help">
+                    <x-ui.option-tile type="checkbox" name="peak_limit_enabled" value="1" :label="__('booking.admin.peak_limit.enabled')" :checked="old('peak_limit_enabled', $values['peak_limit_enabled']) == '1'" />
+                </x-ui.option-group>
+                <p class="ds-field__help" id="cf-peak-help">{{ __('booking.admin.peak_limit.hint') }}</p>
+            </div>
+            <div class="ds-admin-split">
+                <x-ui.field :label="__('booking.admin.peak_limit.window_1_from')" for="cf-peak-w1-start">
+                    <x-ui.input id="cf-peak-w1-start" name="peak_limit_w1_start" type="time" :value="old('peak_limit_w1_start', $values['peak_limit_w1_start'])" />
+                </x-ui.field>
+                <x-ui.field :label="__('booking.admin.peak_limit.until')" for="cf-peak-w1-end">
+                    <x-ui.input id="cf-peak-w1-end" name="peak_limit_w1_end" type="time" :value="old('peak_limit_w1_end', $values['peak_limit_w1_end'])" />
+                </x-ui.field>
+                <x-ui.field :label="__('booking.admin.peak_limit.window_2_from')" for="cf-peak-w2-start">
+                    <x-ui.input id="cf-peak-w2-start" name="peak_limit_w2_start" type="time" :value="old('peak_limit_w2_start', $values['peak_limit_w2_start'])" />
+                </x-ui.field>
+                <x-ui.field :label="__('booking.admin.peak_limit.until')" for="cf-peak-w2-end">
+                    <x-ui.input id="cf-peak-w2-end" name="peak_limit_w2_end" type="time" :value="old('peak_limit_w2_end', $values['peak_limit_w2_end'])" />
+                </x-ui.field>
+            </div>
+        </x-ui.card>
 
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-maint">{{ __('booking.admin.maintenance') }}</label>
-                    <select id="cf-maint" name="maintenance"
-                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                        <option value="0" @selected((string) $values['maintenance'] === '0')>{{ __('booking.admin.off') }}</option>
-                        <option value="1" @selected((string) $values['maintenance'] === '1')>{{ __('booking.admin.on') }}</option>
-                    </select>
-                </div>
-
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-quotes">{{ __('booking.admin.quotes_enabled') }}</label>
-                    <select id="cf-quotes" name="quotes_enabled"
-                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                        <option value="0" @selected((string) $values['quotes_enabled'] === '0')>{{ __('booking.admin.off') }}</option>
-                        <option value="1" @selected((string) $values['quotes_enabled'] === '1')>{{ __('booking.admin.on') }}</option>
-                    </select>
-                    <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.quotes_enabled_hint') }}</p>
-                </div>
-
+        <div class="ds-admin-actions ds-admin-actions--sticky">
+            <div class="ds-admin-actions__group ds-admin-actions__group--main">
+                <x-ui.button type="submit" :block="false" class="ds-admin-actions__save">{{ __('booking.admin.save') }}</x-ui.button>
             </div>
         </div>
-
-        {{-- Booking schedule --}}
-        <div class="bg-white rounded-xl border border-[#e0ddd7] shadow-sm overflow-hidden mb-6">
-            <div class="px-6 py-4 border-b border-[#f0ede6]">
-                <h2 class="text-base font-semibold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.admin.cfg.section_calendar') }}</h2>
-            </div>
-            <div class="px-6 py-5 flex flex-col gap-4">
-
-
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-hide">{{ __('booking.admin.calendar_hide') }}</label>
-                    <textarea id="cf-hide" name="calendar_hide" rows="5"
-                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">{{ old('calendar_hide', $values['calendar_hide']) }}</textarea>
-                    <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.calendar_hide_hint') }}</p>
-                </div>
-
-            </div>
-        </div>
-
-        {{-- Peak times --}}
-        <div class="bg-white rounded-xl border border-[#e0ddd7] shadow-sm overflow-hidden mb-6">
-            <div class="px-6 py-4 border-b border-[#f0ede6]">
-                <h2 class="text-base font-semibold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.admin.peak_limit.title') }}</h2>
-            </div>
-            <div class="px-6 py-5 flex flex-col gap-4">
-
-                <label class="flex items-center gap-2 text-sm text-[#151515] cursor-pointer">
-                    <input type="checkbox" name="peak_limit_enabled" value="1"
-                        @checked(old('peak_limit_enabled', $values['peak_limit_enabled']) == '1')>
-                    {{ __('booking.admin.peak_limit.enabled') }}
-                </label>
-                <p class="text-xs text-[#6a6e73] -mt-2">{{ __('booking.admin.peak_limit.hint') }}</p>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="flex flex-col gap-1">
-                        <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">{{ __('booking.admin.peak_limit.window_1_from') }}</label>
-                        <input type="time" name="peak_limit_w1_start"
-                            value="{{ old('peak_limit_w1_start', $values['peak_limit_w1_start']) }}"
-                            class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                    </div>
-                    <div class="flex flex-col gap-1">
-                        <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">{{ __('booking.admin.peak_limit.until') }}</label>
-                        <input type="time" name="peak_limit_w1_end"
-                            value="{{ old('peak_limit_w1_end', $values['peak_limit_w1_end']) }}"
-                            class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                    </div>
-                    <div class="flex flex-col gap-1">
-                        <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">{{ __('booking.admin.peak_limit.window_2_from') }}</label>
-                        <input type="time" name="peak_limit_w2_start"
-                            value="{{ old('peak_limit_w2_start', $values['peak_limit_w2_start']) }}"
-                            class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                    </div>
-                    <div class="flex flex-col gap-1">
-                        <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">{{ __('booking.admin.peak_limit.until') }}</label>
-                        <input type="time" name="peak_limit_w2_end"
-                            value="{{ old('peak_limit_w2_end', $values['peak_limit_w2_end']) }}"
-                            class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
-        <div class="flex justify-end pt-2">
-            <button type="submit" class="bg-[#bf4316] hover:bg-[#9e3412] text-white text-sm font-medium px-5 py-2 rounded transition-colors">{{ __('booking.admin.save') }}</button>
-        </div>
-
     </form>
-
 </div>
 @endsection

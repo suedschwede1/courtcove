@@ -1,226 +1,120 @@
 @extends('layouts.admin')
 @section('admin-title', __('booking.admin.texts'))
 @section('admin-content')
-<div class="flex flex-col gap-6">
+<div class="ds-admin-stack ds-admin-form-page">
+    <x-admin.page-header :title="__('booking.admin.texts')" :eyebrow="__('booking.admin.nav.eyebrow')" />
 
-    <h1 class="text-2xl font-bold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.admin.texts') }}</h1>
-
-    <form method="POST" action="{{ route('admin.config.update') }}">
+    <form method="POST" action="{{ route('admin.config.update') }}" class="ds-admin-stack">
         @method('PUT')
         @csrf
 
-        {{-- Operator --}}
-        <div class="bg-white rounded-xl border border-[#e0ddd7] shadow-sm overflow-hidden mb-6">
-            <div class="px-6 py-4 border-b border-[#f0ede6]">
-                <h2 class="text-base font-semibold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.admin.cfg.section_client') }}</h2>
+        <x-ui.card :title="__('booking.admin.cfg.section_client')" padding="lg" class="ds-admin-form-card">
+            <div class="ds-admin-form-grid ds-admin-form-grid--2">
+                <x-ui.field :label="__('booking.admin.client_name_full')" for="cf-client-full" :help="__('booking.admin.cfg.client_name_full_hint')">
+                    <x-ui.input id="cf-client-full" name="client_name_full" :value="$values['client_name_full']" />
+                </x-ui.field>
+                <x-ui.field :label="__('booking.admin.cfg.client_name_short')" for="cf-client-short" :help="__('booking.admin.cfg.client_name_short_hint')">
+                    <x-ui.input id="cf-client-short" name="client_name_short" :value="$values['client_name_short']" />
+                </x-ui.field>
+                <x-ui.field :label="__('booking.admin.contact_email')" for="cf-email" :help="__('booking.admin.cfg.contact_email_hint')">
+                    <x-ui.input id="cf-email" name="contact_email" type="email" :value="$values['contact_email']" />
+                </x-ui.field>
+                <x-ui.field :label="__('booking.admin.cfg.client_phone')" for="cf-phone" :help="__('booking.admin.cfg.client_phone_hint')">
+                    <x-ui.input id="cf-phone" name="client_phone" :value="$values['client_phone']" />
+                </x-ui.field>
+                <x-ui.option-group :columns="2" class="ds-admin-flags ds-admin-flags--single ds-admin-form-grid__wide">
+                    <x-ui.option-tile type="checkbox" name="client_email_cc" value="1" :label="__('booking.admin.cfg.client_email_cc')" :checked="(string) $values['client_email_cc'] === '1'" />
+                </x-ui.option-group>
+                <x-ui.field :label="__('booking.admin.cfg.client_website')" for="cf-website">
+                    <x-ui.input id="cf-website" name="client_website" type="url" :value="$values['client_website']" />
+                </x-ui.field>
+                <x-ui.field :label="__('booking.admin.cfg.client_website_contact')" for="cf-contact">
+                    <x-ui.input id="cf-contact" name="client_website_contact" type="url" :value="$values['client_website_contact']" />
+                </x-ui.field>
+                <x-ui.field :label="__('booking.admin.cfg.client_website_imprint')" for="cf-imprint">
+                    <x-ui.input id="cf-imprint" name="client_website_imprint" type="url" :value="$values['client_website_imprint']" />
+                </x-ui.field>
+                <x-ui.field :label="__('booking.admin.cfg.client_website_privacy')" for="cf-privacy">
+                    <x-ui.input id="cf-privacy" name="client_website_privacy" type="url" :value="$values['client_website_privacy']" />
+                </x-ui.field>
+                <x-ui.field :label="__('booking.admin.cfg.logo_path')" for="cf-logo-path" :help="__('booking.admin.cfg.logo_path_hint')" class="ds-admin-form-grid__wide">
+                    <x-ui.input id="cf-logo-path" name="logo_path" :value="$values['logo_path']" />
+                </x-ui.field>
             </div>
-            <div class="px-6 py-5 flex flex-col gap-4">
+        </x-ui.card>
 
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-client-full">{{ __('booking.admin.client_name_full') }}</label>
-                    <input id="cf-client-full" type="text" name="client_name_full" value="{{ $values['client_name_full'] }}"
-                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                    <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.cfg.client_name_full_hint') }}</p>
-                </div>
-
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-client-short">{{ __('booking.admin.cfg.client_name_short') }}</label>
-                    <input id="cf-client-short" type="text" name="client_name_short" value="{{ $values['client_name_short'] }}"
-                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                    <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.cfg.client_name_short_hint') }}</p>
-                </div>
-
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-email">{{ __('booking.admin.contact_email') }}</label>
-                    <input id="cf-email" type="email" name="contact_email" value="{{ $values['contact_email'] }}"
-                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                    <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.cfg.contact_email_hint') }}</p>
-                    <label class="flex items-center gap-2 text-sm text-[#151515] cursor-pointer mt-1">
-                        <input type="checkbox" name="client_email_cc" value="1" @checked((string) $values['client_email_cc'] === '1')>
-                        {{ __('booking.admin.cfg.client_email_cc') }}
-                    </label>
-                </div>
-
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-phone">{{ __('booking.admin.cfg.client_phone') }}</label>
-                    <input id="cf-phone" type="text" name="client_phone" value="{{ $values['client_phone'] }}"
-                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                    <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.cfg.client_phone_hint') }}</p>
-                </div>
-
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-website">{{ __('booking.admin.cfg.client_website') }}</label>
-                    <input id="cf-website" type="url" name="client_website" value="{{ $values['client_website'] }}"
-                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                </div>
-
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-contact">{{ __('booking.admin.cfg.client_website_contact') }}</label>
-                    <input id="cf-contact" type="url" name="client_website_contact" value="{{ $values['client_website_contact'] }}"
-                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                </div>
-
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-imprint">{{ __('booking.admin.cfg.client_website_imprint') }}</label>
-                    <input id="cf-imprint" type="url" name="client_website_imprint" value="{{ $values['client_website_imprint'] }}"
-                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                </div>
-
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-privacy">{{ __('booking.admin.cfg.client_website_privacy') }}</label>
-                    <input id="cf-privacy" type="url" name="client_website_privacy" value="{{ $values['client_website_privacy'] }}"
-                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                </div>
-
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-logo-path">{{ __('booking.admin.cfg.logo_path') }}</label>
-                    <input id="cf-logo-path" type="text" name="logo_path" value="{{ $values['logo_path'] }}"
-                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                    <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.cfg.logo_path_hint') }}</p>
-                </div>
-
+        <x-ui.card :title="__('booking.admin.cfg.section_system')" padding="lg" class="ds-admin-form-card">
+            <div class="ds-admin-form-grid ds-admin-form-grid--2">
+                <x-ui.field :label="__('booking.admin.system_name')" for="cf-system-name" :help="__('booking.admin.cfg.system_name_hint')">
+                    <x-ui.input id="cf-system-name" name="system_name" :value="$values['system_name']" />
+                </x-ui.field>
+                <x-ui.field :label="__('booking.admin.cfg.service_name_short')" for="cf-system-short" :help="__('booking.admin.cfg.service_name_short_hint')">
+                    <x-ui.input id="cf-system-short" name="service_name_short" :value="$values['service_name_short']" />
+                </x-ui.field>
+                <x-ui.field :label="__('booking.admin.cfg.service_description')" for="cf-desc" class="ds-admin-form-grid__wide">
+                    <x-ui.input id="cf-desc" name="service_description" :value="$values['service_description']" />
+                </x-ui.field>
             </div>
-        </div>
+        </x-ui.card>
 
-        {{-- System --}}
-        <div class="bg-white rounded-xl border border-[#e0ddd7] shadow-sm overflow-hidden mb-6">
-            <div class="px-6 py-4 border-b border-[#f0ede6]">
-                <h2 class="text-base font-semibold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.admin.cfg.section_system') }}</h2>
-            </div>
-            <div class="px-6 py-5 flex flex-col gap-4">
-
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-system-name">{{ __('booking.admin.system_name') }}</label>
-                    <input id="cf-system-name" type="text" name="system_name" value="{{ $values['system_name'] }}"
-                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                    <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.cfg.system_name_hint') }}</p>
-                </div>
-
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-system-short">{{ __('booking.admin.cfg.service_name_short') }}</label>
-                    <input id="cf-system-short" type="text" name="service_name_short" value="{{ $values['service_name_short'] }}"
-                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                    <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.cfg.service_name_short_hint') }}</p>
-                </div>
-
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-desc">{{ __('booking.admin.cfg.service_description') }}</label>
-                    <input id="cf-desc" type="text" name="service_description" value="{{ $values['service_description'] }}"
-                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                </div>
-
-            </div>
-        </div>
-
-        {{-- Labels --}}
-        <div class="bg-white rounded-xl border border-[#e0ddd7] shadow-sm overflow-hidden mb-6">
-            <div class="px-6 py-4 border-b border-[#f0ede6]">
-                <h2 class="text-base font-semibold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.admin.cfg.section_labels') }}</h2>
-            </div>
-            <div class="px-6 py-5 flex flex-col gap-4">
-
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-subject-type">{{ __('booking.admin.cfg.subject_type') }}</label>
-                    <input id="cf-subject-type" type="text" name="subject_type" value="{{ $values['subject_type'] }}"
-                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                    <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.cfg.subject_type_hint') }}</p>
-                </div>
-
-                <div class="flex flex-col gap-1">
-                    <span class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">{{ __('booking.admin.cfg.subject_square_type') }}</span>
-                    <div class="flex gap-3 items-end">
-                        <div class="flex flex-col gap-1">
-                            <span class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">{{ __('booking.admin.cfg.singular') }}</span>
-                            <input type="text" name="subject_square_type" value="{{ $values['subject_square_type'] }}"
-                                class="w-36 border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                        </div>
-                        <div class="flex flex-col gap-1">
-                            <span class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">{{ __('booking.admin.cfg.plural') }}</span>
-                            <input type="text" name="subject_square_plural" value="{{ $values['subject_square_plural'] }}"
-                                class="w-36 border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                        </div>
+        <x-ui.card :title="__('booking.admin.cfg.section_labels')" padding="lg" class="ds-admin-form-card">
+            <div class="ds-admin-form-grid ds-admin-form-grid--2">
+                <x-ui.field :label="__('booking.admin.cfg.subject_type')" for="cf-subject-type" :help="__('booking.admin.cfg.subject_type_hint')" class="ds-admin-form-grid__wide">
+                    <x-ui.input id="cf-subject-type" name="subject_type" :value="$values['subject_type']" />
+                </x-ui.field>
+                <fieldset class="ds-options">
+                    <legend class="ds-field__label">{{ __('booking.admin.cfg.subject_square_type') }}</legend>
+                    <div class="ds-admin-split">
+                        <x-ui.field :label="__('booking.admin.cfg.singular')" for="cf-square-singular">
+                            <x-ui.input id="cf-square-singular" name="subject_square_type" :value="$values['subject_square_type']" />
+                        </x-ui.field>
+                        <x-ui.field :label="__('booking.admin.cfg.plural')" for="cf-square-plural">
+                            <x-ui.input id="cf-square-plural" name="subject_square_plural" :value="$values['subject_square_plural']" />
+                        </x-ui.field>
                     </div>
-                </div>
-
-                <div class="flex flex-col gap-1">
-                    <span class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">{{ __('booking.admin.cfg.subject_unit') }}</span>
-                    <div class="flex gap-3 items-end">
-                        <div class="flex flex-col gap-1">
-                            <span class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">{{ __('booking.admin.cfg.singular') }}</span>
-                            <input type="text" name="subject_unit" value="{{ $values['subject_unit'] }}"
-                                class="w-36 border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                        </div>
-                        <div class="flex flex-col gap-1">
-                            <span class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">{{ __('booking.admin.cfg.plural') }}</span>
-                            <input type="text" name="subject_unit_plural" value="{{ $values['subject_unit_plural'] }}"
-                                class="w-36 border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                        </div>
+                </fieldset>
+                <fieldset class="ds-options">
+                    <legend class="ds-field__label">{{ __('booking.admin.cfg.subject_unit') }}</legend>
+                    <div class="ds-admin-split">
+                        <x-ui.field :label="__('booking.admin.cfg.singular')" for="cf-unit-singular">
+                            <x-ui.input id="cf-unit-singular" name="subject_unit" :value="$values['subject_unit']" />
+                        </x-ui.field>
+                        <x-ui.field :label="__('booking.admin.cfg.plural')" for="cf-unit-plural">
+                            <x-ui.input id="cf-unit-plural" name="subject_unit_plural" :value="$values['subject_unit_plural']" />
+                        </x-ui.field>
                     </div>
-                </div>
+                </fieldset>
+            </div>
+        </x-ui.card>
 
+        <x-ui.card :title="__('booking.admin.cfg.section_registration_content')" padding="lg" class="ds-admin-form-card">
+            <div class="ds-admin-form-grid ds-admin-form-grid--2">
+                <x-ui.field :label="__('booking.admin.cfg.registration_heading')" for="cf-registration-heading" :help="__('booking.admin.cfg.registration_heading_hint')">
+                    <x-ui.input id="cf-registration-heading" name="registration_heading" :value="$values['registration_heading']" />
+                </x-ui.field>
+                <x-ui.field :label="__('booking.admin.cfg.registration_welcome')" for="cf-registration-welcome" :help="__('booking.admin.cfg.registration_system_placeholder_hint')">
+                    <x-ui.input id="cf-registration-welcome" name="registration_welcome" :value="$values['registration_welcome']" />
+                </x-ui.field>
+                <x-ui.field :label="__('booking.admin.cfg.registration_intro')" for="cf-registration-intro" :help="__('booking.admin.cfg.registration_system_placeholder_hint')" class="ds-admin-form-grid__wide">
+                    <x-ui.textarea id="cf-registration-intro" name="registration_intro" rows="4" :value="$values['registration_intro']" />
+                </x-ui.field>
+                <x-ui.field :label="__('booking.admin.cfg.registration_email_help')" for="cf-registration-email-help" :help="__('booking.admin.cfg.registration_system_placeholder_hint')" class="ds-admin-form-grid__wide">
+                    <x-ui.input id="cf-registration-email-help" name="registration_email_help" :value="$values['registration_email_help']" />
+                </x-ui.field>
+                <x-ui.field :label="__('booking.admin.cfg.registration_privacy')" for="cf-registration-privacy" :help="__('booking.admin.cfg.registration_privacy_placeholder_hint')">
+                    <x-ui.textarea id="cf-registration-privacy" name="registration_privacy" rows="3" :value="$values['registration_privacy']" />
+                </x-ui.field>
+                <x-ui.field :label="__('booking.admin.cfg.registration_success')" for="cf-registration-success" :help="__('booking.admin.cfg.registration_system_placeholder_hint')">
+                    <x-ui.textarea id="cf-registration-success" name="registration_success" rows="3" :value="$values['registration_success']" />
+                </x-ui.field>
+            </div>
+        </x-ui.card>
+
+        <div class="ds-admin-actions ds-admin-actions--sticky">
+            <div class="ds-admin-actions__group ds-admin-actions__group--main">
+                <x-ui.button type="submit" :block="false" class="ds-admin-actions__save">{{ __('booking.admin.save') }}</x-ui.button>
             </div>
         </div>
-
-        {{-- Registration texts --}}
-        <div class="bg-white rounded-xl border border-[#e0ddd7] shadow-sm overflow-hidden mb-6">
-            <div class="px-6 py-4 border-b border-[#f0ede6]">
-                <h2 class="text-base font-semibold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.admin.cfg.section_registration_content') }}</h2>
-            </div>
-            <div class="px-6 py-5 flex flex-col gap-4">
-
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-registration-heading">{{ __('booking.admin.cfg.registration_heading') }}</label>
-                    <input id="cf-registration-heading" type="text" name="registration_heading" value="{{ $values['registration_heading'] }}"
-                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                    <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.cfg.registration_heading_hint') }}</p>
-                </div>
-
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-registration-welcome">{{ __('booking.admin.cfg.registration_welcome') }}</label>
-                    <input id="cf-registration-welcome" type="text" name="registration_welcome" value="{{ $values['registration_welcome'] }}"
-                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                    <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.cfg.registration_system_placeholder_hint') }}</p>
-                </div>
-
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-registration-intro">{{ __('booking.admin.cfg.registration_intro') }}</label>
-                    <textarea id="cf-registration-intro" name="registration_intro" rows="4"
-                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">{{ $values['registration_intro'] }}</textarea>
-                    <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.cfg.registration_system_placeholder_hint') }}</p>
-                </div>
-
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-registration-email-help">{{ __('booking.admin.cfg.registration_email_help') }}</label>
-                    <input id="cf-registration-email-help" type="text" name="registration_email_help" value="{{ $values['registration_email_help'] }}"
-                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                    <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.cfg.registration_system_placeholder_hint') }}</p>
-                </div>
-
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-registration-privacy">{{ __('booking.admin.cfg.registration_privacy') }}</label>
-                    <textarea id="cf-registration-privacy" name="registration_privacy" rows="3"
-                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">{{ $values['registration_privacy'] }}</textarea>
-                    <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.cfg.registration_privacy_placeholder_hint') }}</p>
-                </div>
-
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]" for="cf-registration-success">{{ __('booking.admin.cfg.registration_success') }}</label>
-                    <textarea id="cf-registration-success" name="registration_success" rows="3"
-                        class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">{{ $values['registration_success'] }}</textarea>
-                    <p class="text-xs text-[#6a6e73] mt-1">{{ __('booking.admin.cfg.registration_system_placeholder_hint') }}</p>
-                </div>
-
-            </div>
-        </div>
-        <div class="flex justify-end pt-2">
-            <button type="submit" class="bg-[#bf4316] hover:bg-[#9e3412] text-white text-sm font-medium px-5 py-2 rounded transition-colors">{{ __('booking.admin.save') }}</button>
-        </div>
-
     </form>
-
 </div>
 @endsection
-
-
-
-

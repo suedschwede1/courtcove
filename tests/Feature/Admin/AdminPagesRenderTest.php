@@ -8,11 +8,16 @@ use App\Models\LoginHistory;
 use App\Models\Reservation;
 use App\Models\Square;
 use App\Models\User;
+use App\Services\DatabaseBackupService;
 use Closure;
 use DOMDocument;
 use DOMElement;
 use DOMXPath;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -120,6 +125,18 @@ final class AdminPagesRenderTest extends TestCase
                 $square = Square::factory()->create(['name' => 'Court A']);
 
                 return route('admin.bookings.create', ['popup' => 1, 'sid' => $square->sid, 'date' => '2026-07-13', 'time_start' => '10:00', 'time_end' => '11:00']);
+            }],
+            'config_edit' => [fn (): string => route('admin.config.edit')],
+            'config_behavior' => [fn (): string => route('admin.config.behavior.edit')],
+            'database' => [function (): string {
+                Storage::fake('local');
+                (new DatabaseBackupService)->create();
+                DB::table('migrations')->where('migration', '2026_06_28_155630_create_jobs_table')->delete();
+                Schema::table('bs_users', function (Blueprint $table): void {
+                    $table->dropColumn('last_ip');
+                });
+
+                return route('admin.database.index');
             }],
         ];
     }

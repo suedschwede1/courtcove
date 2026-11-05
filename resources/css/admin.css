@@ -1361,6 +1361,139 @@
             width: 100%;
         }
     }
+
+    /* Batch 4: texts, behaviour and database settings. */
+    .ds-admin-form-grid__wide {
+        grid-column: 1 / -1;
+    }
+
+    /* A single long checkbox tile: one column at every width. */
+    .ds-admin-flags--single .ds-options__grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    /* Long tile labels wrap on phones: keep them off the tile border (single-line tiles stay 44px). */
+    .ds-admin-choice .ds-option,
+    .ds-admin-flags--single .ds-option {
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+
+    /* Option group plus its help line (behaviour choices, peak limit flag). */
+    .ds-admin-choice {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 0;
+    }
+
+    /* Two short fields side by side at every width (singular/plural, time windows). */
+    .ds-admin-split {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    /* Command output (migrate, repair, restore): DESIGN.md mono/code, lines kept as printed. */
+    .ds-admin-output {
+        margin: 0;
+        padding: 12px;
+        overflow-x: auto;
+        border-radius: var(--radius-md);
+        background: var(--color-surface-sunk);
+        color: var(--color-ink);
+        font-family: var(--font-mono);
+        font-size: 13px;
+        line-height: 1.5;
+        white-space: pre;
+    }
+
+    /* Migration, table and backup file names. */
+    .ds-admin-mono {
+        font-family: var(--font-mono);
+        font-size: 13px;
+        overflow-wrap: anywhere;
+    }
+
+    /* A form strip above a table inside a padding-less card (migrate confirmation). */
+    .ds-admin-main .ds-card--pad-none > .ds-card__body > .ds-admin-panel {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--color-line-soft);
+    }
+
+    .ds-admin-migrate {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .ds-admin-migrate > .ds-field {
+        width: min(100%, 24rem);
+    }
+
+    .ds-admin-repair {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .ds-admin-repair form,
+    .ds-admin-restore {
+        margin: 0;
+    }
+
+    .ds-admin-restore {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .ds-input.ds-admin-restore__input {
+        width: 11rem;
+        min-width: 0;
+    }
+
+    @media (width >= 48rem) {
+        /* Same height as the compact row buttons next to it. */
+        .ds-admin-lists .ds-table--list td .ds-input.ds-admin-restore__input {
+            height: 38px;
+            min-height: 38px;
+            font-size: 14px;
+        }
+    }
+
+    @media (width < 48rem) {
+        /* Database cards: the migrate strip and empty notes sit in the row rhythm. */
+        .ds-admin-main .ds-admin-db > .ds-card__body > .ds-admin-panel {
+            margin-bottom: 8px;
+            padding: 14px 12px;
+            border: 1px solid var(--color-line);
+            border-radius: var(--radius-lg);
+            background: var(--color-surface);
+        }
+
+        .ds-admin-main .ds-admin-db > .ds-card__body > .ds-admin-note {
+            padding: 0;
+        }
+
+        .ds-admin-lists .ds-admin-row-actions > form.ds-admin-restore {
+            flex: 1 1 100%;
+            min-width: 0;
+        }
+
+        /* Zero basis: the input takes the room the button leaves instead of its intrinsic width. */
+        .ds-admin-lists .ds-admin-row-actions > form.ds-admin-restore .ds-input.ds-admin-restore__input {
+            flex: 1 1 0;
+            width: 0;
+        }
+
+        .ds-admin-lists .ds-admin-row-actions > form.ds-admin-restore .ds-btn {
+            flex: 0 0 auto;
+            width: auto;
+        }
+    }
 }
 
 /*

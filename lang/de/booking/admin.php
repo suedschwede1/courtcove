@@ -70,6 +70,7 @@ return [
             'repair_preview_create' => 'Legt die Tabelle neu an.',
             'repair_preview_columns' => 'Ergänzt Spalten: :columns',
             'drift_heading' => 'Schema-Abweichungen',
+            'drift_finding' => 'Abweichung',
             'drift_none' => 'Keine Abweichungen gefunden.',
             'drift_extra_column' => 'Unerwartete Spalte :column',
             'drift_type_mismatch' => 'Spalte :column: erwartet :expected, ist :actual',

@@ -70,6 +70,7 @@ return [
             'repair_preview_create' => 'Creates the table.',
             'repair_preview_columns' => 'Adds columns: :columns',
             'drift_heading' => 'Schema Drift',
+            'drift_finding' => 'Finding',
             'drift_none' => 'No drift found.',
             'drift_extra_column' => 'Unexpected column :column',
             'drift_type_mismatch' => 'Column :column: expected :expected, got :actual',
