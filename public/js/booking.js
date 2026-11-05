@@ -11,67 +11,15 @@
         panel.hidden = !panel.hidden;
     });
 
-    // ─── Helpers ───────────────────────────────────────────────────────────────
-
-    function showModal(modal) {
-        if (modal) { modal.style.display = 'block'; }
-    }
-
-    function hideModal(modal) {
-        if (modal) { modal.style.display = 'none'; }
-    }
-
-    function closeIframeModal() {
-        var modal  = document.getElementById('admin-booking-modal');
-        var iframe = document.getElementById('abm-iframe');
-        if (iframe) { iframe.src = ''; }
-        hideModal(modal);
-    }
-
     // ─── Admin Iframe Modal ─────────────────────────────────────────────────────
+    // The modal itself is an Alpine component (components/calendar/modals.blade.php);
+    // this script only tells it which URL to show.
 
-    function openAdminBookingModal(element) {
-        var modal  = document.getElementById('admin-booking-modal');
-        var iframe = document.getElementById('abm-iframe');
-        if (!modal || !iframe) { return; }
-
-        var createUrl = element.dataset.createUrl;
-        if (!createUrl) { return; }
-
-        iframe.src = createUrl + (createUrl.includes('?') ? '&' : '?') + 'popup=1';
-        showModal(modal);
+    function openAdminFrame(url) {
+        if (!url) { return; }
+        url = url + (url.includes('?') ? '&' : '?') + 'popup=1';
+        window.dispatchEvent(new CustomEvent('open-admin-frame', { detail: { url: url } }));
     }
-
-    function openAdminUrlInModal(url) {
-        var modal  = document.getElementById('admin-booking-modal');
-        var iframe = document.getElementById('abm-iframe');
-        if (!modal || !iframe) { return; }
-
-        iframe.src = url + (url.includes('?') ? '&' : '?') + 'popup=1';
-        showModal(modal);
-    }
-
-    // Close via close button
-    var abmClose = document.getElementById('abm-close');
-    if (abmClose) {
-        abmClose.addEventListener('click', closeIframeModal);
-    }
-
-    // Close via backdrop click
-    var abmModal = document.getElementById('admin-booking-modal');
-    if (abmModal) {
-        abmModal.addEventListener('click', function (e) {
-            if (e.target === abmModal ||
-                e.target.classList.contains('booking-modal__viewport')) {
-                closeIframeModal();
-            }
-        });
-    }
-
-    // Escape key (iframe modal only — Alpine handles the others)
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') { closeIframeModal(); }
-    });
 
     // Iframe navigation monitor: reload the page once the form submits successfully
     var abmIframe = document.getElementById('abm-iframe');
@@ -80,7 +28,6 @@
             try {
                 var loc = abmIframe.contentWindow.location.href;
                 if (loc && loc !== 'about:blank' && !loc.includes('popup=1')) {
-                    closeIframeModal();
                     window.location.reload();
                 }
             } catch (_) {
@@ -102,14 +49,14 @@
         var editUrl   = trigger.dataset.editUrl;
 
         if (action === 'admin-book') {
-            openAdminBookingModal(trigger);
+            openAdminFrame(trigger.dataset.createUrl);
         } else if (action === 'cancel' && deleteUrl) {
             // Admin cancel: edit form inside the iframe
             if (editUrl) {
-                openAdminUrlInModal(editUrl);
+                openAdminFrame(editUrl);
             }
         } else if (action === 'event-edit' && editUrl) {
-            openAdminUrlInModal(editUrl);
+            openAdminFrame(editUrl);
         }
     });
 

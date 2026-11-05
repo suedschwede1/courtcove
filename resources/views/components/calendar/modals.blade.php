@@ -338,83 +338,62 @@
             this.open = true;
         }
      }"
-     @open-event.window="openEvent($event.detail)"
-     x-show="open"
-     x-transition.opacity
-     @keydown.escape.window="open = false"
-     @click.self="open = false"
-     class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"
-     style="display: none;">
-    <div class="relative w-full max-w-lg bg-white rounded-xl shadow-xl border border-[#e0ddd7]">
-        <div class="px-6 pt-5 pb-3 border-b border-[#f0ede6]">
-            <h2 class="text-base font-semibold text-[#151515]" style="font-family: var(--font-display)">{{ __('booking.modal.create_event') }}</h2>
-            <p class="text-sm text-[#6a6e73] mt-0.5" x-text="squareName + ' · ' + dateLabel + ' · ' + timeLabel"></p>
-        </div>
+     @open-event.window="openEvent($event.detail)">
+    <x-ui.modal id="event-dialog" show="open" size="lg">
+        <x-slot:title>
+            {{ __('booking.modal.create_event') }}
+        </x-slot:title>
 
-        <form method="POST" action="{{ route('admin.events.store') }}">
+        <p class="ds-modal__message" x-text="squareName + ' · ' + dateLabel + ' · ' + timeLabel"></p>
+
+        <form id="event-form" method="POST" action="{{ route('admin.events.store') }}" class="ds-modal__form">
             @csrf
             <input type="hidden" name="status" value="enabled">
             <input type="hidden" name="redirect_to" value="{{ url('/') }}">
 
-            <div class="px-6 py-4 flex flex-col gap-4">
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">{{ __('booking.modal.event_name_label') }}</label>
-                    <input type="text" name="name" required placeholder="{{ __('booking.modal.event_name_placeholder') }}" class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                </div>
+            <x-ui.field for="event-name" :label="__('booking.modal.event_name_label')">
+                <x-ui.input name="name" id="event-name" required data-modal-initial :placeholder="__('booking.modal.event_name_placeholder')" />
+            </x-ui.field>
 
-                <div class="booking-mobile-dialog__summary-grid grid grid-cols-2 gap-3">
-                    <div class="flex flex-col gap-1">
-                        <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">{{ __('booking.modal.date_start') }}</label>
-                        <input type="date" name="date_start" x-model="dateStartVal" required class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                    </div>
-                    <div class="flex flex-col gap-1">
-                        <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">{{ __('booking.modal.time_start') }}</label>
-                        <input type="time" name="time_start" x-model="timeStartVal" required class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                    </div>
-                    <div class="flex flex-col gap-1">
-                        <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">{{ __('booking.modal.date_end') }}</label>
-                        <input type="date" name="date_end" x-model="dateEndVal" required class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                    </div>
-                    <div class="flex flex-col gap-1">
-                        <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">{{ __('booking.modal.time_end') }}</label>
-                        <input type="time" name="time_end" x-model="timeEndVal" required class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                    </div>
-                </div>
-
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">{{ __('booking.calendar.court') }}</label>
-                    <select name="sid" x-model="sid" class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent">
-                        @foreach($squares as $square)
-                            <option value="{{ $square->sid }}">{{ $square->display_name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-semibold uppercase tracking-wide text-[#6a6e73]">{{ __('booking.modal.event_description_optional') }}</label>
-                    <textarea name="description" rows="2" class="w-full border border-[#d1cbc0] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#bf4316] focus:border-transparent resize-none"></textarea>
-                </div>
+            <div class="ds-modal__row">
+                <x-ui.field for="event-date-start" :label="__('booking.modal.date_start')">
+                    <x-ui.input type="date" name="date_start" id="event-date-start" required x-model="dateStartVal" />
+                </x-ui.field>
+                <x-ui.field for="event-time-start" :label="__('booking.modal.time_start')">
+                    <x-ui.input type="time" name="time_start" id="event-time-start" required x-model="timeStartVal" />
+                </x-ui.field>
+                <x-ui.field for="event-date-end" :label="__('booking.modal.date_end')">
+                    <x-ui.input type="date" name="date_end" id="event-date-end" required x-model="dateEndVal" />
+                </x-ui.field>
+                <x-ui.field for="event-time-end" :label="__('booking.modal.time_end')">
+                    <x-ui.input type="time" name="time_end" id="event-time-end" required x-model="timeEndVal" />
+                </x-ui.field>
             </div>
 
-            <div class="px-6 pb-5 flex flex-col gap-2">
-                <button type="submit" class="w-full bg-[#bf4316] hover:bg-[#9e3412] text-white text-sm font-medium py-2 rounded transition-colors">{{ __('booking.modal.save_event') }}</button>
-                <button type="button" @click="open = false" class="w-full border border-[#d1cbc0] text-[#6a6e73] text-sm py-2 rounded hover:bg-[#f9f8f6] transition-colors">{{ __('booking.modal.cancel') }}</button>
-            </div>
+            <x-ui.field for="event-sid" :label="__('booking.calendar.court')">
+                <x-ui.select name="sid" id="event-sid" :options="$squares->mapWithKeys(fn ($s) => [$s->sid => $s->display_name])->all()" x-model="sid" />
+            </x-ui.field>
+
+            <x-ui.field for="event-description" :label="__('booking.modal.event_description_optional')">
+                <x-ui.textarea name="description" id="event-description" :rows="2" />
+            </x-ui.field>
         </form>
 
-        <button type="button" @click="open = false" class="absolute top-3 right-4 text-[#9a9a9a] hover:text-[#151515] text-lg leading-none">✕</button>
-    </div>
+        <x-slot:footer>
+            <div class="ds-modal__footer-part">
+                <x-ui.button variant="secondary" :block="false" class="ds-modal__dismiss" x-on:click="open = false">{{ __('booking.modal.cancel') }}</x-ui.button>
+                <x-ui.button type="submit" form="event-form" :block="false">{{ __('booking.modal.save_event') }}</x-ui.button>
+            </div>
+        </x-slot:footer>
+    </x-ui.modal>
 </div>
 @endcan
 
 @auth
-<div id="admin-booking-modal" class="booking-modal booking-modal--iframe" style="display:none;">
-    <div class="booking-modal__viewport booking-modal--iframe">
-        <div class="booking-modal__card booking-modal__card--iframe">
-            <button id="abm-close" type="button" class="booking-modal__close booking-modal__close--iframe">✕</button>
-            <iframe id="abm-iframe" src="" class="booking-modal__iframe"></iframe>
-        </div>
-    </div>
+<div x-data="{ open: false, src: 'about:blank' }"
+     @open-admin-frame.window="src = $event.detail.url; open = true">
+    <x-ui.modal id="admin-booking-modal" show="open" close="open = false; src = 'about:blank'" size="frame" :label="__('booking.modal.admin_form')">
+        <iframe id="abm-iframe" class="ds-modal__frame" x-bind:src="src" title="{{ __('booking.modal.admin_form') }}"></iframe>
+    </x-ui.modal>
 </div>
 @endauth
-
