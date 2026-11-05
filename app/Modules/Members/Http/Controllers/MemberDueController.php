@@ -9,6 +9,7 @@ use App\Modules\Members\Models\FeeCategoryRate;
 use App\Modules\Members\Models\FiscalYear;
 use App\Modules\Members\Models\Member;
 use App\Modules\Members\Models\MemberDue;
+use App\Modules\Members\Support\MembersFormat;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -234,7 +235,7 @@ class MemberDueController
 
         return response()->json([
             'value' => match ($validated['field']) {
-                'teilbetrag' => $due->teilbetrag !== null ? number_format((float) $due->teilbetrag, 2, ',', '.').' €' : '–',
+                'teilbetrag' => MembersFormat::optionalMoney($due->teilbetrag),
                 'kommentar' => $due->kommentar ?: '–',
                 default => (string) $due->{$validated['field']},
             },

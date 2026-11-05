@@ -9,6 +9,7 @@ use App\Mail\UserActivated;
 use App\Models\Booking;
 use App\Models\LoginHistory;
 use App\Models\User;
+use App\Modules\Members\Models\Member;
 use App\Services\QuoteGroups;
 use Closure;
 use Illuminate\Database\Eloquent\Builder;
@@ -260,6 +261,8 @@ final class UserController extends Controller
             'currentStatus' => $user->accountStatus(),
             'currentRole' => $user->effectiveRole(),
             'riskScore' => LoginHistory::riskScore((int) $user->getKey()),
+            // Members are separate from user accounts; show the optionally linked member.
+            'linkedMember' => Member::query()->where('user_id', $user->getKey())->orderBy('member_number')->first(['id', 'member_number']),
             'profile' => [
                 'firstname' => $user->getMeta('firstname'),
                 'lastname' => $user->getMeta('lastname'),

@@ -7,6 +7,7 @@ namespace Tests\Feature\Modules\Members;
 use App\Models\User;
 use App\Modules\Members\Models\Member;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Support\Carbon;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -30,13 +31,50 @@ class MemberAnonymizationTest extends TestCase
     }
 
     #[Test]
-    public function the_delete_button_is_shown_once_a_departure_date_is_set(): void
+    public function the_anonymize_button_is_shown_only_once_the_retention_period_has_passed(): void
     {
-        $member = Member::factory()->create(['left_at' => now()->subDay()->toDateString()]);
+        Carbon::setTestNow('2026-11-05 10:00:00');
+        app()->setLocale('de');
+        $member = Member::factory()->create(['left_at' => '2023-01-31']);
 
         $this->actingAs($this->admin())->get("/members/{$member->id}/edit")
             ->assertOk()
-            ->assertSee(route('members.anonymize', $member), false);
+            ->assertSee(route('members.anonymize', $member), false)
+            ->assertSeeText('Anonymisieren')
+            ->assertSeeText('Aufbewahrungsfrist ist abgelaufen')
+            ->assertDontSeeText('Anonymisierbar ab');
+    }
+
+    #[Test]
+    public function within_the_retention_period_only_a_neutral_note_with_the_date_is_shown(): void
+    {
+        Carbon::setTestNow('2026-11-05 10:00:00');
+        app()->setLocale('de');
+        $member = Member::factory()->create(['left_at' => '2025-12-31']);
+
+        $this->actingAs($this->admin())->get("/members/{$member->id}/edit")
+            ->assertOk()
+            ->assertDontSee(route('members.anonymize', $member), false)
+            ->assertDontSeeText('Aufbewahrungsfrist ist abgelaufen')
+            ->assertDontSee('ds-btn--danger', false)
+            ->assertSeeText('Anonymisierbar ab 31.12.2028');
+    }
+
+    #[Test]
+    public function the_retention_note_is_translated(): void
+    {
+        Carbon::setTestNow('2026-11-05 10:00:00');
+        $member = Member::factory()->create(['left_at' => '2025-12-31']);
+
+        $this->actingAs($this->admin())->withUnencryptedCookie('locale', 'en')->get("/members/{$member->id}/edit")
+            ->assertOk()
+            ->assertSeeText('Can be anonymized from 31.12.2028');
+    }
+
+    protected function tearDown(): void
+    {
+        Carbon::setTestNow();
+        parent::tearDown();
     }
 
     #[Test]

@@ -431,6 +431,7 @@
     /* Overview "Beitrag offen": name left, category right. */
     .mbr-due-row {
         display: flex;
+        align-items: center;
         justify-content: space-between;
         gap: 12px;
         padding: 12px 0;
@@ -562,8 +563,13 @@
         list-style: none;
     }
 
-    .mbr-header-form {
-        display: contents;
+    /* DSGVO side card (mockup "Datenschutz"): warm border and title so the irreversible action stands apart. */
+    .mbr-privacy-card {
+        border-color: var(--color-danger-soft);
+    }
+
+    .mbr-privacy-card .ds-card__title {
+        color: var(--color-danger);
     }
 
     .mbr-dues-card {
@@ -695,8 +701,13 @@
     }
 
     .mbr-audiences .ds-chip {
+        max-width: 100%;
         min-height: 40px;
+        padding-block: 6px;
         font-size: 14px;
+        line-height: 18px;
+        text-align: left;
+        white-space: normal;
     }
 
     .mbr-audiences .ds-chip[aria-pressed='true'] {
@@ -732,6 +743,125 @@
         /* Alpine's x-transition writes inline transition styles; only !important outranks them. */
         .mbr-dialog-backdrop {
             transition: none !important;
+        }
+    }
+}
+
+/* Rundmail layout, template rows and mail category rows. */
+@layer components {
+    /* One shrinkable column below xl, so long chips/inputs cannot widen the page on phones. */
+    .mbr-mail-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 16px;
+        align-items: start;
+    }
+
+    .mbr-mail-grid > * {
+        min-width: 0;
+    }
+
+    .mbr-format-help code {
+        overflow-wrap: anywhere;
+    }
+
+    /* Template: name and subject on full width (no mid-word breaks), actions below. */
+    .mbr-template {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .mbr-template__text {
+        min-width: 0;
+        overflow-wrap: break-word;
+        hyphens: auto;
+    }
+
+    .mbr-template__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-left: -12px;
+    }
+
+    .mbr-template__actions form {
+        display: contents;
+    }
+
+    /* Mail category: name field keeps a usable width; the buttons wrap below it on phones. */
+    .mbr-category-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .mbr-category-row > .ds-input {
+        flex: 1 1 14rem;
+        min-width: 0;
+    }
+
+    @media (width >= 80rem) {
+        .mbr-mail-grid {
+            grid-template-columns: minmax(0, 1fr) 22rem;
+        }
+    }
+
+    @media (width < 48rem) {
+        .mbr-audiences .ds-chip {
+            min-height: var(--spacing-touch-min);
+        }
+
+        /* Card header with an action (dues on the member page): the button goes below the title. */
+        .mbr-dues-card > .ds-card__header {
+            grid-template-columns: minmax(0, 1fr);
+            row-gap: 10px;
+        }
+
+        .mbr-dues-card > .ds-card__header > .ds-card__actions {
+            grid-column: 1;
+            grid-row: auto;
+        }
+    }
+}
+
+/* Detail side card, testmail field, phone tap targets and tab rows. */
+@layer components {
+    .mbr-account-card {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    /* Testmail address keeps a readable width; the button wraps below it when the row is narrow. */
+    .mbr-test-email {
+        flex: 1 1 14rem;
+        min-width: 0;
+    }
+
+    @media (width < 48rem) {
+        /* The scrollbar thumb sat on the active tab's underline; the rows scroll by swipe. */
+        .ds-tabs.mbr-tabs,
+        .mbr-subnav {
+            scrollbar-width: none;
+        }
+
+        .ds-tabs.mbr-tabs::-webkit-scrollbar,
+        .mbr-subnav::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Phones strip the table card chrome; its title lines up with the cards below. */
+        .mbr-table-card > .ds-card__header {
+            padding-inline: 0;
+        }
+
+        /* Name links in overview and log rows: 44px tap height. */
+        .mbr-change__name {
+            display: inline-flex;
+            align-items: center;
+            min-height: var(--spacing-touch-min);
         }
     }
 }

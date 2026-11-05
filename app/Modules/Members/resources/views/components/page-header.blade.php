@@ -20,7 +20,7 @@
 {{-- Phones scroll the active tab into view. --}}
 <x-ui.tabs class="mbr-tabs" x-data x-init="const a = $el.querySelector('[aria-current]'); if (a && a.offsetLeft + a.offsetWidth > $el.clientWidth) { $el.scrollLeft = a.offsetLeft - 16 }" :label="__('members::admin.area.tabs')" :items="$tabs" />
 @if($settings !== null)
-    <nav class="mbr-subnav" aria-label="{{ __('members::admin.settings.title') }}">
+    <nav class="mbr-subnav" x-data x-init="const a = $el.querySelector('[aria-current]'); if (a && a.offsetLeft + a.offsetWidth > $el.clientWidth) { $el.scrollLeft = a.offsetLeft - 16 }" aria-label="{{ __('members::admin.settings.title') }}">
         @foreach($settings as $item)
             <x-ui.chip :href="$item['url']" :active="$item['active']">{{ $item['label'] }}</x-ui.chip>
         @endforeach

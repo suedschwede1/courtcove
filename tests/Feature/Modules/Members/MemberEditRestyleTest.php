@@ -66,7 +66,7 @@ class MemberEditRestyleTest extends TestCase
     #[Test]
     public function anonymize_stays_behind_the_prompt(): void
     {
-        $member = Member::factory()->create(['left_at' => now()->subDay()->toDateString()]);
+        $member = Member::factory()->create(['left_at' => now()->subYears(4)->toDateString()]);
 
         $html = $this->render($member);
 

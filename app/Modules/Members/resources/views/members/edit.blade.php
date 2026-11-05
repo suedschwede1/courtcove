@@ -2,6 +2,7 @@
 @section('members-title', $member->fullName())
 @section('members-content')
 @php
+    use App\Modules\Members\Support\MembersFormat;
     use App\Modules\Members\Support\StatusTone;
 
     $dueLabels = [
@@ -13,13 +14,6 @@
 @endphp
 <x-members::page-header :title="$member->fullName()">
     <x-slot:actions>
-        @if($member->left_at !== null && $member->anonymized_at === null)
-            <form method="POST" action="{{ route('members.anonymize', $member) }}" onsubmit="const c = prompt({{ Js::from(__('members::admin.members.anonymize_confirmation_label')) }}); if (c === null) return false; this.querySelector('input[name=confirmation]').value = c;" class="mbr-header-form">
-                @csrf
-                <input type="hidden" name="confirmation" value="">
-                <x-ui.button type="submit" variant="danger" :block="false">{{ __('members::admin.members.delete') }}</x-ui.button>
-            </form>
-        @endif
         <x-ui.button variant="secondary" :block="false" :href="route('members.index')">{{ __('members::admin.common.cancel') }}</x-ui.button>
         <x-ui.button type="submit" :block="false" form="member-edit-form" class="mbr-phone-hidden">{{ __('members::admin.common.save') }}</x-ui.button>
     </x-slot:actions>
@@ -62,7 +56,7 @@
             <tr>
                 <th scope="col">{{ __('members::admin.dues.fiscal_year') }}</th>
                 <th scope="col">{{ __('members::admin.members.fee_category') }}</th>
-                <th scope="col">{{ __('members::admin.fee_categories.amount') }}</th>
+                <th scope="col">{{ __('members::admin.dues.amount') }}</th>
                 <th scope="col">{{ __('members::admin.dues.status') }}</th>
                 <th scope="col">{{ __('members::admin.dues.paid_through') }}</th>
                 <th scope="col">{{ __('members::admin.dues.teilbetrag') }}</th>
@@ -71,12 +65,12 @@
         </x-slot:head>
         @forelse($dues as $due)
             @php
-                $teilbetragDisplay = $due->teilbetrag !== null ? number_format((float) $due->teilbetrag, 2, ',', '.').' €' : '–';
+                $teilbetragDisplay = MembersFormat::optionalMoney($due->teilbetrag);
             @endphp
             <tr>
                 <td class="ds-cell--title" data-label="{{ __('members::admin.dues.fiscal_year') }}">{{ $due->fiscalYear->name }}</td>
                 <td class="text-ink-2" data-label="{{ __('members::admin.members.fee_category') }}">{{ $due->feeCategory->name }}</td>
-                <td class="tabular-nums" data-label="{{ __('members::admin.fee_categories.amount') }}">{{ number_format((float) $due->amount, 2) }} €</td>
+                <td class="tabular-nums" data-label="{{ __('members::admin.dues.amount') }}">{{ MembersFormat::money($due->amount) }}</td>
                 <td class="cursor-pointer"
                     data-field="status"
                     data-label="{{ __('members::admin.dues.status') }}"
@@ -175,7 +169,8 @@
             if (result.ok) { this.linked = false; this.$dispatch('member-unlinked'); } else { this.error = result.message; }
         }
     }">
-        <p class="text-body-s text-ink-2">{{ __('members::admin.members.user_account_help') }}</p>
+        <div class="mbr-account-card">
+        <p class="m-0 text-body-s text-ink-2">{{ __('members::admin.members.user_account_help') }}</p>
         @if($member->user)
             <div x-show="linked" class="flex flex-col items-start gap-3">
                 <p class="font-semibold text-ink">{{ $member->user->alias }}@if($member->user->email) · {{ $member->user->email }}@endif</p>
@@ -186,14 +181,29 @@
         <div x-show="!linked"@if($member->user !== null) x-cloak @endif>
             @include('members::members._user-picker', ['member' => $member, 'formId' => 'member-edit-form', 'label' => __('members::admin.members.link_user'), 'help' => __('members::admin.members.link_hint')])
         </div>
+        </div>
     </x-ui.card>
 
     @include('members::members._history', ['changes' => $changes, 'member' => $member])
 
+    {{-- DSGVO: the anonymise action only appears once the retention period has really passed (the server re-checks). --}}
     @if($member->anonymized_at !== null)
         <x-ui.notice tone="neutral">{{ __('members::admin.members.anonymized_at', ['date' => $member->anonymized_at->format('d.m.Y')]) }}</x-ui.notice>
-    @elseif($member->left_at !== null)
-        <x-ui.notice tone="attention">{{ __('members::admin.members.anonymize_warning') }}</x-ui.notice>
+    @elseif($member->isAnonymizable())
+        <x-ui.card class="mbr-privacy-card" :title="__('members::admin.members.privacy_card')">
+            <div class="flex flex-col gap-3">
+                <x-ui.notice tone="attention">{{ __('members::admin.members.anonymize_warning') }}</x-ui.notice>
+                <form method="POST" action="{{ route('members.anonymize', $member) }}" onsubmit="const c = prompt({{ Js::from(__('members::admin.members.anonymize_confirmation_label')) }}); if (c === null) return false; this.querySelector('input[name=confirmation]').value = c;">
+                    @csrf
+                    <input type="hidden" name="confirmation" value="">
+                    <x-ui.button type="submit" variant="danger">{{ __('members::admin.members.anonymize_button') }}</x-ui.button>
+                </form>
+            </div>
+        </x-ui.card>
+    @elseif($member->anonymizableFrom() !== null)
+        <x-ui.card class="mbr-privacy-card" :title="__('members::admin.members.privacy_card')">
+            <p class="m-0 text-body-s text-ink-2">{{ __('members::admin.members.anonymizable_from', ['date' => $member->anonymizableFrom()->format('d.m.Y'), 'years' => \App\Modules\Members\Models\Member::retentionYears()]) }}</p>
+        </x-ui.card>
     @endif
 </div>
 </div>

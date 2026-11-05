@@ -148,13 +148,26 @@ class Member extends Model
     /** DSGVO: ein ausgetretenes Mitglied darf erst nach Ablauf der Aufbewahrungsfrist anonymisiert werden. */
     public function isAnonymizable(): bool
     {
+        $from = $this->anonymizableFrom();
+
+        return $from !== null && $from->lt(now());
+    }
+
+    /** Day the retention period of a departed member ends (departure + retention years); null if anonymisation does not apply. */
+    public function anonymizableFrom(): ?Carbon
+    {
         if ($this->anonymized_at !== null || $this->status !== 'ausgetreten' || $this->left_at === null) {
-            return false;
+            return null;
         }
 
-        $rawRetention = Option::getValue('members.anonymization.retention_years', 3);
-        $retentionYears = is_numeric($rawRetention) && (int) $rawRetention > 0 ? (int) $rawRetention : 3;
+        return $this->left_at->copy()->addYears(self::retentionYears());
+    }
 
-        return $this->left_at->lt(now()->subYears($retentionYears));
+    /** Configured retention period in years (DSGVO settings); a missing or malformed value falls back to 3. */
+    public static function retentionYears(): int
+    {
+        $rawRetention = Option::getValue('members.anonymization.retention_years', 3);
+
+        return is_numeric($rawRetention) && (int) $rawRetention > 0 ? (int) $rawRetention : 3;
     }
 }

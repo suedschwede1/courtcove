@@ -2,6 +2,7 @@
 @section('members-title', __('members::admin.dues.title'))
 @section('members-content')
 @php
+    use App\Modules\Members\Support\MembersFormat;
     use App\Modules\Members\Support\StatusTone;
 
     $dueLabels = [
@@ -18,7 +19,7 @@
 
 <x-ui.card class="mbr-dues-tools" as="div" x-data="{ composing: {{ $composeOpen ? 'true' : 'false' }} }">
     <form method="GET" action="{{ route('members.dues.index') }}" class="mbr-filters">
-        <x-ui.field class="mbr-filters__field" :label="__('members::admin.fiscal_years.title')" for="due-fiscal-year" :error="''">
+        <x-ui.field class="mbr-filters__field" :label="__('members::admin.dues.fiscal_year')" for="due-fiscal-year" :error="''">
             <x-ui.select name="fiscal_year_id" :options="$fiscalYears->pluck('name', 'id')->all()" :selected="(string) $selectedFiscalYearId" onchange="this.form.submit()" />
         </x-ui.field>
         <x-ui.field class="mbr-filters__search" :label="__('members::admin.members.search')" for="due-search">
@@ -38,7 +39,7 @@
             get label() { return this.template.replace('__YEAR__', this.names[this.fiscalYearId] ?? ''); }
         }">
         @csrf
-        <x-ui.field class="mbr-filters__field" :label="__('members::admin.fiscal_years.title')" for="due-generate-year" :error="$errors->first('fiscal_year_id')">
+        <x-ui.field class="mbr-filters__field" :label="__('members::admin.dues.generate_year')" for="due-generate-year" :error="$errors->first('fiscal_year_id')">
             <x-ui.select name="fiscal_year_id" :options="$generateFiscalYears->pluck('name', 'id')->all()" :selected="(string) $defaultFiscalYearId" x-model="fiscalYearId" />
         </x-ui.field>
         <x-ui.button type="submit" :block="false" x-text="label">{{ __('members::admin.dues.generate_for', ['year' => $defaultFiscalYear->name ?? '']) }}</x-ui.button>
@@ -113,9 +114,9 @@
                 <tr>
                     <th scope="col" class="mbr-check-cell"><label class="mbr-check"><input type="checkbox" x-model="selectAll" aria-label="{{ __('members::admin.common.select_all') }}"></label></th>
                     <th scope="col">{{ __('members::admin.members.name') }}</th>
-                    <th scope="col" class="mbr-phone-hidden">{{ __('members::admin.fiscal_years.title') }}</th>
-                    <th scope="col" class="mbr-phone-hidden">{{ __('members::admin.fee_categories.title') }}</th>
-                    <th scope="col">{{ __('members::admin.fee_categories.amount') }}</th>
+                    <th scope="col" class="mbr-phone-hidden">{{ __('members::admin.dues.fiscal_year') }}</th>
+                    <th scope="col" class="mbr-phone-hidden">{{ __('members::admin.members.fee_category') }}</th>
+                    <th scope="col">{{ __('members::admin.dues.amount') }}</th>
                     <th scope="col">{{ __('members::admin.dues.status') }}</th>
                     <th scope="col">{{ __('members::admin.dues.paid_through') }}</th>
                     <th scope="col">{{ __('members::admin.dues.teilbetrag') }}</th>
@@ -124,14 +125,14 @@
             </x-slot:head>
             @forelse($dues as $due)
                 @php
-                    $teilbetragDisplay = $due->teilbetrag !== null ? number_format((float) $due->teilbetrag, 2, ',', '.').' €' : '–';
+                    $teilbetragDisplay = MembersFormat::optionalMoney($due->teilbetrag);
                 @endphp
                 <tr>
                     <td class="mbr-check-cell"><label class="mbr-check"><input type="checkbox" name="due_ids[]" value="{{ $due->id }}" x-model="selected" aria-label="{{ __('members::admin.common.select_row', ['name' => $due->member->fullName()]) }}"></label></td>
                     <td class="ds-cell--title" data-label="{{ __('members::admin.members.name') }}">{{ $due->member->fullName() }}</td>
-                    <td class="mbr-phone-hidden text-ink-2" data-label="{{ __('members::admin.fiscal_years.title') }}">{{ $due->fiscalYear->name }}</td>
-                    <td class="mbr-phone-hidden text-ink-2" data-label="{{ __('members::admin.fee_categories.title') }}">{{ $due->feeCategory->name }}</td>
-                    <td class="tabular-nums" data-label="{{ __('members::admin.fee_categories.amount') }}">{{ number_format((float) $due->amount, 2) }} €</td>
+                    <td class="mbr-phone-hidden text-ink-2" data-label="{{ __('members::admin.dues.fiscal_year') }}">{{ $due->fiscalYear->name }}</td>
+                    <td class="mbr-phone-hidden text-ink-2" data-label="{{ __('members::admin.members.fee_category') }}">{{ $due->feeCategory->name }}</td>
+                    <td class="tabular-nums" data-label="{{ __('members::admin.dues.amount') }}">{{ MembersFormat::money($due->amount) }}</td>
                     <td class="cursor-pointer"
                         data-field="status"
                         data-label="{{ __('members::admin.dues.status') }}"

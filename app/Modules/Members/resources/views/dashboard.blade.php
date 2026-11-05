@@ -2,7 +2,7 @@
 @section('members-title', __('members::admin.dashboard.title'))
 @section('members-content')
 @php
-    $money = fn ($sum) => number_format((float) $sum, 2).' €';
+    $money = fn ($sum) => \App\Modules\Members\Support\MembersFormat::money($sum);
 @endphp
 <x-members::page-header :title="__('members::admin.dashboard.title')">
     <x-slot:actions>
@@ -35,6 +35,9 @@
             </ul>
         @endif
         <p class="mbr-card-foot">
+            @if($openDuesTop->count() < $openDuesCount)
+                <span class="text-body-s text-ink-2">{{ __('members::admin.dashboard.open_list_shown', ['shown' => $openDuesTop->count(), 'total' => $openDuesCount]) }}</span>
+            @endif
             <span class="text-body-s text-ink-2">{{ __('members::admin.dashboard.paid_dues') }}: {{ $paidDuesCount }} · {{ $money($paidDuesSum) }}</span>
             <a href="{{ route('members.dues.index') }}" class="mbr-text-link">{{ __('members::admin.dashboard.all_dues') }}</a>
         </p>

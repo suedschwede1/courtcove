@@ -5,6 +5,15 @@
 <div class="ds-admin-stack ds-admin-form-page">
     <x-admin.page-header :title="__('booking.admin.users.edit_title')" :eyebrow="__('booking.admin.nav.eyebrow')" :back-url="route('admin.users.index')" :back-label="__('booking.admin.users.title')">
         <p class="ds-admin-note">{{ __('booking.admin.users.intro_edit') }}</p>
+        @if($linkedMember !== null)
+            <p class="ds-admin-note">{{ __('booking.admin.users.linked_member') }}:
+                @can('admin.members')
+                    <a href="{{ route('members.edit', $linkedMember) }}" class="ds-admin-link">{{ __('booking.admin.users.linked_member_number', ['number' => $linkedMember->member_number]) }}</a>
+                @else
+                    {{ __('booking.admin.users.linked_member_number', ['number' => $linkedMember->member_number]) }}
+                @endcan
+            </p>
+        @endif
         <p class="ds-admin-note">{{ __('booking.admin.users.login_history_risk_score') }}: <x-ui.badge :tone="$riskScore > 0 ? 'attention' : 'neutral'">{{ $riskScore }}</x-ui.badge></p>
         <x-slot:actions>
             <x-ui.button :href="route('admin.users.login-history', $user)" variant="secondary" :block="false">{{ __('booking.admin.users.login_history_title') }}</x-ui.button>

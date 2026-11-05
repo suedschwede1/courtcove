@@ -44,7 +44,7 @@
         <x-ui.field class="mbr-filters__field mbr-phone-hidden" :label="__('members::admin.members.status')" for="mi-status">
             <x-ui.select name="status" :options="$statusOptions" :selected="$statusFilter" />
         </x-ui.field>
-        <x-ui.disclosure class="mbr-filters__more" :summary="__('members::admin.common.filter')" :open="true"
+        <x-ui.disclosure class="mbr-filters__more" :summary="__('members::admin.common.more_filters')" :open="true"
             x-data="{ keepOpen: {{ $moreFiltersActive ? 'true' : 'false' }} }"
             x-init="const phone = window.matchMedia('(max-width: 47.99rem)'); const sync = () => { $el.open = keepOpen || !phone.matches; }; sync(); phone.addEventListener('change', sync)">
             <x-ui.field class="mbr-filters__field" :label="__('members::admin.members.fee_category')" for="mi-fee-category">

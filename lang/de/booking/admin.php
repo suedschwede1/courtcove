@@ -305,6 +305,8 @@ return [
             'intro_index' => 'Benutzer verwalten und Berechtigungen zuweisen.',
             'intro_create' => 'Neuen Benutzer anlegen und Berechtigungen zuweisen.',
             'intro_edit' => 'Benutzerdaten und Berechtigungen bearbeiten.',
+            'linked_member' => 'Mitglied',
+            'linked_member_number' => 'Nr. :number',
             'filter_heading' => 'Filter',
             'results_count' => ':count Ergebnisse',
             'members' => 'Benutzer',

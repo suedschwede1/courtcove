@@ -7,6 +7,7 @@ namespace Tests\Unit\Modules\Members;
 use App\Models\Option;
 use App\Modules\Members\Models\Member;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Support\Carbon;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -67,5 +68,33 @@ class MemberIsAnonymizableTest extends TestCase
         $member = Member::factory()->create(['left_at' => now()->subYears(2)->toDateString()]);
 
         $this->assertFalse($member->isAnonymizable());
+    }
+
+    #[Test]
+    public function the_anonymizable_from_date_is_the_departure_plus_the_retention_period(): void
+    {
+        Carbon::setTestNow('2026-11-05 10:00:00');
+        Option::create(['key' => 'members.anonymization.retention_years', 'value' => '2', 'locale' => null]);
+
+        $member = Member::factory()->create(['left_at' => '2025-12-31']);
+
+        $this->assertSame('2027-12-31', $member->anonymizableFrom()?->toDateString());
+        $this->assertFalse($member->isAnonymizable());
+
+        Carbon::setTestNow('2028-01-01 00:00:01');
+        $this->assertTrue($member->isAnonymizable());
+    }
+
+    #[Test]
+    public function an_active_or_anonymized_member_has_no_anonymizable_from_date(): void
+    {
+        $this->assertNull(Member::factory()->create(['left_at' => null])->anonymizableFrom());
+        $this->assertNull(Member::factory()->create(['left_at' => '2020-01-01', 'anonymized_at' => now()])->anonymizableFrom());
+    }
+
+    protected function tearDown(): void
+    {
+        Carbon::setTestNow();
+        parent::tearDown();
     }
 }

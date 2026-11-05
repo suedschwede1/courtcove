@@ -7,6 +7,7 @@ namespace App\Modules\Members\Http\Controllers;
 use App\Modules\Members\Models\Member;
 use App\Modules\Members\Models\MemberDue;
 use App\Modules\Members\Models\Payment;
+use App\Modules\Members\Support\MembersFormat;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -61,7 +62,7 @@ class PaymentController
         if ($paidCents !== $expectedCents) {
             throw ValidationException::withMessages([
                 'amount' => __('members::admin.payments.amount_mismatch', [
-                    'sum' => number_format($expectedCents / 100, 2, ',', '.'),
+                    'sum' => MembersFormat::money($expectedCents / 100),
                 ]),
             ]);
         }
