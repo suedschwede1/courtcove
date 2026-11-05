@@ -58,6 +58,7 @@
     --color-cell-series-ink: #4A2A6B;
     --color-cell-event: #DCEEE3;
     --color-cell-event-ink: #1F5A44;
+    --color-cell-event-line: #3F8F6B;
     --color-cell-match: #F6E7CC;
     --color-cell-match-line: #B07A1E;
     --color-cell-match-ink: #6B4400;
@@ -161,6 +162,7 @@
     --color-cell-series-ink: #D7C6EA;
     --color-cell-event: #1E3329;
     --color-cell-event-ink: #8FD0AE;
+    --color-cell-event-line: #5FAE87;
     --color-cell-match: #3A2E12;
     --color-cell-match-line: #D9A54A;
     --color-cell-match-ink: #F0C46B;
