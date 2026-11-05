@@ -6,6 +6,7 @@ namespace App\Modules\Tournament\Http\Controllers;
 
 use App\Modules\Tournament\Services\FormatService;
 use App\Modules\Tournament\Services\TournamentManager;
+use App\Modules\Tournament\Support\NextMatch;
 use App\Modules\Tournament\Support\RoundNames;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -32,35 +33,7 @@ class OverviewController extends TournamentPageController
             }
 
             // The viewer's next match: matches without a date first, then by date.
-            $next = null;
-
-            if ($c['access']->tpid) {
-                $candidates = [];
-
-                foreach ($this->m->playerMatches($tid, $c['access']->tpid) as $match) {
-                    if ($this->m->matchState($match) !== 'played') {
-                        $candidates[] = $match;
-                    }
-                }
-
-                usort($candidates, function (array $a, array $b): int {
-                    if ($a['played'] === $b['played']) {
-                        return 0;
-                    }
-
-                    if (! $a['played']) {
-                        return -1;
-                    }
-
-                    if (! $b['played']) {
-                        return 1;
-                    }
-
-                    return strcmp((string) $a['played'], (string) $b['played']);
-                });
-
-                $next = $candidates ? $candidates[0] : null;
-            }
+            $next = $c['access']->tpid ? NextMatch::of($this->m, $tid, $c['access']->tpid) : null;
 
             // Group phase and KO phase as two views to switch between.
             $bracket = $this->bracketOverview($tid, $c['format']);

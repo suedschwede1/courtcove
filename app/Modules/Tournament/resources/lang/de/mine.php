@@ -1,0 +1,31 @@
+<?php
+
+return [
+    'badge' => [
+        'lost' => 'Niederlage',
+        'open' => 'ohne Termin',
+        'scheduled' => 'geplant',
+        'won' => 'Sieg',
+    ],
+    'group' => 'Gruppe :group',
+    'itn' => 'ITN :itn',
+    'kpi_open' => 'offene Spiele',
+    'kpi_rank' => 'Rang in der Gruppe',
+    'kpi_wins' => 'Siege',
+    'lost' => 'Niederlage :score',
+    'lot' => 'In deiner Gruppe sind mehrere Spieler in allen Kriterien gleich – über die Platzierung muss gelost werden.',
+    'next' => 'Dein nächstes Spiel',
+    'no_date' => 'noch kein Termin',
+    'no_matches' => 'Für dich sind noch keine Partien angelegt. Sie entstehen, sobald ein weiterer Spieler in deine Gruppe kommt.',
+    'not_confirmed' => 'nicht bestätigt',
+    'not_drawn' => 'noch nicht ausgelost',
+    'not_participant' => 'Du bist nicht als Teilnehmer der Vereinsmeisterschaft gemeldet. Tabellen, Spielplan und Ergebnisse kannst du unter den anderen Menüpunkten ansehen.',
+    'opponent' => 'gegen :name',
+    'opponent_open' => 'Gegner offen',
+    'view_result' => 'Ergebnis ansehen',
+    'walkover' => '(w.o.)',
+    'whatsapp' => 'WhatsApp',
+    'whatsapp_open' => 'Hallo :name! Wann passt Dir unser Vereinsmeisterschafts-Spiel in Gruppe :group?',
+    'whatsapp_scheduled' => 'Hallo :name! Unser Vereinsmeisterschafts-Spiel (Gruppe :group) steht am :date. Passt das so?',
+    'won' => 'Sieg :score',
+];

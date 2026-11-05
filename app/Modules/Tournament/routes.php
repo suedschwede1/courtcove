@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Modules\Tournament\Http\Controllers\BracketController;
 use App\Modules\Tournament\Http\Controllers\GroupsController;
 use App\Modules\Tournament\Http\Controllers\MatchController;
+use App\Modules\Tournament\Http\Controllers\MyMatchesController;
 use App\Modules\Tournament\Http\Controllers\OverviewController;
 use App\Modules\Tournament\Http\Controllers\PlayersController;
 use App\Modules\Tournament\Http\Controllers\ScheduleController;
@@ -23,6 +24,7 @@ Route::prefix('tournament')->name('tournament.')
         Route::get('schedule/{filter?}', [ScheduleController::class, 'show'])->where('filter', '[a-z]+')->name('schedule');
         Route::get('bracket/{phase?}', [BracketController::class, 'show'])->where('phase', '[A-Za-z_]+')->name('bracket');
         Route::get('players', [PlayersController::class, 'index'])->name('players');
+        Route::get('mine', [MyMatchesController::class, 'index'])->name('mine');
         Route::get('modus', [OverviewController::class, 'mode'])->name('mode');
 
         // The match page: name and URL are final (the match cards link here); the page itself and the
