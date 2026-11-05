@@ -62,6 +62,7 @@ return [
         'submit' => 'Anmelden',
         'no_account' => 'Noch kein Konto?',
         'register_now' => 'Jetzt registrieren',
+        'register_note' => 'Dein Zugang wird vom Verein freigeschaltet.',
         'forgot_password' => 'Passwort vergessen?',
         'verify' => [
             'send_failed' => 'Der Bestätigungscode konnte nicht per E-Mail versendet werden. Bitte versuchen Sie es erneut oder kontaktieren Sie einen Administrator.',

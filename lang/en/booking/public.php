@@ -62,6 +62,7 @@ return [
         'submit' => 'Log In',
         'no_account' => 'No account yet?',
         'register_now' => 'Register now',
+        'register_note' => 'The club activates your access.',
         'forgot_password' => 'Forgot your password?',
         'verify' => [
             'send_failed' => 'The verification code could not be emailed. Please try again or contact an administrator.',

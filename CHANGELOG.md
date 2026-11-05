@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-05
 
+- New login page: clay court panel, larger fields and a dark full-width sign-in button.
 - Login and account access pages get a shared split layout with the clay court panel (used from the next commits on).
 
 - Legacy element rules use zero-specificity guards so existing buttons, links and inputs keep their original cascade.

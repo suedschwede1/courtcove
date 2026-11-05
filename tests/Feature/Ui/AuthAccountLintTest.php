@@ -13,7 +13,10 @@ class AuthAccountLintTest extends TestCase
     /** @return array<string, array{string}> */
     public static function views(): array
     {
-        return ['auth-shell' => ['resources/views/components/layout/auth-shell.blade.php']]; // later tasks append
+        return [
+            'auth-shell' => ['resources/views/components/layout/auth-shell.blade.php'],
+            'login' => ['resources/views/auth/login.blade.php'],
+        ]; // later tasks append
     }
 
     #[Test]
