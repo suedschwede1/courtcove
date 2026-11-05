@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-05
 
+- Phase 2: the unique-key preflight check is shared by Draw and Pyramid, and the Pyramid preflight gained fault-injection tests and a stricter read-only guard.
 - Phase 2: read-only php artisan phase2:preflight pyramid checks columns, charset, unique keys, orphans and ranking gaps.
 - Phase 2: phase2:scrub-staging replaces Pyramid data with a fictional demo ladder.
 - Phase 2: Pyramid ladder administration page; the member picker now searches on demand instead of embedding all members.

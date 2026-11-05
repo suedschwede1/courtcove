@@ -13,6 +13,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Concerns\BuildsPyramidLadders;
 use Tests\TestCase;
@@ -180,6 +181,122 @@ class PyramidPreflightTest extends TestCase
         PyramidEvent::query()->create(['ladder_id' => $ladder->id, 'type' => 'admin', 'payload' => '{"message":"ok"}', 'created' => '2026-08-01 10:00:00']);
 
         $this->assertContains('[WARN] json:bs_pyramid_events: 1 of 2 payloads do not decode', $this->lines());
+    }
+
+    #[Test]
+    public function duplicate_player_uid_fails(): void
+    {
+        $ladder = $this->makeLadder(2);
+        Schema::table('bs_pyramid_players', function (Blueprint $table): void {
+            $table->dropUnique(['ladder_id', 'uid']);
+        });
+        DB::table('bs_pyramid_players')->where('ladder_id', $ladder->id)->update(['uid' => 7]);
+
+        $this->assertTrue($this->has('[FAIL] unique:bs_pyramid_players(ladder_id,uid): unique index missing, 1 duplicate groups'));
+    }
+
+    #[Test]
+    public function duplicate_player_uid_with_index_fails(): void
+    {
+        $ladder = $this->makeLadder(1);
+        DB::table('bs_pyramid_players')->where('ladder_id', $ladder->id)->update(['uid' => 7]);
+        $row = (array) DB::table('bs_pyramid_players')->where('ladder_id', $ladder->id)->first();
+        Schema::table('bs_pyramid_players', function (Blueprint $table): void {
+            $table->dropUnique(['ladder_id', 'uid']);
+        });
+        unset($row['id']);
+        $row['position'] = 2;
+        DB::table('bs_pyramid_players')->insert($row);
+        Schema::table('bs_pyramid_players', function (Blueprint $table): void {
+            $table->index(['ladder_id', 'uid']);
+        });
+
+        $this->assertTrue($this->has('[FAIL] unique:bs_pyramid_players(ladder_id,uid): unique index missing, 1 duplicate groups'));
+    }
+
+    /**
+     * @return array<string, array{0: string}>
+     */
+    public static function orphanCases(): array
+    {
+        return [
+            'players.ladder_id' => ['orphans:bs_pyramid_players.ladder_id->bs_pyramid_ladders.id'],
+            'events.ladder_id' => ['orphans:bs_pyramid_events.ladder_id->bs_pyramid_ladders.id'],
+            'grants.ladder_id' => ['orphans:bs_pyramid_grants.ladder_id->bs_pyramid_ladders.id'],
+            'challenges.winner_id' => ['orphans:bs_pyramid_challenges.winner_id->bs_pyramid_players.id'],
+            'grants.uid' => ['orphans:bs_pyramid_grants.uid->bs_users.uid'],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('orphanCases')]
+    public function orphan_references_warn(string $check): void
+    {
+        $ladder = $this->makeLadder(2);
+        $now = '2026-08-01 10:00:00';
+
+        match ($check) {
+            'orphans:bs_pyramid_players.ladder_id->bs_pyramid_ladders.id' => DB::table('bs_pyramid_players')
+                ->where('ladder_id', $ladder->id)->where('position', 2)->update(['ladder_id' => 8888]),
+            'orphans:bs_pyramid_events.ladder_id->bs_pyramid_ladders.id' => DB::table('bs_pyramid_events')
+                ->insert(['ladder_id' => 8888, 'type' => 'admin', 'payload' => '{}', 'created' => $now]),
+            'orphans:bs_pyramid_grants.ladder_id->bs_pyramid_ladders.id' => DB::table('bs_pyramid_grants')
+                ->insert(['ladder_id' => 8888, 'uid' => 5, 'role' => 'admin', 'created' => $now]),
+            'orphans:bs_pyramid_challenges.winner_id->bs_pyramid_players.id' => PyramidChallenge::factory()->create([
+                'ladder_id' => $ladder->id,
+                'challenger_id' => $this->playerAt($ladder, 2)->id,
+                'opponent_id' => $this->playerAt($ladder, 1)->id,
+                'winner_id' => 9999,
+            ]),
+            'orphans:bs_pyramid_grants.uid->bs_users.uid' => DB::table('bs_pyramid_grants')
+                ->insert(['ladder_id' => $ladder->id, 'uid' => 424242, 'role' => 'admin', 'created' => $now]),
+        };
+
+        $this->assertContains("[WARN] {$check}: 1 orphaned rows", $this->lines());
+    }
+
+    #[Test]
+    public function waiting_player_with_position_warns(): void
+    {
+        $ladder = $this->makeLadder(3);
+        DB::table('bs_pyramid_players')->where('ladder_id', $ladder->id)->where('position', 3)->update(['status' => 'waiting']);
+        DB::table('bs_pyramid_players')->where('ladder_id', $ladder->id)->where('position', 2)->update(['status' => 'removed']);
+
+        $this->assertTrue($this->has("[WARN] ranking:{$ladder->id}: 2 wartende oder entfernte Teilnehmer mit gesetzter Position"));
+    }
+
+    #[Test]
+    public function unexpected_extra_column_warns(): void
+    {
+        Schema::table('bs_pyramid_players', function (Blueprint $table): void {
+            $table->string('nickname', 20)->nullable();
+        });
+
+        $this->assertContains('[WARN] columns:bs_pyramid_players: unexpected extra column nickname', $this->lines());
+        $this->assertFalse($this->has('[FAIL]'));
+    }
+
+    #[Test]
+    public function challenge_against_oneself_counts_once(): void
+    {
+        $ladder = $this->makeLadder(2);
+        $one = $this->playerAt($ladder, 1);
+        PyramidChallenge::factory()->create(['ladder_id' => $ladder->id, 'challenger_id' => $one->id, 'opponent_id' => $one->id]);
+
+        $this->assertContains('[PASS] open-per-player', $this->lines());
+    }
+
+    #[Test]
+    public function broken_ladders_table_fails_instead_of_throwing(): void
+    {
+        Schema::table('bs_pyramid_ladders', function (Blueprint $table): void {
+            $table->dropColumn('rules_version');
+        });
+
+        $lines = $this->lines();
+
+        $this->assertContains('[FAIL] columns:bs_pyramid_ladders: missing column rules_version', $lines);
+        $this->assertContains('[FAIL] ranking: bs_pyramid_ladders columns are absent or incomplete', $lines);
     }
 
     #[Test]

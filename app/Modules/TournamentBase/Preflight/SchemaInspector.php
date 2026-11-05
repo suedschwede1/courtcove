@@ -104,6 +104,30 @@ class SchemaInspector
     }
 
     /**
+     * Unique-key check shared by the preflights: the columns must exist, carry a unique index and hold no duplicates.
+     *
+     * @param  list<string>  $columns
+     */
+    public function checkUnique(string $table, array $columns): PreflightResult
+    {
+        $check = "unique:{$table}(".implode(',', $columns).')';
+
+        if (! $this->hasColumns($table, $columns)) {
+            return PreflightResult::fail($check, $this->hasUniqueIndex($table, $columns) ? 'column missing' : 'unique index missing, column missing');
+        }
+
+        $groups = $this->duplicateGroups($table, $columns);
+
+        if (! $this->hasUniqueIndex($table, $columns)) {
+            return PreflightResult::fail($check, $groups > 0 ? "unique index missing, {$groups} duplicate groups" : 'unique index missing');
+        }
+
+        return $groups > 0
+            ? PreflightResult::fail($check, "{$groups} duplicate groups")
+            : PreflightResult::pass($check);
+    }
+
+    /**
      * Number of value combinations that occur more than once (rows with a NULL in any column are ignored).
      *
      * @param  list<string>  $columns

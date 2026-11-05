@@ -145,7 +145,7 @@ final class PyramidPreflight implements ModulePreflight
         $results[] = $this->schemaVersion();
 
         foreach (self::UNIQUES as [$table, $columns]) {
-            $results[] = $this->unique($table, $columns);
+            $results[] = $this->schema->checkUnique($table, $columns);
         }
 
         foreach (self::ORPHANS as [$child, $childColumn, $parent, $parentColumn]) {
@@ -184,29 +184,7 @@ final class PyramidPreflight implements ModulePreflight
 
         return $max >= self::SCHEMA_VERSION
             ? PreflightResult::pass('schema-version', (string) $max)
-            : PreflightResult::warn('schema-version', "latest is {$max}, expected ".self::SCHEMA_VERSION.' (run the Laravel migrations)');
-    }
-
-    /**
-     * @param  list<string>  $columns
-     */
-    private function unique(string $table, array $columns): PreflightResult
-    {
-        $check = "unique:{$table}(".implode(',', $columns).')';
-
-        if (! $this->schema->hasColumns($table, $columns)) {
-            return PreflightResult::fail($check, $this->schema->hasUniqueIndex($table, $columns) ? 'column missing' : 'unique index missing, column missing');
-        }
-
-        $groups = $this->schema->duplicateGroups($table, $columns);
-
-        if (! $this->schema->hasUniqueIndex($table, $columns)) {
-            return PreflightResult::fail($check, $groups > 0 ? "unique index missing, {$groups} duplicate groups" : 'unique index missing');
-        }
-
-        return $groups > 0
-            ? PreflightResult::fail($check, "{$groups} duplicate groups")
-            : PreflightResult::pass($check);
+            : PreflightResult::warn('schema-version', "latest is {$max}, expected ".self::SCHEMA_VERSION.' (row for the old application\'s email step is missing; the additive migration 090006/090007 writes it)');
     }
 
     private function orphans(string $child, string $childColumn, string $parent, string $parentColumn): PreflightResult
@@ -241,6 +219,10 @@ final class PyramidPreflight implements ModulePreflight
 
         $results = [];
 
+        if (! $this->schema->hasColumns('bs_pyramid_ladders', array_keys(self::COLUMNS['bs_pyramid_ladders']))) {
+            return [PreflightResult::fail('ranking', 'bs_pyramid_ladders columns are absent or incomplete')];
+        }
+
         foreach (PyramidLadder::query()->orderBy('id')->get() as $ladder) {
             $problems = array_map(fn (Verdict $v): string => $v->message('de'), $this->admin->diagnose($ladder));
             $check = "ranking:{$ladder->id}";
@@ -261,15 +243,14 @@ final class PyramidPreflight implements ModulePreflight
             return PreflightResult::skip($check, 'bs_pyramid_challenges columns are absent');
         }
 
-        $perPlayer = [];
+        // One row per (challenge, player): a challenge with challenger == opponent counts once for that player.
+        $open = DB::table('bs_pyramid_challenges')->whereIn('status', ['open', 'scheduled']);
+        $sides = (clone $open)->select('challenger_id as player_id')
+            ->unionAll((clone $open)->select('opponent_id as player_id')->whereColumn('opponent_id', '<>', 'challenger_id'));
 
-        foreach (DB::table('bs_pyramid_challenges')->whereIn('status', ['open', 'scheduled'])->get(['challenger_id', 'opponent_id']) as $row) {
-            foreach ([(int) $row->challenger_id, (int) $row->opponent_id] as $player) {
-                $perPlayer[$player] = ($perPlayer[$player] ?? 0) + 1;
-            }
-        }
-
-        $doubled = count(array_filter($perPlayer, fn (int $n): bool => $n > 1));
+        $doubled = DB::query()
+            ->fromSub(DB::query()->fromSub($sides, 'sides')->select('player_id')->groupBy('player_id')->havingRaw('COUNT(*) > 1'), 'doubled')
+            ->count();
 
         return $doubled > 0
             ? PreflightResult::warn($check, "{$doubled} players in more than one open challenge")
@@ -290,6 +271,7 @@ final class PyramidPreflight implements ModulePreflight
         foreach (DB::table('bs_pyramid_events')->orderBy('id')->select(['id', 'payload'])->lazyById(500, 'id') as $row) {
             $total++;
 
+            // json_validate() needs PHP 8.3+ (the project targets 8.4).
             if (! json_validate((string) $row->payload)) {
                 $broken++;
             }
