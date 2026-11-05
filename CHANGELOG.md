@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Member header is a light sand bar (ground fill, hairline underline, ink text) with a clay underline on the active item and a grey one on hover, a white card for the Turniere dropdown and no "Platzbuchung" eyebrow; the admin sidebar and the opened phone menu stay dark.
 - Calendar: club events get a green outline around the whole block, as in the state overview (closures stay plain grey hatching).
 - Court closures are their own calendar state (hatched, spanning their hours): the event form has an "Art" select (Veranstaltung / Platzsperre), older events named "Platzsperre"/"Sperre" still count as closures; booking cells no longer repeat the owner's name in the detail line.
 - Calendar cells use a calm pastel palette: my booking is pale blue with a blue ring (no more red), other members' bookings sand, subscriptions lilac, events soft green, tournament matches amber with a thin ring; hover only strengthens the ring. The legend gains the court closure state, and on phones the day name is clay with a "Heute" pill instead of the "Heute" suffix.

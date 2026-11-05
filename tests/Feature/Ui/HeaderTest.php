@@ -27,17 +27,90 @@ class HeaderTest extends TestCase
     }
 
     #[Test]
-    public function header_is_the_chrome_bar(): void
+    public function header_is_the_light_sand_bar(): void
     {
         $html = $this->get('/calendar')->assertOk()
-            ->assertSee('class="ds-header ds-on-chrome no-print"', false)
+            ->assertSee('class="ds-header no-print"', false)
             ->assertSee(config('booking.name'))
-            ->assertSee(__('booking.nav.eyebrow'))
+            ->assertDontSee(__('booking.nav.eyebrow'))
             ->getContent();
 
-        $active = $this->xpath($html)->query('//nav[@aria-label="Hauptmenü"]//a[@aria-current="page"]');
+        $xp = $this->xpath($html);
+        $header = $xp->query('//body/header[contains(concat(" ", @class, " "), " ds-header ")]');
+        $this->assertSame(1, $header->length);
+        $this->assertStringNotContainsString('chrome', $header->item(0)->getAttribute('class'));
+        $this->assertStringNotContainsString('dark', $header->item(0)->getAttribute('class'));
+        $this->assertSame(0, $xp->query('//*[contains(@class,"ds-header__eyebrow")]')->length);
+
+        $active = $xp->query('//nav[@aria-label="Hauptmenü"]//a[@aria-current="page"]');
         $this->assertSame(1, $active->length);
         $this->assertSame('Kalender', trim($active->item(0)->textContent));
+    }
+
+    #[Test]
+    public function phone_menu_keeps_the_chrome_surface_inside_the_light_header(): void
+    {
+        $xp = $this->xpath($this->get('/calendar')->assertOk()->getContent());
+        $menu = $xp->query('//header//div[@id="phone-menu"]');
+        $this->assertSame(1, $menu->length);
+        $this->assertContains('ds-on-chrome', explode(' ', $menu->item(0)->getAttribute('class')));
+
+        $button = $xp->query('//header//button[contains(@class,"ds-header__menu-button")]');
+        $this->assertSame(1, $button->length);
+        $this->assertContains('ds-icon-btn--secondary', explode(' ', $button->item(0)->getAttribute('class')));
+        $this->assertNotSame('', $button->item(0)->getAttribute('aria-label'));
+    }
+
+    #[Test]
+    public function nav_items_follow_the_light_item_spec(): void
+    {
+        $css = (string) file_get_contents(resource_path('css/ds.css'));
+
+        $link = $this->ruleBody($css, '.ds-header__link,'."\n".'    .ds-header__menu-link');
+        $this->assertMatchesRegularExpression('/display:\s*inline-flex;/', $link);
+        $this->assertMatchesRegularExpression('/align-items:\s*center;/', $link);
+        $this->assertMatchesRegularExpression('/min-height:\s*var\(--spacing-touch-min\);/', $link);
+        $this->assertMatchesRegularExpression('/padding:\s*0 14px;/', $link);
+        $this->assertMatchesRegularExpression('/color:\s*var\(--color-ink\);/', $link);
+        $this->assertMatchesRegularExpression('/font:\s*500 /', $link);
+
+        $active = $this->ruleBody($css, '.ds-header__link[aria-current]');
+        $this->assertMatchesRegularExpression('/font-weight:\s*700;/', $active);
+        $this->assertMatchesRegularExpression('/box-shadow:\s*inset 0 -3px 0 var\(--color-clay\);/', $active);
+        $this->assertStringNotContainsString('background', $active);
+
+        $hover = $this->ruleBody($css, '.ds-header__link:hover,'."\n".'    .ds-header__link[aria-expanded="true"]');
+        $this->assertMatchesRegularExpression('/box-shadow:\s*inset 0 -3px 0 var\(--color-line-strong\);/', $hover);
+
+        $bar = $this->ruleBody($css, '.ds-header');
+        $this->assertMatchesRegularExpression('/background:\s*var\(--color-ground\);/', $bar);
+        $this->assertMatchesRegularExpression('/border-bottom:\s*1px solid var\(--color-line\);/', $bar);
+        $this->assertMatchesRegularExpression('/color:\s*var\(--color-ink\);/', $bar);
+
+        $panel = $this->ruleBody($css, '.ds-header__menu');
+        $this->assertMatchesRegularExpression('/background:\s*var\(--color-surface\);/', $panel);
+        $this->assertMatchesRegularExpression('/border:\s*1px solid var\(--color-line\);/', $panel);
+        $this->assertMatchesRegularExpression('/border-radius:\s*var\(--radius-lg\);/', $panel);
+    }
+
+    #[Test]
+    public function header_css_never_overrides_the_global_focus_ring(): void
+    {
+        $css = (string) file_get_contents(resource_path('css/ds.css'));
+        preg_match_all('/\.ds-header[^{]*\{[^}]*\}/', $css, $rules);
+
+        foreach ($rules[0] as $rule) {
+            $this->assertStringNotContainsString('outline', $rule);
+        }
+    }
+
+    private function ruleBody(string $css, string $selector): string
+    {
+        $pattern = '#(?:[{}]|\*/)\s*'.preg_quote($selector, '#').'\s*\{([^}]*)\}#';
+        $this->assertMatchesRegularExpression($pattern, $css, $selector);
+        preg_match($pattern, $css, $m);
+
+        return $m[1];
     }
 
     #[Test]

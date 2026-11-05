@@ -84,8 +84,8 @@ final class LoginTest extends DuskTestCase
                         ->waitFor('.app-header__actions.is-open');
                 }
 
-                $browser->waitFor('.app-header__desktop-logout button[type="submit"]')
-                    ->click('.app-header__desktop-logout button[type="submit"]')
+                $browser->waitFor('.ds-header__logout-form button[type="submit"]')
+                    ->click('.ds-header__logout-form button[type="submit"]')
                     ->waitForLocation('/login')
                     ->assertPathIs('/login');
             });
