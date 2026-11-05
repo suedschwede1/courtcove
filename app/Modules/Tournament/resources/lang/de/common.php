@@ -2,6 +2,7 @@
 
 return [
     'login_required' => 'Für den Turnierbereich musst du angemeldet sein.',
+    'simulation_member' => 'einfaches Mitglied ohne Teilnahme',
     'tabs' => [
         'overview' => 'Übersicht',
         'groups' => 'Gruppen',

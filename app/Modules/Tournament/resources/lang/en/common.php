@@ -2,6 +2,7 @@
 
 return [
     'login_required' => 'You need to be logged in for the tournament area.',
+    'simulation_member' => 'plain member without participation',
     'tabs' => [
         'overview' => 'Overview',
         'groups' => 'Groups',
