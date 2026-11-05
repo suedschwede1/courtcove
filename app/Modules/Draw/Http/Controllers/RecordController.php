@@ -15,10 +15,25 @@ class RecordController extends Controller
 {
     private const JSON_FLAGS = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
 
-    /** Placeholder until the HTML record page is implemented. */
     public function show(string $slug): Response
     {
-        return $this->noCache(response('Not implemented', 501));
+        $draw = Draw::query()->where('slug', $slug)->first();
+
+        if ($draw === null) {
+            return $this->noCache(response()->view('draw::record', [
+                'draw' => null, 'payload' => [], 'result' => null, 'revealed' => false,
+            ], 404));
+        }
+
+        $revealed = $draw->isRevealed();
+        $result = $revealed && $draw->result !== null ? json_decode($draw->result, true) : null;
+
+        return $this->noCache(response()->view('draw::record', [
+            'draw' => $draw,
+            'payload' => $draw->payloadArray(),
+            'result' => is_array($result) ? $result : null,
+            'revealed' => $revealed,
+        ]));
     }
 
     public function json(string $slug): JsonResponse
