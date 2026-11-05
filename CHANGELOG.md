@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Phase 2: participants list; contacts only for participants.
 - Phase 2: knockout bracket in the new design.
 - Phase 2: championship schedule with status and group filters in the new design.
 - Phase 2: group tables with tie-break explanation in the new design.
