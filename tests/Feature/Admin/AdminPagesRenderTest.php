@@ -3,6 +3,7 @@
 namespace Tests\Feature\Admin;
 
 use App\Models\Booking;
+use App\Models\LoginHistory;
 use App\Models\Reservation;
 use App\Models\Square;
 use App\Models\User;
@@ -57,6 +58,32 @@ final class AdminPagesRenderTest extends TestCase
                 }
 
                 return route('admin.bookings.edit', [$booking, 'occurrence' => '2026-07-13']);
+            }],
+            'login_history' => [function (): string {
+                $member = User::factory()->create(['alias' => 'Pat Example']);
+                LoginHistory::record((int) $member->uid, '203.0.113.5', 'AT', 'success');
+
+                return route('admin.login-history.index');
+            }],
+            'user_login_history' => [function (): string {
+                $member = User::factory()->create(['alias' => 'Pat Example']);
+                LoginHistory::record((int) $member->uid, '203.0.113.5', 'AT', 'failed');
+
+                return route('admin.users.login-history', $member);
+            }],
+            'api_tokens' => [function (): string {
+                $member = User::factory()->create(['alias' => 'Pat Example']);
+                $member->createToken('Example phone');
+
+                return route('admin.api-tokens.index');
+            }],
+            'testmail' => [fn (): string => route('admin.testmail.index')],
+            'booking_show' => [function (): string {
+                $square = Square::factory()->create(['name' => 'Court A']);
+                $booking = Booking::factory()->create(['sid' => $square->sid, 'status' => 'single']);
+                Reservation::factory()->create(['bid' => $booking->bid, 'date' => '2026-07-13', 'time_start' => '10:00:00', 'time_end' => '11:00:00']);
+
+                return route('admin.bookings.show', $booking);
             }],
         ];
     }

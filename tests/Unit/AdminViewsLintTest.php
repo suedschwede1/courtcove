@@ -33,6 +33,11 @@ final class AdminViewsLintTest extends TestCase
             'admin/users/_form.blade.php',
             'admin/users/create.blade.php',
             'admin/users/edit.blade.php',
+            'admin/login-history/index.blade.php',
+            'admin/users/login-history.blade.php',
+            'admin/api-tokens/index.blade.php',
+            'admin/testmail/index.blade.php',
+            'admin/bookings/show.blade.php',
         ];
 
         return array_combine($paths, array_map(fn (string $p) => [$p], $paths));

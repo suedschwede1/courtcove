@@ -914,6 +914,15 @@
             flex: 1 1 0;
         }
 
+        /* Forms wrapping a single button (cancel/delete/revoke) share the row like direct buttons. */
+        .ds-admin-main .ds-admin-form-page .ds-admin-actions__group > form {
+            flex: 1 1 0;
+        }
+
+        .ds-admin-main .ds-admin-form-page .ds-admin-actions__group > form > .ds-btn {
+            width: 100%;
+        }
+
         .ds-popup .ds-admin-head__title {
             font-size: 28px;
         }
@@ -1248,6 +1257,34 @@
     @media (width < 30rem) {
         .ds-popup__body {
             padding: 16px;
+        }
+    }
+
+    /* Batch 1 pages: country chips, token row action. */
+    .ds-admin-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .ds-admin-rows .ds-admin-actions-cell form {
+        margin: 0;
+    }
+
+    @media (width >= 48rem) {
+        .ds-admin-rows .ds-table--list .ds-admin-actions-cell {
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .ds-admin-tokens .ds-table--list td {
+            padding-block: 10px;
+        }
+
+        .ds-admin-tokens .ds-table--list td .ds-btn {
+            min-height: 38px;
+            padding: 0 14px;
+            font-size: 14px;
         }
     }
 }
