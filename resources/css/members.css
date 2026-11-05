@@ -562,8 +562,13 @@
         list-style: none;
     }
 
-    .mbr-header-form {
-        display: contents;
+    /* DSGVO side card (mockup "Datenschutz"): warm border and title so the irreversible action stands apart. */
+    .mbr-privacy-card {
+        border-color: var(--color-danger-soft);
+    }
+
+    .mbr-privacy-card .ds-card__title {
+        color: var(--color-danger);
     }
 
     .mbr-dues-card {

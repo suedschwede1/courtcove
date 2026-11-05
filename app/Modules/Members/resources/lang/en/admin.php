@@ -71,6 +71,8 @@ return [
         'anonymize_confirm_dialog' => 'Really anonymize this member irreversibly?',
         'anonymize_confirmation_label' => 'Type ANONYMISIEREN to confirm',
         'anonymize_button' => 'Anonymize',
+        'privacy_card' => 'Data protection',
+        'anonymizable_from' => 'Can be anonymized from :date (retention period of :years years after leaving).',
         'anonymized_at' => 'Anonymized on :date',
         'anonymize_field_locked' => 'Field locked because this member has been anonymized.',
         'send_mail' => 'Send group mail',

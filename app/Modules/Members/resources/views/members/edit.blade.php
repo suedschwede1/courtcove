@@ -14,13 +14,6 @@
 @endphp
 <x-members::page-header :title="$member->fullName()">
     <x-slot:actions>
-        @if($member->left_at !== null && $member->anonymized_at === null)
-            <form method="POST" action="{{ route('members.anonymize', $member) }}" onsubmit="const c = prompt({{ Js::from(__('members::admin.members.anonymize_confirmation_label')) }}); if (c === null) return false; this.querySelector('input[name=confirmation]').value = c;" class="mbr-header-form">
-                @csrf
-                <input type="hidden" name="confirmation" value="">
-                <x-ui.button type="submit" variant="danger" :block="false">{{ __('members::admin.members.delete') }}</x-ui.button>
-            </form>
-        @endif
         <x-ui.button variant="secondary" :block="false" :href="route('members.index')">{{ __('members::admin.common.cancel') }}</x-ui.button>
         <x-ui.button type="submit" :block="false" form="member-edit-form" class="mbr-phone-hidden">{{ __('members::admin.common.save') }}</x-ui.button>
     </x-slot:actions>
@@ -191,10 +184,24 @@
 
     @include('members::members._history', ['changes' => $changes, 'member' => $member])
 
+    {{-- DSGVO: the anonymise action only appears once the retention period has really passed (the server re-checks). --}}
     @if($member->anonymized_at !== null)
         <x-ui.notice tone="neutral">{{ __('members::admin.members.anonymized_at', ['date' => $member->anonymized_at->format('d.m.Y')]) }}</x-ui.notice>
-    @elseif($member->left_at !== null)
-        <x-ui.notice tone="attention">{{ __('members::admin.members.anonymize_warning') }}</x-ui.notice>
+    @elseif($member->isAnonymizable())
+        <x-ui.card class="mbr-privacy-card" :title="__('members::admin.members.privacy_card')">
+            <div class="flex flex-col gap-3">
+                <x-ui.notice tone="attention">{{ __('members::admin.members.anonymize_warning') }}</x-ui.notice>
+                <form method="POST" action="{{ route('members.anonymize', $member) }}" onsubmit="const c = prompt({{ Js::from(__('members::admin.members.anonymize_confirmation_label')) }}); if (c === null) return false; this.querySelector('input[name=confirmation]').value = c;">
+                    @csrf
+                    <input type="hidden" name="confirmation" value="">
+                    <x-ui.button type="submit" variant="danger">{{ __('members::admin.members.anonymize_button') }}</x-ui.button>
+                </form>
+            </div>
+        </x-ui.card>
+    @elseif($member->anonymizableFrom() !== null)
+        <x-ui.card class="mbr-privacy-card" :title="__('members::admin.members.privacy_card')">
+            <p class="m-0 text-body-s text-ink-2">{{ __('members::admin.members.anonymizable_from', ['date' => $member->anonymizableFrom()->format('d.m.Y'), 'years' => \App\Modules\Members\Models\Member::retentionYears()]) }}</p>
+        </x-ui.card>
     @endif
 </div>
 </div>

@@ -71,6 +71,8 @@ return [
         'anonymize_confirm_dialog' => 'Mitglied wirklich unwiderruflich anonymisieren?',
         'anonymize_confirmation_label' => 'Zur Bestätigung ANONYMISIEREN eingeben',
         'anonymize_button' => 'Anonymisieren',
+        'privacy_card' => 'Datenschutz',
+        'anonymizable_from' => 'Anonymisierbar ab :date (Aufbewahrungsfrist :years Jahre nach dem Austritt).',
         'anonymized_at' => 'Anonymisiert am :date',
         'anonymize_field_locked' => 'Feld gesperrt, da dieses Mitglied anonymisiert wurde.',
         'send_mail' => 'Rundmail senden',
