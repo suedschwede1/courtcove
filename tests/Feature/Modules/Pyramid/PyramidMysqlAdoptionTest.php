@@ -10,6 +10,7 @@ use App\Modules\Pyramid\Services\ChallengeService;
 use App\Modules\Pyramid\Services\ResultService;
 use App\Modules\Pyramid\Support\PyramidRuleException;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use PHPUnit\Framework\Attributes\Group;
@@ -267,6 +268,70 @@ class PyramidMysqlAdoptionTest extends MysqlTestCase
         $this->assertNotNull($challenges->check($ladder, $this->playerAt($ladder, 8), $paused->fresh()));
         $this->assertNull($challenges->check($ladder, $this->playerAt($ladder, 8), $this->playerAt($ladder, 6)));
         $this->assertRankingIntact((int) $ladder->id);
+    }
+
+    /**
+     * @return array{int, string}
+     */
+    private function preflight(): array
+    {
+        $code = Artisan::call('phase2:preflight', ['module' => 'pyramid']);
+
+        return [$code, Artisan::output()];
+    }
+
+    #[Test]
+    public function preflight_passes_on_the_adopted_live_shape(): void
+    {
+        $this->loadLiveSchema();
+        $this->runMigrations();
+        $this->makeLadder(4);
+
+        [$code, $output] = $this->preflight();
+
+        $this->assertSame(0, $code, $output);
+        $this->assertStringContainsString('[PASS] charset:bs_pyramid_players', $output);
+        $this->assertStringContainsString('[PASS] schema-version', $output);
+    }
+
+    #[Test]
+    public function preflight_spec_matches_fresh_migrations(): void
+    {
+        $this->dropTables();
+        $this->runMigrations();
+
+        [$code, $output] = $this->preflight();
+
+        $this->assertSame(0, $code, $output);
+        $this->assertStringNotContainsString('[WARN] columns', $output);
+        $this->assertStringContainsString('[PASS] charset:bs_pyramid_events', $output);
+    }
+
+    #[Test]
+    public function enum_drift_fails(): void
+    {
+        $this->loadLiveSchema();
+        $this->runMigrations();
+        DB::statement("ALTER TABLE bs_pyramid_challenges MODIFY status ENUM('open','scheduled','played','declined','withdrawn','forfeited') NOT NULL DEFAULT 'open'");
+
+        [$code, $output] = $this->preflight();
+
+        $this->assertSame(1, $code, $output);
+        $this->assertStringContainsString('[FAIL] columns:bs_pyramid_challenges', $output);
+    }
+
+    #[Test]
+    public function utf8mb3_table_fails_charset(): void
+    {
+        $this->loadLiveSchema();
+        $this->runMigrations();
+        DB::statement('ALTER TABLE bs_pyramid_grants CONVERT TO CHARACTER SET utf8mb3');
+
+        [$code, $output] = $this->preflight();
+
+        $this->assertSame(1, $code, $output);
+        $this->assertStringContainsString('[FAIL] charset:bs_pyramid_grants', $output);
+        $this->assertStringContainsString('[PASS] charset:bs_pyramid_players', $output);
     }
 
     private function assertRuleRejected(callable $action): void
