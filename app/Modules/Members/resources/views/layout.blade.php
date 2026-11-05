@@ -5,7 +5,7 @@
 @extends('layouts.app')
 
 @section('title')
-    @yield('members-title') - {{ __('booking.nav.members') }}
+    @yield('members-title') - {{ __('members::admin.area.eyebrow') }}
 @endsection
 
 @push('head')

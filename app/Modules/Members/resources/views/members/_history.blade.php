@@ -15,6 +15,7 @@
         'fee_category_id' => __('members::admin.members.fee_category'),
         'joined_at' => __('members::admin.members.joined_at'),
         'left_at' => __('members::admin.members.left_at'),
+        'user_id' => __('members::admin.members.user_account'),
     ];
     $formatHistoryValue = function ($field, $value) use ($dateFields) {
         if ($value === null || $value === '') {

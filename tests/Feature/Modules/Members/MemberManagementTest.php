@@ -401,8 +401,8 @@ class MemberManagementTest extends TestCase
 
         $response = $this->actingAs($this->admin())->get('/members');
 
-        $response->assertOk()->assertSeeInOrder(['Verknuepft Mitglied', 'Ja']);
-        $response->assertSeeInOrder(['Unverknuepft Mitglied', 'Nein']);
+        $response->assertOk()->assertSeeInOrder(['Verknuepft Mitglied', 'verknüpft']);
+        $response->assertSeeInOrder(['Unverknuepft Mitglied', '–']);
     }
 
     #[Test]

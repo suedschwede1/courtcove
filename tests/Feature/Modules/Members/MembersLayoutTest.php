@@ -110,7 +110,7 @@ class MembersLayoutTest extends TestCase
             $this->assertSame(1, substr_count($html, '<h1'), $url);
             $this->assertStringContainsString('<p class="mbr-page-header__eyebrow">Mitgliederverwaltung</p>', $html, $url);
             $this->assertStringContainsString('<meta name="csrf-token"', $html, $url);
-            $this->assertMatchesRegularExpression('#<title>[^<]+ - '.preg_quote(e(__('booking.nav.members')), '#').'\s*</title>#', $html, $url);
+            $this->assertMatchesRegularExpression('#<title>[^<]+ - '.preg_quote(e(__('members::admin.area.eyebrow')), '#').'\s*</title>#', $html, $url);
 
             // The header marks "Mitglieder" as the current area, never the administration.
             $this->assertMatchesRegularExpression('#<a href="'.preg_quote(route('members.dashboard'), '#').'"[^>]*aria-current="page"#', $html, $url);
