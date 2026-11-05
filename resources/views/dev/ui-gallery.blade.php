@@ -109,5 +109,15 @@
                 <x-ui.pagination :paginator="new \Illuminate\Pagination\LengthAwarePaginator(range(1, 10), 90, 10, 4, ['path' => '#'])" />
             </div>
         </section>
+        <section>
+            <h2>Tabs and chips</h2>
+            <x-ui.tabs label="Example sections" :items="[['label' => 'Overview', 'url' => '#', 'active' => true], ['label' => 'Groups', 'url' => '#', 'count' => 4], ['label' => 'Schedule', 'url' => '#']]" />
+            <div class="mt-4 flex flex-wrap gap-2">
+                <x-ui.chip href="#" :active="true">Open</x-ui.chip>
+                <x-ui.chip href="#">Done</x-ui.chip>
+                <x-ui.chip>All</x-ui.chip>
+                <x-ui.chip :active="true">Mine</x-ui.chip>
+            </div>
+        </section>
     </div>
 @endsection

@@ -540,6 +540,84 @@
         color: var(--color-ink-3);
     }
 
+    .ds-tabs {
+        display: flex;
+        gap: 4px;
+        overflow-x: auto;
+        scrollbar-width: thin;
+        border-bottom: 1px solid var(--color-line);
+    }
+
+    .ds-tabs__tab {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 16px;
+        min-height: var(--spacing-touch-min);
+        border-bottom: 3px solid transparent;
+        color: var(--color-ink-2);
+        font-weight: 600;
+        white-space: nowrap;
+        text-decoration: none;
+    }
+
+    .ds-tabs__tab[aria-current='page'] {
+        border-bottom-color: var(--color-clay);
+        color: var(--color-ink);
+        font-weight: 700;
+    }
+
+    .ds-tabs__count {
+        padding: 0 8px;
+        border-radius: var(--radius-pill);
+        background: var(--color-sand);
+        font: 700 12px / 20px var(--font-body);
+    }
+
+    .ds-chip {
+        display: inline-flex;
+        align-items: center;
+        min-height: var(--spacing-touch-min);
+        padding: 0 14px;
+        border: 1px solid var(--color-line);
+        border-radius: var(--radius-pill);
+        background: var(--color-surface);
+        color: var(--color-ink-2);
+        font-weight: 600;
+        white-space: nowrap;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .ds-chip[aria-current='true'],
+    .ds-chip[aria-pressed='true'] {
+        border-color: var(--color-chrome);
+        background: var(--color-chrome);
+        color: var(--color-surface);
+    }
+
+
+    @media (width < 48rem) {
+        .ds-tabs {
+            gap: 8px;
+            border-bottom: 0;
+        }
+
+        .ds-tabs__tab {
+            padding: 0 14px;
+            border: 1px solid var(--color-line);
+            border-radius: var(--radius-pill);
+            background: var(--color-surface);
+        }
+
+        .ds-tabs__tab[aria-current='page'] {
+            border-color: var(--color-chrome);
+            background: var(--color-chrome);
+            color: var(--color-surface);
+        }
+    }
+
     @media (width < 48rem) {
         .ds-table--kv th[scope='row'] {
             width: auto;
