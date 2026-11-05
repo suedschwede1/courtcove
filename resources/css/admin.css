@@ -1074,6 +1074,160 @@
         box-sizing: border-box;
     }
 
+    /* List pattern (member list): filter card, bulk bar, initials cell, checkbox column. */
+    .ds-admin-filter > .ds-field.ds-admin-filter__wide {
+        flex: 3 1 16rem;
+        max-width: none;
+    }
+
+    .ds-admin-bulk {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 20px;
+        background: var(--color-clay-soft);
+        border-bottom: 1px solid var(--color-line);
+    }
+
+    .ds-admin-bulk[x-cloak] {
+        display: none;
+    }
+
+    .ds-admin-bulk__count {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--color-ink-2);
+    }
+
+    .ds-admin-bulk__actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .ds-admin-bulk__clear {
+        margin-left: auto;
+    }
+
+    .ds-admin-person {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+    }
+
+    .ds-admin-initials {
+        display: inline-flex;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: var(--color-sand);
+        color: var(--color-ink-2);
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .ds-admin-check {
+        width: 20px;
+        height: 20px;
+        margin: 0;
+        accent-color: var(--color-clay);
+        cursor: pointer;
+    }
+
+    @media (width >= 48rem) {
+        .ds-admin-users .ds-table--list td {
+            padding-block: 10px;
+        }
+
+        .ds-admin-users .ds-table--list .ds-admin-check-cell {
+            width: 1%;
+        }
+
+        .ds-admin-users .ds-table--list .ds-admin-actions-cell {
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .ds-admin-users .ds-table--list td .ds-btn {
+            min-height: 38px;
+            padding: 0 14px;
+            font-size: 14px;
+        }
+    }
+
+    @media (width < 48rem) {
+        .ds-admin-bulk {
+            padding: 10px 12px;
+            border: 1px solid var(--color-line);
+            border-radius: var(--radius-lg);
+            margin-bottom: 8px;
+        }
+
+        .ds-admin-users .ds-table--stack tr {
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            column-gap: 12px;
+            align-items: center;
+        }
+
+        .ds-admin-rows.ds-admin-users .ds-table--stack tr.ds-row--own {
+            background: var(--color-clay-soft);
+        }
+
+        .ds-admin-users .ds-table--stack td {
+            grid-column: 2 / -1;
+        }
+
+        .ds-admin-users .ds-table--stack td.ds-admin-check-cell {
+            grid-column: 1;
+            grid-row: 1 / span 2;
+        }
+
+        .ds-admin-users .ds-table--stack td.ds-cell--title {
+            grid-column: 2;
+            grid-row: 1;
+        }
+
+        .ds-admin-users .ds-table--stack td.ds-admin-users__status {
+            grid-column: 3;
+            grid-row: 1;
+        }
+
+        .ds-admin-users .ds-table--stack td.ds-admin-users__mail {
+            grid-column: 2;
+            grid-row: 2;
+            font-size: 13px;
+            color: var(--color-ink-2);
+        }
+
+        .ds-admin-users .ds-table--stack td.ds-admin-actions-cell {
+            grid-column: 1 / -1;
+            margin-top: 6px;
+        }
+
+        .ds-admin-users .ds-table--stack td.ds-admin-check-cell::before,
+        .ds-admin-users .ds-table--stack td.ds-admin-users__mail::before,
+        .ds-admin-users .ds-table--stack td.ds-admin-users__status::before,
+        .ds-admin-users .ds-table--stack td.ds-admin-actions-cell::before {
+            content: none;
+        }
+
+        .ds-admin-users .ds-admin-actions-cell .ds-btn {
+            flex: 1 1 auto;
+        }
+
+        .ds-admin-initials {
+            width: 40px;
+            height: 40px;
+            font-size: 14px;
+        }
+    }
+
     /* The popup is an iframe about 660px wide on desktop; only a real phone width gets the tighter gutter. */
     @media (width < 30rem) {
         .ds-popup__body {

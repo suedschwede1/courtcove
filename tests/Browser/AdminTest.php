@@ -58,7 +58,7 @@ final class AdminTest extends DuskTestCase
             $this->browse(function (Browser $browser) use ($admin): void {
                 $browser->loginAs($admin)
                     ->visit('/admin/users?q=dusk_ulist')
-                    ->assertPresent('table.ui-table')
+                    ->assertPresent('table.ds-table')
                     ->assertSee('dusk_ulist');
             });
         } finally {

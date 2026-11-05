@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Admin member list with search card, status badges, initials and card rows on phones.
 - Admin booking form in cards (who and where, when, note) with tiles for players, status and series scope; works the same in the calendar popup.
 - Admin overview and statistics show key figure tiles and card lists on phones in the new style.
 - Admin dialogs opened from the calendar get the dark title bar and a 44 px close button.

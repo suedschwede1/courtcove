@@ -29,6 +29,7 @@ final class AdminViewsLintTest extends TestCase
             'admin/bookings/_update.blade.php',
             'admin/bookings/_create.blade.php',
             'admin/bookings/_script.blade.php',
+            'admin/users/index.blade.php',
         ];
 
         return array_combine($paths, array_map(fn (string $p) => [$p], $paths));

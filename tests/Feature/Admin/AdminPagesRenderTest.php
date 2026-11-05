@@ -33,6 +33,11 @@ final class AdminPagesRenderTest extends TestCase
         return [
             'dashboard' => [fn (): string => route('admin.dashboard')],
             'statistics' => [fn (): string => route('admin.statistics.index', ['searched' => 1])],
+            'users_index' => [function (): string {
+                User::factory()->create(['alias' => 'Pat Example', 'status' => 'enabled']);
+
+                return route('admin.users.index', ['q' => 'Example']);
+            }],
             'booking_edit' => [function (): string {
                 $square = Square::factory()->create(['name' => 'Court A']);
                 $booking = Booking::factory()->create(['sid' => $square->sid, 'status' => 'subscription', 'quantity' => 4]);
