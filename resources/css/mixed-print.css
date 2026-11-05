@@ -1,0 +1,241 @@
+/*
+ * Printable Mixed scorecards (mixed::print.*): standalone A4 portrait pages, two slips per sheet.
+ * Loaded after app.css, so the tokens (var(--color-*), var(--font-*)) come from there; no own colours.
+ *
+ * Two slips per sheet come from the min-height: A4 is 297 mm high, minus 2 x 10 mm page margin = 277 mm.
+ * The head on page 1 takes up to about 25 mm and 4 mm lie between the slips, so (277 - 25 - 4) / 2 = 124 mm;
+ * 120 mm leaves room for borders. Three slips never fit (3 x 120 + 2 x 4 = 368 mm), two always do.
+ * The tallest slip (blank, group of five) measures about 121 mm, so its rows are kept tight on purpose.
+ */
+
+@page {
+    size: A4 portrait;
+    margin: 10mm;
+}
+
+.sc-page {
+    box-sizing: border-box;
+    max-width: 210mm;
+    margin: 0 auto;
+    padding: 10mm;
+    background: var(--color-surface);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    font-size: 11pt;
+    line-height: 1.35;
+}
+
+.sc-page *,
+.sc-page *::before,
+.sc-page *::after {
+    box-sizing: border-box;
+}
+
+.sc-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 6mm;
+}
+
+/* Head above the slips: printed once, not on every slip. */
+.sc-head {
+    margin-bottom: 5mm;
+}
+
+.sc-head h1 {
+    margin: 0 0 1mm;
+    font-family: var(--font-display);
+    font-size: 16pt;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.sc-sub {
+    font-size: 10pt;
+    color: var(--color-ink-2);
+}
+
+.sc-sitters {
+    margin-top: 2mm;
+    font-size: 10pt;
+}
+
+.sc-sitters strong {
+    font-weight: 700;
+}
+
+/* Block flow, not grid: forced page breaks after a slip are reliable in every browser's print engine. */
+.sc-grid > .sc-card + .sc-card {
+    margin-top: 4mm;
+}
+
+/* The slip. The dashed edge shows where to cut without looking like a form. */
+.sc-card {
+    display: block;
+    min-height: 120mm;
+    padding: 4mm;
+    border: 1px dashed var(--color-ink-3);
+    break-inside: avoid;
+    page-break-inside: avoid;
+}
+
+.sc-card-title {
+    margin: 0 0 1mm;
+    font-family: var(--font-display);
+    font-size: 14pt;
+    font-weight: 700;
+    line-height: 1.15;
+}
+
+.sc-card-sub {
+    margin-bottom: 3mm;
+    font-size: 9pt;
+    color: var(--color-ink-2);
+}
+
+.sc-section {
+    margin: 3mm 0 1mm;
+    font-size: 9pt;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--color-ink-3);
+}
+
+.sc-players {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    columns: 2;
+    font-size: 10pt;
+}
+
+.sc-players li {
+    margin-bottom: 1mm;
+    break-inside: avoid;
+    overflow-wrap: anywhere;
+}
+
+/* Pairing rows: number | team A | boxes | team B (| sitting). */
+.sc-pairs {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.sc-pair {
+    display: grid;
+    grid-template-columns: 6mm minmax(0, 1fr) 30mm minmax(0, 1fr);
+    align-items: center;
+    gap: 0 1mm;
+    padding: 1mm 0;
+    font-size: 10pt;
+}
+
+.sc-pair + .sc-pair {
+    border-top: 1px solid var(--color-line);
+}
+
+.sc-pairs--sitting .sc-pair {
+    grid-template-columns: 6mm minmax(0, 1fr) 30mm minmax(0, 1fr) 16mm;
+}
+
+/* Mexicano: one team per row with its own box. */
+.sc-pairs--single .sc-pair {
+    grid-template-columns: minmax(0, 1fr) 14mm;
+    padding: 2.5mm 0;
+}
+
+.sc-no {
+    color: var(--color-ink-3);
+}
+
+/* Two long double names must never widen the slip; overflow-wrap also catches names without spaces. */
+.sc-team {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.sc-team-r {
+    text-align: right;
+}
+
+.sc-boxes {
+    white-space: nowrap;
+    text-align: center;
+}
+
+/* The empty result box: fixed size so there is room for handwriting. */
+.sc-box {
+    display: inline-block;
+    width: 11mm;
+    height: 8mm;
+    border: 1.5px solid var(--color-ink);
+    vertical-align: middle;
+}
+
+.sc-colon {
+    display: inline-block;
+    width: 4mm;
+    font-weight: 700;
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* Blank slips: lines to fill in and position codes. */
+.sc-line {
+    display: inline-block;
+    min-width: 18mm;
+    height: 1em;
+    border-bottom: 1px solid var(--color-ink);
+    vertical-align: baseline;
+}
+
+.sc-name {
+    display: flex;
+    align-items: flex-end;
+    gap: 2mm;
+    height: 6.5mm;
+    margin-bottom: 0.5mm;
+}
+
+.sc-name-line {
+    flex: 1;
+    border-bottom: 1px solid var(--color-ink);
+}
+
+.sc-code {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Page break after the last slip of a wave: wave 1 can be handed out as one complete stack. */
+.sc-wave-end {
+    break-after: page;
+    page-break-after: always;
+}
+
+.sc-grid > .sc-wave-end:last-child {
+    break-after: auto;
+    page-break-after: auto;
+}
+
+@media print {
+    /* This stylesheet is loaded on the print pages only, so the root rule touches nothing else. */
+    html {
+        background: var(--color-surface);
+    }
+
+    .sc-page {
+        max-width: none;
+        padding: 0;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+}

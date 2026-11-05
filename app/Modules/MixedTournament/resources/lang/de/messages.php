@@ -61,4 +61,5 @@ return [
     'court_count_range' => 'Anzahl der Plätze muss zwischen 1 und 99 liegen.',
     'csv_invalid' => 'Bitte eine CSV-Textdatei mit höchstens 2 MB auswählen.',
     'csv_label_too_long' => 'Der Name ":label" ist länger als 120 Zeichen.',
+    'scorecard_only_confirmed' => 'Die Scorecard gibt es nur für eine bestätigte, noch nicht abgeschlossene Runde.',
 ];

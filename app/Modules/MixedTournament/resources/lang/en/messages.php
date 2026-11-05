@@ -61,4 +61,5 @@ return [
     'court_count_range' => 'The number of courts must be between 1 and 99.',
     'csv_invalid' => 'Please choose a CSV text file of at most 2 MB.',
     'csv_label_too_long' => 'The name ":label" is longer than 120 characters.',
+    'scorecard_only_confirmed' => 'The scorecard is only available for a confirmed round that is not yet completed.',
 ];
