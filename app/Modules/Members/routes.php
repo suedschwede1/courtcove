@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Modules\Members\Http\Controllers\ChangeLogController;
 use App\Modules\Members\Http\Controllers\ClubRoleController;
 use App\Modules\Members\Http\Controllers\DashboardController;
 use App\Modules\Members\Http\Controllers\DsgvoSettingsController;
@@ -18,6 +19,7 @@ Route::middleware(['auth', 'can:admin.members'])
     ->group(function (): void {
         Route::get('members/dashboard', [DashboardController::class, 'index'])->name('members.dashboard');
         Route::get('members/export', [MemberExportController::class, 'export'])->name('members.export');
+        Route::get('members/changes', [ChangeLogController::class, 'index'])->name('members.changes.index');
 
         Route::get('members/fiscal-years', [FiscalYearController::class, 'index'])->name('members.fiscal-years.index');
         Route::get('members/fiscal-years/create', [FiscalYearController::class, 'create'])->name('members.fiscal-years.create');

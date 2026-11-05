@@ -188,7 +188,7 @@
         </div>
     </x-ui.card>
 
-    @include('members::members._history', ['changes' => $changes])
+    @include('members::members._history', ['changes' => $changes, 'member' => $member])
 
     @if($member->anonymized_at !== null)
         <x-ui.notice tone="neutral">{{ __('members::admin.members.anonymized_at', ['date' => $member->anonymized_at->format('d.m.Y')]) }}</x-ui.notice>

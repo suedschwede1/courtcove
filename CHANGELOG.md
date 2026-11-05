@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Members: new tab "Protokoll" lists every change to members (newest first, filter by name and period, paged); personal fields only show "… geändert" without values, and anonymised members never show old personal data, also in the history on their detail page (GDPR).
 - Members: the link to a booking-system account is shown as optional: list column "Benutzerkonto (optional)" with "verknüpft"/"–", and on the detail page a side card "Benutzerkonto · optional" to link or unlink (unlinking is logged); mail, export, dues and filters keep working for members without an account.
 - Admin sidebar: the group "Mitglieder" is now "Benutzer" with only "Benutzerkonten" and "Anmeldeverlauf" (booking-system logins); the member module and "Mitglieder-Einstellungen" entries are gone, member management is reached through the header.
 - Members area stands on its own: the pages use the normal app header instead of the admin shell (no admin sidebar), with eyebrow "Mitgliederverwaltung" and one tab row Übersicht · Mitglieder · Beiträge · Rundmail · Einstellungen (settings pages get a second row); the list offers Export, and on phones "Mitglied anlegen"/"Speichern" is a full-width button pinned at the bottom.

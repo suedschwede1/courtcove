@@ -160,6 +160,17 @@ return [
         'no_changes' => 'No field changes.',
         'empty' => 'No changes recorded.',
         'change' => ':field: :old → :new',
+        'changed' => ':field changed',
+        'anonymized' => 'Anonymised',
+    ],
+    'changes' => [
+        'title' => 'Log',
+        'list_title' => 'Changes to members',
+        'search' => 'Member',
+        'from' => 'From',
+        'to' => 'To',
+        'empty' => 'No changes in this period.',
+        'system' => 'System',
     ],
     'functions' => [
         'title' => 'Roles',

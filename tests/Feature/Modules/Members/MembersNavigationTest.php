@@ -16,12 +16,13 @@ class MembersNavigationTest extends TestCase
     {
         $tabs = MembersNavigation::tabs($this->requestFor('members.dashboard'));
 
-        $this->assertSame(['dashboard', 'members', 'dues', 'mail', 'settings'], array_column($tabs, 'key'));
+        $this->assertSame(['dashboard', 'members', 'dues', 'mail', 'changes', 'settings'], array_column($tabs, 'key'));
         $expected = [
             'dashboard' => ['members.dashboard', 'members::admin.dashboard.title'],
             'members' => ['members.index', 'members::admin.members.title'],
             'dues' => ['members.dues.index', 'members::admin.dues.title'],
             'mail' => ['members.mail.index', 'members::admin.mail.title'],
+            'changes' => ['members.changes.index', 'members::admin.changes.title'],
             'settings' => ['members.fiscal-years.index', 'members::admin.settings.title'],
         ];
         foreach ($tabs as $tab) {

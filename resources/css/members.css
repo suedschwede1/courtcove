@@ -100,6 +100,46 @@
     }
 }
 
+/* Change rows (Protokoll tab, overview "Zuletzt geändert"): what changed, then when and who. */
+@layer components {
+    .mbr-changes {
+        display: flex;
+        flex-direction: column;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .mbr-change {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding: 12px 0;
+        border-top: 1px solid var(--color-line-soft);
+    }
+
+    .mbr-change:first-child {
+        padding-top: 0;
+        border-top: 0;
+    }
+
+    .mbr-change:last-child {
+        padding-bottom: 0;
+    }
+
+    .mbr-change__what {
+        margin: 0;
+        font-weight: 600;
+        color: var(--color-ink);
+    }
+
+    .mbr-change__meta {
+        margin: 0;
+        font-size: var(--text-body-s);
+        color: var(--color-ink-3);
+    }
+}
+
 /* Member detail: main column (master data, dues) and side column (account link, history); stacked on phones. */
 @layer components {
     .mbr-detail {
@@ -358,6 +398,15 @@
 }
 
 .mbr-row-link:hover {
+    text-decoration: underline;
+}
+
+.mbr-change__name {
+    color: var(--color-ink);
+    font-weight: 700;
+}
+
+.mbr-change__name:hover {
     text-decoration: underline;
 }
 

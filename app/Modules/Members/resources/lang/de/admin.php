@@ -160,6 +160,17 @@ return [
         'no_changes' => 'Keine Feldänderungen.',
         'empty' => 'Keine Änderungen protokolliert.',
         'change' => ':field: :old → :new',
+        'changed' => ':field geändert',
+        'anonymized' => 'Anonymisiert',
+    ],
+    'changes' => [
+        'title' => 'Protokoll',
+        'list_title' => 'Änderungen an Mitgliedern',
+        'search' => 'Mitglied',
+        'from' => 'Von',
+        'to' => 'Bis',
+        'empty' => 'Keine Änderungen im gewählten Zeitraum.',
+        'system' => 'System',
     ],
     'functions' => [
         'title' => 'Funktionen',

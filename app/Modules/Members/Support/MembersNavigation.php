@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 
 /**
  * Navigation of the standalone Members area: one row of tabs under the page header
- * (overview, members, dues, mail, settings) and, on the settings pages, a second row
+ * (overview, members, dues, mail, change log, settings) and, on the settings pages, a second row
  * with the settings pages. An entry is active when the current route matches one of
  * its patterns.
  */
@@ -24,6 +24,7 @@ final class MembersNavigation
         'members' => ['members.index', ['members.index', 'members.create', 'members.edit', 'members.payments.*'], 'members::admin.members.title'],
         'dues' => ['members.dues.index', ['members.dues.*'], 'members::admin.dues.title'],
         'mail' => ['members.mail.index', ['members.mail.index', 'members.mail.templates.*'], 'members::admin.mail.title'],
+        'changes' => ['members.changes.index', ['members.changes.*'], 'members::admin.changes.title'],
         'settings' => ['members.fiscal-years.index', [], 'members::admin.settings.title'],
     ];
 

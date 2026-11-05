@@ -24,7 +24,7 @@ class MembersLayoutTest extends TestCase
     private const VIEWS = 'app/Modules/Members/resources/views/';
 
     /** Tab routes in order. */
-    private const TABS = ['members.dashboard', 'members.index', 'members.dues.index', 'members.mail.index', 'members.fiscal-years.index'];
+    private const TABS = ['members.dashboard', 'members.index', 'members.dues.index', 'members.mail.index', 'members.changes.index', 'members.fiscal-years.index'];
 
     private function admin(): User
     {
@@ -70,6 +70,7 @@ class MembersLayoutTest extends TestCase
             route('members.payments.create', $member) => ['members.index', null],
             route('members.dues.index') => ['members.dues.index', null],
             route('members.mail.index') => ['members.mail.index', null],
+            route('members.changes.index') => ['members.changes.index', null],
             route('members.fiscal-years.index') => ['members.fiscal-years.index', 'members.fiscal-years.index'],
             route('members.fiscal-years.create') => ['members.fiscal-years.index', 'members.fiscal-years.index'],
             route('members.fiscal-years.edit', $fiscalYear) => ['members.fiscal-years.index', 'members.fiscal-years.index'],
@@ -91,8 +92,8 @@ class MembersLayoutTest extends TestCase
             ->reject(fn (string $name) => $name === 'members.export')
             ->values()->all();
 
-        $this->assertCount(16, $names);
-        $this->assertCount(16, $this->pages());
+        $this->assertCount(17, $names);
+        $this->assertCount(17, $this->pages());
     }
 
     #[Test]
@@ -209,7 +210,7 @@ class MembersLayoutTest extends TestCase
             $this->assertStringNotContainsString("@section('admin-", $source, $name);
             $pages++;
         }
-        $this->assertSame(16, $pages);
+        $this->assertSame(17, $pages);
     }
 
     #[Test]
