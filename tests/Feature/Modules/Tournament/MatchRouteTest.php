@@ -12,8 +12,8 @@ use Tests\Feature\Modules\Tournament\Concerns\BuildsChampionship;
 use Tests\TestCase;
 
 /**
- * The match route exists with its final name and URL before the match page is ported (the cards link to
- * it): a match of the viewer's tournament answers 501 until then, a foreign or unknown id 404.
+ * The match route keeps its final name and URL (the cards link to it): a match of the viewer's tournament
+ * opens the match page, a foreign or unknown id answers 404.
  */
 class MatchRouteTest extends TestCase
 {
@@ -35,14 +35,14 @@ class MatchRouteTest extends TestCase
     }
 
     #[Test]
-    public function own_tournament_match_is_not_implemented_yet_and_foreign_ids_404(): void
+    public function own_tournament_match_opens_and_foreign_ids_404(): void
     {
         $this->championship();
         $other = Tournament::factory()->create(['season' => 2020]);
         $foreign = TournamentMatch::factory()->group('A', 1, 1)->create(['tid' => $other->tid]);
         $user = $this->member();
 
-        $this->actingAs($user)->get('/tournament/match/'.$this->matchRow('A-1')->tmid)->assertStatus(501);
+        $this->actingAs($user)->get('/tournament/match/'.$this->matchRow('A-1')->tmid)->assertOk();
         $this->actingAs($user)->get('/tournament/match/'.$foreign->tmid)->assertNotFound();
         $this->actingAs($user)->get('/tournament/match/999999')->assertNotFound();
         $this->actingAs($user)->get('/tournament/match/x')->assertNotFound();

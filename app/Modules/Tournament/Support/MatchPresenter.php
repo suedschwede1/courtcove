@@ -13,9 +13,9 @@ use Throwable;
 /**
  * Turns a match row (TournamentManager::matches()) into the props of <x-tournament-base::match-card>.
  *
- * The action follows the write rule of ZF2's MatchController: admins and the two players may write, and
- * in a test tournament the simulated player may write his own matches although the test mode is
- * otherwise read-only.
+ * The action follows the write rule of ZF2's MatchController (MatchWriteRule, shared with the match page):
+ * admins and the two players may write, and in a test tournament the simulated player may write his own
+ * matches although the test mode is otherwise read-only.
  */
 final class MatchPresenter
 {
@@ -163,13 +163,7 @@ final class MatchPresenter
             return null;
         }
 
-        $isOwn = $access->tpid !== null
-            && ((int) $match['tpid_a'] === $access->tpid || (int) $match['tpid_b'] === $access->tpid);
-        $isTest = ! empty($t->is_test);
-        $canWrite = ($access->isAdmin() || $isOwn)
-            && ($access->canWrite || ($isTest && $access->simulation !== null));
-
-        if (! $canWrite) {
+        if (! MatchWriteRule::canWrite($match, $access, $t)) {
             return null;
         }
 

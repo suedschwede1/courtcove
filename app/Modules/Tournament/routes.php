@@ -27,7 +27,11 @@ Route::prefix('tournament')->name('tournament.')
         Route::get('mine', [MyMatchesController::class, 'index'])->name('mine');
         Route::get('modus', [OverviewController::class, 'mode'])->name('mode');
 
-        // The match page: name and URL are final (the match cards link here); the page itself and the
-        // save/confirm/delete actions are ported with the match entry task.
+        // The match page (date and result) and its actions. A GET on an action path redirects to the page (ZF2).
         Route::get('match/{tmid}', [MatchController::class, 'show'])->whereNumber('tmid')->name('match');
+        Route::post('match/{tmid}/save', [MatchController::class, 'save'])->whereNumber('tmid')->name('match.save');
+        Route::post('match/{tmid}/confirm', [MatchController::class, 'confirm'])->whereNumber('tmid')->name('match.confirm');
+        Route::post('match/{tmid}/delete', [MatchController::class, 'delete'])->whereNumber('tmid')->name('match.delete');
+        Route::get('match/{tmid}/{action}', [MatchController::class, 'redirectToMatch'])
+            ->whereNumber('tmid')->whereIn('action', ['save', 'confirm', 'delete']);
     });
