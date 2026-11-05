@@ -76,6 +76,22 @@ final class CalendarFillLayoutTest extends TestCase
     }
 
     #[Test]
+    public function the_page_keeps_one_date_heading_for_screen_readers(): void
+    {
+        $xp = $this->xpath($this->get('/calendar?date=2026-11-05')->assertOk()->getContent());
+
+        // Visually hidden on desktop (CSS), but still the page's single h1 above the day-card h2s.
+        $h1 = $xp->query('//h1');
+        $this->assertSame(1, $h1->length);
+        $this->assertStringContainsString('cal-toolbar__title', $h1->item(0)->getAttribute('class'));
+        $this->assertStringStartsWith('Donnerstag, 5. November 2026', trim((string) preg_replace('/\s+/u', ' ', $h1->item(0)->textContent)));
+        $this->assertSame(3, $xp->query('//section[contains(@class,"cal-day")]//h2[contains(@class,"cal-day__title")]')->length);
+
+        // The controls follow the heading inside the toolbar row.
+        $this->assertSame(1, $xp->query('//div[contains(@class,"cal-toolbar")][h1][nav[@id="calendar-date-nav"]]')->length);
+    }
+
+    #[Test]
     public function only_the_real_today_card_carries_the_today_ring(): void
     {
         $xp = $this->xpath($this->get('/calendar?date=2026-11-04')->assertOk()->getContent());

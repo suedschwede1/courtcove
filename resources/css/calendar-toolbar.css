@@ -80,19 +80,23 @@ body:has(.cal-page) {
     display: none;
 }
 
-/* Desktop: one row, the date heading on the left, the date controls and the
-   Infos/Hinweise toggles on the right; the controls never wrap under the
-   heading (a long heading is cut instead) until the phone layout takes over. */
+/* Desktop: one row with the date controls and the Infos/Hinweise toggles on
+   the right; they never wrap until the phone layout takes over. The day cards
+   name the dates, so the h1 stays for screen readers only (phones show it as
+   the day label between the arrows). */
 @media (width >= 48rem) {
     .cal-toolbar {
         flex-wrap: nowrap;
-        justify-content: space-between;
+        justify-content: flex-end;
     }
 
     .cal-toolbar__title {
-        min-width: 0;
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
         overflow: hidden;
-        text-overflow: ellipsis;
+        clip: rect(0 0 0 0);
         white-space: nowrap;
     }
 

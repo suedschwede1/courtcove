@@ -222,19 +222,24 @@ final class CalendarCssTest extends TestCase
     }
 
     #[Test]
-    public function desktop_toolbar_keeps_the_heading_left_and_the_controls_right(): void
+    public function desktop_toolbar_hides_the_date_heading_and_keeps_the_controls_right(): void
     {
         $css = $this->toolbar();
         preg_match('/@media \(width >= 48rem\)\s*\{(.*?)\n\}/s', $css, $desktop);
         $this->assertNotEmpty($desktop);
 
-        // One row: heading left, date controls right (then the panel toggles), no wrapping.
+        // One row of date controls on the right (then the panel toggles), no wrapping.
         $bar = $this->rule($desktop[1], '.cal-toolbar');
         $this->assertMatchesRegularExpression('/flex-wrap:\s*nowrap;/', $bar);
-        $this->assertMatchesRegularExpression('/justify-content:\s*space-between;/', $bar);
+        $this->assertMatchesRegularExpression('/justify-content:\s*flex-end;/', $bar);
         $this->assertMatchesRegularExpression('/margin-left:\s*auto;/', $this->rule($desktop[1], '.cal-toolbar__nav'));
-        $this->assertMatchesRegularExpression('/text-overflow:\s*ellipsis;/', $this->rule($desktop[1], '.cal-toolbar__title'));
-        $this->assertStringNotContainsString('clip:', $desktop[1]);
+
+        // The day cards name the dates: the h1 stays for screen readers only (visually hidden, not display:none).
+        $title = $this->rule($desktop[1], '.cal-toolbar__title');
+        $this->assertMatchesRegularExpression('/position:\s*absolute;/', $title);
+        $this->assertMatchesRegularExpression('/clip:\s*rect\(0 0 0 0\);/', $title);
+        $this->assertMatchesRegularExpression('/width:\s*1px;/', $title);
+        $this->assertStringNotContainsString('display: none', $title);
         $this->assertMatchesRegularExpression('/"toolbar panels"\s*"board board";/', $css);
 
         // The legend row is gone from the page grid (it sits in the Infos panel).
