@@ -110,7 +110,7 @@
         gap: 2px;
     }
 
-    /* DESIGN.md group label colour (#A79D8F) has no light-mode token; mixed from chrome tokens. */
+    /* The DESIGN.md group label colour has no light-mode token; mixed from chrome tokens. */
     .mbr-sidebar__label {
         padding: 0 10px 4px;
         font-size: 11px;
@@ -859,13 +859,7 @@
         list-style: none;
     }
 
-    /* Selected template. Resets the dues "selected count" text rules of .mbr-selected. */
-    .mbr-templates > .mbr-selected {
-        align-self: stretch;
-        margin-right: 0;
-        font-size: inherit;
-        font-weight: inherit;
-        color: inherit;
+    .mbr-template--selected {
         outline: 2px solid var(--color-clay);
         outline-offset: 2px;
     }

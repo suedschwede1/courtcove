@@ -99,11 +99,11 @@
                 </x-ui.field>
 
                 <x-ui.field :label="__('members::admin.mail.subject')" for="mail-subject" :error="$errors->first('subject')">
-                    <input id="mail-subject" type="text" x-model="subject" class="ds-input" form="mail-send-form">
+                    <input id="mail-subject" type="text" x-model="subject" @class(['ds-input', 'ds-input--invalid' => $errors->has('subject')]) form="mail-send-form"@error('subject') aria-invalid="true" aria-describedby="mail-subject-error"@enderror>
                 </x-ui.field>
 
                 <x-ui.field :label="__('members::admin.mail.message')" for="mail-body" :help="__('members::admin.mail.formatting_hint')" :error="$errors->first('body')">
-                    <textarea id="mail-body" rows="18" x-model="body" class="ds-textarea min-h-88" form="mail-send-form" aria-describedby="mail-body-help" @input.debounce.600ms="if (showPreview) refreshPreview()"></textarea>
+                    <textarea id="mail-body" rows="18" x-model="body" @class(['ds-textarea', 'min-h-88', 'ds-textarea--invalid' => $errors->has('body')]) form="mail-send-form" aria-describedby="mail-body-help{{ $errors->has('body') ? ' mail-body-error' : '' }}"@error('body') aria-invalid="true"@enderror @input.debounce.600ms="if (showPreview) refreshPreview()"></textarea>
                 </x-ui.field>
 
                 <div class="rounded-md border border-line bg-surface-sunk px-3 py-2 flex flex-col gap-1 text-sm text-ink-2">
@@ -134,7 +134,7 @@
                         <input type="hidden" name="subject" x-model="subject">
                         <input type="hidden" name="body" x-model="body">
                     </form>
-                    <button type="button" class="ds-btn ds-btn--primary" @click="confirmOpen = true">{{ __('members::admin.mail.send') }}</button>
+                    <button type="button" class="ds-btn ds-btn--primary" x-ref="sendButton" @click="confirmOpen = true">{{ __('members::admin.mail.send') }}</button>
                     <span class="text-sm text-ink-2" x-text="currentAudience().countLabel"></span>
 
                     <form method="POST" action="{{ route('members.mail.test') }}" class="flex flex-1 basis-full flex-wrap items-center gap-2 border-t border-line pt-3 md:basis-72 md:border-t-0 md:border-l md:pt-0 md:pl-4">
@@ -173,7 +173,7 @@
             @else
                 <ul class="mbr-templates">
                     @foreach($templateItems as $template)
-                        <li class="rounded-md border border-line bg-surface-sunk px-3 py-2 flex items-start justify-between gap-2" :class="{ 'mbr-selected': selectedTemplateId === {{ $template['id'] }} }" x-bind:aria-current="selectedTemplateId === {{ $template['id'] }} ? 'true' : 'false'">
+                        <li class="rounded-md border border-line bg-surface-sunk px-3 py-2 flex items-start justify-between gap-2" :class="{ 'mbr-template--selected': selectedTemplateId === {{ $template['id'] }} }" x-bind:aria-current="selectedTemplateId === {{ $template['id'] }} ? 'true' : 'false'">
                             <div class="min-w-0">
                                 <div class="font-bold break-words">{{ $template['name'] }}</div>
                                 <div class="text-sm text-ink-2 break-words">{{ $template['subject'] }}</div>
@@ -219,7 +219,9 @@
     </x-ui.card>
 
     <div x-show="confirmOpen" x-cloak x-transition.opacity class="mbr-dialog-backdrop fixed inset-0 z-50 flex items-center justify-center bg-chrome/55 p-4"
-         @keydown.escape.window="confirmOpen = false"
+         @click.self="confirmOpen = false; $refs.sendButton.focus()"
+         @keydown.escape.window="if (confirmOpen) { confirmOpen = false; $refs.sendButton.focus() }"
+         @keydown.tab="const f = [...$el.querySelectorAll('a[href], button:not([disabled])')].filter(e => e.offsetParent !== null); if (f.length) { if ($event.shiftKey && document.activeElement === f[0]) { $event.preventDefault(); f[f.length - 1].focus() } else if (!$event.shiftKey && document.activeElement === f[f.length - 1]) { $event.preventDefault(); f[0].focus() } }"
          x-effect="if (confirmOpen) $nextTick(() => $refs.confirmCancel.focus())">
         <x-ui.card as="div" padding="lg" class="mbr-dialog" role="dialog" aria-modal="true" aria-labelledby="mail-confirm-title">
             <div class="flex flex-col gap-4">
@@ -230,7 +232,7 @@
                     <div><strong>{{ __('members::admin.mail.recipients') }}:</strong> <span x-text="currentAudience().countLabel"></span></div>
                 </div>
                 <div class="flex flex-wrap justify-end gap-2">
-                    <button type="button" class="ds-btn ds-btn--secondary" x-ref="confirmCancel" @click="confirmOpen = false">{{ __('members::admin.common.cancel') }}</button>
+                    <button type="button" class="ds-btn ds-btn--secondary" x-ref="confirmCancel" @click="confirmOpen = false; $refs.sendButton.focus()">{{ __('members::admin.common.cancel') }}</button>
                     <x-ui.button type="submit" form="mail-send-form" :block="false">{{ __('members::admin.mail.confirm_send') }}</x-ui.button>
                 </div>
             </div>
