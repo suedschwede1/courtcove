@@ -79,11 +79,11 @@
             $isNext = $next !== null && (int) $next['tmid'] === (int) $match['tmid'];
             $phone = $showContacts && $opponent !== null ? (string) $opponent['phone'] : '';
             // ZF2 only knew group matches ("in Gruppe %s"); a KO match names its competition instead.
-            $waKey = $match['grp'] !== null ? 'group' : 'ko';
+            $isGroup = $match['grp'] !== null;
             $waReplace = ['name' => $opponent ? PlayerName::first((string) $opponent['label']) : '', 'group' => $groupText, 'phase' => $area];
             $waText = $match['played']
-                ? __('tournament::mine.whatsapp_scheduled_'.$waKey, $waReplace + ['date' => date('d.m.Y', (int) strtotime((string) $match['played']))])
-                : __('tournament::mine.whatsapp_open_'.$waKey, $waReplace);
+                ? __($isGroup ? 'tournament::mine.whatsapp_scheduled_group' : 'tournament::mine.whatsapp_scheduled_ko', $waReplace + ['date' => date('d.m.Y', (int) strtotime((string) $match['played']))])
+                : __($isGroup ? 'tournament::mine.whatsapp_open_group' : 'tournament::mine.whatsapp_open_ko', $waReplace);
             $wa = $phone !== '' ? WhatsApp::url($phone, $waText) : '';
         @endphp
         <x-ui.card as="article" :tone="$isNext ? 'highlight' : 'default'" :eyebrow="$isNext ? __('tournament::mine.next') : null">
