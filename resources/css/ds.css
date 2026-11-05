@@ -1115,6 +1115,292 @@
             padding: 12px 16px 0;
         }
     }
+
+    /* Shared modal: centred dialog on desktop, bottom sheet below 48rem. */
+    .ds-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 70;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        color: var(--color-ink);
+        font: 400 var(--text-body) var(--font-body);
+    }
+
+    .ds-modal__backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(29, 27, 24, 0.55);
+    }
+
+    .ds-modal__panel {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        max-height: calc(100dvh - 32px);
+        background: var(--color-surface);
+        border-radius: 14px;
+        box-shadow: var(--shadow-dialog);
+        overflow: hidden;
+    }
+
+    .ds-modal__panel--md {
+        max-width: 500px;
+    }
+
+    .ds-modal__panel--lg {
+        max-width: 640px;
+    }
+
+    .ds-modal__panel--frame {
+        max-width: min(1000px, 100vw - 32px);
+        height: 90dvh;
+    }
+
+    .ds-modal__handle {
+        display: none;
+    }
+
+    .ds-modal__header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        flex-shrink: 0;
+        padding: 22px 24px 18px;
+        border-bottom: 1px solid var(--color-line-soft);
+    }
+
+    .ds-modal__heading {
+        min-width: 0;
+    }
+
+    .ds-modal__eyebrow {
+        margin: 0 0 4px;
+        font: 700 12px / 1.2 var(--font-body);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--color-ink-3);
+    }
+
+    .ds-modal__title {
+        margin: 0;
+        font: 700 32px / 1 var(--font-display);
+        color: var(--color-ink);
+    }
+
+    .ds-modal__close {
+        flex-shrink: 0;
+        border-radius: var(--radius-md);
+        background: transparent;
+        color: var(--color-ink-2);
+    }
+
+    .ds-modal__body {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        flex: 1 1 auto;
+        min-height: 0;
+        padding: 20px 24px;
+        overflow-y: auto;
+    }
+
+    .ds-modal__panel--frame .ds-modal__body {
+        padding: 0;
+    }
+
+    .ds-modal__footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        flex-shrink: 0;
+        padding: 16px 24px 22px;
+        background: var(--color-surface-sunk);
+        border-top: 1px solid var(--color-line-soft);
+    }
+
+    .ds-modal__footer .ds-btn {
+        min-height: 48px;
+        width: auto;
+        border-radius: var(--radius-md);
+        padding: 0 20px;
+    }
+
+    .ds-modal__footer .ds-btn--primary {
+        padding: 0 24px;
+    }
+
+    .ds-modal__quote {
+        margin: 0;
+        font-size: 16px;
+        line-height: 1.45;
+        color: var(--color-ink-2);
+    }
+
+    .ds-modal .ds-field,
+    .ds-modal .ds-options {
+        gap: 8px;
+    }
+
+    .ds-modal .ds-option {
+        min-height: 48px;
+        padding: 0 14px;
+        gap: 10px;
+    }
+
+    .ds-modal .ds-input {
+        min-height: 48px;
+        padding: 0 14px;
+        font: 500 var(--text-body) var(--font-body);
+    }
+
+    .ds-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+        gap: 8px;
+        margin: 0;
+    }
+
+    .ds-summary__item {
+        min-width: 0;
+        padding: 10px 12px;
+        border-radius: var(--radius-md);
+        background: var(--color-ground);
+    }
+
+    .ds-summary__label {
+        margin: 0;
+        font: 600 12px / 1.3 var(--font-body);
+        color: var(--color-ink-3);
+    }
+
+    .ds-summary__value {
+        margin: 2px 0 0;
+        font: 700 15px / 1.3 var(--font-body);
+        color: var(--color-ink);
+        overflow-wrap: anywhere;
+    }
+
+    .ds-modal :is(a, button, input, select, textarea, iframe, [tabindex]):focus-visible {
+        outline: 2px solid var(--color-ink);
+        outline-offset: 2px;
+    }
+
+    @media (width < 48rem) {
+        .ds-modal {
+            align-items: flex-end;
+            padding: 0;
+        }
+
+        .ds-modal__panel {
+            max-width: none;
+            max-height: calc(100dvh - 24px);
+            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+            box-shadow: var(--shadow-sheet);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .ds-modal__panel--frame {
+            max-width: none;
+            height: calc(100dvh - 24px);
+        }
+
+        .ds-modal__handle {
+            display: block;
+            flex-shrink: 0;
+            width: 44px;
+            height: 5px;
+            margin: 10px auto 2px;
+            border-radius: 3px;
+            background: var(--color-line);
+        }
+
+        .ds-modal__header {
+            padding: 8px 20px 12px;
+            border-bottom: 0;
+        }
+
+        .ds-modal__title {
+            font-size: 30px;
+        }
+
+        .ds-modal__close {
+            border-radius: 22px;
+            background: var(--color-ground);
+            color: var(--color-ink);
+        }
+
+        .ds-modal__body {
+            gap: 16px;
+            padding: 0 20px 14px;
+        }
+
+        .ds-modal__panel--frame .ds-modal__body {
+            padding: 0;
+        }
+
+        .ds-summary__item {
+            border-radius: var(--radius-lg);
+        }
+
+        .ds-summary__value {
+            font-size: 16px;
+        }
+
+        .ds-modal .ds-field__label {
+            font-size: 15px;
+        }
+
+        .ds-modal .ds-option {
+            min-height: 52px;
+            border-radius: var(--radius-lg);
+            font-size: 16px;
+        }
+
+        .ds-modal .ds-option:has(:checked) {
+            font-weight: 700;
+        }
+
+        .ds-modal .ds-input {
+            min-height: var(--spacing-control-h-mobile);
+            border-radius: var(--radius-lg);
+            font-size: 17px;
+        }
+
+        .ds-modal__footer {
+            flex-direction: column-reverse;
+            gap: 6px;
+            padding: 12px 20px 28px;
+            background: var(--color-surface);
+            border-top: 0;
+        }
+
+        .ds-modal__footer .ds-btn--primary {
+            width: 100%;
+            min-height: 56px;
+            border-radius: var(--radius-lg);
+            font-size: 18px;
+        }
+
+        .ds-modal__footer .ds-modal__dismiss {
+            min-height: 46px;
+            width: 100%;
+            border: 0;
+            background: transparent;
+            color: var(--color-ink);
+            font-weight: 600;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .ds-modal {
+            transition: none !important;
+        }
+    }
 }
 
 .ds-scroll-lock,
