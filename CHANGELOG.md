@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Phase 2 go-live (module 3): /mixed-tournament is served by Laravel; rollback = re-add the path to the bridge allowlist.
 - Phase 2: Mixed scorecards and blank scorecards as A4 print pages (page break per wave, no wave number).
 - Phase 2: phase2:scrub-staging replaces Mixed data and the member roster with fictional demo events.
 - Phase 2: Mixed role-by-route permission matrix pins every route against guest, reader, score, admin grant, test-mode and global admin roles.
