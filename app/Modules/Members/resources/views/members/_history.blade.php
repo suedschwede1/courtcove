@@ -31,39 +31,35 @@
                 default => $value,
             };
         }
-        return $value;
+        return (string) $value;
     };
 @endphp
-<div class="ui-card">
-    <div class="ui-card-header"><h2>{{ __('members::admin.history.title') }}</h2></div>
-    <div class="ui-card-body ui-stack">
-        @forelse($changes as $change)
-            <div class="ui-stack" style="border-bottom:1px solid #e7e3da; padding-bottom:12px; margin-bottom:12px;">
-                <p class="ui-kpi-meta">
-                    {{ $change->created_at->format('d.m.Y H:i') }} — {{ $change->adminUser->alias ?? '—' }}
-                </p>
-                @if($change->action === 'created')
-                    <p>{{ __('members::admin.history.created') }}</p>
+<x-ui.card :title="__('members::admin.history.title')">
+    @forelse($changes as $change)
+        <div class="mbr-stack border-t border-line py-3 first:border-t-0 first:pt-0 last:pb-0">
+            <p class="text-body-s text-ink-2">
+                {{ $change->created_at->format('d.m.Y H:i') }} — {{ $change->adminUser->alias ?? '—' }}
+            </p>
+            @if($change->action === 'created')
+                <p>{{ __('members::admin.history.created') }}</p>
+            @else
+                @php $fields = $change->changedFields(); @endphp
+                @if($fields === [])
+                    <p class="text-body-s text-ink-2">{{ __('members::admin.history.no_changes') }}</p>
                 @else
-                    @php $fields = $change->changedFields(); @endphp
-                    @if($fields === [])
-                        <p class="ui-kpi-meta">{{ __('members::admin.history.no_changes') }}</p>
-                    @else
-                        <ul>
-                            @foreach($fields as $fieldChange)
-                                <li>
-                                    {{ $fieldLabels[$fieldChange['field']] ?? $fieldChange['field'] }}:
-                                    {{ $formatHistoryValue($fieldChange['field'], $fieldChange['old']) }}
-                                    →
-                                    {{ $formatHistoryValue($fieldChange['field'], $fieldChange['new']) }}
-                                </li>
-                            @endforeach
-                        </ul>
-                    @endif
+                    <ul class="mbr-stack">
+                        @foreach($fields as $fieldChange)
+                            <li>{{ __('members::admin.history.change', [
+                                'field' => $fieldLabels[$fieldChange['field']] ?? $fieldChange['field'],
+                                'old' => $formatHistoryValue($fieldChange['field'], $fieldChange['old']),
+                                'new' => $formatHistoryValue($fieldChange['field'], $fieldChange['new']),
+                            ]) }}</li>
+                        @endforeach
+                    </ul>
                 @endif
-            </div>
-        @empty
-            <p class="ui-kpi-meta">{{ __('members::admin.history.empty') }}</p>
-        @endforelse
-    </div>
-</div>
+            @endif
+        </div>
+    @empty
+        <p class="text-body-s text-ink-2">{{ __('members::admin.history.empty') }}</p>
+    @endforelse
+</x-ui.card>

@@ -1,65 +1,47 @@
 @extends('members::layout')
 @section('admin-title', __('members::admin.fee_categories.title'))
 @section('admin-content')
-<div class="ui-page">
-    <div class="ui-page-header"><h1>{{ __('members::admin.fee_categories.title') }}</h1></div>
+<x-members::page-header :title="__('members::admin.fee_categories.title')" />
 
-    <div class="ui-card">
-        <div class="ui-card-header"><h2>{{ __('members::admin.fee_categories.new_category') }}</h2></div>
-        <div class="ui-card-body">
-            <form method="POST" action="{{ route('members.fee-categories.store') }}" class="ui-row">
-                @csrf
-                <div class="ui-field min-w-[16rem]">
-                    <input type="text" name="name" placeholder="{{ __('members::admin.fee_categories.name') }}" class="ui-input">
-                </div>
-                <button type="submit" class="ui-btn ui-btn-primary">{{ __('members::admin.common.save') }}</button>
-            </form>
-        </div>
-    </div>
+<x-ui.card :title="__('members::admin.fee_categories.new_category')">
+    <form method="POST" action="{{ route('members.fee-categories.store') }}" class="mbr-inline-form">
+        @csrf
+        <x-ui.field class="mbr-inline-form__field" :label="__('members::admin.fee_categories.name')" for="fc-name">
+            <x-ui.input name="name" id="fc-name" />
+        </x-ui.field>
+        <x-ui.button type="submit" :block="false">{{ __('members::admin.common.save') }}</x-ui.button>
+    </form>
+</x-ui.card>
 
-    <div class="ui-card">
-        <div class="ui-card-header">
-            <h2>{{ __('members::admin.fee_categories.rates_for') }}</h2>
-        </div>
-        <div class="ui-card-body">
-            <form method="GET" action="{{ route('members.fee-categories.index') }}" class="ui-row">
-                <div class="ui-field min-w-[12rem]">
-                    <select name="fiscal_year_id" class="ui-select" onchange="this.form.submit()">
-                        @foreach($fiscalYears as $fiscalYear)
-                            <option value="{{ $fiscalYear->id }}" @selected($selectedFiscalYearId === $fiscalYear->id)>{{ $fiscalYear->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-            </form>
+<x-ui.card :title="__('members::admin.fee_categories.rates_for')">
+    <form method="GET" action="{{ route('members.fee-categories.index') }}" class="mbr-inline-form">
+        <x-ui.field class="mbr-inline-form__field" :label="__('members::admin.fee_categories.rates_for')" for="fc-fiscal-year">
+            <x-ui.select name="fiscal_year_id" id="fc-fiscal-year" :options="$fiscalYears->pluck('name', 'id')->all()" :selected="$selectedFiscalYearId" onchange="this.form.submit()" />
+        </x-ui.field>
+    </form>
 
-            @if($fiscalYears->isNotEmpty())
-                <form method="POST" action="{{ route('members.fee-categories.rates.store') }}" class="ui-stack mt-4">
-                    @csrf
-                    <input type="hidden" name="fiscal_year_id" value="{{ $selectedFiscalYearId }}">
-                    <div class="ui-table-wrap">
-                        <table class="ui-table">
-                            <thead>
-                                <tr>
-                                    <th>{{ __('members::admin.fee_categories.name') }}</th>
-                                    <th>{{ __('members::admin.fee_categories.amount') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($categories as $category)
-                                    <tr>
-                                        <td>{{ $category->name }}</td>
-                                        <td>
-                                            <input type="number" step="0.01" min="0" name="rates[{{ $category->id }}]" value="{{ $rates[$category->id]->amount ?? '' }}" class="ui-input">
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                    <button type="submit" class="ui-btn ui-btn-primary">{{ __('members::admin.common.save') }}</button>
-                </form>
-            @endif
-        </div>
-    </div>
-</div>
+    @if($fiscalYears->isNotEmpty())
+        <form method="POST" action="{{ route('members.fee-categories.rates.store') }}" class="mbr-rates-form">
+            @csrf
+            <input type="hidden" name="fiscal_year_id" value="{{ $selectedFiscalYearId }}">
+            <x-ui.table :caption="__('members::admin.fee_categories.rates_for')">
+                <x-slot:head>
+                    <tr>
+                        <th scope="col">{{ __('members::admin.fee_categories.name') }}</th>
+                        <th scope="col">{{ __('members::admin.fee_categories.amount') }}</th>
+                    </tr>
+                </x-slot:head>
+                @foreach($categories as $category)
+                    <tr>
+                        <td class="ds-cell--title" data-label="{{ __('members::admin.fee_categories.name') }}">{{ $category->name }}</td>
+                        <td data-label="{{ __('members::admin.fee_categories.amount') }}">
+                            <x-ui.input type="number" step="0.01" min="0" name="rates[{{ $category->id }}]" id="fc-rate-{{ $category->id }}" :value="$rates[$category->id]->amount ?? null" aria-label="{{ $category->name }}" />
+                        </td>
+                    </tr>
+                @endforeach
+            </x-ui.table>
+            <div><x-ui.button type="submit" :block="false">{{ __('members::admin.common.save') }}</x-ui.button></div>
+        </form>
+    @endif
+</x-ui.card>
 @endsection

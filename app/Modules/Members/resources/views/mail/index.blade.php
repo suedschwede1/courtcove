@@ -12,7 +12,9 @@
         'updateUrl' => route('members.mail.templates.update', $template),
     ])->values();
 @endphp
-<div class="ui-page" x-data="{
+<x-members::page-header :title="__('members::admin.mail.title')" />
+
+<div class="contents" x-data="{
     audience: {{ Js::from($defaultAudience) }},
     audiences: {{ Js::from($audiences) }},
     subject: '',
@@ -67,181 +69,174 @@
         return this.audiences.find((item) => item.key === this.audience) || this.audiences[0];
     }
 }">
-    <div class="ui-page-header"><h1>{{ __('members::admin.mail.title') }}</h1></div>
-
-    <div class="flex gap-2 mb-4 flex-wrap">
+    <div class="mbr-audiences" role="group" aria-label="{{ __('members::admin.mail.audience') }}">
         @foreach($audiences as $audience)
-            <button type="button" class="ui-btn" :class="audience === {{ Js::from($audience['key']) }} ? 'ui-btn-primary' : 'ui-btn-outline'" @click="audience = {{ Js::from($audience['key']) }}">
-                {{ $audience['label'] }}
-            </button>
+            <button type="button" class="ds-chip" aria-pressed="{{ $audience['key'] === $defaultAudience ? 'true' : 'false' }}" x-bind:aria-pressed="audience === {{ Js::from($audience['key']) }} ? 'true' : 'false'" @click="audience = {{ Js::from($audience['key']) }}">{{ $audience['label'] }}</button>
         @endforeach
     </div>
 
-    <div class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
-        <div class="ui-card">
-            <div class="ui-card-body ui-stack">
-                <div class="ui-field">
-                    <label class="ui-label">{{ __('members::admin.mail.from') }}</label>
-                    <div class="ui-readonly-box flex items-center justify-between gap-3 flex-wrap"><span>{{ $fromName }} &lt;{{ $fromAddress }}&gt;</span><a href="{{ route('members.mail.config') }}" class="ui-btn ui-btn-ghost">{{ __('members::admin.mail.change_sender') }}</a></div>
-                </div>
-
-                <div class="ui-field">
-                    <div class="flex items-center justify-between gap-3">
-                        <label class="ui-label">BCC</label>
-                        <button type="button" class="ui-btn ui-btn-ghost" @click="showRecipients = ! showRecipients" x-text="showRecipients ? {{ Js::from(__('members::admin.mail.hide_recipients')) }} : {{ Js::from(__('members::admin.mail.show_recipients')) }}"></button>
+    <div class="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
+        <x-ui.card as="div" padding="lg">
+            <div class="flex flex-col gap-4">
+                <div class="ds-field">
+                    <span class="ds-field__label">{{ __('members::admin.mail.from') }}</span>
+                    <div class="rounded-md border border-line bg-surface-sunk px-3 py-2 flex flex-wrap items-center justify-between gap-3">
+                        <span class="break-all">{{ $fromName }} &lt;{{ $fromAddress }}&gt;</span>
+                        <x-ui.button variant="text" :block="false" :href="route('members.mail.config')">{{ __('members::admin.mail.change_sender') }}</x-ui.button>
                     </div>
-                    <div x-show="showRecipients" x-cloak class="ui-readonly-box ui-readonly-box-muted" x-text="currentAudience().addresses"></div>
                 </div>
 
-                <div class="ui-field">
-                    <label class="ui-label" for="mail-template-name">{{ __('members::admin.mail.template_name') }}</label>
-                    <input id="mail-template-name" type="text" x-model="templateName" class="ui-input">
-                </div>
-
-                <div class="ui-field">
-                    <label class="ui-label" for="mail-subject">{{ __('members::admin.mail.subject') }}</label>
-                    <input id="mail-subject" type="text" x-model="subject" class="ui-input" form="mail-send-form">
-                    @error('subject')<p class="ui-error">{{ $message }}</p>@enderror
-                </div>
-                <div class="ui-field">
-                    <label class="ui-label" for="mail-body">{{ __('members::admin.mail.message') }}</label>
-                    <textarea id="mail-body" rows="18" x-model="body" class="ui-input" form="mail-send-form" style="min-height:22rem" @input.debounce.600ms="if (showPreview) refreshPreview()"></textarea>
-                    <p class="ui-help">{{ __('members::admin.mail.formatting_hint') }}</p>
-                    <div class="ui-readonly-box ui-readonly-box-muted text-sm">
-                        <div><code>**{{ __('members::admin.mail.formatting_bold') }}**</code> -> <strong>{{ __('members::admin.mail.formatting_bold') }}</strong></div>
-                        <div><code>*{{ __('members::admin.mail.formatting_italic') }}*</code> -> <em>{{ __('members::admin.mail.formatting_italic') }}</em></div>
-                        <div><code>- {{ __('members::admin.mail.formatting_list_item') }}</code></div>
-                        <div><code>[{{ __('members::admin.mail.formatting_link_text') }}](https://example.com)</code></div>
+                <div class="ds-field">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <span class="ds-field__label">{{ __('members::admin.mail.bcc') }}</span>
+                        <x-ui.button variant="text" :block="false" aria-controls="mail-recipients" x-bind:aria-expanded="showRecipients.toString()" x-on:click="showRecipients = ! showRecipients" x-text="showRecipients ? {{ Js::from(__('members::admin.mail.hide_recipients')) }} : {{ Js::from(__('members::admin.mail.show_recipients')) }}">{{ __('members::admin.mail.show_recipients') }}</x-ui.button>
                     </div>
-                    <div class="mt-3"><button type="button" class="ui-btn ui-btn-outline" @click="showPreview = ! showPreview; if (showPreview) refreshPreview()" x-text="showPreview ? {{ Js::from(__('members::admin.mail.hide_preview')) }} : {{ Js::from(__('members::admin.mail.show_preview')) }}"></button></div>
-                    <div class="ui-card mt-3" x-show="showPreview" x-cloak>
-                        <div class="ui-card-header flex items-center justify-between gap-3">
-                            <h2>{{ __('members::admin.mail.preview') }}</h2>
-                            <button type="button" class="ui-btn ui-btn-ghost" @click="refreshPreview()" x-text="previewLoading ? {{ Js::from(__('members::admin.mail.preview_loading')) }} : {{ Js::from(__('members::admin.mail.refresh_preview')) }}"></button>
-                        </div>
-                        <div class="ui-card-body">
-                            <div x-show="previewError" x-cloak class="ui-flash ui-flash-error" x-text="previewError"></div>
-                            <div x-show="!previewHtml && !previewError" class="ui-readonly-box ui-readonly-box-muted">{{ __('members::admin.mail.preview_empty') }}</div>
-                            <div x-show="previewHtml" x-cloak class="ui-readonly-box bg-white" style="min-height:8rem" x-html="previewHtml"></div>
-                        </div>
-                    </div>
-                    @error('body')<p class="ui-error">{{ $message }}</p>@enderror
+                    <div id="mail-recipients" x-show="showRecipients" x-cloak class="rounded-md border border-line bg-surface-sunk px-3 py-2 break-words text-ink-2" x-text="currentAudience().addresses"></div>
                 </div>
 
-                <div class="flex items-center gap-3 flex-wrap">
-                    <form id="mail-send-form" method="POST" action="{{ route('members.mail.send') }}" style="display:contents">
+                <x-ui.field :label="__('members::admin.mail.template_name')" for="mail-template-name" :error="''">
+                    <input id="mail-template-name" type="text" x-model="templateName" class="ds-input">
+                </x-ui.field>
+
+                <x-ui.field :label="__('members::admin.mail.subject')" for="mail-subject" :error="$errors->first('subject')">
+                    <input id="mail-subject" type="text" x-model="subject" @class(['ds-input', 'ds-input--invalid' => $errors->has('subject')]) form="mail-send-form"@error('subject') aria-invalid="true" aria-describedby="mail-subject-error"@enderror>
+                </x-ui.field>
+
+                <x-ui.field :label="__('members::admin.mail.message')" for="mail-body" :help="__('members::admin.mail.formatting_hint')" :error="$errors->first('body')">
+                    <textarea id="mail-body" rows="18" x-model="body" @class(['ds-textarea', 'min-h-88', 'ds-textarea--invalid' => $errors->has('body')]) form="mail-send-form" aria-describedby="mail-body-help{{ $errors->has('body') ? ' mail-body-error' : '' }}"@error('body') aria-invalid="true"@enderror @input.debounce.600ms="if (showPreview) refreshPreview()"></textarea>
+                </x-ui.field>
+
+                <div class="rounded-md border border-line bg-surface-sunk px-3 py-2 flex flex-col gap-1 text-sm text-ink-2">
+                    <div><code>**{{ __('members::admin.mail.formatting_bold') }}**</code> -&gt; <strong>{{ __('members::admin.mail.formatting_bold') }}</strong></div>
+                    <div><code>*{{ __('members::admin.mail.formatting_italic') }}*</code> -&gt; <em>{{ __('members::admin.mail.formatting_italic') }}</em></div>
+                    <div><code>- {{ __('members::admin.mail.formatting_list_item') }}</code></div>
+                    <div><code>[{{ __('members::admin.mail.formatting_link_text') }}](https://example.com)</code></div>
+                </div>
+
+                <div>
+                    <button type="button" class="ds-btn ds-btn--secondary" aria-controls="mail-preview" x-bind:aria-expanded="showPreview.toString()" @click="showPreview = ! showPreview; if (showPreview) refreshPreview()" x-text="showPreview ? {{ Js::from(__('members::admin.mail.hide_preview')) }} : {{ Js::from(__('members::admin.mail.show_preview')) }}">{{ __('members::admin.mail.show_preview') }}</button>
+                </div>
+
+                <section id="mail-preview" class="flex flex-col gap-3 rounded-lg border border-line bg-surface-sunk p-4" x-show="showPreview" x-cloak aria-labelledby="mail-preview-title">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <h2 id="mail-preview-title" class="m-0 text-base font-bold">{{ __('members::admin.mail.preview') }}</h2>
+                        <button type="button" class="ds-btn ds-btn--text" @click="refreshPreview()" x-text="previewLoading ? {{ Js::from(__('members::admin.mail.preview_loading')) }} : {{ Js::from(__('members::admin.mail.refresh_preview')) }}">{{ __('members::admin.mail.refresh_preview') }}</button>
+                    </div>
+                    <x-ui.notice tone="problem" x-show="previewError" x-cloak x-text="previewError" />
+                    <p x-show="!previewHtml && !previewError" class="m-0 text-ink-2">{{ __('members::admin.mail.preview_empty') }}</p>
+                    <div x-show="previewHtml" x-cloak class="min-h-32 rounded-md border border-line bg-surface px-3 py-2" x-html="previewHtml"></div>
+                </section>
+
+                <div class="flex flex-wrap items-center gap-3">
+                    <form id="mail-send-form" method="POST" action="{{ route('members.mail.send') }}" class="contents">
                         @csrf
                         <input type="hidden" name="audience" x-model="audience">
                         <input type="hidden" name="subject" x-model="subject">
                         <input type="hidden" name="body" x-model="body">
                     </form>
-                    <button type="button" class="ui-btn ui-btn-primary" @click="confirmOpen = true">{{ __('members::admin.mail.send') }}</button>
-                    <span class="text-sm text-[#6a6e73]" x-text="currentAudience().countLabel"></span>
+                    <button type="button" class="ds-btn ds-btn--primary" x-ref="sendButton" @click="confirmOpen = true">{{ __('members::admin.mail.send') }}</button>
+                    <span class="text-sm text-ink-2" x-text="currentAudience().countLabel"></span>
 
-                    <form method="POST" action="{{ route('members.mail.test') }}" class="flex items-center gap-2 flex-1 min-w-[18rem] pl-4" style="border-left:1px solid var(--ui-border)">
+                    <form method="POST" action="{{ route('members.mail.test') }}" class="flex flex-1 basis-full flex-wrap items-center gap-2 border-t border-line pt-3 md:basis-72 md:border-t-0 md:border-l md:pt-0 md:pl-4">
                         @csrf
                         <input type="hidden" name="subject" x-model="subject">
                         <input type="hidden" name="body" x-model="body">
-                        <input type="email" name="test_email" x-model="testEmail" placeholder="{{ __('members::admin.mail.test_recipient') }}" class="ui-input flex-1">
-                        <button type="submit" class="ui-btn ui-btn-outline">{{ __('members::admin.mail.send_test') }}</button>
+                        <input type="email" name="test_email" x-model="testEmail" placeholder="{{ __('members::admin.mail.test_recipient') }}" aria-label="{{ __('members::admin.mail.test_recipient') }}" class="ds-input min-w-0 flex-1">
+                        <x-ui.button type="submit" variant="secondary" :block="false">{{ __('members::admin.mail.send_test') }}</x-ui.button>
                     </form>
                 </div>
 
-                <div class="flex items-center gap-2 flex-wrap pt-2" style="border-top:1px solid var(--ui-border)">
-                    <form method="POST" action="{{ route('members.mail.templates.store') }}" class="flex items-center gap-2 flex-wrap">
+                <div class="flex flex-wrap items-center gap-2 border-t border-line pt-4">
+                    <form method="POST" action="{{ route('members.mail.templates.store') }}" class="contents">
                         @csrf
                         <input type="hidden" name="name" x-model="templateName">
                         <input type="hidden" name="subject" x-model="subject">
                         <input type="hidden" name="body" x-model="body">
-                        <button type="submit" class="ui-btn ui-btn-outline">{{ __('members::admin.mail.save_as_template') }}</button>
+                        <x-ui.button type="submit" variant="secondary" :block="false">{{ __('members::admin.mail.save_as_template') }}</x-ui.button>
                     </form>
-                    <form method="POST" x-bind:action="selectedTemplateUpdateUrl" class="flex items-center gap-2 flex-wrap" x-show="selectedTemplateId" x-cloak>
+                    <form method="POST" x-bind:action="selectedTemplateUpdateUrl" class="contents" x-show="selectedTemplateId" x-cloak>
                         @csrf
                         @method('PUT')
                         <input type="hidden" name="name" x-model="templateName">
                         <input type="hidden" name="subject" x-model="subject">
                         <input type="hidden" name="body" x-model="body">
-                        <button type="submit" class="ui-btn ui-btn-primary">{{ __('members::admin.mail.save_template_changes') }}</button>
+                        <x-ui.button type="submit" :block="false">{{ __('members::admin.mail.save_template_changes') }}</x-ui.button>
                     </form>
-                    <button type="button" class="ui-btn ui-btn-ghost" x-show="selectedTemplateId" x-cloak @click="clearTemplateSelection()">{{ __('members::admin.mail.new_template') }}</button>
+                    <x-ui.button variant="text" :block="false" x-show="selectedTemplateId" x-cloak x-on:click="clearTemplateSelection()">{{ __('members::admin.mail.new_template') }}</x-ui.button>
                 </div>
             </div>
-        </div>
+        </x-ui.card>
 
-        <div class="ui-card">
-            <div class="ui-card-header"><h2>{{ __('members::admin.mail.templates') }}</h2></div>
-            <div class="ui-card-body ui-stack">
-                @forelse($templateItems as $template)
-                    <div class="ui-readonly-box" :style="selectedTemplateId === {{ $template['id'] }} ? 'outline:2px solid #0066cc; outline-offset:2px;' : ''">
-                        <div class="flex items-start justify-between gap-2">
-                            <div>
-                                <div class="font-semibold">{{ $template['name'] }}</div>
-                                <div class="text-sm text-[#6a6e73]">{{ $template['subject'] }}</div>
+        <x-ui.card :title="__('members::admin.mail.templates')" padding="lg">
+            @if($templateItems->isEmpty())
+                <p class="m-0 text-ink-2">{{ __('members::admin.mail.no_templates') }}</p>
+            @else
+                <ul class="mbr-templates">
+                    @foreach($templateItems as $template)
+                        <li class="rounded-md border border-line bg-surface-sunk px-3 py-2 flex items-start justify-between gap-2" :class="{ 'mbr-template--selected': selectedTemplateId === {{ $template['id'] }} }" x-bind:aria-current="selectedTemplateId === {{ $template['id'] }} ? 'true' : 'false'">
+                            <div class="min-w-0">
+                                <div class="font-bold break-words">{{ $template['name'] }}</div>
+                                <div class="text-sm text-ink-2 break-words">{{ $template['subject'] }}</div>
                             </div>
-                            <div class="flex items-center gap-1 whitespace-nowrap">
-                                <button type="button" class="ui-btn ui-btn-ghost" @click="loadTemplate({{ Js::from($template) }})">{{ __('members::admin.mail.load') }}</button>
+                            <div class="flex shrink-0 items-center gap-1">
+                                <button type="button" class="ds-btn ds-btn--text" @click="loadTemplate({{ Js::from($template) }})">{{ __('members::admin.mail.load') }}</button>
                                 <form method="POST" action="{{ route('members.mail.templates.destroy', $template['id']) }}" onsubmit="return confirm({{ Js::from(__('members::admin.mail.confirm_delete_template')) }})">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="ui-btn ui-btn-ghost">{{ __('members::admin.common.delete') }}</button>
+                                    <x-ui.button type="submit" variant="text" :block="false">{{ __('members::admin.common.delete') }}</x-ui.button>
                                 </form>
                             </div>
-                        </div>
-                    </div>
-                @empty
-                    <div class="ui-readonly-box ui-readonly-box-muted">{{ __('members::admin.mail.no_templates') }}</div>
-                @endforelse
-            </div>
-        </div>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+        </x-ui.card>
     </div>
 
-    <div class="ui-card">
-        <div class="ui-card-header"><h2>{{ __('members::admin.mail.history') }}</h2></div>
-        <div class="ui-table-wrap">
-            <table class="ui-table">
-                <thead>
-                    <tr>
-                        <th>{{ __('members::admin.mail.sent_at') }}</th>
-                        <th>{{ __('members::admin.mail.sent_by') }}</th>
-                        <th>{{ __('members::admin.mail.audience') }}</th>
-                        <th>{{ __('members::admin.mail.subject') }}</th>
-                        <th>{{ __('members::admin.mail.recipients') }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($mailSendItems as $mailSend)
-                        <tr>
-                            <td>{{ $mailSend->created_at?->format('d.m.Y H:i') }}</td>
-                            <td>{{ $mailSend->sender?->alias ?? '—' }}</td>
-                            <td>{{ $mailSend->audience_label }}</td>
-                            <td>{{ $mailSend->subject }}</td>
-                            <td>{{ $mailSend->recipient_count }}</td>
-                        </tr>
-                    @empty
-                        <tr><td colspan="5" class="text-[#6a6e73]">{{ __('members::admin.mail.no_history') }}</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
-    <div x-show="confirmOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4">
-        <div class="ui-card w-full max-w-lg bg-white">
-            <div class="ui-card-header"><h2>{{ __('members::admin.mail.confirm_send_title') }}</h2></div>
-            <div class="ui-card-body ui-stack">
-                <div class="ui-readonly-box">
+    <x-ui.card :title="__('members::admin.mail.history')" padding="none" class="mbr-table-card">
+        <x-ui.table :caption="__('members::admin.mail.history')">
+            <x-slot:head>
+                <tr>
+                    <th scope="col">{{ __('members::admin.mail.sent_at') }}</th>
+                    <th scope="col">{{ __('members::admin.mail.sent_by') }}</th>
+                    <th scope="col">{{ __('members::admin.mail.audience') }}</th>
+                    <th scope="col">{{ __('members::admin.mail.subject') }}</th>
+                    <th scope="col">{{ __('members::admin.mail.recipients') }}</th>
+                </tr>
+            </x-slot:head>
+            @forelse($mailSendItems as $mailSend)
+                <tr>
+                    <td class="tabular-nums" data-label="{{ __('members::admin.mail.sent_at') }}">{{ $mailSend->created_at?->format('d.m.Y H:i') }}</td>
+                    <td class="text-ink-2" data-label="{{ __('members::admin.mail.sent_by') }}">{{ $mailSend->sender?->alias ?? '—' }}</td>
+                    <td class="text-ink-2" data-label="{{ __('members::admin.mail.audience') }}">{{ $mailSend->audience_label }}</td>
+                    <td class="ds-cell--title" data-label="{{ __('members::admin.mail.subject') }}">{{ $mailSend->subject }}</td>
+                    <td class="tabular-nums" data-label="{{ __('members::admin.mail.recipients') }}">{{ $mailSend->recipient_count }}</td>
+                </tr>
+            @empty
+                <tr><td colspan="5" class="text-ink-2">{{ __('members::admin.mail.no_history') }}</td></tr>
+            @endforelse
+        </x-ui.table>
+    </x-ui.card>
+
+    <div x-show="confirmOpen" x-cloak x-transition.opacity class="mbr-dialog-backdrop fixed inset-0 z-50 flex items-center justify-center bg-chrome/55 p-4"
+         @click.self="confirmOpen = false; $refs.sendButton.focus()"
+         @keydown.escape.window="if (confirmOpen) { confirmOpen = false; $refs.sendButton.focus() }"
+         @keydown.tab="const f = [...$el.querySelectorAll('a[href], button:not([disabled])')].filter(e => e.offsetParent !== null); if (f.length) { if ($event.shiftKey && document.activeElement === f[0]) { $event.preventDefault(); f[f.length - 1].focus() } else if (!$event.shiftKey && document.activeElement === f[f.length - 1]) { $event.preventDefault(); f[0].focus() } }"
+         x-effect="if (confirmOpen) $nextTick(() => $refs.confirmCancel.focus())">
+        <x-ui.card as="div" padding="lg" class="mbr-dialog" role="dialog" aria-modal="true" aria-labelledby="mail-confirm-title">
+            <div class="flex flex-col gap-4">
+                <h2 id="mail-confirm-title" class="ds-card__title mbr-dialog__title">{{ __('members::admin.mail.confirm_send_title') }}</h2>
+                <div class="rounded-md border border-line bg-surface-sunk px-3 py-2 flex flex-col gap-1">
                     <div><strong>{{ __('members::admin.mail.from') }}:</strong> {{ $fromName }} &lt;{{ $fromAddress }}&gt;</div>
                     <div><strong>{{ __('members::admin.mail.subject') }}:</strong> <span x-text="subject"></span></div>
                     <div><strong>{{ __('members::admin.mail.recipients') }}:</strong> <span x-text="currentAudience().countLabel"></span></div>
                 </div>
-                <div class="flex justify-end gap-2">
-                    <button type="button" class="ui-btn ui-btn-ghost" @click="confirmOpen = false">{{ __('members::admin.common.cancel') }}</button>
-                    <button type="submit" form="mail-send-form" class="ui-btn ui-btn-primary">{{ __('members::admin.mail.confirm_send') }}</button>
+                <div class="flex flex-wrap justify-end gap-2">
+                    <button type="button" class="ds-btn ds-btn--secondary" x-ref="confirmCancel" @click="confirmOpen = false; $refs.sendButton.focus()">{{ __('members::admin.common.cancel') }}</button>
+                    <x-ui.button type="submit" form="mail-send-form" :block="false">{{ __('members::admin.mail.confirm_send') }}</x-ui.button>
                 </div>
             </div>
-        </div>
+        </x-ui.card>
     </div>
 </div>
 @endsection
-
-
-

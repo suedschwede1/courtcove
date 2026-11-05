@@ -1,15 +1,13 @@
 @extends('members::layout')
 @section('admin-title', __('members::admin.functions.title'))
 @section('admin-content')
-<div class="ui-page">
-    <div class="ui-page-header"><h1>{{ __('members::admin.functions.new') }}</h1></div>
-    <form method="POST" action="{{ route('members.functions.store') }}" class="ui-form-shell">
-        @csrf
-        @include('members::functions._form')
-        <div class="ui-form-actions">
-            <a href="{{ route('members.functions.index') }}" class="ui-btn ui-btn-ghost">{{ __('members::admin.common.cancel') }}</a>
-            <button type="submit" class="ui-btn ui-btn-primary">{{ __('members::admin.functions.add') }}</button>
-        </div>
-    </form>
-</div>
+<x-members::page-header :title="__('members::admin.functions.new')" />
+<form method="POST" action="{{ route('members.functions.store') }}" class="ui-form-shell">
+    @csrf
+    @include('members::functions._form')
+    <div class="flex gap-2 justify-end">
+        <x-ui.button variant="secondary" :block="false" :href="route('members.functions.index')">{{ __('members::admin.common.cancel') }}</x-ui.button>
+        <x-ui.button type="submit" :block="false">{{ __('members::admin.functions.add') }}</x-ui.button>
+    </div>
+</form>
 @endsection

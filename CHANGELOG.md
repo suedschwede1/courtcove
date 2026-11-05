@@ -102,6 +102,18 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 - Admin pages use the new shell; on phones the admin menu slides in behind a menu button.
 - Admin sidebar in the new dark style with groups (Betrieb, Mitglieder, Einstellungen) and a clay marker for the current page.
 - Admin navigation is built from one grouped list; tournament entries appear only once their pages exist.
+- Members area restyle complete: committed build contains the module styles.
+- Mail send confirmation keeps keyboard focus inside the dialog and returns it to the send button; subject and body errors are announced with their fields.
+- Mail settings and club function forms use the shared fields and buttons.
+- Mail composer uses audience chips, cards and a labelled confirmation dialog that closes with Escape.
+- Fiscal year and privacy settings forms use the shared fields.
+- Dues page uses the new table, labelled filters and a bulk bar; the status message no longer appears twice.
+- Member and payment forms use the shared fields with labels and error text linked for screen readers.
+- Member edit page uses the new header actions, dues card and change history; partial payments are highlighted without inline colours.
+- Members dashboard shows key figures and age/category bars in the new style; fiscal years, functions and fee categories use the shared table.
+- Members list uses the new table, badges and filters; on phones each member becomes a card with status, payment and category still editable in place.
+- Members area gets the dark admin sidebar with grouped links, a phone menu behind one button and the new page header.
+- Members module: inline saves read the CSRF token from the page head and show a translated error message.
 - Legacy element rules use zero-specificity guards so existing buttons, links and inputs keep their original cascade.
 - Admin and Members pages show their prefix in the browser tab again even when a view sets its own title.
 - Legacy element rules (links, text inputs, touch-action) no longer restyle the new ds components, which now carry their own base font size.

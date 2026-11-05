@@ -1,59 +1,46 @@
 @extends('members::layout')
 @section('admin-title', __('members::admin.payments.new_payment'))
 @section('admin-content')
-<div class="ui-page">
-    <div class="ui-page-header"><h1>{{ __('members::admin.payments.new_payment') }} — {{ $member->fullName() }}</h1></div>
+<x-members::page-header :title="__('members::admin.payments.new_payment').' — '.$member->fullName()" />
 
-    <form method="POST" action="{{ route('members.payments.store', $member) }}" class="ui-form-shell">
-        @csrf
-        <div class="ui-card">
-            <div class="ui-card-body ui-stack">
-                <div class="ui-grid-3 ui-form-panel">
-                    <div class="ui-field">
-                        <label class="ui-label" for="pf-amount">{{ __('members::admin.payments.amount') }}</label>
-                        <input id="pf-amount" type="number" step="0.01" min="0.01" name="amount" class="ui-input">
-                    </div>
-                    <div class="ui-field">
-                        <label class="ui-label" for="pf-paid-at">{{ __('members::admin.payments.paid_at') }}</label>
-                        <input id="pf-paid-at" type="date" name="paid_at" value="{{ now()->toDateString() }}" class="ui-input">
-                    </div>
-                    <div class="ui-field">
-                        <label class="ui-label" for="pf-note">{{ __('members::admin.payments.note') }}</label>
-                        <input id="pf-note" type="text" name="note" class="ui-input">
-                    </div>
-                </div>
-
-                <p class="ui-section-label">{{ __('members::admin.payments.covers') }}</p>
-            </div>
+<form method="POST" action="{{ route('members.payments.store', $member) }}" class="ui-form-shell">
+    @csrf
+    <x-ui.card>
+        <div class="grid gap-4 md:grid-cols-3">
+            <x-ui.field :label="__('members::admin.payments.amount')" for="pf-amount" :error="$errors->first('amount')">
+                <x-ui.input type="number" step="0.01" min="0.01" name="amount" />
+            </x-ui.field>
+            <x-ui.field :label="__('members::admin.payments.paid_at')" for="pf-paid-at" :error="$errors->first('paid_at')">
+                <x-ui.input type="date" name="paid_at" :value="old('paid_at', now()->toDateString())" />
+            </x-ui.field>
+            <x-ui.field :label="__('members::admin.payments.note')" for="pf-note" :error="$errors->first('note')">
+                <x-ui.input name="note" />
+            </x-ui.field>
         </div>
-        <div class="ui-card">
-            <div class="ui-table-wrap">
-                <table class="ui-table">
-                    <thead>
-                        <tr>
-                            <th style="width:2.5rem"></th>
-                            <th>{{ __('members::admin.fiscal_years.title') }}</th>
-                            <th>{{ __('members::admin.fee_categories.title') }}</th>
-                            <th>{{ __('members::admin.payments.amount') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($openDues as $due)
-                            <tr>
-                                <td><input type="checkbox" name="member_due_ids[]" value="{{ $due->id }}"></td>
-                                <td>{{ $due->fiscalYear->name }}</td>
-                                <td>{{ $due->feeCategory->name }}</td>
-                                <td>{{ number_format((float) $due->amount, 2) }} €</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <div class="ui-form-actions">
-            <a href="{{ route('members.edit', $member) }}" class="ui-btn ui-btn-ghost">{{ __('members::admin.common.cancel') }}</a>
-            <button type="submit" class="ui-btn ui-btn-primary">{{ __('members::admin.common.save') }}</button>
-        </div>
-    </form>
-</div>
+    </x-ui.card>
+    <x-ui.card padding="none" :title="__('members::admin.payments.covers')">
+        <x-ui.table :caption="__('members::admin.payments.covers')">
+            <x-slot:head>
+                <tr>
+                    <th scope="col" class="w-10"></th>
+                    <th scope="col">{{ __('members::admin.fiscal_years.title') }}</th>
+                    <th scope="col">{{ __('members::admin.fee_categories.title') }}</th>
+                    <th scope="col">{{ __('members::admin.payments.amount') }}</th>
+                </tr>
+            </x-slot:head>
+            @foreach($openDues as $due)
+                <tr>
+                    <td><input type="checkbox" name="member_due_ids[]" value="{{ $due->id }}" aria-label="{{ __('members::admin.common.select_row', ['name' => $due->fiscalYear->name]) }}"></td>
+                    <td class="ds-cell--title" data-label="{{ __('members::admin.fiscal_years.title') }}">{{ $due->fiscalYear->name }}</td>
+                    <td class="text-ink-2" data-label="{{ __('members::admin.fee_categories.title') }}">{{ $due->feeCategory->name }}</td>
+                    <td class="tabular-nums" data-label="{{ __('members::admin.payments.amount') }}">{{ number_format((float) $due->amount, 2) }} €</td>
+                </tr>
+            @endforeach
+        </x-ui.table>
+    </x-ui.card>
+    <div class="flex gap-2 justify-end">
+        <x-ui.button variant="secondary" :block="false" :href="route('members.edit', $member)">{{ __('members::admin.common.cancel') }}</x-ui.button>
+        <x-ui.button type="submit" :block="false">{{ __('members::admin.common.save') }}</x-ui.button>
+    </div>
+</form>
 @endsection

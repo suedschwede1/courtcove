@@ -1,16 +1,12 @@
 @extends('members::layout')
 @section('admin-title', __('members::admin.members.title'))
 @section('admin-content')
-<div class="ui-page">
-    <div class="ui-page-header">
-        <h1>{{ __('members::admin.members.new_member') }}</h1>
+<x-members::page-header :title="__('members::admin.members.new_member')" />
+<form method="POST" action="{{ route('members.store') }}" class="ui-form-shell">
+    @include('members::members._form', ['nextNumber' => $nextNumber])
+    <div class="flex gap-2 justify-end">
+        <x-ui.button variant="secondary" :block="false" :href="route('members.index')">{{ __('members::admin.common.cancel') }}</x-ui.button>
+        <x-ui.button type="submit" :block="false">{{ __('members::admin.common.save') }}</x-ui.button>
     </div>
-    <form method="POST" action="{{ route('members.store') }}" class="ui-form-shell">
-        @include('members::members._form', ['nextNumber' => $nextNumber])
-        <div class="ui-form-actions">
-            <a href="{{ route('members.index') }}" class="ui-btn ui-btn-ghost">{{ __('members::admin.common.cancel') }}</a>
-            <button type="submit" class="ui-btn ui-btn-primary">{{ __('members::admin.common.save') }}</button>
-        </div>
-    </form>
-</div>
+</form>
 @endsection
