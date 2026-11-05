@@ -64,27 +64,69 @@ final class LegacyCssOverrideTest extends TestCase
         $this->assertMatchesRegularExpression('/background\s*:\s*var\(--color-ground\)/', $b[1]);
         $this->assertMatchesRegularExpression('/(?<![-\w])color\s*:\s*var\(--color-ink\)/', $b[1]);
         $this->assertMatchesRegularExpression('/font-family\s*:\s*var\(--font-body\)/', $b[1]);
-        $this->assertSame(1, preg_match('/(?:^|\n)a:not\(\[class\*="ds-"\]\)\s*\{([^}]*)\}/', $css, $a));
+        $this->assertSame(1, preg_match('/(?:^|\n)a:where\(:not\(\[class\^="ds-"\], \[class\*=" ds-"\]\)\)\s*\{([^}]*)\}/', $css, $a));
         $this->assertMatchesRegularExpression('/(?<![-\w])color\s*:\s*var\(--color-clay\)/', $a[1]);
         $this->assertDoesNotMatchRegularExpression('/outline[^;]*!important/', $css);
+    }
+
+    private const GUARD = ':where(:not([class^="ds-"], [class*=" ds-"]))';
+
+    /** @return list<string> unguarded bare element selectors */
+    private function unguardedBareSelectors(string $css): array
+    {
+        $css = (string) preg_replace('#/\*.*?\*/#s', '', $css);
+        preg_match_all('/(?:^|[;{}])\s*([^;{}@]+)\{/', $css, $m);
+        $offenders = [];
+        foreach ($m[1] as $list) {
+            foreach ($this->splitTopLevel($list) as $selector) {
+                $selector = trim($selector);
+                $plain = str_replace(self::GUARD, '', $selector);
+                $isBare = preg_match('/^(?:\*|[a-z][a-z0-9-]*)(?:\[[^\]]*\])*(?::{1,2}[\w-]+(?:\([^)]*\))?)*$/i', $plain) === 1
+                    && ! in_array(strtolower($plain), ['html', 'body'], true);
+                if ($isBare && (! str_contains($selector, self::GUARD) || str_contains($plain, ':not('))) {
+                    $offenders[] = $selector;
+                }
+            }
+        }
+
+        return $offenders;
+    }
+
+    /** @return list<string> */
+    private function splitTopLevel(string $list): array
+    {
+        $parts = [];
+        $depth = 0;
+        $cur = '';
+        foreach (str_split($list) as $ch) {
+            $depth += $ch === '(' || $ch === '[' ? 1 : ($ch === ')' || $ch === ']' ? -1 : 0);
+            if ($ch === ',' && $depth === 0) {
+                $parts[] = $cur;
+                $cur = '';
+            } else {
+                $cur .= $ch;
+            }
+        }
+        $parts[] = $cur;
+
+        return $parts;
     }
 
     #[Test]
     public function legacy_element_rules_never_hit_ds_components(): void
     {
-        $css = (string) preg_replace('#/\*.*?\*/#s', '', $this->booking());
-        preg_match_all('/(?:^|[;{}])\s*([^;{}@]+)\{/', $css, $m);
-        $bare = '/^(?:a|button|input(?:\[[^\]]*\])?|select|textarea|label|table|th|td|tr|h[1-6]|p|ul|ol|li|img|hr)(?::[\w-]+)*$/';
-        $offenders = [];
-        foreach ($m[1] as $list) {
-            foreach (explode(',', $list) as $selector) {
-                $selector = trim($selector);
-                if (preg_match($bare, $selector)) {
-                    $offenders[] = $selector;
-                }
-            }
-        }
-        $this->assertSame([], $offenders, 'Bare element selectors in booking.css must carry :not([class*="ds-"]).');
+        $this->assertSame([], $this->unguardedBareSelectors($this->booking()), 'Bare element selectors in booking.css need the zero-specificity :where(:not(ds-)) guard.');
+        $this->assertSame([], $this->unguardedBareSelectors(CssBlocks::withoutLayers($this->app())), 'Unlayered bare element selectors in app.css need the guard.');
+        $this->assertStringNotContainsString(':not([class*="ds-"])', $this->booking());
+    }
+
+    #[Test]
+    public function guard_detection_rejects_specificity_adding_guards(): void
+    {
+        $this->assertNotSame([], $this->unguardedBareSelectors('a:not([class*="ds-"]) { color: red; }'));
+        $this->assertNotSame([], $this->unguardedBareSelectors('input::placeholder { color: red; }'));
+        $this->assertNotSame([], $this->unguardedBareSelectors('span, select[name="x"][required] { color: red; }'));
+        $this->assertSame([], $this->unguardedBareSelectors('.x a { color: red; } a'.self::GUARD.' { color: red; }'));
     }
 
     #[Test]

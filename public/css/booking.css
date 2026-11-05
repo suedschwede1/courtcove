@@ -6,7 +6,7 @@ body {
     font-size: 12px;
 }
 
-a:not([class*="ds-"]) {
+a:where(:not([class^="ds-"], [class*=" ds-"])) {
     color: var(--color-clay);
     text-decoration: none;
 }
@@ -146,9 +146,9 @@ a.default-button:hover {
 }
 
 .date-switcher-input,
-input[type="email"]:not([class*="ds-"]),
-input[type="password"]:not([class*="ds-"]),
-input[type="text"]:not([class*="ds-"]) {
+input[type="email"]:where(:not([class^="ds-"], [class*=" ds-"])),
+input[type="password"]:where(:not([class^="ds-"], [class*=" ds-"])),
+input[type="text"]:where(:not([class^="ds-"], [class*=" ds-"])) {
     box-sizing: border-box;
     border: 1px solid #d1cbc0;
     border-radius: 9px;
@@ -1261,21 +1261,21 @@ body {
     overflow-x: hidden;
 }
 
-button:not([class*="ds-"]),
-a:not([class*="ds-"]),
-input:not([class*="ds-"]),
-select:not([class*="ds-"]),
-textarea:not([class*="ds-"]) {
+button:where(:not([class^="ds-"], [class*=" ds-"])),
+a:where(:not([class^="ds-"], [class*=" ds-"])),
+input:where(:not([class^="ds-"], [class*=" ds-"])),
+select:where(:not([class^="ds-"], [class*=" ds-"])),
+textarea:where(:not([class^="ds-"], [class*=" ds-"])) {
     touch-action: manipulation;
 }
 
-input[type="email"]:not([class*="ds-"]),
-input[type="password"]:not([class*="ds-"]),
-input[type="text"]:not([class*="ds-"]),
-input[type="date"]:not([class*="ds-"]),
-input[type="time"]:not([class*="ds-"]),
-select:not([class*="ds-"]),
-textarea:not([class*="ds-"]),
+input[type="email"]:where(:not([class^="ds-"], [class*=" ds-"])),
+input[type="password"]:where(:not([class^="ds-"], [class*=" ds-"])),
+input[type="text"]:where(:not([class^="ds-"], [class*=" ds-"])),
+input[type="date"]:where(:not([class^="ds-"], [class*=" ds-"])),
+input[type="time"]:where(:not([class^="ds-"], [class*=" ds-"])),
+select:where(:not([class^="ds-"], [class*=" ds-"])),
+textarea:where(:not([class^="ds-"], [class*=" ds-"])),
 .date-switcher-input,
 .booking-modal__input,
 .booking-modal__select,
@@ -1754,12 +1754,12 @@ textarea:not([class*="ds-"]),
     font-size: 12px;
 }
 
-input[type="date"]:not([class*="ds-"]),
-input[type="time"]:not([class*="ds-"]),
-input[type="datetime-local"]:not([class*="ds-"]),
-input[type="number"]:not([class*="ds-"]),
-select:not([class*="ds-"]),
-textarea:not([class*="ds-"]) {
+input[type="date"]:where(:not([class^="ds-"], [class*=" ds-"])),
+input[type="time"]:where(:not([class^="ds-"], [class*=" ds-"])),
+input[type="datetime-local"]:where(:not([class^="ds-"], [class*=" ds-"])),
+input[type="number"]:where(:not([class^="ds-"], [class*=" ds-"])),
+select:where(:not([class^="ds-"], [class*=" ds-"])),
+textarea:where(:not([class^="ds-"], [class*=" ds-"])) {
     box-sizing: border-box;
     max-width: 100%;
 }
@@ -1812,8 +1812,8 @@ textarea:not([class*="ds-"]) {
         font-size: 15px;
     }
 
-    input[type="datetime-local"]:not([class*="ds-"]),
-    input[type="number"]:not([class*="ds-"]) {
+    input[type="datetime-local"]:where(:not([class^="ds-"], [class*=" ds-"])),
+    input[type="number"]:where(:not([class^="ds-"], [class*=" ds-"])) {
         min-height: 44px;
         font-size: 16px;
     }

@@ -382,7 +382,7 @@ body {
 
 .ui-date-input,
 .ui-input[type="date"],
-input[type="date"] {
+input[type="date"]:where(:not([class^="ds-"], [class*=" ds-"])) {
     color-scheme: light;
     padding-left: 12px;
     padding-right: 2.85rem;
@@ -392,7 +392,7 @@ input[type="date"] {
 
 .ui-date-input::-webkit-calendar-picker-indicator,
 .ui-input[type="date"]::-webkit-calendar-picker-indicator,
-input[type="date"]::-webkit-calendar-picker-indicator {
+input[type="date"]:where(:not([class^="ds-"], [class*=" ds-"]))::-webkit-calendar-picker-indicator {
     cursor: pointer;
     opacity: 0.9;
     margin-left: 0;
@@ -405,14 +405,14 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .ui-date-input::-webkit-datetime-edit,
 .ui-input[type="date"]::-webkit-datetime-edit,
-input[type="date"]::-webkit-datetime-edit {
+input[type="date"]:where(:not([class^="ds-"], [class*=" ds-"]))::-webkit-datetime-edit {
     padding: 0;
     min-width: 100%;
 }
 
 .ui-date-input::-webkit-datetime-edit-fields-wrapper,
 .ui-input[type="date"]::-webkit-datetime-edit-fields-wrapper,
-input[type="date"]::-webkit-datetime-edit-fields-wrapper {
+input[type="date"]:where(:not([class^="ds-"], [class*=" ds-"]))::-webkit-datetime-edit-fields-wrapper {
     padding-right: 0.55rem;
 }
 
