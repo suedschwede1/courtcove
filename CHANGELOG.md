@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Members: the mail tab and page are called "Rundmail" as in the mockups.
 - Members overview: four figures (Mitglieder with youth, Aktiv with dormant, open dues of the current fiscal year with total, members without a user account), the five open dues with a link to all dues, the five latest changes with a link to the log, and "Mitglied anlegen"; age structure and category breakdown stay below.
 - Members: new tab "Protokoll" lists every change to members (newest first, filter by name and period, paged); personal fields only show "… geändert" without values, and anonymised members never show old personal data, also in the history on their detail page (GDPR).
 - Members: the link to a booking-system account is shown as optional: list column "Benutzerkonto (optional)" with "verknüpft"/"–", and on the detail page a side card "Benutzerkonto · optional" to link or unlink (unlinking is logged); mail, export, dues and filters keep working for members without an account.

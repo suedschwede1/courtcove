@@ -196,7 +196,7 @@ return [
         'confirm_delete' => 'Diese Funktion wirklich löschen?',
     ],
     'mail' => [
-        'title' => 'Mail',
+        'title' => 'Rundmail',
         'config_title' => 'Mail-Einstellungen',
         'bcc' => 'BCC',
         'to_all' => 'Mail an alle Mitglieder',

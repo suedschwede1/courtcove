@@ -196,7 +196,7 @@ return [
         'confirm_delete' => 'Really delete this role?',
     ],
     'mail' => [
-        'title' => 'Mail',
+        'title' => 'Group mail',
         'config_title' => 'Mail Settings',
         'bcc' => 'BCC',
         'to_all' => 'Mail to all members',
