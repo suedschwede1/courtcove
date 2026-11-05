@@ -56,6 +56,23 @@ class PyramidRepositoryTest extends TestCase
     }
 
     #[Test]
+    public function active_counts_group_ranked_players_per_ladder(): void
+    {
+        $a = $this->makeLadder(3);
+        $b = $this->makeLadder(1);
+        $empty = $this->makeLadder(0);
+        $this->extra($a, 'Wartend', 'waiting');
+        $this->extra($a, 'Entfernt', 'removed', ['position' => 9]);
+        $this->playerAt($a, 2)->update(['status' => 'paused']);
+
+        $counts = $this->repo()->activeCounts();
+
+        $this->assertSame(3, $counts[$a->id]);
+        $this->assertSame(1, $counts[$b->id]);
+        $this->assertSame(0, $counts[$empty->id] ?? 0);
+    }
+
+    #[Test]
     public function ranking_orders_by_position_not_by_id_and_skips_null_positions(): void
     {
         $ladder = $this->makeLadder(0);

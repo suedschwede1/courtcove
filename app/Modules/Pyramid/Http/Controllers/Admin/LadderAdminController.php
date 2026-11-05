@@ -45,10 +45,12 @@ class LadderAdminController extends Controller
 
         $bySeason = [];
 
+        $counts = $this->repo->activeCounts();
+
         foreach ($this->repo->ladders() as $ladder) {
             $bySeason[(int) $ladder->season][] = [
                 'ladder' => $ladder,
-                'count' => $this->repo->countActive((int) $ladder->id),
+                'count' => $counts[(int) $ladder->id] ?? 0,
             ];
         }
 
@@ -73,12 +75,14 @@ class LadderAdminController extends Controller
         }
 
         $year = (int) CarbonImmutable::now()->format('Y');
-        $season = (int) $request->input('season', $year);
+        // A blank field means the current season; anything else must be a plausible year (checked by the service).
+        $seasonInput = trim((string) $request->input('season', ''));
+        $season = $seasonInput === '' ? $year : (int) $seasonInput;
 
         try {
             $ladder = $this->admin->createLadder(
                 (string) $request->input('title', ''),
-                $season > 0 ? $season : $year,
+                $season,
                 $request->input('category') === null ? null : (string) $request->input('category'),
             );
         } catch (PyramidRuleException $e) {
@@ -120,11 +124,12 @@ class LadderAdminController extends Controller
         $players->appends(array_filter(['q' => $search, 'status' => $status], static fn (string $value): bool => $value !== ''));
 
         $ladders = $this->repo->ladders();
+        $activeCounts = $this->repo->activeCounts();
 
         return view('pyramid::admin.ladder', [
             'ladder' => $ladder,
             'ladders' => $ladders,
-            'counts' => $ladders->mapWithKeys(fn (PyramidLadder $each): array => [(int) $each->id => $this->repo->countActive((int) $each->id)])->all(),
+            'counts' => $ladders->mapWithKeys(fn (PyramidLadder $each): array => [(int) $each->id => $activeCounts[(int) $each->id] ?? 0])->all(),
             'otherLadders' => $ladders->filter(static fn (PyramidLadder $other): bool => (int) $other->id !== $ladderId)->values(),
             'ranking' => $ranking,
             'players' => $players,

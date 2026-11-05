@@ -46,6 +46,10 @@ final class LadderAdminService
             throw $this->error('title_required');
         }
 
+        if ($season < 2000 || $season > 2100) {
+            throw $this->error('season_range');
+        }
+
         return PyramidLadder::query()->create([
             'title' => $title,
             'season' => $season,

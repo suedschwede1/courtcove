@@ -9,6 +9,7 @@ return [
     'not_waiting' => 'Dieser Spieler steht nicht auf der Warteliste.',
     'entry_busy' => 'Für diesen Spieler läuft bereits eine Forderung.',
     'note_required' => 'Bitte eine Begründung angeben.',
+    'season_range' => 'Die Saison muss zwischen 2000 und 2100 liegen.',
     'days_range' => 'Fristen müssen zwischen 0 und 365 Tagen liegen.',
     'copy_source' => 'Bitte eine andere Rangliste als Quelle wählen.',
     'copy_failed' => 'Die Teilnehmer konnten nicht übernommen werden: ein Mitglied steht in der Zielrangliste bereits unter anderem Namen. Es wurde nichts übernommen.',
