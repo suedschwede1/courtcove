@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Phase 2 go-live: .htaccess comment names the one rule needed for the Pyramid rollback; the htaccess test router now checks directories and refuses conditions with flags.
 - Pyramid admin: changing the status of a participant that disappeared meanwhile reports an error instead of a success message.
 - Pyramid admin: the copy-participants dropdown lists only ladders the user administers and the card disappears when there are none.
 - Pyramid admin: editing a participant works without JavaScript (edit link), the member search is rate limited and an internal spec reference is gone from the overdue text.
