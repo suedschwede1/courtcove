@@ -9,11 +9,16 @@ use App\Models\User;
 /**
  * Member lookup for the player pickers. Exposes uid, alias and email only (never phone numbers).
  *
+ * Accounts with status deleted, disabled, placeholder or blocked are never offered (placeholders are not
+ * real members, blocked ones are barred from the club).
+ *
  * Because emails are returned, callers MUST sit behind login/admin authorisation; never expose
  * this to guests.
  */
 class MemberSearch
 {
+    private const EXCLUDED_STATUSES = ['deleted', 'disabled', 'placeholder', 'blocked'];
+
     /**
      * @return list<array{uid:int, alias:string, email:?string}>
      */
@@ -29,7 +34,7 @@ class MemberSearch
         $like = '%'.preg_replace('/[!%_]/', '!$0', $q).'%';
 
         $users = User::query()
-            ->whereNotIn('status', ['deleted', 'disabled'])
+            ->whereNotIn('status', self::EXCLUDED_STATUSES)
             ->where(function ($query) use ($like, $q): void {
                 $query->whereRaw("alias like ? escape '!'", [$like])->orWhereRaw("email like ? escape '!'", [$like]);
 
