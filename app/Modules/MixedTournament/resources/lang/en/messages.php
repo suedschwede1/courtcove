@@ -23,4 +23,5 @@ return [
     'extra_group_impossible' => 'Too few groups for the extra group with this many leftover players - select more participants, use the "4s and 5s" mode, or exclude fewer participants from extra matches.',
     'event_not_found' => 'Event not found.',
     'round_not_found' => 'Round not found.',
+    'participant_not_found' => 'Participant not found.',
 ];

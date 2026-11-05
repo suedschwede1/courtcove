@@ -15,7 +15,8 @@
     RewriteRule ^ - [R=404,L]
 
     # Ported modules (Pyramid, Mixed) are served by Laravel; rollback = add the prefix back to the bridge rule
-    # ("pyramide|" or "mixed-tournament|" in the ^(tournament|...) line below). The same prefix in the slash-redirect
+    # ("pyramide|" or "mixed-tournament|" in the ^(tournament|...) line below); BridgedPrefixRoutesTest and
+    # PublicHtaccessTest go red by design on a rollback and must then be adjusted (NOT_YET_LIVE / allowlist). The same prefix in the slash-redirect
     # alternation is optional: /pyramide/... slashes are also handled by the generic slash rule further down.
     # A trailing slash on an allowlisted path is redirected to the slashless URL (base-path safe:
     # %1 is the full request path), because ZF2 has no route for "/tournament/".

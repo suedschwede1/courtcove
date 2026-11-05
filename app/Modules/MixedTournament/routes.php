@@ -8,7 +8,6 @@ use App\Modules\MixedTournament\Http\Controllers\Admin\ParticipantAdminControlle
 use App\Modules\MixedTournament\Http\Controllers\Admin\RoundAdminController;
 use App\Modules\MixedTournament\Http\Controllers\PlayerController;
 use App\Modules\MixedTournament\Http\Controllers\ScorecardController;
-use App\Modules\MixedTournament\Http\Middleware\RedirectGuestToLogin;
 use Illuminate\Routing\Route as RoutingRoute;
 use Illuminate\Support\Facades\Route;
 
@@ -17,12 +16,13 @@ use Illuminate\Support\Facades\Route;
 // the global right (`admin.mixed`) here. Ids are numeric only; an unknown event/round/participant
 // redirects to the module index with a flash.
 $missingEvent = static fn () => redirect()->route('mixed.index')->with('error', __('mixed::messages.event_not_found'));
+$missingParticipant = static fn () => redirect()->route('mixed.index')->with('error', __('mixed::messages.participant_not_found'));
 $missingRound = static fn () => redirect()->route('mixed.index')->with('error', __('mixed::messages.round_not_found'));
 
-Route::prefix('mixed-tournament')->name('mixed.')->middleware(RedirectGuestToLogin::class)->group(function () use ($missingEvent, $missingRound): void {
+Route::prefix('mixed-tournament')->name('mixed.')->middleware('tournament-base.login:mixed::messages.login_required')->group(function () use ($missingEvent, $missingRound, $missingParticipant): void {
     $event = static fn (RoutingRoute $r): RoutingRoute => $r->whereNumber('event')->missing($missingEvent);
     $round = static fn (RoutingRoute $r): RoutingRoute => $r->whereNumber('round')->missing($missingRound);
-    $participant = static fn (RoutingRoute $r): RoutingRoute => $r->whereNumber('participant')->missing($missingEvent);
+    $participant = static fn (RoutingRoute $r): RoutingRoute => $r->whereNumber('participant')->missing($missingParticipant);
 
     // Players (read access per event, checked in the controller).
     Route::get('', [PlayerController::class, 'index'])->name('index');

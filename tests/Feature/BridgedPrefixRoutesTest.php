@@ -49,6 +49,8 @@ class BridgedPrefixRoutesTest extends TestCase
         $this->assertContains('draw/record/{slug}/json', $checked);
         $this->assertContains('pyramide', $checked);
         $this->assertContains('pyramide/{ladderId}', $checked);
+        $this->assertContains('mixed-tournament', $checked);
+        $this->assertContains('mixed-tournament/admin/round/{round}/score', $checked);
         $this->assertSame([], $pending);
     }
 }

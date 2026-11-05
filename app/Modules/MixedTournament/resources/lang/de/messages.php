@@ -23,4 +23,5 @@ return [
     'extra_group_impossible' => 'Zu wenige Gruppen für die Zusatzgruppe bei so vielen Restspielern - bitte mehr Teilnehmer auswählen, den Modus "4er und 5er" verwenden, oder weniger Teilnehmer von Zusatzspielen ausnehmen.',
     'event_not_found' => 'Event nicht gefunden.',
     'round_not_found' => 'Runde nicht gefunden.',
+    'participant_not_found' => 'Teilnehmer nicht gefunden.',
 ];

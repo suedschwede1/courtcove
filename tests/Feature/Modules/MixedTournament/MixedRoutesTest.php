@@ -116,12 +116,12 @@ class MixedRoutesTest extends TestCase
     #[Test]
     public function guests_are_redirected_to_login_with_the_module_text(): void
     {
-        $this->get('/mixed-tournament')
-            ->assertRedirect(route('login'))
-            ->assertSessionHas('error', 'Für den Mixed-Turnier-Bereich musst du angemeldet sein.')
-            ->assertSessionHas('url.intended');
+        $this->get('/mixed-tournament/event/5?x=1')
+            ->assertRedirect(route('login', ['redirect_to' => '/mixed-tournament/event/5?x=1']))
+            ->assertSessionHas('error', 'Für den Mixed-Turnier-Bereich musst du angemeldet sein.');
 
-        $this->post('/mixed-tournament/admin/create-event')->assertRedirect(route('login'));
+        $this->post('/mixed-tournament/admin/create-event')
+            ->assertRedirect(route('login', ['redirect_to' => '/mixed-tournament/admin/create-event']));
     }
 
     #[Test]
@@ -156,17 +156,18 @@ class MixedRoutesTest extends TestCase
     }
 
     #[Test]
-    public function unknown_event_redirects_with_flash(): void
+    public function unknown_event_round_and_participant_redirect_with_their_own_flash(): void
     {
-        $this->actingAs(User::factory()->create())
-            ->get('/mixed-tournament/event/999999')
-            ->assertRedirect(route('mixed.index'))
-            ->assertSessionHas('error', 'Event nicht gefunden.');
-
-        $this->actingAs(User::factory()->create())
-            ->get('/mixed-tournament/round/999999')
-            ->assertRedirect(route('mixed.index'))
-            ->assertSessionHas('error', 'Runde nicht gefunden.');
+        foreach ([
+            ['get', '/mixed-tournament/event/999999', 'Event nicht gefunden.'],
+            ['get', '/mixed-tournament/round/999999', 'Runde nicht gefunden.'],
+            ['post', '/mixed-tournament/admin/participant/999999/update', 'Teilnehmer nicht gefunden.'],
+        ] as [$method, $uri, $text]) {
+            $this->actingAs(User::factory()->create())
+                ->{$method}($uri)
+                ->assertRedirect(route('mixed.index'))
+                ->assertSessionHas('error', $text);
+        }
     }
 
     #[Test]
