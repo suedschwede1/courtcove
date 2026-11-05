@@ -2,7 +2,7 @@
 @php
     use App\Modules\Pyramid\Support\PyramidLinks;
 @endphp
-<x-ui.card :title="__('pyramid::admin.ladder.add.title')" id="pyramid-admin-add">
+<x-ui.card :title="__('pyramid::admin.ladder.add.title')" id="pyramid-admin-add" class="scroll-mt-24">
     <div
         class="flex flex-col gap-4"
         x-data="{ uid: @js((string) old('uid', '')), label: @js((string) old('label', '')), email: @js((string) old('email', '')) }"

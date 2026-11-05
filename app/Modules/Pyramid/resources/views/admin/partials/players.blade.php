@@ -98,8 +98,8 @@
                     </td>
                 </tr>
                 {{-- The requested row has no x-cloak: it shows even if Alpine never loads. On phones it is the card under the row. --}}
-                <tr id="pyramid-pe-row-{{ $playerId }}" class="max-md:mb-2 max-md:rounded-lg max-md:border max-md:border-line max-md:bg-surface" x-show="editing === {{ $playerId }}"@if ($editId !== $playerId) x-cloak @endif>
-                    <td colspan="7">
+                <tr id="pyramid-pe-row-{{ $playerId }}" class="scroll-mt-24 max-md:mb-2 max-md:rounded-lg max-md:border max-md:border-line max-md:bg-surface" x-show="editing === {{ $playerId }}"@if ($editId !== $playerId) x-cloak @endif>
+                    <td colspan="7" class="max-md:block">
                         <form method="POST" action="{{ PyramidLinks::adminPlayerAction('update-player', 'update', $playerId) }}" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                             @csrf
                             <x-ui.field :for="'pyramid-pe-position-'.$playerId" :label="__('pyramid::admin.ladder.players.f_position')">
