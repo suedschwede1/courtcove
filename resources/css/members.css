@@ -1,3 +1,348 @@
 /* Members module (restyle step 6). Tokens only. */
 @layer components {
+    /* Shell: sidebar + content on desktop, top bar + slide-in sidebar below md. */
+    .mbr-shell {
+        display: flex;
+        min-height: 100vh;
+        background: var(--color-ground);
+        color: var(--color-ink);
+        font-family: var(--font-body);
+        font-size: var(--text-body);
+        line-height: var(--text-body--line-height);
+    }
+
+    .mbr-topbar,
+    .mbr-shell__backdrop {
+        display: none;
+    }
+
+    .mbr-main {
+        display: flex;
+        flex: 1 1 0;
+        flex-direction: column;
+        min-width: 0;
+    }
+
+    .mbr-content {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        gap: 20px;
+        min-width: 0;
+        padding: 28px 32px 48px;
+    }
+
+    /* Sidebar (one element: static on desktop, slide-in panel on phones). */
+    .mbr-sidebar {
+        position: sticky;
+        top: 0;
+        display: flex;
+        flex: 0 0 240px;
+        flex-direction: column;
+        gap: 18px;
+        width: 240px;
+        height: 100vh;
+        height: 100dvh;
+        overflow-y: auto;
+        padding: 20px 14px;
+        background: var(--color-chrome);
+        color: var(--color-chrome-ink);
+        font-size: var(--text-body);
+    }
+
+    .mbr-sidebar__brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 6px;
+    }
+
+    .mbr-sidebar__brand-text {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        min-width: 0;
+        line-height: 1.05;
+    }
+
+    .mbr-sidebar__club {
+        font: 700 var(--text-display-s) / 1.05 var(--font-display);
+        color: var(--color-surface);
+        overflow-wrap: anywhere;
+    }
+
+    .mbr-sidebar__eyebrow,
+    .mbr-topbar__eyebrow {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--color-chrome-muted);
+    }
+
+    .mbr-sidebar__close {
+        display: none;
+        flex-shrink: 0;
+    }
+
+    .mbr-sidebar__back {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-height: var(--spacing-touch-min);
+        padding: 0 10px;
+        border: 1px solid var(--color-chrome-line);
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        text-decoration: none;
+        transition: background-color 0.12s, color 0.12s;
+    }
+
+    .mbr-sidebar__nav {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .mbr-sidebar__group {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    /* DESIGN.md group label colour (#A79D8F) has no light-mode token; mixed from chrome tokens. */
+    .mbr-sidebar__label {
+        padding: 0 10px 4px;
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 16px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: color-mix(in srgb, var(--color-chrome-muted) 77%, var(--color-chrome));
+    }
+
+    .mbr-sidebar__link {
+        display: flex;
+        align-items: center;
+        min-height: 40px;
+        padding: 0 10px;
+        border-radius: var(--radius-md);
+        font-weight: 500;
+        text-decoration: none;
+        transition: background-color 0.12s, color 0.12s;
+    }
+
+    .mbr-sidebar__link:hover,
+    .mbr-sidebar__back:hover {
+        background: rgb(255 255 255 / 0.1);
+    }
+
+    .mbr-sidebar__link[aria-current="page"] {
+        background: var(--color-clay);
+        font-weight: 700;
+    }
+
+    .mbr-sidebar__foot {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        margin-top: auto;
+        padding-top: 14px;
+        border-top: 1px solid var(--color-chrome-line);
+    }
+
+    .mbr-sidebar__user {
+        padding: 0 10px 4px;
+        font-size: var(--text-body-s);
+        color: var(--color-chrome-muted);
+        overflow-wrap: anywhere;
+    }
+
+    .mbr-sidebar__logout {
+        margin: 0;
+    }
+
+    .mbr-sidebar__foot .ds-btn--text {
+        justify-content: flex-start;
+        width: 100%;
+        min-height: 40px;
+        padding: 0 10px;
+        color: var(--color-chrome-ink);
+        font-weight: 500;
+    }
+
+    .mbr-sidebar__foot .ds-btn--text:hover {
+        background: rgb(255 255 255 / 0.1);
+        color: var(--color-surface);
+    }
+
+    /* Page header: eyebrow + the page's only h1 + actions. */
+    .mbr-page-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 16px;
+    }
+
+    .mbr-page-header__text {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+    }
+
+    .mbr-page-header__eyebrow {
+        margin: 0;
+        font-size: var(--text-body-s);
+        font-weight: 700;
+        line-height: 18px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--color-ink-3);
+    }
+
+    .mbr-page-header__title {
+        margin: 0;
+        font: 700 var(--text-display-xl) / var(--text-display-xl--line-height) var(--font-display);
+        color: var(--color-ink);
+    }
+
+    .mbr-page-header__actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+    }
+
+    @media (width < 48rem) {
+        .mbr-shell {
+            flex-direction: column;
+        }
+
+        .mbr-topbar {
+            position: sticky;
+            top: 0;
+            z-index: 30;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 12px 12px 8px;
+            background: var(--color-chrome);
+            color: var(--color-surface);
+        }
+
+        .mbr-topbar__text {
+            display: flex;
+            flex: 1;
+            flex-direction: column;
+            min-width: 0;
+            line-height: 1.05;
+        }
+
+        .mbr-topbar__title {
+            overflow: hidden;
+            font: 700 22px / 1.1 var(--font-display);
+            color: var(--color-surface);
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .mbr-content {
+            gap: 8px;
+            padding: 10px 16px 96px;
+        }
+
+        .mbr-sidebar {
+            position: fixed;
+            inset: 0 auto 0 0;
+            z-index: 60;
+            gap: 14px;
+            width: 310px;
+            max-width: calc(100% - 48px);
+            height: auto;
+            padding: 16px 12px;
+            visibility: hidden;
+            transform: translateX(-100%);
+            transition: transform 0.2s ease, visibility 0s linear 0.2s;
+        }
+
+        .mbr-shell--nav-open .mbr-sidebar {
+            visibility: visible;
+            transform: none;
+            transition: transform 0.2s ease;
+        }
+
+        .mbr-sidebar__close {
+            display: inline-flex;
+        }
+
+        /* Phone menu items follow the touch target, as in the phone menu mockup. */
+        .mbr-sidebar__link,
+        .mbr-sidebar__foot .ds-btn--text {
+            min-height: 48px;
+            padding: 0 12px;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+
+        .mbr-sidebar__back {
+            min-height: 48px;
+            border-radius: 10px;
+        }
+
+        .mbr-shell__backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            display: block;
+            background: color-mix(in srgb, var(--color-chrome) 50%, transparent);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0s linear 0.2s;
+        }
+
+        .mbr-shell--nav-open .mbr-shell__backdrop {
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.2s ease;
+        }
+
+        .mbr-page-header__eyebrow {
+            display: none;
+        }
+
+        .mbr-page-header__title {
+            font-size: var(--text-display-l);
+            line-height: var(--text-display-l--line-height);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .mbr-sidebar,
+        .mbr-shell--nav-open .mbr-sidebar,
+        .mbr-shell__backdrop,
+        .mbr-shell--nav-open .mbr-shell__backdrop {
+            transition: none;
+        }
+    }
+}
+
+/*
+ * Link colours stay unlayered on purpose: public/css/booking.css colours every
+ * <a> without a ds- class (unlayered), which beats any @layer rule regardless
+ * of specificity. These class selectors outrank that type selector.
+ */
+.mbr-sidebar__link,
+.mbr-sidebar__back {
+    color: var(--color-chrome-ink);
+}
+
+.mbr-sidebar__link:hover,
+.mbr-sidebar__back:hover {
+    color: var(--color-surface);
+}
+
+.mbr-sidebar__link[aria-current="page"] {
+    color: var(--color-on-clay);
 }

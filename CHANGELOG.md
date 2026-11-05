@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-05
 
+- Members area gets the dark admin sidebar with grouped links, a phone menu behind one button and the new page header.
 - Members module: inline saves read the CSRF token from the page head and show a translated error message.
 - Legacy element rules use zero-specificity guards so existing buttons, links and inputs keep their original cascade.
 - Admin and Members pages show their prefix in the browser tab again even when a view sets its own title.

@@ -16,7 +16,12 @@ use Tests\TestCase;
 class MembersViewsLintTest extends TestCase
 {
     /** @var list<string> */
-    public const MIGRATED = [];
+    public const MIGRATED = [
+        'layout.blade.php',
+        'components/sidebar.blade.php',
+        'components/page-header.blade.php',
+        'partials/inline-save.blade.php',
+    ];
 
     private const VIEWS_PREFIX = 'Modules/Members/resources/views/';
 
