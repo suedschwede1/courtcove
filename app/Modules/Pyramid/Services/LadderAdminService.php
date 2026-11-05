@@ -235,34 +235,36 @@ final class LadderAdminService
      *
      * @throws InvalidArgumentException on an unknown status
      */
-    public function setStatus(PyramidPlayer $player, string $status, ?int $actorUid): void
+    public function setStatus(PyramidPlayer $player, string $status, ?int $actorUid): bool
     {
         if (! in_array($status, ['active', 'paused', 'removed', 'waiting'], true)) {
             throw new InvalidArgumentException('Unbekannter Status.');
         }
 
-        DB::transaction(function () use ($player, $status, $actorUid): void {
+        return DB::transaction(function () use ($player, $status, $actorUid): bool {
             $ladder = $this->lock((int) $player->ladder_id);
             $current = $this->repo->player((int) $player->id);
 
             if (! $current) {
-                return;
+                return false;
             }
 
             if ($status === 'removed' || $status === 'waiting') {
                 PyramidPlayer::query()->whereKey($current->id)->update(['status' => $status, 'position' => null]);
                 $this->normalize($ladder, $actorUid);
 
-                return;
+                return true;
             }
 
             if ($status === 'active' && $current->position === null) {
                 $this->repo->appendToRanking((int) $current->id);
 
-                return;
+                return true;
             }
 
             PyramidPlayer::query()->whereKey($current->id)->update(['status' => $status]);
+
+            return true;
         });
     }
 

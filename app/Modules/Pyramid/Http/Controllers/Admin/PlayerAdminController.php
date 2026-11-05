@@ -77,13 +77,20 @@ class PlayerAdminController extends Controller
         [$player, $ladder] = $this->administered($playerId);
 
         try {
-            $this->admin->setStatus($player, $request->string('status')->toString(), $this->actorUid());
+            $applied = $this->admin->setStatus($player, $request->string('status')->toString(), $this->actorUid());
         } catch (InvalidArgumentException) {
             // ZF2 raised a RuntimeException here (an error page); a rejected request is the same outcome.
             abort(422, __('pyramid::admin.unknown_status'));
         }
 
-        return redirect()->to(PyramidLinks::adminLadder((int) $ladder->id))
+        $back = redirect()->to(PyramidLinks::adminLadder((int) $ladder->id));
+
+        // The row can vanish between the authorisation read and the lock: nothing changed, so no success message.
+        if (! $applied) {
+            return $back->with('error', __('pyramid::admin.no_player'));
+        }
+
+        return $back
             ->with('success', __('pyramid::admin.flash.status_changed', ['label' => $player->label]));
     }
 
