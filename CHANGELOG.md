@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Users: account status and permission are separate concepts in the code; new additive column bs_users.role and flag USERS_SPLIT_ROLE (default off: the permission stays merged into status as the old system expects).
 - Pyramid: members without admin rights get a 403 (not the admin shell) on unknown admin ids, the not-found page links to the calendar when no ladder exists, the admin phone bar respects the iPhone safe area and the public view stays reachable on phones.
 - Members pages now use the shared admin shell: Mitglieder and Mitglieder-Einstellungen entries in the admin sidebar, module sub-pages as tabs; the separate members sidebar is gone.
 - Pyramid admin on phones: compact participant rows with one pause/activate action (name opens the edit area), back arrow with pyramid eyebrow in the admin bar and a fixed "Teilnehmer anlegen" bar; desktop keeps the table.

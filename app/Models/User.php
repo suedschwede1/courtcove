@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -13,17 +14,24 @@ use Laravel\Sanctum\HasApiTokens;
  * A system user (club member). Maps to the real bs_users table:
  * display name is `alias`, password hash is `pw`.
  *
- * Authorization (ported from the ZF2 User entity) is status-driven — there is no
- * roles/permissions table:
- *   - status 'admin'  → can() everything
- *   - status 'assist' → per-permission flags in bs_users_meta (key 'allow.<perm>' = 'true')
- *   - status 'enabled' (and others) → no privileged permissions
+ * Account status and permission (role) are two separate things:
+ *   - status: placeholder | enabled | disabled (waiting for activation) | blocked | deleted
+ *   - role:   member | assist (per-permission flags in bs_users_meta, key 'allow.<perm>' = 'true') | admin
+ * A role only counts on an enabled account.
+ *
+ * Storage depends on config('users.split_role'):
+ *   - off (default, what the old system reads): the role is merged into `status`
+ *     ('admin' / 'assist' = enabled account with that role), the `role` column is unused.
+ *   - on: `role` holds the role, `status` only the account state. Rows not yet split
+ *     (status still 'admin' / 'assist') keep counting as enabled with that role.
  *
  * Profile fields (firstname, lastname, phone, …) live in bs_users_meta.
  *
  * @property int $uid
  * @property string $alias Display name
- * @property string $status admin|assist|enabled|placeholder|disabled|blocked|deleted
+ * @property string $status placeholder|enabled|disabled|blocked|deleted, merged storage also admin|assist
+ * @property string $role member|assist|admin (only read with users.split_role on)
+ * @property-read string|null $last_booking_date Only set by the admin user list query
  * @property string|null $email
  * @property string|null $pw Bcrypt password hash
  */
@@ -41,6 +49,15 @@ class User extends Authenticatable
         'admin.tournament', 'admin.mixed', 'admin.pyramid', 'admin.draw',
     ];
 
+    /** Selectable account states, in form order. */
+    public const STATUSES = ['placeholder', 'enabled', 'disabled', 'blocked', 'deleted'];
+
+    /** Selectable permissions, in form order. */
+    public const ROLES = ['member', 'assist', 'admin'];
+
+    /** Status values of the merged storage that stand for an enabled account with a role. */
+    private const LEGACY_ROLE_STATUSES = ['assist', 'admin'];
+
     protected $table = 'bs_users';
 
     protected $primaryKey = 'uid';
@@ -48,7 +65,7 @@ class User extends Authenticatable
     public $timestamps = false;
 
     protected $fillable = [
-        'alias', 'status', 'email', 'pw', 'login_attempts', 'login_detent', 'last_activity', 'last_ip', 'created',
+        'alias', 'status', 'role', 'email', 'pw', 'login_attempts', 'login_detent', 'last_activity', 'last_ip', 'created',
     ];
 
     protected $hidden = ['pw'];
@@ -84,16 +101,116 @@ class User extends Authenticatable
         return (string) $this->alias;
     }
 
-    /** Active accounts have status 'enabled' (or are privileged: assist/admin). */
+    /** Whether the role is stored in its own column (config users.split_role). */
+    public static function splitsRole(): bool
+    {
+        return (bool) config('users.split_role', false);
+    }
+
+    /**
+     * The value for bs_users.status that stores this status/role pair. Merged storage
+     * folds a role of an enabled account into the status; split storage keeps the status.
+     */
+    public static function storedStatus(string $status, string $role): string
+    {
+        if (! self::splitsRole() && $status === 'enabled' && in_array($role, self::LEGACY_ROLE_STATUSES, true)) {
+            return $role;
+        }
+
+        return $status;
+    }
+
+    /** Account state without the role: one of STATUSES (or an unknown raw value). */
+    public function accountStatus(): string
+    {
+        $status = (string) $this->status;
+
+        return in_array($status, self::LEGACY_ROLE_STATUSES, true) ? 'enabled' : $status;
+    }
+
+    /** The permission that is in effect: one of ROLES; 'member' unless the account is enabled. */
+    public function effectiveRole(): string
+    {
+        $status = (string) $this->status;
+
+        if (in_array($status, self::LEGACY_ROLE_STATUSES, true)) {
+            return $status;
+        }
+
+        if ($status !== 'enabled' || ! self::splitsRole()) {
+            return 'member';
+        }
+
+        $role = (string) ($this->attributes['role'] ?? 'member');
+
+        return in_array($role, self::ROLES, true) ? $role : 'member';
+    }
+
+    /** Only enabled accounts may sign in (waiting, blocked, deleted and placeholder ones may not). */
     public function isEnabled(): bool
     {
-        return in_array($this->status, ['enabled', 'assist', 'admin'], true);
+        return $this->accountStatus() === 'enabled';
     }
 
     /** Privileged users should use shorter-lived sessions and no persistent login cookie. */
     public function isPrivileged(): bool
     {
-        return in_array($this->status, ['assist', 'admin'], true);
+        return $this->effectiveRole() !== 'member';
+    }
+
+    /**
+     * Enabled accounts of every role. Identical in both storages: split rows keep
+     * 'enabled', merged (or not yet split) rows use 'admin' / 'assist'.
+     *
+     * @param  Builder<User>  $query
+     * @return Builder<User>
+     */
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->whereIn($query->qualifyColumn('status'), ['enabled', ...self::LEGACY_ROLE_STATUSES]);
+    }
+
+    /**
+     * Accounts in the given account state; 'enabled' includes every role.
+     *
+     * @param  Builder<User>  $query
+     * @return Builder<User>
+     */
+    public function scopeWithStatus(Builder $query, string $status): Builder
+    {
+        return $status === 'enabled'
+            ? $this->scopeActive($query)
+            : $query->where($query->qualifyColumn('status'), $status);
+    }
+
+    /**
+     * Accounts whose effective role (see effectiveRole()) is the given one.
+     *
+     * @param  Builder<User>  $query
+     * @return Builder<User>
+     */
+    public function scopeWithRole(Builder $query, string $role): Builder
+    {
+        $status = $query->qualifyColumn('status');
+        $roleColumn = $query->qualifyColumn('role');
+        $split = self::splitsRole();
+
+        $hasRole = function (Builder $q, string $wanted) use ($status, $roleColumn, $split): void {
+            $q->where($status, $wanted);
+            if ($split) {
+                $q->orWhere(fn (Builder $sub) => $sub->where($status, 'enabled')->where($roleColumn, $wanted));
+            }
+        };
+
+        if ($role !== 'member') {
+            return $query->where(fn (Builder $q) => $hasRole($q, $role));
+        }
+
+        foreach (self::LEGACY_ROLE_STATUSES as $privileged) {
+            $query->whereNot(fn (Builder $q) => $hasRole($q, $privileged));
+        }
+
+        return $query;
     }
 
     /**
@@ -105,11 +222,13 @@ class User extends Authenticatable
      */
     public function can($privileges, $arguments = []): bool
     {
-        if ($this->status === 'admin') {
+        $role = $this->effectiveRole();
+
+        if ($role === 'admin') {
             return true;
         }
 
-        if ($this->status !== 'assist' || ! is_string($privileges)) {
+        if ($role !== 'assist' || ! is_string($privileges)) {
             return false;
         }
 
