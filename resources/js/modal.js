@@ -17,7 +17,7 @@ export function dsModal() {
                 this.opener = document.activeElement
                 this.$nextTick(() => {
                     const panel = this.$el.querySelector('.ds-modal__panel')
-                    const target = panel && (Array.from(panel.querySelectorAll('[data-modal-initial]')).find((el) => el.getClientRects().length > 0) || panel.querySelector('.ds-modal__close'))
+                    const target = panel && (Array.from(panel.querySelectorAll('[data-modal-initial]')).find((el) => el.getClientRects().length > 0) || panel.querySelector('.ds-modal__close') || panel.querySelector('iframe'))
                     if (target) {
                         target.focus()
                     }

@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-05
 - Admin booking form: the booking status can no longer be picked (it follows from single slot vs. series; only the cancel action cancels), and the player count sits next to court and booked-for.
+- Admin dialogs (booking, event and other framed forms): the white shell strip with a second close button is gone, so the dialog starts with the form's own dark title bar and one close button; Escape in the form closes it, and focused fields are no longer hidden behind the action bar.
 - Pyramid: members without admin rights get a 403 (not the admin shell) on unknown admin ids, the not-found page links to the calendar when no ladder exists, the admin phone bar respects the iPhone safe area and the public view stays reachable on phones.
 - Members pages now use the shared admin shell: Mitglieder and Mitglieder-Einstellungen entries in the admin sidebar, module sub-pages as tabs; the separate members sidebar is gone.
 - Pyramid admin on phones: compact participant rows with one pause/activate action (name opens the edit area), back arrow with pyramid eyebrow in the admin bar and a fixed "Teilnehmer anlegen" bar; desktop keeps the table.

@@ -958,10 +958,6 @@
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }
 
-        /* Two tiles next to three tiles: give the three-tile group the wider column. */
-        .ds-admin-main .ds-admin-form-grid--tiles {
-            grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
-        }
 
         .ds-admin-main .ds-admin-form-grid__pair {
             display: contents;
@@ -987,10 +983,6 @@
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }
 
-        /* Two tiles next to three tiles: give the three-tile group the wider column. */
-        .ds-popup .ds-admin-form-grid--tiles {
-            grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
-        }
 
         .ds-popup .ds-admin-form-grid__pair {
             display: contents;
@@ -1080,6 +1072,11 @@
         .ds-popup__body:has(.ds-admin-actions--sticky) {
             padding-bottom: 96px;
         }
+    }
+
+    /* Keep the fixed or sticky action bar from hiding a field the browser scrolls into view (Tab, validation focus). */
+    html:has(.admin-popup-mode) {
+        scroll-padding-bottom: 96px;
     }
 
     /* Popup frame (layouts.popup): dark title bar with a close button, content below. */

@@ -5,10 +5,10 @@
 @section('body-class', 'admin-popup-mode')
 
 @section('body')
-<div class="ds-popup">
+<div class="ds-popup" x-data x-on:keydown.escape.window="window.parent !== window && window.parent.postMessage({ type: 'popup-close' }, window.location.origin)">
     <header class="ds-popup__head ds-on-chrome">
         <h1 class="ds-popup__title">@yield('title', config('app.name'))</h1>
-        <x-ui.icon-button icon="close" variant="chrome" :label="__('booking.admin.common.close')" x-data x-on:click="window.parent?.postMessage({ type: 'popup-close' }, '*'); window.close()" />
+        <x-ui.icon-button icon="close" variant="chrome" :label="__('booking.admin.common.close')" x-data x-on:click="window.parent?.postMessage({ type: 'popup-close' }, window.location.origin); window.close()" />
     </header>
 
     <main id="content" class="ds-popup__body">
