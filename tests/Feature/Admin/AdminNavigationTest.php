@@ -7,7 +7,6 @@ use App\Services\AdminNavigation;
 use App\Support\Ui\AdminNavGroup;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
