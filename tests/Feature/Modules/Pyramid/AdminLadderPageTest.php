@@ -207,6 +207,37 @@ class AdminLadderPageTest extends TestCase
     }
 
     #[Test]
+    public function copy_dropdown_lists_only_ladders_the_user_administers(): void
+    {
+        $target = PyramidLadder::factory()->create(['title' => 'Ziel', 'season' => 2027]);
+        $own = PyramidLadder::factory()->create(['title' => 'Eigene Quelle', 'season' => 2026]);
+        PyramidLadder::factory()->create(['title' => 'Fremde Quelle', 'season' => 2026]);
+        $holder = User::factory()->create();
+        $this->grantTo($holder, $target);
+        $this->grantTo($holder, $own);
+
+        $this->actingAs($holder)->get('/pyramide/admin/ladder/'.$target->id)
+            ->assertOk()
+            ->assertSee('Teilnehmer übernehmen')
+            ->assertSee('Eigene Quelle (2026)')
+            ->assertDontSee('Fremde Quelle (2026)');
+    }
+
+    #[Test]
+    public function copy_card_is_hidden_when_the_user_administers_no_other_ladder(): void
+    {
+        $target = PyramidLadder::factory()->create(['title' => 'Ziel']);
+        PyramidLadder::factory()->create(['title' => 'Fremde Quelle', 'season' => 2026]);
+        $holder = User::factory()->create();
+        $this->grantTo($holder, $target);
+
+        $this->actingAs($holder)->get('/pyramide/admin/ladder/'.$target->id)
+            ->assertOk()
+            ->assertDontSee('Teilnehmer übernehmen')
+            ->assertDontSee('Fremde Quelle (2026)');
+    }
+
+    #[Test]
     public function stored_values_are_escaped_and_the_edit_form_carries_them(): void
     {
         $ladder = PyramidLadder::factory()->create(['title' => '<script>alert(1)</script>']);

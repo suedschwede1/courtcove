@@ -130,7 +130,8 @@ class LadderAdminController extends Controller
             'ladder' => $ladder,
             'ladders' => $ladders,
             'counts' => $ladders->mapWithKeys(fn (PyramidLadder $each): array => [(int) $each->id => $activeCounts[(int) $each->id] ?? 0])->all(),
-            'otherLadders' => $ladders->filter(static fn (PyramidLadder $other): bool => (int) $other->id !== $ladderId)->values(),
+            // Only sources the user may copy from too (copyPlayers refuses the rest): no names of foreign ladders.
+            'otherLadders' => $ladders->filter(fn (PyramidLadder $other): bool => (int) $other->id !== $ladderId && $this->canAdmin($other))->values(),
             'ranking' => $ranking,
             'players' => $players,
             'page' => $page,
