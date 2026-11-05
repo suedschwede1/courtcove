@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-05
 
+- Phase 2: Pyramid player profile and "Fordern" flow in Laravel.
 - Phase 2: public Pyramid ladder page in Laravel (not yet routed by .htaccess).
 - Phase 2: Pyramid rules page and searchable challenge list in the new design.
 - Phase 2: login return path keeps the /booking prefix; expired-form notice only redirects within the site; member search treats % and _ literally.
