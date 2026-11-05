@@ -120,15 +120,44 @@ return [
     | Global "Reply-To" Address
     |--------------------------------------------------------------------------
     |
-    | Optional. When an address is set, mails that opt in (currently the
-    | Pyramid notifications) carry it as Reply-To, so replies reach the club
-    | instead of the sending account. Null or empty means no Reply-To header.
+    | Laravel applies this address to EVERY mail the application sends, so it
+    | stays unset: the club decided that only the tournament mails carry a
+    | Reply-To (see "tournament" below, fed by MAIL_REPLY_TO_ADDRESS).
     |
     */
 
     'reply_to' => [
-        'address' => env('MAIL_REPLY_TO_ADDRESS'),
-        'name' => env('MAIL_REPLY_TO_NAME'),
+        'address' => null,
+        'name' => null,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Tournament Mails (Pyramid and the other tournament modules)
+    |--------------------------------------------------------------------------
+    |
+    | Read by App\Modules\TournamentBase\Support\MailSender. A non-empty admin
+    | option (admin "Texte" page) wins over these values; empty values fall
+    | back to the defaults: From = mail.from above, no Reply-To, signature
+    | "Viele Grüße / club / website" with club = booking.name, website =
+    | app.url. A custom signature text may use the placeholders :club and :url.
+    |
+    */
+
+    'tournament' => [
+        'from' => [
+            'address' => env('TOURNAMENT_MAIL_FROM_ADDRESS'),
+            'name' => env('TOURNAMENT_MAIL_FROM_NAME'),
+        ],
+        'reply_to' => [
+            'address' => env('MAIL_REPLY_TO_ADDRESS'),
+            'name' => env('MAIL_REPLY_TO_NAME'),
+        ],
+        'signature' => [
+            'text' => env('TOURNAMENT_MAIL_SIGNATURE'),
+            'club' => env('TOURNAMENT_MAIL_SIGNATURE_CLUB'),
+            'url' => env('TOURNAMENT_MAIL_SIGNATURE_URL'),
+        ],
     ],
 
 ];
