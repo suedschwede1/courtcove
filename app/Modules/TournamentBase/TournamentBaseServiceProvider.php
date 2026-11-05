@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\TournamentBase;
 
 use App\Modules\TournamentBase\Http\Middleware\RequireModuleLogin;
+use Illuminate\Contracts\Http\Kernel;
+use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 use Random\Engine\Secure;
@@ -26,6 +28,10 @@ class TournamentBaseServiceProvider extends ServiceProvider
         $this->loadViewsFrom(__DIR__.'/resources/views', 'tournament-base');
 
         $this->app->make(Router::class)->aliasMiddleware('tournament-base.login', RequireModuleLogin::class);
+
+        // After the session/auth middlewares (it needs the user) but before route-model binding, so a guest
+        // is sent to the login before an unknown id can be told apart from a known one.
+        $this->app->make(Kernel::class)->addToMiddlewarePriorityBefore(SubstituteBindings::class, RequireModuleLogin::class);
 
         if ($this->app->runningInConsole()) {
             $this->commands([

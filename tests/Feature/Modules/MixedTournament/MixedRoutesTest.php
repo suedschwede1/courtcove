@@ -6,9 +6,15 @@ namespace Tests\Feature\Modules\MixedTournament;
 
 use App\Http\Middleware\StripFourByteCharacters;
 use App\Models\User;
+use App\Modules\TournamentBase\Http\Middleware\RequireModuleLogin;
+use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Contracts\Debug\ExceptionHandler;
+use Illuminate\Contracts\Http\Kernel;
+use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Middleware\SubstituteBindings;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Session\TokenMismatchException;
 use Illuminate\Support\Facades\Route;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -122,6 +128,41 @@ class MixedRoutesTest extends TestCase
 
         $this->post('/mixed-tournament/admin/create-event')
             ->assertRedirect(route('login', ['redirect_to' => '/mixed-tournament/admin/create-event']));
+    }
+
+    #[Test]
+    public function the_login_middleware_runs_after_the_session_and_before_model_binding(): void
+    {
+        $priority = $this->app->make(Kernel::class)->getMiddlewarePriority();
+        $login = array_search(RequireModuleLogin::class, $priority, true);
+
+        $this->assertNotFalse($login);
+        $this->assertGreaterThan(array_search(StartSession::class, $priority, true), $login);
+        $this->assertGreaterThan(array_search(EncryptCookies::class, $priority, true), $login);
+        $this->assertGreaterThan(array_search(AuthenticatesRequests::class, $priority, true), $login);
+        $this->assertLessThan(array_search(SubstituteBindings::class, $priority, true), $login);
+    }
+
+    #[Test]
+    public function a_really_logged_in_user_is_not_bounced_to_the_login(): void
+    {
+        User::factory()->create(['email' => 'real@example.test', 'pw' => bcrypt('secret123'), 'status' => 'enabled']);
+
+        $this->post('/login', ['email' => 'real@example.test', 'password' => 'secret123']);
+        $this->assertAuthenticated();
+
+        $this->get('/mixed-tournament')->assertOk();
+        $this->get('/mixed-tournament/event/999999')->assertRedirect(route('mixed.index'));
+
+        $pyramid = $this->get('/pyramide/admin');
+        $this->assertNotSame(route('login'), explode('?', (string) $pyramid->headers->get('Location'))[0]);
+    }
+
+    #[Test]
+    public function a_guest_on_an_unknown_event_gets_the_login_redirect_not_the_list(): void
+    {
+        $this->get('/mixed-tournament/event/999999')
+            ->assertRedirect(route('login', ['redirect_to' => '/mixed-tournament/event/999999']));
     }
 
     #[Test]
