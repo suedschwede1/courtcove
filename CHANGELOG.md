@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Pyramid admin: editing a participant works without JavaScript (edit link), the member search is rate limited and an internal spec reference is gone from the overdue text.
 - Pyramid admin: the overview counts ranked players of all ladders in one query, and a new ladder needs a season between 2000 and 2100.
 - Pyramid: late sign-up stores player and join event in one transaction and a double click shows the already-registered notice instead of an error.
 - Member picker for Pyramid administrators no longer offers placeholder and blocked accounts (still no phone numbers).

@@ -97,7 +97,7 @@ return [
 
         'overdue' => [
             'title' => 'Overdue challenges (:count)',
-            'intro' => 'Deadlines are not recorded automatically. The ladder manager decides between three ways (spec 6.2): extend, award by default, or close without a result. All three need a reason.',
+            'intro' => 'Deadlines are not recorded automatically. The ladder manager decides between three ways: extend, award by default, or close without a result. All three need a reason.',
             'line' => ':challenger challenges :opponent — deadline was :date',
             'decision' => 'Decision',
             'extend' => 'Extend deadline until',

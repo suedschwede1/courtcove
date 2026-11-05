@@ -138,6 +138,7 @@ class LadderAdminController extends Controller
             'total' => $filtered->count(),
             'search' => $search,
             'status' => $status,
+            'editId' => (int) $request->query('edit', 0),
             'waiting' => $waiting,
             'openChallenges' => $open,
             'overdue' => $this->overdue($open),

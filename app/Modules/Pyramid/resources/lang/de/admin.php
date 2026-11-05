@@ -97,7 +97,7 @@ return [
 
         'overdue' => [
             'title' => 'Überfällige Forderungen (:count)',
-            'intro' => 'Fristen werden nicht automatisch verbucht — hier entscheidet der Ranglistenverantwortliche zwischen drei Wegen (Spec 6.2): verlängern, kampflos werten, oder ohne Wertung schließen. Alle drei brauchen eine Begründung.',
+            'intro' => 'Fristen werden nicht automatisch verbucht — hier entscheidet der Ranglistenverantwortliche zwischen drei Wegen: verlängern, kampflos werten, oder ohne Wertung schließen. Alle drei brauchen eine Begründung.',
             'line' => ':challenger fordert :opponent — Frist war :date',
             'decision' => 'Entscheidung',
             'extend' => 'Frist verlängern bis',
