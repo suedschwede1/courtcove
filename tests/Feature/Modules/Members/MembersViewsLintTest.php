@@ -28,6 +28,9 @@ class MembersViewsLintTest extends TestCase
         'fee-categories/index.blade.php',
         'members/edit.blade.php',
         'members/_history.blade.php',
+        'members/_form.blade.php',
+        'members/create.blade.php',
+        'payments/create.blade.php',
     ];
 
     private const VIEWS_PREFIX = 'Modules/Members/resources/views/';
