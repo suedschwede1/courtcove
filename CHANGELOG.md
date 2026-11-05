@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Phase 2: Mexicano pairing and fair sit-out rotation ported unchanged.
 - Phase 2: Americano round proposals ported unchanged.
 - Phase 2: Mixed group building ported unchanged (sizes, distributions, extra group, repair).
 - Phase 2: Mixed rotation and Durchmischung maths ported unchanged (golden files from the old code).
