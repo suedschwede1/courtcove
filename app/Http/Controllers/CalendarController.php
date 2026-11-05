@@ -9,6 +9,7 @@ use App\Models\Reservation;
 use App\Models\Square;
 use App\Models\User;
 use App\Services\ReservationService;
+use App\Support\Calendar\EventKind;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -94,7 +95,7 @@ final class CalendarController extends Controller
         $isAdmin = $isLoggedIn && $authUser->can('admin.booking') && $request->cookie('admin_mode') === '1';
         $canAdminEvents = $isLoggedIn && $authUser->can('admin.event');
 
-        $events = Event::with(['meta' => fn ($query) => $query->where('key', 'name')])
+        $events = Event::with(['meta' => fn ($query) => $query->whereIn('key', ['name', 'kind'])])
             ->where('status', 'enabled')
             ->where('datetime_start', '<', $rangeEnd)
             ->where('datetime_end', '>', $rangeStart)
@@ -108,7 +109,8 @@ final class CalendarController extends Controller
                 continue;
             }
 
-            $eventName = $event->meta->first()?->value ?? __('booking.messages.event_default_name');
+            $eventName = $event->meta->firstWhere('key', 'name')?->value ?? __('booking.messages.event_default_name');
+            $eventKind = EventKind::for($event)->value;
             $coveredSids = $event->sid === null ? $squareIds : [(int) $event->sid];
             $coveredIndices = array_values(array_filter(
                 array_map(
@@ -170,6 +172,7 @@ final class CalendarController extends Controller
                         'rows' => $rows,
                         'cols' => $cols,
                         'name' => $eventName,
+                        'kind' => $eventKind,
                         'event' => $event,
                     ];
 
@@ -204,7 +207,7 @@ final class CalendarController extends Controller
                             break;
                         }
 
-                        $sameLabel = $nextBlock['name'] === $block['name'];
+                        $sameLabel = $nextBlock['name'] === $block['name'] && $nextBlock['kind'] === $block['kind'];
                         $sameRows = $nextBlock['rows'] === $block['rows'];
                         $sameStart = $nextBlock['event']->datetime_start == $block['event']->datetime_start;
                         $sameEnd = $nextBlock['event']->datetime_end == $block['event']->datetime_end;

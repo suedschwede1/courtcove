@@ -60,6 +60,11 @@ final class CalendarCellStatesTest extends TestCase
         return trim((string) preg_replace('/\s+/u', ' ', $node->textContent));
     }
 
+    private function norm(string $text): string
+    {
+        return trim((string) preg_replace('/\s+/u', ' ', $text));
+    }
+
     /** @param list<string> $players */
     private function booking(User $owner, int $hour, string $status = 'single', array $players = [], ?string $notes = null): Booking
     {
@@ -257,6 +262,110 @@ final class CalendarCellStatesTest extends TestCase
         $this->assertInstanceOf(DOMElement::class, $label);
         $this->assertSame('true', $label->getAttribute('aria-hidden'));
         $this->assertStringNotContainsString('14 – 16 Uhr', $end->textContent);
+    }
+
+    #[Test]
+    public function owner_name_is_not_repeated_in_the_detail_line(): void
+    {
+        $member = User::factory()->create(['status' => 'enabled', 'alias' => 'Example Member']);
+        $this->booking($member, 15, players: ['Example Member']);
+        $this->booking($member, 16, players: ['  example member ', 'Example Partner']);
+
+        $html = $this->calendar($member);
+        $xp = $this->xpath($html);
+
+        $only = $this->cell($xp, 15);
+        $this->assertSame('Example Member', $this->text($xp, $only, 'cc-label-primary'));
+        $this->assertSame(0, $xp->query('.//span[contains(concat(" ", @class, " "), " cc-label-secondary ")]', $only)->length);
+        $this->assertSame(1, substr_count($this->norm($only->textContent), 'Example Member'));
+
+        $both = $this->cell($xp, 16);
+        $this->assertSame('Example Partner', $this->text($xp, $both, 'cc-label-secondary'));
+    }
+
+    #[Test]
+    public function others_booking_and_series_do_not_repeat_the_owner(): void
+    {
+        $other = User::factory()->create(['status' => 'enabled', 'alias' => 'Other Member']);
+        $this->booking($other, 15, players: ['Other Member']);
+        $this->booking($other, 16, 'subscription', ['Other Member']);
+
+        $xp = $this->xpath($this->calendar(User::factory()->create(['status' => 'enabled'])));
+
+        $single = $this->cell($xp, 15);
+        $this->assertSame(1, substr_count($this->norm($single->textContent), 'Other Member'));
+        $this->assertSame(0, $xp->query('.//span[contains(concat(" ", @class, " "), " cc-label-secondary ")]', $single)->length);
+
+        // A series without other players shows the series hint instead.
+        $series = $this->cell($xp, 16);
+        $this->assertSame(1, substr_count($this->norm($series->textContent), 'Other Member'));
+        $this->assertSame('Abo', $this->text($xp, $series, 'cc-label-secondary'));
+    }
+
+    #[Test]
+    public function admin_booking_for_someone_else_shows_that_member_once(): void
+    {
+        $admin = User::factory()->create(['status' => 'admin', 'alias' => 'Example Admin']);
+        $booking = $this->booking($admin, 15, players: ['Example Admin', 'Example Guest']);
+        BookingMeta::create(['bid' => $booking->bid, 'key' => 'owner-name', 'value' => 'Example Guest']);
+
+        $xp = $this->xpath($this->calendar($admin, true));
+        $cell = $this->cell($xp, 15);
+
+        $this->assertSame('Example Guest', $this->text($xp, $cell, 'cc-label-primary'));
+        $this->assertSame('Example Admin', $this->text($xp, $cell, 'cc-label-secondary'));
+    }
+
+    #[Test]
+    public function closure_event_renders_as_blocked_and_plain_event_as_event(): void
+    {
+        $closure = Event::factory()->create([
+            'sid' => $this->court->sid, 'status' => 'enabled',
+            'datetime_start' => Carbon::parse('2026-11-04 14:00'), 'datetime_end' => Carbon::parse('2026-11-04 16:00'),
+        ]);
+        EventMeta::create(['eid' => $closure->eid, 'key' => 'name', 'value' => 'Resurfacing']);
+        EventMeta::create(['eid' => $closure->eid, 'key' => 'kind', 'value' => 'closure']);
+
+        $plain = Event::factory()->create([
+            'sid' => $this->court->sid, 'status' => 'enabled',
+            'datetime_start' => Carbon::parse('2026-11-04 17:00'), 'datetime_end' => Carbon::parse('2026-11-04 18:00'),
+        ]);
+        EventMeta::create(['eid' => $plain->eid, 'key' => 'name', 'value' => 'Example Training']);
+
+        $xp = $this->xpath($this->calendar(User::factory()->create(['status' => 'enabled'])));
+
+        foreach ([14 => 'start', 15 => 'end'] as $hour => $part) {
+            $cell = $this->cell($xp, $hour);
+            $this->assertSame('blocked', $cell->getAttribute('data-state'));
+            $classes = explode(' ', $cell->getAttribute('class'));
+            $this->assertContains('event-cell--blocked', $classes);
+            $this->assertContains('event-cell--'.$part, $classes);
+        }
+
+        $event = $this->cell($xp, 17);
+        $this->assertSame('event', $event->getAttribute('data-state'));
+        $this->assertNotContains('event-cell--blocked', explode(' ', $event->getAttribute('class')));
+    }
+
+    #[Test]
+    public function event_named_like_a_closure_is_blocked_unless_its_kind_says_event(): void
+    {
+        foreach ([14 => null, 16 => 'event'] as $hour => $kind) {
+            $event = Event::factory()->create([
+                'sid' => $this->court->sid, 'status' => 'enabled',
+                'datetime_start' => Carbon::parse(sprintf('2026-11-04 %02d:00', $hour)),
+                'datetime_end' => Carbon::parse(sprintf('2026-11-04 %02d:00', $hour + 1)),
+            ]);
+            EventMeta::create(['eid' => $event->eid, 'key' => 'name', 'value' => 'Platzsperre']);
+            if ($kind !== null) {
+                EventMeta::create(['eid' => $event->eid, 'key' => 'kind', 'value' => $kind]);
+            }
+        }
+
+        $xp = $this->xpath($this->calendar(User::factory()->create(['status' => 'enabled'])));
+
+        $this->assertSame('blocked', $this->cell($xp, 14)->getAttribute('data-state'));
+        $this->assertSame('event', $this->cell($xp, 16)->getAttribute('data-state'));
     }
 
     #[Test]

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Event;
+use App\Support\Calendar\EventKind;
 use Carbon\Carbon;
 use Illuminate\Validation\ValidationException;
 
@@ -44,6 +45,8 @@ final class EventService
         ]);
 
         $this->syncMeta($event, $data);
+        $kind = (string) ($data['kind'] ?? '');
+        $this->storeKind($event, $kind !== '' ? $kind : EventKind::Event->value);
 
         return $event;
     }
@@ -61,8 +64,16 @@ final class EventService
         ]);
 
         $this->syncMeta($event, $data);
+        if ((string) ($data['kind'] ?? '') !== '') {
+            $this->storeKind($event, (string) $data['kind']);
+        }
 
         return $event;
+    }
+
+    private function storeKind(Event $event, string $kind): void
+    {
+        $event->meta()->updateOrCreate(['key' => 'kind'], ['value' => $kind]);
     }
 
     private function syncMeta(Event $event, array $data): void
