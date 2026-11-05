@@ -21,6 +21,20 @@ return [
 
     'login_required' => 'You need to be logged in to administer the challenge ladder.',
     'forbidden' => 'You do not have permission to administer the pyramid.',
+    'unknown_status' => 'Unknown status.',
+    'no_player' => 'This participant does not exist.',
+
+    'flash' => [
+        'seeded' => ':count participants seeded by ITN, the ladder is running.',
+        'player_added' => ':label added to the waiting list.',
+        'admitted' => ':label enters at position :position.',
+        'released' => ':label may now challenge an active player.',
+        'release_withdrawn' => 'Release withdrawn.',
+        'status_changed' => 'Status of :label changed.',
+        'player_updated' => ':label updated.',
+        'copied' => ':count participants from ":title" copied to the waiting list.',
+        'normalized' => 'Ladder renumbered.',
+    ],
 
     'index' => [
         'title' => 'Pyramid administration',

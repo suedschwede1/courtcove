@@ -20,6 +20,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Administration overview: ladders by season, overdue challenges and the form for a new ladder.
@@ -152,6 +153,74 @@ class LadderAdminController extends Controller
         return response()
             ->json($this->memberSearch->search((string) $request->query('q', '')))
             ->header('Cache-Control', 'no-store, private');
+    }
+
+    public function seed(int $ladderId): RedirectResponse
+    {
+        $ladder = $this->administeredLadder($ladderId);
+        $back = redirect()->to(PyramidLinks::adminLadder((int) $ladder->id));
+
+        try {
+            $count = $this->admin->seed($ladder, $this->actorUid());
+        } catch (PyramidRuleException $e) {
+            return $back->with('error', $e->verdict->message());
+        }
+
+        return $back->with('success', __('pyramid::admin.flash.seeded', ['count' => $count]));
+    }
+
+    public function addPlayer(Request $request, int $ladderId): RedirectResponse
+    {
+        $ladder = $this->administeredLadder($ladderId);
+        $back = redirect()->to(PyramidLinks::adminLadder((int) $ladder->id));
+
+        try {
+            $player = $this->admin->addPlayer(
+                $ladder,
+                $request->only(['label', 'uid', 'phone', 'email', 'itn', 'gender', 'age']),
+            );
+        } catch (PyramidRuleException $e) {
+            return $back->with('error', $e->verdict->message());
+        }
+
+        return $back->with('success', __('pyramid::admin.flash.player_added', ['label' => $player->label]));
+    }
+
+    public function copyPlayers(Request $request, int $ladderId): RedirectResponse
+    {
+        $ladder = $this->administeredLadder($ladderId);
+        $back = redirect()->to(PyramidLinks::adminLadder((int) $ladder->id));
+
+        $source = $this->repo->ladder((int) $request->input('sourceLadderId'));
+
+        // Copying reads another roster (names, phones): only from a ladder the user administers too.
+        // Anything else is reported like a missing source, which does not reveal that the ladder exists.
+        if ($source !== null && ! $this->canAdmin($source)) {
+            $source = null;
+        }
+
+        try {
+            $count = $this->admin->copyPlayers($ladder, $source);
+        } catch (PyramidRuleException $e) {
+            return $back->with('error', $e->verdict->message());
+        }
+
+        return $back->with('success', __('pyramid::admin.flash.copied', ['count' => $count, 'title' => $source->title]));
+    }
+
+    public function normalize(int $ladderId): RedirectResponse
+    {
+        $ladder = $this->administeredLadder($ladderId);
+
+        $this->admin->normalize($ladder, $this->actorUid());
+
+        return redirect()->to(PyramidLinks::adminLadder((int) $ladder->id))
+            ->with('success', __('pyramid::admin.flash.normalized'));
+    }
+
+    private function actorUid(): int
+    {
+        return (int) Auth::user()->uid;
     }
 
     private function administeredLadder(int $ladderId): PyramidLadder

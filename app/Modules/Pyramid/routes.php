@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Modules\Pyramid\Http\Controllers\Admin\LadderAdminController;
+use App\Modules\Pyramid\Http\Controllers\Admin\PlayerAdminController;
 use App\Modules\Pyramid\Http\Controllers\ChallengeController;
 use App\Modules\Pyramid\Http\Controllers\JoinController;
 use App\Modules\Pyramid\Http\Controllers\LadderController;
@@ -49,6 +50,24 @@ Route::middleware('tournament-base.login:pyramid::admin.login_required')->prefix
     Route::match(['get', 'post'], 'create', [LadderAdminController::class, 'create'])->name('pyramide.admin.create');
     Route::get('ladder/{ladderId}', [LadderAdminController::class, 'show'])->whereNumber('ladderId')->name('pyramide.admin.ladder');
     Route::get('ladder/{ladderId}/mitglieder', [LadderAdminController::class, 'members'])->whereNumber('ladderId')->name('pyramide.admin.members');
+
+    // Ladder-level and player-level mutations: POST only. The paths are the ones PyramidLinks builds for the forms.
+    foreach (['seed' => 'seed', 'add-player' => 'addPlayer', 'copy-players' => 'copyPlayers', 'normalize' => 'normalize'] as $path => $action) {
+        Route::post('ladder/{ladderId}/'.$path, [LadderAdminController::class, $action])
+            ->whereNumber('ladderId')
+            ->name('pyramide.admin.'.$path);
+    }
+
+    foreach ([
+        'admit' => ['admit', 'admit'],
+        'release-entry' => ['release-entry', 'releaseEntry'],
+        'player-status' => ['status', 'status'],
+        'update-player' => ['update', 'update'],
+    ] as $name => [$path, $action]) {
+        Route::post('player/{playerId}/'.$path, [PlayerAdminController::class, $action])
+            ->whereNumber('playerId')
+            ->name('pyramide.admin.'.$name);
+    }
 });
 
 Route::get('pyramide/{ladderId}', [LadderController::class, 'index'])

@@ -21,6 +21,20 @@ return [
 
     'login_required' => 'Für die Verwaltung der Forderungspyramide musst du angemeldet sein.',
     'forbidden' => 'Für die Verwaltung der Pyramide fehlt dir die Berechtigung.',
+    'unknown_status' => 'Unbekannter Status.',
+    'no_player' => 'Diesen Teilnehmer gibt es nicht.',
+
+    'flash' => [
+        'seeded' => ':count Teilnehmer nach ITN gereiht, die Pyramide läuft.',
+        'player_added' => ':label zur Warteliste hinzugefügt.',
+        'admitted' => ':label steigt auf Platz :position ein.',
+        'released' => ':label darf jetzt einen aktiven Spieler einfordern.',
+        'release_withdrawn' => 'Freigabe zurückgenommen.',
+        'status_changed' => 'Status von :label geändert.',
+        'player_updated' => ':label aktualisiert.',
+        'copied' => ':count Teilnehmer aus ":title" auf die Warteliste übernommen.',
+        'normalized' => 'Rangliste neu durchnummeriert.',
+    ],
 
     'index' => [
         'title' => 'Pyramiden-Admin',
