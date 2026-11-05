@@ -1,16 +1,14 @@
 {{--
-    Score entry for a scheduled challenge: header row with both surnames, Satz 1, Satz 2 and the
+    Score entry for a scheduled challenge: header row with both players (abbreviated like "H. Mayer"), Satz 1, Satz 2 and the
     match tiebreak, then the sticky save bar. Side a is always the challenger.
     Needs: $challenge, $challenger, $opponent, $scoreHint (ScoreService::describe of the kept input, or null).
 --}}
 @php
-    $surname = static function (string $label): string {
-        $parts = preg_split('/\s+/u', trim($label)) ?: [];
+    use App\Modules\Pyramid\Support\PyramidFormat;
 
-        return (string) (end($parts) ?: $label);
-    };
-    $nameA = $surname((string) $challenger->label);
-    $nameB = $surname((string) $opponent->label);
+    // Never the last word of a label (that can be a number or a suffix): the abbreviated name, full name as tooltip.
+    $nameA = PyramidFormat::shortName((string) $challenger->label);
+    $nameB = PyramidFormat::shortName((string) $opponent->label);
     $rows = [
         ['label' => __('pyramid::ui.detail.set', ['n' => 1]), 'a' => 's1a', 'b' => 's1b', 'max' => 7, 'sub' => null],
         ['label' => __('pyramid::ui.detail.set', ['n' => 2]), 'a' => 's2a', 'b' => 's2b', 'max' => 7, 'sub' => null],
@@ -23,8 +21,8 @@
 
     <div class="grid grid-cols-3 items-center gap-2">
         <span></span>
-        <span class="text-center text-body-s font-bold text-ink-2">{{ $nameA }}</span>
-        <span class="text-center text-body-s font-bold text-ink-2">{{ $nameB }}</span>
+        <span class="break-words text-center text-body-s font-bold text-ink-2" title="{{ $challenger->label }}">{{ $nameA }}</span>
+        <span class="break-words text-center text-body-s font-bold text-ink-2" title="{{ $opponent->label }}">{{ $nameB }}</span>
 
         @foreach ($rows as $row)
             <span class="flex flex-col font-bold leading-tight">

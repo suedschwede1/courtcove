@@ -31,12 +31,12 @@
 
 @include('pyramid::partials.my-challenges', ['variant' => 'banner', 'viewer' => $viewer, 'isLoggedIn' => $isLoggedIn, 'openChallenges' => $openChallenges, 'ranking' => $ranking, 'labels' => $labels])
 
-<div class="flex flex-wrap items-start gap-5">
-    <x-ui.card :aria-label="__('pyramid::ui.ranking')" padding="lg" class="min-w-0 flex-[999_1_640px]">
+<div class="flex flex-col gap-5 xl:flex-row xl:items-start">
+    <x-ui.card :aria-label="__('pyramid::ui.ranking')" padding="lg" class="min-w-0 xl:flex-1">
         @include('pyramid::partials.ladder-grid', ['rows' => $rows, 'blocked' => $blocked, 'viewer' => $viewer])
     </x-ui.card>
 
-    <aside class="flex flex-[1_1_300px] flex-col gap-4">
+    <aside class="flex w-full flex-col gap-4 xl:w-80 xl:shrink-0">
         @include('pyramid::partials.my-challenges', ['variant' => 'card', 'viewer' => $viewer, 'isLoggedIn' => $isLoggedIn, 'openChallenges' => $openChallenges, 'ranking' => $ranking, 'labels' => $labels])
 
         <x-ui.card :title="__('pyramid::ui.waiting.title')">
@@ -46,7 +46,7 @@
                 @else
                     <ul class="flex flex-col gap-1 text-ink-2">
                         @foreach ($waiting as $player)
-                            <li>{{ $player->label }} · ITN {{ PyramidFormat::itn($player->itn) }}</li>
+                            <li>{{ PyramidFormat::shortName($player->label) }} · ITN {{ PyramidFormat::itn($player->itn) }}</li>
                         @endforeach
                     </ul>
                 @endif

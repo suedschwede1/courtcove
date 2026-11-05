@@ -41,6 +41,7 @@ return [
         'ranks_opponent_waiting' => 'Rank :a vs waiting list',
         'ranks_both_waiting' => 'Waiting list vs waiting list',
         'deadline' => 'Deadline :date',
+        'deadline_was' => 'Deadline was :date',
         'details' => 'Details',
         'back' => 'Back to the ranking',
         'summary' => ':from–:to of :total',
@@ -80,6 +81,7 @@ return [
     'meta' => 'Season :season · :count players · :open open challenges',
     'meta_season' => 'Season :season',
     'detail' => [
+        'page_title' => 'Challenge',
         'missing' => 'This challenge does not exist.',
         'not_involved' => 'This challenge does not concern you.',
         'only_opponent_declines' => 'Only the challenged player can decline a challenge.',
@@ -136,10 +138,23 @@ return [
     'notice_closed' => 'This season is over.',
     'notice_championship' => 'Championship period: please challenge championship players only after agreeing with them (rule 2.2).',
 
+    'fmt' => [
+        'weekdays' => ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        'months' => ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        'day_time' => ':weekday, :month :day :time',
+        'short_date' => ':month_name :day_number',
+    ],
+
+    'inline' => [
+        'opponent_open' => 'already has a challenge',
+        'protected' => 'protected for now',
+    ],
+
     'ranking' => 'Ranking',
     'step' => 'Level :row',
     'challenge_button' => 'Challenge',
     'legend' => [
+        'label' => 'Legend',
         'challengeable' => 'can be challenged',
         'you' => 'you',
         'blocked' => 'not challengeable right now',

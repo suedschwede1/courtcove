@@ -41,6 +41,7 @@ return [
         'ranks_opponent_waiting' => 'Platz :a gegen Warteliste',
         'ranks_both_waiting' => 'Warteliste gegen Warteliste',
         'deadline' => 'Frist :date',
+        'deadline_was' => 'Frist war :date',
         'details' => 'Details',
         'back' => 'Zurück zur Rangliste',
         'summary' => ':from–:to von :total',
@@ -80,6 +81,7 @@ return [
     'meta' => 'Saison :season · :count Spieler · :open offene Forderungen',
     'meta_season' => 'Saison :season',
     'detail' => [
+        'page_title' => 'Forderung',
         'missing' => 'Diese Forderung gibt es nicht.',
         'not_involved' => 'Diese Forderung betrifft dich nicht.',
         'only_opponent_declines' => 'Nur der Geforderte kann eine Forderung ablehnen.',
@@ -136,10 +138,23 @@ return [
     'notice_closed' => 'Diese Saison ist abgeschlossen.',
     'notice_championship' => 'Meisterschaftszeitraum: Meisterschaftsspieler bitte nur nach Absprache fordern (Regel 2.2).',
 
+    'fmt' => [
+        'weekdays' => ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'],
+        'months' => ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
+        'day_time' => ':weekday, :day. :month :time',
+        'short_date' => ':day.:month.',
+    ],
+
+    'inline' => [
+        'opponent_open' => 'hat bereits eine Forderung',
+        'protected' => 'gerade geschützt',
+    ],
+
     'ranking' => 'Rangliste',
     'step' => 'Stufe :row',
     'challenge_button' => 'Fordern',
     'legend' => [
+        'label' => 'Legende',
         'challengeable' => 'forderbar',
         'you' => 'du',
         'blocked' => 'derzeit nicht forderbar',

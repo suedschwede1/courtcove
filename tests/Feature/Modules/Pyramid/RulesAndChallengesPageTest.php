@@ -86,10 +86,9 @@ class RulesAndChallengesPageTest extends TestCase
         $this->get('/pyramide/forderungen')
             ->assertOk()
             ->assertSee('Platz 9 gegen 6')
-            ->assertSee('07.03.2027 10:00')
-            ->assertSee('Frist 18.03.2027')
-            ->assertSee('Termin vereinbart')
-            ->assertSee('Offen')
+            ->assertSee('<span class="font-bold" title="Spieler 9 fordert Spieler 6">S. 9 – S. 6</span>', false)
+            ->assertSee('So, 7. Mär 10:00')
+            ->assertSee('Frist 18.03.')
             ->assertSee('pyramide/forderung/', false)
             ->assertSee('Details');
     }

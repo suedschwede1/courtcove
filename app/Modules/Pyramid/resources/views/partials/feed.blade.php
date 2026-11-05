@@ -7,7 +7,7 @@
     use App\Modules\Pyramid\Support\EventText;
     use App\Modules\Pyramid\Support\PyramidFormat;
 
-    $name = fn ($id) => $labels[(int) $id] ?? __('pyramid::ui.unknown');
+    $name = fn ($id) => PyramidFormat::shortName($labels[(int) $id] ?? __('pyramid::ui.unknown'));
     $lines = $feed->map(function ($event) use ($name): array {
         $data = $event->data();
 

@@ -34,10 +34,10 @@
 
 <x-ui.card :aria-label="__('pyramid::ui.challenges.filter_label')">
     <form method="GET" action="{{ PyramidLinks::challenges() }}" class="flex flex-wrap items-end gap-2.5">
-        <x-ui.field for="pyramid-filter-q" :label="__('pyramid::ui.challenges.name')" class="min-w-[200px] flex-[2_1_240px]">
+        <x-ui.field for="pyramid-filter-q" :label="__('pyramid::ui.challenges.name')" class="min-w-48 grow-2 basis-60">
             <x-ui.input type="search" name="q" id="pyramid-filter-q" :value="$search" />
         </x-ui.field>
-        <x-ui.field for="pyramid-filter-status" :label="__('pyramid::ui.challenges.status')" class="min-w-[160px] flex-[1_1_200px]">
+        <x-ui.field for="pyramid-filter-status" :label="__('pyramid::ui.challenges.status')" class="min-w-40 grow basis-48">
             <x-ui.select name="status" id="pyramid-filter-status" :options="$statusOptions" :selected="$status" :placeholder="__('pyramid::ui.challenges.all_status')" />
         </x-ui.field>
         <x-ui.button type="submit" variant="dark" :block="false">{{ __('pyramid::ui.challenges.filter') }}</x-ui.button>
@@ -60,28 +60,30 @@
             </x-slot:head>
             @foreach ($challenges as $challenge)
                 @php
-                    if ($challenge->scheduled_at) {
-                        $when = PyramidFormat::dateTime($challenge->scheduled_at);
-                    } elseif ($challenge->deadline) {
-                        $when = __('pyramid::ui.challenges.deadline', ['date' => PyramidFormat::date($challenge->deadline)]);
-                    } else {
-                        $when = '–';
-                    }
+                    $challengerLabel = $labels[(int) $challenge->challenger_id] ?? __('pyramid::ui.unknown');
+                    $opponentLabel = $labels[(int) $challenge->opponent_id] ?? __('pyramid::ui.unknown');
+
+                    // A date (with time) wins; else an expired challenge shows the deadline that passed, a closed one
+                    // the day it was resolved, a running one its deadline.
+                    $when = match (true) {
+                        (bool) $challenge->scheduled_at => PyramidFormat::dayTime($challenge->scheduled_at),
+                        $challenge->status === 'expired' && $challenge->deadline => __('pyramid::ui.challenges.deadline_was', ['date' => PyramidFormat::shortDate($challenge->deadline)]),
+                        in_array($challenge->status, ['played', 'declined', 'withdrawn', 'forfeited'], true) && $challenge->resolved => PyramidFormat::shortDate($challenge->resolved),
+                        (bool) $challenge->deadline => __('pyramid::ui.challenges.deadline', ['date' => PyramidFormat::shortDate($challenge->deadline)]),
+                        default => '–',
+                    };
                 @endphp
                 <tr>
                     <td class="ds-cell--title">
                         <span class="flex flex-col">
-                            <span>{{ __('pyramid::ui.challenges.pair', [
-                                'challenger' => $labels[(int) $challenge->challenger_id] ?? __('pyramid::ui.unknown'),
-                                'opponent' => $labels[(int) $challenge->opponent_id] ?? __('pyramid::ui.unknown'),
-                            ]) }}</span>
+                            <span class="font-bold" title="{{ __('pyramid::ui.challenges.pair', ['challenger' => $challengerLabel, 'opponent' => $opponentLabel]) }}">{{ PyramidFormat::shortName($challengerLabel) }} – {{ PyramidFormat::shortName($opponentLabel) }}</span>
                             <span class="text-body-s font-normal text-ink-2">{{ $ranksOf($challenge) }}</span>
                         </span>
                     </td>
                     <td data-label="{{ __('pyramid::ui.challenges.col_when') }}">{{ $when }}</td>
                     <td data-label="{{ __('pyramid::ui.challenges.col_result') }}" class="tabular-nums">{{ $challenge->score ?: '–' }}</td>
                     <td data-label="{{ __('pyramid::ui.challenges.col_status') }}"><x-ui.badge :tone="PyramidStatus::badgeGroup($challenge->status)">{{ PyramidStatus::label($challenge->status) }}</x-ui.badge></td>
-                    <td><a href="{{ PyramidLinks::challenge((int) $challenge->id) }}" class="font-semibold">{{ __('pyramid::ui.challenges.details') }}</a></td>
+                    <td class="text-right max-md:justify-end"><a href="{{ PyramidLinks::challenge((int) $challenge->id) }}" class="font-semibold text-clay underline">{{ __('pyramid::ui.challenges.details') }}</a></td>
                 </tr>
             @endforeach
         </x-ui.table>

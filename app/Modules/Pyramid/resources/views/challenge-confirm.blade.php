@@ -11,15 +11,10 @@
         ['player' => $opponent, 'you' => false],
     ];
 @endphp
-@include('pyramid::partials.header', [
-    'ladder' => $ladder,
-    'ladders' => $ladders,
-    'active' => 'ranking',
-    'canAdmin' => $canAdmin,
-])
+@include('pyramid::partials.page-bar', ['ladder' => $ladder, 'title' => __('pyramid::ui.challenge.title')])
 
 <div class="mx-auto flex w-full max-w-xl flex-col gap-4">
-    <x-ui.card :title="__('pyramid::ui.challenge.title')" level="2">
+    <x-ui.card :aria-label="__('pyramid::ui.challenge.title')">
         <form method="POST" action="{{ route('pyramide.challenge.store', ['playerId' => (int) $opponent->id]) }}" class="flex flex-col gap-4">
             @csrf
 

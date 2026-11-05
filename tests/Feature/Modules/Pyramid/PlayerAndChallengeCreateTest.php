@@ -113,7 +113,7 @@ class PlayerAndChallengeCreateTest extends TestCase
             ->assertSee('07.01.2020')
             ->assertSee('nicht angetreten')
             ->assertSee('6:3 6:4')
-            ->assertSee('Spieler 9')
+            ->assertSee('S. 9')
             ->assertSee('Du stehst auf Platz 8 – Platz 5 ist forderbar.')
             ->assertSee('pyramide/fordern/'.$target->id, false);
         $this->assertMatchesRegularExpression('/Siege<\/p>\s*<p class="ds-kpi__value">2</', $response->getContent());

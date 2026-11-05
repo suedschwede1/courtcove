@@ -33,9 +33,31 @@ final class LadderChips
             return $byCategory !== 0 ? $byCategory : ((int) $a->id <=> (int) $b->id);
         });
 
-        return array_map(static fn (PyramidLadder $ladder): array => [
-            'ladder' => $ladder,
-            'label' => (int) $ladder->season.($ladder->category === null ? '' : ' · '.$ladder->category),
-        ], $list);
+        // The category (else the title) names a ladder; the season is added when seasons differ, so a single
+        // season reads "Herren | Damen" like the mockup and two chips never carry the same text.
+        $seasons = array_unique(array_map(static fn (PyramidLadder $ladder): int => (int) $ladder->season, $list));
+        $names = array_map(static fn (PyramidLadder $ladder): string => self::name($ladder, count($seasons) > 1), $list);
+        $counts = array_count_values($names);
+
+        $chips = [];
+
+        foreach ($list as $i => $ladder) {
+            // Still not unique (same category and season twice): the title and the id tell them apart.
+            $chips[] = ['ladder' => $ladder, 'label' => $counts[$names[$i]] > 1 ? trim($ladder->title.' #'.$ladder->id) : $names[$i]];
+        }
+
+        return $chips;
+    }
+
+    private static function name(PyramidLadder $ladder, bool $withSeason): string
+    {
+        $name = trim((string) ($ladder->category ?? '')) ?: trim((string) $ladder->title) ?: (string) (int) $ladder->season;
+
+        // A title that already carries the season is not given the season twice.
+        if ($withSeason && ! str_contains($name, (string) (int) $ladder->season)) {
+            $name .= ' · '.(int) $ladder->season;
+        }
+
+        return $name;
     }
 }

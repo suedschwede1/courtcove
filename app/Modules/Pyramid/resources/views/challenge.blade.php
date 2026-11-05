@@ -4,6 +4,7 @@
 
 @section('pyramid-content')
 @php
+    use App\Modules\Pyramid\Support\PyramidFormat;
     use App\Modules\Pyramid\Support\PyramidLinks;
     use App\Modules\Pyramid\Support\PyramidStatus;
 
@@ -26,12 +27,7 @@
     $running = $challenge->isRunning();
     $declineReasons = ['other_match' => __('pyramid::ui.detail.reason_other_match'), 'injury' => __('pyramid::ui.detail.reason_injury')];
 @endphp
-@include('pyramid::partials.header', [
-    'ladder' => $ladder,
-    'ladders' => $ladders,
-    'active' => 'ranking',
-    'canAdmin' => $canAdmin,
-])
+@include('pyramid::partials.page-bar', ['ladder' => $ladder, 'title' => __('pyramid::ui.detail.page_title')])
 
 <div class="mx-auto flex w-full max-w-2xl flex-col gap-4">
     <x-ui.card :aria-label="__('pyramid::ui.challenges.title')">
@@ -41,7 +37,7 @@
             <p class="text-ink-2">{{ $ranksLine }}</p>
 
             @if ($challenge->scheduled_at)
-                <p class="font-semibold">{{ __('pyramid::ui.detail.date_line', ['date' => $format($challenge->scheduled_at, 'd.m.Y H:i')]) }}</p>
+                <p class="font-semibold">{{ __('pyramid::ui.detail.date_line', ['date' => PyramidFormat::dayTime($challenge->scheduled_at)]) }}</p>
             @endif
 
             @if ($challenge->score)
@@ -116,6 +112,6 @@
         @endif
     @endif
 
-    <x-ui.button variant="secondary" :href="PyramidLinks::ladder((int) $ladder->id)">{{ __('pyramid::ui.detail.back') }}</x-ui.button>
+    <x-ui.button variant="secondary" class="max-md:hidden" :href="PyramidLinks::ladder((int) $ladder->id)">{{ __('pyramid::ui.detail.back') }}</x-ui.button>
 </div>
 @endsection

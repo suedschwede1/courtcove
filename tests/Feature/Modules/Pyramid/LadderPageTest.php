@@ -47,7 +47,7 @@ class LadderPageTest extends TestCase
 
         $response = $this->get('/pyramide')
             ->assertOk()
-            ->assertSee('Spieler 1')
+            ->assertSee('S. 1')
             ->assertSee('Zum Fordern bitte anmelden.')
             ->assertSee('Rangliste')
             ->assertDontSee('<span>Fordern</span>', false)
@@ -155,13 +155,13 @@ class LadderPageTest extends TestCase
 
         $response = $this->actingAs($viewer)->get('/pyramide')->assertOk();
 
-        $response->assertSee('gegen Spieler 5 (#5)');
+        $response->assertSee('gegen S. 5 (#5)');
         $response->assertSee('pyramide/forderung/'.$challenge->id, false);
-        $response->assertSee('07.03.2027 10:00');
+        $response->assertSee('So, 7. Mär 10:00');
         $response->assertSee('Saison 2027 · 10 Spieler · 1 offene Forderungen');
-        $response->assertSee('Wartender Spieler');
-        $response->assertSee('Spieler 8 hat Spieler 5 (5) gefordert.');
-        $response->assertSee('Spieler 5 gewinnt gegen Spieler 8 nicht angetreten.');
+        $response->assertSee('W. Spieler · ITN 7,4');
+        $response->assertSee('S. 8 hat S. 5 (5) gefordert.');
+        $response->assertSee('S. 5 gewinnt gegen S. 8 nicht angetreten.');
         $response->assertSee('Die Saison ist abgeschlossen.');
         $response->assertSee('01.03.2027 08:12 Uhr');
     }
@@ -190,7 +190,8 @@ class LadderPageTest extends TestCase
             ->assertOk()
             ->assertSee('Aufbau')
             ->assertSee('Diese Pyramide ist noch im Aufbau — gefordert werden kann noch nicht.')
-            ->assertSee('2025 · Damen')
+            ->assertSee('Damen · 2025')
+            ->assertSee('Aufbau Pyramide')
             ->assertSee('pyramide/'.$closed->id, false);
 
         $this->get('/pyramide/'.$closed->id)

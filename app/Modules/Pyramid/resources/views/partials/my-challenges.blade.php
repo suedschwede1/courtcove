@@ -16,10 +16,10 @@
 
     $entries = $mine->map(function ($challenge) use ($viewer, $labels, $positions): array {
         $otherId = (int) $challenge->challenger_id === (int) $viewer->id ? (int) $challenge->opponent_id : (int) $challenge->challenger_id;
-        $name = $labels[$otherId] ?? __('pyramid::ui.unknown');
+        $name = PyramidFormat::shortName($labels[$otherId] ?? __('pyramid::ui.unknown'));
         $position = $positions[$otherId] ?? null;
-        $when = $challenge->scheduled_at ? PyramidFormat::dateTime($challenge->scheduled_at) : __('pyramid::ui.mine.date_open');
-        $deadline = $challenge->deadline ? __('pyramid::ui.mine.deadline', ['date' => PyramidFormat::date($challenge->deadline)]) : null;
+        $when = $challenge->scheduled_at ? PyramidFormat::dayTime($challenge->scheduled_at) : __('pyramid::ui.mine.date_open');
+        $deadline = $challenge->deadline ? __('pyramid::ui.mine.deadline', ['date' => PyramidFormat::shortDate($challenge->deadline)]) : null;
 
         return [
             'href' => PyramidLinks::challenge((int) $challenge->id),
