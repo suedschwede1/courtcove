@@ -75,21 +75,21 @@
         @endforeach
     </div>
 
-    <div class="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
+    <div class="mbr-mail-grid">
         <x-ui.card as="div" padding="lg">
             <div class="flex flex-col gap-4">
                 <div class="ds-field">
                     <span class="ds-field__label">{{ __('members::admin.mail.from') }}</span>
                     <div class="rounded-md border border-line bg-surface-sunk px-3 py-2 flex flex-wrap items-center justify-between gap-3">
                         <span class="break-all">{{ $fromName }} &lt;{{ $fromAddress }}&gt;</span>
-                        <x-ui.button variant="text" :block="false" :href="route('members.mail.config')">{{ __('members::admin.mail.change_sender') }}</x-ui.button>
+                        <x-ui.button variant="secondary" :block="false" :href="route('members.mail.config')">{{ __('members::admin.mail.change_sender') }}</x-ui.button>
                     </div>
                 </div>
 
                 <div class="ds-field">
                     <div class="flex flex-wrap items-center justify-between gap-3">
                         <span class="ds-field__label">{{ __('members::admin.mail.bcc') }}</span>
-                        <x-ui.button variant="text" :block="false" aria-controls="mail-recipients" x-bind:aria-expanded="showRecipients.toString()" x-on:click="showRecipients = ! showRecipients" x-text="showRecipients ? {{ Js::from(__('members::admin.mail.hide_recipients')) }} : {{ Js::from(__('members::admin.mail.show_recipients')) }}">{{ __('members::admin.mail.show_recipients') }}</x-ui.button>
+                        <x-ui.button variant="secondary" :block="false" aria-controls="mail-recipients" x-bind:aria-expanded="showRecipients.toString()" x-on:click="showRecipients = ! showRecipients" x-text="showRecipients ? {{ Js::from(__('members::admin.mail.hide_recipients')) }} : {{ Js::from(__('members::admin.mail.show_recipients')) }}">{{ __('members::admin.mail.show_recipients') }}</x-ui.button>
                     </div>
                     <div id="mail-recipients" x-show="showRecipients" x-cloak class="rounded-md border border-line bg-surface-sunk px-3 py-2 break-words text-ink-2" x-text="currentAudience().addresses"></div>
                 </div>
@@ -106,7 +106,7 @@
                     <textarea id="mail-body" rows="18" x-model="body" @class(['ds-textarea', 'min-h-88', 'ds-textarea--invalid' => $errors->has('body')]) form="mail-send-form" aria-describedby="mail-body-help{{ $errors->has('body') ? ' mail-body-error' : '' }}"@error('body') aria-invalid="true"@enderror @input.debounce.600ms="if (showPreview) refreshPreview()"></textarea>
                 </x-ui.field>
 
-                <div class="rounded-md border border-line bg-surface-sunk px-3 py-2 flex flex-col gap-1 text-sm text-ink-2">
+                <div class="mbr-format-help rounded-md border border-line bg-surface-sunk px-3 py-2 flex flex-col gap-1 text-sm text-ink-2">
                     <div><code>**{{ __('members::admin.mail.formatting_bold') }}**</code> -&gt; <strong>{{ __('members::admin.mail.formatting_bold') }}</strong></div>
                     <div><code>*{{ __('members::admin.mail.formatting_italic') }}*</code> -&gt; <em>{{ __('members::admin.mail.formatting_italic') }}</em></div>
                     <div><code>- {{ __('members::admin.mail.formatting_list_item') }}</code></div>
@@ -141,7 +141,7 @@
                         @csrf
                         <input type="hidden" name="subject" x-model="subject">
                         <input type="hidden" name="body" x-model="body">
-                        <input type="email" name="test_email" x-model="testEmail" placeholder="{{ __('members::admin.mail.test_recipient') }}" aria-label="{{ __('members::admin.mail.test_recipient') }}" class="ds-input min-w-0 flex-1">
+                        <input type="email" name="test_email" x-model="testEmail" placeholder="{{ __('members::admin.mail.test_recipient') }}" aria-label="{{ __('members::admin.mail.test_recipient') }}" class="ds-input mbr-test-email">
                         <x-ui.button type="submit" variant="secondary" :block="false">{{ __('members::admin.mail.send_test') }}</x-ui.button>
                     </form>
                 </div>
@@ -173,12 +173,12 @@
             @else
                 <ul class="mbr-templates">
                     @foreach($templateItems as $template)
-                        <li class="rounded-md border border-line bg-surface-sunk px-3 py-2 flex items-start justify-between gap-2" :class="{ 'mbr-template--selected': selectedTemplateId === {{ $template['id'] }} }" x-bind:aria-current="selectedTemplateId === {{ $template['id'] }} ? 'true' : 'false'">
-                            <div class="min-w-0">
-                                <div class="font-bold break-words">{{ $template['name'] }}</div>
-                                <div class="text-sm text-ink-2 break-words">{{ $template['subject'] }}</div>
+                        <li class="mbr-template rounded-md border border-line bg-surface-sunk px-3 py-2" :class="{ 'mbr-template--selected': selectedTemplateId === {{ $template['id'] }} }" x-bind:aria-current="selectedTemplateId === {{ $template['id'] }} ? 'true' : 'false'">
+                            <div class="mbr-template__text">
+                                <div class="font-bold">{{ $template['name'] }}</div>
+                                <div class="text-sm text-ink-2">{{ $template['subject'] }}</div>
                             </div>
-                            <div class="flex shrink-0 items-center gap-1">
+                            <div class="mbr-template__actions">
                                 <button type="button" class="ds-btn ds-btn--text" @click="loadTemplate({{ Js::from($template) }})">{{ __('members::admin.mail.load') }}</button>
                                 <form method="POST" action="{{ route('members.mail.templates.destroy', $template['id']) }}" onsubmit="return confirm({{ Js::from(__('members::admin.mail.confirm_delete_template')) }})">
                                     @csrf

@@ -3,7 +3,7 @@
 @section('members-content')
 <x-members::page-header :title="__('members::admin.mail.config_title')" />
 
-<x-ui.card :title="__('members::admin.mail.sender_settings')" class="mb-4">
+<x-ui.card :title="__('members::admin.mail.sender_settings')">
     <form method="POST" action="{{ route('members.mail.sender.update') }}" class="grid gap-4">
         @csrf
         <x-ui.field :label="__('members::admin.mail.from_name')" for="mail-from-name" :error="$errors->first('from_name')">
@@ -21,10 +21,10 @@
 <x-ui.card :title="__('members::admin.mail.categories_title')">
     <div class="grid gap-3">
         @forelse($mailCategories as $mailCategory)
-            <form method="POST" action="{{ route('members.mail.categories.update', $mailCategory) }}" class="flex gap-2">
+            <form method="POST" action="{{ route('members.mail.categories.update', $mailCategory) }}" class="mbr-category-row">
                 @csrf
                 @method('PUT')
-                <input type="text" name="name" value="{{ $mailCategory->name }}" class="ds-input flex-1" aria-label="{{ $mailCategory->name }}">
+                <input type="text" name="name" value="{{ $mailCategory->name }}" class="ds-input" aria-label="{{ $mailCategory->name }}">
                 <x-ui.button type="submit" variant="secondary" :block="false">{{ __('members::admin.common.save') }}</x-ui.button>
                 <x-ui.button type="submit" variant="danger" :block="false" form="delete-mail-category-{{ $mailCategory->id }}">{{ __('members::admin.common.delete') }}</x-ui.button>
             </form>
@@ -37,8 +37,8 @@
         @endforelse
         <form method="POST" action="{{ route('members.mail.categories.store') }}" class="grid gap-2 border-t border-line pt-3">
             @csrf
-            <div class="flex gap-2">
-                <input type="text" name="name" placeholder="{{ __('members::admin.mail.new_category_name') }}" class="ds-input flex-1" aria-label="{{ __('members::admin.mail.new_category_name') }}">
+            <div class="mbr-category-row">
+                <input type="text" name="name" placeholder="{{ __('members::admin.mail.new_category_name') }}" class="ds-input" aria-label="{{ __('members::admin.mail.new_category_name') }}">
                 <x-ui.button type="submit" :block="false">{{ __('members::admin.functions.add') }}</x-ui.button>
             </div>
             @error('name')<p class="ds-field__error">{{ $message }}</p>@enderror
