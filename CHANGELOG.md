@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Phase 2: executing a draw re-verifies the commitment and writes result and token slots atomically.
 - Phase 2: draws admin in the new design (not live yet).
 - Phase 2: manual draws refuse line/paragraph separators and numeric slot names, so every new draw verifies with the Python verifier.
 - Phase 2: public randomness beacon client ported (two endpoints, 10 s timeout).

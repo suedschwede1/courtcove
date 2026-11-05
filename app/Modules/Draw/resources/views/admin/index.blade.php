@@ -101,11 +101,11 @@
                         </td>
                         <td>
                             <div class="flex flex-wrap items-center justify-end gap-2">
-                                @if ($step === 'execute' && $hasRoute('draw.execute'))
+                                @if ($step === 'execute')
                                     <x-ui.button variant="dark" :block="false" class="whitespace-nowrap" x-on:click="pending = {{ $confirm('draw.execute', __('draw::admin.index.execute_confirm'), __('draw::admin.index.execute')) }}">{{ __('draw::admin.index.execute') }}</x-ui.button>
-                                @elseif ($step === 'open' && $hasRoute('draw.open'))
+                                @elseif ($step === 'open')
                                     <x-ui.button variant="dark" :block="false" class="whitespace-nowrap" x-on:click="pending = {{ $confirm('draw.open', __('draw::admin.index.open_confirm'), __('draw::admin.index.open'), $draw->pick_deadline ? str_replace(' ', 'T', substr($draw->pick_deadline, 0, 16)) : '') }}">{{ __('draw::admin.index.open') }}</x-ui.button>
-                                @elseif ($step === 'close' && $hasRoute('draw.close'))
+                                @elseif ($step === 'close' && $hasRoute('draw.close')) {{-- the close route comes with the closer (Task 29) --}}
                                     <x-ui.button variant="dark" :block="false" class="whitespace-nowrap" x-on:click="pending = {{ $confirm('draw.close', __('draw::admin.index.close_confirm'), __('draw::admin.index.close')) }}">{{ __('draw::admin.index.close') }}</x-ui.button>
                                 @elseif ($step === 'apply')
                                     @if ($hasRoute('tournament.admin'))
@@ -117,7 +117,7 @@
                                     <span class="text-body-s text-ink-2">{{ __('draw::admin.index.no_action') }}</span>
                                 @endif
 
-                                @if (DrawNextStep::canDelete($draw) && $hasRoute('draw.delete'))
+                                @if (DrawNextStep::canDelete($draw))
                                     <x-ui.button variant="danger" :block="false" class="whitespace-nowrap" x-on:click="pending = {{ $confirm('draw.delete', __('draw::admin.index.delete_confirm'), __('draw::admin.index.delete')) }}">{{ __('draw::admin.index.delete') }}</x-ui.button>
                                 @endif
                             </div>

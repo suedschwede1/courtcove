@@ -41,6 +41,33 @@ return [
         'errors_title' => 'Die Ziehung wurde nicht festgeschrieben.',
     ],
 
+    'execute' => [
+        'not_found' => 'Ziehung nicht gefunden oder verworfen.',
+        'already' => 'Diese Ziehung wurde bereits ausgeführt und kann nicht wiederholt werden.',
+        'wrong_state' => 'Ausführen geht nur direkt nach dem Festschreiben (Zustand jetzt: :status). Reihenfolge: festschreiben, ausführen, Wahlphase öffnen, schließen.',
+        'unknown_source' => 'Unbekannte Beacon-Quelle ":source" - hier ist eine manuelle Eingabe nötig.',
+        'unpublished' => 'drand-Runde :round ist noch nicht veröffentlicht.:hint Auf eine andere Quelle auszuweichen würde das Protokoll brechen.',
+        'hint_seconds' => ' Die Ziehung ist ab :time möglich, noch :seconds Sekunden.',
+        'hint_minutes' => ' Die Ziehung ist ab :time möglich, noch etwa :minutes Minuten.',
+        'hint_due' => ' Die Runde ist seit :time fällig - bitte gleich nochmals versuchen.',
+        'success_token' => 'Gezogen und Wahlphase offen. Jeder Spieler erfährt seine Gruppe beim Klick; die Zuordnung bleibt bis zum Schließen verdeckt. Protokoll unter :url',
+        'success_direct' => 'Ziehung ausgeführt. Protokoll unter :url',
+    ],
+
+    'open' => [
+        'order' => 'Die Wahlphase kann erst geöffnet werden, wenn die Ziehung ausgeführt ist. Reihenfolge: festschreiben, ausführen, Wahlphase öffnen.',
+        'invalid_deadline' => 'Bitte eine gültige Frist eintragen.',
+        'success' => 'Wahlphase offen. Die Teilnehmer können jetzt Tokens wählen.',
+    ],
+
+    'delete' => [
+        'not_found' => 'Ziehung nicht gefunden.',
+        'not_discarded' => 'Nur eine verworfene Ziehung kann gelöscht werden. Setze zuerst in der Turnierleitung zurück.',
+        'executed' => 'Diese Ziehung wurde ausgeführt und bleibt deshalb erhalten. Ein einmal gezogenes Ergebnis soll nachlesbar bleiben, auch wenn es verworfen wurde.',
+        'claimed' => ':count Token(s) sind belegt - die Ziehung bleibt erhalten, damit die Wahl der Teilnehmer nicht spurlos verschwindet.',
+        'success' => 'Ziehung ":title" gelöscht. Sie wurde nie ausgeführt, es gab also kein Ergebnis zu bewahren.',
+    ],
+
     'form' => [
         'summary' => 'Manuelle Ziehung festschreiben – für Turnierauslosungen nicht nötig',
         'intro' => 'Turnierauslosungen legst du in der Turnierleitung an – dort entstehen Lose, Slots, Berechtigte und Regel aus dem Format. Dieses Formular ist nur für freistehende Ziehungen ohne Turnierbezug.',

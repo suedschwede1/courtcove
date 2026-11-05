@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Modules\Draw\Http\Controllers\Admin\DrawAdminController;
+use App\Modules\Draw\Http\Controllers\Admin\DrawLifecycleController;
 use App\Modules\Draw\Http\Controllers\RecordController;
 use Illuminate\Support\Facades\Route;
 
@@ -24,4 +25,11 @@ Route::prefix('draw')->name('draw.')
         Route::get('', [DrawAdminController::class, 'index'])->name('index');
         Route::post('commit', [DrawAdminController::class, 'commit'])->name('commit');
         Route::get('commit', [DrawAdminController::class, 'redirectToIndex'])->name('commit.redirect');
+
+        Route::post('open/{did}', [DrawLifecycleController::class, 'open'])->whereNumber('did')->name('open');
+        Route::post('delete/{did}', [DrawLifecycleController::class, 'delete'])->whereNumber('did')->name('delete');
+        Route::post('execute/{did}', [DrawLifecycleController::class, 'execute'])->whereNumber('did')->name('execute');
+        // close/{did} is added with the closer (Task 29); its GET already redirects like the others.
+        Route::get('{action}/{did}', [DrawLifecycleController::class, 'redirectToIndex'])
+            ->whereIn('action', ['open', 'close', 'delete', 'execute'])->whereNumber('did')->name('action.redirect');
     });

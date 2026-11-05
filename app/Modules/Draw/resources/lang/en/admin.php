@@ -41,6 +41,33 @@ return [
         'errors_title' => 'The draw was not committed.',
     ],
 
+    'execute' => [
+        'not_found' => 'Draw not found or discarded.',
+        'already' => 'This draw has already been executed and cannot be repeated.',
+        'wrong_state' => 'A draw can only be executed right after the commit (state now: :status). Order: commit, execute, open picking, close.',
+        'unknown_source' => 'Unknown beacon source ":source" - manual input is needed here.',
+        'unpublished' => 'drand round :round is not published yet.:hint Switching to another source would break the record.',
+        'hint_seconds' => ' The draw is possible from :time, :seconds seconds to go.',
+        'hint_minutes' => ' The draw is possible from :time, about :minutes minutes to go.',
+        'hint_due' => ' The round has been due since :time - please try again shortly.',
+        'success_token' => 'Drawn and picking open. Every player learns the group on the click; the assignment stays hidden until close. Record at :url',
+        'success_direct' => 'Draw executed. Record at :url',
+    ],
+
+    'open' => [
+        'order' => 'Picking can only be opened once the draw has been executed. Order: commit, execute, open picking.',
+        'invalid_deadline' => 'Please enter a valid deadline.',
+        'success' => 'Picking is open. Participants can now choose tokens.',
+    ],
+
+    'delete' => [
+        'not_found' => 'Draw not found.',
+        'not_discarded' => 'Only a discarded draw can be deleted. Reset it in the tournament admin first.',
+        'executed' => 'This draw has been executed and is therefore kept. A drawn result should stay readable, even when discarded.',
+        'claimed' => ':count token(s) are claimed - the draw is kept so the participants\' choice does not vanish without a trace.',
+        'success' => 'Draw ":title" deleted. It was never executed, so there was no result to keep.',
+    ],
+
     'form' => [
         'summary' => 'Commit a manual draw – not needed for tournament draws',
         'intro' => 'Tournament draws are created in the tournament admin – lots, slots, eligible players and rule come from the format there. This form is only for standalone draws without a tournament.',
