@@ -6,6 +6,7 @@ use App\Modules\Tournament\Http\Controllers\Admin\AdminOverviewController;
 use App\Modules\Tournament\Http\Controllers\Admin\BracketAdminController;
 use App\Modules\Tournament\Http\Controllers\Admin\DrawPreparationController;
 use App\Modules\Tournament\Http\Controllers\Admin\PlayerAdminController;
+use App\Modules\Tournament\Http\Controllers\Admin\TestToolsController;
 use App\Modules\Tournament\Http\Controllers\Admin\TournamentLifecycleController;
 use App\Modules\Tournament\Http\Controllers\BracketController;
 use App\Modules\Tournament\Http\Controllers\GroupsController;
@@ -66,8 +67,12 @@ Route::prefix('tournament/admin')->name('tournament.admin')
         Route::post('generate', [BracketAdminController::class, 'generate'])->name('.generate');
         Route::post('refresh-bracket', [BracketAdminController::class, 'refreshBracket'])->name('.refresh-bracket');
 
+        Route::post('simulate', [TestToolsController::class, 'simulate'])->name('.simulate');
+        Route::post('simulate-results', [TestToolsController::class, 'simulateResults'])->name('.simulate-results');
+        Route::post('reset', [TestToolsController::class, 'reset'])->name('.reset');
+
         // A GET on a POST-only action returns to the admin page (ZF2).
         Route::get('{postAction}', [TournamentLifecycleController::class, 'redirectToAdmin'])
-            ->whereIn('postAction', ['create', 'activate', 'clone-test', 'select-tournament', 'partner', 'lot', 'prepare-draw', 'prepare-bracket-draw', 'generate', 'refresh-bracket'])
+            ->whereIn('postAction', ['create', 'activate', 'clone-test', 'select-tournament', 'partner', 'lot', 'prepare-draw', 'prepare-bracket-draw', 'generate', 'refresh-bracket', 'simulate', 'simulate-results', 'reset'])
             ->name('.redirect');
     });

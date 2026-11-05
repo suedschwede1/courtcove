@@ -46,6 +46,12 @@ class TournamentAdminRoutesTest extends TestCase
             'refresh-bracket' => ['POST', 'tournament/admin/refresh-bracket', 'tournament.admin.refresh-bracket'],
             'GET generate' => ['GET', 'tournament/admin/generate', 'tournament.admin.redirect'],
             'GET refresh-bracket' => ['GET', 'tournament/admin/refresh-bracket', 'tournament.admin.redirect'],
+            'simulate' => ['POST', 'tournament/admin/simulate', 'tournament.admin.simulate'],
+            'simulate-results' => ['POST', 'tournament/admin/simulate-results', 'tournament.admin.simulate-results'],
+            'reset' => ['POST', 'tournament/admin/reset', 'tournament.admin.reset'],
+            'GET simulate' => ['GET', 'tournament/admin/simulate', 'tournament.admin.redirect'],
+            'GET simulate-results' => ['GET', 'tournament/admin/simulate-results', 'tournament.admin.redirect'],
+            'GET reset' => ['GET', 'tournament/admin/reset', 'tournament.admin.redirect'],
         ];
     }
 
