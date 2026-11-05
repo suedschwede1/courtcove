@@ -18,7 +18,8 @@ use App\Modules\MixedTournament\Models\MixedRound;
  *
  * `$active`: teilnehmer | round:<id> | neue-runde | durchmischung | wertung | konfiguration.
  * `$adminView` picks the mixed.admin.* routes, `$canAdmin` adds the admin-only tabs; a scorer in the
- * admin view (adminView without canAdmin) sees no Teilnehmer tab.
+ * admin view (adminView without canAdmin) sees no Teilnehmer tab, and his Durchmischung/Wertung tabs lead
+ * to the player pages (the admin ones need administer; ZF2 linked them and answered with a refusal).
  */
 final class MixedTabs
 {
@@ -58,8 +59,10 @@ final class MixedTabs
             $items[] = self::item(__('mixed::common.tab_new_round'), route('mixed.admin.new-round', $event), $active === 'neue-runde');
         }
 
-        $items[] = self::item(__('mixed::common.tab_mixing'), route($prefix.'durchmischung', $event), $active === 'durchmischung');
-        $items[] = self::item(__('mixed::common.tab_standings'), route($prefix.'standings', $event), $active === 'wertung');
+        // The admin Durchmischung/Wertung need the administer ability; a scorer gets the player pages.
+        $boardPrefix = $adminView && $canAdmin ? 'mixed.admin.' : 'mixed.';
+        $items[] = self::item(__('mixed::common.tab_mixing'), route($boardPrefix.'durchmischung', $event), $active === 'durchmischung');
+        $items[] = self::item(__('mixed::common.tab_standings'), route($boardPrefix.'standings', $event), $active === 'wertung');
 
         if ($canAdmin) {
             $items[] = self::item(__('mixed::common.tab_config'), route('mixed.admin.config', $event), $active === 'konfiguration');

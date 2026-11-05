@@ -2,12 +2,9 @@
     Mixed match card (DESIGN "Match card", Mixed variant): context label ("Gruppe 2 · Platz 1 – Alpha · Welle 1"),
     "A & B" against "C & D" centred, the score or "noch offen".
     Needs: $match (MixedMatch), $labels (participant id => label), $context.
-    Optional: $withResults (admin scoring) adds the result buttons 4:0 .. 0:4, one POST form each; the
-    stored result is marked with aria-pressed; the forms carry data-scroll-save for mixed::partials.scroll-restore.
+    Optional: $withResults (admin scoring) adds the result buttons (mixed::partials.score-buttons).
 --}}
 @php
-    use App\Modules\MixedTournament\Domain\RoundService;
-
     $unknown = __('mixed::common.unknown_player');
     $name = static fn ($id): string => $labels[(int) $id] ?? $unknown;
     $teamA = __('mixed::common.team', ['a' => $name($match->team_a_p1), 'b' => $name($match->team_a_p2)]);
@@ -33,16 +30,7 @@
             <span class="font-bold text-ink">{{ $teamB }}</span>
         </div>
         @if (! empty($withResults))
-            <div class="grid grid-cols-5 gap-2" role="group" aria-label="{{ __('mixed::common.result') }}">
-                @foreach (RoundService::RESULTS as $result)
-                    <form method="POST" action="{{ route('mixed.admin.score', ['round' => (int) $match->round_id]) }}" data-scroll-save>
-                        @csrf
-                        <input type="hidden" name="match_id" value="{{ (int) $match->id }}">
-                        <input type="hidden" name="result" value="{{ $result }}">
-                        <x-ui.button type="submit" :variant="$current === $result ? 'primary' : 'secondary'" aria-pressed="{{ $current === $result ? 'true' : 'false' }}" class="tabular-nums">{{ $result }}</x-ui.button>
-                    </form>
-                @endforeach
-            </div>
+            @include('mixed::partials.score-buttons', ['match' => $match, 'current' => $current])
         @endif
     </div>
 </x-ui.card>

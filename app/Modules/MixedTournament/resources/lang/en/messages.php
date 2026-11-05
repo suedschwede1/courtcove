@@ -25,6 +25,17 @@ return [
     'round_not_found' => 'Round not found.',
     'participant_not_found' => 'Participant not found.',
 
+    // Rounds (old AdminController, round part)
+    'round_created' => 'Round created and proposal generated.',
+    'proposal_created' => 'Proposal generated.',
+    'swapped' => 'Players swapped.',
+    'sitter_swapped' => 'Sitter swapped.',
+    'confirmed' => 'Round confirmed. Results can be entered now.',
+    'completed' => 'Round completed. Results are locked now.',
+    'reopened' => 'Round reopened. Results can be corrected again.',
+    'round_deleted' => 'Round deleted.',
+    'score_saved' => 'Result saved.',
+
     // Administration
     'title_date_required' => 'Title and date are required.',
     'event_created' => 'Event created.',

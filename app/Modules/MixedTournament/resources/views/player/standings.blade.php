@@ -1,5 +1,5 @@
 {{-- Standings (left half of Turnier-Mixed-Wertung; the matrix half lives on the Durchmischung URL). --}}
-@extends('mixed::layout')
+@extends(! empty($adminView) ? 'mixed::admin.layout' : 'mixed::layout')
 
 @section('title', __('mixed::common.tab_standings').' · '.$event->title)
 
@@ -12,9 +12,13 @@
         ? __('mixed::common.leader_value', ['name' => $labels[(int) $first['id']] ?? __('mixed::common.unknown_player'), 'avg' => MixedFormat::decimal($first['points_avg'])])
         : '–';
 @endphp
-@include('mixed::partials.event-head', ['event' => $event])
+@if (! empty($adminView))
+    @include('mixed::admin.partials.event-head')
+@else
+    @include('mixed::partials.event-head', ['event' => $event])
+@endif
 
-@include('mixed::partials.tabs', ['event' => $event, 'active' => 'wertung', 'canAdmin' => $canAdmin])
+@include('mixed::partials.tabs', ['event' => $event, 'active' => 'wertung', 'canAdmin' => $canAdmin, 'adminView' => ! empty($adminView)])
 
 <section aria-label="{{ __('mixed::common.standings_title') }}" class="flex w-full max-w-4xl flex-col gap-3">
     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">

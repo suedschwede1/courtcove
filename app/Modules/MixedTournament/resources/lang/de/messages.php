@@ -25,6 +25,17 @@ return [
     'round_not_found' => 'Runde nicht gefunden.',
     'participant_not_found' => 'Teilnehmer nicht gefunden.',
 
+    // Rounds (old AdminController, round part)
+    'round_created' => 'Runde angelegt und Vorschlag erzeugt.',
+    'proposal_created' => 'Vorschlag erzeugt.',
+    'swapped' => 'Spieler getauscht.',
+    'sitter_swapped' => 'Aussetzer getauscht.',
+    'confirmed' => 'Runde bestätigt. Ergebnisse können jetzt eingetragen werden.',
+    'completed' => 'Runde abgeschlossen. Ergebnisse sind jetzt gesperrt.',
+    'reopened' => 'Runde wieder geöffnet. Ergebnisse sind wieder korrigierbar.',
+    'round_deleted' => 'Runde gelöscht.',
+    'score_saved' => 'Ergebnis gespeichert.',
+
     // Administration (old AdminController flashes)
     'title_date_required' => 'Titel und Datum sind Pflichtfelder.',
     'event_created' => 'Event angelegt.',

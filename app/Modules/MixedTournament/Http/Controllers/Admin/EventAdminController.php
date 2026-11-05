@@ -7,13 +7,17 @@ namespace App\Modules\MixedTournament\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Modules\MixedTournament\Domain\EventService;
+use App\Modules\MixedTournament\Domain\RoundService;
 use App\Modules\MixedTournament\Models\MixedAvoidPair;
 use App\Modules\MixedTournament\Models\MixedEvent;
 use App\Modules\MixedTournament\Models\MixedEventGrant;
 use App\Modules\MixedTournament\Models\MixedParticipant;
 use App\Modules\MixedTournament\Models\MixedRound;
 use App\Modules\MixedTournament\Policies\MixedEventPolicy;
+use App\Modules\MixedTournament\Services\HistoryService;
+use App\Modules\MixedTournament\Support\AdminEventHead;
 use App\Modules\MixedTournament\Support\AdminInput;
+use App\Modules\MixedTournament\Support\MixingMatrix;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
@@ -188,38 +192,56 @@ class EventAdminController extends Controller
         ]);
     }
 
-    public function durchmischung(MixedEvent $event): never
+    /** Durchmischung in the admin frame (old admin/durchmischung.phtml): the player view with admin tabs. */
+    public function durchmischung(Request $request, MixedEvent $event, RoundService $rounds, HistoryService $history, MixingMatrix $matrix): View
     {
-        abort(501);
+        $user = $this->authorizeAdminister($request, $event);
+
+        $labels = $this->labels($event);
+        $pastMatches = $rounds->pastMatches($event);
+        $partnerCounts = $history->build($pastMatches)['partners'];
+
+        return view('mixed::player.durchmischung', AdminEventHead::data($user, $event) + [
+            'matrix' => $matrix->build($labels, $partnerCounts, $pastMatches),
+            'mixing' => $history->mixingScore($partnerCounts, array_keys($labels)),
+            'canAdmin' => true,
+            'adminView' => true,
+        ]);
     }
 
-    public function standings(MixedEvent $event): never
+    /** Standings in the admin frame (old admin/standings.phtml): the player view with admin tabs. */
+    public function standings(Request $request, MixedEvent $event, RoundService $rounds): View
     {
-        abort(501);
+        $user = $this->authorizeAdminister($request, $event);
+
+        return view('mixed::player.standings', AdminEventHead::data($user, $event) + [
+            'standings' => $rounds->standings($event),
+            'labels' => $this->labels($event),
+            'canAdmin' => true,
+            'adminView' => true,
+        ]);
     }
 
     /**
-     * Shared header data of the event admin tabs: counts, the events the viewer administers (switcher) and
-     * whether the global actions (set default, new event) are offered.
+     * Shared header data of the event admin tabs, see AdminEventHead.
      *
      * @param  Collection<int, MixedParticipant>  $participants
      * @return array<string, mixed>
      */
     private function head(User $user, MixedEvent $event, Collection $participants): array
     {
-        $gate = Gate::forUser($user);
-        $switch = MixedEvent::query()->orderBy('id')->get()
-            ->filter(static fn (MixedEvent $e): bool => $gate->allows('administer', $e))
-            ->values();
+        return AdminEventHead::data($user, $event, $participants);
+    }
 
-        return [
-            'event' => $event,
-            'activeCount' => $participants->where('status', 'active')->count(),
-            'totalCount' => $participants->count(),
-            'roundCount' => MixedRound::query()->where('event_id', $event->id)->count(),
-            'switchEvents' => $switch,
-            'isGlobalAdmin' => MixedEventPolicy::isGlobalAdmin($user),
-        ];
+    /** @return array<int, string> participant id => label, by id */
+    private function labels(MixedEvent $event): array
+    {
+        $labels = [];
+        foreach (MixedParticipant::query()->where('event_id', $event->id)->orderBy('id')->get() as $participant) {
+            $labels[(int) $participant->id] = (string) $participant->label;
+        }
+
+        return $labels;
     }
 
     private function authorizeAdminister(Request $request, MixedEvent $event): User

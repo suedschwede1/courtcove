@@ -2,7 +2,7 @@
     Durchmischung (right half of Turnier-Mixed-Wertung): mixing KPIs, rating, matrix of shared partnerships
     (partner counts as in ZF2, gap 2). Mexicano rounds pair by standings, so there is no rating there.
 --}}
-@extends('mixed::layout')
+@extends(! empty($adminView) ? 'mixed::admin.layout' : 'mixed::layout')
 
 @section('title', __('mixed::common.tab_mixing').' · '.$event->title)
 
@@ -17,9 +17,13 @@
         ['label' => __('mixed::common.kpi_repeats'), 'value' => (int) $mixing['repeated'], 'meta' => null],
     ];
 @endphp
-@include('mixed::partials.event-head', ['event' => $event])
+@if (! empty($adminView))
+    @include('mixed::admin.partials.event-head')
+@else
+    @include('mixed::partials.event-head', ['event' => $event])
+@endif
 
-@include('mixed::partials.tabs', ['event' => $event, 'active' => 'durchmischung', 'canAdmin' => $canAdmin])
+@include('mixed::partials.tabs', ['event' => $event, 'active' => 'durchmischung', 'canAdmin' => $canAdmin, 'adminView' => ! empty($adminView)])
 
 <x-ui.card :title="__('mixed::common.mixing_title')" class="w-full max-w-4xl">
     <div class="flex flex-col gap-3">

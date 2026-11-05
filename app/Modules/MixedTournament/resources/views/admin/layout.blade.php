@@ -12,5 +12,7 @@
         <x-ui.notice tone="attention">{{ session('warning') }}</x-ui.notice>
     @endif
     @yield('mixed-admin-content')
+    {{-- Player views rendered in the admin frame (adminView: Durchmischung, Wertung) fill mixed-content. --}}
+    @yield('mixed-content')
 </div>
 @endsection
