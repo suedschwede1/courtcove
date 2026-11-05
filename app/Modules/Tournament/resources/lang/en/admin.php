@@ -3,6 +3,14 @@
 return [
     'generate' => [
         'skipped' => 'Group :group: :reason - matches follow after the draw',
+        'failed' => 'Generation failed, nothing was saved: :message',
+        'created' => 'Created: :heads group heads, :matches group matches, :lines bracket lines, :bracket knockout matches.',
+    ],
+    'refresh' => [
+        'incomplete' => ':phase: phase :from is not fully played yet.',
+        'swapped' => ':phase: seeds :a and :b moved according to the swap rule.',
+        'target_played' => ':phase R:round/:slot is already played; the changed predecessor was not overwritten.',
+        'done' => ':resolved bracket lines resolved, :filled first-round matches filled, :advanced winners moved on.',
     ],
     'apply' => [
         'invalid' => 'The draw is missing, not finished, not executed, discarded or belongs to another tournament.',

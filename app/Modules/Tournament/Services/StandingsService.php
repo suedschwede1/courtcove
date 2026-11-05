@@ -377,6 +377,29 @@ final class StandingsService
     }
 
     /**
+     * Whether a manual lot order fits the current tie: its tpids are exactly the rows flagged needs_lot
+     * (the condition resolveLot() enforces). A stale order (results changed, a typo, a scope without a
+     * tie) does not fit and must not be applied.
+     *
+     * @param  array<array<string, mixed>>  $rows
+     * @param  array<int|string>  $orderedTpids
+     */
+    public static function lotOrderFits(array $rows, array $orderedTpids): bool
+    {
+        $unresolved = [];
+        foreach ($rows as $row) {
+            if (! empty($row['needs_lot'])) {
+                $unresolved[] = (int) $row['tpid'];
+            }
+        }
+        $provided = array_values(array_unique(array_map('intval', $orderedTpids)));
+        sort($unresolved);
+        sort($provided);
+
+        return count($unresolved) >= 2 && $unresolved === $provided;
+    }
+
+    /**
      * Applies a persisted lot order to an already ranked block.
      *
      * @param  array<array<string, mixed>>  $rows

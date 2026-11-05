@@ -11,7 +11,8 @@ use App\Modules\Tournament\Models\Tournament;
 /**
  * Lot decision for ties that no criterion can separate (the lot part of ZF2's TournamentManager).
  *
- * A manual entry in lot_orders[scope] (an array, not empty) always wins. Otherwise the order is derived
+ * A manual entry in lot_orders[scope] (an array, not empty) always wins while it fits the tie (exactly the
+ * needs_lot tpids); a stale entry is ignored and reported through staleScopes(). Otherwise the order is derived
  * from the seed of the draw that was published before the group phase, so there is no second draw:
  *
  *   scopeSeed = HMAC-SHA256(key = lot seed, message = scope)
@@ -26,6 +27,9 @@ final class LotOrderService
 {
     /** @var array<int, string> lot seed per tid (only found seeds are cached, as in ZF2) */
     private array $seeds = [];
+
+    /** @var array<int, array<string, true>> manual entries found not to fit their tie, per tid */
+    private array $stale = [];
 
     public function __construct(private readonly DrawService $draws) {}
 
@@ -50,8 +54,14 @@ final class LotOrderService
         $orders = $this->lotOrders($t);
 
         // A manual entry has priority: if the lot was drawn on site, that counts and not the calculation.
+        // It applies only while it still fits the tie; a stale entry is ignored (and reported to the
+        // admin page) instead of breaking every table that shows the scope.
         if (isset($orders[$scope]) && is_array($orders[$scope]) && $orders[$scope]) {
-            return $orders[$scope];
+            if (StandingsService::lotOrderFits($rows, $orders[$scope])) {
+                return $orders[$scope];
+            }
+
+            $this->stale[(int) $t->tid][$scope] = true;
         }
 
         return $this->derivedLotOrder($t, $scope, $rows);
@@ -131,9 +141,19 @@ final class LotOrderService
         return $seed;
     }
 
+    /**
+     * Scopes whose manual entry was ignored in this request because it no longer fits the tie.
+     *
+     * @return list<string>
+     */
+    public function staleScopes(Tournament $t): array
+    {
+        return array_keys($this->stale[(int) $t->tid] ?? []);
+    }
+
     /** Drops the cached seed of a tournament (after a draw was executed, discarded or reset). */
     public function forget(int $tid): void
     {
-        unset($this->seeds[$tid]);
+        unset($this->seeds[$tid], $this->stale[$tid]);
     }
 }

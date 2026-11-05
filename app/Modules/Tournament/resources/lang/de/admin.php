@@ -3,6 +3,14 @@
 return [
     'generate' => [
         'skipped' => 'Gruppe :group: :reason - Partien folgen nach der Auslosung',
+        'failed' => 'Erzeugung fehlgeschlagen, es wurde nichts gespeichert: :message',
+        'created' => 'Erzeugt: :heads Gruppenköpfe, :matches Gruppenpartien, :lines Rasterlinien, :bracket KO-Partien.',
+    ],
+    'refresh' => [
+        'incomplete' => ':phase: Phase :from ist noch nicht fertig gespielt.',
+        'swapped' => ':phase: Setznummern :a und :b gemäß Tauschregel versetzt.',
+        'target_played' => ':phase R:round/:slot ist bereits gespielt; geänderter Vorgänger wurde nicht überschrieben.',
+        'done' => ':resolved Rasterlinien aufgelöst, :filled Erstrundenpartien gefüllt, :advanced Aufstiege übertragen.',
     ],
     'apply' => [
         'invalid' => 'Auslosung fehlt, ist noch nicht abgeschlossen, wurde nicht gezogen, ist verworfen oder gehört zu einem anderen Turnier.',

@@ -39,6 +39,9 @@ final class ResolverService
     /** @var (Closure(string, list<int>): list<int>)|null */
     private ?Closure $lotResolver = null;
 
+    /** @var array<string, true> manual entries ignored because they no longer fit their tie */
+    private array $staleScopes = [];
+
     public function __construct(private readonly StandingsService $standingsService) {}
 
     /**
@@ -72,6 +75,16 @@ final class ResolverService
     }
 
     /**
+     * Scopes whose manual entry was ignored because it no longer fits the tie.
+     *
+     * @return list<string>
+     */
+    public function staleScopes(): array
+    {
+        return array_keys($this->staleScopes);
+    }
+
+    /**
      * Lot decision for a context: manual entry, otherwise derived.
      *
      * @param  array<int, array<string, mixed>>  $rows
@@ -79,8 +92,13 @@ final class ResolverService
      */
     private function lotOrderFor(?string $scope, array $rows): array
     {
+        // A manual entry applies only while it fits the tie; a stale one falls back to the derived order.
         if ($scope && isset($this->lotOrders[$scope]) && $this->lotOrders[$scope]) {
-            return $this->lotOrders[$scope];
+            if (StandingsService::lotOrderFits($rows, $this->lotOrders[$scope])) {
+                return $this->lotOrders[$scope];
+            }
+
+            $this->staleScopes[$scope] = true;
         }
 
         if (! $scope || ! $this->lotResolver) {
