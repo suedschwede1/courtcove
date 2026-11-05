@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-05
 
+- My bookings uses the new cards, status badges and filter form; on phones each booking is a card.
 - The clay court panel stays viewport-high beside tall forms such as registration on wide screens.
 - Registration uses the new auth layout with grouped sections; old login stylesheet rules removed.
 - A long club name stays on one line with an ellipsis on the phone band and wraps to two lines on the desktop panel instead of crowding the court lines.
