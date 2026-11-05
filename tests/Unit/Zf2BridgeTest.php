@@ -6,6 +6,7 @@ namespace Tests\Unit;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Tests\Support\SimulatesSymlinkedDocroot;
 
 /**
  * Runs public/zf2-bridge.php in a subprocess against a stub ZF2 index.php.
@@ -15,6 +16,8 @@ use PHPUnit\Framework\TestCase;
  */
 class Zf2BridgeTest extends TestCase
 {
+    use SimulatesSymlinkedDocroot;
+
     private string $root;
 
     protected function setUp(): void
@@ -39,6 +42,12 @@ class Zf2BridgeTest extends TestCase
 
     private function removeDir(string $dir): void
     {
+        if (is_link($dir)) {
+            unlink($dir);
+
+            return;
+        }
+
         if (! is_dir($dir)) {
             return;
         }
@@ -64,12 +73,12 @@ class Zf2BridgeTest extends TestCase
      * @param  array<string, string>  $env
      * @return array{output: string, code: string}
      */
-    private function runBridge(string $scriptName, string $requestUri, array $env = []): array
+    private function runBridge(string $scriptName, string $requestUri, array $env = [], ?string $bridgePath = null): array
     {
         $wrapper = '$_SERVER["SCRIPT_NAME"]='.var_export($scriptName, true).';'
             .'$_SERVER["REQUEST_URI"]='.var_export($requestUri, true).';'
             .'register_shutdown_function(function () { echo "\nHTTP=".var_export(http_response_code(), true); });'
-            .'require '.var_export($this->root.'/'.$this->app.'/public/zf2-bridge.php', true).';';
+            .'require '.var_export($bridgePath ?? $this->root.'/'.$this->app.'/public/zf2-bridge.php', true).';';
 
         $process = proc_open(
             [PHP_BINARY, '-n', '-r', $wrapper],
@@ -244,5 +253,60 @@ class Zf2BridgeTest extends TestCase
         $result = $this->runBridge('/zf2-bridge.php', '/tournament');
 
         $this->assertSame('', $result['output']);
+    }
+
+    /**
+     * public/ exposed through a symlink: under PHP-FPM __DIR__ stays the unresolved link path, which
+     * PHP CLI cannot reproduce (it always resolves it), so a copy with __DIR__ replaced by the link
+     * path is run instead (see SimulatesSymlinkedDocroot).
+     *
+     * @return string path of the bridge copy to run
+     */
+    private function symlinkedBridge(): string
+    {
+        symlink($this->root.'/bookingnew/public', $this->root.'/link');
+
+        return $this->copyWithUnresolvedDir(
+            $this->root.'/bookingnew/public/zf2-bridge.php',
+            $this->root.'/link',
+            $this->root.'/bookingnew/public/bridge-fpm.php',
+        );
+    }
+
+    #[Test]
+    public function the_default_zf2_dir_is_evaluated_against_the_real_app_dir_behind_a_symlink(): void
+    {
+        $this->stubZf2($this->root.'/zf2/public');
+
+        $result = $this->runBridge('/zf2-bridge.php', '/tournament', [], $this->symlinkedBridge());
+
+        $this->assertSame('/index.php|/index.php|index.php|public', $result['output']);
+    }
+
+    #[Test]
+    public function the_zf2_path_file_is_read_from_the_real_app_dir_behind_a_symlink(): void
+    {
+        $this->stubZf2($this->root.'/fromfile/htdocs');
+        file_put_contents($this->root.'/bookingnew/zf2.path', $this->root.'/fromfile/htdocs
+');
+
+        $result = $this->runBridge('/zf2-bridge.php', '/tournament', [], $this->symlinkedBridge());
+
+        $this->assertSame('/index.php|/index.php|index.php|htdocs', $result['output']);
+    }
+
+    #[Test]
+    public function a_staging_app_dir_behind_a_symlink_still_answers_503(): void
+    {
+        $this->stubZf2($this->root.'/zf2/public');
+        $this->installBridge('bookingnew-staging');
+        symlink($this->root.'/bookingnew-staging/public', $this->root.'/link');
+        $copy = $this->copyWithUnresolvedDir(
+            $this->root.'/bookingnew-staging/public/zf2-bridge.php',
+            $this->root.'/link',
+            $this->root.'/bookingnew-staging/public/bridge-fpm.php',
+        );
+
+        $this->assertSame('503', $this->runBridge('/zf2-bridge.php', '/tournament', [], $copy)['code']);
     }
 }

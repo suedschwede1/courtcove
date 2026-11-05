@@ -35,3 +35,15 @@ Thumbs.db
 /lang/de/booking/quotes_named.local.php
 /lang/en/booking/quotes_named.local.php
 /zf2.path
+
+# Local-only operational material (kept outside the repository)
+/docs/superpowers/
+/docs/design/
+/docs/deploy/
+/docs/reviews/
+/scripts/
+/.env.dusk.local
+private/
+
+# Local agent workspace (also keeps Tailwind from scanning it)
+.superpowers/

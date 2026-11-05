@@ -23,8 +23,8 @@ class MemberImportCommandTest extends TestCase
 
         $csv = <<<CSV
         Name,Vorname,Mitgliedsart,MB ,Bemerkung,Email,Strasse,PLZ,Ort,Privat,Mobil,Geschlecht,GebDatum,ID-Nr,Alter,Reservierungssystem
-        Muster,Anna,Vollmitglied,bezahlt {$currentYy},,anna@example.com,Teststr. 1,4400,Sampletown,,0650 1234567,weiblich,01.02.1980,288563,46,Ja
-        Alt,Bernd,Pensionist,bezahlt {$lastYy},,,Weg 2,4400,Sampletown,70 658,,maennlich,03.04.1950,,76,Nein
+        Muster,Anna,Vollmitglied,bezahlt {$currentYy},,anna@example.com,Teststr. 1,4400,Teststadt,,0650 1234567,weiblich,01.02.1980,123456,46,Ja
+        Alt,Bernd,Pensionist,bezahlt {$lastYy},,,Weg 2,4400,Teststadt,70 658,,maennlich,03.04.1950,,76,Nein
         CSV;
 
         $file = sys_get_temp_dir().'/members-import-test.csv';
@@ -49,9 +49,9 @@ class MemberImportCommandTest extends TestCase
         $this->assertSame('0650 1234567', $anna->phone);
         $this->assertSame('Teststr. 1', $anna->street);
         $this->assertSame('4400', $anna->zip);
-        $this->assertSame('Sampletown', $anna->city);
+        $this->assertSame('Teststadt', $anna->city);
         $this->assertSame('w', $anna->gender);
-        $this->assertSame(288563, $anna->nuliga_id);
+        $this->assertSame(123456, $anna->nuliga_id);
 
         $bernd = Member::where('lastname', 'Alt')->firstOrFail();
         $this->assertSame(2, $bernd->member_number);
@@ -105,7 +105,7 @@ class MemberImportCommandTest extends TestCase
         // Nächster Export: Bernd hat inzwischen das aktuelle Jahr bezahlt.
         $csv = <<<CSV
         Name,Vorname,Mitgliedsart,MB ,Bemerkung,Email,Strasse,PLZ,Ort,Privat,Mobil,Geschlecht,GebDatum,ID-Nr,Alter,Reservierungssystem
-        Alt,Bernd,Pensionist,bezahlt {$currentYy},,,Weg 2,4400,Sampletown,70 658,,maennlich,03.04.1950,,76,Nein
+        Alt,Bernd,Pensionist,bezahlt {$currentYy},,,Weg 2,4400,Teststadt,70 658,,maennlich,03.04.1950,,76,Nein
         CSV;
         $file = sys_get_temp_dir().'/members-import-test-rerun.csv';
         file_put_contents($file, $csv);
@@ -154,9 +154,9 @@ class MemberImportCommandTest extends TestCase
         $this->assertSame('m', $anna->gender);
         $this->assertSame('Alte Str. 9', $anna->street);
         // Fehlende Werte werden aus der CSV nachgetragen.
-        $this->assertSame(288563, $anna->nuliga_id);
+        $this->assertSame(123456, $anna->nuliga_id);
         $this->assertSame('4400', $anna->zip);
-        $this->assertSame('Sampletown', $anna->city);
+        $this->assertSame('Teststadt', $anna->city);
         $this->assertNotNull($anna->fee_category_id);
         $this->assertSame('Vollzahler', $anna->feeCategory->name);
     }
@@ -166,16 +166,16 @@ class MemberImportCommandTest extends TestCase
     {
         $csv = <<<CSV
         Name,Vorname,Mitgliedsart,MB ,Bemerkung,Email,Strasse,PLZ,Ort,Privat,Mobil,Geschlecht,GebDatum,ID-Nr,Alter,Reservierungssystem
-        Muster,Anna,Vollmitglied,bezahlt 25,,anna@example.com,Teststr. 1,4400,Sampletown,,0650 1234567,weiblich,01.02.1980,NU288563,46,Ja
+        Muster,Anna,Vollmitglied,bezahlt 25,,anna@example.com,Teststr. 1,4400,Teststadt,,0650 1234567,weiblich,01.02.1980,NU123456,46,Ja
         CSV;
         $file = sys_get_temp_dir().'/members-import-test-bad-nuliga.csv';
         file_put_contents($file, $csv);
 
-        // Anna, Muster und NU288563 stammen alle aus derselben Warnzeile; expectsOutputToContain()
+        // Anna, Muster und NU123456 stammen alle aus derselben Warnzeile; expectsOutputToContain()
         // erfüllt pro Konsolenzeile nur die erste registrierte Erwartung, daher hier ein
         // einziger kombinierter Substring statt mehrerer einzelner Erwartungen.
         $this->artisan('members:import-csv', ['file' => $file])
-            ->expectsOutputToContain('Anna Muster nicht lesbar: "NU288563"')
+            ->expectsOutputToContain('Anna Muster nicht lesbar: "NU123456"')
             ->assertSuccessful();
 
         $anna = Member::where('lastname', 'Muster')->firstOrFail();
@@ -187,8 +187,8 @@ class MemberImportCommandTest extends TestCase
     {
         $csv = <<<CSV
         Name,Vorname,Mitgliedsart,MB ,Bemerkung,Email,Strasse,PLZ,Ort,Privat,Mobil,Geschlecht,GebDatum,ID-Nr,Alter,Reservierungssystem
-        Muster,Anna,Vollmitglied,bezahlt 25,,anna@example.com,Teststr. 1,4400,Sampletown,,0650 1234567,weiblich,01.02.1980,0,46,Ja
-        Alt,Bernd,Pensionist,bezahlt 25,,,Weg 2,4400,Sampletown,70 658,,maennlich,03.04.1950,0,76,Nein
+        Muster,Anna,Vollmitglied,bezahlt 25,,anna@example.com,Teststr. 1,4400,Teststadt,,0650 1234567,weiblich,01.02.1980,0,46,Ja
+        Alt,Bernd,Pensionist,bezahlt 25,,,Weg 2,4400,Teststadt,70 658,,maennlich,03.04.1950,0,76,Nein
         CSV;
         $file = sys_get_temp_dir().'/members-import-test-zero-nuliga.csv';
         file_put_contents($file, $csv);
@@ -206,20 +206,20 @@ class MemberImportCommandTest extends TestCase
     {
         $csv = <<<CSV
         Name,Vorname,Mitgliedsart,MB ,Bemerkung,Email,Strasse,PLZ,Ort,Privat,Mobil,Geschlecht,GebDatum,ID-Nr,Alter,Reservierungssystem
-        Muster,Anna,Vollmitglied,bezahlt 25,,anna@example.com,Teststr. 1,4400,Sampletown,,0650 1234567,weiblich,01.02.1980,288563,46,Ja
-        Alt,Bernd,Pensionist,bezahlt 25,,,Weg 2,4400,Sampletown,70 658,,maennlich,03.04.1950,288563,76,Nein
+        Muster,Anna,Vollmitglied,bezahlt 25,,anna@example.com,Teststr. 1,4400,Teststadt,,0650 1234567,weiblich,01.02.1980,123456,46,Ja
+        Alt,Bernd,Pensionist,bezahlt 25,,,Weg 2,4400,Teststadt,70 658,,maennlich,03.04.1950,123456,76,Nein
         CSV;
         $file = sys_get_temp_dir().'/members-import-test-dup-nuliga.csv';
         file_put_contents($file, $csv);
 
         $this->artisan('members:import-csv', ['file' => $file])
-            ->expectsOutputToContain('288563')
+            ->expectsOutputToContain('123456')
             ->assertSuccessful();
 
         $anna = Member::where('lastname', 'Muster')->firstOrFail();
         $bernd = Member::where('lastname', 'Alt')->firstOrFail();
 
-        $this->assertSame(288563, $anna->nuliga_id);
+        $this->assertSame(123456, $anna->nuliga_id);
         $this->assertNull($bernd->nuliga_id);
     }
 }

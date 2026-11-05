@@ -12,7 +12,7 @@ use RuntimeException;
 use Throwable;
 
 /**
- * PHP-generated SQL dump/restore for hosting.example.test shared hosting, which has no
+ * PHP-generated SQL dump/restore for shared hosting, which has no
  * SSH and therefore no mysqldump. Builds dumps via Laravel's own schema
  * introspection (not hardcoded MySQL syntax) so the exact same code path
  * runs — and is tested — against SQLite in the test suite and MySQL in

@@ -155,12 +155,12 @@ class CalendarControllerTest extends TestCase
     public function calendar_shows_court_number_and_alias_in_header(): void
     {
         $square = Square::factory()->create(['name' => '2', 'priority' => 1]);
-        SquareMeta::create(['sid' => $square->sid, 'key' => 'alias', 'value' => 'Court D']);
+        SquareMeta::create(['sid' => $square->sid, 'key' => 'alias', 'value' => 'Beta Court']);
 
         $user = User::factory()->create();
         $this->actingAs($user)->get('/calendar')
             ->assertSee('2')
-            ->assertSee('Court D');
+            ->assertSee('Beta Court');
     }
 
     #[Test]

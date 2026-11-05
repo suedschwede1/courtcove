@@ -83,7 +83,7 @@ with `php artisan view:cache` (catches Blade syntax errors) then `php artisan vi
 ### Per-installation overrides (never committed)
 
 Several optional, gitignored files let a specific club deployment customize content
-without touching tracked files (important since the Provider deploy ships `git archive HEAD`
+without touching tracked files (important since the deploy ships `git archive HEAD`
 over SSH, which never contains them — place them on the server by hand; the deploy wipe
 keeps them; see Deployment below). Each has a tracked `*.example.php` template:
 
@@ -99,29 +99,32 @@ When adding a new override mechanism, follow this pattern: gitignore the real fi
 a documented `.example.php`, and fail gracefully (empty array / default) when the file is
 absent — see `App\Services\QuoteGroups` for the reference implementation.
 
-## Deployment (Provider)
+## Deployment
 
-Production is the Provider cPanel host (SSH alias `provider`, app in `~/apps/bookingnew`,
-served at `/booking`, so never hard-code root-absolute URLs in views/JS). Deploy from WSL
-with `scripts/deploy-provider.sh` (`--dry-run` first; never run it without the user asking).
-It ships `git archive HEAD` over ssh and never overwrites the server's `.env` or `storage/`.
-Without `--first-deploy` it refuses (before `artisan down`/extract) if
-`php artisan migrate:status` fails on the server or there is no artisan yet; with
-`--first-deploy` it deploys code + composer install + optimize:clear but runs no `migrate`
-and no `artisan up`, and prints the manual steps (`migrate:install`,
-`db:baseline-legacy --dry-run`, `db:baseline-legacy`, `migrate --force`), which are never
-part of the script. `--skip-build` skips `npm run build` (run it from Windows; WSL Node
-is too old) but still requires a committed `public/build/manifest.json` and a clean tree.
-Tournament pages are the legacy ZF2 app served on the **same host** (no `turnier.` subdomain):
-`public/.htaccess` rewrites an allowlist (`tournament|mixed-tournament|pyramide|draw|service`,
-`user/login|logout|password[-reset]`) to `public/zf2-bridge.php`, which runs ZF2's `index.php`
-from its own install (`~/apps/zf2`, default only for an app dir named `bookingnew`; otherwise
-set env `ZF2_PUBLIC` or an untracked absolute-path `<app>/zf2.path`, e.g. staging). The deploy script symlinks ZF2's static dirs into
-`public/`. Never add paths to that allowlist casually (it exposes ZF2) and never copy the old
-install's one-off `public/*.php` scripts into the ZF2 copy. `TOURNAMENT_BASE_URL` stays empty
-(same host). No Node.js on the server: `public/build/` **is committed to git**. See README
-"Deployment (Provider)" and `docs/superpowers/specs/2026-11-04-provider-laravel-cutover-design.md`.
-The old hosting.example.test FTP flow is historical only.
+Deployment details (host, account, paths, ssh alias, runbook, deploy script) are kept in
+local operational notes that are not part of the repository; never add them to tracked
+files. Never run a deploy unless the user asks. Generic rules:
+
+- The app may be served under a base path (e.g. `/booking`), so never hard-code
+  root-absolute URLs in views/JS.
+- Deploys ship `git archive HEAD` and never overwrite the server's `.env` or `storage/`.
+  Build assets before deploying: no Node.js on the server, so `public/build/` **is
+  committed to git** (run `npm run build` from Windows if WSL Node is too old).
+- A normal deploy refuses when `php artisan migrate:status` fails on the server. A first
+  deploy against a database created by the old ZF2 system runs no `migrate` and no
+  `artisan up`; the manual steps are `migrate:install`, `db:baseline-legacy --dry-run`,
+  `db:baseline-legacy`, `migrate --force`, in that order, and are never scripted.
+- Tournament pages are the legacy ZF2 app served on the **same host** (no separate
+  subdomain): `public/.htaccess` rewrites an allowlist (`tournament|mixed-tournament|pyramide|draw|service`,
+  `user/login|logout|password[-reset]`) to `public/zf2-bridge.php`, which runs ZF2's
+  `index.php` from its own install (default location only for an app dir named
+  `bookingnew`; otherwise set env `ZF2_PUBLIC` or an untracked absolute-path
+  `<app>/zf2.path`, e.g. staging). Never add paths to that allowlist casually (it exposes
+  ZF2) and never copy the old install's one-off `public/*.php` scripts into the ZF2 copy.
+  `TOURNAMENT_BASE_URL` stays empty (same host). See README "Deployment".
+- The cutover design, runbook, plans and the deploy script live in local, git-ignored
+  directories (`docs/superpowers/`, `docs/design/`, `docs/deploy/`, `docs/reviews/`,
+  `scripts/`); do not reference or commit them.
 
 ## Testing conventions
 

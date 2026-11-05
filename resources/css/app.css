@@ -1,46 +1,161 @@
 /*! src:hm-b26c8c89 */
 @import 'tailwindcss';
+@import '@fontsource/barlow/latin-400.css';
+@import '@fontsource/barlow/latin-ext-400.css';
+@import '@fontsource/barlow/latin-500.css';
+@import '@fontsource/barlow/latin-ext-500.css';
+@import '@fontsource/barlow/latin-600.css';
+@import '@fontsource/barlow/latin-ext-600.css';
+@import '@fontsource/barlow/latin-700.css';
+@import '@fontsource/barlow/latin-ext-700.css';
+@import '@fontsource/barlow-condensed/latin-600.css';
+@import '@fontsource/barlow-condensed/latin-ext-600.css';
+@import '@fontsource/barlow-condensed/latin-700.css';
+@import '@fontsource/barlow-condensed/latin-ext-700.css';
+@import './ds.css';
 
 :root {
     --wm-src: 'hm-b26c8c89';
 }
 
-@theme {
-    /* Club-Orange Palette */
-    --color-accent-50:  oklch(97%   0.012 35);
-    --color-accent-100: oklch(93%   0.030 35);
-    --color-accent-200: oklch(86%   0.060 35);
-    --color-accent-300: oklch(76%   0.100 35);
-    --color-accent-400: oklch(64%   0.150 35);
-    --color-accent-500: oklch(57%   0.178 35);
-    --color-accent-600: oklch(51%   0.190 35);
-    --color-accent-700: oklch(43%   0.168 35);
-    --color-accent-800: oklch(35%   0.138 35);
-    --color-accent-900: oklch(28%   0.100 35);
-    --color-accent-950: oklch(20%   0.070 35);
+@theme static {
+    --color-ground: #F5F1EA;
+    --color-surface: #FFFFFF;
+    --color-surface-sunk: #FAF8F4;
+    --color-sand: #EFE9DF;
+    --color-line: #E3DCD0;
+    --color-line-soft: #F1ECE3;
+    --color-line-strong: #BDB2A2;
+    --color-ink: #1D1B18;
+    --color-ink-2: #4A443D;
+    --color-ink-3: #6B6359;
+    --color-chrome: #1D1B18;
+    --color-chrome-ink: #E7E0D5;
+    --color-chrome-muted: #CFC6B8;
+    --color-chrome-line: #3A3631;
+    --color-clay: #B5441A;
+    --color-clay-hover: #8F3412;
+    --color-on-clay: #FFFFFF;
+    --color-clay-soft: #FBF1EB;
+    --color-court: #1F5A44;
+    --color-on-court: #FFFFFF;
+    --color-court-soft: #E3F0E8;
+    --color-court-ink: #1F5A44;
+    --color-warn-soft: #FBEFD5;
+    --color-warn-ink: #7A4E00;
+    --color-danger: #9A2B17;
+    --color-danger-soft: #F8E1DC;
+    --color-cell-free-line: #CFC5B5;
+    --color-cell-booked: #E6DFD3;
+    --color-cell-past-a: #EDE8DF;
+    --color-cell-past-b: #F7F4EE;
 
-    /* Typografie */
-    --font-display: 'Red Hat Display', sans-serif;
-    --font-body:    'Red Hat Text', sans-serif;
+    --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+    --font-body: Barlow, system-ui, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 18px;
+    --radius-pill: 999px;
+    --spacing-touch-min: 44px;
+    --spacing-control-h: 46px;
+    --spacing-control-h-mobile: 52px;
+    --spacing-cell-h: 36px;
+    --spacing-cell-h-mobile: 48px;
+    --shadow-dialog: 0 20px 50px rgba(0, 0, 0, 0.25);
+    --shadow-sheet: 0 -10px 30px rgba(0, 0, 0, 0.2);
+    --text-display-xl: 40px;
+    --text-display-l: 32px;
+    --text-display-m: 24px;
+    --text-display-s: 20px;
+    --text-numeral: 40px;
+    --text-body-l: 17px;
+    --text-body: 15px;
+    --text-body-strong: 15px;
+    --text-body-s: 13px;
+    --text-label: 12px;
+    --text-button: 15px;
+
+    --text-display-xl--line-height: 40px;
+    --text-display-xl--font-weight: 700;
+    --text-display-l--line-height: 34px;
+    --text-display-l--font-weight: 700;
+    --text-display-m--line-height: 26px;
+    --text-display-m--font-weight: 700;
+    --text-display-s--line-height: 22px;
+    --text-display-s--font-weight: 700;
+    --text-numeral--line-height: 40px;
+    --text-numeral--font-weight: 700;
+    --text-body-l--line-height: 24px;
+    --text-body-l--font-weight: 500;
+    --text-body--line-height: 22px;
+    --text-body--font-weight: 400;
+    --text-body-strong--line-height: 22px;
+    --text-body-strong--font-weight: 700;
+    --text-body-s--line-height: 18px;
+    --text-body-s--font-weight: 400;
+    --text-label--line-height: 16px;
+    --text-label--font-weight: 700;
+    --text-label--letter-spacing: 0.1em;
+    --text-button--line-height: 20px;
+    --text-button--font-weight: 700;
+
+    --font-sans: var(--font-body);
 }
 
+/* Dark values: defined, not wired (restyle spec decision 3). */
+[data-theme="dark"] {
+    --color-ground: #171513;
+    --color-surface: #211E1B;
+    --color-surface-sunk: #1B1917;
+    --color-sand: #2C2824;
+    --color-line: #3A3631;
+    --color-line-soft: #2C2824;
+    --color-line-strong: #6A6259;
+    --color-ink: #F3EEE6;
+    --color-ink-2: #CFC6B8;
+    --color-ink-3: #A79D8F;
+    --color-chrome: #0F0E0D;
+    --color-chrome-ink: #E7E0D5;
+    --color-chrome-muted: #A79D8F;
+    --color-chrome-line: #2C2824;
+    --color-clay: #E07A4F;
+    --color-clay-hover: #F0936C;
+    --color-on-clay: #171513;
+    --color-clay-soft: #3A2419;
+    --color-court: #5FAE87;
+    --color-on-court: #171513;
+    --color-court-soft: #1E3329;
+    --color-court-ink: #8FD0AE;
+    --color-warn-soft: #3A2E12;
+    --color-warn-ink: #F0C46B;
+    --color-danger: #F08A72;
+    --color-danger-soft: #3D1C15;
+    --color-cell-free-line: #4A443D;
+    --color-cell-booked: #34302B;
+    --color-cell-past-a: #1F1C19;
+    --color-cell-past-b: #252220;
+}
+
+/* Alias layer: old names point at the new tokens; removed in restyle step 7. */
 :root {
-    --ui-orange: #0066cc;
-    --ui-orange-hover: #004080;
-    --ui-orange-soft: #e7f1fa;
-    --ui-text: #151515;
-    --ui-text-secondary: #6a6e73;
-    --ui-text-muted: #b8bbbe;
-    --ui-bg: #f0f0f0;
-    --ui-surface: #ffffff;
-    --ui-border: #d2d2d2;
-    --ui-sidebar: #151515;
-    --ui-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --ui-orange: var(--color-clay);
+    --ui-orange-hover: var(--color-clay-hover);
+    --ui-orange-soft: var(--color-clay-soft);
+    --ui-text: var(--color-ink);
+    --ui-text-secondary: var(--color-ink-2);
+    --ui-text-muted: var(--color-ink-3);
+    --ui-bg: var(--color-ground);
+    --ui-surface: var(--color-surface);
+    --ui-border: var(--color-line);
+    --ui-sidebar: var(--color-chrome);
+    --ui-shadow: none;
 }
 
 body {
-    background: var(--ui-bg);
-    color: var(--ui-text);
+    background: var(--color-ground);
+    color: var(--color-ink);
     font-family: var(--font-body);
 }
 
@@ -67,8 +182,8 @@ body {
 .ui-card {
     background: var(--ui-surface);
     border: 1px solid var(--ui-border);
-    border-radius: 6px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    border-radius: var(--radius-lg);
+    box-shadow: none;
     overflow: hidden;
 }
 
@@ -78,8 +193,8 @@ body {
     justify-content: space-between;
     gap: 1rem;
     padding: 0.95rem 1.25rem;
-    border-bottom: 1px solid #ebebeb;
-    background: linear-gradient(180deg, #ffffff 0%, #fcfcfc 100%);
+    border-bottom: 1px solid var(--color-line-soft);
+    background: var(--color-surface-sunk);
 }
 
 .ui-card-header h2,
@@ -182,7 +297,7 @@ body {
 .ui-section-label {
     padding-bottom: 0.6rem;
     margin-bottom: 1rem;
-    border-bottom: 1px solid #ebebeb;
+    border-bottom: 1px solid var(--color-line-soft);
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.08em;
@@ -210,12 +325,12 @@ body {
 
 .ui-error {
     font-size: 12px;
-    color: #c9190b;
+    color: var(--color-danger);
 }
 
 .is-disabled {
-    background: #f4f4f4 !important;
-    color: #9a9a9a !important;
+    background: var(--color-surface-sunk) !important;
+    color: var(--color-ink-3) !important;
     cursor: not-allowed;
     opacity: 0.7;
 }
@@ -224,9 +339,9 @@ body {
 .ui-select,
 .ui-textarea {
     width: 100%;
-    border: 1px solid #c7c7c7;
+    border: 1px solid var(--color-line-strong);
     border-radius: 3px;
-    background: #fff;
+    background: var(--color-surface);
     color: var(--ui-text);
     font-family: var(--font-body);
     font-size: 14px;
@@ -252,16 +367,16 @@ body {
 .ui-textarea:focus {
     outline: 2px solid var(--ui-text);
     outline-offset: 1px;
-    border-color: #d4d4d4;
+    border-color: var(--color-line-strong);
 }
 
 .ui-input:disabled,
 .ui-select:disabled,
 .ui-textarea:disabled,
 .ui-input.is-disabled {
-    background: #f3f1ec;
-    color: #8a8d90;
-    border-color: #d8d2c8;
+    background: var(--color-sand);
+    color: var(--color-ink-3);
+    border-color: var(--color-line-strong);
     cursor: not-allowed;
 }
 
@@ -317,7 +432,7 @@ input[type="date"]::-webkit-datetime-edit-fields-wrapper {
 
 .ui-btn-primary {
     background: var(--ui-orange);
-    color: #fff;
+    color: var(--color-on-clay);
 }
 
 .ui-btn-primary:hover {
@@ -325,13 +440,13 @@ input[type="date"]::-webkit-datetime-edit-fields-wrapper {
 }
 
 .ui-btn-outline {
-    background: #fff;
+    background: var(--color-surface);
     border: 1px solid var(--ui-orange);
     color: var(--ui-orange);
 }
 
 .ui-btn-outline:hover {
-    background: #fff3f0;
+    background: var(--color-clay-soft);
 }
 
 .ui-btn-ghost {
@@ -340,16 +455,17 @@ input[type="date"]::-webkit-datetime-edit-fields-wrapper {
 }
 
 .ui-btn-ghost:hover {
-    background: #f6f6f6;
+    background: var(--color-surface-sunk);
 }
 
 .ui-btn-danger {
-    background: #c9190b;
-    color: #fff;
+    background: var(--color-surface);
+    color: var(--color-danger);
+    border: 1px solid var(--color-danger-soft);
 }
 
 .ui-btn-danger:hover {
-    background: #a9180c;
+    background: var(--color-danger-soft);
 }
 
 .ui-kpi {
@@ -387,7 +503,7 @@ input[type="date"]::-webkit-datetime-edit-fields-wrapper {
     align-items: center;
     justify-content: space-between;
     padding: 0.55rem 0;
-    border-bottom: 1px solid #f2f2f2;
+    border-bottom: 1px solid var(--color-line-soft);
     font-size: 13px;
     color: var(--ui-text);
 }
@@ -437,7 +553,7 @@ input[type="date"]::-webkit-datetime-edit-fields-wrapper {
 
 .ui-table th {
     padding: 11px 16px;
-    border-bottom: 1px solid #ebebeb;
+    border-bottom: 1px solid var(--color-line-soft);
     text-align: left;
     font-size: 11px;
     font-weight: 700;
@@ -449,14 +565,14 @@ input[type="date"]::-webkit-datetime-edit-fields-wrapper {
 
 .ui-table td {
     padding: 13px 16px;
-    border-bottom: 1px solid #f2f2f2;
+    border-bottom: 1px solid var(--color-line-soft);
     font-size: 13px;
     color: var(--ui-text);
     vertical-align: middle;
 }
 
 .ui-table tbody tr:hover {
-    background: #fcfcfc;
+    background: var(--color-surface-sunk);
 }
 
 .ui-badge {
@@ -469,23 +585,23 @@ input[type="date"]::-webkit-datetime-edit-fields-wrapper {
 }
 
 .ui-badge-success {
-    background: #f0faf0;
-    color: #3e8635;
+    background: var(--color-court-soft);
+    color: var(--color-court-ink);
 }
 
 .ui-badge-danger {
-    background: #f9f0f0;
-    color: #c9190b;
+    background: var(--color-danger-soft);
+    color: var(--color-danger);
 }
 
 .ui-badge-warning {
-    background: #fdf7e7;
-    color: #f0ab00;
+    background: var(--color-warn-soft);
+    color: var(--color-warn-ink);
 }
 
 .ui-badge-info {
-    background: #eff6ff;
-    color: #1a3a6b;
+    background: var(--color-sand);
+    color: var(--color-ink);
 }
 
 .ui-readonly-box {
@@ -505,8 +621,8 @@ input[type="date"]::-webkit-datetime-edit-fields-wrapper {
 }
 
 .ui-badge-neutral {
-    background: #f0f0f0;
-    color: #6a6e73;
+    background: var(--color-sand);
+    color: var(--color-ink-2);
 }
 
 .ui-flash {
@@ -517,13 +633,13 @@ input[type="date"]::-webkit-datetime-edit-fields-wrapper {
 }
 
 .ui-flash-success {
-    background: #f0faf0;
-    color: #3e8635;
+    background: var(--color-court-soft);
+    color: var(--color-court-ink);
 }
 
 .ui-flash-error {
-    background: #f9f0f0;
-    color: #c9190b;
+    background: var(--color-danger-soft);
+    color: var(--color-danger);
 }
 
 .ui-admin-main {
@@ -557,7 +673,7 @@ input[type="date"]::-webkit-datetime-edit-fields-wrapper {
     font-family: var(--font-display);
     font-size: 15px;
     font-weight: 700;
-    color: #fff;
+    color: var(--color-chrome-ink);
 }
 
 .ui-popup-body {
@@ -572,8 +688,8 @@ input[type="date"]::-webkit-datetime-edit-fields-wrapper {
     flex-wrap: wrap;
     gap: 0.75rem;
     padding: 1rem 1.25rem;
-    border-top: 1px solid #ebebeb;
-    background: rgba(250, 250, 250, 0.96);
+    border-top: 1px solid var(--color-line-soft);
+    background: var(--color-surface-sunk);
 }
 
 @media (max-width: 1024px) {
@@ -634,26 +750,26 @@ input[type="date"]::-webkit-datetime-edit-fields-wrapper {
     height: 32px;
     min-width: 32px;
     padding: 0 12px;
-    border: 1px solid #d8d2c8;
+    border: 1px solid var(--color-line);
     border-radius: 6px;
-    background: #ffffff;
-    color: #151515;
+    background: var(--color-surface);
+    color: var(--color-ink);
     font-size: 13px;
     font-weight: 600;
     line-height: 1;
     text-decoration: none;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    box-shadow: none;
     transition: border-color 0.12s ease, color 0.12s ease, background-color 0.12s ease;
 }
 
 .ui-calendar-nav-btn:hover {
-    border-color: #bf4316;
-    color: #bf4316;
+    border-color: var(--color-clay);
+    color: var(--color-clay);
 }
 
 .ui-calendar-nav-btn--today {
     min-width: 58px;
-    color: #151515;
+    color: var(--color-ink);
 }
 
 .ui-calendar-nav-btn--arrow {
@@ -669,24 +785,23 @@ input[type="date"]::-webkit-datetime-edit-fields-wrapper {
 .ui-calendar-date-input {
     height: 32px;
     min-width: 96px;
-    border: 1px solid #e0a38b;
+    border: 1px solid var(--color-line-strong);
     border-radius: 6px;
-    background: #fff8f6;
-    color: #bf4316;
+    background: var(--color-clay-soft);
+    color: var(--color-clay);
     padding: 0 12px;
     font-size: 13px;
     font-weight: 600;
-    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.35);
+    box-shadow: none;
 }
 
 .ui-calendar-date-input:focus {
     outline: none;
-    border-color: #bf4316;
-    box-shadow: 0 0 0 2px rgba(191, 67, 22, 0.12);
+    border-color: var(--color-clay);
+    box-shadow: none;
 }
 
-
-
-
-
-
+/* Global focus (DESIGN.md accessibility): visible on every control. */
+:focus-visible { outline: 2px solid var(--color-ink) !important; outline-offset: 2px !important; }
+.ds-input:focus-visible, .ds-select:focus-visible, .ds-textarea:focus-visible { outline-offset: 1px !important; }
+.ds-on-chrome :focus-visible { outline-color: var(--color-chrome-ink) !important; }

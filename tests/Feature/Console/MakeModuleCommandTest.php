@@ -78,6 +78,8 @@ class MakeModuleCommandTest extends TestCase
 
         $layout = File::get($this->modulePath.'/resources/views/layout.blade.php');
         $this->assertStringContainsString('widgets.dashboard', $layout);
+        $this->assertStringContainsString("@extends('layouts.base')", $layout);
+        $this->assertStringNotContainsString('fonts.googleapis', $layout);
 
         $provider = File::get($this->modulePath.'/WidgetsServiceProvider.php');
         $this->assertStringContainsString("Route::middleware('web')", $provider);

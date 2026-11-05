@@ -106,14 +106,14 @@ class MemberManagementTest extends TestCase
             'gender' => 'w',
             'street' => 'Teststr. 1',
             'zip' => '4400',
-            'city' => 'Sampletown',
-            'nuliga_id' => 288563,
+            'city' => 'Teststadt',
+            'nuliga_id' => 123456,
             'fee_category_id' => $category->id,
         ]);
 
         $this->assertSame('Vollzahler', $member->feeCategory->name);
         $this->assertSame('w', $member->fresh()->gender);
-        $this->assertSame(288563, $member->fresh()->nuliga_id);
+        $this->assertSame(123456, $member->fresh()->nuliga_id);
     }
 
     #[Test]
@@ -168,15 +168,15 @@ class MemberManagementTest extends TestCase
             'gender' => 'w',
             'street' => 'Teststr. 1',
             'zip' => '4400',
-            'city' => 'Sampletown',
-            'nuliga_id' => 288563,
+            'city' => 'Teststadt',
+            'nuliga_id' => 123456,
             'fee_category_id' => $category->id,
             'joined_at' => '2026-01-01',
         ])->assertRedirect(route('members.index'));
 
         $this->assertDatabaseHas('members', [
             'member_number' => 1, 'gender' => 'w', 'street' => 'Teststr. 1', 'zip' => '4400',
-            'city' => 'Sampletown', 'nuliga_id' => 288563, 'fee_category_id' => $category->id,
+            'city' => 'Teststadt', 'nuliga_id' => 123456, 'fee_category_id' => $category->id,
         ]);
     }
 

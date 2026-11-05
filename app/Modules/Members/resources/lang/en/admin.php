@@ -28,6 +28,7 @@ return [
         'nuliga_id' => 'Nuliga no.',
         'notiz' => 'Note',
         'booking_user' => 'Booking system user',
+        'booking_user_short' => 'Booking system',
         'search_booking_user' => 'Search name…',
         'fee_category' => 'Fee category',
         'club_roles' => 'Roles',

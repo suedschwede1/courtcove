@@ -21,6 +21,14 @@ class BookingMailTest extends TestCase
 {
     use LazilyRefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // The tests book 10 July 2026; freeze "now" so that date stays in the future.
+        $this->travelTo(Carbon::parse('2026-07-01 10:00:00'));
+    }
+
     private function makeSquare(): Square
     {
         return Square::factory()->create([

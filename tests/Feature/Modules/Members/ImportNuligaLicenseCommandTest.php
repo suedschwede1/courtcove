@@ -38,12 +38,12 @@ class ImportNuligaLicenseCommandTest extends TestCase
         ]);
 
         $file = $this->writeCsv([
-            'Muster;Anna;;;01.02.1980;ITN9,9;-;Gold;30.04.2027;288563;AUT;weiblich;weiblich;anna@example.com;Teststr. 1;4400;Sampletown;AUT;;;;;41019',
+            'Muster;Anna;;;01.02.1980;ITN9,9;-;Gold;30.04.2027;123456;AUT;weiblich;weiblich;anna@example.com;Teststr. 1;4400;Teststadt;AUT;;;;;41019',
         ]);
 
         $this->artisan('members:import-nuliga-license', ['file' => $file])->assertSuccessful();
 
-        $this->assertSame(288563, Member::where('lastname', 'Muster')->firstOrFail()->nuliga_id);
+        $this->assertSame(123456, Member::where('lastname', 'Muster')->firstOrFail()->nuliga_id);
     }
 
     #[Test]
@@ -57,12 +57,12 @@ class ImportNuligaLicenseCommandTest extends TestCase
         ]);
 
         $file = $this->writeCsv([
-            'Muster;Anna;;;01.02.1980;ITN9,9;-;Gold;30.04.2027;288563;AUT;weiblich;weiblich;;;;;;;;;;41019',
+            'Muster;Anna;;;01.02.1980;ITN9,9;-;Gold;30.04.2027;123456;AUT;weiblich;weiblich;;;;;;;;;;41019',
         ]);
 
         $this->artisan('members:import-nuliga-license', ['file' => $file])->assertSuccessful();
 
-        $this->assertSame(288563, Member::where('lastname', 'Muster')->firstOrFail()->nuliga_id);
+        $this->assertSame(123456, Member::where('lastname', 'Muster')->firstOrFail()->nuliga_id);
     }
 
     #[Test]
@@ -88,7 +88,7 @@ class ImportNuligaLicenseCommandTest extends TestCase
     public function warns_and_skips_when_no_matching_member_is_found(): void
     {
         $file = $this->writeCsv([
-            'Unbekannt;Otto;;;01.02.1980;ITN9,9;-;Gold;30.04.2027;288563;AUT;maennlich;maennlich;;;;;;;;;;41019',
+            'Unbekannt;Otto;;;01.02.1980;ITN9,9;-;Gold;30.04.2027;123456;AUT;maennlich;maennlich;;;;;;;;;;41019',
         ]);
 
         $this->artisan('members:import-nuliga-license', ['file' => $file])
@@ -105,7 +105,7 @@ class ImportNuligaLicenseCommandTest extends TestCase
             'firstname' => 'Anna',
             'lastname' => 'Muster',
             'birthdate' => '1980-02-01',
-            'nuliga_id' => 288563,
+            'nuliga_id' => 123456,
         ]);
         Member::factory()->create([
             'firstname' => 'Bernd',
@@ -115,14 +115,14 @@ class ImportNuligaLicenseCommandTest extends TestCase
         ]);
 
         $file = $this->writeCsv([
-            'Alt;Bernd;;;03.04.1950;ITN5,0;-;Gold;30.04.2027;288563;AUT;maennlich;maennlich;;;;;;;;;;41019',
+            'Alt;Bernd;;;03.04.1950;ITN5,0;-;Gold;30.04.2027;123456;AUT;maennlich;maennlich;;;;;;;;;;41019',
         ]);
 
         $this->artisan('members:import-nuliga-license', ['file' => $file])
-            ->expectsOutputToContain('288563')
+            ->expectsOutputToContain('123456')
             ->assertSuccessful();
 
-        $this->assertSame(288563, Member::where('lastname', 'Muster')->firstOrFail()->nuliga_id);
+        $this->assertSame(123456, Member::where('lastname', 'Muster')->firstOrFail()->nuliga_id);
         $this->assertNull(Member::where('lastname', 'Alt')->firstOrFail()->nuliga_id);
     }
 
@@ -156,7 +156,7 @@ class ImportNuligaLicenseCommandTest extends TestCase
         ]);
 
         $file = $this->writeCsv([
-            'Muster;Anna;;;01.02.1980;ITN9,9;-;Gold;30.04.2027;288563;AUT;weiblich;weiblich;;;;;;;;;;41019',
+            'Muster;Anna;;;01.02.1980;ITN9,9;-;Gold;30.04.2027;123456;AUT;weiblich;weiblich;;;;;;;;;;41019',
         ]);
 
         $this->artisan('members:import-nuliga-license', ['file' => $file, '--dry-run' => true])

@@ -1,12 +1,22 @@
 # Changelog
 
 This project does not use semantic version numbers (it is deployed continuously via FTP
-to a single hosting.example.test hosting instance, not released as versioned packages). Instead, this
+to a single shared-hosting instance, not released as versioned packages). Instead, this
 file groups notable user-facing and structural changes by date. The only tagged
 reference point is `mobile-view-stable` (see [README.md](README.md#layout-reference)).
 
 When adding an entry: describe the *why*/user-facing effect in one line, not the diff —
 `git log` already has that. Add new entries at the top, under today's date.
+
+## 2026-11-05
+
+- Tab counts stay readable on the active phone tab.
+- One shared tab bar for module sub-pages; chips on phones.
+- Shared table component: header row, highlighted rows and card layout on phones.
+- Shared form fields with visible labels, help and error text linked for screen readers.
+- Shared card, key figure and notice components of the new design.
+- Status badges use one shared colour map (good, neutral, attention, problem, you).
+- Shared button components with 46/52 px touch targets.
 
 ## 2026-11-04
 
@@ -32,6 +42,14 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 - Phase 2: Draw module with a byte-exact port of the commit/reveal draw maths (golden vectors from the old code).
 - Phase 2 groundwork: golden draw/token/score vectors captured from the old services (`tests/Fixtures/draw`, regenerable with `generate_vectors.php`) plus the public `tools/verify_draw.py` verifier, so the port can be checked byte for byte.
 - Phase 2 groundwork: shared TournamentBase module (config with environment-supplied court names, translations, injectable Randomizer).
+- Shared SVG icon set for the new design (no icon font, no emoji).
+- English members area no longer falls back to German for the short booking-system label.
+- The UI linter now checks the new design rules (tokens, 46/52 px controls, no inline styles, emoji or character icons) across all views, module views and CSS.
+- All pages share one page frame (fonts, styles, head) instead of five copies.
+- Site-wide switch to the new palette and fonts on existing pages, with a visible keyboard focus outline everywhere.
+- Fonts are served from the app itself (Barlow); no request to an external font service.
+- Design tokens of the new look (sand, clay, court, Barlow scale) defined in one place; dark values prepared, not switched on.
+- Fix HTTP 500 when `public/` is served through a symlink (Apache + PHP-FPM keeps `__DIR__` unresolved): `public/index.php` and `public/zf2-bridge.php` now derive the application root from `realpath(__DIR__)`, so vendor, bootstrap, maintenance file, `zf2.path` and the default ZF2 dir are found at the real location.
 - Emoji stripping no longer touches password/token fields (an emoji password was silently altered) and skips the utf8mb4-only API member/due endpoints.
 - Emoji and other 4-byte characters are stripped from request input (web and api) before they reach the utf8mb3 legacy tables, which previously failed with an HTTP 500; the Members module (utf8mb4) is exempt and keeps emoji.
 - Bridge guard hardening: the direct-request check now uses the raw request URI (query cut off, decoded until stable, slashes collapsed; no `parse_url`), so `//zf2-bridge.php/x`, `///zf2-bridge.php/x` and encoded forms answer 404, and `public/.htaccess` additionally 404s any raw request line containing `zf2-bridge`.
@@ -46,9 +64,9 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 - Fixed a 500 on login with "remember me" for normal members: `bs_users` has no `remember_token` column, so the User model no longer persists one.
 - Fixed the booking modals, player autocomplete and member/dues inline editing so their requests honor the `/booking` URL base path (they used root-absolute `/bookings/...` and `/members/...` URLs and would have hit the wrong host path in production).
 - Restored `public/.htaccess` (front-controller rewrite, Authorization passthrough) that the Laravel scaffold had dropped; without it every route except `/booking/` returned 404 on Apache.
-- The Provider deploy script no longer deletes `*.sqlite*` files, refuses a server `.env` with `DB_CONNECTION=sqlite`, and aborts before extracting if cleaning the old files fails.
-- Hardened `scripts/deploy-provider.sh`: refuses non-`master` branches without `--allow-branch`, asks for confirmation, requires the server `.env`, and runs the deploy in maintenance mode (stale files removed, caches cleared, site left down if a step fails).
-- Added temporary (302) redirects for the old ZF2 URLs (`/user/login`, `/user/logout`, `/user/bookings`, `/user/settings`, `/square/...`, `/backend/...`) and `scripts/deploy-provider.sh`, a tar-over-ssh deploy for the Provider host that keeps the server `.env` and `storage/`; README/AGENTS deployment docs rewritten for Provider.
+- The deploy script no longer deletes `*.sqlite*` files, refuses a server `.env` with `DB_CONNECTION=sqlite`, and aborts before extracting if cleaning the old files fails.
+- Hardened the (local, untracked) deploy script: refuses non-`master` branches without `--allow-branch`, asks for confirmation, requires the server `.env`, and runs the deploy in maintenance mode (stale files removed, caches cleared, site left down if a step fails).
+- Added temporary (302) redirects for the old ZF2 URLs (`/user/login`, `/user/logout`, `/user/bookings`, `/user/settings`, `/square/...`, `/backend/...`) and a tar-over-ssh deploy script (kept locally) that keeps the server `.env` and `storage/`; README/AGENTS deployment docs rewritten accordingly.
 - Added `db:baseline-legacy [--dry-run]`, which records the `create_bs_*` migrations as applied for legacy tables that already exist, so `migrate --force` can run against the production database created by the old system without recreating tables.
 - Highlighted club championship bookings (note contains "Vereinsmeisterschaft") in orange in the calendar, on desktop and mobile, as the legacy system did.
 - Added tournament entry buttons (current championship, challenge pyramid, mixed/fun tournament) to the logged-in header, linking to the tournament pages that stay on the legacy system (`TOURNAMENT_BASE_URL`, defaulting to the legacy host when unset or empty).
@@ -150,7 +168,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
   "risk score" on the admin login-history page — a 30-day sum of which triggers fired,
   no behavior change.
 - Wrote the implementation plan for risk-based email verification — see
-  [docs/superpowers/plans/2026-07-05-risk-based-email-verification.md](docs/superpowers/plans/2026-07-05-risk-based-email-verification.md).
+  the risk-based email verification plans document (kept locally, not in the repository).
   Updated to also persist which risk flags fired (for the display-only admin risk
   score). Not implemented yet.
 
@@ -158,7 +176,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 - Wrote a design spec for risk-based email verification on login (unusual country,
   repeated failed attempts, impossible travel) — see
-  [docs/superpowers/specs/2026-07-05-risk-based-email-verification-design.md](docs/superpowers/specs/2026-07-05-risk-based-email-verification-design.md).
+  the risk-based email verification specs document (kept locally, not in the repository).
   Country-based checks fail open when the MaxMind GeoLite2 file is missing. Not
   implemented yet.
 - Documented the security posture in the README: no MFA (deliberate — login must stay

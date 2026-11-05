@@ -158,6 +158,6 @@ git commit -m "build: update frontend assets"
 ## Known quirks
 
 - **Never run PHP directly in PowerShell** — always `wsl php artisan ...`
-- **`public/build/` is committed** — commit the build files after `npm run build` (deployment via FTP to hosting.example.test)
+- **`public/build/` is committed** — commit the build files after `npm run build` (deployment via FTP to the shared host)
 - **No schema migrations** — the app uses the legacy schema of `booking_local`; migrations in `database/migrations/` are for reference only, not for execution
 - **Deployment** — build the Vite assets locally, upload the whole project via FTP

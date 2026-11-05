@@ -64,6 +64,9 @@ class DashboardTest extends TestCase
     #[Test]
     public function open_and_paid_dues_are_scoped_to_the_fiscal_year_running_today(): void
     {
+        // Frozen inside fiscal year 2025/26 so the fixture years stay past/current/future.
+        $this->travelTo('2026-07-01 10:00:00');
+
         $paidMember = Member::factory()->create();
         $openMember = Member::factory()->create();
         $futureMember = Member::factory()->create();

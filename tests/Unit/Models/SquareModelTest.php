@@ -74,11 +74,11 @@ class SquareModelTest extends TestCase
     {
         $square = Square::factory()->create();
 
-        $square->setMeta('alias', 'Court B');
-        $this->assertSame('Court B', $square->getMeta('alias'));
+        $square->setMeta('alias', 'Alpha Court');
+        $this->assertSame('Alpha Court', $square->getMeta('alias'));
 
-        $square->setMeta('alias', 'Court D');
-        $this->assertSame('Court D', $square->getMeta('alias'));
+        $square->setMeta('alias', 'Beta Court');
+        $this->assertSame('Beta Court', $square->getMeta('alias'));
         $this->assertSame(1, SquareMeta::where('sid', $square->sid)->where('key', 'alias')->count());
 
         $square->setMeta('alias', null);

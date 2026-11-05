@@ -16,7 +16,7 @@ use Modules\Api\Mcp\Tools\UpdateMemberTool;
 
 class BookingServer extends Server
 {
-    protected string $name = 'Example Club Booking API';
+    protected string $name = 'Booking API';
 
     protected string $version = '1.0.0';
 

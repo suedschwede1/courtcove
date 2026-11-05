@@ -14,6 +14,9 @@
  *      bookingnew-staging) must set 1 or 2, so a staging host can never silently serve the live
  *      ZF2 install; without them the bridge answers 503.
  *
+ * The app root is derived from the resolved path (public/ may be a symlink, in which case __DIR__
+ * stays unresolved under FPM), so the zf2.path file and the "bookingnew" rule use the real location.
+ *
  * The logic runs inside a closure so no variables leak into ZF2's global scope; the final
  * `require` stays at global scope, as ZF2's index.php expects.
  */
@@ -49,7 +52,7 @@ require (static function (): string {
         $fail(404, 'Not found');
     }
 
-    $appRoot = dirname(__DIR__);
+    $appRoot = dirname(realpath(__DIR__) ?: __DIR__);
     $zf2Public = null;
     $fromEnv = getenv('ZF2_PUBLIC');
 

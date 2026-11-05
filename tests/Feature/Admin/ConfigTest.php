@@ -77,16 +77,16 @@ class ConfigTest extends TestCase
         $this->actingAs($this->admin())->put('/admin/config', [
             'client_name_short'      => 'ASV',
             'client_phone'           => '666',
-            'client_website'         => 'https://example.test',
-            'client_website_contact' => 'https://example.test/#kontakt',
-            'client_website_imprint' => 'https://example.test/impressum',
-            'client_website_privacy' => 'https://example.test/datenschutz',
+            'client_website'         => 'https://club.example.com',
+            'client_website_contact' => 'https://club.example.com/#kontakt',
+            'client_website_imprint' => 'https://club.example.com/impressum',
+            'client_website_privacy' => 'https://club.example.com/datenschutz',
             'client_email_cc'        => '1',
         ])->assertRedirect();
 
         $this->assertSame('ASV', Option::getValue('client.name.short'));
         $this->assertSame('666', Option::getValue('client.contact.phone'));
-        $this->assertSame('https://example.test', Option::getValue('client.website'));
+        $this->assertSame('https://club.example.com', Option::getValue('client.website'));
         $this->assertSame('1', Option::getValue('client.contact.email.user-notifications'));
     }
 

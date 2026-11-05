@@ -7,57 +7,53 @@ namespace App\Console\Commands;
 use App\Services\UiLinter;
 use App\Services\UiRules;
 use Illuminate\Console\Command;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
 
 class LintUiCommand extends Command
 {
     protected $signature = 'lint:ui
-        {--summary : Nur Zusammenfassung, keine Einzel-Warnungen}
-        {--rule=   : Nur Regeln einer Kategorie (z.B. BTN, INP, CLR)}';
+        {--summary : Only the summary, no individual warnings}
+        {--rule=   : Only rules of one category (e.g. BTN, INP, CLR)}
+        {--fail-over= : Exit with code 1 when there are more than N warnings}';
 
-    protected $description = 'Blade-Templates auf Design-Guide-Verstöße prüfen';
+    protected $description = 'Check views and CSS for design system violations';
 
     public function handle(): int
     {
-        $viewsPath = resource_path('views');
-        $rules     = UiRules::all();
+        $rules = UiRules::all();
 
         if ($filterRule = $this->option('rule')) {
             $rules = array_values(array_filter(
                 $rules,
-                fn($r) => str_starts_with($r['id'], strtoupper((string) $filterRule))
+                fn ($r) => str_starts_with($r['id'], strtoupper((string) $filterRule))
             ));
         }
 
-        $linter   = new UiLinter($viewsPath, $rules);
+        $roots = [
+            resource_path('views'),
+            resource_path('css'),
+            ...(glob(app_path('Modules/*/resources/views'), GLOB_ONLYDIR) ?: []),
+        ];
+
+        $linter = new UiLinter($roots, $rules, base_path());
         $findings = $linter->run();
+        $count = count($findings);
 
-        $fileCount = count(array_filter(
-            iterator_to_array(new RecursiveIteratorIterator(new RecursiveDirectoryIterator($viewsPath))),
-            fn($f) => $f->isFile() && str_ends_with($f->getFilename(), '.blade.php')
-        ));
-
-        if (!$this->option('summary')) {
+        if (! $this->option('summary')) {
             foreach ($findings as $f) {
-                $this->line(sprintf(
-                    '<comment>[WARN] %s</comment>  %s:%d',
-                    $f['rule'],
-                    $f['file'],
-                    $f['line'],
-                ));
-                $this->line('       ' . $f['message']);
+                $this->line(sprintf('<comment>[WARN] %s</comment>  %s:%d', $f['rule'], $f['file'], $f['line']));
+                $this->line('       '.$f['message']);
                 $this->line('');
             }
         }
 
-        $this->line(str_repeat('─', 55));
+        $this->line(str_repeat('-', 55));
 
-        $count = count($findings);
-        if ($count === 0) {
-            $this->info("Keine Verstöße gefunden. {$fileCount} Dateien geprüft.");
-        } else {
-            $this->warn("{$count} " . ($count === 1 ? 'Warnung' : 'Warnungen') . " in {$fileCount} Dateien.");
+        $fileCount = count(array_unique(array_column($findings, 'file')));
+        $this->warn("{$count} warnings in {$fileCount} files.");
+
+        $failOver = $this->option('fail-over');
+        if ($failOver !== null && $failOver !== '' && $count > (int) $failOver) {
+            return self::FAILURE;
         }
 
         return self::SUCCESS;

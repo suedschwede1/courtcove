@@ -137,19 +137,13 @@ class MakeModuleCommand extends Command
     private function layoutStub(string $name, string $lowerName): string
     {
         return <<<BLADE
-        <!doctype html>
-        <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-        <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <title>{$name} - @yield('admin-title', '{$name} Dashboard')</title>
-            <link rel="preconnect" href="https://fonts.googleapis.com">
-            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-            <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@600;700&family=Red+Hat+Text:wght@400;500;600&display=swap" rel="stylesheet">
-            @vite(['resources/css/app.css', 'resources/js/app.js'])
-            <link rel="stylesheet" href="{{ asset('css/booking.css') }}">
-        </head>
-        <body style="font-family: var(--font-body)">
+        @extends('layouts.base')
+
+        @section('title')
+            {$name} - @yield('admin-title', '{$name} Dashboard')
+        @endsection
+
+        @section('body')
         <div class="flex min-h-screen bg-[#f3f1ec]">
             <aside style="width:180px; min-height:100vh; background:#1b1d21; flex-shrink:0; display:flex; flex-direction:column;">
                 <div style="padding:14px 14px 10px; border-bottom:1px solid rgba(255,255,255,0.08); margin-bottom:8px;">
@@ -206,8 +200,7 @@ class MakeModuleCommand extends Command
                 <main class="flex-1 p-6">@yield('admin-content')</main>
             </div>
         </div>
-        </body>
-        </html>
+        @endsection
 
         BLADE;
     }

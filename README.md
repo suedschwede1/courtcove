@@ -11,7 +11,8 @@ Replaces the old Zend/Laminas system (`booking`).
 | Laravel | 13.x |
 | Database | MySQL (`booking_local`) |
 | Frontend | Tailwind CSS, Alpine.js, Vite |
-| Deployment | Provider cPanel host (SSH), `scripts/deploy-provider.sh` |
+| Fonts | Barlow and Barlow Condensed, self-hosted via Fontsource, SIL Open Font License |
+| Deployment | Shared hosting over SSH (details kept locally) |
 
 ## Features
 
@@ -112,68 +113,45 @@ composer test:mysql     # MySQL-only tests; needs a local MySQL database `bookin
 
 > **Important:** always run `php`/`composer` via WSL, never directly in PowerShell.
 
-## Deployment (Provider)
+## Deployment
 
-Production runs on the Provider cPanel host and is served at `https://example.test/booking`.
+Deployment details (host, account, paths, ssh alias, runbook and the deploy script) are
+kept in local operational notes that are not part of this repository. Generic guidance:
 
-- **SSH**: use the alias `provider`, which lives in `~/.ssh/config` only (`~/.tcb.cnf` holds
-  MySQL client credentials, not SSH settings). Run everything from WSL.
-- **App directory**: `~/apps/bookingnew`, outside the web root. `public_html/booking` points
-  at the app's `public/` directory (symlink, or a rewrite if the host disallows symlinks).
-  The app therefore runs under the `/booking` base path; routes are declared without it,
-  and views must build URLs with `url()`/`route()` (never root-absolute `'/bookings/...'`;
-  a test enforces this). `public/.htaccess` is the front controller and must stay committed.
-- **`.env` stays on the server only** and is never overwritten by a deploy (nor is `storage/`).
-  Set at least:
+- **Base path**: the app may be served under a sub-path of the domain (for example
+  `/booking`) with its `public/` directory exposed there. Routes are declared without the
+  base path, and views must build URLs with `url()`/`route()` (never root-absolute
+  `'/bookings/...'`; a test enforces this). `public/.htaccess` is the front controller and
+  must stay committed.
+- **`.env` stays on the server only** and is never overwritten by a deploy (nor is
+  `storage/`). Set at least:
 
   ```dotenv
-  APP_URL=https://example.test/booking
+  APP_URL=https://example.com/booking
   SESSION_DRIVER=database       # the `sessions` table is created by `php artisan migrate`
   SESSION_PATH=/booking
   SESSION_SECURE_COOKIE=true
   CACHE_STORE=file              # no `cache` table is created; do not use the database store
   ```
 
-  plus the DB credentials and `TOURNAMENT_BASE_URL` (leave it **empty**: the tournament
+  plus the DB credentials and `TOURNAMENT_BASE_URL` (leave it **empty** when the tournament
   pages of the legacy ZF2 system are served on the same host, see below; set a full URL only
   for a separate tournament host).
-- **Mail**: SMTP via the `booking@example.test` mailbox (`MAIL_*` in the server `.env`).
-- **Cron**: if the scheduler is used, add a cPanel cron job running
-  `php ~/apps/bookingnew/artisan schedule:run` every minute.
+- **Mail**: SMTP via a dedicated mailbox (`MAIL_*` in the server `.env`).
+- **Cron**: if the scheduler is used, add a cron job running
+  `php <app-dir>/artisan schedule:run` every minute.
 - **No Node.js on the server**: run `npm run build` locally and commit `public/build/`.
-  WSL's Node is too old and `node_modules` holds Windows-only native bindings, so run
-  `npm run build` from **Windows**, commit `public/build`, then run the deploy script from
-  WSL with `--skip-build`.
-
-Deploy from WSL in the repo root with a clean, committed tree:
-
-```bash
-scripts/deploy-provider.sh --dry-run             # print the steps, no ssh, no prompt
-scripts/deploy-provider.sh                       # master only; asks "Proceed? [y/N]"
-scripts/deploy-provider.sh --skip-build          # build was done from Windows and committed
-scripts/deploy-provider.sh --first-deploy        # very first deploy only (see below)
-scripts/deploy-provider.sh --allow-branch --yes  # other branch (e.g. staging), no prompt
-scripts/deploy-provider.sh '~/apps/other'        # other target dir (quote the ~: expanded on the server)
-```
-
-- Only `$EXPECTED_BRANCH` (env var, default `master`) may be deployed; any other branch
-  exits with an error unless `--allow-branch` is passed. The script prints branch, commit,
-  host and target and asks for confirmation before the first ssh (`--yes` skips it).
-- The target dir must match `^(~/)?[A-Za-z0-9._/-]+$`, and its `.env` must already exist.
-- The script builds assets (`--skip-build` skips `npm run build` but still requires
-  `public/build/manifest.json` to be committed and the tree to be clean), then on the
-  server: pre-flight, `php artisan down` (maintenance mode), removes the repo-owned dirs
-  (`app database routes resources config lang Modules`, so deleted files and migrations do
-  not linger), extracts `git archive HEAD`, deletes the generated `bootstrap/cache/*.php`
-  files, runs `composer install --no-dev --optimize-autoloader`, `optimize:clear`,
-  `php artisan migrate --force`, the `config:cache`/`route:cache`/`view:cache` steps, and
-  only then `php artisan up`. It prints the deployed commit.
-- **Without `--first-deploy` the script refuses** (exit 1, before `artisan down` and before
-  extracting anything) when `php artisan migrate:status` fails on the server (no
-  `migrations` table, DB unreachable) or when there is no `artisan` there yet. So it can
-  never run `migrate --force` against a database created by the old ZF2 system.
-- **If a step fails the site stays in maintenance mode** (loud message, no auto-up). Fix the
-  cause and run `php artisan up` on the server by hand.
+  If WSL's Node is too old (and `node_modules` holds Windows-only native bindings), run
+  `npm run build` from **Windows** and commit `public/build`.
+- **Deploy script** (local, untracked): it builds assets, ships `git archive HEAD`, keeps
+  the server's `.env` and `storage/`, puts the site into maintenance mode, replaces the
+  repo-owned dirs (`app database routes resources config lang Modules`), deletes generated
+  `bootstrap/cache/*.php`, runs `composer install --no-dev --optimize-autoloader`,
+  `optimize:clear`, `php artisan migrate --force`, the `config:cache`/`route:cache`/
+  `view:cache` steps and only then `php artisan up`. Without the first-deploy flag it
+  refuses (before extracting anything) when `php artisan migrate:status` fails on the server
+  or there is no `artisan` yet, so it can never run `migrate --force` against a database
+  created by the old ZF2 system. If a step fails the site stays in maintenance mode.
 - **Per-installation overrides are never deployed.** Five git-ignored files must be placed
   on the server by hand; the deploy keeps them if present:
   1. `lang/{de,en}/booking/local.php`
@@ -182,11 +160,9 @@ scripts/deploy-provider.sh '~/apps/other'        # other target dir (quote the ~
   4. `lang/{de,en}/booking/quotes_named.local.php`
   5. `lang/de/booking/quote_groups.php`
 
-**First deploy against a database created by the old ZF2 system.** Run the script once with
-`--first-deploy`: it deploys the code, runs `composer install` and `optimize:clear`, but does
-**not** run `migrate --force` and does **not** run `php artisan up` (if it put the site into
-maintenance mode it stays there). It then prints these manual steps, which you run on the
-server in the app directory, in this order:
+**First deploy against a database created by the old ZF2 system.** Deploy the code with
+`composer install` and `optimize:clear` only (no `migrate`, no `artisan up`), then run these
+manual steps on the server in the app directory, in this order:
 
 1. `php artisan migrate:install`
 2. `php artisan db:baseline-legacy --dry-run` (review the output before continuing)
@@ -194,9 +170,8 @@ server in the app directory, in this order:
 4. `php artisan migrate --force`
 
 Then `php artisan config:cache && php artisan route:cache && php artisan view:cache` and
-`php artisan up`. The script never runs steps 1-4 itself; later deploys use the plain
-command. Details:
-[docs/superpowers/specs/2026-11-04-provider-laravel-cutover-design.md](docs/superpowers/specs/2026-11-04-provider-laravel-cutover-design.md).
+`php artisan up`. Later deploys use the plain flow. The cutover design is kept locally and
+is not part of the repository.
 
 Legacy ZF2 booking URLs (`/user/bookings`, `/user/settings`, `/user/registration`,
 `/user/activation`, `/square/...`, `/backend/...`) are redirected with a temporary
@@ -206,19 +181,19 @@ cached redirects).
 **Tournament pages (legacy ZF2) on the same host.** `/tournament`, `/mixed-tournament`,
 `/pyramide`, `/draw`, `/service/...` and ZF2's own `/user/login|logout|password[-reset]` are
 rewritten by `public/.htaccess` to `public/zf2-bridge.php`, which runs the ZF2 app installed
-outside the web root (default `~/apps/zf2`, next to `~/apps/bookingnew`, used **only** when the app directory is
-named `bookingnew`; any other directory, e.g. staging, needs the `ZF2_PUBLIC` env var or an
-untracked `zf2.path` file in the app root containing the absolute path of ZF2's `public` dir,
-otherwise the tournament pages answer 503). There is no `turnier.` subdomain. On every deploy the
-script symlinks ZF2's static dirs (`css css-client docs docs-client imgs imgs-client js
-js-client misc misc-client vendor`) into `public/` and prints a note if the ZF2 dir is
-missing (tournament pages then answer 503). Members have two logins (Laravel `/login`, ZF2
-`/user/login`) with the same credentials. ZF2 runs under the domain's PHP version (8.4).
-Do not copy the old install's one-off `public/*.php` maintenance scripts into the ZF2 copy.
-Details and the routing test table: `docs/deploy/2026-provider-cutover-runbook.md`.
+outside the web root (default location next to the app directory, used **only** when the
+app directory is named `bookingnew`; any other directory, e.g. staging, needs the
+`ZF2_PUBLIC` env var or an untracked `zf2.path` file in the app root containing the absolute
+path of ZF2's `public` dir, otherwise the tournament pages answer 503). There is no separate
+tournament subdomain. On every deploy the script symlinks ZF2's static dirs (`css css-client
+docs docs-client imgs imgs-client js js-client misc misc-client vendor`) into `public/`.
+Members have two logins (Laravel `/login`, ZF2 `/user/login`) with the same credentials. ZF2
+runs under the domain's PHP version (8.4). Do not copy the old install's one-off
+`public/*.php` maintenance scripts into the ZF2 copy. The routing test table and runbook are
+kept locally.
 
-*Historical:* before Provider the app was hosted on hosting.example.test shared hosting (no SSH) and
-updated by FTP upload of changed files.
+*Historical:* the app was previously hosted on a shared host without SSH and updated by FTP
+upload of changed files.
 
 ### Character set (emoji)
 
@@ -252,7 +227,7 @@ git checkout mobile-view-stable -- resources/views/components/layout/header.blad
 | `app/Services/ReservationService.php` | Date-range/overlap queries against `bs_reservations` |
 | `app/Services/PeakLimitService.php` | Peak-time limiting |
 | `app/Services/SquareValidator.php` | Booking authorization/business-rule checks |
-| `app/Services/DatabaseSchemaChecker.php` | Schema drift check + repair (no SSH/cron on hosting.example.test) |
+| `app/Services/DatabaseSchemaChecker.php` | Schema drift check + repair (no SSH/cron on shared hosting) |
 | `app/Services/UiLinter.php` + `UiRules.php` | Dev-time Blade linter enforcing allowed colors/classes |
 
 ## JSON API & MCP server (Modules/Api)
