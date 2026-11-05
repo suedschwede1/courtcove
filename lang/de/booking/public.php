@@ -220,5 +220,11 @@ return [
             'lost' => 'Niederlage',
             'you' => 'du',
         ],
+        'pagination' => [
+            'previous' => 'Zurück',
+            'next' => 'Weiter',
+            'page' => 'Seite :page',
+            'label' => 'Seiten',
+        ],
     ],
 ];

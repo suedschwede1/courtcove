@@ -220,5 +220,11 @@ return [
             'lost' => 'Lost',
             'you' => 'you',
         ],
+        'pagination' => [
+            'previous' => 'Previous',
+            'next' => 'Next',
+            'page' => 'Page :page',
+            'label' => 'Pages',
+        ],
     ],
 ];

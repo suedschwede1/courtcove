@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-05
 
+- Shared table component: header row, highlighted rows and card layout on phones.
 - Shared form fields with visible labels, help and error text linked for screen readers.
 - Shared card, key figure and notice components of the new design.
 - Status badges use one shared colour map (good, neutral, attention, problem, you).

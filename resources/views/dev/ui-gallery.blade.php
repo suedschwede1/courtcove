@@ -89,5 +89,25 @@
                 </x-ui.option-group>
             </div>
         </section>
+        <section>
+            <h2>Tables and pagination</h2>
+            <x-ui.card padding="none">
+                <x-ui.table caption="Results">
+                    <x-slot:head><tr><th scope="col">Slot</th><th scope="col">Player</th><th scope="col">Score</th></tr></x-slot:head>
+                    <tr><td class="ds-cell--title" data-label="Slot">Court A, 18:00</td><td data-label="Player">Player One</td><td data-label="Score">6:4</td></tr>
+                    <tr class="ds-row--own"><td class="ds-cell--title" data-label="Slot">Court B, 19:00</td><td data-label="Player">You</td><td data-label="Score">3:6</td></tr>
+                    <tr class="ds-row--lead"><td class="ds-cell--title" data-label="Slot">Court A, 20:00</td><td data-label="Player">Player Two</td><td data-label="Score">7:5</td></tr>
+                </x-ui.table>
+            </x-ui.card>
+            <x-ui.card class="mt-4" padding="none">
+                <x-ui.table variant="kv">
+                    <tr><th scope="row">Name</th><td>Player One</td></tr>
+                    <tr><th scope="row">Email</th><td>player@example.test</td></tr>
+                </x-ui.table>
+            </x-ui.card>
+            <div class="mt-4">
+                <x-ui.pagination :paginator="new \Illuminate\Pagination\LengthAwarePaginator(range(1, 10), 90, 10, 4, ['path' => '#'])" />
+            </div>
+        </section>
     </div>
 @endsection
