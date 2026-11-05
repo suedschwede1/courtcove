@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-05
 
+- The calendar shows a legend of all cell states, and the help texts describe the new colours.
 - The calendar date, day arrows, date picker and Infos/Hinweise now sit in a toolbar above the plan instead of under the header.
 - Calendar colours default to the new design tokens; CAL_COLOR_* and the local override file still win, tournament matches get their own colour keys.
 - Legacy element rules use zero-specificity guards so existing buttons, links and inputs keep their original cascade.

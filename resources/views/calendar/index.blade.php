@@ -127,6 +127,8 @@
         </div>
     @endif
 
+    <x-calendar.legend class="cal-page__legend no-print" :logged-in="$isLoggedIn" />
+
     <div class="cal-page__board">
         <x-calendar.grid
             :dates="$dates"

@@ -234,3 +234,55 @@
         padding: 0 16px;
     }
 }
+
+/* Legend: one swatch per cell state, fills come from the --cal-* colour variables. */
+.cal-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 22px;
+    margin: 0;
+    list-style: none;
+    font-size: var(--text-body-s);
+    color: var(--color-ink-2);
+}
+
+
+.cal-legend__item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cal-swatch {
+    box-sizing: border-box;
+    flex: none;
+    width: 18px;
+    height: 14px;
+    border-radius: 3px;
+}
+
+.cal-swatch--free {
+    background: var(--cal-free-bg);
+    border: 1px dashed var(--color-line-strong);
+}
+
+.cal-swatch--own {
+    background: var(--cal-own-bg);
+}
+
+.cal-swatch--single_future {
+    background: var(--cal-single-future-bg);
+}
+
+.cal-swatch--event {
+    background: var(--cal-event-bg);
+}
+
+.cal-swatch--tournament {
+    background: var(--cal-tournament-bg);
+    border: 1px solid var(--cal-tournament-line);
+}
+
+.cal-swatch--past {
+    background: repeating-linear-gradient(135deg, var(--cal-past-bg) 0 4px, var(--cal-past-bg-alt) 4px 8px);
+}
