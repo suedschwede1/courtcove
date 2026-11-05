@@ -275,6 +275,7 @@ body:has(.cal-page) {
     }
 
     .cal-toolbar__today-hint {
+        display: block;
         padding: 4px 10px;
         border-radius: var(--radius-pill);
         background: var(--color-clay);

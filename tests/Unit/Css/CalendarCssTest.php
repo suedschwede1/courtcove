@@ -310,6 +310,6 @@ final class CalendarCssTest extends TestCase
         $css = $phone[1];
 
         $this->assertMatchesRegularExpression('/\.cal-toolbar:has\(\.cal-toolbar__today-hint\) \.cal-toolbar__weekday\s*\{[^}]*color:\s*var\(--color-clay\);/', $css);
-        $this->assertMatchesRegularExpression('/\.cal-toolbar__today-hint\s*\{[^}]*background:\s*var\(--color-clay\);[^}]*color:\s*var\(--color-on-clay\);[^}]*text-transform:\s*uppercase;/', $css);
+        $this->assertMatchesRegularExpression('/\.cal-toolbar__today-hint\s*\{[^}]*display:\s*block;[^}]*background:\s*var\(--color-clay\);[^}]*color:\s*var\(--color-on-clay\);[^}]*text-transform:\s*uppercase;/', $css);
     }
 }
