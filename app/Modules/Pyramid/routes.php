@@ -47,6 +47,8 @@ Route::middleware('tournament-base.login:pyramid::ui.login_to_play')->group(func
 Route::middleware('tournament-base.login:pyramid::admin.login_required')->prefix('pyramide/admin')->group(function (): void {
     Route::get('/', [LadderAdminController::class, 'index'])->name('pyramide.admin.index');
     Route::match(['get', 'post'], 'create', [LadderAdminController::class, 'create'])->name('pyramide.admin.create');
+    Route::get('ladder/{ladderId}', [LadderAdminController::class, 'show'])->whereNumber('ladderId')->name('pyramide.admin.ladder');
+    Route::get('ladder/{ladderId}/mitglieder', [LadderAdminController::class, 'members'])->whereNumber('ladderId')->name('pyramide.admin.members');
 });
 
 Route::get('pyramide/{ladderId}', [LadderController::class, 'index'])

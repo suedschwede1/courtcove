@@ -65,6 +65,33 @@ final class PyramidLinks
         return self::to('pyramide.admin.ladder', ['ladderId' => $ladderId], 'pyramide/admin/ladder/'.$ladderId);
     }
 
+    public static function adminMembers(int $ladderId): string
+    {
+        return self::to('pyramide.admin.members', ['ladderId' => $ladderId], 'pyramide/admin/ladder/'.$ladderId.'/mitglieder');
+    }
+
+    /**
+     * Target of a ladder-level admin POST (seed, add-player, config, copy-players, normalize, close, grant, revoke).
+     * The routes arrive with the player actions; until then the same path is built through url().
+     */
+    public static function adminLadderAction(string $action, int $ladderId): string
+    {
+        return self::to('pyramide.admin.'.$action, ['ladderId' => $ladderId], 'pyramide/admin/ladder/'.$ladderId.'/'.$action);
+    }
+
+    /**
+     * Target of a player-level admin POST: route name suffix => path segment.
+     */
+    public static function adminPlayerAction(string $routeSuffix, string $segment, int $playerId): string
+    {
+        return self::to('pyramide.admin.'.$routeSuffix, ['playerId' => $playerId], 'pyramide/admin/player/'.$playerId.'/'.$segment);
+    }
+
+    public static function adminChallengeAction(string $routeSuffix, string $segment, int $challengeId): string
+    {
+        return self::to('pyramide.admin.'.$routeSuffix, ['challengeId' => $challengeId], 'pyramide/admin/challenge/'.$challengeId.'/'.$segment);
+    }
+
     /**
      * @param  array<string, int|string>  $parameters
      */
