@@ -31,6 +31,8 @@
         <p class="max-w-3xl text-ink-2">{{ __('draw::admin.index.lead') }}</p>
     </div>
 
+    @include('tournament-base::partials.flash')
+
     @if ($commitErrors !== [])
         <x-ui.notice tone="problem" :title="__('draw::admin.index.errors_title')">
             <ul class="flex flex-col gap-1">
@@ -105,7 +107,7 @@
                                     <x-ui.button variant="dark" :block="false" class="whitespace-nowrap" x-on:click="pending = {{ $confirm('draw.execute', __('draw::admin.index.execute_confirm'), __('draw::admin.index.execute')) }}">{{ __('draw::admin.index.execute') }}</x-ui.button>
                                 @elseif ($step === 'open')
                                     <x-ui.button variant="dark" :block="false" class="whitespace-nowrap" x-on:click="pending = {{ $confirm('draw.open', __('draw::admin.index.open_confirm'), __('draw::admin.index.open'), $draw->pick_deadline ? str_replace(' ', 'T', substr($draw->pick_deadline, 0, 16)) : '') }}">{{ __('draw::admin.index.open') }}</x-ui.button>
-                                @elseif ($step === 'close' && $hasRoute('draw.close')) {{-- the close route comes with the closer (Task 29) --}}
+                                @elseif ($step === 'close' && $hasRoute('draw.close'))
                                     <x-ui.button variant="dark" :block="false" class="whitespace-nowrap" x-on:click="pending = {{ $confirm('draw.close', __('draw::admin.index.close_confirm'), __('draw::admin.index.close')) }}">{{ __('draw::admin.index.close') }}</x-ui.button>
                                 @elseif ($step === 'apply')
                                     @if ($hasRoute('tournament.admin'))

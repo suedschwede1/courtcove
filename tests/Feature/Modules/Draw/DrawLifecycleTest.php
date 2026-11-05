@@ -210,7 +210,7 @@ class DrawLifecycleTest extends TestCase
         $this->assertNotEmpty($csrf);
         $excluded = app($csrf[0])->getExcludedPaths();
         $posts = array_filter(Route::getRoutes()->getRoutes(), fn (RoutingRoute $r) => str_starts_with($r->uri(), 'draw/') && ! str_starts_with($r->uri(), 'draw/tokens/') && in_array('POST', $r->methods(), true));
-        $this->assertCount(4, $posts); // commit, open, delete, execute (close: Task 29); the player pick is in TokenPickTest
+        $this->assertCount(5, $posts); // commit, open, close, delete, execute; the player pick is in TokenPickTest
         foreach ($posts as $route) {
             $this->assertContains('web', $route->gatherMiddleware(), $route->uri());
             $this->assertContains('can:admin.draw', $route->gatherMiddleware(), $route->uri());

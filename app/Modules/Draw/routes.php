@@ -40,7 +40,7 @@ Route::prefix('draw')->name('draw.')
         Route::post('open/{did}', [DrawLifecycleController::class, 'open'])->whereNumber('did')->name('open');
         Route::post('delete/{did}', [DrawLifecycleController::class, 'delete'])->whereNumber('did')->name('delete');
         Route::post('execute/{did}', [DrawLifecycleController::class, 'execute'])->whereNumber('did')->name('execute');
-        // close/{did} is added with the closer (Task 29); its GET already redirects like the others.
+        Route::post('close/{did}', [DrawLifecycleController::class, 'close'])->whereNumber('did')->name('close');
         Route::get('{action}/{did}', [DrawLifecycleController::class, 'redirectToIndex'])
             ->whereIn('action', ['open', 'close', 'delete', 'execute'])->whereNumber('did')->name('action.redirect');
     });

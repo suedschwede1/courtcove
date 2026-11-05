@@ -60,6 +60,16 @@ return [
         'success' => 'Wahlphase offen. Die Teilnehmer können jetzt Tokens wählen.',
     ],
 
+    'close' => [
+        'not_picking' => 'Diese Auslosung ist nicht in der Wahlphase.',
+        'parallel' => 'Die Wahlphase wurde parallel bereits geschlossen.',
+        'claim_race' => 'Ein freier Token wurde parallel belegt; Schließen abgebrochen.',
+        'success' => 'Wahlphase geschlossen. :picked Token(s) selbst gewählt, :assigned zugeteilt. Der Server-Seed ist jetzt im Protokoll - die Ziehung ist damit für jeden nachrechenbar.',
+        'not_marked' => 'Die interne Anwendung hat die Ziehung nicht als angewendet markiert.',
+        'generated' => 'Alle Spieler sind zugeteilt, :count Gruppenpartien angelegt.',
+        'apply_failed' => 'Wahlphase ist geschlossen, das Zuteilen der Nichtwähler ist aber fehlgeschlagen: :message - in der Turnierleitung "anwenden" aufrufen.',
+    ],
+
     'delete' => [
         'not_found' => 'Ziehung nicht gefunden.',
         'not_discarded' => 'Nur eine verworfene Ziehung kann gelöscht werden. Setze zuerst in der Turnierleitung zurück.',

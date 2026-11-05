@@ -5,15 +5,18 @@ declare(strict_types=1);
 namespace App\Modules\Draw\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Modules\Draw\Models\Draw;
+use App\Modules\Draw\Services\DrawCloser;
 use App\Modules\Draw\Services\DrawExecutor;
 use App\Modules\Draw\Services\DrawLifecycleService;
 use App\Modules\TournamentBase\Support\ActionRefused;
+use App\Modules\TournamentBase\Support\ModuleFlash;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 /**
- * Execute, open and delete (old Draw AdminController). Access is checked by the route middleware before
+ * Execute, open, close and delete (old Draw AdminController). Access is checked by the route middleware before
  * the id is resolved; an unknown id flashes the old message and returns to the overview, as in ZF2.
  * Integrity failures of the stored draw (payload/commitment, token list) are not caught: they are a
  * tamper alarm, as in ZF2.
@@ -52,6 +55,31 @@ final class DrawLifecycleController extends Controller
         }
 
         return $this->back('success', __('draw::admin.open.success'));
+    }
+
+    /**
+     * Close with fallback assignment, then apply and generate. Several flashes, shown as the module list.
+     */
+    public function close(Request $request, string $did, DrawCloser $closer): RedirectResponse
+    {
+        $draw = $this->find($did);
+
+        if ($draw === null) {
+            return $this->back('error', __('draw::admin.close.not_picking'));
+        }
+
+        $user = $request->user();
+        abort_unless($user instanceof User, 403);
+
+        try {
+            foreach ($closer->close($draw, $user) as $flash) {
+                $flash['type'] === 'error' ? ModuleFlash::error($flash['text']) : ModuleFlash::success($flash['text']);
+            }
+        } catch (ActionRefused $e) {
+            return $this->back('error', __($e->key, $e->replace));
+        }
+
+        return redirect()->route('draw.index');
     }
 
     public function delete(string $did, DrawLifecycleService $lifecycle): RedirectResponse

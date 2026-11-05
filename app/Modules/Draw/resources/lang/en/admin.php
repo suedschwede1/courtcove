@@ -60,6 +60,16 @@ return [
         'success' => 'Picking is open. Participants can now choose tokens.',
     ],
 
+    'close' => [
+        'not_picking' => 'This draw is not in the picking phase.',
+        'parallel' => 'The picking phase has already been closed in parallel.',
+        'claim_race' => 'A free token was taken in parallel; closing aborted.',
+        'success' => 'Picking phase closed. :picked token(s) picked by the players, :assigned assigned. The server seed is now in the record - anybody can recompute the draw.',
+        'not_marked' => 'The internal apply did not mark the draw as applied.',
+        'generated' => 'All players are assigned, :count group matches created.',
+        'apply_failed' => 'The picking phase is closed, but assigning the non-pickers failed: :message - run "apply" in the tournament admin.',
+    ],
+
     'delete' => [
         'not_found' => 'Draw not found.',
         'not_discarded' => 'Only a discarded draw can be deleted. Reset it in the tournament admin first.',
