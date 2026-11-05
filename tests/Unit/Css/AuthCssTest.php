@@ -52,4 +52,13 @@ final class AuthCssTest extends TestCase
         $this->assertStringNotContainsString('!important', $css);
         $this->assertStringContainsString('@layer components', $css);
     }
+
+    #[Test]
+    public function long_club_names_are_contained_on_the_panel(): void
+    {
+        $css = $this->css();
+
+        $this->assertMatchesRegularExpression('/\.ds-auth__club\s*\{[^}]*-webkit-line-clamp:\s*2/', $css);
+        $this->assertMatchesRegularExpression('/\.ds-auth__club\s*\{[^}]*text-overflow:\s*ellipsis/', $css);
+    }
 }

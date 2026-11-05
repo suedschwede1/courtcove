@@ -96,8 +96,20 @@
         background: var(--color-chrome);
     }
 
+    /* A long club name wraps (two lines at most) instead of running past the panel. */
+    .ds-auth__brand {
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
     .ds-auth__club {
+        display: -webkit-box;
+        min-width: 0;
+        overflow: hidden;
         font: 700 28px / normal var(--font-display);
+        overflow-wrap: anywhere;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
     }
 
     .ds-auth__claim {
@@ -350,8 +362,12 @@
             height: 40px;
         }
 
+        /* One line on the narrow band; the full name stays in the page title. */
         .ds-auth__club {
+            display: block;
             font-size: 24px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .ds-auth__claim {
