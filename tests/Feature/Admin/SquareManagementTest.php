@@ -26,7 +26,7 @@ class SquareManagementTest extends TestCase
         return array_merge([
             'name' => 'Center', 'alias' => 'Alpha Court', 'status' => 'enabled',
             'readonly_message' => '', 'priority' => 1, 'capacity' => 2,
-            'capacity_ask_names' => '', 'name_visibility' => 'private',
+            'name_visibility' => 'private',
             'time_start' => '08:00', 'time_end' => '22:00',
             'time_block' => 60, 'time_block_bookable' => 30, 'time_block_bookable_max' => 180,
             'min_range_book' => 0, 'range_book' => 56, 'short_booking_window' => 0,
@@ -132,6 +132,41 @@ class SquareManagementTest extends TestCase
             ->assertRedirect();
 
         $this->assertNull($square->fresh()->getMeta('alias'));
+    }
+
+    #[Test]
+    public function update_keeps_existing_ask_names_meta(): void
+    {
+        $square = Square::factory()->create();
+        $square->setMeta('capacity-ask-names', 'optional-names');
+
+        $this->actingAs($this->admin())
+            ->put(route('admin.squares.update', $square), $this->payload())
+            ->assertRedirect();
+
+        $this->assertSame('optional-names', $square->fresh()->getMeta('capacity-ask-names'));
+    }
+
+    #[Test]
+    public function form_has_no_ask_names_field(): void
+    {
+        $square = Square::factory()->create();
+
+        $this->actingAs($this->admin())->get(route('admin.squares.edit', $square))
+            ->assertOk()->assertDontSee('capacity_ask_names')->assertSee('name_visibility');
+        $this->get('/admin/squares/create')
+            ->assertOk()->assertDontSee('capacity_ask_names');
+    }
+
+    #[Test]
+    public function store_still_sets_legacy_capacity_columns(): void
+    {
+        $this->actingAs($this->admin())->post('/admin/squares', $this->payload())
+            ->assertRedirect(route('admin.squares.index'));
+
+        $square = Square::where('name', 'Center')->firstOrFail();
+        $this->assertSame(4, (int) $square->capacity);
+        $this->assertSame(1, (int) $square->capacity_heterogenic);
     }
 
     #[Test]

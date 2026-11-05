@@ -24,6 +24,7 @@ class MailSend extends Model
         'body',
     ];
 
+    /** @return BelongsTo<User, $this> */
     public function sender(): BelongsTo
     {
         return $this->belongsTo(User::class, 'sent_by_user_id', 'uid');

@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
+ * Legacy: written only by the old system; removable after ZF2 shutdown.
+ *
  * @property int $bbid
  * @property int $bid
  * @property string $description

@@ -19,6 +19,7 @@ use Throwable;
 final class DatabaseController extends Controller
 {
     private const MIGRATION_CONFIRMATION = 'MIGRATE';
+
     private const RESTORE_CONFIRMATION = 'RESTORE';
 
     public function __construct(

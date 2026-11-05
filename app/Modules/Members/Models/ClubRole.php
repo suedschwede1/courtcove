@@ -15,11 +15,13 @@ class ClubRole extends Model
         'is_board' => 'boolean',
     ];
 
+    /** @return BelongsToMany<Member, $this> */
     public function members(): BelongsToMany
     {
         return $this->belongsToMany(Member::class, 'member_club_role');
     }
 
+    /** @return BelongsToMany<MailCategory, $this> */
     public function mailCategories(): BelongsToMany
     {
         return $this->belongsToMany(MailCategory::class, 'club_role_mail_category');

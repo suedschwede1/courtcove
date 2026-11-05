@@ -192,7 +192,7 @@ final class CalendarController extends Controller
                 for ($index = 0, $count = count($squareIds); $index < $count; $index++) {
                     $sid = $squareIds[$index];
                     $block = $eventBlocks[$dateKey][$sid][$h] ?? null;
-                    if (! $block || ($block['cols'] ?? 1) !== 1) {
+                    if (! $block || $block['cols'] !== 1) {
                         continue;
                     }
 
@@ -200,7 +200,7 @@ final class CalendarController extends Controller
                     for ($nextIndex = $index + 1; $nextIndex < $count; $nextIndex++) {
                         $nextSid = $squareIds[$nextIndex];
                         $nextBlock = $eventBlocks[$dateKey][$nextSid][$h] ?? null;
-                        if (! $nextBlock || ($nextBlock['cols'] ?? 1) !== 1) {
+                        if (! $nextBlock || $nextBlock['cols'] !== 1) {
                             break;
                         }
 

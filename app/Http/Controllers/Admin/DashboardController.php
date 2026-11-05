@@ -36,7 +36,7 @@ final class DashboardController extends Controller
 
         // Bookings today grouped by court name
         $bookingsTodayBySquare = $bookingsToday
-            ->groupBy(fn (Booking $b) => $b->square?->display_name ?? $b->square?->name ?? '—')
+            ->groupBy(fn (Booking $b) => $b->square->display_name ?? $b->square->name ?? '—')
             ->map(fn (Collection $group) => $group->count())
             ->all();
 

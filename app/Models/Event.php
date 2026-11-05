@@ -8,14 +8,15 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 /**
  * Special event blocking or limiting court availability.
  *
  * @property int $eid
  * @property int $sid
- * @property string $datetime_start
- * @property string $datetime_end
+ * @property Carbon|null $datetime_start
+ * @property Carbon|null $datetime_end
  * @property int $capacity
  * @property string $status 'enabled'|'disabled'
  */

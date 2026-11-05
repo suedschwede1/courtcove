@@ -6,6 +6,7 @@ namespace Tests\Unit\Services;
 
 use App\Exceptions\BookingValidationException;
 use App\Models\Booking;
+use App\Models\BookingBill;
 use App\Models\Square;
 use App\Models\User;
 use App\Services\BookingService;
@@ -47,6 +48,33 @@ class BookingServiceTest extends TestCase
         $this->assertEquals('10:00:00', $reservation->time_start);
         $this->assertEquals('11:00:00', $reservation->time_end);
         $this->assertEquals($dateStart->toDateString(), $reservation->date);
+    }
+
+    #[Test]
+    public function create_single_writes_pending_billing_status(): void
+    {
+        $user = User::factory()->create();
+        $square = Square::factory()->create(['status' => 'enabled', 'time_block_bookable_max' => 0, 'range_book' => 0]);
+
+        $booking = $this->service->createSingle(
+            $user, $square, 2,
+            Carbon::now()->addDay()->setTime(10, 0),
+            Carbon::now()->addDay()->setTime(11, 0),
+        );
+
+        $this->assertSame('pending', $booking->fresh()->status_billing);
+    }
+
+    #[Test]
+    public function delete_single_removes_legacy_bill_rows(): void
+    {
+        $booking = Booking::factory()->create(['status' => 'single']);
+        BookingBill::factory()->create(['bid' => $booking->bid]);
+        $this->assertSame(1, BookingBill::count());
+
+        $this->service->deleteSingle($booking);
+
+        $this->assertSame(0, BookingBill::count());
     }
 
     #[Test]

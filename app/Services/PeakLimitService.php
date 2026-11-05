@@ -20,11 +20,11 @@ final class PeakLimitService
         return [
             [
                 'start' => Option::getValue('peak_limit.window_1_start', config('booking.peak_limit.window_1_start', '08:00')),
-                'end'   => Option::getValue('peak_limit.window_1_end',   config('booking.peak_limit.window_1_end',   '12:00')),
+                'end' => Option::getValue('peak_limit.window_1_end', config('booking.peak_limit.window_1_end', '12:00')),
             ],
             [
                 'start' => Option::getValue('peak_limit.window_2_start', config('booking.peak_limit.window_2_start', '17:00')),
-                'end'   => Option::getValue('peak_limit.window_2_end',   config('booking.peak_limit.window_2_end',   '21:00')),
+                'end' => Option::getValue('peak_limit.window_2_end', config('booking.peak_limit.window_2_end', '21:00')),
             ],
         ];
     }

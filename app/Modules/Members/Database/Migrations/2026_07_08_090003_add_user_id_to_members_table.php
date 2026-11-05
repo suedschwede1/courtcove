@@ -34,7 +34,7 @@ return new class extends Migration
             Schema::table('members', function (Blueprint $table) {
                 $table->unique('user_id');
             });
-        } catch (\Throwable) {
+        } catch (Throwable) {
             // Index already exists (e.g. added by concurrent work on the shared dev DB).
         }
     }

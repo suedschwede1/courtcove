@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * A court booking - parent entity owning reservations and bills.
+ * A court booking - parent entity owning reservations (and legacy bills, written only by the old system).
  *
  * Real bs_bookings schema uses plain string statuses (no enum casts):
  *   status         = single | subscription | cancelled

@@ -15,7 +15,7 @@ return new class extends Migration
         });
 
         // Backfill: existing fiscal years default their due date to their own start date.
-        \DB::table('fiscal_years')->whereNull('faellig_am')->update(['faellig_am' => \DB::raw('starts_on')]);
+        DB::table('fiscal_years')->whereNull('faellig_am')->update(['faellig_am' => DB::raw('starts_on')]);
     }
 
     public function down(): void

@@ -9,7 +9,6 @@ use App\Models\Booking;
 use App\Models\Reservation;
 use App\Models\Square;
 use App\Models\User;
-use App\Services\PeakLimitService;
 use Carbon\Carbon;
 
 /**
@@ -176,7 +175,7 @@ final class SquareValidator
                 foreach ($windows as $window) {
                     $query->orWhere(function ($q) use ($window): void {
                         $q->where('bs_reservations.time_start', '>=', $window['start'].':00')
-                          ->where('bs_reservations.time_start', '<',  $window['end'].':00');
+                            ->where('bs_reservations.time_start', '<', $window['end'].':00');
                     });
                 }
             })

@@ -73,12 +73,14 @@ final class BookingController extends Controller
             if ($request->ajax()) {
                 return response()->json(['error' => $e->getMessage()], 422);
             }
+
             return back()->withErrors(['booking' => $e->getMessage()])->with('error', $e->getMessage());
         } catch (\Throwable) {
             $msg = __('booking.messages.booking_failed');
             if ($request->ajax()) {
                 return response()->json(['error' => $msg], 422);
             }
+
             return back()->withErrors(['booking' => $msg])->with('error', $msg);
         }
 
@@ -113,6 +115,7 @@ final class BookingController extends Controller
 
         if ($request->ajax()) {
             session()->flash('success', __('booking.messages.booking_created_public'));
+
             return response()->json(['redirect' => route('calendar.index', ['date' => Carbon::parse($data['date'])->format('Y-m-d')])]);
         }
 
@@ -209,6 +212,7 @@ final class BookingController extends Controller
             if ($request->ajax()) {
                 return response()->json(['error' => $msg], 422);
             }
+
             return back()->withErrors(['booking' => $msg])->with('error', $msg);
         }
 
@@ -225,12 +229,14 @@ final class BookingController extends Controller
             if ($request->ajax()) {
                 return response()->json(['error' => $e->getMessage()], 422);
             }
+
             return back()->withErrors(['booking' => $e->getMessage()])->with('error', $e->getMessage());
         } catch (\Throwable) {
             $msg = __('booking.messages.booking_failed');
             if ($request->ajax()) {
                 return response()->json(['error' => $msg], 422);
             }
+
             return back()->withErrors(['booking' => $msg])->with('error', $msg);
         }
 
@@ -246,6 +252,7 @@ final class BookingController extends Controller
         return redirect()->route('calendar.index', ['date' => $reservation?->date])
             ->with('success', __('booking.messages.booking_updated'));
     }
+
     private function parseTimeToSeconds(string $time): int
     {
         if (str_contains($time, ':')) {
@@ -259,13 +266,14 @@ final class BookingController extends Controller
 
     public function destroy(Booking $booking): RedirectResponse
     {
+        /** @var User|null $user */
         $user = auth()->user();
 
         if ($booking->uid !== $user?->getAuthIdentifier() && ! $user?->can('admin.booking')) {
             abort(403);
         }
 
-        if (! $user || ! $this->bookingService->canUserCancelSingle($user, $booking)) {
+        if (! $this->bookingService->canUserCancelSingle($user, $booking)) {
             return back()->withErrors(['booking' => __('booking.messages.booking_not_cancellable')])->with('error', __('booking.messages.booking_not_cancellable'));
         }
 

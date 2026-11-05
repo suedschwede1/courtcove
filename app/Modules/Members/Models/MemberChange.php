@@ -8,6 +8,14 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property int $member_id
+ * @property int|null $admin_user_id
+ * @property string $action
+ * @property array<string, mixed>|null $before
+ * @property array<string, mixed> $after
+ */
 class MemberChange extends Model
 {
     const UPDATED_AT = null;
@@ -19,11 +27,13 @@ class MemberChange extends Model
         'after' => 'array',
     ];
 
+    /** @return BelongsTo<Member, $this> */
     public function member(): BelongsTo
     {
         return $this->belongsTo(Member::class);
     }
 
+    /** @return BelongsTo<User, $this> */
     public function adminUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'admin_user_id', 'uid');

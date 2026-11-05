@@ -36,7 +36,7 @@ $colors = [
 
 // Optional, per-installation file (not tracked in git) to override individual
 // color values without touching this file. See calendar.local.example.php.
-$localFile = __DIR__ . '/calendar.local.php';
+$localFile = __DIR__.'/calendar.local.php';
 if (file_exists($localFile)) {
     $colors = array_replace_recursive($colors, require $localFile);
 }

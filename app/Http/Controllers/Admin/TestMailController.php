@@ -24,7 +24,7 @@ final class TestMailController extends Controller
             'email' => ['required', 'email', 'max:128'],
         ]);
 
-        Mail::to($data['email'])->queue(new TestMail());
+        Mail::to($data['email'])->queue(new TestMail);
 
         return redirect()->route('admin.testmail.index')
             ->with('success', 'Testmail wurde an '.$data['email'].' gesendet.');

@@ -307,6 +307,7 @@ class BookingControllerTest extends TestCase
 
         $this->assertSame(2, $booking->fresh()->quantity);
     }
+
     #[Test]
     public function user_cannot_edit_another_users_booking(): void
     {
