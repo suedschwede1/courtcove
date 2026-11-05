@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Phase 2: Mixed wave planning and scorecard contents ported unchanged.
 - Phase 2: Mixed standings ported; equal averages are now ordered by participant id instead of database row order.
 - Phase 2: Mexicano pairing and fair sit-out rotation ported unchanged.
 - Phase 2: Americano round proposals ported unchanged.
