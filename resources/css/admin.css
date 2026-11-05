@@ -367,7 +367,7 @@
         }
 
         /* The phone bar shows the title; the h1 stays for screen readers. */
-        .ds-admin-head__title {
+        .ds-admin-main .ds-admin-head__title {
             position: absolute;
             width: 1px;
             height: 1px;
@@ -720,6 +720,319 @@
 
         .ds-admin-filter > .ds-btn {
             flex: 1 1 100%;
+        }
+    }
+
+
+    /* Popup form pages (admin booking edit/create): form cards, field grids, sticky actions. */
+    .ds-admin-main:has(> .ds-admin-booking),
+    .ds-admin-stack.ds-admin-booking,
+    .ds-admin-stack.ds-admin-booking__form {
+        gap: 20px;
+    }
+
+    .ds-admin-form-cards {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        min-width: 0;
+    }
+
+    .ds-card.ds-admin-form-card {
+        gap: 16px;
+        padding: 20px;
+    }
+
+    .ds-admin-form-card > .ds-card__body {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .ds-admin-form-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 16px;
+    }
+
+    .ds-admin-form-grid__pair {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    .ds-admin-scope .ds-options {
+        align-self: stretch;
+    }
+
+    .ds-admin-scope .ds-options__grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .ds-admin-scope__created {
+        align-self: stretch;
+        padding-top: 10px;
+        border-top: 1px solid var(--color-line-soft);
+        font-size: 13px;
+    }
+
+    .ds-admin-field-link {
+        align-self: flex-start;
+        font-size: 14px;
+    }
+
+    .ds-admin-errors {
+        margin: 0;
+        padding-left: 18px;
+    }
+
+    .ds-admin-main .ds-option,
+    .ds-popup .ds-option {
+        padding: 0 14px;
+    }
+
+    .ds-input.is-disabled,
+    .ds-input[readonly] {
+        background: var(--color-surface-sunk);
+        color: var(--color-ink-3);
+    }
+
+    /* In-page tabs: buttons with aria-selected get the look of the linked tabs' current page. */
+    button.ds-tabs__tab {
+        font-family: var(--font-body);
+        font-size: var(--text-body);
+        cursor: pointer;
+    }
+
+    .ds-tabs__tab[aria-selected='true'] {
+        border-bottom-color: var(--color-clay);
+        color: var(--color-ink);
+        font-weight: 700;
+    }
+
+    .ds-admin-suggest {
+        position: relative;
+    }
+
+    .ds-admin-suggest__list {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        left: 0;
+        z-index: 20;
+        margin: 4px 0 0;
+        padding: 4px 0;
+        overflow: hidden;
+        border: 1px solid var(--color-line);
+        border-radius: var(--radius-md);
+        background: var(--color-surface);
+        box-shadow: var(--shadow-dialog);
+        list-style: none;
+    }
+
+    .ds-admin-suggest__item {
+        padding: 8px 12px;
+        cursor: pointer;
+    }
+
+    .ds-admin-suggest__item:hover {
+        background: var(--color-surface-sunk);
+    }
+
+    .ds-admin-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .ds-admin-actions__group {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .ds-admin-actions__group--main {
+        margin-left: auto;
+    }
+
+    .ds-admin-actions .ds-btn--primary {
+        padding: 0 22px;
+    }
+
+    @media (width >= 48rem) {
+        button.ds-tabs__tab {
+            border-width: 0 0 3px;
+            border-style: solid;
+            border-color: transparent;
+            background: transparent;
+        }
+
+        button.ds-tabs__tab[aria-selected='true'] {
+            border-bottom-color: var(--color-clay);
+        }
+    }
+
+    @media (width < 48rem) {
+        .ds-tabs__tab[aria-selected='true'] {
+            border-color: var(--color-chrome);
+            background: var(--color-chrome);
+            color: var(--color-surface);
+        }
+
+        .ds-admin-main:has(> .ds-admin-booking),
+        .ds-admin-stack.ds-admin-booking,
+        .ds-admin-stack.ds-admin-booking__form,
+        .ds-admin-form-cards {
+            gap: 14px;
+        }
+
+        /* The bar's back button replaces the breadcrumb, as in the phone mockup. */
+        .ds-admin-booking .ds-admin-crumbs {
+            display: none;
+        }
+
+        .ds-popup .ds-admin-head__title {
+            font-size: 28px;
+        }
+    }
+
+    /*
+     * Wide form layout: 3-column field grid and an in-flow sticky action bar. The admin page
+     * switches at 48rem; the calendar popup (an iframe about 760px wide on desktop) at 36rem.
+     */
+    @media (width >= 48rem) {
+        .ds-admin-main .ds-admin-form-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .ds-admin-main .ds-admin-form-grid--2 {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        /* Two tiles next to three tiles: give the three-tile group the wider column. */
+        .ds-admin-main .ds-admin-form-grid--tiles {
+            grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+        }
+
+        .ds-admin-main .ds-admin-form-grid__pair {
+            display: contents;
+        }
+
+        .ds-admin-main .ds-admin-actions--sticky {
+            position: sticky;
+            bottom: 0;
+            z-index: 10;
+            padding: 14px 16px;
+            border: 1px solid var(--color-line);
+            border-radius: var(--radius-lg);
+            background: rgb(255 255 255 / 0.96);
+        }
+    }
+
+    @media (width >= 36rem) {
+        .ds-popup .ds-admin-form-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .ds-popup .ds-admin-form-grid--2 {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        /* Two tiles next to three tiles: give the three-tile group the wider column. */
+        .ds-popup .ds-admin-form-grid--tiles {
+            grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+        }
+
+        .ds-popup .ds-admin-form-grid__pair {
+            display: contents;
+        }
+
+        .ds-popup .ds-admin-actions--sticky {
+            position: sticky;
+            bottom: 0;
+            z-index: 10;
+            padding: 14px 16px;
+            border: 1px solid var(--color-line);
+            border-radius: var(--radius-lg);
+            background: rgb(255 255 255 / 0.96);
+        }
+    }
+
+    /* Phone: the danger buttons stay in the flow; Abbrechen + Speichern become a full-width bottom bar. */
+    @media (width < 48rem) {
+        .ds-admin-main .ds-admin-actions--sticky {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .ds-admin-main .ds-admin-actions--sticky > .ds-admin-actions__group {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .ds-admin-main .ds-admin-actions--sticky > .ds-admin-actions__group--main {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 30;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            margin: 0;
+            padding: 14px 16px;
+            border-top: 1px solid var(--color-line);
+            border-radius: 0;
+            background: rgb(255 255 255 / 0.96);
+        }
+
+        .ds-admin-main .ds-admin-actions__group--main > .ds-btn {
+            flex: 0 0 auto;
+        }
+
+        .ds-admin-main .ds-admin-actions__group--main > .ds-admin-actions__save {
+            flex: 1 1 auto;
+        }
+    }
+
+    @media (width < 36rem) {
+        .ds-popup .ds-admin-actions--sticky {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .ds-popup .ds-admin-actions--sticky > .ds-admin-actions__group {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .ds-popup .ds-admin-actions--sticky > .ds-admin-actions__group--main {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 30;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            margin: 0;
+            padding: 14px 16px;
+            border-top: 1px solid var(--color-line);
+            border-radius: 0;
+            background: rgb(255 255 255 / 0.96);
+        }
+
+        .ds-popup .ds-admin-actions__group--main > .ds-btn {
+            flex: 0 0 auto;
+        }
+
+        .ds-popup .ds-admin-actions__group--main > .ds-admin-actions__save {
+            flex: 1 1 auto;
+        }
+
+        .ds-popup__body:has(.ds-admin-actions--sticky) {
+            padding-bottom: 96px;
         }
     }
 

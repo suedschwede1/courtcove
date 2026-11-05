@@ -261,6 +261,10 @@ return [
             'player_names_section' => 'Spielernamen',
             'booking_tab' => 'Buchung',
             'event_tab' => 'Veranstaltung',
+            'section_who' => 'Wer & Wo',
+            'section_when' => 'Wann',
+            'scope_card_title' => 'Nur diesen Termin ändern?',
+            'occurrence_of' => 'Termin vom :date',
             'today_bookings' => 'Buchungen heute',
         ],
         'statistics' => [

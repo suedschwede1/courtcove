@@ -3,6 +3,8 @@
     $showCrumbs = $backUrl !== null && $backUrl !== '' && ! request('popup');
     $hasMeta = $slot->isNotEmpty();
     $hasActions = $actions !== null && trim((string) $actions) !== '';
+    // In the popup the frame header already is the h1.
+    $titleTag = request('popup') ? 'h2' : 'h1';
 @endphp
 <div class="ds-admin-head">
     @if ($showCrumbs)
@@ -16,7 +18,7 @@
         @if ($eyebrow !== null && $eyebrow !== '')
             <p class="ds-admin-head__eyebrow">{{ $eyebrow }}</p>
         @endif
-        <h1 class="ds-admin-head__title">{{ $title }}</h1>
+        <{{ $titleTag }} class="ds-admin-head__title">{{ $title }}</{{ $titleTag }}>
         @if ($hasMeta)
             <div class="ds-admin-head__meta">{{ $slot }}</div>
         @endif

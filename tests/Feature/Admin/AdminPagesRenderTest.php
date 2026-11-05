@@ -2,6 +2,9 @@
 
 namespace Tests\Feature\Admin;
 
+use App\Models\Booking;
+use App\Models\Reservation;
+use App\Models\Square;
 use App\Models\User;
 use Closure;
 use DOMDocument;
@@ -30,6 +33,15 @@ final class AdminPagesRenderTest extends TestCase
         return [
             'dashboard' => [fn (): string => route('admin.dashboard')],
             'statistics' => [fn (): string => route('admin.statistics.index', ['searched' => 1])],
+            'booking_edit' => [function (): string {
+                $square = Square::factory()->create(['name' => 'Court A']);
+                $booking = Booking::factory()->create(['sid' => $square->sid, 'status' => 'subscription', 'quantity' => 4]);
+                foreach (['2026-07-06', '2026-07-13', '2026-07-20'] as $date) {
+                    Reservation::factory()->create(['bid' => $booking->bid, 'date' => $date, 'time_start' => '10:00:00', 'time_end' => '11:00:00']);
+                }
+
+                return route('admin.bookings.edit', [$booking, 'occurrence' => '2026-07-13']);
+            }],
         ];
     }
 
@@ -73,7 +85,9 @@ final class AdminPagesRenderTest extends TestCase
                 continue;
             }
             $id = $control->getAttribute('id');
-            $labelled = $xpath->query('//label[@for="'.$id.'"]')->length > 0 || $control->getAttribute('aria-label') !== '';
+            $labelled = $xpath->query('//label[@for="'.$id.'"]')->length > 0
+                || $xpath->query('ancestor::label', $control)->length > 0
+                || $control->getAttribute('aria-label') !== '';
             $this->assertTrue($labelled, 'control #'.$id.' has no label');
         }
 
