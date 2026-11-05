@@ -524,7 +524,9 @@ return [
             'next_event_from' => ':name on :date',
             'all_bookings' => 'All bookings',
             'manage_events' => 'Manage events',
-            'next_events' => 'Next event',
+            'format_today' => 'l, F j, Y',
+            'format_event_short' => 'M j, H:i',
+            'format_event_long' => 'D, M j, H:i',
         ],
     ],
 ];

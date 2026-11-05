@@ -23,7 +23,7 @@
     $nextEventStart = $nextEvent ? \Carbon\Carbon::parse($nextEvent->datetime_start) : null;
     $nextEventEnd = $nextEvent ? \Carbon\Carbon::parse($nextEvent->datetime_end) : null;
     $eventsMeta = $nextEvent
-        ? __('booking.admin.dashboard.next_event_from', ['name' => $nextEventName, 'date' => $nextEventStart->translatedFormat('j. M H:i')])
+        ? __('booking.admin.dashboard.next_event_from', ['name' => $nextEventName, 'date' => $nextEventStart->translatedFormat(__('booking.admin.dashboard.format_event_short'))])
         : __('booking.admin.dashboard.none_upcoming');
     $labelTime = __('booking.admin.dashboard.time');
     $labelCourt = __('booking.admin.dashboard.court');
@@ -31,7 +31,7 @@
     $labelStatus = __('booking.admin.dashboard.status');
 @endphp
 <div class="ds-admin-stack">
-    <x-admin.page-header :title="__('booking.admin.overview')" :eyebrow="now()->translatedFormat('l, j. F Y')">
+    <x-admin.page-header :title="__('booking.admin.overview')" :eyebrow="now()->translatedFormat(__('booking.admin.dashboard.format_today'))">
         @can('admin.booking')
             <x-slot:actions>
                 <x-ui.button :href="route('admin.bookings.create')" icon="plus" :block="false" class="ds-admin-fab">{{ __('booking.admin.dashboard.new_booking') }}</x-ui.button>
@@ -96,12 +96,12 @@
             @endif
         </x-ui.card>
 
-        <x-ui.card :title="__('booking.admin.dashboard.next_events')" class="ds-admin-grid__side">
+        <x-ui.card :title="__('booking.admin.dashboard.next_event_fallback')" class="ds-admin-grid__side">
             @if($nextEvent)
                 <ul class="ds-admin-list">
                     <li class="ds-admin-list__item">
                         <p class="ds-admin-list__title">{{ $nextEventName }}</p>
-                        <p class="ds-admin-note">{{ $nextEventStart->translatedFormat('D, j. M H:i') }} – {{ $nextEventEnd->format('H:i') }}@if($nextEvent->square) · {{ $nextEvent->square->display_name }}@endif</p>
+                        <p class="ds-admin-note">{{ $nextEventStart->translatedFormat(__('booking.admin.dashboard.format_event_long')) }} – {{ $nextEventEnd->format('H:i') }}@if($nextEvent->square) · {{ $nextEvent->square->display_name }}@endif</p>
                     </li>
                 </ul>
             @else

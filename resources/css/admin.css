@@ -126,7 +126,7 @@
 
     .ds-admin-sidebar__link:hover,
     .ds-admin-sidebar__back:hover {
-        background: rgb(255 255 255 / 0.08);
+        background: color-mix(in srgb, var(--color-surface) 8%, transparent);
         color: var(--color-surface);
     }
 
@@ -170,7 +170,7 @@
     }
 
     .ds-admin-sidebar__logout:hover {
-        background: rgb(255 255 255 / 0.08);
+        background: color-mix(in srgb, var(--color-surface) 8%, transparent);
         color: var(--color-surface);
     }
 
@@ -178,7 +178,7 @@
         position: fixed;
         inset: 0;
         z-index: 55;
-        background: rgb(29 27 24 / 0.5);
+        background: color-mix(in srgb, var(--color-chrome) 50%, transparent);
     }
 
     /* Phone bar (hidden from 48rem). */
@@ -948,7 +948,7 @@
             padding: 14px 16px;
             border: 1px solid var(--color-line);
             border-radius: var(--radius-lg);
-            background: rgb(255 255 255 / 0.96);
+            background: color-mix(in srgb, var(--color-surface) 96%, transparent);
         }
     }
 
@@ -977,7 +977,7 @@
             padding: 14px 16px;
             border: 1px solid var(--color-line);
             border-radius: var(--radius-lg);
-            background: rgb(255 255 255 / 0.96);
+            background: color-mix(in srgb, var(--color-surface) 96%, transparent);
         }
     }
 
@@ -1005,7 +1005,7 @@
             padding: 14px 16px;
             border-top: 1px solid var(--color-line);
             border-radius: 0;
-            background: rgb(255 255 255 / 0.96);
+            background: color-mix(in srgb, var(--color-surface) 96%, transparent);
         }
 
         .ds-admin-main .ds-admin-actions__group--main > .ds-btn {
@@ -1040,7 +1040,7 @@
             padding: 14px 16px;
             border-top: 1px solid var(--color-line);
             border-radius: 0;
-            background: rgb(255 255 255 / 0.96);
+            background: color-mix(in srgb, var(--color-surface) 96%, transparent);
         }
 
         .ds-popup .ds-admin-actions__group--main > .ds-btn {
@@ -1108,10 +1108,6 @@
         padding: 10px 20px;
         background: var(--color-clay-soft);
         border-bottom: 1px solid var(--color-line);
-    }
-
-    .ds-admin-bulk[x-cloak] {
-        display: none;
     }
 
     .ds-admin-bulk__count {

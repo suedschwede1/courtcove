@@ -4,6 +4,8 @@
     $currentQuantity = (int) old('quantity', $booking->quantity);
 @endphp
 <div class="ds-admin-stack ds-admin-booking" x-data="{ tab: 'booking' }">
+    <x-admin.page-header :title="__('booking.admin.bookings.create_title')" :back-url="route('admin.bookings.index')" :back-label="__('booking.admin.bookings.title')" />
+
     <div role="tablist" class="ds-tabs" aria-label="{{ __('booking.admin.bookings.create_title') }}">
         <button type="button" role="tab" id="admin-create-tab-booking" class="ds-tabs__tab" aria-controls="admin-create-panel-booking" aria-selected="true" x-bind:aria-selected="tab === 'booking' ? 'true' : 'false'" x-on:click="tab = 'booking'">{{ __('booking.admin.bookings.booking_tab') }}</button>
         @can('admin.event')

@@ -13,7 +13,7 @@
 
         <div class="ds-admin-backdrop" x-cloak x-show="navOpen" x-on:click="navOpen = false"></div>
 
-        <header class="ds-admin-bar ds-on-chrome">
+        <header class="ds-admin-bar ds-on-chrome" x-bind:inert="navOpen">
             @hasSection('admin-back')
                 <x-ui.icon-button icon="chevron-left" variant="chrome" class="ds-admin-bar__lead" :href="htmlspecialchars_decode(trim($__env->yieldContent('admin-back')), ENT_QUOTES)" :label="__('booking.admin.nav.back')" />
             @else
@@ -27,7 +27,7 @@
         </header>
     @endunless
 
-    <main id="content" class="ds-admin-main">
+    <main id="content" class="ds-admin-main" x-bind:inert="navOpen">
         @if(session('success'))
             <x-ui.notice tone="good">{{ session('success') }}</x-ui.notice>
         @endif

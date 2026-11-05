@@ -147,6 +147,12 @@ final class AdminBookingEditViewTest extends TestCase
 
         $this->assertSame(1, $this->nodes('//form[@id="admin-booking-update"]//input[@type="hidden"][@name="popup"][@value="1"]')->length);
         $this->assertSame(1, $this->nodes('//form[@id="admin-booking-update"]//input[@type="hidden"][@name="redirect_to"]')->length);
+        foreach (['admin-booking-cancel', 'admin-booking-delete'] as $id) {
+            $this->assertSame(1, $this->nodes('//form[@id="'.$id.'"]//input[@type="hidden"][@name="redirect_to"]')->length, $id.' redirect_to');
+            $this->assertSame(1, $this->nodes('//form[@id="'.$id.'"]//input[@type="hidden"][@name="occurrence"][@value="2026-07-13"]')->length, $id.' occurrence');
+        }
+        $this->assertSame(1, $this->nodes('//form[@id="admin-booking-delete"]//input[@type="hidden"][@id="admin-booking-delete-scope"][@value="single_occurrence"]')->length);
+        $this->assertSame(1, $this->nodes('//form[@id="admin-booking-cancel"]//input[@type="hidden"][@id="admin-booking-cancel-scope"][@value="single_occurrence"]')->length);
         $this->assertSame(0, $this->nodes('//*['.self::cls('ds-admin-crumbs').']')->length);
         $this->assertSame(0, $this->nodes('//*[@id="admin-nav"]')->length);
 

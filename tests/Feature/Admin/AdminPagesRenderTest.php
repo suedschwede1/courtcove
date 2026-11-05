@@ -44,6 +44,11 @@ final class AdminPagesRenderTest extends TestCase
 
                 return route('admin.users.edit', $user);
             }],
+            'booking_create' => [function (): string {
+                $square = Square::factory()->create(['name' => 'Court A']);
+
+                return route('admin.bookings.create', ['sid' => $square->sid, 'date' => '2026-07-13', 'time_start' => '10:00', 'time_end' => '11:00']);
+            }],
             'booking_edit' => [function (): string {
                 $square = Square::factory()->create(['name' => 'Court A']);
                 $booking = Booking::factory()->create(['sid' => $square->sid, 'status' => 'subscription', 'quantity' => 4]);

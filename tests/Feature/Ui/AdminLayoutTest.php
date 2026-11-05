@@ -82,6 +82,9 @@ final class AdminLayoutTest extends TestCase
         $this->assertNotNull($this->attr($backdrop, 'x-cloak'));
         $this->assertSame('navOpen', $this->attr($backdrop, 'x-show'));
 
+        $this->assertSame('navOpen', $this->attr($bar, 'x-bind:inert'));
+        $this->assertSame('navOpen', $this->attr('//main[@id="content"]', 'x-bind:inert'));
+
         $this->assertSame('Zum Kalender', $this->attr($bar.'//a[@href="'.route('calendar.index').'"]', 'aria-label'));
     }
 
