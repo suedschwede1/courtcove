@@ -33,5 +33,15 @@
             </div>
             <x-ui.button>block primary</x-ui.button>
         </section>
+
+        <section>
+            <h2>Badges</h2>
+            <div class="flex flex-wrap gap-4">
+                @foreach (array_keys(\App\Support\Ui\BadgeTone::STATUS_MAP) as $status)
+                    <x-ui.badge :status="$status" />
+                @endforeach
+                <x-ui.badge tone="problem">Custom</x-ui.badge>
+            </div>
+        </section>
     </div>
 @endsection

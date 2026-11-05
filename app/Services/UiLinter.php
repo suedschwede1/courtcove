@@ -21,7 +21,7 @@ class UiLinter
      */
     public function __construct(string|array $roots, private readonly array $rules, ?string $basePath = null)
     {
-        $this->roots = array_values((array) $roots);
+        $this->roots = (array) $roots;
         $this->basePath = rtrim($basePath ?? (is_string($roots) ? $roots : base_path()), '/\\');
     }
 

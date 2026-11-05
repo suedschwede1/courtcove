@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-05
 
+- Status badges use one shared colour map (good, neutral, attention, problem, you).
 - Shared button components with 46/52 px touch targets.
 
 ## 2026-11-04

@@ -108,6 +108,40 @@
         color: var(--color-ink-2);
     }
 
+    .ds-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 3px 10px;
+        border-radius: var(--radius-pill);
+        font: 700 13px/18px var(--font-body);
+        white-space: nowrap;
+    }
+
+    .ds-badge--good {
+        background: var(--color-court-soft);
+        color: var(--color-court-ink);
+    }
+
+    .ds-badge--neutral {
+        background: var(--color-sand);
+        color: var(--color-ink);
+    }
+
+    .ds-badge--attention {
+        background: var(--color-warn-soft);
+        color: var(--color-warn-ink);
+    }
+
+    .ds-badge--problem {
+        background: var(--color-danger-soft);
+        color: var(--color-danger);
+    }
+
+    .ds-badge--you {
+        background: var(--color-clay);
+        color: var(--color-on-clay);
+    }
+
     @media (width < 48rem) {
         .ds-btn {
             min-height: var(--spacing-control-h-mobile);
