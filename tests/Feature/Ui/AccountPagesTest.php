@@ -137,4 +137,54 @@ class AccountPagesTest extends TestCase
         $this->assertStringContainsString(e(__('booking.messages.no_active_bookings')), $html);
         $this->assertMatchesRegularExpression('/<a href="'.preg_quote(route('calendar.index'), '/').'"[^>]*ds-btn--secondary/', $html);
     }
+
+    #[Test]
+    public function account_fields_are_labelled(): void
+    {
+        app()->setLocale('de');
+        $html = $this->actingAs(User::factory()->create())->get('/my-account')->assertOk()->getContent();
+
+        foreach (['alias', 'firstname', 'lastname', 'email', 'phone', 'street', 'zip', 'city', 'gender', 'current_password', 'password', 'password_confirmation'] as $id) {
+            $this->assertStringContainsString('for="'.$id.'"', $html);
+            $this->assertStringContainsString('id="'.$id.'"', $html);
+        }
+        $this->assertStringContainsString(e(__('booking.account.eyebrow')), $html);
+        $this->assertSame(2, substr_count($html, 'ds-btn--dark'));
+    }
+
+    #[Test]
+    public function profile_validation_error_is_shown_at_the_field(): void
+    {
+        $html = $this->actingAs(User::factory()->create())->from(route('account.edit'))->followingRedirects()
+            ->put(route('account.update'), ['alias' => 'A', 'email' => 'not-an-email'])->getContent();
+
+        $this->assertStringContainsString('id="email-error"', $html);
+        $this->assertStringContainsString('aria-invalid="true"', $html);
+    }
+
+    #[Test]
+    public function password_change_never_echoes_passwords(): void
+    {
+        $html = $this->actingAs(User::factory()->create())->from(route('account.edit'))->followingRedirects()
+            ->put(route('account.password'), [
+                'current_password' => 'Wrong-Old-111',
+                'password' => 'New-Pass-222',
+                'password_confirmation' => 'New-Pass-222',
+            ])->getContent();
+
+        $this->assertStringNotContainsString('Wrong-Old-111', $html);
+        $this->assertStringNotContainsString('New-Pass-222', $html);
+        $this->assertStringContainsString('id="current_password-error"', $html);
+    }
+
+    #[Test]
+    public function gender_selection_is_kept(): void
+    {
+        $user = User::factory()->create();
+        $user->setMeta('gender', 'female');
+
+        $html = $this->actingAs($user)->get('/my-account')->assertOk()->getContent();
+
+        $this->assertStringContainsString('<option value="female" selected', $html);
+    }
 }

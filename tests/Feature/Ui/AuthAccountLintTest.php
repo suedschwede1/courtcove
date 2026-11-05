@@ -21,6 +21,7 @@ class AuthAccountLintTest extends TestCase
             'login-verify' => ['resources/views/auth/login-verify.blade.php'],
             'register' => ['resources/views/auth/register.blade.php'],
             'account-bookings' => ['resources/views/account/bookings.blade.php'],
+            'account-edit' => ['resources/views/account/edit.blade.php'],
             'page-header' => ['resources/views/components/ui/page-header.blade.php'],
         ]; // later tasks append
     }

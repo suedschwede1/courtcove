@@ -2,65 +2,84 @@
 @section('title', __('booking.account.my_account'))
 
 @section('content')
-<div class="max-w-5xl mx-auto px-4 py-8 ui-page">
-    <div class="ui-page-header">
-        <h1>{{ __('booking.account.my_account') }}</h1>
-        <p>{{ __('booking.account.intro') }}</p>
-    </div>
+<div class="mx-auto flex w-full max-w-350 flex-col gap-5 px-4 py-6 md:px-6 md:py-8">
+    <x-ui.page-header
+        :eyebrow="__('booking.account.eyebrow')"
+        :title="__('booking.account.my_account')"
+        :intro="__('booking.account.intro')" />
 
     @if(session('success'))
-        <div class="ui-flash ui-flash-success">{{ session('success') }}</div>
+        <x-ui.notice tone="good">{{ session('success') }}</x-ui.notice>
     @endif
     @if(session('error'))
-        <div class="ui-flash ui-flash-error">{{ session('error') }}</div>
+        <x-ui.notice tone="problem">{{ session('error') }}</x-ui.notice>
     @endif
 
-    <div class="ui-card">
-        <div class="ui-card-header"><h2>{{ __('booking.account.profile') }}</h2></div>
-        <form method="POST" action="{{ route('account.update') }}">
-            @csrf
-            @method('PUT')
-            <div class="ui-card-body ui-stack">
-                <div class="ui-field">
-                    <label class="ui-label">{{ __('booking.account.display_name') }}</label>
-                    <input type="text" name="alias" value="{{ old('alias', $user->alias) }}" required maxlength="128" class="ui-input">
-                    @error('alias')<p class="ui-error">{{ $message }}</p>@enderror
-                </div>
-                <div class="ui-grid-2">
-                    <div class="ui-field"><label class="ui-label">{{ __('booking.account.firstname') }}</label><input type="text" name="firstname" value="{{ old('firstname', $profile['firstname']) }}" maxlength="128" class="ui-input">@error('firstname')<p class="ui-error">{{ $message }}</p>@enderror</div>
-                    <div class="ui-field"><label class="ui-label">{{ __('booking.account.lastname') }}</label><input type="text" name="lastname" value="{{ old('lastname', $profile['lastname']) }}" maxlength="128" class="ui-input">@error('lastname')<p class="ui-error">{{ $message }}</p>@enderror</div>
-                    <div class="ui-field"><label class="ui-label">{{ __('booking.account.email') }}</label><input type="email" name="email" value="{{ old('email', $user->email) }}" maxlength="128" class="ui-input">@error('email')<p class="ui-error">{{ $message }}</p>@enderror</div>
-                    <div class="ui-field"><label class="ui-label">{{ __('booking.account.phone') }}</label><input type="text" name="phone" value="{{ old('phone', $profile['phone']) }}" maxlength="128" class="ui-input">@error('phone')<p class="ui-error">{{ $message }}</p>@enderror</div>
-                    <div class="ui-field"><label class="ui-label">{{ __('booking.account.street') }}</label><input type="text" name="street" value="{{ old('street', $profile['street']) }}" maxlength="128" class="ui-input">@error('street')<p class="ui-error">{{ $message }}</p>@enderror</div>
-                    <div class="ui-field"><label class="ui-label">{{ __('booking.account.zip') }}</label><input type="text" name="zip" value="{{ old('zip', $profile['zip']) }}" maxlength="10" class="ui-input">@error('zip')<p class="ui-error">{{ $message }}</p>@enderror</div>
-                    <div class="ui-field"><label class="ui-label">{{ __('booking.account.city') }}</label><input type="text" name="city" value="{{ old('city', $profile['city']) }}" maxlength="128" class="ui-input">@error('city')<p class="ui-error">{{ $message }}</p>@enderror</div>
-                    <div class="ui-field">
-                        <label class="ui-label">{{ __('booking.account.gender') }}</label>
-                        <select name="gender" class="ui-select">
-                            @php($gender = old('gender', $profile['gender']))
-                            <option value="" @selected($gender === null || $gender === '')>{{ __('booking.account.empty_option') }}</option>
-                            <option value="male" @selected($gender === 'male')>{{ __('booking.account.male') }}</option>
-                            <option value="female" @selected($gender === 'female')>{{ __('booking.account.female') }}</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div class="ui-card-body pt-0 flex justify-end"><button type="submit" class="ui-btn ui-btn-primary">{{ __('booking.admin.save') }}</button></div>
-        </form>
-    </div>
+    <div class="grid gap-5 lg:grid-cols-3">
+        <x-ui.card :title="__('booking.account.profile')" class="lg:col-span-2">
+            <form method="POST" action="{{ route('account.update') }}" class="flex flex-col gap-4">
+                @csrf
+                @method('PUT')
 
-    <div class="ui-card">
-        <div class="ui-card-header"><h2>{{ __('booking.account.password_change') }}</h2></div>
-        <form method="POST" action="{{ route('account.password') }}">
-            @csrf
-            @method('PUT')
-            <div class="ui-card-body ui-grid-3">
-                <div class="ui-field"><label class="ui-label">{{ __('booking.account.current_password') }}</label><input type="password" name="current_password" required class="ui-input">@error('current_password')<p class="ui-error">{{ $message }}</p>@enderror</div>
-                <div class="ui-field"><label class="ui-label">{{ __('booking.account.new_password') }}</label><input type="password" name="password" required class="ui-input">@error('password')<p class="ui-error">{{ $message }}</p>@enderror</div>
-                <div class="ui-field"><label class="ui-label">{{ __('booking.account.new_password_confirmation') }}</label><input type="password" name="password_confirmation" required class="ui-input">@error('password_confirmation')<p class="ui-error">{{ $message }}</p>@enderror</div>
-            </div>
-            <div class="ui-card-body pt-0 flex justify-end"><button type="submit" class="ui-btn ui-btn-primary">{{ __('booking.account.password_change') }}</button></div>
-        </form>
+                <x-ui.field :label="__('booking.account.display_name')" for="alias">
+                    <x-ui.input name="alias" id="alias" required maxlength="128" :value="old('alias', $user->alias)" />
+                </x-ui.field>
+
+                <div class="grid gap-4 md:grid-cols-2">
+                    <x-ui.field :label="__('booking.account.firstname')" for="firstname">
+                        <x-ui.input name="firstname" id="firstname" maxlength="128" :value="old('firstname', $profile['firstname'])" />
+                    </x-ui.field>
+                    <x-ui.field :label="__('booking.account.lastname')" for="lastname">
+                        <x-ui.input name="lastname" id="lastname" maxlength="128" :value="old('lastname', $profile['lastname'])" />
+                    </x-ui.field>
+                    <x-ui.field :label="__('booking.account.email')" for="email">
+                        <x-ui.input name="email" id="email" type="email" maxlength="128" :value="old('email', $user->email)" />
+                    </x-ui.field>
+                    <x-ui.field :label="__('booking.account.phone')" for="phone">
+                        <x-ui.input name="phone" id="phone" maxlength="128" :value="old('phone', $profile['phone'])" />
+                    </x-ui.field>
+                    <x-ui.field :label="__('booking.account.street')" for="street">
+                        <x-ui.input name="street" id="street" maxlength="128" :value="old('street', $profile['street'])" />
+                    </x-ui.field>
+                    <x-ui.field :label="__('booking.account.zip')" for="zip">
+                        <x-ui.input name="zip" id="zip" maxlength="10" :value="old('zip', $profile['zip'])" />
+                    </x-ui.field>
+                    <x-ui.field :label="__('booking.account.city')" for="city">
+                        <x-ui.input name="city" id="city" maxlength="128" :value="old('city', $profile['city'])" />
+                    </x-ui.field>
+                    <x-ui.field :label="__('booking.account.gender')" for="gender">
+                        <x-ui.select name="gender" id="gender"
+                            :options="['' => __('booking.account.empty_option'), 'male' => __('booking.account.male'), 'female' => __('booking.account.female')]"
+                            :selected="(string) old('gender', $profile['gender'] ?? '')" />
+                    </x-ui.field>
+                </div>
+
+                <div class="flex justify-end">
+                    <x-ui.button type="submit" variant="dark" :block="false">{{ __('booking.admin.save') }}</x-ui.button>
+                </div>
+            </form>
+        </x-ui.card>
+
+        <x-ui.card :title="__('booking.account.password_change')">
+            <form method="POST" action="{{ route('account.password') }}" class="flex flex-col gap-4">
+                @csrf
+                @method('PUT')
+
+                <x-ui.field :label="__('booking.account.current_password')" for="current_password">
+                    <x-ui.input type="password" name="current_password" id="current_password" value="" required autocomplete="current-password" />
+                </x-ui.field>
+                <x-ui.field :label="__('booking.account.new_password')" for="password">
+                    <x-ui.input type="password" name="password" id="password" value="" required autocomplete="new-password" />
+                </x-ui.field>
+                <x-ui.field :label="__('booking.account.new_password_confirmation')" for="password_confirmation">
+                    <x-ui.input type="password" name="password_confirmation" id="password_confirmation" value="" required autocomplete="new-password" />
+                </x-ui.field>
+
+                <div class="flex justify-end">
+                    <x-ui.button type="submit" variant="dark" :block="false">{{ __('booking.account.password_change') }}</x-ui.button>
+                </div>
+            </form>
+        </x-ui.card>
     </div>
 </div>
 @endsection

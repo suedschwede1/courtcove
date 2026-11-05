@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-05
 
+- My account uses the new cards and fields; every field is now linked to its label.
 - The page header title is 40px like the design mockup instead of 32px.
 - My bookings uses the new cards, status badges and filter form; on phones each booking is a card.
 - The clay court panel stays viewport-high beside tall forms such as registration on wide screens.
