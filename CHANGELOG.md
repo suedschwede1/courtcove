@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Phase 2: match generation runs in one transaction and reads fresh player rows.
 - Phase 2: automatic lot tie-break (HMAC of the first draw's seed) ported byte-exactly.
 - Phase 2: championship read model (groups, promotion, progress) ported.
 - Phase 2: knockout placeholder resolution ported unchanged.
