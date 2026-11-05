@@ -15,7 +15,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 - Phase 2: Mixed tables adopted in place (guarded create migrations, no-op rollback, schema manifest).
 - Phase 2: Mixed member CSV import parsing (UTF-8/Windows-1252, BOM, columns by name) ported.
 - Phase 2: Mixed wave planning and scorecard contents ported unchanged.
-- Phase 2: Mixed standings ported; equal averages are now ordered by participant id instead of database row order.
+- Phase 2: Mixed standings ported; equal points averages are now broken by games average and then participant id (the old code skipped the games average when an exact int 0 met float 0.0) instead of database row order.
 - Phase 2: Mexicano pairing and fair sit-out rotation ported unchanged.
 - Phase 2: Americano round proposals ported unchanged.
 - Phase 2: Mixed group building ported unchanged (sizes, distributions, extra group, repair).

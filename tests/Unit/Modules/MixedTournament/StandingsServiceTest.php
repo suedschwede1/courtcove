@@ -50,9 +50,13 @@ class StandingsServiceTest extends TestCase
             $actual = (new StandingsService)->standings($c['args']['participant_ids'], $c['args']['matches']);
             // The old code returned int averages when the division was exact; the port always returns floats.
             $this->assertEquals($c['result'], $actual, $c['name']);
-            foreach ($actual as $row) {
-                $this->assertIsFloat($row['points_avg'], $c['name']);
-                $this->assertIsFloat($row['games_avg'], $c['name']);
+            foreach ($actual as $i => $row) {
+                foreach (['points_avg', 'games_avg'] as $k) {
+                    $this->assertIsFloat($row[$k], $c['name'].' '.$k);
+                    if (is_float($c['result'][$i][$k])) {
+                        $this->assertSame($c['result'][$i][$k], $row[$k], $c['name'].' '.$k);
+                    }
+                }
             }
         }
     }
@@ -124,5 +128,24 @@ class StandingsServiceTest extends TestCase
     {
         $m = [['round' => 1, 'team_a' => [3, 9], 'team_b' => [5, 1], 'games_a' => 2, 'games_b' => 2]];
         $this->assertSame([1, 3, 5, 9], array_column((new StandingsService)->standings([9, 5, 3, 1], $m), 'id'));
+    }
+
+    #[Test]
+    public function equal_points_average_is_broken_by_games_average_then_id(): void
+    {
+        // Player 1 played and scored 0 points, player 2 never played: the old code skipped the games average
+        // for exactly this int 0 vs float 0.0 pair. 3/6 and 4/7 have equal points but different games averages.
+        $m = [
+            ['round' => 1, 'team_a' => [1, 5], 'team_b' => [3, 6], 'games_a' => 0, 'games_b' => 2],
+            ['round' => 1, 'team_a' => [4, 7], 'team_b' => [8, 9], 'games_a' => 3, 'games_b' => 2],
+        ];
+        $standings = (new StandingsService)->standings([1, 2, 3, 4, 5, 6, 7, 8, 9], $m);
+        // 4, 7: 2 points / 3 games; 3, 6: 2 points / 2 games; 8, 9: 0 points / 2 games; 1, 5: 0 points / 0 games;
+        // 2 never played and is not eligible, so it comes last.
+        $this->assertSame([4, 7, 3, 6, 8, 9, 1, 5, 2], array_column($standings, 'id'));
+        $by = $this->byId($standings);
+        $this->assertSame(0.0, $by[1]['points_avg']);
+        $this->assertSame(0.0, $by[2]['points_avg']);
+        $this->assertGreaterThan($by[1]['games_avg'], $by[8]['games_avg']);
     }
 }

@@ -171,4 +171,17 @@ class MexicanoServiceTest extends TestCase
             $this->assertSame($expected, array_column($p['groups'], 'players'), "seed $seed");
         }
     }
+
+    #[Test]
+    public function rank_breaks_equal_points_by_games_average_even_for_zero_points(): void
+    {
+        // 0.0 points with 1.5 games must outrank 0.0 points with 0.0 games, whatever the shuffle does.
+        $rows = [
+            ['id' => 1, 'points_avg' => 0.0, 'games_avg' => 0.0],
+            ['id' => 2, 'points_avg' => 0.0, 'games_avg' => 1.5],
+        ];
+        foreach (['identity', 'reverse'] as $shuffle) {
+            $this->assertSame([2, 1], (new MexicanoService)->rank($rows, DeterministicCallables::shuffle($shuffle)), $shuffle);
+        }
+    }
 }

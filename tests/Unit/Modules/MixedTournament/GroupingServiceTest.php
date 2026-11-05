@@ -115,7 +115,7 @@ class GroupingServiceTest extends TestCase
             $a = $c['args'];
             $this->assertCase($c, fn () => $this->grouping()->repair(
                 $a['groups'], $a['history'], $a['avoid_pairs'],
-                isset($a['random_int']['constant']) ? DeterministicCallables::constantMin() : DeterministicCallables::randomInt($a['random_int']['sequence']),
+                DeterministicCallables::randomInt($a['random_int']['sequence']),
                 $a['max_iterations'],
             ));
         }
