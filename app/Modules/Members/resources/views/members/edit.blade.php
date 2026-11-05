@@ -1,177 +1,171 @@
 @extends('members::layout')
 @section('admin-title', __('members::admin.members.title'))
 @section('admin-content')
-<div class="ui-page">
-    <div class="ui-page-header flex flex-wrap items-center justify-between gap-4">
-        <h1>{{ $member->fullName() }}</h1>
-        <div class="flex items-center gap-2">
-            @if($member->left_at !== null && $member->anonymized_at === null)
-                <form method="POST" action="{{ route('members.anonymize', $member) }}" onsubmit="const c = prompt({{ Js::from(__('members::admin.members.anonymize_confirmation_label')) }}); if (c === null) return false; this.querySelector('input[name=confirmation]').value = c;">
-                    @csrf
-                    <input type="hidden" name="confirmation" value="">
-                    <button type="submit" class="ui-btn ui-btn-danger">{{ __('members::admin.members.delete') }}</button>
-                </form>
-            @endif
-            <a href="{{ route('members.index') }}" class="ui-btn ui-btn-outline">{{ __('members::admin.common.cancel') }}</a>
-            <button type="submit" form="member-edit-form" class="ui-btn ui-btn-primary">{{ __('members::admin.common.save') }}</button>
-        </div>
-    </div>
+@php
+    use App\Modules\Members\Support\StatusTone;
 
-    <form id="member-edit-form" method="POST" action="{{ route('members.update', $member) }}" class="ui-form-shell">
-        @method('PUT')
-        @include('members::members._form', ['member' => $member])
+    $dueLabels = [
+        'ausstehend' => __('members::admin.dues.status_ausstehend'),
+        'bezahlt' => __('members::admin.dues.status_bezahlt'),
+        'ueberfaellig' => __('members::admin.dues.status_ueberfaellig'),
+    ];
+    $composeOpen = $errors->hasAny(['member_id', 'fiscal_year_id', 'teilbetrag', 'kommentar']);
+@endphp
+<x-members::page-header :title="$member->fullName()">
+    <x-slot:actions>
+        @if($member->left_at !== null && $member->anonymized_at === null)
+            <form method="POST" action="{{ route('members.anonymize', $member) }}" onsubmit="const c = prompt({{ Js::from(__('members::admin.members.anonymize_confirmation_label')) }}); if (c === null) return false; this.querySelector('input[name=confirmation]').value = c;" class="mbr-header-form">
+                @csrf
+                <input type="hidden" name="confirmation" value="">
+                <x-ui.button type="submit" variant="danger" :block="false">{{ __('members::admin.members.delete') }}</x-ui.button>
+            </form>
+        @endif
+        <x-ui.button variant="secondary" :block="false" :href="route('members.index')">{{ __('members::admin.common.cancel') }}</x-ui.button>
+        <x-ui.button type="submit" :block="false" form="member-edit-form">{{ __('members::admin.common.save') }}</x-ui.button>
+    </x-slot:actions>
+</x-members::page-header>
+
+<form id="member-edit-form" method="POST" action="{{ route('members.update', $member) }}" class="ui-form-shell">
+    @method('PUT')
+    @include('members::members._form', ['member' => $member])
+</form>
+
+<x-ui.card class="mbr-dues-card" padding="none" :title="__('members::admin.dues.title')" x-data="{ composing: {{ $composeOpen ? 'true' : 'false' }} }">
+    <x-slot:actions>
+        <x-ui.button variant="secondary" :block="false" icon="plus" aria-controls="md-compose" x-bind:aria-expanded="composing.toString()" x-on:click="composing = !composing">{{ __('members::admin.dues.new') }}</x-ui.button>
+    </x-slot:actions>
+    <form id="md-compose" x-show="composing" @unless($composeOpen) x-cloak @endunless method="POST" action="{{ route('members.dues.store') }}" class="mbr-filters mbr-compose">
+        @csrf
+        <input type="hidden" name="member_id" value="{{ $member->id }}">
+        <input type="hidden" name="fee_category_id" value="{{ $member->fee_category_id }}">
+        <x-ui.field class="mbr-filters__field" :label="__('members::admin.members.fee_category')" for="md-fee-category">
+            <x-ui.input name="md-fee-category" :value="$member->feeCategory->name ?? '—'" disabled />
+        </x-ui.field>
+        <x-ui.field class="mbr-filters__field" :label="__('members::admin.dues.fiscal_year')" for="md-fiscal-year" :error="$errors->first('fiscal_year_id') ?: $errors->first('member_id')">
+            <x-ui.select name="fiscal_year_id" :options="$fiscalYears->pluck('name', 'id')->all()" />
+        </x-ui.field>
+        <x-ui.field class="mbr-filters__field" :label="__('members::admin.dues.teilbetrag')" for="md-teilbetrag" :error="$errors->first('teilbetrag')">
+            <x-ui.input type="number" name="teilbetrag" step="0.01" min="0" />
+        </x-ui.field>
+        <x-ui.field class="mbr-filters__search" :label="__('members::admin.dues.kommentar')" for="md-kommentar" :error="$errors->first('kommentar')">
+            <x-ui.input name="kommentar" />
+        </x-ui.field>
+        <x-ui.button type="submit" :block="false">{{ __('members::admin.common.save') }}</x-ui.button>
     </form>
+    <x-ui.table :caption="__('members::admin.dues.title')">
+        <x-slot:head>
+            <tr>
+                <th scope="col">{{ __('members::admin.dues.fiscal_year') }}</th>
+                <th scope="col">{{ __('members::admin.members.fee_category') }}</th>
+                <th scope="col">{{ __('members::admin.fee_categories.amount') }}</th>
+                <th scope="col">{{ __('members::admin.dues.status') }}</th>
+                <th scope="col">{{ __('members::admin.dues.paid_through') }}</th>
+                <th scope="col">{{ __('members::admin.dues.teilbetrag') }}</th>
+                <th scope="col">{{ __('members::admin.dues.kommentar') }}</th>
+            </tr>
+        </x-slot:head>
+        @forelse($dues as $due)
+            @php
+                $teilbetragDisplay = $due->teilbetrag !== null ? number_format((float) $due->teilbetrag, 2, ',', '.').' €' : '–';
+            @endphp
+            <tr>
+                <td class="ds-cell--title" data-label="{{ __('members::admin.dues.fiscal_year') }}">{{ $due->fiscalYear->name }}</td>
+                <td class="text-ink-2" data-label="{{ __('members::admin.members.fee_category') }}">{{ $due->feeCategory->name }}</td>
+                <td class="tabular-nums" data-label="{{ __('members::admin.fee_categories.amount') }}">{{ number_format((float) $due->amount, 2) }} €</td>
+                <td class="cursor-pointer"
+                    data-field="status"
+                    data-label="{{ __('members::admin.dues.status') }}"
+                    x-data="{
+                        editing: false, error: null, justSaved: false,
+                        value: @js($due->status),
+                        displayValue: @js($due->displayStatus()),
+                        labels: { ausstehend: @js(__('members::admin.dues.status_ausstehend')), bezahlt: @js(__('members::admin.dues.status_bezahlt')), ueberfaellig: @js(__('members::admin.dues.status_ueberfaellig')) },
+                        classes: @js(StatusTone::badgeClasses(StatusTone::DUE)),
+                        async save() {
+                            this.error = null;
+                            const result = await window.saveDueField({{ $due->id }}, 'status', this.value);
+                            if (result.ok) { this.editing = false; this.value = result.value; this.displayValue = result.value; this.justSaved = true; setTimeout(() => this.justSaved = false, 1500); }
+                            else { this.error = result.message; }
+                        }
+                    }"
+                    @click="if (!editing) editing = true"
+                    @click.outside="if (!error) editing = false">
+                    <span x-show="!editing" x-text="labels[displayValue]" class="ds-badge" :class="classes[displayValue] + (justSaved ? ' mbr-saved' : '')">{{ $dueLabels[$due->displayStatus()] ?? $due->displayStatus() }}</span>
+                    <div x-show="editing" @click.stop>
+                        <select x-model="value" @change="save()" class="ds-select" aria-label="{{ __('members::admin.dues.status') }}">
+                            <option value="ausstehend" x-text="labels.ausstehend"></option>
+                            <option value="bezahlt" x-text="labels.bezahlt"></option>
+                            <option value="ueberfaellig" x-text="labels.ueberfaellig"></option>
+                        </select>
+                        <p class="ds-field__error" x-show="error" x-text="error"></p>
+                    </div>
+                </td>
+                <td data-label="{{ __('members::admin.dues.paid_through') }}">
+                    <select class="ds-select" aria-label="{{ __('members::admin.dues.paid_through') }}" onchange="window.saveDuePaidThrough({{ $due->id }}, this.value)">
+                        <option value="">–</option>
+                        @foreach($fiscalYears->filter(fn ($fy) => $fy->starts_on->gte($due->fiscalYear->starts_on)) as $fiscalYear)
+                            <option value="{{ $fiscalYear->id }}" @selected($due->bezahlt_bis_fiscal_year_id === $fiscalYear->id)>{{ $fiscalYear->name }}</option>
+                        @endforeach
+                    </select>
+                </td>
+                <td class="cursor-pointer tabular-nums"
+                    data-field="teilbetrag"
+                    data-label="{{ __('members::admin.dues.teilbetrag') }}"
+                    x-data="{
+                        editing: false, error: null, justSaved: false,
+                        value: @js($due->teilbetrag ?? ''),
+                        display: @js($teilbetragDisplay),
+                        async save() {
+                            this.error = null;
+                            const result = await window.saveDueField({{ $due->id }}, 'teilbetrag', this.value || null);
+                            if (result.ok) { this.editing = false; this.display = result.value; this.justSaved = true; setTimeout(() => this.justSaved = false, 1500); }
+                            else { this.error = result.message; }
+                        }
+                    }"
+                    @click="if (!editing) editing = true"
+                    @click.outside="if (!error) editing = false">
+                    <span x-show="!editing" x-text="display" :class="{ 'mbr-partial': display !== '–', 'mbr-saved': justSaved }">{{ $teilbetragDisplay }}</span>
+                    <div x-show="editing" @click.stop>
+                        <input type="number" step="0.01" min="0" x-model="value" @blur="save()" @keydown.enter.prevent="$event.target.blur()" class="ds-input" :class="{ 'ds-input--invalid': error }" aria-label="{{ __('members::admin.dues.teilbetrag') }}">
+                        <p class="ds-field__error" x-show="error" x-text="error"></p>
+                    </div>
+                </td>
+                <td class="cursor-pointer text-ink-2"
+                    data-field="kommentar"
+                    data-label="{{ __('members::admin.dues.kommentar') }}"
+                    x-data="{
+                        editing: false, error: null, justSaved: false,
+                        value: @js($due->kommentar ?? ''),
+                        display: @js($due->kommentar ?: '–'),
+                        async save() {
+                            this.error = null;
+                            const result = await window.saveDueField({{ $due->id }}, 'kommentar', this.value || null);
+                            if (result.ok) { this.editing = false; this.display = result.value; this.justSaved = true; setTimeout(() => this.justSaved = false, 1500); }
+                            else { this.error = result.message; }
+                        }
+                    }"
+                    @click="if (!editing) editing = true"
+                    @click.outside="if (!error) editing = false">
+                    <span x-show="!editing" x-text="display" :class="{ 'mbr-saved': justSaved }">{{ $due->kommentar ?: '–' }}</span>
+                    <div x-show="editing" @click.stop>
+                        <input type="text" x-model="value" @blur="save()" @keydown.enter.prevent="$event.target.blur()" class="ds-input" :class="{ 'ds-input--invalid': error }" aria-label="{{ __('members::admin.dues.kommentar') }}">
+                        <p class="ds-field__error" x-show="error" x-text="error"></p>
+                    </div>
+                </td>
+            </tr>
+        @empty
+            <tr><td colspan="7" class="text-ink-2">–</td></tr>
+        @endforelse
+    </x-ui.table>
+</x-ui.card>
 
-    <div class="ui-card" x-data="{ composing: false }">
-        <div class="ui-card-header flex items-center justify-between">
-            <h2>{{ __('members::admin.dues.title') }}</h2>
-            <button type="button" class="ui-btn ui-btn-ghost" @click="composing = !composing">{{ __('members::admin.dues.new') }}</button>
-        </div>
-        <form x-show="composing" method="POST" action="{{ route('members.dues.store') }}" class="ui-card-body ui-row" style="border-bottom:1px solid var(--ui-border)">
-            @csrf
-            <input type="hidden" name="member_id" value="{{ $member->id }}">
-            <input type="hidden" name="fee_category_id" value="{{ $member->fee_category_id }}">
-            <div class="ui-field min-w-[10rem]">
-                <label class="ui-label">{{ __('members::admin.members.fee_category') }}</label>
-                <div class="ui-readonly-box">{{ $member->feeCategory->name ?? '—' }}</div>
-            </div>
-            <div class="ui-field min-w-[10rem]">
-                <select name="fiscal_year_id" class="ui-select">
-                    @foreach($fiscalYears as $fiscalYear)
-                        <option value="{{ $fiscalYear->id }}">{{ $fiscalYear->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="ui-field min-w-[8rem]">
-                <input type="number" step="0.01" min="0" name="teilbetrag" placeholder="{{ __('members::admin.dues.teilbetrag') }}" class="ui-input">
-            </div>
-            <div class="ui-field min-w-[12rem]">
-                <input type="text" name="kommentar" placeholder="{{ __('members::admin.dues.kommentar') }}" class="ui-input">
-            </div>
-            <button type="submit" class="ui-btn ui-btn-primary">{{ __('members::admin.common.save') }}</button>
-        </form>
-        <div class="ui-table-wrap">
-            <table class="ui-table">
-                <thead>
-                    <tr>
-                        <th>{{ __('members::admin.fiscal_years.title') }}</th>
-                        <th>{{ __('members::admin.fee_categories.title') }}</th>
-                        <th>{{ __('members::admin.fee_categories.amount') }}</th>
-                        <th>{{ __('members::admin.dues.status') }}</th>
-                        <th>{{ __('members::admin.dues.paid_through') }}</th>
-                        <th>{{ __('members::admin.dues.teilbetrag') }}</th>
-                        <th>{{ __('members::admin.dues.kommentar') }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($dues as $due)
-                        <tr>
-                            <td>{{ $due->fiscalYear->name }}</td>
-                            <td>{{ $due->feeCategory->name }}</td>
-                            <td>{{ number_format((float) $due->amount, 2) }} €</td>
-                            <td data-field="status"
-                                x-data="{
-                                    editing: false, error: null, justSaved: false,
-                                    value: @js($due->status),
-                                    displayValue: @js($due->displayStatus()),
-                                    labels: { ausstehend: @js(__('members::admin.dues.status_ausstehend')), bezahlt: @js(__('members::admin.dues.status_bezahlt')), ueberfaellig: @js(__('members::admin.dues.status_ueberfaellig')) },
-                                    classes: { ausstehend: 'ui-badge-warning', bezahlt: 'ui-badge-success', ueberfaellig: 'ui-badge-danger' },
-                                    async save() {
-                                        this.error = null;
-                                        const result = await window.saveDueField({{ $due->id }}, 'status', this.value);
-                                        if (result.ok) { this.editing = false; this.value = result.value; this.displayValue = result.value; this.justSaved = true; setTimeout(() => this.justSaved = false, 1500); }
-                                        else { this.error = result.message; }
-                                    }
-                                }"
-                                @click="if (!editing) editing = true"
-                                @click.outside="if (!error) editing = false"
-                                class="cursor-pointer">
-                                <span x-show="!editing" x-text="labels[displayValue]" :class="'ui-badge ' + classes[displayValue]" :style="justSaved && 'outline: 2px solid #3e8635; outline-offset: 2px;'"></span>
-                                <div x-show="editing" @click.stop>
-                                    <select x-model="value" @change="save()" class="ui-select">
-                                        <option value="ausstehend" x-text="labels.ausstehend"></option>
-                                        <option value="bezahlt" x-text="labels.bezahlt"></option>
-                                        <option value="ueberfaellig" x-text="labels.ueberfaellig"></option>
-                                    </select>
-                                    <p x-show="error" x-text="error" class="ui-error"></p>
-                                </div>
-                            </td>
-                            <td>
-                                <select class="ui-select" onchange="window.saveDuePaidThrough({{ $due->id }}, this.value)">
-                                    <option value="">–</option>
-                                    @foreach($fiscalYears->filter(fn ($fy) => $fy->starts_on->gte($due->fiscalYear->starts_on)) as $fiscalYear)
-                                        <option value="{{ $fiscalYear->id }}" @selected($due->bezahlt_bis_fiscal_year_id === $fiscalYear->id)>{{ $fiscalYear->name }}</option>
-                                    @endforeach
-                                </select>
-                            </td>
-                            <td data-field="teilbetrag"
-                                x-data="{
-                                    editing: false, error: null, justSaved: false,
-                                    value: @js($due->teilbetrag ?? ''),
-                                    display: @js($due->teilbetrag !== null ? number_format((float) $due->teilbetrag, 2, ',', '.').' €' : '–'),
-                                    async save() {
-                                        this.error = null;
-                                        const result = await window.saveDueField({{ $due->id }}, 'teilbetrag', this.value || null);
-                                        if (result.ok) { this.editing = false; this.display = result.value; this.justSaved = true; setTimeout(() => this.justSaved = false, 1500); }
-                                        else { this.error = result.message; }
-                                    }
-                                }"
-                                @click="if (!editing) editing = true"
-                                @click.outside="if (!error) editing = false"
-                                class="cursor-pointer">
-                                <span x-show="!editing" x-text="display" :style="(display !== '–' ? 'color:#f0ab00;font-weight:500;' : '') + (justSaved ? 'outline: 2px solid #3e8635; outline-offset: 2px;' : '')"></span>
-                                <div x-show="editing" @click.stop>
-                                    <input type="number" step="0.01" min="0" x-model="value" @blur="save()" @keydown.enter.prevent="$event.target.blur()" :style="error && 'border-color:#c9190b'" class="ui-input">
-                                    <p x-show="error" x-text="error" class="ui-error"></p>
-                                </div>
-                            </td>
-                            <td data-field="kommentar"
-                                x-data="{
-                                    editing: false, error: null, justSaved: false,
-                                    value: @js($due->kommentar ?? ''),
-                                    display: @js($due->kommentar ?: '–'),
-                                    async save() {
-                                        this.error = null;
-                                        const result = await window.saveDueField({{ $due->id }}, 'kommentar', this.value || null);
-                                        if (result.ok) { this.editing = false; this.display = result.value; this.justSaved = true; setTimeout(() => this.justSaved = false, 1500); }
-                                        else { this.error = result.message; }
-                                    }
-                                }"
-                                @click="if (!editing) editing = true"
-                                @click.outside="if (!error) editing = false"
-                                class="cursor-pointer">
-                                <span x-show="!editing" x-text="display" :style="justSaved && 'outline: 2px solid #3e8635; outline-offset: 2px;'"></span>
-                                <div x-show="editing" @click.stop>
-                                    <input type="text" x-model="value" @blur="save()" @keydown.enter.prevent="$event.target.blur()" :style="error && 'border-color:#c9190b'" class="ui-input">
-                                    <p x-show="error" x-text="error" class="ui-error"></p>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr><td colspan="7" class="text-[#6a6e73]">–</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
+@if($member->anonymized_at !== null)
+    <x-ui.notice tone="neutral">{{ __('members::admin.members.anonymized_at', ['date' => $member->anonymized_at->format('d.m.Y')]) }}</x-ui.notice>
+@elseif($member->left_at !== null)
+    <x-ui.notice tone="attention">{{ __('members::admin.members.anonymize_warning') }}</x-ui.notice>
+@endif
 
-    @if($member->anonymized_at !== null)
-        <div class="ui-card">
-            <div class="ui-card-body">
-                <p>{{ __('members::admin.members.anonymized_at', ['date' => $member->anonymized_at->format('d.m.Y')]) }}</p>
-            </div>
-        </div>
-    @elseif($member->left_at !== null)
-        <div class="ui-card">
-            <div class="ui-card-body">
-                <p class="text-[#6a6e73]">{{ __('members::admin.members.anonymize_warning') }}</p>
-            </div>
-        </div>
-    @endif
-
-    @include('members::members._history', ['changes' => $changes])
-</div>
-
+@include('members::members._history', ['changes' => $changes])
 
 @once
     @push('scripts')

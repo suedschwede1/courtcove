@@ -112,6 +112,7 @@ return [
         'status_ueberfaellig' => 'Überfällig',
         'teilbetrag' => 'Teilbetrag',
         'kommentar' => 'Kommentar',
+        'fiscal_year' => 'Fiskaljahr',
         'paid_through' => 'Bezahlt bis',
         'due_date' => 'Fällig am',
         'field_update_failed' => 'Speichern fehlgeschlagen. Bitte später erneut versuchen.',

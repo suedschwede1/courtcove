@@ -697,3 +697,45 @@
         }
     }
 }
+
+/* Member edit page: header actions, dues card, change history. */
+@layer components {
+    .mbr-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .mbr-header-form {
+        display: contents;
+    }
+
+    .mbr-dues-card {
+        overflow: hidden;
+    }
+
+    .mbr-compose {
+        padding: 16px 18px;
+        border-top: 1px solid var(--color-line);
+    }
+
+    .mbr-partial {
+        color: var(--color-warn-ink);
+        font-weight: 500;
+    }
+
+    @media (width < 48rem) {
+        .mbr-compose {
+            gap: 8px;
+            padding: 12px 16px;
+        }
+
+        .mbr-compose > .ds-field,
+        .mbr-compose > .ds-btn {
+            flex: 1 1 100%;
+        }
+    }
+}

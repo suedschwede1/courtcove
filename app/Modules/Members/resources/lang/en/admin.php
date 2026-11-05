@@ -112,6 +112,7 @@ return [
         'status_ueberfaellig' => 'Overdue',
         'teilbetrag' => 'Partial amount',
         'kommentar' => 'Comment',
+        'fiscal_year' => 'Fiscal year',
         'paid_through' => 'Paid through',
         'due_date' => 'Due date',
         'field_update_failed' => 'Saving failed. Please try again later.',

@@ -108,6 +108,30 @@ final class MembersInlineEditTest extends DuskTestCase
         }
     }
 
+    #[Test]
+    public function due_teilbetrag_saves_on_edit_page(): void
+    {
+        $admin = $this->createAdminUser('dusk_members');
+        $member = $this->createMember();
+        $due = $this->createDue($member);
+
+        try {
+            $this->browse(function (Browser $browser) use ($admin, $member, $due): void {
+                $browser->loginAs($admin)
+                    ->visit('/members/'.$member->id.'/edit')
+                    ->click('td[data-field="teilbetrag"]')
+                    ->waitFor('td[data-field="teilbetrag"] input')
+                    ->clear('td[data-field="teilbetrag"] input')
+                    ->type('td[data-field="teilbetrag"] input', '50')
+                    ->keys('td[data-field="teilbetrag"] input', '{enter}')
+                    ->waitUsing(5, 100, fn () => (float) MemberDue::find($due->id)?->teilbetrag === 50.0)
+                    ->waitFor('td[data-field="teilbetrag"] .mbr-partial');
+            });
+        } finally {
+            $this->deleteTestUser('dusk_members');
+        }
+    }
+
     private function createMember(): Member
     {
         return Member::factory()->create([

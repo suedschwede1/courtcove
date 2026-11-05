@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-05
 
+- Member edit page uses the new header actions, dues card and change history; partial payments are highlighted without inline colours.
 - Members dashboard shows key figures and age/category bars in the new style; fiscal years, functions and fee categories use the shared table.
 - Members list uses the new table, badges and filters; on phones each member becomes a card with status, payment and category still editable in place.
 - Members area gets the dark admin sidebar with grouped links, a phone menu behind one button and the new page header.

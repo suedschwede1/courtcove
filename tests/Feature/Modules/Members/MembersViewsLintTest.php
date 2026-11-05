@@ -26,6 +26,8 @@ class MembersViewsLintTest extends TestCase
         'fiscal-years/index.blade.php',
         'functions/index.blade.php',
         'fee-categories/index.blade.php',
+        'members/edit.blade.php',
+        'members/_history.blade.php',
     ];
 
     private const VIEWS_PREFIX = 'Modules/Members/resources/views/';
