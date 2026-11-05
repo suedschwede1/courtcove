@@ -148,6 +148,21 @@ class MembersLayoutTest extends TestCase
     }
 
     #[Test]
+    public function pages_work_the_same_with_admin_mode_on_and_off(): void
+    {
+        $admin = $this->admin();
+        $urls = array_keys($this->pages());
+
+        foreach (['0', '1'] as $mode) {
+            foreach ($urls as $url) {
+                $html = (string) $this->actingAs($admin)->withCookie('admin_mode', $mode)->get($url)->assertOk()->getContent();
+                $this->assertStringContainsString('<nav class="ds-tabs mbr-tabs', $html, $url.' admin_mode='.$mode);
+                $this->assertSame(1, substr_count($html, '<h1'), $url.' admin_mode='.$mode);
+            }
+        }
+    }
+
+    #[Test]
     public function list_and_detail_pin_their_primary_action_on_phones(): void
     {
         $html = $this->render(route('members.index'));
