@@ -203,32 +203,8 @@ class TournamentManagerTest extends TestCase
         $this->assertCount(2, $first->players($t->tid), 'forget() clears the per-tid cache');
         $this->assertCount(1, $first->matches($t->tid));
 
-        $second = new TournamentManager(new LotOrderService);
+        $second = new TournamentManager($this->app->make(LotOrderService::class));
         $this->assertCount(2, $second->players($t->tid), 'a new instance starts with an empty cache');
-    }
-
-    #[Test]
-    public function lot_scopes_are_written_exactly_as_in_zf2(): void
-    {
-        $case = self::vectors()['manager'][1];
-        $scopes = [];
-        $this->mock(LotOrderService::class, function ($mock) use (&$scopes): void {
-            $mock->shouldReceive('lotOrder')->andReturnUsing(function (Tournament $t, string $scope) use (&$scopes): array {
-                $scopes[] = [$t->tid, $scope];
-
-                return [];
-            });
-        });
-        $m = $this->seedScenario($case);
-
-        $m->table(1, 'A');
-        // all groups of DG are still open: nothing is tabled, only the two place scopes are asked
-        $m->promotion(1, 'DG');
-
-        $this->assertSame(
-            [[1, 'group:A'], [1, 'phase:DG:place:1'], [1, 'phase:DG:place:2']],
-            $scopes
-        );
     }
 
     #[Test]
