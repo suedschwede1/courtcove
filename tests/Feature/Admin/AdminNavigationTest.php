@@ -54,7 +54,7 @@ final class AdminNavigationTest extends TestCase
             [
                 ['dashboard', 'bookings', 'events', 'statistics'],
                 ['users', 'login_history'],
-                ['pyramid', 'draws', 'mixed'],
+                ['pyramid', 'championship', 'draws', 'mixed'],
                 ['squares', 'texts', 'behavior', 'database', 'api_tokens', 'testmail'],
             ],
             array_map(fn ($g) => array_map(fn ($i) => $i->key, $g->items), $groups),
@@ -99,14 +99,15 @@ final class AdminNavigationTest extends TestCase
 
         $keys = fn (array $groups) => array_map(fn ($g) => $g->key, $groups);
 
-        // Only entries whose routes exist show up: Pyramid, Draws and Mixed are Laravel modules, the rest still lives in ZF2.
+        // Only entries whose routes exist show up: Pyramid, Championship, Draws and Mixed are Laravel modules.
         $groups = $this->groupsFor($admin, route('admin.dashboard'));
         $this->assertContains('tournaments', $keys($groups));
         $tournaments = collect($groups)->firstWhere('key', 'tournaments');
-        $this->assertSame(['pyramid', 'draws', 'mixed'], array_map(fn ($i) => $i->key, $tournaments->items));
+        $this->assertSame(['pyramid', 'championship', 'draws', 'mixed'], array_map(fn ($i) => $i->key, $tournaments->items));
         $this->assertSame(route('pyramide.admin.index'), $tournaments->items[0]->url);
-        $this->assertSame(route('draw.index'), $tournaments->items[1]->url);
-        $this->assertSame(route('mixed.admin.index'), $tournaments->items[2]->url);
+        $this->assertSame(route('tournament.admin'), $tournaments->items[1]->url);
+        $this->assertSame(route('draw.index'), $tournaments->items[2]->url);
+        $this->assertSame(route('mixed.admin.index'), $tournaments->items[3]->url);
 
         // An assist user sees the draws entry with the admin.draw privilege only.
         $drawAssist = User::factory()->create(['status' => 'assist']);

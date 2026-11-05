@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Modules\Tournament\Http\Controllers\Admin\AdminOverviewController;
 use App\Modules\Tournament\Http\Controllers\BracketController;
 use App\Modules\Tournament\Http\Controllers\GroupsController;
 use App\Modules\Tournament\Http\Controllers\MatchController;
@@ -34,4 +35,12 @@ Route::prefix('tournament')->name('tournament.')
         Route::post('match/{tmid}/delete', [MatchController::class, 'delete'])->whereNumber('tmid')->name('match.delete');
         Route::get('match/{tmid}/{action}', [MatchController::class, 'redirectToMatch'])
             ->whereNumber('tmid')->whereIn('action', ['save', 'confirm', 'delete'])->name('match.redirect');
+    });
+
+// Championship admin "Turnierleitung" (old AdminController, privilege admin.tournament). The gate runs after
+// the module login and before any posted or route id is resolved (403 before 404).
+Route::prefix('tournament/admin')->name('tournament.admin')
+    ->middleware(['tournament-base.login:tournament::common.login_required', 'can:admin.tournament'])
+    ->group(function (): void {
+        Route::get('', [AdminOverviewController::class, 'index'])->name('');
     });

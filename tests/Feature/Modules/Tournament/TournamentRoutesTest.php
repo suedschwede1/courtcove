@@ -20,8 +20,8 @@ use Tests\TestCase;
 
 /**
  * Route matrix of the championship (port of the old routes.php / module.config.php): paths, parameter
- * patterns, names, login and CSRF protection of every `tournament/*` route. Admin routes join the matrix
- * with their own task.
+ * patterns, names, login and CSRF protection of every `tournament/*` route. The admin routes have their own
+ * matrix in TournamentAdminRoutesTest; the login and CSRF checks here cover them too.
  */
 class TournamentRoutesTest extends TestCase
 {
@@ -88,7 +88,7 @@ class TournamentRoutesTest extends TestCase
     {
         $registered = collect(Route::getRoutes()->getRoutes())
             ->map(fn (RoutingRoute $r) => (string) $r->getName())
-            ->filter(fn (string $name) => str_starts_with($name, 'tournament.') && ! str_starts_with($name, 'tournament.admin.'))
+            ->filter(fn (string $name) => str_starts_with($name, 'tournament.') && ! str_starts_with($name, 'tournament.admin'))
             ->unique()->sort()->values()->all();
         $tabled = collect(self::routeTable())->map(fn (array $row) => $row[2])->unique()->sort()->values()->all();
 
@@ -154,7 +154,7 @@ class TournamentRoutesTest extends TestCase
     public function guests_are_sent_to_login_on_every_route(): void
     {
         foreach ($this->tournamentRoutes() as $route) {
-            $uri = '/'.str_replace(['{group?}', '{filter?}', '{phase?}', '{tmid}', '{action}'], ['A', 'alle', 'KO_A', '1', 'save'], $route->uri());
+            $uri = '/'.str_replace(['{group?}', '{filter?}', '{phase?}', '{tmid}', '{action}', '{tpid}', '{did}'], ['A', 'alle', 'KO_A', '1', 'save', '1', '1'], $route->uri());
             $method = in_array('POST', $route->methods(), true) ? 'post' : 'get';
 
             $this->{$method}($uri)

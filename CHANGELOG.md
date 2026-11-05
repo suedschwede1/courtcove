@@ -8,6 +8,9 @@ reference point is `mobile-view-stable` (see [README.md](README.md#layout-refere
 When adding an entry: describe the *why*/user-facing effect in one line, not the diff —
 `git log` already has that. Add new entries at the top, under today's date.
 
+## 2026-11-06
+- Phase 2: championship admin in the new design (not live yet).
+
 ## 2026-11-05
 - Phase 2: deleting a discarded draw locks it first, so no late token claim can slip in.
 - Phase 2: closing the pick phase assigns non-pickers reproducibly and fills the groups.
