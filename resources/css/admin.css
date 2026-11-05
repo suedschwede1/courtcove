@@ -4,4 +4,167 @@
  * Colours come from var(--color-*) tokens.
  */
 @layer components {
+    /* Sidebar (desktop column; the phone slide-in comes with the layout). */
+    .ds-admin-sidebar {
+        display: flex;
+        flex: 0 0 240px;
+        flex-direction: column;
+        gap: 18px;
+        width: 240px;
+        max-width: 100%;
+        min-height: 100vh;
+        padding: 20px 14px;
+        box-sizing: border-box;
+        background: var(--color-chrome);
+        color: var(--color-chrome-ink);
+    }
+
+    .ds-admin-sidebar__top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .ds-admin-sidebar__brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+        padding: 0 6px;
+        color: var(--color-surface);
+        text-decoration: none;
+    }
+
+    .ds-admin-sidebar__titles {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        line-height: 1.05;
+    }
+
+    .ds-admin-sidebar__club {
+        font: 700 20px / 1.05 var(--font-display);
+    }
+
+    .ds-admin-sidebar__eyebrow {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--color-chrome-muted);
+    }
+
+    .ds-admin-sidebar__close {
+        display: none;
+    }
+
+    .ds-admin-sidebar__back {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 44px;
+        padding: 0 10px;
+        border: 1px solid var(--color-chrome-line);
+        border-radius: var(--radius-md);
+        color: var(--color-chrome-ink);
+        font-weight: 600;
+        text-decoration: none;
+        transition: background-color 0.12s, color 0.12s;
+    }
+
+    .ds-admin-sidebar__nav {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .ds-admin-sidebar__section {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .ds-admin-sidebar__group {
+        margin: 0;
+        padding: 0 10px 4px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        /* DESIGN.md "Admin": the sidebar group label colour has no light token. */
+        color: rgb(167 157 143);
+    }
+
+    .ds-admin-sidebar__list {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .ds-admin-sidebar__link {
+        display: flex;
+        align-items: center;
+        min-height: 40px;
+        padding: 0 10px;
+        border-radius: var(--radius-md);
+        color: var(--color-chrome-ink);
+        font-size: 15px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: background-color 0.12s, color 0.12s;
+    }
+
+    .ds-admin-sidebar__link:hover,
+    .ds-admin-sidebar__back:hover {
+        background: rgb(255 255 255 / 0.08);
+        color: var(--color-surface);
+    }
+
+    .ds-admin-sidebar__link[aria-current="page"] {
+        background: var(--color-clay);
+        color: var(--color-on-clay);
+        font-weight: 700;
+    }
+
+    .ds-admin-sidebar__foot {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: auto;
+        padding: 14px 0 0;
+        border-top: 1px solid var(--color-chrome-line);
+    }
+
+    .ds-admin-sidebar__alias {
+        padding: 0 10px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--color-chrome-muted);
+        overflow-wrap: anywhere;
+    }
+
+    .ds-admin-sidebar__logout {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        min-height: 40px;
+        padding: 0 10px;
+        border: 0;
+        border-radius: var(--radius-md);
+        background: transparent;
+        color: var(--color-chrome-ink);
+        font: 500 15px / 1.2 var(--font-body);
+        text-align: left;
+        cursor: pointer;
+        transition: background-color 0.12s, color 0.12s;
+    }
+
+    .ds-admin-sidebar__logout:hover {
+        background: rgb(255 255 255 / 0.08);
+        color: var(--color-surface);
+    }
 }

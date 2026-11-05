@@ -1,85 +1,42 @@
 @php
-    $sidebarWidth = '220px';
-    $itemFontSize = '16px';
-    $itemPaddingActive = '11px';
-    $itemPaddingDefault = '17px';
+    $clubName = trim((string) \App\Models\Option::getValue('service.name', config('booking.name')));
+    $clubName = $clubName !== '' ? $clubName : config('booking.name');
+    $navGroups = auth()->user() ? app(\App\Services\AdminNavigation::class)->groups(auth()->user(), request()) : [];
 @endphp
-<aside style="width:{{ $sidebarWidth }}; min-height:100vh; background:#1b1d21; flex-shrink:0; display:flex; flex-direction:column;">
-    <a href="{{ route('calendar.index') }}" onmouseover="this.style.color='#7fb3e8';" onmouseout="this.style.color='#4d8fdb';" style="display:block; padding:14px 14px 10px; border-bottom:1px solid rgba(255,255,255,0.08); margin-bottom:8px; font-family:var(--font-body); font-size:14px; font-weight:600; text-decoration:none; color:#4d8fdb; transition:color 0.15s ease;">
-        ← {{ __('booking.admin.to_calendar') }}
-    </a>
-
-    <div style="padding:14px 14px 10px; border-bottom:1px solid rgba(255,255,255,0.08); margin-bottom:8px;">
-        <span style="font-family:var(--font-body); font-size:11px; color:#6a6e73; font-weight:600; text-transform:uppercase; letter-spacing:0.08em;">
-            {{ __('booking.nav.admin') }}
-        </span>
+<aside id="admin-nav" class="ds-admin-sidebar ds-on-chrome" x-bind:class="{ 'is-open': navOpen }" aria-label="{{ __('booking.admin.nav.label') }}">
+    <div class="ds-admin-sidebar__top">
+        <a href="{{ route('calendar.index') }}" class="ds-admin-sidebar__brand">
+            <x-ui.logo-mark :name="$clubName" :size="36" />
+            <span class="ds-admin-sidebar__titles">
+                <span class="ds-admin-sidebar__club">{{ $clubName }}</span>
+                <span class="ds-admin-sidebar__eyebrow">{{ __('booking.admin.nav.eyebrow') }}</span>
+            </span>
+        </a>
+        <x-ui.icon-button icon="close" variant="chrome" class="ds-admin-sidebar__close" :label="__('booking.admin.nav.close')" x-ref="navClose" x-on:click="navOpen = false; $refs.navButton?.focus()" />
     </div>
 
-    <nav style="flex:1; padding:6px 0;">
-        @can('admin.see-menu')
-            <a href="{{ route('admin.dashboard') }}" onmouseover="if (!this.dataset.active) { this.style.background='#26292e'; this.style.color='#ffffff'; }" onmouseout="if (!this.dataset.active) { this.style.background='transparent'; this.style.color='#b2b6bd'; }" data-active="{{ request()->routeIs('admin.dashboard') ? '1' : '' }}" style="display:block; padding:12px 14px 12px {{ request()->routeIs('admin.dashboard') ? $itemPaddingActive : $itemPaddingDefault }}; font-family:var(--font-body); font-size:{{ $itemFontSize }}; line-height:1.35; text-decoration:none; transition:background 0.15s ease, color 0.15s ease; color:{{ request()->routeIs('admin.dashboard') ? '#ffffff' : '#b2b6bd' }}; font-weight:{{ request()->routeIs('admin.dashboard') ? '700' : '400' }}; background:{{ request()->routeIs('admin.dashboard') ? '#34363b' : 'transparent' }}; border-left:{{ request()->routeIs('admin.dashboard') ? '3px solid #bf4316' : '3px solid transparent' }};">
-                {{ __('booking.admin.dashboard.heading') }}
-            </a>
-        @endcan
+    <a href="{{ route('calendar.index') }}" class="ds-admin-sidebar__back"><x-ui.icon name="chevron-left" :size="16" />{{ __('booking.admin.to_calendar') }}</a>
 
-        @can('admin.user')
-            <a href="{{ route('admin.users.index') }}" onmouseover="if (!this.dataset.active) { this.style.background='#26292e'; this.style.color='#ffffff'; }" onmouseout="if (!this.dataset.active) { this.style.background='transparent'; this.style.color='#b2b6bd'; }" data-active="{{ request()->routeIs('admin.users.*') ? '1' : '' }}" style="display:block; padding:12px 14px 12px {{ request()->routeIs('admin.users.*') ? $itemPaddingActive : $itemPaddingDefault }}; font-family:var(--font-body); font-size:{{ $itemFontSize }}; line-height:1.35; text-decoration:none; transition:background 0.15s ease, color 0.15s ease; color:{{ request()->routeIs('admin.users.*') ? '#ffffff' : '#b2b6bd' }}; font-weight:{{ request()->routeIs('admin.users.*') ? '700' : '400' }}; background:{{ request()->routeIs('admin.users.*') ? '#34363b' : 'transparent' }}; border-left:{{ request()->routeIs('admin.users.*') ? '3px solid #bf4316' : '3px solid transparent' }};">
-                {{ __('booking.admin.users.members') }}
-            </a>
-        @endcan
-
-        @can('admin.user')
-            <a href="{{ route('admin.login-history.index') }}" onmouseover="if (!this.dataset.active) { this.style.background='#26292e'; this.style.color='#ffffff'; }" onmouseout="if (!this.dataset.active) { this.style.background='transparent'; this.style.color='#b2b6bd'; }" data-active="{{ request()->routeIs('admin.login-history.*') ? '1' : '' }}" style="display:block; padding:12px 14px 12px {{ request()->routeIs('admin.login-history.*') ? $itemPaddingActive : $itemPaddingDefault }}; font-family:var(--font-body); font-size:{{ $itemFontSize }}; line-height:1.35; text-decoration:none; transition:background 0.15s ease, color 0.15s ease; color:{{ request()->routeIs('admin.login-history.*') ? '#ffffff' : '#b2b6bd' }}; font-weight:{{ request()->routeIs('admin.login-history.*') ? '700' : '400' }}; background:{{ request()->routeIs('admin.login-history.*') ? '#34363b' : 'transparent' }}; border-left:{{ request()->routeIs('admin.login-history.*') ? '3px solid #bf4316' : '3px solid transparent' }};">
-                {{ __('booking.admin.login_history.title') }}
-            </a>
-        @endcan
-
-        @can('admin.booking')
-            <a href="{{ route('admin.bookings.index') }}" onmouseover="if (!this.dataset.active) { this.style.background='#26292e'; this.style.color='#ffffff'; }" onmouseout="if (!this.dataset.active) { this.style.background='transparent'; this.style.color='#b2b6bd'; }" data-active="{{ request()->routeIs('admin.bookings.*') ? '1' : '' }}" style="display:block; padding:12px 14px 12px {{ request()->routeIs('admin.bookings.*') ? $itemPaddingActive : $itemPaddingDefault }}; font-family:var(--font-body); font-size:{{ $itemFontSize }}; line-height:1.35; text-decoration:none; transition:background 0.15s ease, color 0.15s ease; color:{{ request()->routeIs('admin.bookings.*') ? '#ffffff' : '#b2b6bd' }}; font-weight:{{ request()->routeIs('admin.bookings.*') ? '700' : '400' }}; background:{{ request()->routeIs('admin.bookings.*') ? '#34363b' : 'transparent' }}; border-left:{{ request()->routeIs('admin.bookings.*') ? '3px solid #bf4316' : '3px solid transparent' }};">
-                {{ __('booking.admin.bookings.title') }}
-            </a>
-        @endcan
-
-        @can('admin.booking')
-            <a href="{{ route('admin.statistics.index') }}" onmouseover="if (!this.dataset.active) { this.style.background='#26292e'; this.style.color='#ffffff'; }" onmouseout="if (!this.dataset.active) { this.style.background='transparent'; this.style.color='#b2b6bd'; }" data-active="{{ request()->routeIs('admin.statistics.*') ? '1' : '' }}" style="display:block; padding:12px 14px 12px {{ request()->routeIs('admin.statistics.*') ? $itemPaddingActive : $itemPaddingDefault }}; font-family:var(--font-body); font-size:{{ $itemFontSize }}; line-height:1.35; text-decoration:none; transition:background 0.15s ease, color 0.15s ease; color:{{ request()->routeIs('admin.statistics.*') ? '#ffffff' : '#b2b6bd' }}; font-weight:{{ request()->routeIs('admin.statistics.*') ? '700' : '400' }}; background:{{ request()->routeIs('admin.statistics.*') ? '#34363b' : 'transparent' }}; border-left:{{ request()->routeIs('admin.statistics.*') ? '3px solid #bf4316' : '3px solid transparent' }};">
-                {{ __('booking.admin.statistics.title') }}
-            </a>
-        @endcan
-
-        @can('admin.event')
-            <a href="{{ route('admin.events.index') }}" onmouseover="if (!this.dataset.active) { this.style.background='#26292e'; this.style.color='#ffffff'; }" onmouseout="if (!this.dataset.active) { this.style.background='transparent'; this.style.color='#b2b6bd'; }" data-active="{{ request()->routeIs('admin.events.*') ? '1' : '' }}" style="display:block; padding:12px 14px 12px {{ request()->routeIs('admin.events.*') ? $itemPaddingActive : $itemPaddingDefault }}; font-family:var(--font-body); font-size:{{ $itemFontSize }}; line-height:1.35; text-decoration:none; transition:background 0.15s ease, color 0.15s ease; color:{{ request()->routeIs('admin.events.*') ? '#ffffff' : '#b2b6bd' }}; font-weight:{{ request()->routeIs('admin.events.*') ? '700' : '400' }}; background:{{ request()->routeIs('admin.events.*') ? '#34363b' : 'transparent' }}; border-left:{{ request()->routeIs('admin.events.*') ? '3px solid #bf4316' : '3px solid transparent' }};">
-                {{ __('booking.admin.events.title') }}
-            </a>
-        @endcan
-
-        @can('admin.config')
-            <a href="{{ route('admin.squares.index') }}" onmouseover="if (!this.dataset.active) { this.style.background='#26292e'; this.style.color='#ffffff'; }" onmouseout="if (!this.dataset.active) { this.style.background='transparent'; this.style.color='#b2b6bd'; }" data-active="{{ request()->routeIs('admin.squares.*') ? '1' : '' }}" style="display:block; padding:12px 14px 12px {{ request()->routeIs('admin.squares.*') ? $itemPaddingActive : $itemPaddingDefault }}; font-family:var(--font-body); font-size:{{ $itemFontSize }}; line-height:1.35; text-decoration:none; transition:background 0.15s ease, color 0.15s ease; color:{{ request()->routeIs('admin.squares.*') ? '#ffffff' : '#b2b6bd' }}; font-weight:{{ request()->routeIs('admin.squares.*') ? '700' : '400' }}; background:{{ request()->routeIs('admin.squares.*') ? '#34363b' : 'transparent' }}; border-left:{{ request()->routeIs('admin.squares.*') ? '3px solid #bf4316' : '3px solid transparent' }};">
-                {{ __('booking.admin.squares.title') }}
-            </a>
-        @endcan
-
-        @can('admin.config')
-            <a href="{{ route('admin.database.index') }}" onmouseover="if (!this.dataset.active) { this.style.background='#26292e'; this.style.color='#ffffff'; }" onmouseout="if (!this.dataset.active) { this.style.background='transparent'; this.style.color='#b2b6bd'; }" data-active="{{ request()->routeIs('admin.database.*') ? '1' : '' }}" style="display:block; padding:12px 14px 12px {{ request()->routeIs('admin.database.*') ? $itemPaddingActive : $itemPaddingDefault }}; font-family:var(--font-body); font-size:{{ $itemFontSize }}; line-height:1.35; text-decoration:none; transition:background 0.15s ease, color 0.15s ease; color:{{ request()->routeIs('admin.database.*') ? '#ffffff' : '#b2b6bd' }}; font-weight:{{ request()->routeIs('admin.database.*') ? '700' : '400' }}; background:{{ request()->routeIs('admin.database.*') ? '#34363b' : 'transparent' }}; border-left:{{ request()->routeIs('admin.database.*') ? '3px solid #bf4316' : '3px solid transparent' }};">
-                {{ __('booking.admin.database.title') }}
-            </a>
-        @endcan
-
-        @can('admin.config')
-            <a href="{{ route('admin.config.edit') }}" onmouseover="if (!this.dataset.active) { this.style.background='#26292e'; this.style.color='#ffffff'; }" onmouseout="if (!this.dataset.active) { this.style.background='transparent'; this.style.color='#b2b6bd'; }" data-active="{{ request()->routeIs('admin.config.edit') || request()->routeIs('admin.config.update') ? '1' : '' }}" style="display:block; padding:12px 14px 12px {{ request()->routeIs('admin.config.edit') || request()->routeIs('admin.config.update') ? $itemPaddingActive : $itemPaddingDefault }}; font-family:var(--font-body); font-size:{{ $itemFontSize }}; line-height:1.35; text-decoration:none; transition:background 0.15s ease, color 0.15s ease; color:{{ request()->routeIs('admin.config.edit') || request()->routeIs('admin.config.update') ? '#ffffff' : '#b2b6bd' }}; font-weight:{{ request()->routeIs('admin.config.edit') || request()->routeIs('admin.config.update') ? '700' : '400' }}; background:{{ request()->routeIs('admin.config.edit') || request()->routeIs('admin.config.update') ? '#34363b' : 'transparent' }}; border-left:{{ request()->routeIs('admin.config.edit') || request()->routeIs('admin.config.update') ? '3px solid #bf4316' : '3px solid transparent' }};">
-                {{ __('booking.admin.texts') }}
-            </a>
-        @endcan
-
-        @can('admin.config')
-            <a href="{{ route('admin.config.behavior.edit') }}" onmouseover="if (!this.dataset.active) { this.style.background='#26292e'; this.style.color='#ffffff'; }" onmouseout="if (!this.dataset.active) { this.style.background='transparent'; this.style.color='#b2b6bd'; }" data-active="{{ request()->routeIs('admin.config.behavior.*') ? '1' : '' }}" style="display:block; padding:12px 14px 12px {{ request()->routeIs('admin.config.behavior.*') ? $itemPaddingActive : $itemPaddingDefault }}; font-family:var(--font-body); font-size:{{ $itemFontSize }}; line-height:1.35; text-decoration:none; transition:background 0.15s ease, color 0.15s ease; color:{{ request()->routeIs('admin.config.behavior.*') ? '#ffffff' : '#b2b6bd' }}; font-weight:{{ request()->routeIs('admin.config.behavior.*') ? '700' : '400' }}; background:{{ request()->routeIs('admin.config.behavior.*') ? '#34363b' : 'transparent' }}; border-left:{{ request()->routeIs('admin.config.behavior.*') ? '3px solid #bf4316' : '3px solid transparent' }};">
-                {{ __('booking.admin.behavior') }}
-            </a>
-        @endcan
-
-        @can('admin.api-tokens')
-            <a href="{{ route('admin.api-tokens.index') }}" onmouseover="if (!this.dataset.active) { this.style.background='#26292e'; this.style.color='#ffffff'; }" onmouseout="if (!this.dataset.active) { this.style.background='transparent'; this.style.color='#b2b6bd'; }" data-active="{{ request()->routeIs('admin.api-tokens.*') ? '1' : '' }}" style="display:block; padding:12px 14px 12px {{ request()->routeIs('admin.api-tokens.*') ? $itemPaddingActive : $itemPaddingDefault }}; font-family:var(--font-body); font-size:{{ $itemFontSize }}; line-height:1.35; text-decoration:none; transition:background 0.15s ease, color 0.15s ease; color:{{ request()->routeIs('admin.api-tokens.*') ? '#ffffff' : '#b2b6bd' }}; font-weight:{{ request()->routeIs('admin.api-tokens.*') ? '700' : '400' }}; background:{{ request()->routeIs('admin.api-tokens.*') ? '#34363b' : 'transparent' }}; border-left:{{ request()->routeIs('admin.api-tokens.*') ? '3px solid #bf4316' : '3px solid transparent' }};">
-                {{ __('booking.admin.api_tokens.title') }}
-            </a>
-        @endcan
+    <nav class="ds-admin-sidebar__nav" aria-label="{{ __('booking.admin.nav.label') }}">
+        @foreach($navGroups as $group)
+            <div class="ds-admin-sidebar__section">
+                <p class="ds-admin-sidebar__group" id="admin-nav-{{ $group->key }}">{{ $group->label }}</p>
+                <ul class="ds-admin-sidebar__list" aria-labelledby="admin-nav-{{ $group->key }}">
+                    @foreach($group->items as $item)
+                        <li><a href="{{ $item->url }}" class="ds-admin-sidebar__link"@if($item->active) aria-current="page"@endif>{{ $item->label }}</a></li>
+                    @endforeach
+                </ul>
+            </div>
+        @endforeach
     </nav>
+
+    @auth
+        <div class="ds-admin-sidebar__foot">
+            <span class="ds-admin-sidebar__alias">{{ auth()->user()->alias }}</span>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="ds-admin-sidebar__logout">{{ __('booking.nav.logout') }}</button>
+            </form>
+        </div>
+    @endauth
 </aside>
