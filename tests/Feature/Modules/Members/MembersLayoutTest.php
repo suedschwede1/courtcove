@@ -35,6 +35,17 @@ class MembersLayoutTest extends TestCase
         return substr($html, (int) $start, (int) $end - (int) $start);
     }
 
+    /** The opening <aside> tag; its Alpine handlers contain "=>", so a [^>]* match would stop early. */
+    private function asideTag(string $html): string
+    {
+        $start = strpos($html, '<aside');
+        $end = strpos($html, 'class="mbr-sidebar__brand"');
+        $this->assertNotFalse($start, 'sidebar <aside> missing');
+        $this->assertNotFalse($end, 'sidebar brand row missing');
+
+        return substr($html, (int) $start, (int) $end - (int) $start);
+    }
+
     #[Test]
     public function sidebar_is_rendered_once_and_never_cloaked(): void
     {
@@ -44,9 +55,9 @@ class MembersLayoutTest extends TestCase
         $this->assertSame(1, substr_count($html, '<nav aria-label="Mitglieder"'));
         $this->assertSame(1, substr_count($html, '<aside'));
 
-        $this->assertSame(1, preg_match('/<aside\b[^>]*>/', $html, $tag));
-        $this->assertStringNotContainsString('x-show', $tag[0]);
-        $this->assertStringNotContainsString('x-cloak', $tag[0]);
+        $tag = $this->asideTag($html);
+        $this->assertStringNotContainsString('x-show', $tag);
+        $this->assertStringNotContainsString('x-cloak', $tag);
 
         $this->assertStringContainsString("x-bind:class=\"{ 'mbr-shell--nav-open': navOpen }\"", $html);
     }
@@ -83,6 +94,20 @@ class MembersLayoutTest extends TestCase
         $this->assertStringContainsString('aria-controls="members-sidebar"', $html);
         $this->assertStringContainsString('x-bind:aria-expanded', $html);
         $this->assertStringContainsString('aria-label="'.e(__('booking.nav.open_menu')).'"', $html);
+    }
+
+    #[Test]
+    public function phone_menu_traps_focus_and_restores_it_on_close(): void
+    {
+        $html = $this->render('/members/dashboard');
+
+        $tag = $this->asideTag($html);
+        $this->assertStringContainsString('@keydown.tab="if (!navOpen) return;', $tag);
+        $this->assertStringContainsString('$event.preventDefault(); f[f.length - 1].focus()', $tag);
+        $this->assertStringContainsString('$event.preventDefault(); f[0].focus()', $tag);
+
+        $this->assertStringContainsString('@keydown.escape.window="if (navOpen) { navOpen = false; $refs.menuButton.focus() }"', $html);
+        $this->assertMatchesRegularExpression('/class="mbr-shell__backdrop"[^>]*@click="navOpen = false; \$refs\.menuButton\.focus\(\)"/', $html);
     }
 
     #[Test]

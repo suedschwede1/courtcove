@@ -3,7 +3,8 @@
     $clubName = $clubName !== '' ? $clubName : (string) config('booking.name');
     $groups = \App\Modules\Members\Support\MembersNavigation::groups(request());
 @endphp
-<aside id="members-sidebar" class="mbr-sidebar ds-on-chrome">
+<aside id="members-sidebar" class="mbr-sidebar ds-on-chrome"
+       @keydown.tab="if (!navOpen) return; const f = [...$el.querySelectorAll('a[href], button:not([disabled])')].filter(e => e.offsetParent !== null); if (f.length) { if ($event.shiftKey && document.activeElement === f[0]) { $event.preventDefault(); f[f.length - 1].focus() } else if (!$event.shiftKey && document.activeElement === f[f.length - 1]) { $event.preventDefault(); f[0].focus() } }">
     <div class="mbr-sidebar__brand">
         <x-ui.logo-mark :name="$clubName" :size="36" />
         <span class="mbr-sidebar__brand-text">

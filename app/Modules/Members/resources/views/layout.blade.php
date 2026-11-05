@@ -9,7 +9,7 @@
 @endpush
 
 @section('body')
-<div class="mbr-shell" x-data="{ navOpen: false }" x-bind:class="{ 'mbr-shell--nav-open': navOpen }" @keydown.escape.window="navOpen = false" x-effect="document.body.classList.toggle('ds-scroll-lock', navOpen)">
+<div class="mbr-shell" x-data="{ navOpen: false }" x-bind:class="{ 'mbr-shell--nav-open': navOpen }" @keydown.escape.window="if (navOpen) { navOpen = false; $refs.menuButton.focus() }" x-effect="document.body.classList.toggle('ds-scroll-lock', navOpen)">
     <div class="mbr-topbar ds-on-chrome">
         <x-ui.icon-button icon="menu" variant="chrome" :label="__('booking.nav.open_menu')" aria-controls="members-sidebar" x-bind:aria-expanded="navOpen ? 'true' : 'false'" x-ref="menuButton" x-on:click="navOpen = true; $nextTick(() => $refs.navClose.focus())" />
         <div class="mbr-topbar__text">
@@ -19,7 +19,7 @@
     </div>
 
     <x-members::sidebar />
-    <div class="mbr-shell__backdrop" aria-hidden="true" @click="navOpen = false"></div>
+    <div class="mbr-shell__backdrop" aria-hidden="true" @click="navOpen = false; $refs.menuButton.focus()"></div>
 
     <div class="mbr-main">
         <main class="mbr-content">

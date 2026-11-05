@@ -282,13 +282,13 @@
         .mbr-sidebar__foot .ds-btn--text {
             min-height: 48px;
             padding: 0 12px;
-            border-radius: 10px;
+            border-radius: 10px; /* phone-menu mockup value (no radius token) */
             font-size: 16px;
         }
 
         .mbr-sidebar__back {
             min-height: 48px;
-            border-radius: 10px;
+            border-radius: 10px; /* phone-menu mockup value (no radius token) */
         }
 
         .mbr-shell__backdrop {
