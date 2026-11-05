@@ -14,6 +14,9 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 - Fix: Pyramid admin rejects granting rights to a non-existent member, a blank ladder title and over-long correction score/note, and closing a season twice no longer logs a second event.
 
 - Phase 2: Pyramid seeding, waiting list, player status and edits administered in Laravel.
+- Phase 2: the unique-key preflight check is shared by Draw and Pyramid, and the Pyramid preflight gained fault-injection tests and a stricter read-only guard.
+- Phase 2: read-only php artisan phase2:preflight pyramid checks columns, charset, unique keys, orphans and ranking gaps.
+- Phase 2: phase2:scrub-staging replaces Pyramid data with a fictional demo ladder.
 - Phase 2: Pyramid ladder administration page; the member picker now searches on demand instead of embedding all members.
 - Phase 2: Pyramid administration overview and ladder creation in Laravel.
 - Phase 2: Pyramid challenge page (date, result, decline, withdraw) and self-registration in Laravel.

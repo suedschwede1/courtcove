@@ -112,11 +112,12 @@ class Phase2ScrubStagingCommandTest extends TestCase
         DB::table('migrations')->insert(['migration' => 'survivor-row', 'batch' => 9999]);
 
         $this->artisan('phase2:scrub-staging', ['--force' => true, '--no-interaction' => true])
-            ->expectsOutput('Tables: bs_draw_eligible, bs_draw_tokens, bs_draws')
+            ->expectsOutput('Tables: bs_draw_eligible, bs_draw_tokens, bs_draws, bs_pyramid_events, bs_pyramid_challenges, bs_pyramid_grants, bs_pyramid_players, bs_pyramid_ladders')
             ->assertExitCode(0);
 
         $this->assertFalse($this->untouched());
         $this->assertTrue(Draw::query()->where('slug', 'demo-closed')->exists());
+        $this->assertTrue(DB::table('bs_pyramid_ladders')->where('title', 'Demo Herren')->exists());
         $this->assertTrue(User::query()->whereKey($user->getKey())->where('email', 'keep.me@real-club.invalid')->exists());
         $this->assertTrue(DB::table('migrations')->where('migration', 'survivor-row')->exists());
     }

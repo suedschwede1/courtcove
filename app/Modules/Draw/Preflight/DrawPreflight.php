@@ -104,7 +104,7 @@ final class DrawPreflight implements ModulePreflight
         }
 
         foreach (self::UNIQUES as [$table, $columns]) {
-            $results[] = $this->unique($table, $columns);
+            $results[] = $this->schema->checkUnique($table, $columns);
         }
 
         foreach (self::ORPHANS as [$child, $childColumn, $parent, $parentColumn]) {
@@ -129,28 +129,6 @@ final class DrawPreflight implements ModulePreflight
         return $collation !== null && str_starts_with($collation, 'utf8mb4')
             ? PreflightResult::pass($check, $collation)
             : PreflightResult::fail($check, 'collation is '.($collation ?? 'unknown').', expected utf8mb4');
-    }
-
-    /**
-     * @param  list<string>  $columns
-     */
-    private function unique(string $table, array $columns): PreflightResult
-    {
-        $check = "unique:{$table}(".implode(',', $columns).')';
-
-        if (! $this->schema->hasColumns($table, $columns)) {
-            return PreflightResult::fail($check, $this->schema->hasUniqueIndex($table, $columns) ? 'column missing' : 'unique index missing, column missing');
-        }
-
-        $groups = $this->schema->duplicateGroups($table, $columns);
-
-        if (! $this->schema->hasUniqueIndex($table, $columns)) {
-            return PreflightResult::fail($check, $groups > 0 ? "unique index missing, {$groups} duplicate groups" : 'unique index missing');
-        }
-
-        return $groups > 0
-            ? PreflightResult::fail($check, "{$groups} duplicate groups")
-            : PreflightResult::pass($check);
     }
 
     private function orphans(string $child, string $childColumn, string $parent, string $parentColumn): PreflightResult
