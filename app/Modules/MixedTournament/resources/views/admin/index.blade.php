@@ -87,7 +87,7 @@
             @csrf
             <div class="grid gap-3 md:grid-cols-[2fr_1fr]">
                 <x-ui.field for="mixed-new-title" :label="__('mixed::admin.index.field_title')">
-                    <x-ui.input name="title" id="mixed-new-title" required maxlength="255" :placeholder="__('mixed::admin.index.placeholder_title')" />
+                    <x-ui.input name="title" id="mixed-new-title" required maxlength="160" :placeholder="__('mixed::admin.index.placeholder_title')" />
                 </x-ui.field>
                 <x-ui.field for="mixed-new-date" :label="__('mixed::admin.index.field_date')">
                     <x-ui.input type="date" name="event_date" id="mixed-new-date" required />

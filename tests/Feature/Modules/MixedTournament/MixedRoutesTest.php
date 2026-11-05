@@ -202,13 +202,18 @@ class MixedRoutesTest extends TestCase
         foreach ([
             ['get', '/mixed-tournament/event/999999', 'Event nicht gefunden.'],
             ['get', '/mixed-tournament/round/999999', 'Runde nicht gefunden.'],
-            ['post', '/mixed-tournament/admin/participant/999999/update', 'Teilnehmer nicht gefunden.'],
         ] as [$method, $uri, $text]) {
             $this->actingAs(User::factory()->create())
                 ->{$method}($uri)
                 ->assertRedirect(route('mixed.index'))
                 ->assertSessionHas('error', $text);
         }
+
+        // Participant routes are resolved inside the posted event after the event ability check
+        // (no existence probing): without an event they are not found, never a redirect.
+        $this->actingAs(User::factory()->create())
+            ->post('/mixed-tournament/admin/participant/999999/update')
+            ->assertNotFound();
     }
 
     #[Test]

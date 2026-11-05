@@ -29,7 +29,7 @@ return [
     'import' => [
         'title' => 'Mitgliederdaten importieren',
         'count' => 'Aktuell :count Mitglieder hinterlegt',
-        'help_format' => 'Erwartet wird der Mitglieder-CSV-Export aus nuLiga: Semikolon als Trennzeichen, erste Zeile die Spaltenüberschriften. Gelesen werden Nachname und Vorname (erforderlich) sowie Geschlecht, ITN und GebDatum, sofern die Spalten vorhanden sind - die Reihenfolge der Spalten spielt keine Rolle, zusätzliche Spalten stören nicht. Umlaute werden in UTF-8 und in Windows-1252 erkannt.',
+        'help_format' => 'Erwartet wird der Mitglieder-CSV-Export des Verbands: Semikolon als Trennzeichen, erste Zeile die Spaltenüberschriften. Gelesen werden Nachname und Vorname (erforderlich) sowie Geschlecht, ITN und GebDatum, sofern die Spalten vorhanden sind - die Reihenfolge der Spalten spielt keine Rolle, zusätzliche Spalten stören nicht. Umlaute werden in UTF-8 und in Windows-1252 erkannt.',
         'help_replace' => 'Ein Import ersetzt die komplette Kartei durch den Inhalt der Datei. Teilnehmer, die nicht in der Kartei stehen, können weiterhin frei angelegt werden - die Kartei liefert beim Anlegen nur Vorschläge.',
         'field_file' => 'CSV-Datei',
         'submit' => 'Importieren',
@@ -131,5 +131,6 @@ return [
         'test_on' => 'Testmodus an – jeder Angemeldete ist Admin',
         'test_switch_on' => 'Einschalten',
         'test_switch_off' => 'Ausschalten',
+        'test_global_only' => 'Nur globale Mixed-Administratoren dürfen den Testmodus ändern.',
     ],
 ];

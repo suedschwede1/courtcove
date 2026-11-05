@@ -20,7 +20,7 @@ final class MemberImportService
     /**
      * @return int number of parsed rows (as the old code reported it)
      *
-     * @throws MixedRuleException csv_column_missing
+     * @throws MixedRuleException csv_column_missing, csv_label_too_long
      */
     public function import(string $content): int
     {
@@ -28,6 +28,13 @@ final class MemberImportService
 
         if ($parsed['missing_column'] !== null) {
             throw new MixedRuleException('csv_column_missing', ['column' => $parsed['missing_column']]);
+        }
+
+        // bs_mixed_members.label is varchar(120): refuse the whole file instead of a strict-mode 500.
+        foreach ($parsed['rows'] as $row) {
+            if (mb_strlen($row['label']) > 120) {
+                throw new MixedRuleException('csv_label_too_long', ['label' => mb_substr($row['label'], 0, 40)]);
+            }
         }
 
         DB::transaction(function () use ($parsed): void {

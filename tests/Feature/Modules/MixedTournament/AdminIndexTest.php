@@ -222,6 +222,73 @@ class AdminIndexTest extends TestCase
     }
 
     #[Test]
+    public function create_event_refuses_long_titles_and_array_input(): void
+    {
+        $admin = $this->admin();
+
+        $this->actingAs($admin)->post('/mixed-tournament/admin/create-event', ['title' => str_repeat('a', 161), 'event_date' => '2027-05-01'])
+            ->assertRedirect(route('mixed.admin.index'))
+            ->assertSessionHas('error', 'Der Titel darf höchstens 160 Zeichen lang sein.');
+        $this->actingAs($admin)->post('/mixed-tournament/admin/create-event', ['title' => ['x'], 'event_date' => '2027-05-01'])
+            ->assertSessionHas('error', 'Titel und Datum sind Pflichtfelder.');
+        $this->actingAs($admin)->post('/mixed-tournament/admin/create-event', ['title' => 'X', 'event_date' => ['2027-05-01']])
+            ->assertSessionHas('error', 'Titel und Datum sind Pflichtfelder.');
+        $this->assertSame(0, MixedEvent::query()->count());
+
+        $this->actingAs($admin)->post('/mixed-tournament/admin/create-event', ['title' => str_repeat('ä', 160), 'event_date' => '2027-05-01'])
+            ->assertSessionHas('success', 'Event angelegt.');
+
+        $this->actingAs($admin)->get('/mixed-tournament/admin')->assertSee('maxlength="160"', false);
+    }
+
+    #[Test]
+    public function test_mode_user_cannot_create_events(): void
+    {
+        $test = MixedEvent::factory()->create(['is_test' => 1]);
+        $user = $this->member();
+
+        $this->actingAs($user)->get('/mixed-tournament/admin/event/'.$test->id)->assertOk();
+        $this->actingAs($user)->post('/mixed-tournament/admin/create-event', ['title' => 'X', 'event_date' => '2027-05-01'])->assertForbidden();
+        $this->assertSame(1, MixedEvent::query()->count());
+    }
+
+    #[Test]
+    public function import_refuses_large_or_non_text_files(): void
+    {
+        MixedMember::factory()->create(['label' => 'Alt Eintrag']);
+        $admin = $this->admin();
+
+        $big = "Nachname;Vorname\n".str_repeat("Muster;Anna\n", 200000);
+        $this->actingAs($admin)->post('/mixed-tournament/admin/import-members', [
+            'csv' => UploadedFile::fake()->createWithContent('export.csv', $big),
+        ])->assertRedirect(route('mixed.admin.import-members'))
+            ->assertSessionHas('error', 'Bitte eine CSV-Textdatei mit höchstens 2 MB auswählen.');
+
+        $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==');
+        $this->actingAs($admin)->post('/mixed-tournament/admin/import-members', [
+            'csv' => UploadedFile::fake()->createWithContent('export.csv', (string) $png),
+        ])->assertSessionHas('error', 'Bitte eine CSV-Textdatei mit höchstens 2 MB auswählen.');
+
+        $this->actingAs($admin)->post('/mixed-tournament/admin/import-members', [
+            'csv' => UploadedFile::fake()->createWithContent('export.csv', "Nachname;Vorname\n".str_repeat('x', 121).";Anna\n"),
+        ])->assertSessionHas('error', 'Der Name "'.str_repeat('x', 40).'" ist länger als 120 Zeichen.');
+
+        $this->assertSame(['Alt Eintrag'], MixedMember::query()->pluck('label')->all());
+    }
+
+    #[Test]
+    public function no_source_system_name_in_the_module(): void
+    {
+        foreach (['de', 'en'] as $locale) {
+            $this->assertStringNotContainsStringIgnoringCase('nu'.'liga', (string) file_get_contents(app_path('Modules/MixedTournament/resources/lang/'.$locale.'/admin.php')));
+        }
+
+        $this->actingAs($this->admin())->get('/mixed-tournament/admin/import-members')
+            ->assertSee('Mitglieder-CSV-Export des Verbands')
+            ->assertDontSee('nu'.'Liga');
+    }
+
+    #[Test]
     public function every_admin_and_messages_key_exists_in_both_locales(): void
     {
         foreach (['admin', 'messages'] as $file) {

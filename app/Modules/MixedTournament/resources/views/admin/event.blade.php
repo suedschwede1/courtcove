@@ -65,7 +65,7 @@
                             @endif
                         </span>
                         <span x-show="editing" x-cloak class="block w-full">
-                            <x-ui.input name="label" id="mixed-edit-label-{{ $pid }}" :value="$participant->label" form="{{ $form }}" required autocomplete="off" aria-label="{{ __('mixed::admin.participants.col_name') }}" />
+                            <x-ui.input name="label" id="mixed-edit-label-{{ $pid }}" :value="$participant->label" form="{{ $form }}" required maxlength="120" autocomplete="off" aria-label="{{ __('mixed::admin.participants.col_name') }}" />
                         </span>
                     </td>
                     <td @if ($participant->gender !== null) data-label="{{ __('mixed::admin.participants.col_gender') }}" @endif>
@@ -77,7 +77,7 @@
                     <td class="tabular-nums" @if ($participant->itn !== null) data-label="{{ __('mixed::admin.participants.col_itn') }}" @endif>
                         <span x-show="! editing">{{ MixedFormat::itn($participant->itn) }}</span>
                         <span x-show="editing" x-cloak class="block w-24">
-                            <x-ui.input type="number" name="itn" id="mixed-edit-itn-{{ $pid }}" :value="$participant->itn !== null ? (string) (float) $participant->itn : ''" step="0.1" min="0" inputmode="decimal" form="{{ $form }}" aria-label="{{ __('mixed::admin.participants.field_itn') }}" />
+                            <x-ui.input type="number" name="itn" id="mixed-edit-itn-{{ $pid }}" :value="$participant->itn !== null ? (string) (float) $participant->itn : ''" step="0.1" min="0" max="99.9" inputmode="decimal" form="{{ $form }}" aria-label="{{ __('mixed::admin.participants.field_itn') }}" />
                         </span>
                     </td>
                     <td class="tabular-nums" @if ($participant->age !== null) data-label="{{ __('mixed::admin.participants.col_age') }}" @endif>
@@ -141,7 +141,7 @@
                 <x-ui.select name="gender" id="mixed-add-gender" :options="['' => __('mixed::admin.participants.gender_none'), 'f' => __('mixed::admin.participants.gender_f'), 'm' => __('mixed::admin.participants.gender_m')]" x-model="gender" />
             </x-ui.field>
             <x-ui.field for="mixed-add-itn" :label="__('mixed::admin.participants.field_itn')">
-                <x-ui.input type="number" name="itn" id="mixed-add-itn" :value="''" step="0.1" min="0" inputmode="decimal" x-model="itn" />
+                <x-ui.input type="number" name="itn" id="mixed-add-itn" :value="''" step="0.1" min="0" max="99.9" inputmode="decimal" x-model="itn" />
             </x-ui.field>
             <x-ui.field for="mixed-add-age" :label="__('mixed::admin.participants.field_age')">
                 <x-ui.input type="number" name="age" id="mixed-add-age" :value="''" min="0" max="120" inputmode="numeric" x-model="age" />

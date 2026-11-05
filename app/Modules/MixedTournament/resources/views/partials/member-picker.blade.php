@@ -54,7 +54,7 @@
     x-on:click.outside="close()"
 >
     <x-ui.field for="mixed-add-label" :label="__('mixed::admin.participants.field_name')">
-        <x-ui.input name="label" id="mixed-add-label" :value="''" required autocomplete="off" :placeholder="__('mixed::admin.participants.placeholder_name')" x-model="label" x-on:input="search()" />
+        <x-ui.input name="label" id="mixed-add-label" :value="''" required maxlength="120" autocomplete="off" :placeholder="__('mixed::admin.participants.placeholder_name')" x-model="label" x-on:input="search()" />
     </x-ui.field>
 
     <ul class="absolute inset-x-0 top-full z-10 mt-1 flex max-h-72 flex-col gap-1 overflow-y-auto rounded-md border border-line bg-surface p-1 shadow-dialog" x-show="results.length > 0" x-cloak aria-label="{{ __('mixed::admin.participants.picker_results') }}">

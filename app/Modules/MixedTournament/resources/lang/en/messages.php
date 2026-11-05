@@ -44,4 +44,10 @@ return [
     'grant_removed' => 'Permission removed.',
     'test_mode_on' => 'Test mode switched on.',
     'test_mode_off' => 'Test mode switched off.',
+    'title_too_long' => 'The title may be at most 160 characters long.',
+    'name_too_long' => 'The name may be at most 120 characters long.',
+    'itn_range' => 'ITN must be between 0 and 99.9.',
+    'court_count_range' => 'The number of courts must be between 1 and 99.',
+    'csv_invalid' => 'Please choose a CSV text file of at most 2 MB.',
+    'csv_label_too_long' => 'The name ":label" is longer than 120 characters.',
 ];

@@ -376,4 +376,114 @@ class AdminEventPageTest extends TestCase
                 ->assertSee('href="'.route('mixed.admin.index').'" class="ds-admin-sidebar__link" aria-current="page"', false);
         }
     }
+
+    #[Test]
+    public function participant_input_is_bounded_by_the_columns(): void
+    {
+        $event = MixedEvent::factory()->create();
+        $user = $this->grantAdmin($event);
+        $add = $this->url($event, '/add-participant');
+
+        $this->actingAs($user)->post($add, ['label' => str_repeat('a', 121)])
+            ->assertRedirect(route('mixed.admin.event', ['event' => $event->id]))
+            ->assertSessionHas('error', 'Der Name darf höchstens 120 Zeichen lang sein.');
+        foreach (['150', '-1', '100', 'abc'] as $itn) {
+            $this->actingAs($user)->post($add, ['label' => 'Spieler 01', 'itn' => $itn])
+                ->assertSessionHas('error', 'ITN muss zwischen 0 und 99,9 liegen.');
+        }
+        $this->actingAs($user)->post($add, ['label' => ['x']])->assertSessionHas('error', 'Name ist ein Pflichtfeld.');
+        $this->actingAs($user)->post($add, ['label' => 'Spieler 01', 'age' => ['3'], 'itn' => ['4']])->assertSessionHas('success', 'Teilnehmer hinzugefügt.');
+        $this->actingAs($user)->post($add, ['label' => str_repeat('ä', 120), 'itn' => '4,5'])->assertSessionHas('success', 'Teilnehmer hinzugefügt.');
+
+        $this->assertSame([null, 4.5], MixedParticipant::query()->orderBy('id')->pluck('itn')->map(fn ($v) => $v === null ? null : (float) $v)->all());
+
+        $participant = MixedParticipant::query()->orderBy('id')->firstOrFail();
+        $this->actingAs($user)->post('/mixed-tournament/admin/participant/'.$participant->id.'/update', ['event_id' => $event->id, 'label' => 'Neu', 'itn' => '99.95'])
+            ->assertSessionHas('error', 'ITN muss zwischen 0 und 99,9 liegen.');
+        $this->actingAs($user)->post('/mixed-tournament/admin/participant/'.$participant->id.'/status', ['event_id' => $event->id, 'status' => ['paused']])
+            ->assertStatus(422);
+
+        $this->actingAs($user)->get($this->url($event))
+            ->assertSee('maxlength="120"', false)
+            ->assertSee('max="99.9"', false);
+    }
+
+    #[Test]
+    public function court_count_is_limited_to_1_to_99(): void
+    {
+        $event = MixedEvent::factory()->create(['court_count' => 4]);
+        $user = $this->grantAdmin($event);
+
+        foreach (['0', '100', '70000', 'x', ''] as $value) {
+            $this->actingAs($user)->post($this->url($event, '/set-court-count'), ['court_count' => $value])
+                ->assertRedirect(route('mixed.admin.config', ['event' => $event->id]))
+                ->assertSessionHas('error', 'Anzahl der Plätze muss zwischen 1 und 99 liegen.');
+        }
+        $this->actingAs($user)->post($this->url($event, '/set-court-count'), ['court_count' => ['3']])
+            ->assertSessionHas('error', 'Anzahl der Plätze muss zwischen 1 und 99 liegen.');
+        $this->assertSame(4, $event->fresh()->court_count);
+
+        $this->actingAs($user)->post($this->url($event, '/set-court-count'), ['court_count' => '99'])->assertSessionHas('success');
+        $this->assertSame(99, $event->fresh()->court_count);
+
+        $this->actingAs($user)->get($this->url($event, '/config'))->assertSee('max="99"', false);
+    }
+
+    #[Test]
+    public function participant_routes_authorize_before_looking_up_the_participant(): void
+    {
+        $event = MixedEvent::factory()->create();
+        $participant = MixedParticipant::factory()->create(['event_id' => $event->id]);
+        $stranger = $this->member();
+
+        foreach (['update', 'status', 'remove'] as $action) {
+            // Existing and non-existing participant ids look the same to a user without rights.
+            foreach ([$participant->id, 999999] as $id) {
+                $this->actingAs($stranger)->post('/mixed-tournament/admin/participant/'.$id.'/'.$action, [
+                    'event_id' => $event->id, 'label' => 'X', 'status' => 'paused',
+                ])->assertForbidden();
+            }
+        }
+
+        // An admin of the event gets 404 for an id that is not in it.
+        $this->actingAs($this->grantAdmin($event))->post('/mixed-tournament/admin/participant/999999/status', ['event_id' => $event->id, 'status' => 'paused'])
+            ->assertNotFound();
+        $this->assertSame('active', $participant->fresh()->status);
+    }
+
+    #[Test]
+    public function grant_and_avoid_pair_ids_are_read_as_scalars(): void
+    {
+        $event = MixedEvent::factory()->create();
+        $admin = $this->admin();
+        $a = MixedParticipant::factory()->create(['event_id' => $event->id]);
+
+        // (int) ['x'] would be 1 = the first user; an array is "no user".
+        $this->actingAs($admin)->post($this->url($event, '/grant'), ['uid' => ['x'], 'role' => 'admin'])
+            ->assertSessionHas('error', 'Bitte Benutzer und Rolle auswählen.');
+        $this->actingAs($admin)->post($this->url($event, '/grant'), ['uid' => (string) $admin->uid, 'role' => ['admin']])
+            ->assertSessionHas('error', 'Bitte Benutzer und Rolle auswählen.');
+        $this->assertSame(0, MixedEventGrant::query()->count());
+
+        $this->actingAs($admin)->post($this->url($event, '/add-avoid-pair'), ['participant_a' => [$a->id], 'participant_b' => $a->id])
+            ->assertSessionHas('error', 'Bitte zwei unterschiedliche Spieler auswählen.');
+        $this->actingAs($admin)->post($this->url($event, '/remove-avoid-pair'), ['pair_id' => ['1']])->assertNotFound();
+        $this->actingAs($admin)->post($this->url($event, '/set-test-mode'), ['is_test' => ['1']])->assertSessionHas('success', 'Testmodus deaktiviert.');
+    }
+
+    #[Test]
+    public function test_mode_user_cannot_revoke_and_sees_the_global_only_hint(): void
+    {
+        $test = MixedEvent::factory()->create(['is_test' => 1]);
+        $granted = $this->grantAdmin($test, 'score');
+        $anyone = $this->member();
+
+        $this->actingAs($anyone)->post($this->url($test, '/revoke'), ['uid' => $granted->uid])->assertForbidden();
+        $this->assertSame(1, MixedEventGrant::query()->count());
+
+        $this->actingAs($anyone)->get($this->url($test, '/config'))
+            ->assertSee('Nur globale Mixed-Administratoren dürfen den Testmodus ändern.');
+        $this->actingAs($this->admin())->get($this->url($test, '/config'))
+            ->assertDontSee('Nur globale Mixed-Administratoren dürfen den Testmodus ändern.');
+    }
 }

@@ -27,7 +27,7 @@ return [
     'import' => [
         'title' => 'Import member data',
         'count' => 'Currently :count members on file',
-        'help_format' => 'Expected is the member CSV export from nuLiga: semicolon separated, first line holds the column headers. Read are Nachname and Vorname (required) plus Geschlecht, ITN and GebDatum if present - column order does not matter, extra columns are ignored. Umlauts are recognised in UTF-8 and Windows-1252.',
+        'help_format' => 'Expected is the federation member CSV export: semicolon separated, first line holds the column headers. Read are Nachname and Vorname (required) plus Geschlecht, ITN and GebDatum if present - column order does not matter, extra columns are ignored. Umlauts are recognised in UTF-8 and Windows-1252.',
         'help_replace' => 'An import replaces the whole roster with the file content. Participants who are not in the roster can still be added freely - the roster only provides suggestions.',
         'field_file' => 'CSV file',
         'submit' => 'Import',
@@ -126,5 +126,6 @@ return [
         'test_on' => 'Test mode on – every logged-in user is admin',
         'test_switch_on' => 'Switch on',
         'test_switch_off' => 'Switch off',
+        'test_global_only' => 'Only global mixed administrators may change the test mode.',
     ],
 ];

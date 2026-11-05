@@ -11,6 +11,7 @@ use App\Modules\MixedTournament\Domain\ParticipantService;
 use App\Modules\MixedTournament\Models\MixedAvoidPair;
 use App\Modules\MixedTournament\Models\MixedEvent;
 use App\Modules\MixedTournament\Models\MixedParticipant;
+use App\Modules\MixedTournament\Support\AdminInput;
 use App\Modules\MixedTournament\Support\ParticipantInput;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -22,8 +23,9 @@ use Illuminate\Support\Facades\Gate;
  * needs the event `administer` ability through the Gate.
  *
  * ParticipantService::update/setStatus/remove take no event scope, so the participant routes resolve the
- * participant THROUGH the event: the posted `event_id` (as in the ZF2 forms) must be the participant's own
- * event, otherwise 404. Avoid pairs are checked the same way.
+ * participant THROUGH the event: the posted `event_id` (as in the ZF2 forms) names the event, the ability on
+ * that event is checked first (403), and only then the participant is looked up inside it (404), so a user
+ * without rights learns nothing about participant ids. Avoid pairs are checked the same way.
  */
 class ParticipantAdminController extends Controller
 {
@@ -35,7 +37,7 @@ class ParticipantAdminController extends Controller
         $this->authorizeAdminister($request, $event);
 
         return response()->json([
-            'members' => $this->participants->searchMembers($event, (string) $request->query('q', '')),
+            'members' => $this->participants->searchMembers($event, AdminInput::string($request, 'q')),
         ]);
     }
 
@@ -70,9 +72,9 @@ class ParticipantAdminController extends Controller
         return $this->toEvent($event)->with('success', __('mixed::messages.participant_added'));
     }
 
-    public function update(Request $request, MixedParticipant $participant): RedirectResponse
+    public function update(Request $request, string $participant): RedirectResponse
     {
-        $event = $this->participantEvent($request, $participant);
+        [$event, $participant] = $this->participantInEvent($request, $participant);
 
         try {
             $this->participants->update($participant, ParticipantInput::parse($request->all()));
@@ -84,11 +86,11 @@ class ParticipantAdminController extends Controller
     }
 
     /** Pausing instead of deleting. Only `active` or `paused` (anything else is 422). */
-    public function status(Request $request, MixedParticipant $participant): RedirectResponse
+    public function status(Request $request, string $participant): RedirectResponse
     {
-        $event = $this->participantEvent($request, $participant);
+        [$event, $participant] = $this->participantInEvent($request, $participant);
 
-        $status = (string) $request->input('status');
+        $status = AdminInput::string($request, 'status');
         abort_unless(in_array($status, ['active', 'paused'], true), 422);
 
         $this->participants->setStatus($participant, $status);
@@ -96,9 +98,9 @@ class ParticipantAdminController extends Controller
         return $this->toEvent($event);
     }
 
-    public function remove(Request $request, MixedParticipant $participant): RedirectResponse
+    public function remove(Request $request, string $participant): RedirectResponse
     {
-        $event = $this->participantEvent($request, $participant);
+        [$event, $participant] = $this->participantInEvent($request, $participant);
 
         try {
             $this->participants->remove($participant);
@@ -114,8 +116,8 @@ class ParticipantAdminController extends Controller
     {
         $this->authorizeAdminister($request, $event);
 
-        $a = (int) $request->input('participant_a');
-        $b = (int) $request->input('participant_b');
+        $a = AdminInput::id($request, 'participant_a');
+        $b = AdminInput::id($request, 'participant_b');
 
         try {
             if ($a <= 0 || $b <= 0) {
@@ -134,7 +136,7 @@ class ParticipantAdminController extends Controller
     {
         $this->authorizeAdminister($request, $event);
 
-        $pairId = (int) $request->input('pair_id');
+        $pairId = AdminInput::id($request, 'pair_id');
         abort_unless(MixedAvoidPair::query()->where('id', $pairId)->where('event_id', $event->id)->exists(), 404);
 
         $this->participants->removeAvoidPair($event, $pairId);
@@ -143,20 +145,25 @@ class ParticipantAdminController extends Controller
     }
 
     /**
-     * The participant's event, resolved through the posted `event_id`: a participant of another event (or a
-     * missing event_id) is 404, then the event ability decides (403).
+     * The event named by the posted `event_id` (404 if there is none), the administer ability on it (403),
+     * then the participant inside THAT event (404). Authorization comes before the participant lookup.
+     *
+     * @return array{MixedEvent, MixedParticipant}
      */
-    private function participantEvent(Request $request, MixedParticipant $participant): MixedEvent
+    private function participantInEvent(Request $request, string $participantId): array
     {
-        $eventId = (int) $request->input('event_id');
-        abort_if($eventId <= 0 || $eventId !== (int) $participant->event_id, 404);
-
-        $event = MixedEvent::query()->find($eventId);
+        $event = MixedEvent::query()->find(AdminInput::id($request, 'event_id'));
         abort_if($event === null, 404);
 
         $this->authorizeAdminister($request, $event);
 
-        return $event;
+        $participant = MixedParticipant::query()
+            ->where('id', (int) $participantId)
+            ->where('event_id', $event->id)
+            ->first();
+        abort_if($participant === null, 404);
+
+        return [$event, $participant];
     }
 
     private function authorizeAdminister(Request $request, MixedEvent $event): void

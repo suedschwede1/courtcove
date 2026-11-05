@@ -44,4 +44,10 @@ return [
     'grant_removed' => 'Berechtigung entfernt.',
     'test_mode_on' => 'Testmodus aktiviert.',
     'test_mode_off' => 'Testmodus deaktiviert.',
+    'title_too_long' => 'Der Titel darf höchstens 160 Zeichen lang sein.',
+    'name_too_long' => 'Der Name darf höchstens 120 Zeichen lang sein.',
+    'itn_range' => 'ITN muss zwischen 0 und 99,9 liegen.',
+    'court_count_range' => 'Anzahl der Plätze muss zwischen 1 und 99 liegen.',
+    'csv_invalid' => 'Bitte eine CSV-Textdatei mit höchstens 2 MB auswählen.',
+    'csv_label_too_long' => 'Der Name ":label" ist länger als 120 Zeichen.',
 ];

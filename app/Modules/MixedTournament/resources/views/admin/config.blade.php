@@ -31,7 +31,7 @@
                 <form method="POST" action="{{ route('mixed.admin.set-court-count', ['event' => $eventId]) }}" class="flex flex-col gap-3">
                     @csrf
                     <x-ui.field for="mixed-court-count" :label="__('mixed::admin.config.court_count')" :help="__('mixed::admin.config.court_count_help')">
-                        <x-ui.input type="number" name="court_count" id="mixed-court-count" :value="(string) $event->court_count" min="1" inputmode="numeric" required />
+                        <x-ui.input type="number" name="court_count" id="mixed-court-count" :value="(string) $event->court_count" min="1" max="99" inputmode="numeric" required />
                     </x-ui.field>
                     <div>
                         <x-ui.button type="submit" :block="false">{{ __('mixed::admin.config.save') }}</x-ui.button>
@@ -150,6 +150,9 @@
                         </form>
                     @endif
                 </div>
+                @unless ($isGlobalAdmin)
+                    <p class="text-body-s text-ink-3">{{ __('mixed::admin.config.test_global_only') }}</p>
+                @endunless
             </div>
         </x-ui.card>
     </div>

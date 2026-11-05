@@ -13,6 +13,7 @@ use App\Modules\MixedTournament\Models\MixedEventGrant;
 use App\Modules\MixedTournament\Models\MixedParticipant;
 use App\Modules\MixedTournament\Models\MixedRound;
 use App\Modules\MixedTournament\Policies\MixedEventPolicy;
+use App\Modules\MixedTournament\Support\AdminInput;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
@@ -69,14 +70,19 @@ class EventAdminController extends Controller
     /** Global right (route middleware). */
     public function createEvent(Request $request): RedirectResponse
     {
-        $title = trim((string) $request->input('title', ''));
-        $date = (string) $request->input('event_date', '');
+        $title = trim(AdminInput::string($request, 'title'));
+        $date = AdminInput::string($request, 'event_date');
 
         $valid = $title !== ''
             && Validator::make(['event_date' => $date], ['event_date' => ['required', 'date_format:Y-m-d']])->passes();
 
         if (! $valid) {
             return redirect()->route('mixed.admin.index')->with('error', __('mixed::messages.title_date_required'));
+        }
+
+        // bs_mixed_events.title is varchar(160).
+        if (mb_strlen($title) > 160) {
+            return redirect()->route('mixed.admin.index')->with('error', __('mixed::messages.title_too_long'));
         }
 
         $mode = $request->input('mode') === 'mexicano' ? 'mexicano' : 'americano';
@@ -98,7 +104,7 @@ class EventAdminController extends Controller
     /** Global right (route middleware): a test-mode user must not switch it, it would make everyone admin. */
     public function setTestMode(Request $request, MixedEvent $event): RedirectResponse
     {
-        $on = (string) $request->input('is_test') === '1';
+        $on = AdminInput::string($request, 'is_test') === '1';
         $this->events->setTestMode($event, $on);
 
         return $this->toConfig($event)->with('success', __('mixed::messages.'.($on ? 'test_mode_on' : 'test_mode_off')));
@@ -107,8 +113,8 @@ class EventAdminController extends Controller
     /** Global right (route middleware). The user must exist and the role be score|admin. */
     public function grant(Request $request, MixedEvent $event): RedirectResponse
     {
-        $uid = (int) $request->input('uid');
-        $role = (string) $request->input('role');
+        $uid = AdminInput::id($request, 'uid');
+        $role = AdminInput::string($request, 'role');
 
         if ($uid <= 0 || User::query()->whereKey($uid)->doesntExist() || ! in_array($role, ['score', 'admin'], true)) {
             return $this->toConfig($event)->with('error', __('mixed::messages.grant_select'));
@@ -122,7 +128,7 @@ class EventAdminController extends Controller
     /** Global right (route middleware). A uid without a grant in THIS event is not found. */
     public function revoke(Request $request, MixedEvent $event): RedirectResponse
     {
-        $uid = (int) $request->input('uid');
+        $uid = AdminInput::id($request, 'uid');
         abort_if($this->events->grant($event, $uid) === null, 404);
 
         $this->events->removeGrant($event, $uid);
@@ -134,7 +140,13 @@ class EventAdminController extends Controller
     {
         $this->authorizeAdminister($request, $event);
 
-        $this->events->setCourtCount($event, (int) $request->input('court_count'));
+        // 1..99 courts (the column is unsignedSmallInteger; no club needs more).
+        $courts = AdminInput::string($request, 'court_count');
+        if (! ctype_digit($courts) || (int) $courts < 1 || (int) $courts > 99) {
+            return $this->toConfig($event)->with('error', __('mixed::messages.court_count_range'));
+        }
+
+        $this->events->setCourtCount($event, (int) $courts);
 
         return $this->toConfig($event)->with('success', __('mixed::messages.court_count_saved'));
     }
