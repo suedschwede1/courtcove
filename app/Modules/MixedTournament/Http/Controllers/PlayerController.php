@@ -7,10 +7,14 @@ namespace App\Modules\MixedTournament\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Modules\MixedTournament\Domain\EventService;
+use App\Modules\MixedTournament\Domain\RoundService;
 use App\Modules\MixedTournament\Models\MixedEvent;
 use App\Modules\MixedTournament\Models\MixedParticipant;
 use App\Modules\MixedTournament\Models\MixedRound;
 use App\Modules\MixedTournament\Policies\MixedEventPolicy;
+use App\Modules\MixedTournament\Services\HistoryService;
+use App\Modules\MixedTournament\Support\MixingMatrix;
+use App\Modules\MixedTournament\Support\RoundViewData;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -56,19 +60,40 @@ class PlayerController extends Controller
         ]);
     }
 
-    public function round(MixedRound $round): never
+    public function round(Request $request, MixedRound $round, RoundViewData $data): View
     {
-        abort(501);
+        $view = $data->build($round, $this->user($request));
+        $this->authorizeView($request, $view['event']);
+
+        return view($view['event']->isMexicano() ? 'mixed::player.round-mexicano' : 'mixed::player.round', $view);
     }
 
-    public function durchmischung(MixedEvent $event): never
+    public function durchmischung(Request $request, MixedEvent $event, RoundService $rounds, HistoryService $history, MixingMatrix $matrix): View
     {
-        abort(501);
+        $user = $this->authorizeView($request, $event);
+
+        $labels = $this->labels($event);
+        $pastMatches = $rounds->pastMatches($event);
+        $partnerCounts = $history->build($pastMatches)['partners'];
+
+        return view('mixed::player.durchmischung', [
+            'event' => $event,
+            'matrix' => $matrix->build($labels, $partnerCounts, $pastMatches),
+            'mixing' => $history->mixingScore($partnerCounts, array_keys($labels)),
+            'canAdmin' => Gate::forUser($user)->allows('administer', $event),
+        ]);
     }
 
-    public function standings(MixedEvent $event): never
+    public function standings(Request $request, MixedEvent $event, RoundService $rounds): View
     {
-        abort(501);
+        $user = $this->authorizeView($request, $event);
+
+        return view('mixed::player.standings', [
+            'event' => $event,
+            'standings' => $rounds->standings($event),
+            'labels' => $this->labels($event),
+            'canAdmin' => Gate::forUser($user)->allows('administer', $event),
+        ]);
     }
 
     private function authorizeView(Request $request, MixedEvent $event): User
@@ -84,5 +109,16 @@ class PlayerController extends Controller
         $user = $request->user();
 
         return $user instanceof User ? $user : null;
+    }
+
+    /** @return array<int, string> participant id => label, by id */
+    private function labels(MixedEvent $event): array
+    {
+        $labels = [];
+        foreach (MixedParticipant::query()->where('event_id', $event->id)->orderBy('id')->get() as $participant) {
+            $labels[(int) $participant->id] = (string) $participant->label;
+        }
+
+        return $labels;
     }
 }
