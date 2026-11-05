@@ -739,3 +739,96 @@
         }
     }
 }
+
+/* Dues list: tools card (filter, generate, compose), bulk bar, row checkboxes. */
+@layer components {
+    .mbr-dues-tools > .ds-card__body {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .mbr-dues-tools__row {
+        padding-top: 16px;
+        border-top: 1px solid var(--color-line-soft);
+    }
+
+    .mbr-dues-tools__toggle {
+        margin-left: auto;
+    }
+
+    .mbr-dues-tools .mbr-compose {
+        padding: 16px 0 0;
+        border-top: 1px solid var(--color-line-soft);
+    }
+
+    .mbr-bulk-bar {
+        justify-content: flex-end;
+        padding: 14px 20px;
+        border-bottom: 1px solid var(--color-line);
+    }
+
+    .mbr-selected {
+        align-self: center;
+        margin-right: auto;
+        font-size: var(--text-body-s);
+        font-weight: 700;
+        color: var(--color-ink-2);
+    }
+
+    .mbr-check {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 24px;
+        min-height: 24px;
+        cursor: pointer;
+    }
+
+    .mbr-check input {
+        width: 18px;
+        height: 18px;
+        margin: 0;
+        accent-color: var(--color-clay);
+    }
+
+    .mbr-table-card .ds-table .mbr-check-cell {
+        width: 1%;
+    }
+
+    @media (width < 48rem) {
+        .mbr-dues-tools__toggle {
+            margin-left: 0;
+        }
+
+        .mbr-dues-tools__row > .ds-btn {
+            flex: 1 1 100%;
+        }
+
+        .mbr-dues-tools .mbr-compose {
+            padding: 12px 0 0;
+        }
+
+        .mbr-bulk-bar {
+            gap: 8px;
+            padding: 0 0 4px;
+            border-bottom: 0;
+        }
+
+        .mbr-bulk-bar > .ds-field,
+        .mbr-bulk-bar > .ds-btn {
+            flex: 1 1 100%;
+        }
+
+        .mbr-table-card .ds-table .mbr-check-cell {
+            width: auto;
+        }
+
+        /* Touch target: the whole label is the hit area (44px). */
+        .mbr-check {
+            min-width: var(--spacing-touch-min);
+            min-height: var(--spacing-touch-min);
+            justify-content: flex-start;
+        }
+    }
+}

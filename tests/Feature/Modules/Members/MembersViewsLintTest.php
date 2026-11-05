@@ -31,6 +31,7 @@ class MembersViewsLintTest extends TestCase
         'members/_form.blade.php',
         'members/create.blade.php',
         'payments/create.blade.php',
+        'dues/index.blade.php',
     ];
 
     private const VIEWS_PREFIX = 'Modules/Members/resources/views/';

@@ -41,7 +41,7 @@ class MemberDueFilterTest extends TestCase
         $this->dueFor($bernd, $fy, $category, 'ausstehend');
 
         $this->actingAs($this->admin())->get("/members/dues?fiscal_year_id={$fy->id}&search=anna")
-            ->assertOk()->assertSee('<td>Anna Muster</td>', false)->assertDontSee('<td>Bernd Alt</td>', false);
+            ->assertOk()->assertSee('>Anna Muster</td>', false)->assertDontSee('>Bernd Alt</td>', false);
     }
 
     #[Test]
@@ -55,7 +55,7 @@ class MemberDueFilterTest extends TestCase
         $this->dueFor($pending, $fy, $category, 'ausstehend');
 
         $this->actingAs($this->admin())->get("/members/dues?fiscal_year_id={$fy->id}&status=bezahlt")
-            ->assertOk()->assertSee('<td>Bezahlt Mitglied</td>', false)->assertDontSee('<td>Offen Mitglied</td>', false);
+            ->assertOk()->assertSee('>Bezahlt Mitglied</td>', false)->assertDontSee('>Offen Mitglied</td>', false);
     }
 
     #[Test]
@@ -69,7 +69,7 @@ class MemberDueFilterTest extends TestCase
         $this->dueFor($onTime, $fy, $category, 'ausstehend', now()->addWeek()->toDateString());
 
         $this->actingAs($this->admin())->get("/members/dues?fiscal_year_id={$fy->id}&status=ueberfaellig")
-            ->assertOk()->assertSee('<td>Verspaetet Mitglied</td>', false)->assertDontSee('<td>Piinktlich Mitglied</td>', false);
+            ->assertOk()->assertSee('>Verspaetet Mitglied</td>', false)->assertDontSee('>Piinktlich Mitglied</td>', false);
     }
 
     #[Test]
@@ -84,7 +84,7 @@ class MemberDueFilterTest extends TestCase
 
         $this->actingAs($this->admin())->get("/members/dues?fiscal_year_id={$fy->id}&status=ueberfaellig")
             ->assertOk()
-            ->assertSee('<td>Manuell Ueberfaellig</td>', false)
-            ->assertDontSee('<td>Piinktlich Mitglied</td>', false);
+            ->assertSee('>Manuell Ueberfaellig</td>', false)
+            ->assertDontSee('>Piinktlich Mitglied</td>', false);
     }
 }

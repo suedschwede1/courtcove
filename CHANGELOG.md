@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Dues page uses the new table, labelled filters and a bulk bar; the status message no longer appears twice.
 - Member and payment forms use the shared fields with labels and error text linked for screen readers.
 
 - Member edit page uses the new header actions, dues card and change history; partial payments are highlighted without inline colours.
