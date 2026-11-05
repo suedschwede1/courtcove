@@ -130,6 +130,15 @@
       "assets/barlow-condensed-latin-ext-700-normal-BIHFfxf0.woff"
     ]
   },
+  "resources/css/mixed-print.css": {
+    "file": "assets/mixed-print-BtqpfEH3.css",
+    "name": "mixed-print",
+    "names": [
+      "mixed-print.css"
+    ],
+    "src": "resources/css/mixed-print.css",
+    "isEntry": true
+  },
   "resources/js/app.js": {
     "file": "assets/app-CaABMKci.js",
     "name": "app",
