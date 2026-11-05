@@ -110,6 +110,9 @@ class ChallengeAdminController extends Controller
      */
     private function administered(int $challengeId): array
     {
+        // Authorize first: someone who administers no ladder at all gets a 403, never the admin shell's not-found page.
+        abort_unless($this->administersAnyLadder(), 403, __('pyramid::admin.forbidden'));
+
         $challenge = $this->repo->challenge($challengeId);
 
         if ($challenge === null) {

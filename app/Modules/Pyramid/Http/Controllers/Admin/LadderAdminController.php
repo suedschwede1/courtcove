@@ -308,6 +308,9 @@ class LadderAdminController extends Controller
 
     private function administeredLadder(int $ladderId): PyramidLadder
     {
+        // Authorize first: someone who administers no ladder at all gets a 403, never the admin shell's not-found page.
+        abort_unless($this->administersAnyLadder(), 403, __('pyramid::admin.forbidden'));
+
         $ladder = $this->repo->ladder($ladderId);
 
         if ($ladder === null) {

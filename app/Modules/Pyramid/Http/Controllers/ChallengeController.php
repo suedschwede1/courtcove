@@ -216,7 +216,7 @@ class ChallengeController extends Controller
         }
 
         $winnerId = $evaluated['winner_side'] === 'a' ? (int) $challenge->challenger_id : (int) $challenge->opponent_id;
-        $winner = (string) ($this->repo->player($winnerId)?->label ?? '');
+        $winner = (string) ($this->repo->player($winnerId)->label ?? '');
 
         return response()->json([
             'valid' => true,

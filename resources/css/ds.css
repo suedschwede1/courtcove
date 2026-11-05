@@ -1251,6 +1251,32 @@
         }
     }
 
+    /*
+     * Phone action bar: the page's primary action fixed at the bottom (phones only). The bottom padding grows by
+     * the iPhone safe area; the spacer at the end of the page reserves exactly the bar's height, so nothing hides
+     * behind it. Height = 12px top + button + 24px bottom + 1px border + safe area.
+     */
+    .ds-phone-actionbar {
+        --ds-phone-actionbar-safe: env(safe-area-inset-bottom, 0px);
+        position: fixed;
+        inset: auto 0 0;
+        z-index: 30;
+        padding: 12px 16px calc(24px + var(--ds-phone-actionbar-safe));
+        border-top: 1px solid var(--color-line);
+        background: var(--color-surface);
+    }
+
+    .ds-phone-actionbar-spacer {
+        height: calc(37px + var(--spacing-control-h-mobile) + env(safe-area-inset-bottom, 0px));
+    }
+
+    @media (width >= 48rem) {
+        .ds-phone-actionbar,
+        .ds-phone-actionbar-spacer {
+            display: none;
+        }
+    }
+
     /* Full-page booking and edit forms: one centred card, same parts as the dialog. */
     .ds-booking-page {
         display: flex;

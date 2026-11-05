@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Pyramid\Http\Controllers\Concerns;
 
+use App\Modules\Pyramid\Models\PyramidGrant;
 use App\Modules\Pyramid\Models\PyramidLadder;
 use App\Modules\Pyramid\Models\PyramidPlayer;
 use App\Modules\Pyramid\Support\PyramidNotFound;
@@ -45,6 +46,18 @@ trait ResolvesPyramidViewer
         $user = Auth::user();
 
         return $user === null ? null : $this->repo->playerByUid((int) $ladder->id, (int) $user->uid);
+    }
+
+    /**
+     * Global Pyramid right or an admin grant on at least one ladder: the gate in front of the administration's
+     * id lookups, so an unknown id is a 404 only for people who administer something.
+     */
+    protected function administersAnyLadder(): bool
+    {
+        $user = Auth::user();
+
+        return $user !== null && ($this->canAdmin()
+            || PyramidGrant::query()->where('uid', (int) $user->uid)->where('role', 'admin')->exists());
     }
 
     /**
