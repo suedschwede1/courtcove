@@ -69,6 +69,7 @@ return [
         'activate' => 'Aktivieren',
         'remove' => 'Entfernen',
         'remove_confirm' => 'Teilnehmer wirklich entfernen?',
+        'remove_label' => ':name entfernen',
         'paused' => 'pausiert',
         'edit_label' => ':name bearbeiten',
         'add_title' => 'Neuer Teilnehmer',

@@ -65,6 +65,7 @@ return [
         'activate' => 'Activate',
         'remove' => 'Remove',
         'remove_confirm' => 'Really remove this participant?',
+        'remove_label' => 'Remove :name',
         'paused' => 'paused',
         'edit_label' => 'Edit :name',
         'add_title' => 'New participant',

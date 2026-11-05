@@ -33,6 +33,7 @@ final class Icons
         'search' => '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
         'eye' => '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
         'info' => '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+        'arrows-left-right' => '<path d="M4 12h16M8 8l-4 4 4 4M16 8l4 4-4 4"/>',
     ];
 
     public static function svg(string $name): string

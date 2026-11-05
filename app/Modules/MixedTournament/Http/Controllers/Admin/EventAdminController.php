@@ -7,10 +7,14 @@ namespace App\Modules\MixedTournament\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Modules\MixedTournament\Domain\EventService;
+use App\Modules\MixedTournament\Models\MixedAvoidPair;
 use App\Modules\MixedTournament\Models\MixedEvent;
+use App\Modules\MixedTournament\Models\MixedEventGrant;
+use App\Modules\MixedTournament\Models\MixedParticipant;
 use App\Modules\MixedTournament\Models\MixedRound;
 use App\Modules\MixedTournament\Policies\MixedEventPolicy;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -91,34 +95,85 @@ class EventAdminController extends Controller
             ->with('success', __('mixed::messages.default_set'));
     }
 
-    public function setTestMode(MixedEvent $event): never
+    /** Global right (route middleware): a test-mode user must not switch it, it would make everyone admin. */
+    public function setTestMode(Request $request, MixedEvent $event): RedirectResponse
     {
-        abort(501);
+        $on = (string) $request->input('is_test') === '1';
+        $this->events->setTestMode($event, $on);
+
+        return $this->toConfig($event)->with('success', __('mixed::messages.'.($on ? 'test_mode_on' : 'test_mode_off')));
     }
 
-    public function grant(MixedEvent $event): never
+    /** Global right (route middleware). The user must exist and the role be score|admin. */
+    public function grant(Request $request, MixedEvent $event): RedirectResponse
     {
-        abort(501);
+        $uid = (int) $request->input('uid');
+        $role = (string) $request->input('role');
+
+        if ($uid <= 0 || User::query()->whereKey($uid)->doesntExist() || ! in_array($role, ['score', 'admin'], true)) {
+            return $this->toConfig($event)->with('error', __('mixed::messages.grant_select'));
+        }
+
+        $this->events->setGrant($event, $uid, $role);
+
+        return $this->toConfig($event)->with('success', __('mixed::messages.grant_saved'));
     }
 
-    public function revoke(MixedEvent $event): never
+    /** Global right (route middleware). A uid without a grant in THIS event is not found. */
+    public function revoke(Request $request, MixedEvent $event): RedirectResponse
     {
-        abort(501);
+        $uid = (int) $request->input('uid');
+        abort_if($this->events->grant($event, $uid) === null, 404);
+
+        $this->events->removeGrant($event, $uid);
+
+        return $this->toConfig($event)->with('success', __('mixed::messages.grant_removed'));
     }
 
-    public function setCourtCount(MixedEvent $event): never
+    public function setCourtCount(Request $request, MixedEvent $event): RedirectResponse
     {
-        abort(501);
+        $this->authorizeAdminister($request, $event);
+
+        $this->events->setCourtCount($event, (int) $request->input('court_count'));
+
+        return $this->toConfig($event)->with('success', __('mixed::messages.court_count_saved'));
     }
 
-    public function event(MixedEvent $event): never
+    /** Participants tab (old admin/event.phtml). The member roster is NOT embedded; the picker searches. */
+    public function event(Request $request, MixedEvent $event): View
     {
-        abort(501);
+        $user = $this->authorizeAdminister($request, $event);
+        $participants = MixedParticipant::query()->where('event_id', $event->id)->orderBy('id')->get();
+
+        return view('mixed::admin.event', $this->head($user, $event, $participants) + [
+            'participants' => $participants,
+        ]);
     }
 
-    public function config(MixedEvent $event): never
+    /** Configuration tab (old admin/config.phtml): courts, blank scorecards, grants, avoid pairs, test mode. */
+    public function config(Request $request, MixedEvent $event): View
     {
-        abort(501);
+        $user = $this->authorizeAdminister($request, $event);
+        $participants = MixedParticipant::query()->where('event_id', $event->id)->orderBy('id')->get();
+        $isGlobalAdmin = MixedEventPolicy::isGlobalAdmin($user);
+
+        $grants = collect();
+        $users = collect();
+        $userLabels = [];
+        if ($isGlobalAdmin) {
+            $grants = MixedEventGrant::query()->where('event_id', $event->id)->orderBy('id')->get();
+            $userLabels = User::query()->whereIn('uid', $grants->pluck('uid')->all())->pluck('alias', 'uid')->all();
+            // Selectable as in ZF2: enabled accounts and administrators (not deleted, blocked or unconfirmed).
+            $users = User::query()->whereIn('status', ['enabled', 'admin'])->orderBy('alias')->orderBy('uid')->get(['uid', 'alias']);
+        }
+
+        return view('mixed::admin.config', $this->head($user, $event, $participants) + [
+            'participants' => $participants,
+            'avoidPairs' => MixedAvoidPair::query()->where('event_id', $event->id)->orderBy('id')->get(),
+            'grants' => $grants,
+            'userLabels' => $userLabels,
+            'users' => $users,
+        ]);
     }
 
     public function durchmischung(MixedEvent $event): never
@@ -129,6 +184,43 @@ class EventAdminController extends Controller
     public function standings(MixedEvent $event): never
     {
         abort(501);
+    }
+
+    /**
+     * Shared header data of the event admin tabs: counts, the events the viewer administers (switcher) and
+     * whether the global actions (set default, new event) are offered.
+     *
+     * @param  Collection<int, MixedParticipant>  $participants
+     * @return array<string, mixed>
+     */
+    private function head(User $user, MixedEvent $event, Collection $participants): array
+    {
+        $gate = Gate::forUser($user);
+        $switch = MixedEvent::query()->orderBy('id')->get()
+            ->filter(static fn (MixedEvent $e): bool => $gate->allows('administer', $e))
+            ->values();
+
+        return [
+            'event' => $event,
+            'activeCount' => $participants->where('status', 'active')->count(),
+            'totalCount' => $participants->count(),
+            'roundCount' => MixedRound::query()->where('event_id', $event->id)->count(),
+            'switchEvents' => $switch,
+            'isGlobalAdmin' => MixedEventPolicy::isGlobalAdmin($user),
+        ];
+    }
+
+    private function authorizeAdminister(Request $request, MixedEvent $event): User
+    {
+        $user = $this->user($request);
+        abort_unless(Gate::forUser($user)->allows('administer', $event), 403);
+
+        return $user;
+    }
+
+    private function toConfig(MixedEvent $event): RedirectResponse
+    {
+        return redirect()->route('mixed.admin.config', ['event' => (int) $event->id]);
     }
 
     private function user(Request $request): User
