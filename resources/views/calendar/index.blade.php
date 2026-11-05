@@ -1,30 +1,5 @@
 @extends('layouts.app')
-@section('body-class', 'has-calendar-layout')
 @section('title', __('booking.calendar.title', ['date' => $date->format('d.m.Y')]))
-
-@push('header-nav')
-<a href="{{ route('calendar.index', ['date' => $date->copy()->subDay()->format('Y-m-d')]) }}"
-   class="ui-calendar-nav-btn ui-calendar-nav-btn--arrow"
-   title="{{ __('booking.nav.previous_day') }}">&#8249;</a>
-
-<a href="{{ route('calendar.index') }}"
-   class="ui-calendar-nav-btn ui-calendar-nav-btn--today">{{ __('booking.nav.today') }}</a>
-
-<form method="GET" action="{{ route('calendar.index') }}" class="ui-calendar-date-form">
-    <label for="c-date" class="sr-only">{{ __('booking.nav.choose_date') }}</label>
-    <div class="relative">
-        <input type="date" name="date" id="c-date"
-               value="{{ $date->format('Y-m-d') }}"
-               class="ui-calendar-date-input"
-               aria-label="{{ __('booking.nav.choose_date') }}"
-               onchange="this.form.submit()">
-    </div>
-</form>
-
-<a href="{{ route('calendar.index', ['date' => $date->copy()->addDay()->format('Y-m-d')]) }}"
-   class="ui-calendar-nav-btn ui-calendar-nav-btn--arrow"
-   title="{{ __('booking.nav.next_day') }}">&#8250;</a>
-@endpush
 
 @section('calendar-system-info')
 @php
@@ -112,15 +87,54 @@
 @endsection
 
 @section('content')
-<div class="calendar-layout calendar-layout--mobile-safe" x-data="{}">
-    <div class="calendar-wrap">
+@php
+    $hasInfoPanel = $__env->hasSection('calendar-system-info');
+    $hasHelpPanel = $__env->hasSection('calendar-help');
+@endphp
+<div class="cal-page" x-data="{}">
+    <div class="cal-toolbar no-print">
+        <h1 class="cal-toolbar__title">
+            <span class="cal-toolbar__weekday">{{ $date->isoFormat('dddd') }}</span><span class="cal-toolbar__sep">, </span><span class="cal-toolbar__date">{{ $date->isoFormat('LL') }}</span>
+            @if($date->isToday())
+                <span class="cal-toolbar__today-hint"><span aria-hidden="true"> &middot; </span>{{ __('booking.nav.today') }}</span>
+            @endif
+        </h1>
+
+        <nav id="calendar-date-nav" class="cal-toolbar__nav" aria-label="{{ __('booking.calendar.date_navigation') }}">
+            <x-ui.icon-button icon="chevron-left" :href="route('calendar.index', ['date' => $date->copy()->subDay()->format('Y-m-d')])" :label="__('booking.nav.previous_day')" data-cal-nav="prev" />
+            <x-ui.button variant="secondary" :block="false" :href="route('calendar.index')">{{ __('booking.nav.today') }}</x-ui.button>
+            <form method="GET" action="{{ route('calendar.index') }}" class="cal-toolbar__date-form">
+                <label for="c-date" class="cal-toolbar__date-field">
+                    <x-ui.icon name="calendar" :size="18" />
+                    <span class="sr-only">{{ __('booking.nav.choose_date') }}</span>
+                    <input type="date" id="c-date" name="date" value="{{ $date->format('Y-m-d') }}" class="cal-toolbar__date-input" x-on:change="$el.form.submit()">
+                </label>
+            </form>
+            <x-ui.icon-button icon="chevron-right" :href="route('calendar.index', ['date' => $date->copy()->addDay()->format('Y-m-d')])" :label="__('booking.nav.next_day')" data-cal-nav="next" />
+        </nav>
+    </div>
+
+    @if($hasInfoPanel || $hasHelpPanel)
+        <div class="cal-toolbar__panels no-print">
+            <span class="cal-toolbar__divider" aria-hidden="true"></span>
+            @if($hasInfoPanel)
+                <x-ui.button variant="text" :block="false" data-panel-toggle="system-info-panel" aria-controls="system-info-panel">{{ __('booking.nav.info') }}</x-ui.button>
+            @endif
+            @if($hasHelpPanel)
+                <x-ui.button variant="text" :block="false" data-panel-toggle="help-panel" aria-controls="help-panel">{{ __('booking.nav.help') }}</x-ui.button>
+            @endif
+        </div>
+    @endif
+
+    <x-calendar.legend class="cal-page__legend no-print" :logged-in="$isLoggedIn" />
+
+    <div class="cal-page__board">
         <x-calendar.grid
             :dates="$dates"
             :squares="$squares"
             :date-labels="$dateLabels"
             :reservations-by-slot="$reservationsBySlot"
             :event-blocks="$eventBlocks"
-            :event-skip="$eventSkip"
             :today="$today"
             :now="$now"
             :is-logged-in="$isLoggedIn"

@@ -70,6 +70,13 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 - Phase 2: Pyramid tables adopted in place (guarded create migrations, additive email column, no-op rollback, schema manifest).
 - Phase 2 go-live (module 1): the public draw record pages /draw/record/* are served by Laravel; the rest of /draw stays on ZF2.
 - Phase 2: public draw record page in the new design (German/English), same content and reveal rule as ZF2.
+- Built assets updated for the new calendar.
+- The phone header logo link is a full 44 px tap target and the calendar time column keeps its spacer heights.
+- Free calendar cells are real links with a spoken label; own, booked, subscription, tournament, event and past slots get the new look; old calendar styles removed.
+- The calendar shows the selected day and the next two as cards with court aliases and numbers and a time column; phones show one day with a sticky court row.
+- The calendar shows a legend of all cell states, and the help texts describe the new colours.
+- The calendar date, day arrows, date picker and Infos/Hinweise now sit in a toolbar above the plan instead of under the header.
+- Calendar colours default to the new design tokens; CAL_COLOR_* and the local override file still win, tournament matches get their own colour keys.
 - Legacy element rules use zero-specificity guards so existing buttons, links and inputs keep their original cascade.
 - Admin and Members pages show their prefix in the browser tab again even when a view sets its own title.
 - Legacy element rules (links, text inputs, touch-action) no longer restyle the new ds components, which now carry their own base font size.

@@ -39,4 +39,40 @@ final class BuildFreshnessTest extends TestCase
 
         $this->assertSame([], $missing, 'Classes missing in the built CSS; run npm run build.');
     }
+
+    #[Test]
+    public function every_calendar_class_is_built(): void
+    {
+        $manifest = json_decode((string) file_get_contents(public_path('build/manifest.json')), true, flags: JSON_THROW_ON_ERROR);
+        $css = (string) file_get_contents(public_path('build/'.$manifest['resources/css/app.css']['file']));
+
+        $files = array_merge(
+            glob(resource_path('views/components/calendar/*.blade.php')) ?: [],
+            glob(resource_path('views/calendar/*.blade.php')) ?: [],
+        );
+
+        $missing = [];
+        foreach ($files as $file) {
+            $src = (string) file_get_contents($file);
+            $strings = [];
+            preg_match_all('/class="([^"]*)"/', $src, $m1);
+            preg_match_all('/@class\(\[(.*?)\]\)/s', $src, $m2);
+            preg_match_all('/->class\(([^)]*)\)/', $src, $m3);
+            array_push($strings, ...$m1[1], ...$m2[1], ...$m3[1]);
+
+            foreach ($strings as $s) {
+                preg_match_all('/\b(?:(?:cal|cc|event-cell)-[a-z0-9_-]+|slot-cell--past)/', $s, $t);
+                foreach ($t[0] as $token) {
+                    if (str_ends_with($token, '-')) {
+                        continue;
+                    }
+                    if (! preg_match('/\.'.preg_quote($token, '/').'(?![\w-])/', $css)) {
+                        $missing[$token] = basename($file);
+                    }
+                }
+            }
+        }
+
+        $this->assertSame([], $missing, 'Calendar classes missing in the built CSS; run npm run build.');
+    }
 }

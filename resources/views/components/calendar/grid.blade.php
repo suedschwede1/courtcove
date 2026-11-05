@@ -4,7 +4,6 @@
     'dateLabels',
     'reservationsBySlot',
     'eventBlocks',
-    'eventSkip',
     'today',
     'now',
     'isLoggedIn',
@@ -14,337 +13,112 @@
     'date',
 ])
 
-<table class="calendar-square-table booking-grid" id="calendar-grid" data-squares="{{ $squares->count() }}" data-max-days="{{ count($dates) }}">
-    <colgroup>
-        <col class="calendar-time-col">
-        @foreach($dates as $dayIndex => $d)
-            @foreach($squares as $square)
-                <col @class(['calendar-slot-col', 'cal-extra-day' => $dayIndex >= 1]) data-day="{{ $dayIndex }}">
-            @endforeach
-        @endforeach
-    </colgroup>
-    <thead>
-        <tr class="calendar-date-row">
-            <td class="time-spacer">&nbsp;</td>
-            @foreach($dates as $dayIndex => $d)
-                @php
-                    $isSelectedDay = $d->format('Y-m-d') === $date->format('Y-m-d');
-                    $isTodayColumn = $d->format('Y-m-d') === $today;
-                @endphp
-                <td colspan="{{ $squares->count() }}" @class(['day-header-cell', 'day-header-cell--active' => $isSelectedDay, 'day-header-cell--today' => $isTodayColumn, 'cal-extra-day' => $dayIndex >= 1]) data-day="{{ $dayIndex }}">
-                    <div class="day-header-inline">
-                        <span class="day-header-name">{{ $dateLabels[$d->format('Y-m-d')]['short'] }}</span>
-                        <span class="day-header-date">{{ $dateLabels[$d->format('Y-m-d')]['long'] }}</span>
-                    </div>
-                </td>
-            @endforeach
-        </tr>
-        <tr class="calendar-square-row">
-            <td class="time-side-head">{{ __('booking.calendar.court') }}</td>
-            @foreach($dates as $dayIndex => $d)
-                @php
-                    $isSelectedDay = $d->format('Y-m-d') === $date->format('Y-m-d');
-                    $isTodayColumn = $d->format('Y-m-d') === $today;
-                @endphp
-                @foreach($squares as $square)
-                    <td @class(['square-head-cell', 'square-head-cell--active' => $isSelectedDay, 'square-head-cell--today' => $isTodayColumn, 'cal-extra-day' => $dayIndex >= 1]) data-day="{{ $dayIndex }}">
-                        <span class="square-head-title">{{ $square->name }}</span>
-                        @if($square->display_name !== $square->name)
-                            <span class="square-head-alias">{{ $square->display_name }}</span>
-                        @endif
-                    </td>
-                @endforeach
-            @endforeach
-        </tr>
-    </thead>
-    <tbody>
-        @for($h = 8; $h <= 19; $h++)
-            @php
-                $timeLabel = str_pad((string) $h, 2, '0', STR_PAD_LEFT) . ':00';
-                $nextLabel = str_pad((string) ($h + 1), 2, '0', STR_PAD_LEFT) . ':00';
-                $timeRangeLabel = $timeLabel . ' – ' . $nextLabel . ' ' . __('booking.admin.common.clock_suffix');
-            @endphp
-            <tr class="calendar-core-row">
-                <td class="time-cell">
-                    <span class="time-main">{{ $timeLabel }}</span>
-                    <span class="time-sub">{{ __('booking.calendar.to_time', ['time' => $nextLabel]) }}</span>
-                </td>
+@php
+    $firstHour = 8;
+    $lastHour = 19;
+    $sids = $squares->pluck('sid')->values()->all();
 
-                @foreach($dates as $dayIndex => $d)
-                    @php
-                        $dateKey = $d->format('Y-m-d');
-                        $isPastSlot = $dateKey < $today || ($dateKey === $today && ($h + 1) <= $now->hour);
-                        $extraDay = $dayIndex >= 1;
-                    @endphp
-                    @foreach($squares as $square)
-                        @php
-                            $sid = $square->sid;
-                            $squareLabel = $square->display_name;
-                            $squareFullLabel = $square->name.' '.$square->display_name;
-                            $skipSlot = !empty($eventSkip[$dateKey][$sid][$h]);
-                        @endphp
-
-                        @continue($skipSlot)
-
-                        @php
-                            $evBlock = $eventBlocks[$dateKey][$sid][$h] ?? null;
-                            $reservation = $reservationsBySlot[$dateKey][$sid][$h] ?? null;
-
-                            $isOwn = $reservation
-                                && $isLoggedIn
-                                && isset($reservation->booking->user)
-                                && $reservation->booking->user->uid === $authUserId;
-
-                            $canManageBooking = $reservation && $isAdmin;
-                            $isSeriesBooking = $reservation?->booking?->isSubscription() ?? false;
-
-                            $secondaryLabel = $isLoggedIn ? $reservation?->booking?->player_names_label : null;
-
-                            $cellClass = 'cc-over';
-                            $slotClass = $isPastSlot ? ' slot-cell--past' : '';
-                            $seriesClass = $isSeriesBooking ? ' cc-series' : '';
-                            $primaryLabel = '';
-                            $action = null;
-                            $cellTitle = $squareLabel . ' – ' . __('booking.calendar.past');
-
-                            if (!$evBlock) {
-                                if ($isPastSlot && !$reservation) {
-                                    $cellClass = 'cc-over';
-                                    $cellTitle = $squareLabel . ' – ' . __('booking.calendar.past');
-                                } elseif (!$reservation) {
-                                    $cellClass = 'cc-free';
-                                    $action = $isLoggedIn && !$isPastSlot ? ($isAdmin ? 'admin-book' : 'book') : 'login';
-                                    $cellTitle = $isLoggedIn
-                                        ? __('booking.calendar.book_title', ['court' => $squareLabel, 'time' => $timeLabel])
-                                        : __('booking.calendar.login_to_book');
-                                } elseif ($isOwn || ($canManageBooking && !$isPastSlot)) {
-                                    $cellClass = $isOwn ? 'cc-own' : 'cc-single-future';
-                                    $action = 'cancel';
-                                    $primaryLabel = $reservation->booking->owner_label;
-                                    $cellTitle = $isOwn
-                                        ? __('booking.calendar.cancel_title', ['court' => $squareLabel])
-                                        : __('booking.calendar.edit_title', ['court' => $squareLabel]);
-                                } else {
-                                    $cellClass = 'cc-single-future';
-                                    $primaryLabel = $isLoggedIn
-                                        ? ($reservation->booking?->owner_label ?? __('booking.calendar.occupied'))
-                                        : __('booking.calendar.occupied');
-                                    $cellTitle = $isPastSlot
-                                        ? ($squareLabel . ' – ' . __('booking.calendar.past'))
-                                        : ($squareLabel . ' – ' . __('booking.calendar.occupied'));
-                                }
-
-                                if ($reservation?->booking?->isChampionshipMatch()) {
-                                    $cellClass .= ' cc-turnier';
-                                }
-                            }
-                        @endphp
-
-                        @if($evBlock)
-                            @php
-                                $eventEditUrl = $canAdminEvents ? route('admin.events.edit', $evBlock['event']) : null;
-                            @endphp
-                            <td rowspan="{{ $evBlock['rows'] }}" colspan="{{ $evBlock['cols'] }}" @class(['event-cell', 'event-cell--editable' => $canAdminEvents, 'cal-extra-day' => $extraDay]) data-day="{{ $dayIndex }}" title="{{ $evBlock['name'] }}">
-                                @if($eventEditUrl)
-                                    <a href="{{ $eventEditUrl }}" class="event-label booking-trigger" data-action="event-edit" data-edit-url="{{ $eventEditUrl }}">{{ $evBlock['name'] }}</a>
-                                @else
-                                    <span class="event-label">{{ $evBlock['name'] }}</span>
-                                @endif
-                            </td>
-                        @elseif($action === 'book' || $action === 'admin-book')
-                            <td @class(['cal-extra-day' => $extraDay]) data-day="{{ $dayIndex }}">
-                                @if($action === 'book')
-                                    <a href="#"
-                                       class="calendar-cell {{ $cellClass }}{{ $slotClass }}"
-                                       title="{{ $cellTitle }}"
-                                       @click.prevent="$dispatch('open-booking', {
-                                           sid: {{ $sid }},
-                                           date: @js($dateKey),
-                                           timeStart: {{ $h * 3600 }},
-                                           timeEnd: {{ ($h + 1) * 3600 }},
-                                           timeStartFormatted: @js(str_pad($h, 2, '0', STR_PAD_LEFT) . ':00'),
-                                           timeEndFormatted: @js(str_pad($h + 1, 2, '0', STR_PAD_LEFT) . ':00'),
-                                           squareName: @js($squareFullLabel),
-                                           dateLabel: @js($dateLabels[$d->format('Y-m-d')]['full']),
-                                           timeLabel: @js($timeRangeLabel)
-                                       })"></a>
-                                @else
-                                    <a href="#"
-                                       class="calendar-cell {{ $cellClass }}{{ $slotClass }} booking-trigger"
-                                       title="{{ $cellTitle }}"
-                                       data-action="admin-book"
-                                       data-sid="{{ $sid }}"
-                                       data-date="{{ $dateKey }}"
-                                       data-time-start="{{ $h * 3600 }}"
-                                       data-time-end="{{ ($h + 1) * 3600 }}"
-                                       data-square-name="{{ $squareFullLabel }}"
-                                       data-date-label="{{ $dateLabels[$d->format('Y-m-d')]['full'] }}"
-                                       data-time-label="{{ $timeRangeLabel }}"
-                                       data-create-url="{{ route('admin.bookings.create') }}?sid={{ $sid }}&date={{ $dateKey }}&time_start={{ $h * 3600 }}&time_end={{ ($h + 1) * 3600 }}"></a>
-                                @endif
-                            </td>
-                        @elseif($action === 'cancel')
-                            <td @class(['cal-extra-day' => $extraDay]) data-day="{{ $dayIndex }}">
-                                @if($isAdmin)
-                                    <a href="#"
-                                       class="calendar-cell {{ $cellClass }}{{ $slotClass }}{{ $seriesClass }} booking-trigger"
-                                       title="{{ $cellTitle }}"
-                                       data-action="cancel"
-                                       data-bid="{{ $reservation->booking->bid }}"
-                                       data-square-name="{{ $squareFullLabel }}"
-                                       data-date-label="{{ $dateLabels[$d->format('Y-m-d')]['full'] }}"
-                                       data-time-label="{{ $timeRangeLabel }}"
-                                       data-edit-url="{{ route('admin.bookings.edit', $reservation->booking) }}?occurrence={{ $dateKey }}"
-                                       data-delete-url="{{ route('admin.bookings.destroy', $reservation->booking) }}">
-                                        <span class="cc-label-primary">{{ $primaryLabel }}</span>
-                                        @if($secondaryLabel)
-                                            <span class="cc-label-secondary">{{ $secondaryLabel }}</span>
-                                        @endif
-                                    </a>
-                                @elseif($isOwn)
-                                    <a href="#"
-                                       class="calendar-cell {{ $cellClass }}{{ $slotClass }}{{ $seriesClass }}"
-                                       title="{{ $cellTitle }}"
-                                       @click.prevent="$dispatch('open-cancel', {
-                                           bid: @js((string) $reservation->booking->bid),
-                                           squareName: @js($squareFullLabel),
-                                           dateLabel: @js($dateLabels[$d->format('Y-m-d')]['full']),
-                                           timeLabel: @js($timeRangeLabel),
-                                           quantity: @js((string) $reservation->booking->quantity),
-                                           mitspieler: @js($reservation->booking->player_names[0] ?? '')
-                                       })">
-                                        <span class="cc-label-primary">{{ $primaryLabel }}</span>
-                                        @if($secondaryLabel)
-                                            <span class="cc-label-secondary">{{ $secondaryLabel }}</span>
-                                        @endif
-                                    </a>
-                                @else
-                                    <span class="calendar-cell {{ $cellClass }}{{ $slotClass }}{{ $seriesClass }}" title="{{ $cellTitle }}">
-                                        <span class="cc-label-primary">{{ $primaryLabel }}</span>
-                                        @if($secondaryLabel)
-                                            <span class="cc-label-secondary">{{ $secondaryLabel }}</span>
-                                        @endif
-                                    </span>
-                                @endif
-                            </td>
-                        @elseif($action === 'login')
-                            <td @class(['cal-extra-day' => $extraDay]) data-day="{{ $dayIndex }}">
-                                <a href="{{ route('login', ['redirect_to' => route('calendar.index', ['date' => $date->format('Y-m-d')])]) }}"
-                                   class="calendar-cell {{ $cellClass }}{{ $slotClass }} guest-login-cell"
-                                   title="{{ $cellTitle }}"></a>
-                            </td>
-                        @else
-                            <td @class(['cal-extra-day' => $extraDay]) data-day="{{ $dayIndex }}">
-                                <span class="calendar-cell {{ $cellClass }}{{ $slotClass }}{{ $seriesClass }}" title="{{ $cellTitle }}">
-                                    @if($primaryLabel)
-                                        <span class="cc-label-primary">{{ $primaryLabel }}</span>
-                                    @endif
-                                    @if($secondaryLabel)
-                                        <span class="cc-label-secondary">{{ $secondaryLabel }}</span>
-                                    @endif
-                                </span>
-                            </td>
-                        @endif
-                    @endforeach
-                @endforeach
-            </tr>
-        @endfor
-    </tbody>
-    <tfoot>
-        <tr class="calendar-square-row">
-            <td class="time-side-head">{{ __('booking.calendar.court') }}</td>
-            @foreach($dates as $dayIndex => $d)
-                @php
-                    $isSelectedDay = $d->format('Y-m-d') === $date->format('Y-m-d');
-                    $isTodayColumn = $d->format('Y-m-d') === $today;
-                @endphp
-                @foreach($squares as $square)
-                    <td @class(['square-head-cell', 'square-head-cell--active' => $isSelectedDay, 'square-head-cell--today' => $isTodayColumn, 'cal-extra-day' => $dayIndex >= 1]) data-day="{{ $dayIndex }}">
-                        <span class="square-head-title">{{ $square->name }}</span>
-                        @if($square->display_name !== $square->name)
-                            <span class="square-head-alias">{{ $square->display_name }}</span>
-                        @endif
-                    </td>
-                @endforeach
-            @endforeach
-        </tr>
-        <tr class="calendar-date-row footer-date-row">
-            <td class="time-spacer">&nbsp;</td>
-            @foreach($dates as $dayIndex => $d)
-                @php
-                    $isSelectedDay = $d->format('Y-m-d') === $date->format('Y-m-d');
-                    $isTodayColumn = $d->format('Y-m-d') === $today;
-                @endphp
-                <td colspan="{{ $squares->count() }}" @class(['day-header-cell', 'day-header-cell--active' => $isSelectedDay, 'day-header-cell--today' => $isTodayColumn, 'cal-extra-day' => $dayIndex >= 1]) data-day="{{ $dayIndex }}">
-                    <div class="day-header-inline"><span class="day-header-name">{{ $dateLabels[$d->format('Y-m-d')]['short'] }}</span><span class="day-header-date">{{ $dateLabels[$d->format('Y-m-d')]['long'] }}</span></div>
-                </td>
-            @endforeach
-        </tr>
-    </tfoot>
-</table>
-
-@push('scripts')
-<script>
-(function () {
-    var grid = document.getElementById('calendar-grid');
-    if (!grid) { return; }
-
-    var wrap = grid.closest('.calendar-wrap') || grid.parentElement;
-    var squares = parseInt(grid.dataset.squares, 10) || 1;
-    var maxDays = parseInt(grid.dataset.maxDays, 10) || 3;
-    var dayCells = grid.querySelectorAll('[data-day]');
-    var activeDayCell = grid.querySelector('.day-header-cell--active[data-day]');
-    var selectedDay = activeDayCell ? (parseInt(activeDayCell.getAttribute('data-day'), 10) || 0) : 0;
-    function cssPx(name, fallback) {
-        var value = parseFloat(getComputedStyle(grid).getPropertyValue(name));
-        return isNaN(value) ? fallback : value;
-    }
-
-    function availableCalendarWidth() {
-        // Must be independent of the grid's own current width: .calendar-layout is
-        // sized FROM the grid (via --calendar-visible-width), so once the grid no
-        // longer needs clamping, wrap.clientWidth just mirrors the grid's own size
-        // and can no longer report how much real room is actually available.
-        var rect = wrap.getBoundingClientRect();
-        var viewportWidth = document.documentElement.clientWidth || window.innerWidth;
-        return Math.max(0, viewportWidth - rect.left - 12);
-    }
-
-    function applyDayWindow(count) {
-        var firstVisibleDay = count === 1 ? selectedDay : 0;
-        var lastVisibleDay = firstVisibleDay + count;
-
-        dayCells.forEach(function (el) {
-            var dayIndex = parseInt(el.getAttribute('data-day'), 10);
-            el.classList.toggle('is-visible', dayIndex >= firstVisibleDay && dayIndex < lastVisibleDay);
-        });
-
-        grid.dataset.visibleDays = String(count);
-        wrap.dataset.visibleDays = String(count);
-        grid.style.minWidth = '';
-
-        var renderedWidth = Math.ceil(grid.getBoundingClientRect().width);
-        document.documentElement.style.setProperty('--calendar-visible-width', renderedWidth + 'px');
-    }
-
-    function applyVisibleDays() {
-        var count = maxDays;
-        applyDayWindow(count);
-
-        while (count > 1 && Math.ceil(grid.getBoundingClientRect().width) > availableCalendarWidth()) {
-            count--;
-            applyDayWindow(count);
+    // Expand every event block over its courts and hours, so each court column
+    // renders its own part per hour (start, middle, end, or single).
+    $eventParts = [];
+    foreach ($eventBlocks as $blockDate => $blocksBySid) {
+        foreach ($blocksBySid as $startSid => $blocksByHour) {
+            $startIndex = array_search($startSid, $sids, true);
+            if ($startIndex === false) {
+                continue;
+            }
+            foreach ($blocksByHour as $blockHour => $block) {
+                for ($col = 0; $col < $block['cols']; $col++) {
+                    $partSid = $sids[$startIndex + $col] ?? null;
+                    if ($partSid === null) {
+                        continue;
+                    }
+                    for ($row = 0; $row < $block['rows']; $row++) {
+                        $eventParts[$blockDate][$partSid][$blockHour + $row] = [
+                            'block' => $block,
+                            'part' => $block['rows'] === 1 ? 'single' : match ($row) {
+                                0 => 'start',
+                                $block['rows'] - 1 => 'end',
+                                default => 'middle',
+                            },
+                        ];
+                    }
+                }
+            }
         }
     }
+@endphp
 
-    var timer;
-    window.addEventListener('resize', function () {
-        clearTimeout(timer);
-        timer = setTimeout(applyVisibleDays, 100);
-    });
+<div class="cal-board" id="calendar-grid" data-squares="{{ $squares->count() }}">
+    <div class="cal-times" aria-hidden="true">
+        <div class="cal-times__spacer cal-times__spacer--head"></div>
+        <div class="cal-times__spacer cal-times__spacer--courts"></div>
+        @for($h = $firstHour; $h <= $lastHour; $h++)
+            <div class="cal-times__row">
+                <span class="cal-times__hour">{{ sprintf('%02d:00', $h) }}</span>
+                <span class="cal-times__until">{{ __('booking.calendar.until_hour', ['hour' => sprintf('%02d', $h + 1)]) }}</span>
+            </div>
+        @endfor
+    </div>
 
-    applyVisibleDays();
-})();
-</script>
-@endpush
+    @foreach(array_slice($dates, 1, 3, true) as $dayIndex => $d)
+        @php
+            $dateKey = $d->format('Y-m-d');
+            $titleId = 'cal-day-'.$dayIndex.'-title';
+        @endphp
+        <section @class(['cal-day', 'cal-extra-day' => $dayIndex > 1]) data-day="{{ $dayIndex }}" aria-labelledby="{{ $titleId }}">
+            <div class="cal-day__head">
+                <h2 id="{{ $titleId }}" class="cal-day__title">
+                    <span class="cal-day__name">{{ $dateLabels[$dateKey]['short'] }}</span>
+                    <span class="cal-day__date">{{ $d->isoFormat('D. MMMM') }}</span>
+                </h2>
+                @if($dateKey === $today)
+                    <span class="cal-day__today">{{ __('booking.nav.today') }}</span>
+                @endif
+            </div>
 
+            <div class="cal-day__courts">
+                <span class="cal-day__courts-spacer" aria-hidden="true"></span>
+                @foreach($squares as $square)
+                    <div class="cal-court">
+                        <span class="cal-court__alias">{{ $square->display_name }}</span>
+                        @if($square->alias !== null)
+                            <span class="cal-court__number">{{ __('booking.calendar.court_number', ['number' => $loop->iteration]) }}</span>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
+
+            @for($h = $firstHour; $h <= $lastHour; $h++)
+                <div class="cal-row" data-hour="{{ $h }}">
+                    <span class="cal-row__time">{{ sprintf('%02d:00', $h) }}</span>
+                    @foreach($squares as $square)
+                        @php($eventPart = $eventParts[$dateKey][$square->sid][$h] ?? null)
+                        @if($eventPart)
+                            <x-calendar.event-cell
+                                :name="$eventPart['block']['name']"
+                                :event="$eventPart['block']['event']"
+                                :part="$eventPart['part']"
+                                :can-admin-events="$canAdminEvents"
+                                :date-key="$dateKey"
+                            />
+                        @else
+                            <x-calendar.cell
+                                :square="$square"
+                                :date-key="$dateKey"
+                                :hour="$h"
+                                :date-label="$dateLabels[$dateKey]['full']"
+                                :is-past="$dateKey < $today || ($dateKey === $today && ($h + 1) <= $now->hour)"
+                                :reservation="$reservationsBySlot[$dateKey][$square->sid][$h] ?? null"
+                                :is-logged-in="$isLoggedIn"
+                                :is-admin="$isAdmin"
+                                :auth-user-id="$authUserId"
+                                :date="$date"
+                            />
+                        @endif
+                    @endforeach
+                </div>
+            @endfor
+        </section>
+    @endforeach
+</div>

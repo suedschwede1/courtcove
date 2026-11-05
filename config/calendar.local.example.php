@@ -5,36 +5,46 @@ declare(strict_types=1);
 // Copy this file to config/calendar.local.php (not tracked in git) and
 // uncomment/adjust only the values you want to override for this
 // installation. Anything you leave out keeps the default from
-// config/calendar.php (or the CAL_COLOR_* env vars).
+// config/calendar.php (or the CAL_COLOR_* env vars). Defaults reference the
+// design tokens; overrides may use any CSS colour.
 
 return [
     // 'free' => [
-    //     'bg' => '#ffffff',
-    //     'bg_hover' => '#ffffff',
+    //     'bg' => 'var(--color-surface)',
+    //     'bg_hover' => 'var(--color-clay-soft)',
+    //     'line' => 'var(--color-cell-free-line)',
     // ],
     // 'own' => [
-    //     'bg' => '#d8e9fb',
-    //     'bg_hover' => '#cfe1f4',
-    //     'accent' => 'rgba(26, 103, 179, 0.45)',
-    //     'label' => '#1a3a6b',
-    //     'label_secondary' => '#5a7ab3',
+    //     'bg' => 'var(--color-clay)',
+    //     'bg_hover' => 'var(--color-clay-hover)',
+    //     'accent' => 'var(--color-clay-hover)',
+    //     'label' => 'var(--color-on-clay)',
+    //     'label_secondary' => 'var(--color-on-clay)',
     // ],
     // 'single_future' => [
-    //     'bg' => '#dbe8f6',
-    //     'bg_hover' => '#d2e0ef',
+    //     'bg' => 'var(--color-cell-booked)',
+    //     'bg_hover' => 'var(--color-line)',
+    //     'label' => 'var(--color-ink)',
+    //     'label_secondary' => 'var(--color-ink-2)',
     // ],
     // 'series' => [
-    //     'accent' => '#bf4316',
-    //     'label' => '#7f2010',
+    //     'accent' => 'var(--color-line-strong)',
+    //     'label' => 'var(--color-ink-2)',
     // ],
     // 'past' => [
-    //     'bg' => '#f4f4f4',
-    //     'label' => '#8a8d90',
+    //     'bg' => 'var(--color-cell-past-a)',
+    //     'bg_alt' => 'var(--color-cell-past-b)',
+    //     'label' => 'var(--color-ink-3)',
     // ],
     // 'event' => [
-    //     'bg' => '#fde8e1',
-    //     'bg_hover' => '#fbded5',
-    //     'accent' => 'rgba(191, 67, 22, 0.55)',
-    //     'label' => '#7f2010',
+    //     'bg' => 'var(--color-court)',
+    //     'bg_hover' => 'var(--color-court-ink)',
+    //     'accent' => 'var(--color-court)',
+    //     'label' => 'var(--color-on-court)',
+    // ],
+    // 'tournament' => [
+    //     'bg' => 'var(--color-court-soft)',
+    //     'line' => 'var(--color-court)',
+    //     'label' => 'var(--color-court-ink)',
     // ],
 ];

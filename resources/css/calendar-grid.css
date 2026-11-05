@@ -1,307 +1,513 @@
-/* Calendar cell colors per the design guide — values come from config/calendar.php */
-.cc-free {
-    background: var(--cal-free-bg, #ffffff);
+/*
+ * Calendar board layout: a shared time column plus one card per day.
+ * Desktop shows the selected day and the next two; phones show one day with a
+ * sticky court row. Cell fills and text live with the cell rules (not here).
+ */
+.cal-page__board {
+    overflow-x: auto;
+    padding-bottom: 4px;
 }
 
-.cc-own {
-    background: var(--cal-own-bg, #eff6ff);
+.cal-board {
+    --cal-gap: 4px;
+    --cal-cell: var(--spacing-cell-h);
+    display: grid;
+    grid-template-columns: 60px repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    min-width: 980px;
 }
 
-.event-cell {
-    background: var(--cal-event-bg, #fde8e1);
+/* Time column: spacers line the hours up with the card rows (card border + padding = 9px). */
+.cal-times {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cal-gap);
+    padding-top: 9px;
 }
 
-.cc-over {
-    background: var(--cal-past-bg, #f4f4f4);
+.cal-times__spacer {
+    flex: none;
 }
 
-/* Time column — typography */
-.time-main {
-    font-family: 'Red Hat Display', sans-serif;
-    font-size: 17px;
+.cal-times__spacer--head {
+    height: 36px;
+}
+
+.cal-times__spacer--courts {
+    height: 34px;
+}
+
+.cal-times__row {
+    height: var(--cal-cell);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    line-height: 1.05;
+}
+
+.cal-times__hour {
+    font-size: var(--text-body);
     font-weight: 700;
-    color: #151515;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-ink);
 }
 
-.time-sub {
-    font-family: 'Red Hat Text', sans-serif;
+.cal-times__until {
     font-size: 11px;
-    color: #b8b8b8;
+    color: var(--color-ink-3);
 }
 
-/* Day headers — typography */
-.day-header-name {
-    font-family: 'Red Hat Display', sans-serif;
+/* Day card */
+.cal-day {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--cal-gap);
+    padding: 8px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-lg);
+}
+
+.cal-day__head {
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 0 6px;
+}
+
+.cal-day__title {
+    margin: 0;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    line-height: 1;
+}
+
+.cal-day__name {
+    font-family: var(--font-display);
+    font-size: 22px;
     font-weight: 700;
-    font-size: 13px;
-    color: #151515;
+    color: var(--color-ink);
 }
 
-.day-header-date {
-    font-family: 'Red Hat Text', sans-serif;
-    font-size: 11px;
-    color: #6a6e73;
+.cal-day__date {
+    font-family: var(--font-body);
+    font-size: var(--text-body-s);
+    font-weight: 400;
+    color: var(--color-ink-3);
 }
 
-/* Court numbers */
-.square-head-title {
-    font-family: 'Red Hat Display', sans-serif;
-    font-size: 12px;
+.cal-day__today {
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    background: var(--color-clay-soft);
+    color: var(--color-clay-hover);
+    font-size: var(--text-label);
     font-weight: 700;
-    color: #bf4316;
+    line-height: 1.2;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
 }
 
-.square-head-alias {
-    font-family: 'Red Hat Text', sans-serif;
-    font-size: 10px;
-    color: #bf4316;
+/* Court header row and hour rows: one column per court. */
+.cal-day__courts,
+.cal-row {
+    position: relative;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: var(--cal-gap);
 }
 
-/* Booking cells — base layout */
-.calendar-cell {
+.cal-day__courts {
+    height: 34px;
+}
+
+.cal-court {
+    min-width: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    border-radius: var(--radius-sm);
+    background: var(--color-ground);
+    line-height: 1.1;
     text-align: center;
-    padding: 4px 6px;
-    overflow: hidden;
-    text-decoration: none;
-    height: 100%;
-    box-sizing: border-box;
 }
 
-/* Free cell — clickable with hover */
-.cc-free {
-    cursor: pointer;
-}
-
-.cc-free:hover {
-    background: var(--cal-free-bg-hover, #f0f7ff);
-}
-
-/* Past cell — not clickable */
-.cc-over {
-    cursor: default;
-}
-
-/* Someone else's booking — same color as own, not clickable */
-.cc-single-future {
-    background: var(--cal-single-future-bg, #eff6ff);
-    cursor: default;
-}
-
-/* Booking name in cell */
-.cc-label-primary {
-    font-family: 'Red Hat Text', sans-serif;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--cal-own-label, #1a3a6b);
-    line-height: 1.3;
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
+.cal-court__alias {
     max-width: 100%;
-}
-
-/* Series booking marker — colored left bar (per mobile-view-stable design) */
-.cc-series {
-    position: relative;
-    padding-left: 10px;
-}
-
-.cc-series::before {
-    content: '';
-    position: absolute;
-    inset: 0 auto 0 0;
-    width: 4px;
-    background: var(--cal-own-accent, rgba(26, 103, 179, 0.45));
-    border-radius: 3px 0 0 3px;
-}
-
-/* Teammate label */
-.cc-label-secondary {
-    font-family: 'Red Hat Text', sans-serif;
-    font-size: 11px;
-    color: var(--cal-own-label-secondary, #5a7ab3);
-    line-height: 1.3;
-    margin-top: 2px;
-    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100%;
+    white-space: nowrap;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-ink);
 }
 
-/* Event name */
-.event-label {
-    font-family: 'Red Hat Text', sans-serif;
-    font-size: 12px;
+.cal-court__number {
+    font-size: 11px;
     font-weight: 600;
-    color: var(--cal-event-label, #7f2010);
-    line-height: 1.35;
+    color: var(--color-ink-3);
+}
+
+/* Row times and the court-row spacer only show on phones (the time column covers desktop). */
+.cal-row__time,
+.cal-day__courts-spacer {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
     overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    text-decoration: none;
-}
-
-.event-label:hover {
-    text-decoration: underline;
-}
-/* Quiet calendar refinements: subtle states, better mobile scanning. */
-.calendar-wrap {
-    position: relative;
-    scroll-snap-type: x proximity;
-}
-
-.calendar-cell {
-    border-radius: 3px;
-    transition: background-color 0.12s ease, box-shadow 0.12s ease;
-}
-
-.cc-free:hover,
-.cc-free:focus-visible {
-    background: var(--cal-free-bg, #ffffff);
-    box-shadow: inset 0 0 0 1px rgba(21, 21, 21, 0.08);
-}
-
-.cc-own {
-    background: var(--cal-own-bg, #d8e9fb);
-    box-shadow: inset 3px 0 0 var(--cal-own-accent, rgba(26, 103, 179, 0.45));
-}
-
-.cc-own:hover,
-.cc-own:focus-visible {
-    background: var(--cal-own-bg-hover, #cfe1f4);
-}
-
-.cc-single-future {
-    background: var(--cal-single-future-bg, #dbe8f6);
-}
-
-.booking-trigger.cc-single-future:hover,
-.booking-trigger.cc-single-future:focus-visible {
-    background: var(--cal-single-future-bg-hover, #d2e0ef);
-}
-
-.cc-over,
-.slot-cell--past {
-    background: var(--cal-past-bg, #f4f4f4);
-    color: var(--cal-past-label, #8a8d90);
-}
-
-.event-cell {
-    background: var(--cal-event-bg, #fde8e1);
-    box-shadow: inset 3px 0 0 var(--cal-event-accent, rgba(191, 67, 22, 0.55));
-}
-
-.event-cell--editable:hover,
-.event-cell--editable:focus-within {
-    background: var(--cal-event-bg-hover, #fbded5);
-}
-
-.calendar-cell:focus-visible,
-.event-label:focus-visible {
-    outline: 2px solid #151515;
-    outline-offset: -2px;
-}
-
-@media screen and (max-width: 900px) {
-    .calendar-wrap {
-        margin: 0;
-        padding-bottom: 6px;
-        -webkit-overflow-scrolling: touch;
-        overscroll-behavior-x: contain;
-    }
-
-    .calendar-square-table {
-        --calendar-time-col: 58px;
-        --calendar-slot-col: 112px;
-    }
-
-    .calendar-time-col,
-    .time-spacer,
-    .time-side-head,
-    .time-cell {
-        position: sticky;
-        left: 0;
-        z-index: 18;
-        background: #ffffff;
-        box-shadow: 1px 0 0 #d8d0c4, 8px 0 14px -14px rgba(21, 21, 21, 0.45);
-    }
-
-    .time-spacer,
-    .time-side-head {
-        z-index: 26;
-    }
-
-    .cc-label-primary {
-        font-size: 11px;
-        line-height: 1.2;
-    }
-
-    .cc-label-secondary,
-    .event-label {
-        font-size: 10px;
-        line-height: 1.2;
-    }
-}
-
-@media screen and (max-width: 560px) {
-    .calendar-square-table {
-        --calendar-time-col: 54px;
-        --calendar-slot-col: 104px;
-    }
-
-    .time-main {
-        font-size: 13px;
-    }
-
-    .time-sub {
-        display: none;
-    }
-
-    .day-header-name {
-        font-size: 12px;
-    }
-
-    .day-header-date {
-        font-size: 10px;
-    }
-
-    .square-head-title {
-        font-size: 11px;
-    }
-
-    .square-head-alias {
-        font-size: 9px;
-    }
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
 }
 
 /*
- * Club championship match (booking note contains "vereinsmeisterschaft").
- * Kept at the very end of the file so it wins over the cc-own / cc-single-future /
- * past-slot colours at every viewport width (in the legacy system the mobile rules
- * overrode it). The doubled class selector adds specificity as a safety margin.
+ * Slots. The state shows in the fill (colours from the --cal-* variables);
+ * free and past slots carry no text, booked slots and events a centred name
+ * line plus a detail line, both cut with an ellipsis instead of wrapping.
  */
-.calendar-cell.cc-turnier {
-    background: var(--cal-turnier-bg, #e8720c);
-    color: #ffffff;
+.cal-row > .calendar-cell {
+    display: block;
+    box-sizing: border-box;
+    width: auto;
+    min-width: 0;
+    height: var(--cal-cell);
+    margin: 0;
+    border-radius: var(--radius-sm);
+    color: inherit;
+    text-decoration: none;
+    transition: background-color 0.12s ease;
+}
+
+.cal-row > .cc-own,
+.cal-row > .cc-single-future,
+.cal-row > .cc-turnier,
+.cal-row > .event-cell {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: stretch;
+    gap: 1px;
+    padding: 4px 10px;
+    overflow: hidden;
+    font-size: var(--text-body-s);
+    line-height: 1.1;
+    text-align: center;
+}
+
+.cal-row .cc-label-primary,
+.cal-row .cc-label-secondary,
+.cal-row .cc-label-own,
+.cal-row .event-label,
+.cal-row .event-range {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: inherit;
+    text-decoration: none;
+}
+
+.cal-row .cc-label-primary,
+.cal-row .event-label {
+    font-size: var(--text-body-s);
     font-weight: 700;
 }
 
-.calendar-cell.cc-turnier:hover,
-.calendar-cell.cc-turnier:focus-visible {
-    background: var(--cal-turnier-bg-hover, #c55f08);
+.cal-row .cc-label-secondary,
+.cal-row .cc-label-own,
+.cal-row .event-range {
+    font-size: 11px;
+    font-weight: 400;
 }
 
-.calendar-cell.cc-turnier.cc-own {
-    box-shadow: inset 0 0 0 3px #c8e89a;
+/* "Mine" replaces the detail line on phones only. */
+.cal-row .cc-label-own {
+    display: none;
 }
 
-.calendar-cell.cc-turnier .cc-label-primary,
-.calendar-cell.cc-turnier .cc-label-secondary {
-    color: #ffffff;
+/* Free: white with a dashed line; it has no text, so the border shifts nothing. */
+.cal-row > .cc-free {
+    background: var(--cal-free-bg);
+    border: 1px dashed var(--cal-free-line);
+}
+
+.cal-row > a.cc-free:hover,
+.cal-row > a.cc-free:focus-visible {
+    background-color: var(--cal-free-bg-hover);
+}
+
+/* Own booking */
+.cal-row > .cc-own {
+    background: var(--cal-own-bg);
+    color: var(--cal-own-label);
+}
+
+.cal-row > .cc-own .cc-label-secondary,
+.cal-row > .cc-own .cc-label-own {
+    color: var(--cal-own-label-secondary);
+}
+
+/* Hover/focus outrank the past rule, so past slots (hatched) are left out. */
+.cal-row > a.cc-own:not(.slot-cell--past):hover,
+.cal-row > a.cc-own:not(.slot-cell--past):focus-visible {
+    background-color: var(--cal-own-bg-hover);
+}
+
+/* Booked by someone else */
+.cal-row > .cc-single-future {
+    background: var(--cal-single-future-bg);
+    color: var(--cal-single-future-label);
+}
+
+.cal-row > .cc-single-future .cc-label-secondary {
+    color: var(--cal-single-future-label-secondary);
+}
+
+.cal-row > a.cc-single-future:not(.slot-cell--past):hover,
+.cal-row > a.cc-single-future:not(.slot-cell--past):focus-visible {
+    background-color: var(--cal-single-future-bg-hover);
+}
+
+/*
+ * Subscription: an accent on the leading edge, detail line in the series colour.
+ * Past subscriptions are left out, so the plain hatch below wins.
+ */
+.cal-row > .cc-series:not(.slot-cell--past) {
+    box-shadow: inset 3px 0 0 var(--cal-series-accent);
+}
+
+.cal-row > .cc-series:not(.slot-cell--past) .cc-label-secondary {
+    color: var(--cal-series-label);
+}
+
+.cal-row > .cc-own.cc-series:not(.slot-cell--past) {
+    box-shadow: inset 3px 0 0 var(--cal-own-accent);
+}
+
+.cal-row > .cc-own.cc-series:not(.slot-cell--past) .cc-label-secondary {
+    color: var(--cal-own-label-secondary);
+}
+
+/* Past: hatched, booked past slots keep their text in the muted colour. */
+.cal-row > .slot-cell--past {
+    background: repeating-linear-gradient(135deg, var(--cal-past-bg) 0 4px, var(--cal-past-bg-alt) 4px 8px);
+    box-shadow: none;
+    color: var(--cal-past-label);
+}
+
+.cal-row > .slot-cell--past .cc-label-secondary,
+.cal-row > .slot-cell--past .cc-label-own {
+    color: var(--cal-past-label);
+}
+
+/*
+ * Events: one surface over several hours. The first and middle hours reach
+ * over the row gap into the next hour, so the parts join into one block.
+ */
+.cal-row > .event-cell {
+    background: var(--cal-event-bg);
+    /* Invisible on the default colours (accent = fill); marks the edge when an installation overrides the fill. */
+    box-shadow: inset 3px 0 0 var(--cal-event-accent);
+    color: var(--cal-event-label);
+}
+
+.cal-row > .event-cell--single {
+    border-radius: var(--radius-sm);
+}
+
+.cal-row > .event-cell--start,
+.cal-row > .event-cell--middle {
+    height: calc(var(--cal-cell) + var(--cal-gap));
+    margin-bottom: calc(-1 * var(--cal-gap));
+}
+
+.cal-row > .event-cell--start {
+    padding: 4px 10px 8px;
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+
+.cal-row > .event-cell--middle {
+    border-radius: 0;
+}
+
+.cal-row > .event-cell--end {
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+}
+
+/* Only the first hour carries the visible label on desktop. */
+.cal-row > .event-cell--middle .event-label,
+.cal-row > .event-cell--end .event-label {
+    visibility: hidden;
+}
+
+.cal-row > .event-cell--editable:hover,
+.cal-row > .event-cell--editable:focus-within {
+    background-color: var(--cal-event-bg-hover);
+}
+
+.cal-row > .event-cell--editable a.event-label:hover,
+.cal-row > .event-cell--editable a.event-label:focus-visible {
+    text-decoration: underline;
+}
+
+/* Tournament match last, so it wins over the past hatch. */
+.cal-row > .cc-turnier {
+    background: var(--cal-tournament-bg);
+    box-shadow: inset 0 0 0 1px var(--cal-tournament-line);
+    color: var(--cal-tournament-label);
+}
+
+.cal-row > .cc-turnier .cc-label-secondary,
+.cal-row > .cc-turnier .cc-label-own {
+    color: var(--cal-tournament-label);
+}
+
+.cal-row > a.cc-turnier:hover,
+.cal-row > a.cc-turnier:focus-visible {
+    background-color: var(--cal-tournament-bg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cal-row > .calendar-cell {
+        transition: none;
+    }
+}
+
+@media (width < 48rem) {
+    .cal-page__board {
+        overflow: visible;
+        padding-bottom: 0;
+    }
+
+    .cal-board {
+        --cal-cell: var(--spacing-cell-h-mobile);
+        display: block;
+        min-width: 0;
+    }
+
+    .cal-times,
+    .cal-day__head,
+    .cal-extra-day {
+        display: none;
+    }
+
+    .cal-day {
+        padding: 0 0 16px;
+        background: transparent;
+        border: 0;
+        border-radius: 0;
+    }
+
+    .cal-day__courts {
+        position: sticky;
+        top: 0;
+        z-index: 3;
+        height: auto;
+        margin-bottom: 4px;
+        /* 2px on top of the toolbar's 10px bottom padding = the design's 12px gap. */
+        padding: 2px 16px 10px;
+        grid-template-columns: 52px;
+        background: var(--color-surface);
+        border-bottom: 1px solid var(--color-line);
+    }
+
+    .cal-row {
+        grid-template-columns: 52px;
+        padding: 0 16px;
+    }
+
+    .cal-row__time,
+    .cal-day__courts-spacer {
+        position: static;
+        width: auto;
+        height: auto;
+        margin: 0;
+        overflow: visible;
+        clip: auto;
+        white-space: normal;
+    }
+
+    .cal-row__time {
+        height: var(--cal-cell);
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        color: var(--color-ink);
+    }
+
+    .cal-court {
+        padding: 5px 0;
+    }
+
+    .cal-court__alias {
+        font-size: var(--text-body-s);
+    }
+
+    .cal-row > .calendar-cell {
+        border-radius: var(--radius-md);
+    }
+
+    .cal-row > .cc-own,
+    .cal-row > .cc-single-future,
+    .cal-row > .cc-turnier,
+    .cal-row > .event-cell {
+        gap: 0;
+        padding: 4px 6px;
+        font-size: var(--text-label);
+        line-height: 1.15;
+    }
+
+    .cal-row .cc-label-primary,
+    .cal-row .event-label {
+        font-size: var(--text-label);
+    }
+
+    /* Own: name plus "Mine"; every other booking: the name on one line. */
+    .cal-row > .cc-own .cc-label-secondary {
+        display: none;
+    }
+
+    .cal-row > .cc-own .cc-label-own {
+        display: block;
+    }
+
+    .cal-row > .calendar-cell:not(.cc-own) .cc-label-primary {
+        font-weight: 600;
+    }
+
+    .cal-row > .calendar-cell:not(.cc-own) .cc-label-secondary {
+        display: none;
+    }
+
+    /* Events: every hour is its own block with the label repeated. */
+    .cal-row > .event-cell--single,
+    .cal-row > .event-cell--start,
+    .cal-row > .event-cell--middle,
+    .cal-row > .event-cell--end {
+        height: var(--cal-cell);
+        margin-bottom: 0;
+        padding: 4px 6px;
+        border-radius: var(--radius-md);
+    }
+
+    .cal-row > .event-cell--middle .event-label,
+    .cal-row > .event-cell--end .event-label {
+        visibility: visible;
+    }
+
+    .cal-row .event-range {
+        display: none;
+    }
 }

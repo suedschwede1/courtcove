@@ -2,35 +2,45 @@
 
 declare(strict_types=1);
 
+// Defaults reference design tokens (var(--color-*)); overrides may use any CSS colour.
 $colors = [
     'free' => [
-        'bg' => env('CAL_COLOR_FREE_BG', '#ffffff'),
-        'bg_hover' => env('CAL_COLOR_FREE_BG_HOVER', '#ffffff'),
+        'bg' => env('CAL_COLOR_FREE_BG', 'var(--color-surface)'),
+        'bg_hover' => env('CAL_COLOR_FREE_BG_HOVER', 'var(--color-clay-soft)'),
+        'line' => env('CAL_COLOR_FREE_LINE', 'var(--color-cell-free-line)'),
     ],
     'own' => [
-        'bg' => env('CAL_COLOR_OWN_BG', '#d8e9fb'),
-        'bg_hover' => env('CAL_COLOR_OWN_BG_HOVER', '#cfe1f4'),
-        'accent' => env('CAL_COLOR_OWN_ACCENT', 'rgba(26, 103, 179, 0.45)'),
-        'label' => env('CAL_COLOR_OWN_LABEL', '#1a3a6b'),
-        'label_secondary' => env('CAL_COLOR_OWN_LABEL_SECONDARY', '#5a7ab3'),
+        'bg' => env('CAL_COLOR_OWN_BG', 'var(--color-clay)'),
+        'bg_hover' => env('CAL_COLOR_OWN_BG_HOVER', 'var(--color-clay-hover)'),
+        'accent' => env('CAL_COLOR_OWN_ACCENT', 'var(--color-clay-hover)'),
+        'label' => env('CAL_COLOR_OWN_LABEL', 'var(--color-on-clay)'),
+        'label_secondary' => env('CAL_COLOR_OWN_LABEL_SECONDARY', 'var(--color-on-clay)'),
     ],
     'single_future' => [
-        'bg' => env('CAL_COLOR_SINGLE_FUTURE_BG', '#dbe8f6'),
-        'bg_hover' => env('CAL_COLOR_SINGLE_FUTURE_BG_HOVER', '#d2e0ef'),
+        'bg' => env('CAL_COLOR_SINGLE_FUTURE_BG', 'var(--color-cell-booked)'),
+        'bg_hover' => env('CAL_COLOR_SINGLE_FUTURE_BG_HOVER', 'var(--color-line)'),
+        'label' => env('CAL_COLOR_SINGLE_FUTURE_LABEL', 'var(--color-ink)'),
+        'label_secondary' => env('CAL_COLOR_SINGLE_FUTURE_LABEL_SECONDARY', 'var(--color-ink-2)'),
     ],
     'series' => [
-        'accent' => env('CAL_COLOR_SERIES_ACCENT', '#bf4316'),
-        'label' => env('CAL_COLOR_SERIES_LABEL', '#7f2010'),
+        'accent' => env('CAL_COLOR_SERIES_ACCENT', 'var(--color-line-strong)'),
+        'label' => env('CAL_COLOR_SERIES_LABEL', 'var(--color-ink-2)'),
     ],
     'past' => [
-        'bg' => env('CAL_COLOR_PAST_BG', '#f4f4f4'),
-        'label' => env('CAL_COLOR_PAST_LABEL', '#8a8d90'),
+        'bg' => env('CAL_COLOR_PAST_BG', 'var(--color-cell-past-a)'),
+        'bg_alt' => env('CAL_COLOR_PAST_BG_ALT', 'var(--color-cell-past-b)'),
+        'label' => env('CAL_COLOR_PAST_LABEL', 'var(--color-ink-3)'),
     ],
     'event' => [
-        'bg' => env('CAL_COLOR_EVENT_BG', '#fde8e1'),
-        'bg_hover' => env('CAL_COLOR_EVENT_BG_HOVER', '#fbded5'),
-        'accent' => env('CAL_COLOR_EVENT_ACCENT', 'rgba(191, 67, 22, 0.55)'),
-        'label' => env('CAL_COLOR_EVENT_LABEL', '#7f2010'),
+        'bg' => env('CAL_COLOR_EVENT_BG', 'var(--color-court)'),
+        'bg_hover' => env('CAL_COLOR_EVENT_BG_HOVER', 'var(--color-court-ink)'),
+        'accent' => env('CAL_COLOR_EVENT_ACCENT', 'var(--color-court)'),
+        'label' => env('CAL_COLOR_EVENT_LABEL', 'var(--color-on-court)'),
+    ],
+    'tournament' => [
+        'bg' => env('CAL_COLOR_TOURNAMENT_BG', 'var(--color-court-soft)'),
+        'line' => env('CAL_COLOR_TOURNAMENT_LINE', 'var(--color-court)'),
+        'label' => env('CAL_COLOR_TOURNAMENT_LABEL', 'var(--color-court-ink)'),
     ],
 ];
 

@@ -83,7 +83,7 @@ final class CalendarTest extends DuskTestCase
             $this->browse(function (Browser $browser) use ($user, $date, $nextDate): void {
                 $browser->loginAs($user)
                     ->visit('/calendar?date='.$date->format('Y-m-d'))
-                    ->click('#calendar-header-nav a.ui-calendar-nav-btn--arrow:last-of-type')
+                    ->click('#calendar-date-nav a[data-cal-nav="next"]')
                     ->waitUntil("window.location.search.includes('date={$nextDate}')")
                     ->assertQueryStringHas('date', $nextDate);
             });

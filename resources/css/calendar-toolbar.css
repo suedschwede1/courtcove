@@ -1,0 +1,317 @@
+/* Calendar page frame and toolbar: date heading, day navigation, Infos/Hinweise toggles. */
+.cal-page {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+        "toolbar panels"
+        "legend legend"
+        "board board";
+    gap: 12px 8px;
+    align-items: center;
+    /* Content box as in the design: 1400px of content plus the 24px page padding. */
+    box-sizing: content-box;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 16px 24px 32px;
+}
+
+/* The calendar page brings its own page padding (and is full-bleed on phones):
+   drop the layout shell's side inset for the content on this page only. The
+   header keeps the shell's 12px side inset (booking.css .page-shell) so it sits
+   exactly where it does on every other page. */
+.page-shell:has(.cal-page) {
+    padding-inline: 0;
+}
+
+.page-shell:has(.cal-page) > .ds-header {
+    margin-inline: 12px;
+}
+
+#content:has(.cal-page) {
+    margin-top: 0;
+}
+
+#content:has(.cal-page) > .help-panel {
+    box-sizing: content-box;
+    max-width: 1400px;
+    margin: 16px auto 0;
+    padding: 0 24px;
+}
+
+.cal-toolbar {
+    grid-area: toolbar;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.cal-toolbar__title {
+    margin: 0;
+    font: 700 var(--text-display-l) / 1 var(--font-display);
+    color: var(--color-ink);
+}
+
+.cal-toolbar__today-hint {
+    display: none;
+}
+
+.cal-toolbar__nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cal-toolbar__panels {
+    grid-area: panels;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cal-page__legend {
+    grid-area: legend;
+}
+
+.cal-page__board {
+    grid-area: board;
+    min-width: 0;
+    align-self: stretch;
+}
+
+.cal-toolbar .ds-btn,
+.cal-toolbar .ds-icon-btn,
+.cal-toolbar__panels .ds-btn,
+.cal-toolbar__date-field {
+    height: var(--spacing-touch-min);
+    min-height: var(--spacing-touch-min);
+}
+
+.cal-toolbar .ds-btn,
+.cal-toolbar__panels .ds-btn {
+    padding: 0 18px;
+    font: 600 var(--text-button) / 1 var(--font-body);
+}
+
+.cal-toolbar__panels .ds-btn {
+    padding: 0 16px;
+}
+
+.cal-toolbar__date-form {
+    margin: 0;
+}
+
+.cal-toolbar__date-field {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 14px;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    color: var(--color-ink);
+    cursor: pointer;
+    transition: border-color 0.12s;
+}
+
+.cal-toolbar__date-field:hover {
+    border-color: var(--color-line-strong);
+}
+
+.cal-toolbar__date-field:focus-within {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 2px;
+}
+
+.cal-toolbar__date-input {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    font: 600 var(--text-body) / 1 var(--font-body);
+    color: var(--color-ink);
+}
+
+.cal-toolbar__date-input:focus,
+.cal-toolbar__date-input:focus-visible {
+    outline: none;
+    box-shadow: none;
+}
+
+.cal-toolbar__divider {
+    width: 1px;
+    height: 28px;
+    margin: 0 6px;
+    background: var(--color-line);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cal-toolbar__date-field {
+        transition: none;
+    }
+}
+
+@media (width < 48rem) {
+    .cal-page {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "toolbar"
+            "board"
+            "panels"
+            "legend";
+        gap: 0;
+        padding: 0;
+    }
+
+    .cal-toolbar {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: stretch;
+        min-height: calc(var(--spacing-touch-min) + 24px);
+        padding: 14px 16px 10px;
+        background: var(--color-surface);
+    }
+
+    /* The title's own size sets the strut of the date line, so it carries the
+       small date size and the weekday line sets its own. */
+    .cal-toolbar__title {
+        text-align: center;
+        font-size: var(--text-body-s);
+        line-height: 1.1;
+    }
+
+    .cal-toolbar__weekday {
+        display: block;
+        font-size: 24px;
+    }
+
+    .cal-toolbar__sep {
+        display: none;
+    }
+
+    .cal-toolbar__date,
+    .cal-toolbar__today-hint {
+        font: 400 var(--text-body-s) / 1.1 var(--font-body);
+        color: var(--color-ink-3);
+    }
+
+    .cal-toolbar__today-hint {
+        display: inline;
+    }
+
+    .cal-toolbar__nav {
+        position: absolute;
+        inset: 14px 16px auto;
+        justify-content: space-between;
+        pointer-events: none;
+    }
+
+    .cal-toolbar__nav > * {
+        pointer-events: auto;
+    }
+
+    .cal-toolbar__nav > .ds-btn {
+        display: none;
+    }
+
+    .cal-toolbar__date-form {
+        position: absolute;
+        inset: 0 60px;
+    }
+
+    .cal-toolbar__date-field {
+        display: block;
+        width: 100%;
+        height: 100%;
+        padding: 0;
+        border: 0;
+        background: transparent;
+    }
+
+    .cal-toolbar__date-field > .ds-icon {
+        display: none;
+    }
+
+    .cal-toolbar__date-input {
+        opacity: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    .cal-toolbar__date-field:focus-within {
+        outline: none;
+    }
+
+    .cal-toolbar:has(.cal-toolbar__date-input:focus-visible) .cal-toolbar__title {
+        outline: 2px solid var(--color-ink);
+        outline-offset: 2px;
+    }
+
+    .cal-toolbar__divider {
+        display: none;
+    }
+
+    .cal-toolbar__panels,
+    .cal-page__legend,
+    #content:has(.cal-page) > .help-panel {
+        padding: 0 16px;
+    }
+}
+
+/* Legend: one swatch per cell state, fills come from the --cal-* colour variables. */
+.cal-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 22px;
+    margin: 0;
+    list-style: none;
+    font-size: var(--text-body-s);
+    color: var(--color-ink-2);
+}
+
+
+.cal-legend__item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cal-swatch {
+    box-sizing: border-box;
+    flex: none;
+    width: 18px;
+    height: 14px;
+    border-radius: 3px;
+}
+
+.cal-swatch--free {
+    background: var(--cal-free-bg);
+    border: 1px dashed var(--color-line-strong);
+}
+
+.cal-swatch--own {
+    background: var(--cal-own-bg);
+}
+
+.cal-swatch--single_future {
+    background: var(--cal-single-future-bg);
+}
+
+.cal-swatch--event {
+    background: var(--cal-event-bg);
+}
+
+.cal-swatch--tournament {
+    background: var(--cal-tournament-bg);
+    border: 1px solid var(--cal-tournament-line);
+}
+
+.cal-swatch--past {
+    background: repeating-linear-gradient(135deg, var(--cal-past-bg) 0 4px, var(--cal-past-bg-alt) 4px 8px);
+}
