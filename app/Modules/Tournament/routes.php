@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Modules\Tournament\Http\Controllers\Admin\AdminOverviewController;
+use App\Modules\Tournament\Http\Controllers\Admin\PlayerAdminController;
 use App\Modules\Tournament\Http\Controllers\Admin\TournamentLifecycleController;
 use App\Modules\Tournament\Http\Controllers\BracketController;
 use App\Modules\Tournament\Http\Controllers\GroupsController;
@@ -50,7 +51,12 @@ Route::prefix('tournament/admin')->name('tournament.admin')
         Route::post('clone-test', [TournamentLifecycleController::class, 'cloneTest'])->name('.clone-test');
         Route::post('select-tournament', [TournamentLifecycleController::class, 'select'])->name('.select');
 
+        Route::post('partner', [PlayerAdminController::class, 'partner'])->name('.partner');
+        Route::post('comment/{tpid}', [PlayerAdminController::class, 'comment'])->whereNumber('tpid')->name('.comment');
+        Route::get('comment/{tpid}', [PlayerAdminController::class, 'redirectToPlayers'])->whereNumber('tpid')->name('.comment.redirect');
+        Route::post('lot', [PlayerAdminController::class, 'lot'])->name('.lot');
+
         // A GET on a POST-only action returns to the admin page (ZF2).
         Route::get('{postAction}', [TournamentLifecycleController::class, 'redirectToAdmin'])
-            ->whereIn('postAction', ['create', 'activate', 'clone-test', 'select-tournament'])->name('.redirect');
+            ->whereIn('postAction', ['create', 'activate', 'clone-test', 'select-tournament', 'partner', 'lot'])->name('.redirect');
     });

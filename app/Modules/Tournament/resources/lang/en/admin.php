@@ -195,6 +195,22 @@ return [
         'scope' => 'Context',
         'order' => 'Order (tpid)',
         'submit' => 'Save lot decision',
+        'invalid_scope' => 'Invalid lot context.',
+        'two_unique' => 'Enter at least two distinct participant numbers.',
+        'foreign' => 'Participant :tpid does not belong to the tournament.',
+        'saved' => 'Lot decision saved: :scope',
+    ],
+    'partner' => [
+        'two_players' => 'Please choose two different players.',
+        'not_in_tournament' => 'At least one of the players does not belong to this tournament.',
+        'unlinked' => 'Partner reference removed.',
+        'linked' => ':a and :b are not drawn into the same group.',
+    ],
+    'comment' => [
+        'saved' => 'Comment saved.',
+        'label' => 'Comment of the tournament management',
+        'placeholder' => 'e.g. on holiday until 2 August',
+        'submit' => 'Save comment',
     ],
     'todo' => [
         'title' => 'To do',

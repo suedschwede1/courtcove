@@ -195,6 +195,22 @@ return [
         'scope' => 'Kontext',
         'order' => 'Reihenfolge (tpid)',
         'submit' => 'Losentscheid speichern',
+        'invalid_scope' => 'Ungültiger Loskontext.',
+        'two_unique' => 'Mindestens zwei eindeutige Teilnehmernummern angeben.',
+        'foreign' => 'Teilnehmer :tpid gehört nicht zum Turnier.',
+        'saved' => 'Losentscheid gespeichert: :scope',
+    ],
+    'partner' => [
+        'two_players' => 'Bitte zwei verschiedene Spieler wählen.',
+        'not_in_tournament' => 'Mindestens einer der Spieler gehört nicht zu diesem Turnier.',
+        'unlinked' => 'Partnerverweis gelöst.',
+        'linked' => ':a und :b werden nicht in dieselbe Gruppe gelost.',
+    ],
+    'comment' => [
+        'saved' => 'Kommentar gespeichert.',
+        'label' => 'Kommentar der Turnierleitung',
+        'placeholder' => 'z. B. bis 02.08. auf Urlaub',
+        'submit' => 'Kommentar speichern',
     ],
     'todo' => [
         'title' => 'Zu erledigen',

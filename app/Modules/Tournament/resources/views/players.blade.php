@@ -112,6 +112,16 @@
                                 @endif
                             </dl>
 
+                            @if ($access->isAdmin() && \Illuminate\Support\Facades\Route::has('tournament.admin.comment'))
+                                <form method="POST" action="{{ route('tournament.admin.comment', ['tpid' => $tpid]) }}" class="flex flex-col gap-2 border-t border-line pt-3">
+                                    @csrf
+                                    <x-ui.field for="tn-note-{{ $tpid }}" :label="__('tournament::admin.comment.label')">
+                                        <x-ui.textarea name="note" id="tn-note-{{ $tpid }}" rows="2" maxlength="160" :value="(string) $player['note']" :placeholder="__('tournament::admin.comment.placeholder')" />
+                                    </x-ui.field>
+                                    <div><x-ui.button type="submit" variant="secondary" :block="false">{{ __('tournament::admin.comment.submit') }}</x-ui.button></div>
+                                </form>
+                            @endif
+
                             @if ($showContacts)
                                 <dl class="grid grid-cols-2 gap-x-3 gap-y-1 border-t border-line pt-3 text-body-s sm:grid-cols-4">
                                     <dt class="text-ink-2">{{ __('tournament::players.phone') }}</dt>

@@ -33,6 +33,10 @@ class TournamentAdminRoutesTest extends TestCase
             'clone-test' => ['POST', 'tournament/admin/clone-test', 'tournament.admin.clone-test'],
             'select-tournament' => ['POST', 'tournament/admin/select-tournament', 'tournament.admin.select'],
             'GET create' => ['GET', 'tournament/admin/create', 'tournament.admin.redirect'],
+            'partner' => ['POST', 'tournament/admin/partner', 'tournament.admin.partner'],
+            'comment/7' => ['POST', 'tournament/admin/comment/7', 'tournament.admin.comment'],
+            'GET comment/7' => ['GET', 'tournament/admin/comment/7', 'tournament.admin.comment.redirect'],
+            'lot' => ['POST', 'tournament/admin/lot', 'tournament.admin.lot'],
         ];
     }
 
