@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Phase 2: championship standings and tie-breaks ported unchanged (golden vectors).
 - Phase 2: tournament format configuration ported unchanged (golden vectors).
 - Phase 2: tournament tables adopted in place (guarded create migrations, no-op rollback, schema manifest).
 - Phase 2: Mixed roster entries with a placeholder birth date (e.g. 1900) no longer break adding participants; implausible ITN values in the member export are ignored.
