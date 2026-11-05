@@ -160,6 +160,7 @@ return [
             'own' => 'My booking',
             'single_future' => 'Booked',
             'event' => 'Event',
+            'blocked' => 'Court closure',
             'tournament' => 'Tournament match',
             'past' => 'Past',
         ],

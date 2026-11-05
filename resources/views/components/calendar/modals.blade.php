@@ -374,6 +374,10 @@
                 <x-ui.select name="sid" id="event-sid" :options="$squares->mapWithKeys(fn ($s) => [$s->sid => $s->display_name])->all()" x-model="sid" />
             </x-ui.field>
 
+            <x-ui.field for="event-kind" :label="__('booking.admin.events.kind')">
+                <x-ui.select name="kind" id="event-kind" :options="['event' => __('booking.admin.events.kind_event'), 'closure' => __('booking.admin.events.kind_closure')]" selected="event" />
+            </x-ui.field>
+
             <x-ui.field for="event-description" :label="__('booking.modal.event_description_optional')">
                 <x-ui.textarea name="description" id="event-description" :rows="2" />
             </x-ui.field>

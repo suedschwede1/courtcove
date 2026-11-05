@@ -103,7 +103,7 @@
         <h1 class="cal-toolbar__title">
             <span class="cal-toolbar__weekday">{{ $date->isoFormat('dddd') }}</span><span class="cal-toolbar__sep">, </span><span class="cal-toolbar__date">{{ $date->isoFormat('LL') }}</span>
             @if($date->isToday())
-                <span class="cal-toolbar__today-hint"><span aria-hidden="true"> &middot; </span>{{ __('booking.nav.today') }}</span>
+                <span class="cal-toolbar__today-hint">{{ __('booking.nav.today') }}</span>
             @endif
         </h1>
 

@@ -1,5 +1,9 @@
 @csrf
 @php
+    $kindOptions = [
+        'event' => __('booking.admin.events.kind_event'),
+        'closure' => __('booking.admin.events.kind_closure'),
+    ];
     $courtOptions = ['' => __('booking.admin.events.all_courts')];
     foreach ($squares as $s) {
         $courtOptions[$s->sid] = $s->display_name;
@@ -7,6 +11,10 @@
 @endphp
 <x-ui.field :label="__('booking.admin.events.name')" for="ef-name">
     <x-ui.input id="ef-name" name="name" :value="old('name', $name ?? '')" required :placeholder="!empty($popup_mode) ? __('booking.admin.events.name_placeholder') : null" />
+</x-ui.field>
+
+<x-ui.field :label="__('booking.admin.events.kind')" for="ef-kind">
+    <x-ui.select id="ef-kind" name="kind" :options="$kindOptions" :selected="(string) old('kind', $kind ?? 'event')" />
 </x-ui.field>
 
 <x-ui.field :label="__('booking.admin.events.description')" for="ef-description">

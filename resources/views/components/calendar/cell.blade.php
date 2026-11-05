@@ -30,7 +30,16 @@
     $isTournament = $reservation?->booking?->isChampionshipMatch() ?? false;
     $state = \App\Support\Calendar\CellState::for((bool) $reservation, $isPast, $isOwn, $isSeriesBooking, $isTournament)->value;
 
-    $secondaryLabel = $isLoggedIn ? $reservation?->booking?->player_names_label : null;
+    // Detail line: the players without the owner (the owner is the name line already).
+    $secondaryLabel = null;
+    if ($isLoggedIn && $reservation?->booking) {
+        $ownerKey = mb_strtolower(trim($reservation->booking->owner_label));
+        $others = array_values(array_filter(
+            $reservation->booking->player_names,
+            fn (string $player) => mb_strtolower(trim($player)) !== $ownerKey,
+        ));
+        $secondaryLabel = $others !== [] ? implode(', ', $others) : null;
+    }
     if ($secondaryLabel === null && $isSeriesBooking) {
         $secondaryLabel = __('booking.calendar.series_hint');
     }

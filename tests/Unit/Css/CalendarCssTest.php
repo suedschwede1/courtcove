@@ -257,4 +257,59 @@ final class CalendarCssTest extends TestCase
         $this->assertMatchesRegularExpression('/background:\s*var\(--color-clay\);/', $pill);
         $this->assertMatchesRegularExpression('/color:\s*var\(--color-on-clay\);/', $pill);
     }
+
+    #[Test]
+    public function own_booking_is_a_blue_ringed_pastel_cell(): void
+    {
+        $own = $this->rule($this->grid(), '.cal-row > .cc-own');
+
+        $this->assertStringContainsString('background: var(--cal-own-bg);', $own);
+        $this->assertStringContainsString('box-shadow: inset 0 0 0 1.5px var(--cal-own-line);', $own);
+        $this->assertStringContainsString('color: var(--cal-own-label);', $own);
+        $this->assertStringContainsString('inset 0 0 0 2px var(--cal-own-line)', $this->grid());
+    }
+
+    #[Test]
+    public function series_and_blocked_and_tournament_use_their_own_surfaces(): void
+    {
+        $css = $this->grid();
+
+        $series = $this->rule($css, '.cal-row > .cc-series:not(.slot-cell--past):not(.cc-turnier)');
+        $this->assertStringContainsString('background: var(--cal-series-bg);', $series);
+        $this->assertStringContainsString('color: var(--cal-series-label);', $series);
+        // An own series keeps the own ring on the series fill.
+        $this->assertStringContainsString('inset 0 0 0 1.5px var(--cal-own-line)', $this->rule($css, '.cal-row > .cc-own.cc-series:not(.slot-cell--past):not(.cc-turnier)'));
+
+        $blocked = $this->rule($css, '.cal-row > .event-cell--blocked');
+        $this->assertStringContainsString('repeating-linear-gradient(135deg, var(--cal-blocked-a) 0 6px, var(--cal-blocked-b) 6px 12px)', $blocked);
+        $this->assertStringContainsString('color: var(--cal-blocked-label);', $blocked);
+
+        $match = $this->rule($css, '.cal-row > .cc-turnier');
+        $this->assertStringContainsString('box-shadow: inset 0 0 0 1px var(--cal-tournament-line);', $match);
+    }
+
+    #[Test]
+    public function no_strong_fills_or_accent_stripes_remain(): void
+    {
+        $css = $this->grid().$this->toolbar();
+
+        // Left accent stripes, strong hover fills and the old orange/green tournament and event fills are gone.
+        $this->assertStringNotContainsString('inset 3px 0 0', $css);
+        $this->assertStringNotContainsString('-bg-hover)', str_replace('--cal-free-bg-hover', '', $css));
+        $this->assertStringNotContainsString('--cal-turnier', $css);
+        $this->assertStringNotContainsString('--color-court', $css);
+        $this->assertStringNotContainsString('--cal-event-accent', $css);
+        $this->assertStringNotContainsString('--cal-series-accent', $css);
+    }
+
+    #[Test]
+    public function phone_toolbar_shows_the_day_name_in_clay_with_a_pill(): void
+    {
+        preg_match('/@media \(width < 48rem\)\s*\{(.*)\}\s*$/s', $this->toolbar(), $phone);
+        $this->assertNotEmpty($phone);
+        $css = $phone[1];
+
+        $this->assertMatchesRegularExpression('/\.cal-toolbar:has\(\.cal-toolbar__today-hint\) \.cal-toolbar__weekday\s*\{[^}]*color:\s*var\(--color-clay\);/', $css);
+        $this->assertMatchesRegularExpression('/\.cal-toolbar__today-hint\s*\{[^}]*display:\s*block;[^}]*background:\s*var\(--color-clay\);[^}]*color:\s*var\(--color-on-clay\);[^}]*text-transform:\s*uppercase;/', $css);
+    }
 }

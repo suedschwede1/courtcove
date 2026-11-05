@@ -1,6 +1,7 @@
 @props([
     'name',
     'event',
+    'kind' => 'event',
     'part' => 'single',
     'canAdminEvents' => false,
     'dateKey' => null,
@@ -8,6 +9,7 @@
 
 @php
     $leads = in_array($part, ['single', 'start'], true);
+    $isClosure = $kind === \App\Support\Calendar\EventKind::Closure->value;
     $editUrl = $leads && $canAdminEvents ? route('admin.events.edit', $event) : null;
 
     // The time range only shows when the whole event lies on this card's date.
@@ -20,7 +22,7 @@
     }
 @endphp
 
-<span @class(['calendar-cell', 'event-cell', 'event-cell--'.$part, 'event-cell--editable' => $canAdminEvents]) data-state="{{ \App\Support\Calendar\CellState::Event->value }}" title="{{ $name }}">
+<span @class(['calendar-cell', 'event-cell', 'event-cell--'.$part, 'event-cell--blocked' => $isClosure, 'event-cell--editable' => $canAdminEvents]) data-state="{{ ($isClosure ? \App\Support\Calendar\CellState::Blocked : \App\Support\Calendar\CellState::Event)->value }}" title="{{ $name }}">
     @if($editUrl)
         <a href="{{ $editUrl }}" class="event-label booking-trigger" data-action="event-edit" data-edit-url="{{ $editUrl }}">{{ $name }}</a>
     @elseif($leads)

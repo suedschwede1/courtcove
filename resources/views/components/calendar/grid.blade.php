@@ -97,6 +97,7 @@
                         @if($eventPart)
                             <x-calendar.event-cell
                                 :name="$eventPart['block']['name']"
+                                :kind="$eventPart['block']['kind'] ?? 'event'"
                                 :event="$eventPart['block']['event']"
                                 :part="$eventPart['part']"
                                 :can-admin-events="$canAdminEvents"

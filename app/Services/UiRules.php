@@ -8,12 +8,15 @@ class UiRules
 {
     /** Every light and dark token value from app.css, plus plain white and black (lowercase). */
     public const TOKEN_HEX = [
-        '#0f0e0d', '#171513', '#1b1917', '#1d1b18', '#1e3329', '#1f1c19', '#1f5a44', '#211e1b',
-        '#252220', '#2c2824', '#34302b', '#3a2419', '#3a2e12', '#3a3631', '#3d1c15', '#4a443d',
-        '#5fae87', '#6a6259', '#6b6359', '#7a4e00', '#8f3412', '#8fd0ae', '#9a2b17', '#a79d8f',
-        '#b5441a', '#bdb2a2', '#cfc5b5', '#cfc6b8', '#e07a4f', '#e3dcd0', '#e3f0e8', '#e6dfd3',
-        '#e7e0d5', '#ede8df', '#efe9df', '#f08a72', '#f0936c', '#f0c46b', '#f1ece3', '#f3eee6',
-        '#f5f1ea', '#f7f4ee', '#f8e1dc', '#faf8f4', '#fbefd5', '#fbf1eb', '#fff', '#000', '#ffffff',
+        '#0f0e0d', '#171513', '#173a6b', '#1b1917', '#1c2b40', '#1d1b18', '#1e3329', '#1f1c19',
+        '#1f5a44', '#211e1b', '#221f1c', '#252220', '#2a2622', '#2c2238', '#2c2824', '#34302b',
+        '#3a2419', '#3a2e12', '#3a3631', '#3a6bb0', '#3d1c15', '#4a2a6b', '#4a443d', '#5fae87',
+        '#6a6259', '#6b4400', '#6b6359', '#7a4e00', '#7fa6dd', '#8f3412', '#8fd0ae', '#9a2b17',
+        '#a79d8f', '#b07a1e', '#b5441a', '#bdb2a2', '#c9daf2', '#cfc5b5', '#cfc6b8', '#d7c6ea',
+        '#d9a54a', '#d9e6f7', '#dceee3', '#e07a4f', '#e3dcd0', '#e3f0e8', '#e7e0d5', '#e9e5de',
+        '#ece3f3', '#ece6dc', '#ede8df', '#efe9df', '#f08a72', '#f0936c', '#f0c46b', '#f1ece3',
+        '#f2efea', '#f3eee6', '#f5f1ea', '#f6e7cc', '#f7f4ee', '#f8e1dc', '#faf8f4', '#fbefd5',
+        '#fbf1eb', '#fff', '#000', '#ffffff',
     ];
 
     private const COLOUR_HEX = '/(?<![\w&])#(?:[0-9a-f]{6}|[0-9a-f]{3})\b/i';

@@ -89,4 +89,62 @@ class EventManagementTest extends TestCase
         $response->assertSee('value="10:00"', false);
         $response->assertSee('value="12:00"', false);
     }
+
+    /** @return array<string, string> */
+    private function payload(array $override = []): array
+    {
+        return array_merge([
+            'sid' => '', 'name' => 'Example Closure', 'status' => 'enabled',
+            'date_start' => '2026-07-01', 'time_start' => '10:00', 'date_end' => '2026-07-01', 'time_end' => '12:00',
+        ], $override);
+    }
+
+    #[Test]
+    public function kind_defaults_to_event_and_is_stored_when_chosen(): void
+    {
+        $admin = $this->admin();
+
+        $this->actingAs($admin)->post('/admin/events', $this->payload(['name' => 'Example Training']))->assertRedirect();
+        $this->actingAs($admin)->post('/admin/events', $this->payload(['kind' => 'closure']))->assertRedirect();
+
+        $kinds = Event::with('meta')->orderBy('eid')->get()->map(fn (Event $e) => $e->meta->firstWhere('key', 'kind')?->value)->all();
+        $this->assertSame(['event', 'closure'], $kinds);
+    }
+
+    #[Test]
+    public function an_unknown_kind_is_rejected(): void
+    {
+        $this->actingAs($this->admin())->post('/admin/events', $this->payload(['kind' => 'bogus']))->assertSessionHasErrors('kind');
+    }
+
+    #[Test]
+    public function edit_form_preselects_the_stored_kind_and_update_changes_it(): void
+    {
+        $admin = $this->admin();
+        $event = Event::factory()->create(['status' => 'enabled']);
+        $event->meta()->create(['key' => 'name', 'value' => 'Example Closure']);
+        $event->meta()->create(['key' => 'kind', 'value' => 'closure']);
+
+        $html = $this->actingAs($admin)->get("/admin/events/{$event->eid}/edit")->assertOk()->getContent();
+        $this->assertMatchesRegularExpression('/<option value="closure" selected>Platzsperre<\/option>/', $html);
+        $this->assertMatchesRegularExpression('/<option value="event">Veranstaltung<\/option>/', $html);
+
+        $this->actingAs($admin)->put("/admin/events/{$event->eid}", $this->payload(['kind' => 'event']))->assertRedirect();
+        $this->assertSame('event', $event->meta()->where('key', 'kind')->value('value'));
+    }
+
+    #[Test]
+    public function old_events_without_a_kind_preselect_by_name_and_keep_it_when_the_field_is_missing(): void
+    {
+        $admin = $this->admin();
+        $event = Event::factory()->create(['status' => 'enabled']);
+        $event->meta()->create(['key' => 'name', 'value' => 'Platzsperre']);
+
+        $html = $this->actingAs($admin)->get("/admin/events/{$event->eid}/edit")->assertOk()->getContent();
+        $this->assertMatchesRegularExpression('/<option value="closure" selected>/', $html);
+
+        // The calendar popup posts no kind: nothing is stored, the name fallback still applies.
+        $this->actingAs($admin)->put("/admin/events/{$event->eid}", $this->payload(['name' => 'Platzsperre']))->assertRedirect();
+        $this->assertNull($event->meta()->where('key', 'kind')->value('value'));
+    }
 }

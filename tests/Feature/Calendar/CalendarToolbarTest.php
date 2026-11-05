@@ -96,7 +96,11 @@ final class CalendarToolbarTest extends TestCase
     public function today_hint_only_when_selected_date_is_today(): void
     {
         $xp = $this->xpath($this->page('?date=2026-11-04')->getContent());
-        $this->assertSame(1, $xp->query('//*[contains(@class,"cal-toolbar__today-hint")]')->length);
+        $hint = $xp->query('//*[contains(@class,"cal-toolbar__today-hint")]');
+        $this->assertSame(1, $hint->length);
+        // A pill beside the day name; the old "· Heute" suffix is gone.
+        $this->assertSame('Heute', $this->norm($hint->item(0)->textContent));
+        $this->assertStringStartsWith('Mittwoch, 4. November 2026', $this->norm($xp->query('//h1')->item(0)->textContent));
 
         $xp = $this->xpath($this->page('?date=2026-11-06')->getContent());
         $this->assertSame(0, $xp->query('//*[contains(@class,"cal-toolbar__today-hint")]')->length);

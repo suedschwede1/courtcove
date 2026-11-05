@@ -38,8 +38,8 @@ class CellStateTest extends TestCase
     {
         $values = fn (bool $loggedIn) => array_map(fn (CellState $s) => $s->value, CellState::legend($loggedIn));
 
-        $this->assertSame(['free', 'own', 'single_future', 'event', 'tournament', 'past'], $values(true));
-        $this->assertSame(['free', 'single_future', 'event', 'tournament', 'past'], $values(false));
+        $this->assertSame(['free', 'own', 'single_future', 'event', 'blocked', 'tournament', 'past'], $values(true));
+        $this->assertSame(['free', 'single_future', 'event', 'blocked', 'tournament', 'past'], $values(false));
     }
 
     #[Test]

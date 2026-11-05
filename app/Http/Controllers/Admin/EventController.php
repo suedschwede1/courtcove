@@ -8,9 +8,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\Square;
 use App\Services\EventService;
+use App\Support\Calendar\EventKind;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 final class EventController extends Controller
@@ -64,6 +66,7 @@ final class EventController extends Controller
                 'squares' => Square::orderBy('priority')->get(),
                 'event' => $event,
                 'name' => '',
+                'kind' => EventKind::Event->value,
                 'date_start' => $request->input('date_start', ''),
                 'time_start' => $request->input('time_start', ''),
                 'date_end' => $request->input('date_end', ''),
@@ -94,6 +97,7 @@ final class EventController extends Controller
             'event' => $event,
             'squares' => Square::orderBy('priority')->get(),
             'name' => $metaMap['name'] ?? '',
+            'kind' => $metaMap['kind'] ?? EventKind::for($event)->value,
             'description' => $metaMap['description'] ?? '',
             'notes' => $metaMap['notes'] ?? '',
             'date_start' => $event->datetime_start?->format('Y-m-d') ?? '',
@@ -143,6 +147,7 @@ final class EventController extends Controller
         $data = $request->validate([
             'sid' => ['nullable'],
             'name' => ['nullable', 'string', 'max:128'],
+            'kind' => ['nullable', Rule::in(array_column(EventKind::cases(), 'value'))],
             'description' => ['nullable', 'string', 'max:4096'],
             'notes' => ['nullable', 'string', 'max:2048'],
             'capacity' => ['nullable', 'integer', 'min:0'],
