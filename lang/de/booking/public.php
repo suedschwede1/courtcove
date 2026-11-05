@@ -194,7 +194,7 @@ return [
         'save_event' => 'Veranstaltung speichern',
         'close' => 'Schließen',
         'cancel_heading' => 'Buchung stornieren',
-        'cancel_message' => 'Möchten Sie diese Buchung wirklich stornieren? Diese Aktion kann nicht rückgängig gemacht werden.',
+        'cancel_message' => 'Willst du diese Buchung wirklich stornieren? Das lässt sich nicht rückgängig machen.',
         'edit_booking' => 'Buchung bearbeiten',
         'edit_booking_heading' => 'Buchung bearbeiten',
         'new_booking' => 'Neue Buchung',

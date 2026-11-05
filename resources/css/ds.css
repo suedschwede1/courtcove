@@ -1344,6 +1344,29 @@
         gap: 18px;
     }
 
+    .ds-modal__message {
+        margin: 0;
+        font-size: var(--text-body);
+        line-height: 1.45;
+        color: var(--color-ink-2);
+    }
+
+    .ds-modal__actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .ds-modal__actions > form {
+        display: flex;
+        margin: 0;
+    }
+
+    .ds-modal__actions .ds-btn {
+        min-height: 48px;
+        border-radius: var(--radius-md);
+    }
+
     .ds-suggest {
         margin: 4px 0 0;
         padding: 0;
@@ -1519,6 +1542,11 @@
 
         .ds-modal__form {
             gap: 16px;
+        }
+
+        .ds-modal__actions .ds-btn {
+            min-height: 52px;
+            border-radius: var(--radius-lg);
         }
 
         .ds-modal__footer .ds-modal__dismiss {

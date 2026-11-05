@@ -194,7 +194,7 @@ return [
         'save_event' => 'Save Event',
         'close' => 'Close',
         'cancel_heading' => 'Cancel Booking',
-        'cancel_message' => 'Do you really want to cancel this booking? This action cannot be undone.',
+        'cancel_message' => 'Do you really want to cancel this booking? This cannot be undone.',
         'edit_booking' => 'Edit Booking',
         'edit_booking_heading' => 'Edit Booking',
         'new_booking' => 'New Booking',

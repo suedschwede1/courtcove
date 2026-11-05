@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-05
 
+- Own bookings open a details view with Bearbeiten, Stornieren and Abbrechen; editing uses the same tiles as booking.
 - After booking, the sheet shows "Platz gebucht" with the quote and links to the calendar and to my bookings.
 - Booking opens as a dialog on desktop and a bottom sheet on phones, with Einzel/Doppel as tiles and a summary of date, time and court.
 - Success and error messages use the new dialog (sheet on phones) and close after 4 seconds unless you interact with them.
