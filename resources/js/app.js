@@ -15,7 +15,7 @@ function openDatePicker(input) {
 }
 
 function getHeaderDateInput(target) {
-    return target.closest('.ui-calendar-date-input')
+    return target.closest('.cal-toolbar__date-input')
 }
 
 document.addEventListener('pointerdown', (event) => {

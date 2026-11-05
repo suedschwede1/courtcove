@@ -708,6 +708,7 @@ input[type="date"]:where(:not([class^="ds-"], [class*=" ds-"]))::-webkit-datetim
 }
 
 @import './calendar-grid.css';
+@import './calendar-toolbar.css';
 
 
 .ui-table td:last-child,
@@ -736,70 +737,6 @@ input[type="date"]:where(:not([class^="ds-"], [class*=" ds-"]))::-webkit-datetim
     padding: 4px 6px;
 }
 
-
-.ui-calendar-nav {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.55rem;
-}
-
-.ui-calendar-nav-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    height: 32px;
-    min-width: 32px;
-    padding: 0 12px;
-    border: 1px solid var(--color-line);
-    border-radius: 6px;
-    background: var(--color-surface);
-    color: var(--color-ink);
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 1;
-    text-decoration: none;
-    box-shadow: none;
-    transition: border-color 0.12s ease, color 0.12s ease, background-color 0.12s ease;
-}
-
-.ui-calendar-nav-btn:hover {
-    border-color: var(--color-clay);
-    color: var(--color-clay);
-}
-
-.ui-calendar-nav-btn--today {
-    min-width: 58px;
-    color: var(--color-ink);
-}
-
-.ui-calendar-nav-btn--arrow {
-    width: 32px;
-    padding: 0;
-    font-size: 11px;
-}
-
-.ui-calendar-date-form {
-    margin: 0;
-}
-
-.ui-calendar-date-input {
-    height: 32px;
-    min-width: 96px;
-    border: 1px solid var(--color-line-strong);
-    border-radius: 6px;
-    background: var(--color-clay-soft);
-    color: var(--color-clay);
-    padding: 0 12px;
-    font-size: 13px;
-    font-weight: 600;
-    box-shadow: none;
-}
-
-.ui-calendar-date-input:focus {
-    outline: none;
-    border-color: var(--color-clay);
-    box-shadow: none;
-}
 
 /* Global focus (DESIGN.md accessibility): visible on every control. */
 :focus-visible { outline: 2px solid var(--color-ink) !important; outline-offset: 2px !important; }

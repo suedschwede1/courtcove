@@ -123,6 +123,7 @@ return [
     ],
     'calendar' => [
         'title' => 'Buchungsplan – :date',
+        'date_navigation' => 'Tagesnavigation',
         'system_eyebrow' => 'Buchungssystem',
         'information' => 'Informationen',
         'system_text' => 'Das Reservierungssystem zeigt automatisch so viele Tage an, wie in das Fenster passen. Bei schmaleren Ansichten kann der Plan horizontal gescrollt werden.',

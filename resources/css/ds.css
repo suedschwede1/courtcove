@@ -6,7 +6,6 @@
     /* The legacy body is 12px; ds components own their size and never inherit it. */
     .ds-header,
     .ds-phone-menu,
-    .ds-subbar,
     .ds-card,
     .ds-notice,
     .ds-field,
@@ -1061,22 +1060,6 @@
         }
     }
 
-    .ds-subbar {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 12px 24px 0;
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
-    }
-
-    .ds-subbar__panels {
-        display: flex;
-        gap: 8px;
-    }
-
     @media (width < 48rem) {
         .ds-header__bar {
             padding: 14px 16px;
@@ -1109,10 +1092,6 @@
 
         .ds-header .ds-logo__initials {
             font-size: 15px;
-        }
-
-        .ds-subbar {
-            padding: 12px 16px 0;
         }
     }
 }

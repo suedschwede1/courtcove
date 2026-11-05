@@ -123,6 +123,7 @@ return [
     ],
     'calendar' => [
         'title' => 'Booking Schedule - :date',
+        'date_navigation' => 'Day navigation',
         'system_eyebrow' => 'Booking System',
         'information' => 'Information',
         'system_text' => 'The reservation system automatically shows as many days as fit into the window. On narrower screens, the schedule can be scrolled horizontally.',

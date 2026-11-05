@@ -129,7 +129,7 @@ class HeaderTest extends TestCase
         $html = $this->actingAs($member)->get('/calendar')->assertOk()->getContent();
         $xp = $this->xpath($html);
 
-        $this->assertSame(2, $xp->query('//div[@id="calendar-header-nav"]//a[contains(@class,"ui-calendar-nav-btn--arrow")]')->length);
+        $this->assertSame(2, $xp->query('//nav[@id="calendar-date-nav"]//a[@data-cal-nav]')->length);
         $this->assertSame(1, $xp->query('//*[@data-panel-toggle="system-info-panel"]')->length);
         $this->assertSame(1, $xp->query('//*[@data-panel-toggle="help-panel"]')->length);
     }

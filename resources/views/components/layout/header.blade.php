@@ -5,10 +5,6 @@
     $navItems = app(\App\Services\MainNavigation::class)->items(auth()->user(), request());
     $activeItem = collect($navItems)->first(fn ($item) => $item->active);
     $sectionTitle = $activeItem?->label ?? $bookingName;
-
-    $hasDateNav = trim($__env->yieldPushContent('header-nav')) !== '';
-    $hasInfo = $__env->hasSection('calendar-system-info');
-    $hasHelp = $__env->hasSection('calendar-help');
 @endphp
 <header class="ds-header ds-on-chrome no-print" x-data="{ menuOpen: false }" @keydown.escape.window="if (menuOpen) { menuOpen = false; $refs.menuButton.focus() }" @resize.window="if (menuOpen && window.innerWidth >= 768) menuOpen = false">
     <div class="ds-header__bar">
@@ -51,19 +47,3 @@
 
     <x-layout.phone-menu :items="$navItems" :club-name="$bookingName" />
 </header>
-
-@if($hasDateNav || $hasInfo || $hasHelp)
-    <div class="ds-subbar no-print">
-        <div id="calendar-header-nav" class="ui-calendar-nav">@stack('header-nav')</div>
-        @if($hasInfo || $hasHelp)
-            <div class="ds-subbar__panels">
-                @if($hasInfo)
-                    <x-ui.button variant="text" :block="false" data-panel-toggle="system-info-panel">{{ __('booking.nav.info') }}</x-ui.button>
-                @endif
-                @if($hasHelp)
-                    <x-ui.button variant="text" :block="false" data-panel-toggle="help-panel">{{ __('booking.nav.help') }}</x-ui.button>
-                @endif
-            </div>
-        @endif
-    </div>
-@endif
