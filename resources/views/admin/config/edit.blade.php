@@ -110,6 +110,32 @@
             </div>
         </x-ui.card>
 
+        <x-ui.card :title="__('booking.admin.cfg.section_tournament_mail')" padding="lg" class="ds-admin-form-card">
+            <div class="ds-admin-form-grid ds-admin-form-grid--2">
+                <x-ui.field :label="__('booking.admin.cfg.tournament_mail_from_address')" for="cf-tm-from-address" :help="__('booking.admin.cfg.tournament_mail_from_address_hint')">
+                    <x-ui.input id="cf-tm-from-address" name="tournament_mail_from_address" type="email" :value="$values['tournament_mail_from_address']" />
+                </x-ui.field>
+                <x-ui.field :label="__('booking.admin.cfg.tournament_mail_from_name')" for="cf-tm-from-name" :help="__('booking.admin.cfg.tournament_mail_from_name_hint')">
+                    <x-ui.input id="cf-tm-from-name" name="tournament_mail_from_name" :value="$values['tournament_mail_from_name']" />
+                </x-ui.field>
+                <x-ui.field :label="__('booking.admin.cfg.tournament_mail_reply_to_address')" for="cf-tm-reply-address" :help="__('booking.admin.cfg.tournament_mail_reply_to_address_hint')">
+                    <x-ui.input id="cf-tm-reply-address" name="tournament_mail_reply_to_address" type="email" :value="$values['tournament_mail_reply_to_address']" />
+                </x-ui.field>
+                <x-ui.field :label="__('booking.admin.cfg.tournament_mail_reply_to_name')" for="cf-tm-reply-name">
+                    <x-ui.input id="cf-tm-reply-name" name="tournament_mail_reply_to_name" :value="$values['tournament_mail_reply_to_name']" />
+                </x-ui.field>
+                <x-ui.field :label="__('booking.admin.cfg.tournament_mail_signature_club')" for="cf-tm-signature-club" :help="__('booking.admin.cfg.tournament_mail_signature_club_hint')">
+                    <x-ui.input id="cf-tm-signature-club" name="tournament_mail_signature_club" :value="$values['tournament_mail_signature_club']" />
+                </x-ui.field>
+                <x-ui.field :label="__('booking.admin.cfg.tournament_mail_signature_url')" for="cf-tm-signature-url" :help="__('booking.admin.cfg.tournament_mail_signature_url_hint')">
+                    <x-ui.input id="cf-tm-signature-url" name="tournament_mail_signature_url" type="url" :value="$values['tournament_mail_signature_url']" />
+                </x-ui.field>
+                <x-ui.field :label="__('booking.admin.cfg.tournament_mail_signature_text')" for="cf-tm-signature-text" :help="__('booking.admin.cfg.tournament_mail_signature_text_hint')" class="ds-admin-form-grid__wide">
+                    <x-ui.textarea id="cf-tm-signature-text" name="tournament_mail_signature_text" rows="3" :value="$values['tournament_mail_signature_text']" />
+                </x-ui.field>
+            </div>
+        </x-ui.card>
+
         <div class="ds-admin-actions ds-admin-actions--sticky">
             <div class="ds-admin-actions__group ds-admin-actions__group--main">
                 <x-ui.button type="submit" :block="false" class="ds-admin-actions__save">{{ __('booking.admin.save') }}</x-ui.button>
