@@ -11,6 +11,7 @@ use App\Modules\Pyramid\Models\PyramidGrant;
 use App\Modules\Pyramid\Models\PyramidLadder;
 use App\Modules\Pyramid\Models\PyramidPlayer;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -162,6 +163,46 @@ class AdminPlayerActionsTest extends TestCase
 
         $this->assertNull($second->fresh()->position);
         $this->assertSame([1, 2, 3], PyramidPlayer::query()->where('ladder_id', $ladder->id)->whereNotNull('position')->orderBy('position')->pluck('position')->map(fn ($p) => (int) $p)->all());
+    }
+
+    #[Test]
+    public function a_player_who_vanishes_before_the_lock_is_reported_not_celebrated(): void
+    {
+        $ladder = PyramidLadder::factory()->withRanking(3)->create();
+        $player = PyramidPlayer::query()->where('ladder_id', $ladder->id)->where('position', 2)->firstOrFail();
+
+        // Load 1 is the controller's authorisation read, load 2 the ladder lock: delete the row in between.
+        $loads = 0;
+        PyramidLadder::retrieved(function () use (&$loads, $player): void {
+            if (++$loads === 2) {
+                DB::table('bs_pyramid_players')->where('id', $player->id)->delete();
+            }
+        });
+
+        $this->actingAs($this->admin())->post($this->playerUrl($player, 'status'), ['status' => 'paused'])
+            ->assertRedirect($this->ladderUrl($ladder))
+            ->assertSessionHas('error', 'Diesen Teilnehmer gibt es nicht.')
+            ->assertSessionMissing('success');
+    }
+
+    #[Test]
+    public function admin_posts_without_a_csrf_token_are_rejected(): void
+    {
+        $ladder = PyramidLadder::factory()->withRanking(2)->create();
+        $player = PyramidPlayer::query()->where('ladder_id', $ladder->id)->where('position', 1)->firstOrFail();
+        $this->actingAs($this->admin());
+        $this->withMiddleware();
+        $this->app['env'] = 'local'; // CSRF verification is skipped while the env is "testing"
+
+        // Browser form: sent back with the module's expired-form notice, nothing changes.
+        $this->from(url($this->ladderUrl($ladder)))->post($this->playerUrl($player, 'status'), ['status' => 'paused'])
+            ->assertRedirect(url($this->ladderUrl($ladder)))
+            ->assertSessionHas('error', 'Ungültiger oder abgelaufener Formularschlüssel. Bitte Seite neu laden.');
+        $this->assertSame('active', $player->fresh()->status);
+
+        // Script client: plain 419.
+        $this->postJson($this->playerUrl($player, 'status'), ['status' => 'paused'])->assertStatus(419);
+        $this->assertSame('active', $player->fresh()->status);
     }
 
     #[Test]

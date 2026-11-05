@@ -50,7 +50,7 @@ Route::middleware('tournament-base.login:pyramid::admin.login_required')->prefix
     Route::get('/', [LadderAdminController::class, 'index'])->name('pyramide.admin.index');
     Route::match(['get', 'post'], 'create', [LadderAdminController::class, 'create'])->name('pyramide.admin.create');
     Route::get('ladder/{ladderId}', [LadderAdminController::class, 'show'])->whereNumber('ladderId')->name('pyramide.admin.ladder');
-    Route::get('ladder/{ladderId}/mitglieder', [LadderAdminController::class, 'members'])->whereNumber('ladderId')->name('pyramide.admin.members');
+    Route::get('ladder/{ladderId}/mitglieder', [LadderAdminController::class, 'members'])->whereNumber('ladderId')->middleware('throttle:60,1')->name('pyramide.admin.members');
 
     // Ladder-level and player-level mutations: POST only. The paths are the ones PyramidLinks builds for the forms.
     foreach (['seed' => 'seed', 'add-player' => 'addPlayer', 'copy-players' => 'copyPlayers', 'normalize' => 'normalize',

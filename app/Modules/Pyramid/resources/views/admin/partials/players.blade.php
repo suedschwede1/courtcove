@@ -1,6 +1,8 @@
 {{--
     Participant table with search, status filter, inline edit and paging.
-    Needs: $ladder, $ranking, $players (paginator), $page, $pages, $total, $search, $status.
+    Needs: $ladder, $ranking, $players (paginator), $page, $pages, $total, $search, $status, optional $editId.
+    Edit works without scripts: the edit control is a link (?edit=ID) and the requested row is rendered open;
+    with Alpine the same link toggles the row in place.
 --}}
 @php
     use App\Modules\Pyramid\Support\PyramidFormat;
@@ -8,6 +10,9 @@
     use App\Modules\Pyramid\Support\PyramidStatus;
 
     $genderLabel = static fn (?string $gender): string => __('pyramid::admin.ladder.gender.'.($gender === 'f' || $gender === 'm' ? $gender : 'none'));
+    $editId = (int) ($editId ?? 0);
+    $listUrl = PyramidLinks::adminLadder((int) $ladder->id);
+    $listQuery = array_filter(['q' => $search, 'status' => $status, 'page' => $page > 1 ? $page : ''], static fn ($value): bool => $value !== '' && $value !== null);
     $statusOptions = [
         '' => __('pyramid::admin.ladder.players.status_all'),
         'active' => __('pyramid::admin.ladder.status.active'),
@@ -39,7 +44,7 @@
     @elseif ($players->isEmpty())
         <p class="p-4 text-ink-2 md:p-5">{{ __('pyramid::admin.ladder.players.none') }}</p>
     @else
-        <x-ui.table :caption="__('pyramid::admin.ladder.players.caption')" x-data="{ editing: null }">
+        <x-ui.table :caption="__('pyramid::admin.ladder.players.caption')" x-data="{ editing: {{ $editId > 0 ? $editId : 'null' }} }">
             <x-slot:head>
                 <tr>
                     <th scope="col">{{ __('pyramid::admin.ladder.players.col_rank') }}</th>
@@ -66,9 +71,10 @@
                         <x-ui.badge :tone="PyramidStatus::badgeGroup($player->status)">{{ __('pyramid::admin.ladder.status.'.($paused ? 'paused' : 'active')) }}</x-ui.badge>
                     </td>
                     <td>
+                        <div class="flex flex-wrap items-center gap-2">
+                        <x-ui.button variant="secondary" :block="false" :href="$listUrl.'?'.http_build_query($listQuery + ['edit' => $playerId]).'#pyramid-pe-row-'.$playerId" x-on:click.prevent="editing = editing === {{ $playerId }} ? null : {{ $playerId }}">{{ __('pyramid::admin.ladder.players.edit') }}</x-ui.button>
                         <form method="POST" action="{{ PyramidLinks::adminPlayerAction('player-status', 'status', $playerId) }}" class="flex flex-wrap items-center gap-2">
                             @csrf
-                            <x-ui.button variant="secondary" :block="false" x-on:click="editing = editing === {{ $playerId }} ? null : {{ $playerId }}">{{ __('pyramid::admin.ladder.players.edit') }}</x-ui.button>
                             @if ($paused)
                                 <x-ui.button type="submit" variant="secondary" :block="false" name="status" value="active">{{ __('pyramid::admin.ladder.players.activate') }}</x-ui.button>
                             @else
@@ -76,9 +82,11 @@
                             @endif
                             <x-ui.button type="submit" variant="danger" :block="false" name="status" value="removed">{{ __('pyramid::admin.ladder.players.remove') }}</x-ui.button>
                         </form>
+                        </div>
                     </td>
                 </tr>
-                <tr x-show="editing === {{ $playerId }}" x-cloak>
+                {{-- The requested row has no x-cloak: it shows even if Alpine never loads. --}}
+                <tr id="pyramid-pe-row-{{ $playerId }}" x-show="editing === {{ $playerId }}"@if ($editId !== $playerId) x-cloak @endif>
                     <td colspan="7">
                         <form method="POST" action="{{ PyramidLinks::adminPlayerAction('update-player', 'update', $playerId) }}" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                             @csrf
@@ -105,7 +113,7 @@
                             </x-ui.field>
                             <div class="flex flex-wrap items-end gap-2 sm:col-span-2 lg:col-span-4">
                                 <x-ui.button type="submit" :block="false">{{ __('pyramid::admin.ladder.players.save') }}</x-ui.button>
-                                <x-ui.button variant="text" :block="false" x-on:click="editing = null">{{ __('pyramid::admin.ladder.players.cancel') }}</x-ui.button>
+                                <x-ui.button variant="text" :block="false" :href="$listUrl.($listQuery === [] ? '' : '?'.http_build_query($listQuery))" x-on:click.prevent="editing = null">{{ __('pyramid::admin.ladder.players.cancel') }}</x-ui.button>
                             </div>
                         </form>
                     </td>

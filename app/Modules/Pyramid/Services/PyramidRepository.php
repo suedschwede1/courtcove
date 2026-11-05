@@ -93,6 +93,23 @@ final class PyramidRepository
         return $this->ranking($ladderId)->count();
     }
 
+    /**
+     * Ranked players (paused included) of every ladder in one grouped query; ladders without any are absent.
+     *
+     * @return array<int, int> ladder id => count
+     */
+    public function activeCounts(): array
+    {
+        return PyramidPlayer::query()
+            ->whereIn('status', ['active', 'paused'])
+            ->whereNotNull('position')
+            ->groupBy('ladder_id')
+            ->selectRaw('ladder_id, COUNT(*) as aggregate')
+            ->pluck('aggregate', 'ladder_id')
+            ->map(static fn ($count): int => (int) $count)
+            ->all();
+    }
+
     public function challenge(int $id): ?PyramidChallenge
     {
         return PyramidChallenge::query()->find($id);

@@ -183,6 +183,40 @@ class PublicHtaccessTest extends TestCase
         $this->assertSame('laravel', $r->route(''));
     }
 
+    public function test_router_reports_real_directories_and_files_as_static_not_as_redirect(): void
+    {
+        $r = HtaccessRouter::fromFile(dirname(__DIR__, 2).'/public/.htaccess');
+
+        // public/css is a real directory: the generic slash rule has !-d and must not fire for it.
+        $this->assertSame('static', $r->route('css/'));
+        $this->assertSame('static', $r->route('css'));
+        $this->assertSame('static', $r->route('index.php'));
+        // A non-existing path with a trailing slash still redirects.
+        $this->assertSame('redirect', $r->route('calendar/'));
+        $this->assertSame('redirect', $r->route('css-nope/'));
+    }
+
+    public function test_router_refuses_conditions_with_flags(): void
+    {
+        $file = tempnam(sys_get_temp_dir(), 'htaccess');
+
+        foreach (['[OR]', '[NC]', '[NC,OR]'] as $flag) {
+            file_put_contents($file, 'RewriteCond %{REQUEST_URI} (.+)/$ '.$flag."\nRewriteRule ^ %1 [L,R=301]\n");
+
+            try {
+                HtaccessRouter::fromFile($file);
+                $this->fail('flags '.$flag.' must make the router throw');
+            } catch (\LogicException $e) {
+                $this->assertStringContainsString('flags', $e->getMessage());
+            }
+        }
+
+        file_put_contents($file, "RewriteCond %{REQUEST_URI} (.+)/$\nRewriteRule ^ %1 [L,R=301]\n");
+        $this->assertSame('redirect', HtaccessRouter::fromFile($file)->route('x/'));
+
+        unlink($file);
+    }
+
     public function test_carve_outs_sit_between_the_slash_redirect_and_the_bridge(): void
     {
         $contents = file_get_contents(dirname(__DIR__, 2).'/public/.htaccess');

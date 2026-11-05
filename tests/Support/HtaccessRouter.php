@@ -15,14 +15,17 @@ namespace Tests\Support;
  * being silently ignored (no false greens).
  *
  * RewriteConds directly above a modelled rule: "%{REQUEST_URI} <regex>" is matched against
- * "/".$path, "%{REQUEST_FILENAME} !-d" / "!-f" count as true (the routed paths are no files or
- * directories); any other condition on a modelled rule makes the helper throw.
- * First match wins, default laravel.
+ * "/".$path, "%{REQUEST_FILENAME} !-d" / "!-f" are checked against the document root (the
+ * directory of the .htaccess), so a real directory such as css/ is not reported as a redirect;
+ * any other condition, and any condition carrying flags like [OR] or [NC] (they would change how
+ * conditions combine and are not modelled), makes the helper throw.
+ * First match wins; a path that is an existing file or directory of the document root and was not
+ * rewritten is 'static', everything else defaults to laravel.
  */
 final class HtaccessRouter
 {
-    /** @param list<array{0: string, 1: string, 2: list<string>}> $rules pattern, outcome and REQUEST_URI condition regexes in file order */
-    private function __construct(private readonly array $rules) {}
+    /** @param list<array{0: string, 1: string, 2: list<array{0: string, 1: string}>}> $rules pattern, outcome and conditions (variable, test) in file order */
+    private function __construct(private readonly array $rules, private readonly string $docRoot) {}
 
     public static function fromFile(string $path): self
     {
@@ -64,32 +67,40 @@ final class HtaccessRouter
                 continue;
             }
 
-            $uriConds = [];
-
             foreach ($ruleConds as [$var, $test]) {
-                if ($var === '%{REQUEST_URI}') {
-                    $uriConds[] = $test;
-                } elseif (! ($var === '%{REQUEST_FILENAME}' && in_array($test, ['!-d', '!-f'], true))) {
+                if (preg_match('#\s\[[A-Za-z,=!]+\]$#', $test) === 1) {
+                    throw new \LogicException("HtaccessRouter does not model RewriteCond flags: {$var} {$test} above: {$line}");
+                }
+
+                if (! ($var === '%{REQUEST_URI}' || ($var === '%{REQUEST_FILENAME}' && in_array($test, ['!-d', '!-f'], true)))) {
                     throw new \LogicException("HtaccessRouter cannot model RewriteCond {$var} {$test} above: {$line}");
                 }
             }
 
-            $rules[] = [$pattern, $outcome, $uriConds];
+            $rules[] = [$pattern, $outcome, $ruleConds];
         }
 
-        return new self($rules);
+        return new self($rules, dirname($path));
     }
 
-    /** @return 'redirect'|'laravel'|'zf2' */
+    /** @return 'redirect'|'laravel'|'zf2'|'static' */
     public function route(string $path): string
     {
-        foreach ($this->rules as [$pattern, $outcome, $uriConds]) {
+        $onDisk = $this->docRoot.'/'.$path;
+
+        foreach ($this->rules as [$pattern, $outcome, $conds]) {
             if (preg_match('#'.str_replace('#', '\#', $pattern).'#', $path) !== 1) {
                 continue;
             }
 
-            foreach ($uriConds as $cond) {
-                if (preg_match('#'.str_replace('#', '\#', $cond).'#', '/'.$path) !== 1) {
+            foreach ($conds as [$var, $test]) {
+                $holds = match (true) {
+                    $var === '%{REQUEST_URI}' => preg_match('#'.str_replace('#', '\#', $test).'#', '/'.$path) === 1,
+                    $test === '!-d' => ! is_dir($onDisk),
+                    default => ! is_file($onDisk),
+                };
+
+                if (! $holds) {
                     continue 2;
                 }
             }
@@ -97,6 +108,7 @@ final class HtaccessRouter
             return $outcome;
         }
 
-        return 'laravel';
+        // Not rewritten: Apache serves an existing file or directory itself (the root answers with index.php).
+        return $path !== '' && (is_file($onDisk) || is_dir($onDisk)) ? 'static' : 'laravel';
     }
 }

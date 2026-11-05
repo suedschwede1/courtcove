@@ -10,6 +10,8 @@ use App\Modules\Pyramid\Models\PyramidGrant;
 use App\Modules\Pyramid\Models\PyramidLadder;
 use App\Modules\Pyramid\Models\PyramidPlayer;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -25,11 +27,12 @@ class AdminIndexTest extends TestCase
     #[Test]
     public function guest_is_sent_to_login_with_the_admin_flash(): void
     {
-        $this->get('/pyramide/admin')
-            ->assertRedirect()
-            ->assertSessionHas('error', 'Für die Verwaltung der Forderungspyramide musst du angemeldet sein.');
+        $response = $this->get('/pyramide/admin');
 
-        $this->assertStringContainsString('login', (string) $this->get('/pyramide/admin')->headers->get('Location'));
+        $response->assertRedirect()
+            ->assertSessionHas('error', 'Für die Verwaltung der Forderungspyramide musst du angemeldet sein.');
+        $this->assertStringContainsString('login', (string) $response->headers->get('Location'));
+
     }
 
     #[Test]
@@ -146,6 +149,53 @@ class AdminIndexTest extends TestCase
     }
 
     #[Test]
+    #[DataProvider('invalidSeasons')]
+    public function create_rejects_a_season_outside_2000_to_2100(string $season): void
+    {
+        $this->actingAs($this->admin())->post('/pyramide/admin/create', ['title' => 'Herren', 'season' => $season])
+            ->assertRedirect('/pyramide/admin')
+            ->assertSessionHas('error', 'Die Saison muss zwischen 2000 und 2100 liegen.');
+
+        $this->assertSame(0, PyramidLadder::query()->count());
+    }
+
+    /**
+     * @return array<string, array{string}>
+     */
+    public static function invalidSeasons(): array
+    {
+        return ['zero' => ['0'], 'negative' => ['-5'], 'too early' => ['1999'], 'too late' => ['2101'], 'text' => ['abc'], 'huge' => ['99999999']];
+    }
+
+    #[Test]
+    public function create_accepts_the_season_bounds_and_defaults_a_blank_season_to_this_year(): void
+    {
+        $admin = $this->admin();
+        $this->actingAs($admin)->post('/pyramide/admin/create', ['title' => 'Alt', 'season' => '2000'])->assertRedirectContains('/ladder/');
+        $this->actingAs($admin)->post('/pyramide/admin/create', ['title' => 'Neu', 'season' => '2100'])->assertRedirectContains('/ladder/');
+        $this->actingAs($admin)->post('/pyramide/admin/create', ['title' => 'Leer', 'season' => ''])->assertRedirectContains('/ladder/');
+
+        $this->assertSame([2000, 2100, (int) date('Y')], PyramidLadder::query()->orderBy('id')->pluck('season')->map(fn ($s): int => (int) $s)->all());
+    }
+
+    #[Test]
+    public function overview_counts_the_ranking_of_all_ladders_with_one_query(): void
+    {
+        PyramidLadder::factory()->withRanking(3)->create(['title' => 'Liga A']);
+        PyramidLadder::factory()->withRanking(2)->create(['title' => 'Liga B']);
+        $admin = $this->admin();
+        $this->actingAs($admin)->get('/pyramide/admin')->assertOk();
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        $this->actingAs($admin)->get('/pyramide/admin')->assertOk()->assertSee('3 Teilnehmer')->assertSee('2 Teilnehmer');
+        $playerQueries = collect(DB::getQueryLog())->filter(fn (array $q): bool => str_contains($q['query'], 'bs_pyramid_players'))->count();
+        DB::disableQueryLog();
+
+        $this->assertSame(1, $playerQueries);
+    }
+
+    #[Test]
     public function get_create_redirects_to_the_overview(): void
     {
         $this->actingAs($this->admin())->get('/pyramide/admin/create')->assertRedirect('/pyramide/admin');
@@ -155,14 +205,10 @@ class AdminIndexTest extends TestCase
     #[Test]
     public function sidebar_links_the_module_for_admins(): void
     {
-        $this->actingAs($this->admin())->get('/pyramide/admin')
-            ->assertOk()
-            ->assertSee('Forderungspyramide')
-            ->assertSee('/pyramide/admin"', false);
+        $link = '#<a href="[^"]*/pyramide/admin"[^>]*>\s*Forderungspyramide\s*</a>#';
 
-        $this->actingAs($this->admin())->get('/admin')
-            ->assertOk()
-            ->assertSee('/pyramide/admin"', false);
+        $this->assertMatchesRegularExpression($link, $this->actingAs($this->admin())->get('/admin')->assertOk()->getContent());
+        $this->assertMatchesRegularExpression($link, $this->actingAs($this->admin())->get('/pyramide/admin')->assertOk()->getContent());
     }
 
     #[Test]

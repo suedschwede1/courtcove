@@ -207,6 +207,37 @@ class AdminLadderPageTest extends TestCase
     }
 
     #[Test]
+    public function copy_dropdown_lists_only_ladders_the_user_administers(): void
+    {
+        $target = PyramidLadder::factory()->create(['title' => 'Ziel', 'season' => 2027]);
+        $own = PyramidLadder::factory()->create(['title' => 'Eigene Quelle', 'season' => 2026]);
+        PyramidLadder::factory()->create(['title' => 'Fremde Quelle', 'season' => 2026]);
+        $holder = User::factory()->create();
+        $this->grantTo($holder, $target);
+        $this->grantTo($holder, $own);
+
+        $this->actingAs($holder)->get('/pyramide/admin/ladder/'.$target->id)
+            ->assertOk()
+            ->assertSee('Teilnehmer übernehmen')
+            ->assertSee('Eigene Quelle (2026)')
+            ->assertDontSee('Fremde Quelle (2026)');
+    }
+
+    #[Test]
+    public function copy_card_is_hidden_when_the_user_administers_no_other_ladder(): void
+    {
+        $target = PyramidLadder::factory()->create(['title' => 'Ziel']);
+        PyramidLadder::factory()->create(['title' => 'Fremde Quelle', 'season' => 2026]);
+        $holder = User::factory()->create();
+        $this->grantTo($holder, $target);
+
+        $this->actingAs($holder)->get('/pyramide/admin/ladder/'.$target->id)
+            ->assertOk()
+            ->assertDontSee('Teilnehmer übernehmen')
+            ->assertDontSee('Fremde Quelle (2026)');
+    }
+
+    #[Test]
     public function stored_values_are_escaped_and_the_edit_form_carries_them(): void
     {
         $ladder = PyramidLadder::factory()->create(['title' => '<script>alert(1)</script>']);
@@ -239,5 +270,53 @@ class AdminLadderPageTest extends TestCase
 
         $this->actingAs($this->admin())->getJson($url.'?q=d')->assertOk()->assertExactJson([]);
         $this->actingAs($this->admin())->getJson($url)->assertOk()->assertExactJson([]);
+    }
+
+    #[Test]
+    public function every_player_has_an_edit_link_that_works_without_javascript(): void
+    {
+        $ladder = PyramidLadder::factory()->withRanking(3)->create();
+        $second = PyramidPlayer::query()->where('ladder_id', $ladder->id)->where('position', 2)->firstOrFail();
+        $first = PyramidPlayer::query()->where('ladder_id', $ladder->id)->where('position', 1)->firstOrFail();
+        $base = '/pyramide/admin/ladder/'.$ladder->id;
+
+        $closed = $this->actingAs($this->admin())->get($base)->assertOk()->getContent();
+        $this->assertStringContainsString($base.'?edit='.$second->id, html_entity_decode($closed));
+
+        $open = $this->actingAs($this->admin())->get($base.'?edit='.$second->id)->assertOk()->getContent();
+        // The requested row is rendered open (no x-cloak, so it shows without scripts), the others stay closed.
+        $this->assertSame(substr_count($closed, 'x-cloak') - 1, substr_count($open, 'x-cloak'));
+        $this->assertMatchesRegularExpression('#id="pyramid-pe-row-'.$second->id.'"(?![^>]*x-cloak)#', $open);
+        $this->assertMatchesRegularExpression('#id="pyramid-pe-row-'.$first->id.'"[^>]*x-cloak#', $open);
+        // Cancel is a link back to the list for the no-script case.
+        $this->assertStringContainsString('href="'.url($base).'"', $open);
+    }
+
+    #[Test]
+    public function the_edit_control_is_not_part_of_the_status_form(): void
+    {
+        $ladder = PyramidLadder::factory()->withRanking(2)->create();
+
+        $html = $this->actingAs($this->admin())->get('/pyramide/admin/ladder/'.$ladder->id)->assertOk()->getContent();
+
+        preg_match_all('#<form[^>]*player/\d+/status"[^>]*>.*?</form>#s', $html, $forms);
+        $this->assertCount(2, $forms[0]);
+        foreach ($forms[0] as $form) {
+            $this->assertStringNotContainsString('Bearbeiten', $form);
+        }
+    }
+
+    #[Test]
+    public function member_search_is_rate_limited(): void
+    {
+        $ladder = PyramidLadder::factory()->create();
+        $admin = $this->admin();
+        $url = '/pyramide/admin/ladder/'.$ladder->id.'/mitglieder?q=demo';
+
+        for ($i = 0; $i < 60; $i++) {
+            $this->actingAs($admin)->getJson($url)->assertOk();
+        }
+
+        $this->actingAs($admin)->getJson($url)->assertStatus(429);
     }
 }

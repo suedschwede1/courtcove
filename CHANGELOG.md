@@ -12,6 +12,12 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 - Pyramid public pages follow the mockups more closely: abbreviated player names (K. Huber), one chip per category/season, bold 'A – B' pairings with short dates, challenge and player pages with a back bar instead of the ladder header, beige avatar, readable disabled Fordern button, shorter phone hints, layout tokens instead of arbitrary Tailwind values.
 - Pyramid: scheduling a date after the deadline flashes the info notice before the confirmation, as in ZF2.
 - Pyramid: a logged-in user who is not a participant is no longer told to log in (side card and cell hints), /pyramide/0 shows the default ladder like ZF2, a broken date in a stored schedule event no longer breaks the ranking page, and the player's wins/losses are counted over all matches instead of the last 50.
+- Phase 2 go-live: .htaccess comment names the one rule needed for the Pyramid rollback; the htaccess test router now checks directories and refuses conditions with flags.
+- Pyramid admin: changing the status of a participant that disappeared meanwhile reports an error instead of a success message.
+- Pyramid admin: the copy-participants dropdown lists only ladders the user administers and the card disappears when there are none.
+- Pyramid admin: editing a participant works without JavaScript (edit link), the member search is rate limited and an internal spec reference is gone from the overdue text.
+- Pyramid admin: the overview counts ranked players of all ladders in one query, and a new ladder needs a season between 2000 and 2100.
+- Pyramid: late sign-up stores player and join event in one transaction and a double click shows the already-registered notice instead of an error.
 - Member picker for Pyramid administrators no longer offers placeholder and blocked accounts (still no phone numbers).
 - Pyramid mails carry an optional Reply-To from MAIL_REPLY_TO_ADDRESS / MAIL_REPLY_TO_NAME (none when unset).
 - Pyramid: a ladder can only be closed once no challenge is open or scheduled; the refusal lists them and the admin page disables the close button with the same note.

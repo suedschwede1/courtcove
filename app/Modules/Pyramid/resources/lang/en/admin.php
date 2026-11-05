@@ -9,6 +9,7 @@ return [
     'not_waiting' => 'This player is not on the waiting list.',
     'entry_busy' => 'A challenge is already running for this player.',
     'note_required' => 'Please give a reason.',
+    'season_range' => 'The season must be between 2000 and 2100.',
     'days_range' => 'Periods must be between 0 and 365 days.',
     'copy_source' => 'Please choose a different ladder as the source.',
     'copy_failed' => 'The participants could not be copied: a member is already in the target ladder under a different name. Nothing was copied.',
@@ -96,7 +97,7 @@ return [
 
         'overdue' => [
             'title' => 'Overdue challenges (:count)',
-            'intro' => 'Deadlines are not recorded automatically. The ladder manager decides between three ways (spec 6.2): extend, award by default, or close without a result. All three need a reason.',
+            'intro' => 'Deadlines are not recorded automatically. The ladder manager decides between three ways: extend, award by default, or close without a result. All three need a reason.',
             'line' => ':challenger challenges :opponent — deadline was :date',
             'decision' => 'Decision',
             'extend' => 'Extend deadline until',
