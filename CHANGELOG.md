@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-05
 
+- Tab counts stay readable on the active phone tab.
 - One shared tab bar for module sub-pages; chips on phones.
 - Shared table component: header row, highlighted rows and card layout on phones.
 - Shared form fields with visible labels, help and error text linked for screen readers.
