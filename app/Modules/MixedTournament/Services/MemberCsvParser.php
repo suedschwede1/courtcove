@@ -53,7 +53,7 @@ final class MemberCsvParser
             $itn = null;
             if (isset($columns['ITN'], $fields[$columns['ITN']])) {
                 $raw = trim($fields[$columns['ITN']]);
-                if (preg_match('/ITN\s*([0-9]+,[0-9])/', $raw, $match)) {
+                if (preg_match('/ITN\s*([0-9]{1,2},[0-9])/', $raw, $match)) {
                     $itn = (float) str_replace(',', '.', $match[1]);
                 }
             }

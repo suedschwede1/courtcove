@@ -20,7 +20,10 @@ final class AgeCalculator
      * over from the member file (it only knows the birth date). The age mode
      * of the grouping afterwards only reads the stored age.
      *
-     * @return int|null null for an empty or invalid date or a birth date after $atDate
+     * A result over 120 years is a placeholder birth date in the member export (e.g. 01.01.1900), not an
+     * age: it counts as unknown, so a stored age is always 0..120 or null (normalizeAge() would refuse it).
+     *
+     * @return int|null null for an empty or invalid date, a birth date after $atDate or more than 120 years
      */
     public function ageFromBirthDate(?string $birthDate, string $atDate): ?int
     {
@@ -38,7 +41,9 @@ final class AgeCalculator
             return null;
         }
 
-        return $birth->diff($at)->y;
+        $years = $birth->diff($at)->y;
+
+        return $years <= 120 ? $years : null;
     }
 
     /**

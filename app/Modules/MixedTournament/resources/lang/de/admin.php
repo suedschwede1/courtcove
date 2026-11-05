@@ -42,7 +42,6 @@ return [
         'switch_label' => 'Event wechseln',
         'set_default' => 'Als Standard-Event markieren',
         'new_event' => 'Neues Event',
-        'player_view' => 'Spieler-Ansicht',
     ],
 
     // Participants (old admin/event.phtml)
@@ -67,7 +66,6 @@ return [
         'cancel' => 'Abbrechen',
         'pause' => 'Pausieren',
         'activate' => 'Aktivieren',
-        'remove' => 'Entfernen',
         'remove_confirm' => 'Teilnehmer wirklich entfernen?',
         'remove_label' => ':name entfernen',
         'paused' => 'pausiert',

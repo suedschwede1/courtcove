@@ -121,7 +121,10 @@ final class ParticipantService
                 $changes['itn'] = $member->itn;
             }
             if ($participant->age === null && $member->birth_date !== null) {
-                $changes['age'] = $this->age->ageFromBirthDate($member->birth_date, (string) $event->event_date);
+                $age = $this->age->ageFromBirthDate($member->birth_date, (string) $event->event_date);
+                if ($age !== null) {
+                    $changes['age'] = $age;
+                }
             }
 
             if ($changes !== []) {

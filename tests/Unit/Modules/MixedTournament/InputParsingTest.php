@@ -116,8 +116,25 @@ class InputParsingTest extends TestCase
     #[Test]
     public function windows_1252_umlauts_become_utf8(): void
     {
-        $r = (new MemberCsvParser)->parse("Nachname;Vorname\nM\xFCller;J\xFCrgen");
-        $this->assertSame('Müller Jürgen', $r['rows'][0]['label']);
+        $r = (new MemberCsvParser)->parse("Nachname;Vorname\nBeispiel;J\xFCrgen");
+        $this->assertSame('Beispiel Jürgen', $r['rows'][0]['label']);
+    }
+
+    #[Test]
+    public function itn_has_at_most_two_digits_before_the_comma(): void
+    {
+        $r = (new MemberCsvParser)->parse("Nachname;Vorname;ITN\nA;B;ITN 17,1\nC;D;ITN 123,4\nE;F;ITN 1234,5");
+        $this->assertSame([17.1, null, null], array_column($r['rows'], 'itn'));
+    }
+
+    #[Test]
+    public function placeholder_birth_dates_give_no_age(): void
+    {
+        $a = new AgeCalculator;
+        $this->assertSame(120, $a->ageFromBirthDate('1906-06-15', '2026-06-15'));
+        $this->assertNull($a->ageFromBirthDate('1905-06-14', '2026-06-15'));
+        $this->assertNull($a->ageFromBirthDate('1900-01-01', '2026-06-15'));
+        $this->assertNull($a->ageFromBirthDate('0001-01-01', '2026-06-15'));
     }
 
     #[Test]

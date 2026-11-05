@@ -486,4 +486,28 @@ class AdminEventPageTest extends TestCase
         $this->actingAs($this->admin())->get($this->url($test, '/config'))
             ->assertDontSee('Nur globale Mixed-Administratoren dürfen den Testmodus ändern.');
     }
+
+    #[Test]
+    public function placeholder_birth_dates_in_the_roster_leave_the_age_empty(): void
+    {
+        $event = MixedEvent::factory()->create(['event_date' => '2027-04-10']);
+        MixedMember::factory()->create(['label' => 'Beispiel Anna', 'gender' => 'f', 'itn' => '4.6', 'birth_date' => '1900-01-01']);
+        MixedMember::factory()->create(['label' => 'Beispiel Bert', 'gender' => 'm', 'itn' => null, 'birth_date' => '1900-01-01']);
+        $old = MixedParticipant::factory()->create(['event_id' => $event->id, 'label' => 'Beispiel Bert', 'gender' => 'm']);
+        $user = $this->grantAdmin($event);
+
+        $this->actingAs($user)->post($this->url($event, '/add-participant'), ['label' => 'Beispiel Anna'])
+            ->assertSessionHas('success', 'Teilnehmer hinzugefügt.');
+        $added = MixedParticipant::query()->where('label', 'Beispiel Anna')->sole();
+        $this->assertNull($added->age);
+        $this->assertSame('f', $added->gender);
+
+        // Nothing usable for Bert (gender set, no ITN, placeholder birth date): not counted as completed.
+        $this->actingAs($user)->post($this->url($event, '/match-members'))
+            ->assertSessionHas('success', '0 Teilnehmer aus der Mitglieder-Kartei ergänzt.');
+        $this->assertNull($old->fresh()->age);
+
+        $this->actingAs($user)->getJson($this->url($event, '/members?q=Beispiel'))
+            ->assertJsonPath('members.0.age', null);
+    }
 }

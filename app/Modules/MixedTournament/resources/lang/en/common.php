@@ -44,7 +44,6 @@ return [
     'participants_title' => 'Participants',
     'participants_count' => '(:active active / :total total)',
     'no_participants' => 'No participants yet.',
-    'itn' => 'ITN :itn',
     'paused' => 'paused',
     'rounds_title' => 'Rounds',
     'no_rounds' => 'No rounds yet.',

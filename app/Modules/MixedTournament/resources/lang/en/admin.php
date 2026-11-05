@@ -39,7 +39,6 @@ return [
         'switch_label' => 'Switch event',
         'set_default' => 'Mark as default event',
         'new_event' => 'New event',
-        'player_view' => 'Player view',
     ],
 
     'participants' => [
@@ -63,7 +62,6 @@ return [
         'cancel' => 'Cancel',
         'pause' => 'Pause',
         'activate' => 'Activate',
-        'remove' => 'Remove',
         'remove_confirm' => 'Really remove this participant?',
         'remove_label' => 'Remove :name',
         'paused' => 'paused',

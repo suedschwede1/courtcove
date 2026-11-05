@@ -176,15 +176,15 @@ class AdminIndexTest extends TestCase
     public function import_upload_replaces_the_roster(): void
     {
         MixedMember::factory()->create(['label' => 'Alt Eintrag']);
-        $csv = mb_convert_encoding("Nachname;Vorname;Geschlecht;ITN;GebDatum\nMüller;Jörg;maennlich;ITN 7,1;01.02.1980\nBeispiel;Anna;weiblich;;\n", 'Windows-1252', 'UTF-8');
+        $csv = mb_convert_encoding("Nachname;Vorname;Geschlecht;ITN;GebDatum\nBeispiel;Jürgen;maennlich;ITN 7,1;01.02.1980\nBeispiel;Anna;weiblich;;\n", 'Windows-1252', 'UTF-8');
 
         $this->actingAs($this->admin())->post('/mixed-tournament/admin/import-members', [
             'csv' => UploadedFile::fake()->createWithContent('export.csv', $csv),
         ])->assertRedirect(route('mixed.admin.import-members'))
             ->assertSessionHas('success', '2 Mitglieder importiert.');
 
-        $this->assertSame(['Beispiel Anna', 'Müller Jörg'], MixedMember::query()->orderBy('label')->pluck('label')->all());
-        $this->assertSame('m', MixedMember::query()->where('label', 'Müller Jörg')->value('gender'));
+        $this->assertSame(['Beispiel Anna', 'Beispiel Jürgen'], MixedMember::query()->orderBy('label')->pluck('label')->all());
+        $this->assertSame('m', MixedMember::query()->where('label', 'Beispiel Jürgen')->value('gender'));
     }
 
     #[Test]
@@ -193,7 +193,7 @@ class AdminIndexTest extends TestCase
         MixedMember::factory()->create(['label' => 'Alt Eintrag']);
 
         $this->actingAs($this->admin())->post('/mixed-tournament/admin/import-members', [
-            'csv' => UploadedFile::fake()->createWithContent('export.csv', "Nachname;ITN\nMüller;5\n"),
+            'csv' => UploadedFile::fake()->createWithContent('export.csv', "Nachname;ITN\nBeispiel;5\n"),
         ])->assertRedirect(route('mixed.admin.import-members'))
             ->assertSessionHas('error', 'Spalte "Vorname" fehlt im CSV-Export.');
 
