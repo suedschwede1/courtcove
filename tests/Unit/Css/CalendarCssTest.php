@@ -77,6 +77,32 @@ final class CalendarCssTest extends TestCase
     }
 
     #[Test]
+    public function past_bookings_keep_the_hatch_on_hover_and_without_a_series_stripe(): void
+    {
+        $css = $this->grid();
+
+        // Hover/focus and series rules outrank the past rule, so they must skip past slots.
+        $this->assertDoesNotMatchRegularExpression('/\.cal-row > a\.cc-(?:own|single-future):(?:hover|focus-visible)/', $css);
+        foreach (['own', 'single-future'] as $state) {
+            $this->assertStringContainsString('.cal-row > a.cc-'.$state.':not(.slot-cell--past):hover', $css);
+            $this->assertStringContainsString('.cal-row > a.cc-'.$state.':not(.slot-cell--past):focus-visible', $css);
+        }
+        $this->assertDoesNotMatchRegularExpression('/\.cal-row > \.cc-(?:own\.cc-)?series\s*[{,]/', $css);
+        $this->assertStringContainsString('.cal-row > .cc-series:not(.slot-cell--past)', $css);
+        $this->assertStringContainsString('.cal-row > .cc-own.cc-series:not(.slot-cell--past)', $css);
+    }
+
+    #[Test]
+    public function event_links_draw_their_focus_ring_inside_the_cell(): void
+    {
+        // Event cells clip their overflow, so the global outside ring would be cut off.
+        $this->assertMatchesRegularExpression(
+            '/\.cal-row \.event-label:focus-visible\s*\{[^}]*outline-offset:\s*-2px/',
+            (string) file_get_contents(resource_path('css/app.css')),
+        );
+    }
+
+    #[Test]
     public function every_exported_cal_variable_is_used(): void
     {
         $css = $this->grid().$this->toolbar();

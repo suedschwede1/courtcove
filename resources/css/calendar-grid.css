@@ -253,8 +253,9 @@
     color: var(--cal-own-label-secondary);
 }
 
-.cal-row > a.cc-own:hover,
-.cal-row > a.cc-own:focus-visible {
+/* Hover/focus outrank the past rule, so past slots (hatched) are left out. */
+.cal-row > a.cc-own:not(.slot-cell--past):hover,
+.cal-row > a.cc-own:not(.slot-cell--past):focus-visible {
     background-color: var(--cal-own-bg-hover);
 }
 
@@ -268,25 +269,28 @@
     color: var(--cal-single-future-label-secondary);
 }
 
-.cal-row > a.cc-single-future:hover,
-.cal-row > a.cc-single-future:focus-visible {
+.cal-row > a.cc-single-future:not(.slot-cell--past):hover,
+.cal-row > a.cc-single-future:not(.slot-cell--past):focus-visible {
     background-color: var(--cal-single-future-bg-hover);
 }
 
-/* Subscription: an accent on the leading edge, detail line in the series colour. */
-.cal-row > .cc-series {
+/*
+ * Subscription: an accent on the leading edge, detail line in the series colour.
+ * Past subscriptions are left out, so the plain hatch below wins.
+ */
+.cal-row > .cc-series:not(.slot-cell--past) {
     box-shadow: inset 3px 0 0 var(--cal-series-accent);
 }
 
-.cal-row > .cc-series .cc-label-secondary {
+.cal-row > .cc-series:not(.slot-cell--past) .cc-label-secondary {
     color: var(--cal-series-label);
 }
 
-.cal-row > .cc-own.cc-series {
+.cal-row > .cc-own.cc-series:not(.slot-cell--past) {
     box-shadow: inset 3px 0 0 var(--cal-own-accent);
 }
 
-.cal-row > .cc-own.cc-series .cc-label-secondary {
+.cal-row > .cc-own.cc-series:not(.slot-cell--past) .cc-label-secondary {
     color: var(--cal-own-label-secondary);
 }
 
@@ -308,6 +312,7 @@
  */
 .cal-row > .event-cell {
     background: var(--cal-event-bg);
+    /* Invisible on the default colours (accent = fill); marks the edge when an installation overrides the fill. */
     box-shadow: inset 3px 0 0 var(--cal-event-accent);
     color: var(--cal-event-label);
 }
