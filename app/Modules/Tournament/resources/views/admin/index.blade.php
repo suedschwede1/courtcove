@@ -157,7 +157,7 @@
         <x-ui.chip href="#turnierleitung-test" class="shrink-0">{{ __('tournament::admin.index.chip_test') }}</x-ui.chip>
     </nav>
 
-    <div class="grid items-start gap-4 lg:grid-cols-3">
+    <div class="grid items-start gap-4 md:grid-cols-2 xl:grid-cols-3">
         {{-- Turnier: selection, activation, format, generate, test copy, new tournament --}}
         <x-ui.card id="turnierleitung-turnier" :title="__('tournament::admin.index.card_tournament')">
             <div class="flex flex-col gap-4">
@@ -262,7 +262,7 @@
                             <form method="POST" action="{{ $prepareUrl }}" class="flex flex-col gap-3">
                                 @csrf
                                 <input type="hidden" name="phase" value="{{ $phaseKey }}">
-                                <div class="grid gap-3 sm:grid-cols-2">
+                                <div class="grid gap-3">
                                     <x-ui.field for="tl-deadline-{{ $loop->index }}" :label="__('tournament::admin.draws.deadline')">
                                         <x-ui.input type="datetime-local" name="deadline" id="tl-deadline-{{ $loop->index }}" required step="300" :value="$defaultDeadline" />
                                     </x-ui.field>
@@ -298,7 +298,7 @@
                                 <form method="POST" action="{{ $prepareUrl }}" class="mt-2 flex flex-col gap-3">
                                     @csrf
                                     <input type="hidden" name="phase" value="{{ $phaseKey }}">
-                                    <div class="grid gap-3 sm:grid-cols-2">
+                                    <div class="grid gap-3">
                                         <x-ui.field for="tl-round-{{ $loop->index }}" :label="__('tournament::admin.draws.round')">
                                             <x-ui.input type="number" name="round" id="tl-round-{{ $loop->index }}" min="1" />
                                         </x-ui.field>
@@ -398,32 +398,24 @@
                     <div class="flex flex-col gap-2">
                         <h3 class="font-semibold text-ink">{{ $entry['phase']['label'] }} <span class="text-body-s font-normal text-ink-2">({{ $entry['phase']['key'] }})</span></h3>
                         <p class="text-body-s text-ink-2">{{ __('tournament::admin.groups.pool', ['count' => $entry['pool']]) }}</p>
-                        <x-ui.table :caption="__('tournament::admin.groups.caption', ['phase' => $entry['phase']['label']])" :stack="false">
-                            <x-slot:head>
-                                <tr>
-                                    <th scope="col">{{ __('tournament::admin.groups.col_group') }}</th>
-                                    <th scope="col">{{ __('tournament::admin.groups.col_assigned') }}</th>
-                                    <th scope="col">{{ __('tournament::admin.groups.col_matches') }}</th>
-                                    <th scope="col">{{ __('tournament::admin.groups.col_status') }}</th>
-                                </tr>
-                            </x-slot:head>
+                        {{-- A compact list instead of the old four-column table: it fits the narrow card. --}}
+                        <ul class="flex flex-col divide-y divide-line" aria-label="{{ __('tournament::admin.groups.caption', ['phase' => $entry['phase']['label']]) }}">
                             @foreach ($entry['groups'] as $key => $group)
-                                <tr>
-                                    <td class="font-semibold">{{ __('tournament::admin.groups.group', ['group' => $key]) }}</td>
-                                    <td>{{ $group['assigned'] }}/{{ $group['size'] }}</td>
-                                    <td>{{ $group['matches'] }}</td>
-                                    <td>
-                                        @if ($group['complete'] && $group['matches'] > 0)
-                                            <x-ui.badge tone="good">{{ __('tournament::admin.groups.ready') }}</x-ui.badge>
-                                        @elseif ($group['complete'])
-                                            <x-ui.badge tone="attention">{{ __('tournament::admin.groups.matches_missing') }}</x-ui.badge>
-                                        @else
-                                            <x-ui.badge tone="attention">{{ __('tournament::admin.groups.draw_missing') }}</x-ui.badge>
-                                        @endif
-                                    </td>
-                                </tr>
+                                <li class="flex flex-wrap items-center justify-between gap-2 py-2">
+                                    <span class="flex min-w-0 flex-col">
+                                        <span class="font-semibold text-ink">{{ __('tournament::admin.groups.group', ['group' => $key]) }}</span>
+                                        <span class="text-body-s text-ink-2">{{ __('tournament::admin.groups.row', ['assigned' => $group['assigned'], 'size' => $group['size'], 'matches' => $group['matches']]) }}</span>
+                                    </span>
+                                    @if ($group['complete'] && $group['matches'] > 0)
+                                        <x-ui.badge tone="good">{{ __('tournament::admin.groups.ready') }}</x-ui.badge>
+                                    @elseif ($group['complete'])
+                                        <x-ui.badge tone="attention">{{ __('tournament::admin.groups.matches_missing') }}</x-ui.badge>
+                                    @else
+                                        <x-ui.badge tone="attention">{{ __('tournament::admin.groups.draw_missing') }}</x-ui.badge>
+                                    @endif
+                                </li>
                             @endforeach
-                        </x-ui.table>
+                        </ul>
                     </div>
                 @endforeach
 
@@ -571,7 +563,7 @@
                                 @endif
                                 <form method="POST" action="{{ $lotUrl }}" class="flex flex-col gap-3">
                                     @csrf
-                                    <div class="grid gap-3 sm:grid-cols-2">
+                                    <div class="grid gap-3">
                                         <x-ui.field for="tl-lot-scope" :label="__('tournament::admin.lot.scope')">
                                             <x-ui.input name="scope" id="tl-lot-scope" required maxlength="64" :value="$openLots[0]['scope'] ?? ''" placeholder="phase:DG:place:2" />
                                         </x-ui.field>

@@ -335,6 +335,11 @@ final class AdminDashboard
         $todo = [];
 
         foreach ($executedDraws as $draw) {
+            // Only what apply accepts now: a picking draw is listed below as a running picking phase.
+            if (! (($draw->mode === 'token' && $draw->status === 'closed') || ($draw->mode === 'direct' && $draw->status === 'executed'))) {
+                continue;
+            }
+
             $todo[] = ['tone' => 'problem', 'title' => (string) __('tournament::admin.todo.apply'), 'sub' => (string) $draw->title, 'anchor' => 'turnierleitung-auslosung'];
         }
 
