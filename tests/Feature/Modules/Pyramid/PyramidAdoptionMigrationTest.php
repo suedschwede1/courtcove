@@ -64,17 +64,29 @@ class PyramidAdoptionMigrationTest extends TestCase
     }
 
     #[Test]
-    public function unique_keys_exist(): void
+    public function unique_and_plain_indexes_match_the_live_schema(): void
     {
-        $unique = fn (string $table): array => collect(Schema::getIndexes($table))
-            ->filter(fn (array $index): bool => $index['unique'] && ! $index['primary'])
+        $indexes = fn (string $table, bool $unique): array => collect(Schema::getIndexes($table))
+            ->filter(fn (array $index): bool => $index['unique'] === $unique && ! $index['primary'])
             ->map(fn (array $index): array => $index['columns'])
+            ->sortBy(fn (array $columns): string => implode(',', $columns))
+            ->values()
             ->all();
 
-        $players = $unique('bs_pyramid_players');
-        $this->assertContains(['ladder_id', 'uid'], $players);
-        $this->assertContains(['ladder_id', 'position'], $players);
-        $this->assertContains(['ladder_id', 'uid'], $unique('bs_pyramid_grants'));
+        $this->assertSame([['ladder_id', 'position'], ['ladder_id', 'uid']], $indexes('bs_pyramid_players', true));
+        $this->assertSame([['ladder_id', 'uid']], $indexes('bs_pyramid_grants', true));
+        foreach (['bs_pyramid_ladders', 'bs_pyramid_challenges', 'bs_pyramid_events'] as $table) {
+            $this->assertSame([], $indexes($table, true), $table);
+        }
+
+        $this->assertSame([['season', 'category']], $indexes('bs_pyramid_ladders', false));
+        $this->assertSame([['ladder_id', 'status']], $indexes('bs_pyramid_players', false));
+        $this->assertSame(
+            [['challenger_id'], ['ladder_id', 'deadline'], ['ladder_id', 'status'], ['opponent_id']],
+            $indexes('bs_pyramid_challenges', false),
+        );
+        $this->assertSame([['ladder_id', 'created']], $indexes('bs_pyramid_events', false));
+        $this->assertSame([['ladder_id']], $indexes('bs_pyramid_grants', false));
 
         $primary = collect(Schema::getIndexes('bs_pyramid_schema_versions'))
             ->firstWhere('primary', true);
@@ -126,14 +138,37 @@ class PyramidAdoptionMigrationTest extends TestCase
             $table->string('phone', 40)->nullable();
         });
         DB::table('bs_pyramid_players')->insert(['ladder_id' => 1, 'label' => 'Spieler 1']);
+        // The fresh schema already ran the migration: reset to the pre-20260806 state.
+        DB::table('bs_pyramid_schema_versions')->where('version', 20260806)->delete();
+        $this->assertFalse(Schema::hasColumn('bs_pyramid_players', 'email'));
+        $this->assertSame(0, DB::table('bs_pyramid_schema_versions')->where('version', 20260806)->count());
 
         $migration = $this->migration(self::EMAIL_MIGRATION);
         $migration->up();
-        $migration->up();
 
         $this->assertTrue(Schema::hasColumn('bs_pyramid_players', 'email'));
+        $this->assertSame(1, DB::table('bs_pyramid_schema_versions')->where('version', 20260806)->count());
+
+        $migration->up();
+
         $this->assertSame(1, DB::table('bs_pyramid_players')->count());
         $this->assertSame(1, DB::table('bs_pyramid_schema_versions')->where('version', 20260806)->count());
+    }
+
+    #[Test]
+    public function email_migration_without_a_versions_table_adds_the_column_and_inserts_nothing(): void
+    {
+        Schema::drop('bs_pyramid_players');
+        Schema::create('bs_pyramid_players', function (Blueprint $table): void {
+            $table->increments('id');
+            $table->unsignedInteger('ladder_id');
+        });
+        Schema::drop('bs_pyramid_schema_versions');
+
+        $this->migration(self::EMAIL_MIGRATION)->up();
+
+        $this->assertTrue(Schema::hasColumn('bs_pyramid_players', 'email'));
+        $this->assertFalse(Schema::hasTable('bs_pyramid_schema_versions'));
     }
 
     #[Test]

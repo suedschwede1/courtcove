@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tests\Unit\Modules\Pyramid;
 
 use App\Modules\Pyramid\Models\PyramidChallenge;
+use App\Modules\Pyramid\Models\PyramidEvent;
+use App\Modules\Pyramid\Models\PyramidGrant;
 use App\Modules\Pyramid\Models\PyramidLadder;
 use App\Modules\Pyramid\Models\PyramidPlayer;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
@@ -25,7 +27,18 @@ class PyramidModelTest extends TestCase
         ]);
 
         $this->assertSame('2026-03-01 10:00:00', $challenge->fresh()->created);
-        $this->assertSame(['id' => 'int'], (new PyramidChallenge)->getCasts());
+    }
+
+    #[Test]
+    public function all_models_have_no_casts_no_timestamps_and_nothing_guarded(): void
+    {
+        foreach ([PyramidLadder::class, PyramidPlayer::class, PyramidChallenge::class, PyramidEvent::class, PyramidGrant::class] as $class) {
+            $model = new $class;
+
+            $this->assertSame(['id' => 'int'], $model->getCasts(), $class);
+            $this->assertFalse($model->timestamps, $class);
+            $this->assertSame([], $model->getGuarded(), $class);
+        }
     }
 
     #[Test]
