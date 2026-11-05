@@ -10,6 +10,8 @@
     foreach (\App\Models\User::ROLES as $val) {
         $roleOptions[$val] = __('booking.admin.users.role_'.$val);
     }
+    $activeFilters = array_filter($filters, static fn ($value) => $value !== '');
+    $showPlaceholdersUrl = route('admin.users.index', [...$activeFilters, 'placeholders' => '1']);
 @endphp
 <div class="ds-admin-stack" x-data="{ selected: [] }">
     <x-admin.page-header :title="__('booking.admin.users.title')" :eyebrow="__('booking.admin.nav.eyebrow')">
@@ -20,18 +22,33 @@
     </x-admin.page-header>
 
     <x-ui.card padding="lg">
-        <form method="GET" action="{{ route('admin.users.index') }}" class="ds-admin-filter">
+        {{-- "Ohne Buchung" wins over the date range: it disables von/bis here and the server ignores them. --}}
+        <form method="GET" action="{{ route('admin.users.index') }}" class="ds-admin-filter" x-data="{ noBooking: {{ $filters['no_booking'] !== '' ? 'true' : 'false' }} }">
             <x-ui.field :label="__('booking.admin.search_placeholder')" for="users-q" class="ds-admin-filter__wide">
-                <x-ui.input name="q" id="users-q" type="search" :value="$filters['q'] ?? ''" :placeholder="__('booking.admin.search_placeholder')" />
+                <x-ui.input name="q" id="users-q" type="search" :value="$filters['q']" :placeholder="__('booking.admin.search_placeholder')" />
             </x-ui.field>
             <x-ui.field :label="__('booking.admin.users.status')" for="users-status">
-                <x-ui.select name="status" id="users-status" :options="$statusOptions" :selected="$filters['status'] ?? ''" :placeholder="__('booking.admin.search_status_all')" />
+                <x-ui.select name="status" id="users-status" :options="$statusOptions" :selected="$filters['status']" :placeholder="__('booking.admin.search_status_all')" />
             </x-ui.field>
             <x-ui.field :label="__('booking.admin.users.role')" for="users-role">
-                <x-ui.select name="role" id="users-role" :options="$roleOptions" :selected="$filters['role'] ?? ''" :placeholder="__('booking.admin.users.role_all')" />
+                <x-ui.select name="role" id="users-role" :options="$roleOptions" :selected="$filters['role']" :placeholder="__('booking.admin.users.role_all')" />
             </x-ui.field>
+            <div class="ds-admin-filter__break" aria-hidden="true"></div>
+            <x-ui.field :label="__('booking.admin.users.filter_from')" for="users-from" :error="$errors->first('from') ?: null" class="ds-admin-users__date">
+                <x-ui.input name="from" id="users-from" type="date" :value="$dateInputs['from']" x-bind:disabled="noBooking" />
+            </x-ui.field>
+            <x-ui.field :label="__('booking.admin.users.filter_to')" for="users-to" :error="$errors->first('to') ?: null" class="ds-admin-users__date">
+                <x-ui.input name="to" id="users-to" type="date" :value="$dateInputs['to']" x-bind:disabled="noBooking" />
+            </x-ui.field>
+            <div class="ds-admin-users__toggles">
+                <x-ui.option-tile type="checkbox" name="no_booking" value="1" :label="__('booking.admin.users.filter_no_booking')" :checked="$filters['no_booking'] !== ''" id="users-no-booking" x-model="noBooking" />
+                <x-ui.option-tile type="checkbox" name="placeholders" value="1" :label="__('booking.admin.users.filter_show_placeholders')" :checked="$filters['placeholders'] !== ''" id="users-placeholders" />
+            </div>
             <x-ui.button type="submit" :block="false">{{ __('booking.admin.common.filter') }}</x-ui.button>
         </form>
+        @if($searched && $placeholdersHidden)
+            <p class="ds-admin-note ds-admin-users__hidden" data-placeholders-hidden>{{ __('booking.admin.users.placeholders_hidden') }} · <a href="{{ $showPlaceholdersUrl }}">{{ __('booking.admin.users.placeholders_show') }}</a></p>
+        @endif
     </x-ui.card>
 
     @if($searched)
@@ -42,8 +59,14 @@
         @else
             <x-ui.card padding="none" class="ds-admin-rows ds-admin-users" :title="__('booking.admin.users.members')">
                 <x-slot:actions>
-                    <span class="ds-admin-note">{{ __('booking.admin.users.results_count', ['count' => $users->count()]) }}</span>
+                    <span class="ds-admin-note">{{ __('booking.admin.users.results_count', ['count' => $users->total()]) }}</span>
                 </x-slot:actions>
+                <x-slot:footer>
+                    <div class="ds-admin-users__footer">
+                        <span class="ds-admin-note">{{ __('booking.admin.users.results_range', ['first' => $users->firstItem(), 'last' => $users->lastItem(), 'total' => $users->total()]) }}</span>
+                        <x-ui.pagination :paginator="$users" />
+                    </div>
+                </x-slot:footer>
 
                 <div x-show="selected.length > 0" x-cloak class="ds-admin-bulk">
                     <span class="ds-admin-bulk__count" x-text="{{ Js::from(__('booking.admin.users.selected_count')) }}.replace(':count', selected.length)"></span>

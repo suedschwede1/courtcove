@@ -18,50 +18,139 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\MessageBag;
+use Illuminate\Support\ViewErrorBag;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 final class UserController extends Controller
 {
+    /** Rows per page of the admin user list. */
+    public const PER_PAGE = 50;
+
+    /** Query parameters of the list filter, in form order. */
+    private const FILTER_KEYS = ['q', 'status', 'role', 'from', 'to', 'no_booking', 'placeholders'];
+
     public function index(Request $request): View
     {
-        $searched = $request->hasAny(['q', 'status', 'role']);
+        $searched = $request->hasAny(self::FILTER_KEYS);
+        [$filters, $filterErrors, $dateInputs] = self::listFilters($request);
         $users = collect();
 
         if ($searched) {
-            $query = User::query()
-                ->select('bs_users.*')
-                ->leftJoinSub(self::lastBookingDates(), 'last_booking', 'last_booking.uid', '=', 'bs_users.uid')
-                ->addSelect('last_booking.last_booking_date')
-                ->withCount('bookings')
-                ->orderBy('bs_users.alias');
-
-            $status = $request->string('status')->value();
-            if (in_array($status, User::STATUSES, true)) {
-                $query->withStatus($status);
-            } else {
-                $query->where('bs_users.status', '!=', 'deleted');
-            }
-
-            $role = $request->string('role')->value();
-            if (in_array($role, User::ROLES, true)) {
-                $query->withRole($role);
-            }
-
-            if ($request->filled('q')) {
-                $q = '%'.$request->string('q')->trim()->value().'%';
-                $query->where(fn ($sub) => $sub->where('bs_users.alias', 'like', $q)->orWhere('bs_users.email', 'like', $q));
-            }
-
-            $users = $query->get();
+            // The pager links carry the effective filter only (dropped invalid values stay dropped).
+            $users = self::listQuery($filters)
+                ->paginate(self::PER_PAGE)
+                ->appends(array_filter($filters, static fn (string $value): bool => $value !== ''));
         }
 
-        return view('admin.users.index', [
+        $view = [
             'users' => $users,
             'riskScores' => LoginHistory::riskScores($users->pluck('uid')->all()),
             'searched' => $searched,
-            'filters' => $request->only('q', 'status', 'role'),
-        ]);
+            'filters' => $filters,
+            'dateInputs' => $dateInputs,
+            'placeholdersHidden' => $filters['status'] === '' && $filters['placeholders'] === '',
+        ];
+        if ($filterErrors->isNotEmpty()) {
+            // A GET filter must not redirect (it would land on the same URL again): the errors go to
+            // the layout's error banner and under the date fields of this request.
+            $view['errors'] = (new ViewErrorBag)->put('default', $filterErrors);
+        }
+
+        return view('admin.users.index', $view);
+    }
+
+    /**
+     * The list filter read from the query string. Invalid values (garbage, array-shaped
+     * input, 'bis' before 'von') are dropped and reported, never passed on to the query.
+     * "Ohne Buchung" wins over the date range: with it set, von/bis are ignored.
+     * Returns the effective filter, one message per dropped field and the values for the
+     * date inputs (they keep well-formed dates whose order was wrong, so they can be fixed).
+     *
+     * @return array{0: array<string, string>, 1: MessageBag, 2: array{from: string, to: string}}
+     */
+    private static function listFilters(Request $request): array
+    {
+        $failed = Validator::make($request->only(self::FILTER_KEYS), [
+            'q' => ['nullable', 'string', 'max:128'],
+            'status' => ['nullable', 'string', Rule::in(User::STATUSES)],
+            'role' => ['nullable', 'string', Rule::in(User::ROLES)],
+            'from' => ['nullable', 'string', 'date_format:Y-m-d'],
+            'to' => ['nullable', 'string', 'date_format:Y-m-d'],
+            'no_booking' => ['nullable', 'string', 'in:1'],
+            'placeholders' => ['nullable', 'string', 'in:1'],
+        ])->errors();
+
+        $errors = new MessageBag;
+        $filters = [];
+        foreach (self::FILTER_KEYS as $key) {
+            $value = $request->input($key);
+            if ($failed->has($key)) {
+                $errors->add($key, __(in_array($key, ['from', 'to'], true) ? 'booking.admin.users.filter_date_invalid' : 'booking.admin.users.filter_invalid'));
+            }
+            $filters[$key] = ! $failed->has($key) && is_string($value) ? trim($value) : '';
+        }
+        $dateInputs = ['from' => $filters['from'], 'to' => $filters['to']];
+
+        if ($filters['no_booking'] !== '') {
+            $filters['from'] = $filters['to'] = $dateInputs['from'] = $dateInputs['to'] = '';
+        } elseif ($filters['from'] !== '' && $filters['to'] !== '' && $filters['to'] < $filters['from']) {
+            $errors->add('to', __('booking.admin.users.filter_date_order'));
+            $filters['from'] = $filters['to'] = '';
+        }
+
+        return [$filters, $errors, $dateInputs];
+    }
+
+    /**
+     * The admin user list: one query with the last booking date joined in (the same
+     * grouped subquery feeds the column and the date filter, so a plain WHERE on the
+     * joined value works) and the booking count as a subselect: a page costs a fixed
+     * number of queries.
+     *
+     * @param  array<string, string>  $filters  Validated, see listFilters()
+     * @return Builder<User>
+     */
+    private static function listQuery(array $filters): Builder
+    {
+        $query = User::query()
+            ->select('bs_users.*')
+            ->leftJoinSub(self::lastBookingDates(), 'last_booking', 'last_booking.uid', '=', 'bs_users.uid')
+            ->addSelect('last_booking.last_booking_date')
+            ->withCount('bookings')
+            ->orderBy('bs_users.alias')
+            ->orderBy('bs_users.uid');
+
+        if ($filters['status'] !== '') {
+            $query->withStatus($filters['status']);
+        } else {
+            // Placeholders stay hidden unless the status filter or "Platzhalter anzeigen" asks for them.
+            $query->whereNotIn('bs_users.status', $filters['placeholders'] !== '' ? ['deleted'] : ['deleted', 'placeholder']);
+        }
+
+        if ($filters['role'] !== '') {
+            $query->withRole($filters['role']);
+        }
+
+        if ($filters['q'] !== '') {
+            $q = '%'.$filters['q'].'%';
+            $query->where(fn ($sub) => $sub->where('bs_users.alias', 'like', $q)->orWhere('bs_users.email', 'like', $q));
+        }
+
+        if ($filters['no_booking'] !== '') {
+            $query->whereNull('last_booking.last_booking_date');
+        } else {
+            if ($filters['from'] !== '') {
+                $query->where('last_booking.last_booking_date', '>=', $filters['from']);
+            }
+            if ($filters['to'] !== '') {
+                $query->where('last_booking.last_booking_date', '<=', $filters['to']);
+            }
+        }
+
+        return $query;
     }
 
     /**

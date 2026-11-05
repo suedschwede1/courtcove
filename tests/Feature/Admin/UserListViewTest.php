@@ -33,7 +33,8 @@ final class UserListViewTest extends TestCase
         LoginHistory::record((int) $this->pat->uid, '1.1.1.1', 'RU', 'success', ['unusual_country', 'impossible_travel']);
 
         $admin = User::factory()->create(['status' => 'admin']);
-        $response = $this->actingAs($admin)->get('/admin/users?q=Example');
+        // Placeholders are hidden by default; this view test wants every badge tone.
+        $response = $this->actingAs($admin)->get('/admin/users?q=Example&placeholders=1');
         $response->assertOk();
         $this->html = $response->getContent();
 
@@ -70,6 +71,12 @@ final class UserListViewTest extends TestCase
         $this->assertSame(6, $this->nodes('//select[@id="users-status"]/option')->length);
         $this->assertSame(1, $this->nodes('//label[@for="users-role"]')->length);
         $this->assertSame(4, $this->nodes('//select[@id="users-role"][@name="role"]/option')->length);
+        $this->assertSame(1, $this->nodes('//label[@for="users-from"]')->length);
+        $this->assertSame(1, $this->nodes('//input[@id="users-from"][@name="from"][@type="date"]')->length);
+        $this->assertSame(1, $this->nodes('//label[@for="users-to"]')->length);
+        $this->assertSame(1, $this->nodes('//input[@id="users-to"][@name="to"][@type="date"]')->length);
+        $this->assertSame(1, $this->nodes('//label[contains(@class,"ds-option")][normalize-space(.)="Ohne Buchung"]/input[@type="checkbox"][@name="no_booking"][@value="1"]')->length);
+        $this->assertSame(1, $this->nodes('//label[contains(@class,"ds-option")][normalize-space(.)="Platzhalter anzeigen"]/input[@type="checkbox"][@name="placeholders"][@value="1"][@checked]')->length);
         $this->assertSame(1, $this->nodes('//form[contains(@class,"ds-admin-filter")]//button[@type="submit"][contains(@class,"ds-btn--primary")]')->length);
     }
 
