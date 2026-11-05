@@ -79,12 +79,13 @@ final class MatchPresenter
     }
 
     /**
-     * Games per set and player ("6 3 10" / "4 6 8"); a walkover shows "w.o." for the winner.
+     * Games per set and player ("6 3 10" / "4 6 8"); a walkover shows "w.o." for the winner, a retirement the
+     * games played plus "w.o." on the winner's line.
      *
      * @param  array<string, mixed>  $match
      * @return list<string>
      */
-    private function score(array $match): array
+    public function score(array $match): array
     {
         if (in_array($match['retired'], ['wo_a', 'wo_b'], true)) {
             return $match['retired'] === 'wo_b' ? ['w.o.', ''] : ['', 'w.o.'];
@@ -101,11 +102,23 @@ final class MatchPresenter
             return implode(' ', $games);
         };
 
-        return [$line(['s1a', 's2a', 'mtba']), $line(['s1b', 's2b', 'mtbb'])];
+        $score = [$line(['s1a', 's2a', 'mtba']), $line(['s1b', 's2b', 'mtbb'])];
+
+        // A retirement keeps the games played and is marked "w.o." as in ZF2 (the retiring side loses).
+        if (in_array($match['retired'], ['ret_a', 'ret_b'], true)) {
+            $winnerSide = $match['retired'] === 'ret_a' ? 1 : 0;
+            $score[$winnerSide] = trim($score[$winnerSide].' w.o.');
+        }
+
+        return $score;
     }
 
-    /** @param  array<string, mixed>  $match */
-    private function meta(array $match): ?string
+    /**
+     * Date, time and court of a match ("Mo, 3. Mai · 17:00 · Court D"), or null without a date.
+     *
+     * @param  array<string, mixed>  $match
+     */
+    public function meta(array $match): ?string
     {
         if (! $match['played']) {
             return null;

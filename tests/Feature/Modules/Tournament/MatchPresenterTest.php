@@ -127,6 +127,17 @@ class MatchPresenterTest extends TestCase
     }
 
     #[Test]
+    public function retirement_keeps_the_games_and_marks_w_o_on_the_winner(): void
+    {
+        // ZF2 appended "w.o." to any result with retired != none; a retirement keeps the games played.
+        $retiredA = $this->present($this->match(['played' => '2027-05-03', 's1a' => 6, 's1b' => 4, 's2a' => 1, 's2b' => 3, 'retired' => 'ret_a', 'winner' => 12]), null);
+        $retiredB = $this->present($this->match(['played' => '2027-05-03', 's1a' => 6, 's1b' => 4, 's2a' => 1, 's2b' => 3, 'retired' => 'ret_b', 'winner' => 11]), null);
+
+        $this->assertSame(['6 1', '4 3 w.o.'], $retiredA['score']);
+        $this->assertSame(['6 1 w.o.', '4 3'], $retiredB['score']);
+    }
+
+    #[Test]
     public function unplayed_match_has_no_meta_and_empty_scores(): void
     {
         $props = $this->present($this->match(), null);

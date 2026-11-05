@@ -12,11 +12,12 @@ use Tests\TestCase;
 class BridgedPrefixRoutesTest extends TestCase
 {
     /**
-     * Prefixes whose Laravel routes already exist but which .htaccess still hands to the ZF2 bridge
-     * (the switch happens in the module's go-live task). Their routes are not carved out yet,
-     * so the check below must see the bridge answer them; remove a prefix here when it goes live.
+     * Route URIs whose Laravel routes already exist but which .htaccess still hands to the ZF2 bridge
+     * (the switch happens in the module's go-live task). They are not carved out yet, so the check below
+     * must see the bridge answer them. The championship and the interactive draw (everything under draw/
+     * except the public record): removed at go-live (Task 39).
      */
-    private const NOT_YET_LIVE = [];
+    private const NOT_YET_LIVE = '#^(tournament(/|$)|draw(/(?!record/)|$))#';
 
     #[Test]
     public function every_laravel_route_under_a_bridged_prefix_is_carved_out(): void
@@ -34,7 +35,7 @@ class BridgedPrefixRoutesTest extends TestCase
 
             $path = (string) preg_replace('#\{[^}]+\}#', 'abcd1234', $uri);
 
-            if (in_array($prefix[1], self::NOT_YET_LIVE, true)) {
+            if (preg_match(self::NOT_YET_LIVE, $uri) === 1) {
                 $this->assertSame('zf2', $router->route($path), "$uri ($path) is marked not yet live but is no longer answered by the ZF2 bridge");
                 $pending[] = $uri;
 
@@ -51,6 +52,6 @@ class BridgedPrefixRoutesTest extends TestCase
         $this->assertContains('pyramide/{ladderId}', $checked);
         $this->assertContains('mixed-tournament', $checked);
         $this->assertContains('mixed-tournament/admin/round/{round}/score', $checked);
-        $this->assertSame([], $pending);
+        $this->assertContains('tournament', $pending);
     }
 }

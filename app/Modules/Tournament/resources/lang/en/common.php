@@ -1,6 +1,17 @@
 <?php
 
 return [
+    'empty' => [
+        'title' => 'Club championship',
+        'text' => 'No club championship has been set up yet.',
+    ],
+    'tabs_label' => 'Club championship areas',
+    'token_hint' => [
+        'title' => 'You have not picked a token yet.',
+        'until' => 'until :deadline – assigned afterwards',
+        'voluntary' => 'optional – otherwise one is assigned',
+        'pick' => 'Pick a token',
+    ],
     'login_required' => 'You need to be logged in for the tournament area.',
     'match' => [
         'context_group' => 'Group :group · Match :slot',

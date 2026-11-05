@@ -84,15 +84,10 @@ class ModuleShellTest extends TestCase
     }
 
     #[Test]
-    public function csrf_mismatch_without_referer_falls_back_to_the_login_until_the_module_index_exists(): void
+    public function csrf_mismatch_without_referer_falls_back_to_the_module_index(): void
     {
         $this->actingAs(User::factory()->create(['status' => 'enabled']));
         $this->expiredCsrf();
-
-        $this->post('/tournament/_probe')->assertRedirect(route('login'));
-
-        Route::middleware('web')->get('tournament', fn () => 'index')->name('tournament.index');
-        Route::getRoutes()->refreshNameLookups();
 
         $this->post('/tournament/_probe')->assertRedirect(route('tournament.index'));
     }

@@ -1,6 +1,17 @@
 <?php
 
 return [
+    'empty' => [
+        'title' => 'Vereinsmeisterschaft',
+        'text' => 'Derzeit ist keine Vereinsmeisterschaft angelegt.',
+    ],
+    'tabs_label' => 'Bereiche der Vereinsmeisterschaft',
+    'token_hint' => [
+        'title' => 'Du hast noch keinen Token gewählt.',
+        'until' => 'bis :deadline – danach wird zugeteilt',
+        'voluntary' => 'freiwillig – sonst wird zugeteilt',
+        'pick' => 'Token wählen',
+    ],
     'login_required' => 'Für den Turnierbereich musst du angemeldet sein.',
     'match' => [
         'context_group' => 'Gruppe :group · Spiel :slot',
