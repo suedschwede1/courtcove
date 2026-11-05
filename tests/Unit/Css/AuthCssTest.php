@@ -77,4 +77,28 @@ final class AuthCssTest extends TestCase
         $this->assertStringContainsString('.ds-auth__intro--desktop', $css);
         $this->assertStringNotContainsString('.ds-auth__head .ds-auth__intro', $css);
     }
+
+    #[Test]
+    public function every_auth_class_is_in_the_built_css(): void
+    {
+        $manifest = json_decode((string) file_get_contents(public_path('build/manifest.json')), true);
+        $built = (string) file_get_contents(public_path('build/'.$manifest['resources/css/app.css']['file']));
+
+        $files = array_merge(
+            [resource_path('views/components/layout/auth-shell.blade.php')],
+            glob(resource_path('views/auth/*.blade.php')) ?: [],
+        );
+        $tokens = [];
+        foreach ($files as $file) {
+            preg_match_all('/ds-auth[a-z0-9_-]*/', (string) file_get_contents($file), $m);
+            $tokens = array_merge($tokens, $m[0]);
+        }
+
+        $missing = array_values(array_filter(
+            array_unique($tokens),
+            fn (string $token): bool => ! preg_match('/\.'.preg_quote($token, '/').'(?![\w-])/', $built),
+        ));
+
+        $this->assertSame([], $missing, 'Classes missing in the built CSS; run npm run build.');
+    }
 }

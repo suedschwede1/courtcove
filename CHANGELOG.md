@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Front-end bundle rebuilt for the new login and account pages.
 
 - Auth layout: the sticky court panel no longer covers the form just above 900px, and only the sign-in page hides its intro on phones.
 - Login, registration, password and account pages address members with "du".
