@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Pyramid: scheduling a date after the deadline flashes the info notice before the confirmation, as in ZF2.
 - Pyramid: a logged-in user who is not a participant is no longer told to log in (side card and cell hints), /pyramide/0 shows the default ladder like ZF2, a broken date in a stored schedule event no longer breaks the ranking page, and the player's wins/losses are counted over all matches instead of the last 50.
 - Member picker for Pyramid administrators no longer offers placeholder and blocked accounts (still no phone numbers).
 - Pyramid mails carry an optional Reply-To from MAIL_REPLY_TO_ADDRESS / MAIL_REPLY_TO_NAME (none when unset).

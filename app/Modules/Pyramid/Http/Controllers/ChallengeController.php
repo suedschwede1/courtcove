@@ -202,16 +202,16 @@ class ChallengeController extends Controller
         }
 
         $this->notifier->scheduled($challengeId);
-        $target->with('success', __('pyramid::ui.detail.scheduled_saved'));
 
         // A date after the deadline is allowed (rules 3.6, 3.7); the deadline itself does not move.
+        // As in ZF2 the info notice is flashed first, then the confirmation.
         $deadline = $challenge->deadline ? strtotime($challenge->deadline.' 23:59:59') : false;
 
         if ($deadline && $when > $deadline) {
             $target->with('info', __('pyramid::ui.detail.after_deadline', ['date' => date('d.m.Y', (int) strtotime($challenge->deadline))]));
         }
 
-        return $target;
+        return $target->with('success', __('pyramid::ui.detail.scheduled_saved'));
     }
 
     public function result(Request $request, int $challengeId): RedirectResponse

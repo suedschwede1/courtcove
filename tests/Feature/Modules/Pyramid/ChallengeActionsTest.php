@@ -188,6 +188,18 @@ class ChallengeActionsTest extends TestCase
     }
 
     #[Test]
+    public function the_deadline_notice_is_flashed_before_the_confirmation(): void
+    {
+        $open = $this->challenge('open', ['deadline' => now()->addDay()->format('Y-m-d')]);
+        $when = now()->addDays(5)->setTime(17, 0);
+
+        $this->actingAs($this->challengerUser)->post($this->url($open, 'termin'), ['scheduled_at' => $when->format('Y-m-d\TH:i')]);
+
+        $flashed = array_values(array_intersect(session()->get('_flash.old', []), ['info', 'success']));
+        $this->assertSame(['info', 'success'], $flashed);
+    }
+
+    #[Test]
     public function schedule_rejects_past_and_garbage_dates(): void
     {
         $open = $this->challenge('open');
@@ -283,7 +295,8 @@ class ChallengeActionsTest extends TestCase
 
         $this->actingAs($this->opponentUser)->withUnencryptedCookie('locale', 'en')
             ->post($this->url($open, 'ablehnen'), ['reason' => 'other_match'])
-            ->assertRedirect();
+            ->assertRedirect()
+            ->assertSessionHas('success', 'Challenge declined.');
 
         $event = PyramidEvent::query()->where('type', 'admin')->firstOrFail();
         $this->assertSame('{"message":"Eine Forderung wurde mit Grund abgelehnt."}', $event->payload);
