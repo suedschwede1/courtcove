@@ -33,8 +33,8 @@ class ScoreCheckEndpointTest extends TestCase
         parent::setUp();
 
         $this->ladder = PyramidLadder::factory()->asDefault()->withRanking(10)->create();
-        $this->challengerUser = $this->userAt(8, 'Heinz Mayer');
-        $this->opponentUser = $this->userAt(5, 'Lukas Hofer');
+        $this->challengerUser = $this->userAt(8, 'Anna Beispiel');
+        $this->opponentUser = $this->userAt(5, 'Berta Muster');
 
         $this->challenge = PyramidChallenge::factory()->create([
             'ladder_id' => $this->ladder->id,
@@ -102,9 +102,9 @@ class ScoreCheckEndpointTest extends TestCase
             ->assertExactJson([
                 'valid' => true,
                 'state' => 'valid',
-                'winner' => 'Heinz Mayer',
+                'winner' => 'Anna Beispiel',
                 'score' => '6:4 6:3',
-                'message' => 'Gültig · Sieger: Heinz Mayer',
+                'message' => 'Gültig · Sieger: Anna Beispiel',
             ]);
     }
 
@@ -114,7 +114,7 @@ class ScoreCheckEndpointTest extends TestCase
         $this->actingAs($this->opponentUser)
             ->getJson($this->url(['s1a' => '6', 's1b' => '4', 's2a' => '3', 's2b' => '6', 'mtba' => '7', 'mtbb' => '10']))
             ->assertOk()
-            ->assertJson(['valid' => true, 'winner' => 'Lukas Hofer', 'message' => 'Gültig · Sieger: Lukas Hofer']);
+            ->assertJson(['valid' => true, 'winner' => 'Berta Muster', 'message' => 'Gültig · Sieger: Berta Muster']);
     }
 
     #[Test]
@@ -161,7 +161,7 @@ class ScoreCheckEndpointTest extends TestCase
             ->withCredentials()
             ->getJson($this->url(['s1a' => '6', 's1b' => '4', 's2a' => '6', 's2b' => '3']))
             ->assertOk()
-            ->assertJson(['message' => 'Valid · Winner: Heinz Mayer']);
+            ->assertJson(['message' => 'Valid · Winner: Anna Beispiel']);
     }
 
     #[Test]

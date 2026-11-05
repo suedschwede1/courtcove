@@ -31,7 +31,7 @@
                 'id' => $id,
                 'position' => (int) $player->position,
                 'label' => $player->label,
-                // Abbreviated like the mockup ("K. Huber"); the viewer's own cell keeps the full name.
+                // Abbreviated like the mockup ("K. Beispiel"); the viewer's own cell keeps the full name.
                 'name' => $isSelf ? (string) $player->label : PyramidFormat::shortName($player->label),
                 'itn' => PyramidFormat::itn($player->itn),
                 'state' => $state,

@@ -48,7 +48,7 @@ final class PyramidFormat
     }
 
     /**
-     * "K. Huber" for "Karl Huber": first name as an initial, the rest as it is. A single word, or a name that
+     * "K. Beispiel" for "Karl Beispiel": first name as an initial, the rest as it is. A single word, or a name that
      * already starts with an initial, stays unchanged.
      */
     public static function shortName(?string $label): string

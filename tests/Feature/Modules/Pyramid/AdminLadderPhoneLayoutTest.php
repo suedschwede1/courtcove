@@ -23,7 +23,7 @@ class AdminLadderPhoneLayoutTest extends TestCase
     {
         $ladder = PyramidLadder::factory()->withRanking(3)->create(['title' => 'Herren 2026']);
         $player = PyramidPlayer::query()->where('ladder_id', $ladder->id)->where('position', 2)->firstOrFail();
-        $player->update(['label' => 'Lukas Hofer', 'itn' => '5.8']);
+        $player->update(['label' => 'Berta Muster', 'itn' => '5.8']);
         PyramidPlayer::query()->where('ladder_id', $ladder->id)->where('position', 3)->update(['status' => 'paused']);
 
         $html = (string) $this->actingAs(User::factory()->status('admin')->create())
@@ -50,9 +50,17 @@ class AdminLadderPhoneLayoutTest extends TestCase
 
         $this->assertStringContainsString('ITN 5,8 · Aktiv', $html);
         $this->assertStringContainsString('· Pausiert', $html);
-        $this->assertMatchesRegularExpression('#<a href="'.preg_quote(htmlspecialchars($editUrl), '#').'" class="[^"]*md:hidden[^"]*"[^>]*>.*?Lukas Hofer.*?</a>#s', $html);
+        $this->assertMatchesRegularExpression('#<a href="'.preg_quote(htmlspecialchars($editUrl), '#').'" class="[^"]*md:hidden[^"]*"[^>]*>.*?Berta Muster.*?</a>#s', $html);
         // The desktop table columns stay; on phones they are hidden.
         $this->assertStringContainsString('>Alter</th>', $html);
+    }
+
+    #[Test]
+    public function the_public_view_stays_reachable_on_phones(): void
+    {
+        [$ladder, , $html] = $this->page();
+
+        $this->assertMatchesRegularExpression('#<a href="'.preg_quote(route('pyramide.ladder', ['ladderId' => $ladder->id]), '#').'" class="ds-btn ds-btn--text self-start md:hidden"><span>Öffentliche Ansicht</span></a>#', $html);
     }
 
     #[Test]
@@ -60,7 +68,9 @@ class AdminLadderPhoneLayoutTest extends TestCase
     {
         [, , $html] = $this->page();
 
-        $this->assertMatchesRegularExpression('#<div class="[^"]*fixed[^"]*md:hidden[^"]*"[^>]*>\s*<a href="\#pyramid-admin-add"[^>]*>.*?Teilnehmer anlegen#s', $html);
+        $this->assertMatchesRegularExpression('#<div class="ds-phone-actionbar">\s*<a href="\#pyramid-admin-add"[^>]*>.*?Teilnehmer anlegen#s', $html);
+        // The spacer reserves the bar's height (incl. the safe area, see ds.css) so nothing hides behind it.
+        $this->assertStringContainsString('<div class="ds-phone-actionbar-spacer" aria-hidden="true"></div>', $html);
         $this->assertStringContainsString('id="pyramid-admin-add"', $html);
     }
 }
