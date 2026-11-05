@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\Route;
 // above the last route; `pyramide/{ladderId}` stays registered last so no fixed word is shadowed.
 Route::get('pyramide', [LadderController::class, 'index'])->name('pyramide.index');
 
+Route::get('pyramide/regeln', [LadderController::class, 'rules'])->name('pyramide.rules');
+Route::get('pyramide/forderungen', [LadderController::class, 'challenges'])->name('pyramide.challenges');
+
 Route::get('pyramide/{ladderId}', [LadderController::class, 'index'])
     ->whereNumber('ladderId')
     ->name('pyramide.ladder');
