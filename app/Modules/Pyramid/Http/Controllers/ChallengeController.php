@@ -16,6 +16,7 @@ use App\Modules\Pyramid\Services\ResultService;
 use App\Modules\Pyramid\Services\ScheduleParser;
 use App\Modules\Pyramid\Support\EventText;
 use App\Modules\Pyramid\Support\PyramidLinks;
+use App\Modules\Pyramid\Support\PyramidNotFound;
 use App\Modules\Pyramid\Support\PyramidRuleException;
 use App\Modules\Pyramid\Support\Verdict;
 use App\Modules\TournamentBase\Services\InvalidScoreException;
@@ -128,7 +129,7 @@ class ChallengeController extends Controller
         $opponent = $challenge === null ? null : $this->repo->player((int) $challenge->opponent_id);
 
         if ($challenge === null || $challenger === null || $opponent === null) {
-            abort(404, __('pyramid::ui.detail.missing'));
+            PyramidNotFound::abort(__('pyramid::ui.detail.missing'));
         }
 
         $ladder = $this->resolveLadder((int) $challenge->ladder_id);
@@ -181,7 +182,7 @@ class ChallengeController extends Controller
         $challenge = $this->repo->challenge($challengeId);
 
         if ($challenge === null) {
-            abort(404, __('pyramid::ui.detail.missing'));
+            PyramidNotFound::abort(__('pyramid::ui.detail.missing'));
         }
 
         $viewer = $this->viewerFor($this->resolveLadder((int) $challenge->ladder_id));
@@ -375,7 +376,7 @@ class ChallengeController extends Controller
         $challenge = $this->repo->challenge($challengeId);
 
         if ($challenge === null) {
-            abort(404, __('pyramid::ui.detail.missing'));
+            PyramidNotFound::abort(__('pyramid::ui.detail.missing'));
         }
 
         $ladder = $this->resolveLadder((int) $challenge->ladder_id);
@@ -421,7 +422,7 @@ class ChallengeController extends Controller
         $opponent = $this->repo->player($playerId);
 
         if ($opponent === null) {
-            abort(404, __('pyramid::ui.player.missing'));
+            PyramidNotFound::abort(__('pyramid::ui.player.missing'));
         }
 
         $ladder = $this->resolveLadder((int) $opponent->ladder_id);

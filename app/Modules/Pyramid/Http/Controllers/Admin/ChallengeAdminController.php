@@ -12,6 +12,7 @@ use App\Modules\Pyramid\Services\LadderAdminService;
 use App\Modules\Pyramid\Services\PyramidNotifier;
 use App\Modules\Pyramid\Services\PyramidRepository;
 use App\Modules\Pyramid\Support\PyramidLinks;
+use App\Modules\Pyramid\Support\PyramidNotFound;
 use App\Modules\Pyramid\Support\PyramidRuleException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -112,13 +113,13 @@ class ChallengeAdminController extends Controller
         $challenge = $this->repo->challenge($challengeId);
 
         if ($challenge === null) {
-            abort(404, __('pyramid::check.challenge_missing'));
+            PyramidNotFound::abort(__('pyramid::check.challenge_missing'), true);
         }
 
         $ladder = $this->repo->ladder((int) $challenge->ladder_id);
 
         if ($ladder === null) {
-            abort(404, __('pyramid::ui.no_ladder'));
+            PyramidNotFound::abort(__('pyramid::ui.unknown_ladder'), true);
         }
 
         // Through the Gate (policy) on the ladder the challenge belongs to.

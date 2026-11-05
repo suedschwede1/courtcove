@@ -12,6 +12,7 @@ use App\Modules\Pyramid\Models\PyramidLadder;
 use App\Modules\Pyramid\Services\LadderAdminService;
 use App\Modules\Pyramid\Services\PyramidRepository;
 use App\Modules\Pyramid\Support\PyramidLinks;
+use App\Modules\Pyramid\Support\PyramidNotFound;
 use App\Modules\Pyramid\Support\PyramidRuleException;
 use App\Modules\Pyramid\Support\Verdict;
 use App\Modules\TournamentBase\Support\MemberSearch;
@@ -310,7 +311,7 @@ class LadderAdminController extends Controller
         $ladder = $this->repo->ladder($ladderId);
 
         if ($ladder === null) {
-            abort(404, __('pyramid::ui.no_ladder'));
+            PyramidNotFound::abort(__('pyramid::ui.unknown_ladder'), true);
         }
 
         // Through the Gate (policy): a grant holder reaches exactly the ladders granted to them.

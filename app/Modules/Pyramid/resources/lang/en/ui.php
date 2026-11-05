@@ -4,6 +4,14 @@ return [
     'module' => 'Challenge ladder',
 
     'no_ladder' => 'No ladder has been set up yet.',
+    'unknown_ladder' => 'This ladder does not exist.',
+    'not_found' => [
+        'title' => 'Not found',
+        'hint' => 'The link may be out of date or the ladder has been removed.',
+        'to_ladder' => 'To the ladder',
+        'to_calendar' => 'To the court calendar',
+        'to_admin' => 'To the ladder administration',
+    ],
     'login_to_play' => 'You need to be logged in to challenge.',
     'unknown' => 'Unknown',
     'you' => 'you',

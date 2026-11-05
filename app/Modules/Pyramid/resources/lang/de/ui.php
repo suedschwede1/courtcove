@@ -4,6 +4,14 @@ return [
     'module' => 'Forderungspyramide',
 
     'no_ladder' => 'Es ist noch keine Pyramide angelegt.',
+    'unknown_ladder' => 'Diese Pyramide gibt es nicht.',
+    'not_found' => [
+        'title' => 'Nicht gefunden',
+        'hint' => 'Vielleicht ist der Link veraltet oder die Rangliste wurde entfernt.',
+        'to_ladder' => 'Zur Pyramide',
+        'to_calendar' => 'Zum Platzkalender',
+        'to_admin' => 'Zur Pyramiden-Verwaltung',
+    ],
     'login_to_play' => 'Zum Fordern musst du angemeldet sein.',
     'unknown' => 'Unbekannt',
     'you' => 'du',
