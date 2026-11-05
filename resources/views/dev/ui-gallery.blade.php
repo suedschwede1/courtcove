@@ -43,5 +43,28 @@
                 <x-ui.badge tone="problem">Custom</x-ui.badge>
             </div>
         </section>
+
+        <section>
+            <h2>Cards, disclosure, key figures, notices</h2>
+            <div class="grid gap-4">
+                <x-ui.card title="Card title" eyebrow="Eyebrow">
+                    <x-slot:actions>
+                        <x-ui.badge tone="good">Open</x-ui.badge>
+                    </x-slot:actions>
+                    Card body
+                    <x-slot:footer>Card footer</x-slot:footer>
+                </x-ui.card>
+                <x-ui.card title="Highlight" eyebrow="Eyebrow" tone="highlight" padding="lg">Highlighted body</x-ui.card>
+                <x-ui.card title="No padding" padding="none">Body</x-ui.card>
+                <x-ui.disclosure summary="Disclosure">Hidden content</x-ui.disclosure>
+                <div class="flex flex-wrap gap-8">
+                    <x-ui.kpi label="Bookings" value="18/30" meta="this week" />
+                    <x-ui.kpi label="Members" value="142" />
+                </div>
+                @foreach (['attention', 'problem', 'good', 'neutral'] as $tone)
+                    <x-ui.notice :tone="$tone" title="Notice">{{ $tone }} message</x-ui.notice>
+                @endforeach
+            </div>
+        </section>
     </div>
 @endsection
