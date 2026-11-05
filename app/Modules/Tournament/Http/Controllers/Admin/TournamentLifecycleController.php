@@ -13,9 +13,9 @@ use App\Modules\Tournament\Support\AdminInput;
 use App\Modules\Tournament\Support\TournamentAccess;
 use App\Modules\TournamentBase\Support\ActionRefused;
 use App\Modules\TournamentBase\Support\TestModeSession;
-use Exception;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Throwable;
 
 /**
  * Create, activate, select and test-copy (old AdminController create/activate/selectTournament/cloneTest).
@@ -34,8 +34,11 @@ final class TournamentLifecycleController extends Controller
             $tournament = $lifecycle->create($title, AdminInput::int($request, 'season'), $templateTid ?: null, $withPlayers, $this->user($request));
         } catch (ActionRefused $e) {
             return $this->back('error', (string) __($e->key, $e->replace));
-        } catch (Exception $e) {
-            return $this->back('error', (string) __('tournament::admin.lifecycle.create_failed', ['message' => $e->getMessage()]));
+        } catch (Throwable $e) {
+            // The raw message may carry SQL; the admin gets a generic text, the log the detail.
+            report($e);
+
+            return $this->back('error', (string) __('tournament::admin.lifecycle.create_failed'));
         }
 
         $copied = TournamentPlayer::query()->where('tid', $tournament->tid)->count();
@@ -62,8 +65,10 @@ final class TournamentLifecycleController extends Controller
             $lifecycle->activate($tournament);
         } catch (ActionRefused $e) {
             return $this->back('error', (string) __($e->key, $e->replace));
-        } catch (Exception $e) {
-            return $this->back('error', (string) __('tournament::admin.lifecycle.activate_failed', ['message' => $e->getMessage()]));
+        } catch (Throwable $e) {
+            report($e);
+
+            return $this->back('error', (string) __('tournament::admin.lifecycle.activate_failed'));
         }
 
         return $this->back('success', (string) __('tournament::admin.lifecycle.activated', ['title' => (string) $tournament->title]));

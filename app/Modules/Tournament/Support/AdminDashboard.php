@@ -76,6 +76,8 @@ final class AdminDashboard
             'lotDecisions' => $lots['decided'],
             'openLots' => $lots['open'],
             'lotOrders' => $this->m->lotOrders($tid),
+            // Filled while the tables above were computed (lotDecisions runs first).
+            'staleLots' => $this->m->staleLotScopes($tid),
             'players' => $players,
             'couples' => $this->couples($players),
             'todo' => $this->todo($draws, $executedDraws, $lots['open']),
@@ -229,29 +231,22 @@ final class AdminDashboard
         foreach ($format->groupPhases() as $phase) {
             foreach ($phase['groups'] ?? [] as $group) {
                 $key = (string) $group['key'];
-
-                try {
-                    $table = $this->m->table($tid, $key);
-                } catch (Exception) {
-                    continue;
-                }
+                // No try/catch: a manual entry that no longer fits its tie is ignored by LotOrderService
+                // and reported through staleLotScopes(), so the tables cannot throw on it any more.
+                $table = $this->m->table($tid, $key);
 
                 $this->collectLots($table, 'group:'.$key, (string) __('tournament::admin.lot.group_title', ['group' => $key]), $decided, $open);
             }
 
             // Across groups: group winners and runners-up.
-            try {
-                $promotion = $this->m->promotion($tid, (string) $phase['key']);
-            } catch (Exception) {
-                continue;
-            }
+            $promotion = $this->m->promotion($tid, (string) $phase['key']);
 
             foreach (['winners' => 1, 'seconds' => 2] as $list => $place) {
                 $title = $place === 1
                     ? (string) __('tournament::admin.lot.winners_title', ['phase' => (string) $phase['label']])
                     : (string) __('tournament::admin.lot.seconds_title', ['phase' => (string) $phase['label']]);
 
-                $this->collectLots($promotion[$list] ?? [], 'phase:'.$phase['key'].':place:'.$place, $title, $decided, $open);
+                $this->collectLots($promotion[$list], 'phase:'.$phase['key'].':place:'.$place, $title, $decided, $open);
             }
         }
 

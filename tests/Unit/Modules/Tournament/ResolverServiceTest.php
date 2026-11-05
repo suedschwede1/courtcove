@@ -148,6 +148,20 @@ class ResolverServiceTest extends TestCase
     }
 
     #[Test]
+    public function a_manual_order_that_does_not_fit_the_tie_is_ignored_and_reported(): void
+    {
+        $calls = [];
+        $r = $this->resolver()->setLotResolver($this->reverseResolver($calls))->setLotOrders(['phase:AC:place:1' => [1, 3]]);
+
+        $rows = $r->byPlace(1, $this->tiedWinners(), [], 'AC');
+
+        $this->assertSame([['scope' => 'phase:AC:place:1', 'tied' => [1, 2]]], $calls, 'falls back to the derived order');
+        $this->assertSame([2, 1], array_column($rows, 'tpid'));
+        $this->assertSame(['phase:AC:place:1'], $r->staleScopes());
+        $this->assertSame([], $this->resolver()->setLotOrders(['phase:AC:place:1' => [2, 1]])->staleScopes());
+    }
+
+    #[Test]
     public function resolver_closure_decides_a_tie_without_a_manual_order(): void
     {
         $calls = [];

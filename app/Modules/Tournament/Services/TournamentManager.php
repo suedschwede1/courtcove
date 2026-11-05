@@ -328,6 +328,20 @@ class TournamentManager
      */
     public function table(int $tid, string $group): array
     {
+        $rows = $this->rankedTable($tid, $group);
+        // Hand over the rows so that the lot decision can be derived automatically from the draw seed.
+        $order = $this->lotOrder($tid, 'group:'.$group, $rows);
+
+        return $order ? $this->standings($tid)->resolveLot($rows, $order) : $rows;
+    }
+
+    /**
+     * Group table before any lot decision: complete ties still carry needs_lot.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function rankedTable(int $tid, string $group): array
+    {
         $players = [];
 
         foreach ($this->groupPlayers($tid, $group) as $player) {
@@ -340,11 +354,7 @@ class TournamentManager
             ];
         }
 
-        $rows = $this->standings($tid)->rank($players, $this->completedMatches($tid, $group));
-        // Hand over the rows so that the lot decision can be derived automatically from the draw seed.
-        $order = $this->lotOrder($tid, 'group:'.$group, $rows);
-
-        return $order ? $this->standings($tid)->resolveLot($rows, $order) : $rows;
+        return $this->standings($tid)->rank($players, $this->completedMatches($tid, $group));
     }
 
     /**
@@ -451,6 +461,46 @@ class TournamentManager
      */
     public function promotion(int $tid, string $phaseKey, int $secondsCount = 2): array
     {
+        [$rankedWinners, $rankedSeconds, $pending, $standings, $matches] = $this->rankedPromotion($tid, $phaseKey);
+        $service = $this->standings($tid);
+
+        $winnerOrder = $this->lotOrder($tid, 'phase:'.$phaseKey.':place:1', $rankedWinners);
+        $secondOrder = $this->lotOrder($tid, 'phase:'.$phaseKey.':place:2', $rankedSeconds);
+        if ($winnerOrder) {
+            $rankedWinners = $service->resolveLot($rankedWinners, $winnerOrder);
+        }
+        if ($secondOrder) {
+            $rankedSeconds = $service->resolveLot($rankedSeconds, $secondOrder);
+        }
+
+        return [
+            'winners' => $rankedWinners,
+            'seconds' => $rankedSeconds,
+            'seconds_count' => $secondsCount,
+            'pending' => $pending,
+            'standings' => $standings,
+            'matches' => $matches,
+        ];
+    }
+
+    /**
+     * Group winners and runners-up of a phase ranked across groups, before the phase lot decisions
+     * (complete ties still carry needs_lot).
+     *
+     * @return array{winners: list<array<string, mixed>>, seconds: list<array<string, mixed>>}
+     */
+    public function promotionCandidates(int $tid, string $phaseKey): array
+    {
+        [$winners, $seconds] = $this->rankedPromotion($tid, $phaseKey);
+
+        return ['winners' => $winners, 'seconds' => $seconds];
+    }
+
+    /**
+     * @return array{0: list<array<string, mixed>>, 1: list<array<string, mixed>>, 2: list<string>, 3: array<string, list<array<string, mixed>>>, 4: list<array<string, mixed>>}
+     */
+    private function rankedPromotion(int $tid, string $phaseKey): array
+    {
         $phase = $this->format($tid)->phase($phaseKey);
 
         $winners = [];
@@ -484,23 +534,18 @@ class TournamentManager
 
         $rankedWinners = $winners ? $service->rankRunnersUp($winners, $standings, $matches) : [];
         $rankedSeconds = $seconds ? $service->rankRunnersUp($seconds, $standings, $matches) : [];
-        $winnerOrder = $this->lotOrder($tid, 'phase:'.$phaseKey.':place:1', $rankedWinners);
-        $secondOrder = $this->lotOrder($tid, 'phase:'.$phaseKey.':place:2', $rankedSeconds);
-        if ($winnerOrder) {
-            $rankedWinners = $service->resolveLot($rankedWinners, $winnerOrder);
-        }
-        if ($secondOrder) {
-            $rankedSeconds = $service->resolveLot($rankedSeconds, $secondOrder);
-        }
 
-        return [
-            'winners' => $rankedWinners,
-            'seconds' => $rankedSeconds,
-            'seconds_count' => $secondsCount,
-            'pending' => $pending,
-            'standings' => $standings,
-            'matches' => $matches,
-        ];
+        return [$rankedWinners, $rankedSeconds, $pending, $standings, $matches];
+    }
+
+    /**
+     * Scopes whose manual lot entry was ignored in this request because it no longer fits the tie.
+     *
+     * @return list<string>
+     */
+    public function staleLotScopes(int $tid): array
+    {
+        return $this->lots->staleScopes($this->get($tid));
     }
 
     /**

@@ -21,6 +21,7 @@ use App\Modules\TournamentBase\Support\ActionRefused;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
+use TypeError;
 
 /**
  * Prepares the token draw of a group phase (ported from ZF2 AdminController::prepareDrawAction).
@@ -83,7 +84,11 @@ final class TokenDrawService
         if ($deadline !== '') {
             $deadlineAt = strtotime($deadline);
 
-            if ($deadlineAt === false || $deadlineAt <= 0) {
+            // strtotime also accepts relative values such as "+20000 years": a year outside DATETIME's
+            // 1000-9999 would fail the insert in strict mode, so it is refused like an unparseable value.
+            $year = $deadlineAt !== false ? (int) date('Y', $deadlineAt) : 0;
+
+            if ($deadlineAt === false || $deadlineAt <= 0 || $year < 1000 || $year > 9999) {
                 throw new ActionRefused('tournament::admin.prepare.invalid_deadline');
             }
 
@@ -114,7 +119,8 @@ final class TokenDrawService
             $phase = $this->m->format($tid)->phase($phaseKey);
             $slots = $this->m->format($tid)->drawSlots($phaseKey);
             $pool = $this->m->drawPool($tid, $phaseKey);
-        } catch (RuntimeException $e) {
+        } catch (Exception|TypeError $e) {
+            // ZF2 flashed any failure of the format lookup; a TypeError comes from odd format JSON.
             throw new ActionRefused('tournament::admin.prepare.error', ['message' => $e->getMessage()]);
         }
 

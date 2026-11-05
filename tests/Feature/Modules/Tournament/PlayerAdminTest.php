@@ -85,8 +85,11 @@ class PlayerAdminTest extends TestCase
             ->assertSessionHas('success', 'Kommentar gespeichert.');
         $this->assertSame(str_repeat('ö', 160), TournamentPlayer::query()->whereKey($this->tpid[2])->value('note'));
 
-        $this->actingAs($admin)->post(route('tournament.admin.comment', ['tpid' => $this->tpid[2]]), ['note' => ['x']]);
-        $this->assertNull(TournamentPlayer::query()->whereKey($this->tpid[2])->value('note'));
+        // An array where the text belongs is refused and keeps the comment.
+        $this->actingAs($admin)->post(route('tournament.admin.comment', ['tpid' => $this->tpid[2]]), ['note' => ['x']])
+            ->assertRedirect(route('tournament.players'))
+            ->assertSessionHas('error', 'Der Kommentar ist ungültig und wurde nicht gespeichert.');
+        $this->assertSame(str_repeat('ö', 160), TournamentPlayer::query()->whereKey($this->tpid[2])->value('note'));
 
         $this->actingAs($admin)->post(route('tournament.admin.comment', ['tpid' => $this->tpid[2]]), ['note' => 'bis 02.08. auf Urlaub']);
         $this->actingAs($admin)->post(route('tournament.admin.comment', ['tpid' => $this->tpid[3]]), ['note' => '   ']);
@@ -146,11 +149,13 @@ class PlayerAdminTest extends TestCase
             ->assertSessionHas('error', 'Ungültiger Loskontext.');
         $this->assertNull($this->tournament->fresh()->lot_orders);
 
+        // Known scopes pass the scope check and reach the tie check: these two players are not the open tie.
         foreach (['group:A', ' group:B ', 'phase:G1:place:1', 'phase:G1:place:2'] as $scope) {
             $this->actingAs($admin)->post(route('tournament.admin.lot'), ['scope' => $scope, 'order' => $order])
-                ->assertSessionHas('success', 'Losentscheid gespeichert: '.trim($scope));
+                ->assertSessionMissing('success')
+                ->assertSessionHas('error', fn (string $m) => $m !== 'Ungültiger Loskontext.');
         }
-        $this->assertSame(['group:A', 'group:B', 'phase:G1:place:1', 'phase:G1:place:2'], array_keys($this->tournament->fresh()->lotOrdersArray()));
+        $this->assertNull($this->tournament->fresh()->lot_orders);
     }
 
     #[Test]

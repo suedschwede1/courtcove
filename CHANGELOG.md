@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-06
+- Phase 2: a manual lot decision that does not match the open tie is refused, an outdated one is ignored and flagged in the championship admin instead of breaking the tables.
 - Phase 2: knockout bracket refresh (qualifiers, byes, advancing winners) ported.
 - Phase 2: championship admin fits narrow cards (group list, stacked draw fields) and lists only applicable draws as to-dos.
 - Phase 2: championship group and knockout draws are prepared, executed and applied in Laravel.

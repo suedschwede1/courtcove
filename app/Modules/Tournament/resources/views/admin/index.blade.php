@@ -521,6 +521,20 @@
                     <p class="text-body-s text-ink-2">{{ __('tournament::admin.lot.text') }}</p>
                     <p class="text-body-s text-ink-2">{{ __('tournament::admin.lot.formula') }}</p>
 
+                    @foreach ($staleLots as $staleScope)
+                        <x-ui.notice tone="problem" :title="__('tournament::admin.lot.stale_title', ['scope' => $staleScope])">
+                            <p>{{ __('tournament::admin.lot.stale_text') }}</p>
+                            @if ($clearUrl = $url('tournament.admin.lot'))
+                                <form method="POST" action="{{ $clearUrl }}" class="mt-2">
+                                    @csrf
+                                    <input type="hidden" name="scope" value="{{ $staleScope }}">
+                                    <input type="hidden" name="clear" value="1">
+                                    <x-ui.button type="submit" variant="secondary" :block="false">{{ __('tournament::admin.lot.clear') }}</x-ui.button>
+                                </form>
+                            @endif
+                        </x-ui.notice>
+                    @endforeach
+
                     @foreach ($openLots as $lot)
                         <x-ui.notice tone="attention" :title="__('tournament::admin.lot.open_title', ['title' => $lot['title']])">
                             <ul class="flex flex-col gap-0.5">
@@ -555,9 +569,17 @@
                                 <p class="text-body-s text-ink-2">{{ __('tournament::admin.lot.manual_text') }}</p>
                                 @if ($lotOrders !== [])
                                     <p class="text-body-s font-semibold text-ink">{{ __('tournament::admin.lot.manual_set') }}</p>
-                                    <ul class="flex flex-col gap-0.5 text-body-s">
+                                    <ul class="flex flex-col gap-1 text-body-s">
                                         @foreach ($lotOrders as $scope => $order)
-                                            <li><span class="font-mono">{{ $scope }}</span>: {{ is_array($order) ? implode(', ', array_map('strval', array_filter($order, 'is_scalar'))) : '' }}</li>
+                                            <li class="flex flex-wrap items-center justify-between gap-2">
+                                                <span><span class="font-mono">{{ $scope }}</span>: {{ is_array($order) ? implode(', ', array_map('strval', array_filter($order, 'is_scalar'))) : '' }}</span>
+                                                <form method="POST" action="{{ $lotUrl }}">
+                                                    @csrf
+                                                    <input type="hidden" name="scope" value="{{ $scope }}">
+                                                    <input type="hidden" name="clear" value="1">
+                                                    <x-ui.button type="submit" variant="text" :block="false">{{ __('tournament::admin.lot.clear') }}</x-ui.button>
+                                                </form>
+                                            </li>
                                         @endforeach
                                     </ul>
                                 @endif

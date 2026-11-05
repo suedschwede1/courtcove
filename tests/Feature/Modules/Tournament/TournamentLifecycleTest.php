@@ -231,7 +231,7 @@ class TournamentLifecycleTest extends TestCase
         $this->actingAs($admin)->post(route('tournament.admin.create'), [
             'title' => 'Demo-Meisterschaft 2028', 'season' => '2028', 'source_tid' => (string) $this->tournament->tid, 'with_players' => '1',
         ])->assertRedirect(route('tournament.admin'))
-            ->assertSessionHas('error', 'Turnier konnte nicht angelegt werden: Spielerzeile abgelehnt');
+            ->assertSessionHas('error', 'Turnier konnte nicht angelegt werden: interner Fehler, Details stehen im Fehlerprotokoll.');
 
         $this->assertSame($count, Tournament::query()->count());
         $this->assertNull($this->selectedTid());

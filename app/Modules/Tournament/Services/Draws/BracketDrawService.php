@@ -17,6 +17,7 @@ use App\Modules\Tournament\Services\TournamentManager;
 use App\Modules\TournamentBase\Support\ActionRefused;
 use Exception;
 use RuntimeException;
+use TypeError;
 
 /**
  * Prepares the direct draw of one knockout pool (ported from ZF2 AdminController::prepareBracketDrawAction).
@@ -59,7 +60,7 @@ final class BracketDrawService
 
         try {
             $phase = $this->m->format($tid)->phase($phaseKey);
-        } catch (RuntimeException $e) {
+        } catch (Exception|TypeError $e) {
             throw new ActionRefused('tournament::admin.prepare.error', ['message' => $e->getMessage()]);
         }
 
@@ -77,8 +78,10 @@ final class BracketDrawService
                         throw new ActionRefused('tournament::admin.prepare.bracket_post');
                     }
                 }
-            } catch (RuntimeException $e) {
-                throw $e instanceof ActionRefused ? $e : new ActionRefused('tournament::admin.prepare.error', ['message' => $e->getMessage()]);
+            } catch (ActionRefused $e) {
+                throw $e;
+            } catch (Exception|TypeError $e) {
+                throw new ActionRefused('tournament::admin.prepare.error', ['message' => $e->getMessage()]);
             }
         }
 

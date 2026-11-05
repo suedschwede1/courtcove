@@ -166,6 +166,9 @@ class TokenDrawServiceTest extends TestCase
 
         $this->assertSame('tournament::admin.prepare.invalid_deadline', $this->refusal(fn () => $this->prepare(0, 'kein Datum'))->key);
         $this->assertSame('tournament::admin.prepare.invalid_deadline', $this->refusal(fn () => $this->prepare(1200, 'kein Datum'))->key);
+        // A relative value beyond DATETIME's year 9999 is refused like an invalid date (no strict-mode 500).
+        $this->assertSame('tournament::admin.prepare.invalid_deadline', $this->refusal(fn () => $this->prepare(0, '+20000 years'))->key);
+        $this->assertSame('tournament::admin.prepare.invalid_deadline', $this->refusal(fn () => $this->prepare(1200, '+20000 years'))->key);
         $this->assertSame(1, Draw::query()->count());
     }
 

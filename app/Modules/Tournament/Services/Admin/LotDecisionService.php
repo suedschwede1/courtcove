@@ -43,6 +43,20 @@ final class LotDecisionService
             }
         }
 
+        // The entry must be exactly the open tie of the scope (the rows before any lot decision), or every
+        // table showing it would ignore it as stale.
+        $tied = $this->tiedTpids($tid, $scope);
+        $given = $order;
+        sort($given);
+
+        if (count($tied) < 2) {
+            throw new ActionRefused('tournament::admin.lot.no_tie');
+        }
+
+        if ($given !== $tied) {
+            throw new ActionRefused('tournament::admin.lot.not_the_tie', ['tpids' => implode(', ', $tied)]);
+        }
+
         // Read-modify-write of the JSON column under the tournament row lock, so two entries cannot lose each other.
         DB::transaction(function () use ($tid, $scope, $order): void {
             $row = Tournament::query()->whereKey($tid)->lockForUpdate()->firstOrFail();
@@ -53,6 +67,59 @@ final class LotDecisionService
         });
 
         $this->m->forget($tid);
+    }
+
+    /**
+     * Removes the manual entry of a scope (e.g. a stale one), so the derived order applies again.
+     *
+     * @throws ActionRefused
+     */
+    public function clear(Tournament $t, string $scope): void
+    {
+        $tid = (int) $t->tid;
+        $scope = trim($scope);
+
+        DB::transaction(function () use ($tid, $scope): void {
+            $row = Tournament::query()->whereKey($tid)->lockForUpdate()->firstOrFail();
+            $orders = $row->lotOrdersArray();
+
+            if (! array_key_exists($scope, $orders)) {
+                throw new ActionRefused('tournament::admin.lot.clear_unknown');
+            }
+
+            unset($orders[$scope]);
+
+            Tournament::query()->whereKey($tid)->update(['lot_orders' => $orders === [] ? null : json_encode($orders)]);
+        });
+
+        $this->m->forget($tid);
+    }
+
+    /**
+     * The tpids of the open tie of a scope, sorted: needs_lot rows of the group table or of the cross-group
+     * comparison, before any lot decision.
+     *
+     * @return list<int>
+     */
+    private function tiedTpids(int $tid, string $scope): array
+    {
+        if (str_starts_with($scope, 'group:')) {
+            $rows = $this->m->rankedTable($tid, substr($scope, 6));
+        } else {
+            [, $phaseKey, , $place] = explode(':', $scope);
+            $candidates = $this->m->promotionCandidates($tid, $phaseKey);
+            $rows = $place === '1' ? $candidates['winners'] : $candidates['seconds'];
+        }
+
+        $tied = [];
+        foreach ($rows as $row) {
+            if (! empty($row['needs_lot'])) {
+                $tied[] = (int) $row['tpid'];
+            }
+        }
+        sort($tied);
+
+        return $tied;
     }
 
     /**

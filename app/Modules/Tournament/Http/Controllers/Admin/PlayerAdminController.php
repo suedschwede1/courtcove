@@ -59,6 +59,11 @@ final class PlayerAdminController extends Controller
 
         abort_if($player === null, 404);
 
+        // An array where the text belongs (note[]=x) is refused; it must not clear the comment.
+        if ($request->has('note') && ! is_scalar($request->input('note')) && $request->input('note') !== null) {
+            return redirect()->route('tournament.players')->with('error', __('tournament::admin.comment.invalid'));
+        }
+
         $note = trim(AdminInput::string($request, 'note'));
 
         TournamentPlayer::query()->where('tid', $tournament->tid)->whereKey($id)
@@ -71,14 +76,21 @@ final class PlayerAdminController extends Controller
     public function lot(Request $request, LotDecisionService $lots): RedirectResponse
     {
         $scope = trim(AdminInput::string($request, 'scope'));
+        $clear = AdminInput::string($request, 'clear') === '1';
 
         try {
-            $lots->store($this->tournament($request), $scope, AdminInput::string($request, 'order'));
+            if ($clear) {
+                $lots->clear($this->tournament($request), $scope);
+            } else {
+                $lots->store($this->tournament($request), $scope, AdminInput::string($request, 'order'));
+            }
         } catch (ActionRefused $e) {
             return $this->back('error', (string) __($e->key, $e->replace));
         }
 
-        return $this->back('success', (string) __('tournament::admin.lot.saved', ['scope' => $scope]));
+        return $clear
+            ? $this->back('success', (string) __('tournament::admin.lot.cleared', ['scope' => $scope]))
+            : $this->back('success', (string) __('tournament::admin.lot.saved', ['scope' => $scope]));
     }
 
     /** A GET on the comment action returns to the players page (ZF2). */
