@@ -37,6 +37,11 @@ class TournamentAdminRoutesTest extends TestCase
             'comment/7' => ['POST', 'tournament/admin/comment/7', 'tournament.admin.comment'],
             'GET comment/7' => ['GET', 'tournament/admin/comment/7', 'tournament.admin.comment.redirect'],
             'lot' => ['POST', 'tournament/admin/lot', 'tournament.admin.lot'],
+            'prepare-draw' => ['POST', 'tournament/admin/prepare-draw', 'tournament.admin.prepare-draw'],
+            'prepare-bracket-draw' => ['POST', 'tournament/admin/prepare-bracket-draw', 'tournament.admin.prepare-bracket-draw'],
+            'apply-draw/3' => ['POST', 'tournament/admin/apply-draw/3', 'tournament.admin.apply-draw'],
+            'GET apply-draw/3' => ['GET', 'tournament/admin/apply-draw/3', 'tournament.admin.apply-draw.redirect'],
+            'GET prepare-draw' => ['GET', 'tournament/admin/prepare-draw', 'tournament.admin.redirect'],
         ];
     }
 
