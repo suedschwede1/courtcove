@@ -9,22 +9,21 @@ $colors = [
         'bg_hover' => env('CAL_COLOR_FREE_BG_HOVER', 'var(--color-clay-soft)'),
         'line' => env('CAL_COLOR_FREE_LINE', 'var(--color-cell-free-line)'),
     ],
+    // Own booking: pale blue fill with a ring in the line colour (the only ringed booking state).
     'own' => [
-        'bg' => env('CAL_COLOR_OWN_BG', 'var(--color-clay)'),
-        'bg_hover' => env('CAL_COLOR_OWN_BG_HOVER', 'var(--color-clay-hover)'),
-        'accent' => env('CAL_COLOR_OWN_ACCENT', 'var(--color-clay-hover)'),
-        'label' => env('CAL_COLOR_OWN_LABEL', 'var(--color-on-clay)'),
-        'label_secondary' => env('CAL_COLOR_OWN_LABEL_SECONDARY', 'var(--color-on-clay)'),
+        'bg' => env('CAL_COLOR_OWN_BG', 'var(--color-cell-own)'),
+        'line' => env('CAL_COLOR_OWN_LINE', 'var(--color-cell-own-line)'),
+        'label' => env('CAL_COLOR_OWN_LABEL', 'var(--color-cell-own-ink)'),
+        'label_secondary' => env('CAL_COLOR_OWN_LABEL_SECONDARY', 'var(--color-cell-own-ink)'),
     ],
     'single_future' => [
         'bg' => env('CAL_COLOR_SINGLE_FUTURE_BG', 'var(--color-cell-booked)'),
-        'bg_hover' => env('CAL_COLOR_SINGLE_FUTURE_BG_HOVER', 'var(--color-line)'),
         'label' => env('CAL_COLOR_SINGLE_FUTURE_LABEL', 'var(--color-ink)'),
         'label_secondary' => env('CAL_COLOR_SINGLE_FUTURE_LABEL_SECONDARY', 'var(--color-ink-2)'),
     ],
     'series' => [
-        'accent' => env('CAL_COLOR_SERIES_ACCENT', 'var(--color-line-strong)'),
-        'label' => env('CAL_COLOR_SERIES_LABEL', 'var(--color-ink-2)'),
+        'bg' => env('CAL_COLOR_SERIES_BG', 'var(--color-cell-series)'),
+        'label' => env('CAL_COLOR_SERIES_LABEL', 'var(--color-cell-series-ink)'),
     ],
     'past' => [
         'bg' => env('CAL_COLOR_PAST_BG', 'var(--color-cell-past-a)'),
@@ -32,15 +31,19 @@ $colors = [
         'label' => env('CAL_COLOR_PAST_LABEL', 'var(--color-ink-3)'),
     ],
     'event' => [
-        'bg' => env('CAL_COLOR_EVENT_BG', 'var(--color-court)'),
-        'bg_hover' => env('CAL_COLOR_EVENT_BG_HOVER', 'var(--color-court-ink)'),
-        'accent' => env('CAL_COLOR_EVENT_ACCENT', 'var(--color-court)'),
-        'label' => env('CAL_COLOR_EVENT_LABEL', 'var(--color-on-court)'),
+        'bg' => env('CAL_COLOR_EVENT_BG', 'var(--color-cell-event)'),
+        'label' => env('CAL_COLOR_EVENT_LABEL', 'var(--color-cell-event-ink)'),
+    ],
+    // Court closure: diagonal hatching in two stripe colours, text in the muted ink.
+    'blocked' => [
+        'a' => env('CAL_COLOR_BLOCKED_A', 'var(--color-cell-blocked-a)'),
+        'b' => env('CAL_COLOR_BLOCKED_B', 'var(--color-cell-blocked-b)'),
+        'label' => env('CAL_COLOR_BLOCKED_LABEL', 'var(--color-ink-2)'),
     ],
     'tournament' => [
-        'bg' => env('CAL_COLOR_TOURNAMENT_BG', 'var(--color-court-soft)'),
-        'line' => env('CAL_COLOR_TOURNAMENT_LINE', 'var(--color-court)'),
-        'label' => env('CAL_COLOR_TOURNAMENT_LABEL', 'var(--color-court-ink)'),
+        'bg' => env('CAL_COLOR_TOURNAMENT_BG', 'var(--color-cell-match)'),
+        'line' => env('CAL_COLOR_TOURNAMENT_LINE', 'var(--color-cell-match-line)'),
+        'label' => env('CAL_COLOR_TOURNAMENT_LABEL', 'var(--color-cell-match-ink)'),
     ],
 ];
 
@@ -53,4 +56,9 @@ if (file_exists($localFile)) {
 
 return [
     'colors' => $colors,
+
+    // Events whose name contains one of these words (case-insensitive) count as a court
+    // closure when no explicit kind is stored (older events). The admin form's "Art"
+    // select (event meta "kind") always wins over this fallback.
+    'closure_keywords' => ['Platzsperre', 'Sperre'],
 ];

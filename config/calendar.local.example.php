@@ -15,21 +15,19 @@ return [
     //     'line' => 'var(--color-cell-free-line)',
     // ],
     // 'own' => [
-    //     'bg' => 'var(--color-clay)',
-    //     'bg_hover' => 'var(--color-clay-hover)',
-    //     'accent' => 'var(--color-clay-hover)',
-    //     'label' => 'var(--color-on-clay)',
-    //     'label_secondary' => 'var(--color-on-clay)',
+    //     'bg' => 'var(--color-cell-own)',
+    //     'line' => 'var(--color-cell-own-line)',
+    //     'label' => 'var(--color-cell-own-ink)',
+    //     'label_secondary' => 'var(--color-cell-own-ink)',
     // ],
     // 'single_future' => [
     //     'bg' => 'var(--color-cell-booked)',
-    //     'bg_hover' => 'var(--color-line)',
     //     'label' => 'var(--color-ink)',
     //     'label_secondary' => 'var(--color-ink-2)',
     // ],
     // 'series' => [
-    //     'accent' => 'var(--color-line-strong)',
-    //     'label' => 'var(--color-ink-2)',
+    //     'bg' => 'var(--color-cell-series)',
+    //     'label' => 'var(--color-cell-series-ink)',
     // ],
     // 'past' => [
     //     'bg' => 'var(--color-cell-past-a)',
@@ -37,14 +35,17 @@ return [
     //     'label' => 'var(--color-ink-3)',
     // ],
     // 'event' => [
-    //     'bg' => 'var(--color-court)',
-    //     'bg_hover' => 'var(--color-court-ink)',
-    //     'accent' => 'var(--color-court)',
-    //     'label' => 'var(--color-on-court)',
+    //     'bg' => 'var(--color-cell-event)',
+    //     'label' => 'var(--color-cell-event-ink)',
+    // ],
+    // 'blocked' => [
+    //     'a' => 'var(--color-cell-blocked-a)',
+    //     'b' => 'var(--color-cell-blocked-b)',
+    //     'label' => 'var(--color-ink-2)',
     // ],
     // 'tournament' => [
-    //     'bg' => 'var(--color-court-soft)',
-    //     'line' => 'var(--color-court)',
-    //     'label' => 'var(--color-court-ink)',
+    //     'bg' => 'var(--color-cell-match)',
+    //     'line' => 'var(--color-cell-match-line)',
+    //     'label' => 'var(--color-cell-match-ink)',
     // ],
 ];

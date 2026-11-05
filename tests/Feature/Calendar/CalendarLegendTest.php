@@ -39,23 +39,23 @@ final class CalendarLegendTest extends TestCase
     }
 
     #[Test]
-    public function member_sees_six_legend_items(): void
+    public function member_sees_seven_legend_items(): void
     {
         $member = User::factory()->create(['status' => 'enabled']);
         $response = $this->actingAs($member)->get('/calendar?date=2026-11-04')->assertOk();
 
-        $this->assertSame(['free', 'own', 'single_future', 'event', 'tournament', 'past'], $this->states($response->getContent()));
+        $this->assertSame(['free', 'own', 'single_future', 'event', 'blocked', 'tournament', 'past'], $this->states($response->getContent()));
         $xp = $this->xpath($response->getContent());
         $this->assertStringContainsString('Frei – zum Buchen tippen', $xp->query('//ul[contains(@class,"cal-legend")]/li')->item(0)->textContent);
         $response->assertDontSee('Blaue Felder')->assertDontSee('Rosafarbene')->assertDontSee('Weiße Felder');
     }
 
     #[Test]
-    public function guest_sees_five_legend_items_without_own(): void
+    public function guest_sees_six_legend_items_without_own(): void
     {
         $response = $this->get('/calendar?date=2026-11-04')->assertOk();
 
-        $this->assertSame(['free', 'single_future', 'event', 'tournament', 'past'], $this->states($response->getContent()));
+        $this->assertSame(['free', 'single_future', 'event', 'blocked', 'tournament', 'past'], $this->states($response->getContent()));
         $response->assertDontSee('Blaue Felder')->assertDontSee('Rosafarbene')->assertDontSee('Weiße Felder');
     }
 }

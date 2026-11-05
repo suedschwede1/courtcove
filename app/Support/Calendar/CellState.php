@@ -13,12 +13,13 @@ enum CellState: string
     case SingleFuture = 'single_future';
     case Series = 'series';
     case Event = 'event';
+    case Blocked = 'blocked';
     case Tournament = 'tournament';
     case Past = 'past';
 
     /**
      * Precedence: tournament > past > own > series > single future.
-     * Event is never returned here; it belongs to event parts and the legend.
+     * Event and Blocked are never returned here; they belong to event parts (EventKind).
      */
     public static function for(bool $hasReservation, bool $isPast, bool $isOwn, bool $isSeries, bool $isTournament): self
     {
@@ -38,7 +39,7 @@ enum CellState: string
     /** @return list<self> */
     public static function legend(bool $loggedIn): array
     {
-        $states = [self::Free, self::Own, self::SingleFuture, self::Event, self::Tournament, self::Past];
+        $states = [self::Free, self::Own, self::SingleFuture, self::Event, self::Blocked, self::Tournament, self::Past];
 
         return array_values(array_filter($states, fn (self $s) => $loggedIn || $s !== self::Own));
     }

@@ -26,7 +26,14 @@ final class DesignTokensTest extends TestCase
             'court-soft' => ['court-soft', '#E3F0E8', '#1E3329'], 'court-ink' => ['court-ink', '#1F5A44', '#8FD0AE'],
             'warn-soft' => ['warn-soft', '#FBEFD5', '#3A2E12'], 'warn-ink' => ['warn-ink', '#7A4E00', '#F0C46B'],
             'danger' => ['danger', '#9A2B17', '#F08A72'], 'danger-soft' => ['danger-soft', '#F8E1DC', '#3D1C15'],
-            'cell-free-line' => ['cell-free-line', '#CFC5B5', '#4A443D'], 'cell-booked' => ['cell-booked', '#E6DFD3', '#34302B'],
+            'cell-free-line' => ['cell-free-line', '#CFC5B5', '#4A443D'], 'cell-booked' => ['cell-booked', '#ECE6DC', '#34302B'],
+            'cell-own' => ['cell-own', '#D9E6F7', '#1C2B40'], 'cell-own-line' => ['cell-own-line', '#3A6BB0', '#7FA6DD'],
+            'cell-own-ink' => ['cell-own-ink', '#173A6B', '#C9DAF2'],
+            'cell-series' => ['cell-series', '#ECE3F3', '#2C2238'], 'cell-series-ink' => ['cell-series-ink', '#4A2A6B', '#D7C6EA'],
+            'cell-event' => ['cell-event', '#DCEEE3', '#1E3329'], 'cell-event-ink' => ['cell-event-ink', '#1F5A44', '#8FD0AE'],
+            'cell-match' => ['cell-match', '#F6E7CC', '#3A2E12'], 'cell-match-line' => ['cell-match-line', '#B07A1E', '#D9A54A'],
+            'cell-match-ink' => ['cell-match-ink', '#6B4400', '#F0C46B'],
+            'cell-blocked-a' => ['cell-blocked-a', '#E9E5DE', '#2A2622'], 'cell-blocked-b' => ['cell-blocked-b', '#F2EFEA', '#221F1C'],
             'cell-past-a' => ['cell-past-a', '#EDE8DF', '#1F1C19'], 'cell-past-b' => ['cell-past-b', '#F7F4EE', '#252220'],
         ];
     }

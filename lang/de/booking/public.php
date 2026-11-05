@@ -160,6 +160,7 @@ return [
             'own' => 'Meine Buchung',
             'single_future' => 'Belegt',
             'event' => 'Veranstaltung',
+            'blocked' => 'Platzsperre',
             'tournament' => 'Turnierspiel',
             'past' => 'Vergangen',
         ],

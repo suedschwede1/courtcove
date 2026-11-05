@@ -204,7 +204,7 @@
     border-radius: var(--radius-sm);
     color: inherit;
     text-decoration: none;
-    transition: background-color 0.12s ease;
+    transition: background-color 0.12s ease, box-shadow 0.12s ease;
 }
 
 .cal-row > .cc-own,
@@ -266,9 +266,17 @@
     background-color: var(--cal-free-bg-hover);
 }
 
-/* Own booking */
+/*
+ * States: calm pastel fills; outlines are box-shadow rings only, so the text
+ * keeps its place from state to state. Hover/focus keeps the fill and strengthens
+ * the ring (never a darker fill). Past slots are left out of every hover/series
+ * rule, so their hatch stays plain.
+ */
+
+/* Own booking: the only ringed booking state. */
 .cal-row > .cc-own {
     background: var(--cal-own-bg);
+    box-shadow: inset 0 0 0 1.5px var(--cal-own-line);
     color: var(--cal-own-label);
 }
 
@@ -277,10 +285,9 @@
     color: var(--cal-own-label-secondary);
 }
 
-/* Hover/focus outrank the past rule, so past slots (hatched) are left out. */
 .cal-row > a.cc-own:not(.slot-cell--past):hover,
 .cal-row > a.cc-own:not(.slot-cell--past):focus-visible {
-    background-color: var(--cal-own-bg-hover);
+    box-shadow: inset 0 0 0 2px var(--cal-own-line);
 }
 
 /* Booked by someone else */
@@ -295,27 +302,25 @@
 
 .cal-row > a.cc-single-future:not(.slot-cell--past):hover,
 .cal-row > a.cc-single-future:not(.slot-cell--past):focus-visible {
-    background-color: var(--cal-single-future-bg-hover);
+    box-shadow: inset 0 0 0 2px var(--color-ink-3);
 }
 
 /*
- * Subscription: an accent on the leading edge, detail line in the series colour.
- * Past subscriptions are left out, so the plain hatch below wins.
+ * Subscription: its own fill and text colour; an own subscription keeps the
+ * own ring on top. Tournament matches and past slots are left out (they win).
  */
-.cal-row > .cc-series:not(.slot-cell--past) {
-    box-shadow: inset 3px 0 0 var(--cal-series-accent);
-}
-
-.cal-row > .cc-series:not(.slot-cell--past) .cc-label-secondary {
+.cal-row > .cc-series:not(.slot-cell--past):not(.cc-turnier) {
+    background: var(--cal-series-bg);
     color: var(--cal-series-label);
 }
 
-.cal-row > .cc-own.cc-series:not(.slot-cell--past) {
-    box-shadow: inset 3px 0 0 var(--cal-own-accent);
+.cal-row > .cc-series:not(.slot-cell--past):not(.cc-turnier) .cc-label-secondary,
+.cal-row > .cc-series:not(.slot-cell--past):not(.cc-turnier) .cc-label-own {
+    color: var(--cal-series-label);
 }
 
-.cal-row > .cc-own.cc-series:not(.slot-cell--past) .cc-label-secondary {
-    color: var(--cal-own-label-secondary);
+.cal-row > .cc-own.cc-series:not(.slot-cell--past):not(.cc-turnier) {
+    box-shadow: inset 0 0 0 1.5px var(--cal-own-line);
 }
 
 /* Past: hatched, booked past slots keep their text in the muted colour. */
@@ -337,9 +342,14 @@
  */
 .cal-row > .event-cell {
     background: var(--cal-event-bg);
-    /* Invisible on the default colours (accent = fill); marks the edge when an installation overrides the fill. */
-    box-shadow: inset 3px 0 0 var(--cal-event-accent);
     color: var(--cal-event-label);
+}
+
+/* Court closure: diagonal hatching (fixed to the viewport, so the stripes run through the joined hours), muted text. */
+.cal-row > .event-cell--blocked {
+    background: repeating-linear-gradient(135deg, var(--cal-blocked-a) 0 6px, var(--cal-blocked-b) 6px 12px);
+    background-attachment: fixed;
+    color: var(--cal-blocked-label);
 }
 
 .cal-row > .event-cell--single {
@@ -371,17 +381,13 @@
     visibility: hidden;
 }
 
-.cal-row > .event-cell--editable:hover,
-.cal-row > .event-cell--editable:focus-within {
-    background-color: var(--cal-event-bg-hover);
-}
-
 .cal-row > .event-cell--editable a.event-label:hover,
 .cal-row > .event-cell--editable a.event-label:focus-visible {
     text-decoration: underline;
 }
 
-/* Tournament match last, so it wins over the past hatch. */
+/* Tournament match last, so it wins over the past hatch. The tripled class
+   lifts the hover ring above the own/booked hover rules. */
 .cal-row > .cc-turnier {
     background: var(--cal-tournament-bg);
     box-shadow: inset 0 0 0 1px var(--cal-tournament-line);
@@ -393,9 +399,9 @@
     color: var(--cal-tournament-label);
 }
 
-.cal-row > a.cc-turnier:hover,
-.cal-row > a.cc-turnier:focus-visible {
-    background-color: var(--cal-tournament-bg);
+.cal-row > a.calendar-cell.cc-turnier.cc-turnier:hover,
+.cal-row > a.calendar-cell.cc-turnier.cc-turnier:focus-visible {
+    box-shadow: inset 0 0 0 2px var(--cal-tournament-line);
 }
 
 @media (prefers-reduced-motion: reduce) {

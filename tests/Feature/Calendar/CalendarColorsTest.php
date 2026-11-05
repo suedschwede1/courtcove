@@ -21,27 +21,26 @@ final class CalendarColorsTest extends TestCase
             'free.bg' => 'var(--color-surface)',
             'free.bg_hover' => 'var(--color-clay-soft)',
             'free.line' => 'var(--color-cell-free-line)',
-            'own.bg' => 'var(--color-clay)',
-            'own.bg_hover' => 'var(--color-clay-hover)',
-            'own.accent' => 'var(--color-clay-hover)',
-            'own.label' => 'var(--color-on-clay)',
-            'own.label_secondary' => 'var(--color-on-clay)',
+            'own.bg' => 'var(--color-cell-own)',
+            'own.line' => 'var(--color-cell-own-line)',
+            'own.label' => 'var(--color-cell-own-ink)',
+            'own.label_secondary' => 'var(--color-cell-own-ink)',
             'single_future.bg' => 'var(--color-cell-booked)',
-            'single_future.bg_hover' => 'var(--color-line)',
             'single_future.label' => 'var(--color-ink)',
             'single_future.label_secondary' => 'var(--color-ink-2)',
-            'series.accent' => 'var(--color-line-strong)',
-            'series.label' => 'var(--color-ink-2)',
+            'series.bg' => 'var(--color-cell-series)',
+            'series.label' => 'var(--color-cell-series-ink)',
             'past.bg' => 'var(--color-cell-past-a)',
             'past.bg_alt' => 'var(--color-cell-past-b)',
             'past.label' => 'var(--color-ink-3)',
-            'event.bg' => 'var(--color-court)',
-            'event.bg_hover' => 'var(--color-court-ink)',
-            'event.accent' => 'var(--color-court)',
-            'event.label' => 'var(--color-on-court)',
-            'tournament.bg' => 'var(--color-court-soft)',
-            'tournament.line' => 'var(--color-court)',
-            'tournament.label' => 'var(--color-court-ink)',
+            'event.bg' => 'var(--color-cell-event)',
+            'event.label' => 'var(--color-cell-event-ink)',
+            'blocked.a' => 'var(--color-cell-blocked-a)',
+            'blocked.b' => 'var(--color-cell-blocked-b)',
+            'blocked.label' => 'var(--color-ink-2)',
+            'tournament.bg' => 'var(--color-cell-match)',
+            'tournament.line' => 'var(--color-cell-match-line)',
+            'tournament.label' => 'var(--color-cell-match-ink)',
         ];
 
         $out = [];
@@ -123,7 +122,7 @@ final class CalendarColorsTest extends TestCase
         try {
             $colors = $this->freshColors();
             $this->assertSame('#654321', Arr::get($colors, 'tournament.bg'));
-            $this->assertSame('var(--color-court)', Arr::get($colors, 'tournament.line'));
+            $this->assertSame('var(--color-cell-match-line)', Arr::get($colors, 'tournament.line'));
         } finally {
             if (is_file($file)) {
                 unlink($file);
@@ -143,7 +142,7 @@ final class CalendarColorsTest extends TestCase
         }
 
         if ($this->customisationReason() === null) {
-            $this->assertStringContainsString('--cal-own-bg: var(--color-clay);', $html);
+            $this->assertStringContainsString('--cal-own-bg: var(--color-cell-own);', $html);
         }
     }
 }
