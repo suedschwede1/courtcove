@@ -33,5 +33,5 @@ Route::prefix('tournament')->name('tournament.')
         Route::post('match/{tmid}/confirm', [MatchController::class, 'confirm'])->whereNumber('tmid')->name('match.confirm');
         Route::post('match/{tmid}/delete', [MatchController::class, 'delete'])->whereNumber('tmid')->name('match.delete');
         Route::get('match/{tmid}/{action}', [MatchController::class, 'redirectToMatch'])
-            ->whereNumber('tmid')->whereIn('action', ['save', 'confirm', 'delete']);
+            ->whereNumber('tmid')->whereIn('action', ['save', 'confirm', 'delete'])->name('match.redirect');
     });
