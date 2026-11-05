@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('title')
+@section('layout-title')
     {{ __('booking.nav.members') }} - @yield('admin-title', __('members::admin.dashboard.title'))
 @endsection
 

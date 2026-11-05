@@ -119,5 +119,14 @@
                 <x-ui.chip :active="true">Mine</x-ui.chip>
             </div>
         </section>
+        <section>
+            <h2>Logo mark and avatar</h2>
+            <div class="flex flex-wrap items-center gap-4">
+                <x-ui.logo-mark name="Example Club" />
+                <x-ui.logo-mark name="Example Club" :size="36" />
+                <x-ui.avatar name="Pat Example" href="#" label="My account - Pat Example" />
+                <x-ui.avatar name="Pat Example" />
+            </div>
+        </section>
     </div>
 @endsection

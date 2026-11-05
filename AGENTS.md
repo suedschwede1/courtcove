@@ -53,6 +53,9 @@ composer check                 # lint + composer audit + test
 vendor/bin/pint                # auto-fix code style
 ```
 
+- Views use `x-ui.*` components and token classes; run `php artisan lint:ui --summary`
+  and keep the count falling.
+
 Run `composer lint` (or at least `vendor/bin/pint` + `php artisan test`) before
 considering a change done. New/changed `.blade.php` files should also be sanity-checked
 with `php artisan view:cache` (catches Blade syntax errors) then `php artisan view:clear`.

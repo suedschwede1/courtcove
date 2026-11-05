@@ -3,6 +3,25 @@
 }
 
 @layer components {
+    /* The legacy body is 12px; ds components own their size and never inherit it. */
+    .ds-header,
+    .ds-phone-menu,
+    .ds-subbar,
+    .ds-card,
+    .ds-notice,
+    .ds-field,
+    .ds-options,
+    .ds-tabs,
+    .ds-tabs__tab,
+    .ds-pagination,
+    .ds-disclosure,
+    .ds-kpi,
+    .ds-table-wrap,
+    .ds-locale,
+    .ds-switch {
+        font-size: var(--text-body);
+    }
+
     .ds-icon {
         flex-shrink: 0;
     }
@@ -658,4 +677,447 @@
             content: none;
         }
     }
+
+    .ds-logo {
+        display: inline-flex;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: var(--color-clay);
+        color: var(--color-on-clay);
+    }
+
+    .ds-logo--44 {
+        width: 44px;
+        height: 44px;
+    }
+
+    .ds-logo--36 {
+        width: 36px;
+        height: 36px;
+    }
+
+    .ds-logo__img {
+        width: 70%;
+        height: 70%;
+        object-fit: contain;
+    }
+
+    .ds-logo__initials {
+        font: 700 18px / 1 var(--font-display);
+        letter-spacing: 0.02em;
+    }
+
+    .ds-logo--36 .ds-logo__initials {
+        font-size: 15px;
+    }
+
+    .ds-avatar {
+        display: inline-flex;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--color-chrome-line);
+        color: var(--color-surface);
+        font: 700 14px / 1 var(--font-body);
+        text-decoration: none;
+    }
+
+    .ds-header {
+        background: var(--color-chrome);
+        color: var(--color-surface);
+    }
+
+    .ds-header__bar {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 14px 24px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 16px 28px;
+    }
+
+    .ds-header__brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .ds-header__titles {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .ds-header__club {
+        font: 700 24px / 1.1 var(--font-display);
+        color: var(--color-surface);
+    }
+
+    .ds-header__eyebrow {
+        font: 600 12px / 1.3 var(--font-body);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--color-chrome-muted);
+    }
+
+    .ds-header__nav {
+        flex: 1 1 520px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    .ds-header__link {
+        display: inline-flex;
+        align-items: center;
+        min-height: var(--spacing-touch-min);
+        padding: 10px 14px;
+        border-radius: var(--radius-sm);
+        color: var(--color-chrome-ink);
+        font-weight: 500;
+        text-decoration: none;
+    }
+
+    .ds-header__link:hover,
+    .ds-header__link[aria-current="page"] {
+        background: rgb(255 255 255 / 0.1);
+        color: var(--color-surface);
+    }
+
+    .ds-header__link[aria-current="page"] {
+        font-weight: 600;
+    }
+
+    .ds-header__tools {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .ds-header__logout-form {
+        margin: 0;
+    }
+
+    .ds-header__logout {
+        color: var(--color-chrome-ink);
+    }
+
+    .ds-header__menu-button,
+    .ds-header__section {
+        display: none;
+    }
+
+    .ds-switch {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--color-chrome-ink);
+        text-decoration: none;
+    }
+
+    .ds-switch__label {
+        font: 600 13px / 1.2 var(--font-body);
+        color: var(--color-chrome-ink);
+    }
+
+    .ds-switch__track {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        width: 32px;
+        height: 18px;
+        border-radius: 999px;
+        background: var(--color-chrome-line);
+    }
+
+    .ds-switch__knob {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: var(--color-surface);
+        transform: translateX(2px);
+    }
+
+    .ds-switch[aria-checked="true"] .ds-switch__track {
+        background: var(--color-clay);
+    }
+
+    .ds-switch[aria-checked="true"] .ds-switch__knob {
+        transform: translateX(16px);
+    }
+
+    .ds-locale {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font: 500 13px / 1.2 var(--font-body);
+        color: var(--color-chrome-muted);
+    }
+
+    .ds-locale__link {
+        color: var(--color-chrome-muted);
+        text-decoration: none;
+    }
+
+    .ds-locale__link:hover {
+        color: var(--color-surface);
+    }
+
+    .ds-locale__current {
+        font-weight: 700;
+        color: var(--color-surface);
+    }
+
+    .ds-switch--bar {
+        flex: 0 0 auto;
+    }
+
+    .ds-locale--bar {
+        flex: 0 0 auto;
+    }
+
+    .ds-switch--menu {
+        justify-content: space-between;
+        width: 100%;
+        min-height: var(--spacing-touch-min);
+    }
+
+    .ds-locale--menu {
+        gap: 12px;
+        font-size: 15px;
+    }
+
+    .ds-locale__sep {
+        opacity: 0.6;
+    }
+
+    .ds-phone-menu {
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        background: var(--color-chrome);
+        color: var(--color-chrome-ink);
+    }
+
+    .ds-phone-menu__top {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--color-chrome-line);
+    }
+
+    .ds-phone-menu__club {
+        flex: 1;
+        font: 700 22px / 1.1 var(--font-display);
+        color: var(--color-surface);
+    }
+
+    .ds-phone-menu__user {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px;
+        border-bottom: 1px solid var(--color-chrome-line);
+    }
+
+    .ds-phone-menu__avatar {
+        width: 44px;
+        height: 44px;
+    }
+
+    .ds-phone-menu__who {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .ds-phone-menu__alias {
+        font-weight: 700;
+        color: var(--color-surface);
+    }
+
+    .ds-phone-menu__status {
+        font-size: 13px;
+        color: var(--color-chrome-muted);
+    }
+
+    .ds-phone-menu__nav {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 12px;
+    }
+
+    .ds-phone-menu__link {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        min-height: 52px;
+        padding: 0 14px;
+        border-radius: 10px;
+        font-size: 17px;
+        color: var(--color-chrome-ink);
+        text-decoration: none;
+    }
+
+    .ds-phone-menu__link[aria-current="page"] {
+        background: var(--color-clay);
+        color: var(--color-on-clay);
+        font-weight: 700;
+    }
+
+    .ds-phone-menu__rows {
+        margin-top: auto;
+        padding: 0 16px;
+        border-top: 1px solid var(--color-chrome-line);
+    }
+
+    .ds-phone-menu__row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        min-height: 60px;
+        border-bottom: 1px solid var(--color-chrome-line);
+    }
+
+    .ds-phone-menu__row:last-child {
+        border-bottom: 0;
+    }
+
+    .ds-phone-menu__row-label {
+        font-size: 17px;
+        color: var(--color-chrome-ink);
+    }
+
+    .ds-phone-menu .ds-switch__label {
+        font-size: 17px;
+        font-weight: 400;
+    }
+
+    .ds-phone-menu .ds-locale--menu {
+        gap: 8px;
+    }
+
+    .ds-phone-menu .ds-locale__sep {
+        display: none;
+    }
+
+    .ds-phone-menu .ds-locale__link,
+    .ds-phone-menu .ds-locale__current {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 40px;
+        border: 1px solid var(--color-chrome-line);
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--color-chrome-ink);
+    }
+
+    .ds-phone-menu .ds-locale__current {
+        background: var(--color-surface);
+        border-color: var(--color-surface);
+        color: var(--color-ink);
+    }
+
+    .ds-phone-menu__foot {
+        padding: 16px;
+    }
+
+    .ds-phone-menu__login {
+        min-height: 50px;
+    }
+
+    .ds-phone-menu__logout {
+        min-height: 50px;
+        background: transparent;
+        border-color: var(--color-chrome-line);
+        color: var(--color-chrome-ink);
+    }
+
+    @media (width >= 48rem) {
+        .ds-phone-menu {
+            display: none !important;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .ds-phone-menu {
+            transition: none !important;
+        }
+    }
+
+    .ds-subbar {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 12px 24px 0;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .ds-subbar__panels {
+        display: flex;
+        gap: 8px;
+    }
+
+    @media (width < 48rem) {
+        .ds-header__bar {
+            padding: 14px 16px;
+            flex-wrap: nowrap;
+            gap: 12px;
+        }
+
+        .ds-header__nav,
+        .ds-header__tools,
+        .ds-header__eyebrow,
+        .ds-header__club {
+            display: none;
+        }
+
+        .ds-header__section {
+            display: block;
+            flex: 1;
+            font: 700 22px / 1.1 var(--font-display);
+            color: var(--color-surface);
+        }
+
+        .ds-header__menu-button {
+            display: inline-flex;
+        }
+
+        .ds-header .ds-logo {
+            width: 36px;
+            height: 36px;
+        }
+
+        .ds-header .ds-logo__initials {
+            font-size: 15px;
+        }
+
+        .ds-subbar {
+            padding: 12px 16px 0;
+        }
+    }
+}
+
+.ds-scroll-lock,
+.ds-scroll-lock body {
+    overflow: hidden;
 }

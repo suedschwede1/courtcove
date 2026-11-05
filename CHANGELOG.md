@@ -25,6 +25,13 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 - Phase 2: Pyramid tables adopted in place (guarded create migrations, additive email column, no-op rollback, schema manifest).
 - Phase 2 go-live (module 1): the public draw record pages /draw/record/* are served by Laravel; the rest of /draw stays on ZF2.
 - Phase 2: public draw record page in the new design (German/English), same content and reveal rule as ZF2.
+- Legacy element rules use zero-specificity guards so existing buttons, links and inputs keep their original cascade.
+- Admin and Members pages show their prefix in the browser tab again even when a view sets its own title.
+- Legacy element rules (links, text inputs, touch-action) no longer restyle the new ds components, which now carry their own base font size.
+- Phones get a full-screen menu behind one button instead of the "..." actions list; no bottom bar.
+- Header switch no longer animates its knob.
+- New dark header with main menu, admin mode, language and account; date navigation moves to a bar below until the calendar toolbar arrives.
+- Navigation items are built once for the header and the phone menu; logo falls back to the club initials.
 - Tab counts stay readable on the active phone tab.
 - One shared tab bar for module sub-pages; chips on phones.
 - Shared table component: header row, highlighted rows and card layout on phones.

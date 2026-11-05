@@ -199,6 +199,23 @@ upload of changed files.
 
 The legacy `bs_*` tables are `utf8mb3`, while Laravel connects as `utf8mb4`; storing a 4-byte character (emoji) there fails with MySQL error 3988 (HTTP 500). The `App\Http\Middleware\StripFourByteCharacters` middleware (web and api groups) therefore removes 4-byte characters from all request input. The Members module and the API member/due endpoints are exempt (their tables are `utf8mb4` and keep emoji), and credential fields (`password*`, `token`) are never altered; the opt-out list lives on the middleware and must not include the tournament modules while any module path is still bridged to the old app.
 
+## UI components
+
+Views are built from shared Blade components and design tokens.
+
+- **Tokens:** colors, fonts, radii and spacing are defined in `resources/css/app.css`
+  inside `@theme static`; use the generated token classes instead of literal values.
+- **Components:** `x-ui.*` components live in `resources/views/components/ui/`; layout
+  components (header, phone menu, …) live in `resources/views/components/layout/`.
+- **Component CSS:** `ds-*` classes are defined in `resources/css/ds.css`.
+- **Gallery:** `/_ui` renders every component for visual checks. It is only available in
+  the `local` and `testing` environments.
+- **Linter:** `php artisan lint:ui --summary` lists remaining legacy markup (literal
+  colors, inline styles, …); `--fail-over=N` exits non-zero when the finding count
+  exceeds `N`, so the count can be ratcheted down.
+- **Build:** after changing CSS or Blade classes, run `npm run build` and commit
+  `public/build/` (the server has no Node.js).
+
 ## Layout reference
 
 The stable UI layout is marked with the Git tag **`mobile-view-stable`**.

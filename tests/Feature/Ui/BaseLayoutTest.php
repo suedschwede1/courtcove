@@ -67,4 +67,24 @@ class BaseLayoutTest extends TestCase
             $this->assertStringNotContainsStringIgnoringCase('<!doctype', $content, $file);
         }
     }
+
+    #[Test]
+    public function admin_pages_keep_the_admin_prefix_even_when_the_view_sets_its_own_title(): void
+    {
+        $this->actingAs(User::factory()->create(['status' => 'admin']));
+
+        $html = $this->get(route('admin.events.create'))->assertOk()->getContent();
+
+        $this->assertMatchesRegularExpression('/<title>'.preg_quote(__('booking.nav.admin'), '/').' - '.preg_quote(__('booking.admin.events.create_title'), '/').'<\/title>/', $html);
+    }
+
+    #[Test]
+    public function popup_mode_shows_the_views_own_title(): void
+    {
+        $this->actingAs(User::factory()->create(['status' => 'admin']));
+
+        $html = $this->get(route('admin.events.create', ['popup' => 1]))->assertOk()->getContent();
+
+        $this->assertMatchesRegularExpression('/<title>'.preg_quote(__('booking.admin.events.create_title'), '/').'<\/title>/', $html);
+    }
 }

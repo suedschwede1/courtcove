@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title', config('booking.name'))</title>
+    <title>{!! trim($__env->yieldContent('layout-title')) ?: trim($__env->yieldContent('title', e(config('booking.name')))) !!}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="{{ asset('css/booking.css') }}?v={{ filemtime(public_path('css/booking.css')) }}">
     @stack('head')
