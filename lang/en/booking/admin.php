@@ -26,6 +26,7 @@ return [
             'championship' => 'Championship',
             'draws' => 'Draws',
             'mixed' => 'Mixed tournaments',
+            'members_settings' => 'Member settings',
             'open' => 'Open menu',
             'close' => 'Close menu',
             'breadcrumb' => 'Breadcrumb',

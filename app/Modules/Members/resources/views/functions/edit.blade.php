@@ -1,6 +1,6 @@
 @extends('members::layout')
-@section('admin-title', __('members::admin.functions.title'))
-@section('admin-content')
+@section('admin-title', $clubRole->name)
+@section('members-content')
 <x-members::page-header :title="$clubRole->name" />
 <form method="POST" action="{{ route('members.functions.update', $clubRole) }}" class="ui-form-shell">
     @csrf

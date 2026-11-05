@@ -1,6 +1,6 @@
 @extends('members::layout')
 @section('admin-title', __('members::admin.fee_categories.title'))
-@section('admin-content')
+@section('members-content')
 <x-members::page-header :title="__('members::admin.fee_categories.title')" />
 
 <x-ui.card :title="__('members::admin.fee_categories.new_category')">

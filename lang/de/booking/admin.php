@@ -26,6 +26,7 @@ return [
             'championship' => 'Meisterschaft',
             'draws' => 'Auslosungen',
             'mixed' => 'Mixed-Turniere',
+            'members_settings' => 'Mitglieder-Einstellungen',
             'open' => 'Menü öffnen',
             'close' => 'Menü schließen',
             'breadcrumb' => 'Pfad',

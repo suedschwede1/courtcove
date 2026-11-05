@@ -1,6 +1,6 @@
 @extends('members::layout')
 @section('admin-title', __('members::admin.functions.title'))
-@section('admin-content')
+@section('members-content')
 <x-members::page-header :title="__('members::admin.functions.title')">
     <x-slot:actions>
         <x-ui.button :block="false" icon="plus" :href="route('members.functions.create')">{{ __('members::admin.functions.new') }}</x-ui.button>

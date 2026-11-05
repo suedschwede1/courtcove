@@ -1,6 +1,6 @@
 @extends('members::layout')
 @section('admin-title', __('members::admin.mail.config_title'))
-@section('admin-content')
+@section('members-content')
 <x-members::page-header :title="__('members::admin.mail.config_title')" />
 
 <x-ui.card :title="__('members::admin.mail.sender_settings')" class="mb-4">

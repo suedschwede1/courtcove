@@ -58,7 +58,6 @@ class BaseLayoutTest extends TestCase
             'resources/views/auth/forgot-password.blade.php',
             'resources/views/auth/reset-password.blade.php',
             'resources/views/auth/login-verify.blade.php',
-            'app/Modules/Members/resources/views/layout.blade.php',
         ];
 
         foreach ($files as $file) {

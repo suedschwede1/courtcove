@@ -1,6 +1,6 @@
 @extends('members::layout')
 @section('admin-title', __('members::admin.fiscal_years.title'))
-@section('admin-content')
+@section('members-content')
 <x-members::page-header :title="__('members::admin.fiscal_years.title')">
     <x-slot:actions>
         <x-ui.button :block="false" icon="plus" :href="route('members.fiscal-years.create')">{{ __('members::admin.fiscal_years.new') }}</x-ui.button>

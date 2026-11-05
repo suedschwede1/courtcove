@@ -1,6 +1,6 @@
 @extends('members::layout')
 @section('admin-title', __('members::admin.dashboard.title'))
-@section('admin-content')
+@section('members-content')
 <x-members::page-header :title="__('members::admin.dashboard.title')" />
 
 <div class="mbr-kpis">

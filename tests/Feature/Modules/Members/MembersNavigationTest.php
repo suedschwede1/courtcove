@@ -20,6 +20,7 @@ class MembersNavigationTest extends TestCase
             [__('booking.nav.members'), __('members::admin.dashboard.configuration')],
             array_column($groups, 'label'),
         );
+        $this->assertSame(['members', 'configuration'], array_column($groups, 'key'));
         $this->assertSame(['dashboard', 'members', 'dues', 'mail'], array_column($groups[0]['items'], 'key'));
         $this->assertSame(
             ['fiscal_years', 'fee_categories', 'functions', 'mail_config', 'dsgvo'],
@@ -78,6 +79,27 @@ class MembersNavigationTest extends TestCase
         ));
     }
 
+    #[Test]
+    public function current_returns_the_section_of_the_page(): void
+    {
+        $this->assertSame('members', MembersNavigation::current($this->requestFor('members.dues.index'))['key'] ?? null);
+        $this->assertSame('configuration', MembersNavigation::current($this->requestFor('members.functions.edit', ['clubRole' => 1]))['key'] ?? null);
+        $this->assertNull(MembersNavigation::current($this->requestFor('admin.dashboard')));
+    }
+
+    #[Test]
+    public function patterns_join_the_item_patterns_of_a_section(): void
+    {
+        $this->assertSame(
+            ['members.dashboard', 'members.index', 'members.create', 'members.edit', 'members.payments.*', 'members.dues.*', 'members.mail.index', 'members.mail.templates.*'],
+            MembersNavigation::patterns('members'),
+        );
+        $this->assertSame(
+            ['members.fiscal-years.*', 'members.fee-categories.*', 'members.functions.*', 'members.mail.config', 'members.dsgvo.*'],
+            MembersNavigation::patterns('configuration'),
+        );
+    }
+
     /**
      * @param  array<string, mixed>  $parameters
      */
@@ -91,7 +113,7 @@ class MembersNavigationTest extends TestCase
     }
 
     /**
-     * @param  list<array{label: string, items: list<array{key: string, label: string, url: string, active: bool}>}>  $groups
+     * @param  list<array{key: string, label: string, items: list<array{key: string, label: string, url: string, active: bool}>}>  $groups
      * @return array<string, array{key: string, label: string, url: string, active: bool}>
      */
     private function items(array $groups): array
@@ -107,7 +129,7 @@ class MembersNavigationTest extends TestCase
     }
 
     /**
-     * @param  list<array{label: string, items: list<array{key: string, label: string, url: string, active: bool}>}>  $groups
+     * @param  list<array{key: string, label: string, items: list<array{key: string, label: string, url: string, active: bool}>}>  $groups
      * @return list<string>
      */
     private function activeKeys(array $groups): array
