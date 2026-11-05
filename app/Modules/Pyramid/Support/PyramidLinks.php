@@ -50,6 +50,16 @@ final class PyramidLinks
         return self::to('pyramide.join', [], 'pyramide/anmelden');
     }
 
+    public static function adminIndex(): string
+    {
+        return self::to('pyramide.admin.index', [], 'pyramide/admin');
+    }
+
+    public static function adminCreate(): string
+    {
+        return self::to('pyramide.admin.create', [], 'pyramide/admin/create');
+    }
+
     public static function adminLadder(int $ladderId): string
     {
         return self::to('pyramide.admin.ladder', ['ladderId' => $ladderId], 'pyramide/admin/ladder/'.$ladderId);

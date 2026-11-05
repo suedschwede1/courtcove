@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Modules\Pyramid\Http\Controllers\Admin\LadderAdminController;
 use App\Modules\Pyramid\Http\Controllers\ChallengeController;
 use App\Modules\Pyramid\Http\Controllers\JoinController;
 use App\Modules\Pyramid\Http\Controllers\LadderController;
@@ -40,6 +41,12 @@ Route::middleware('tournament-base.login:pyramid::ui.login_to_play')->group(func
     Route::post('pyramide/fordern/{playerId}', [ChallengeController::class, 'store'])
         ->whereNumber('playerId')
         ->name('pyramide.challenge.store');
+});
+
+// Administration: guests are sent to the login with the admin flash; the right itself is checked in the controllers.
+Route::middleware('tournament-base.login:pyramid::admin.login_required')->prefix('pyramide/admin')->group(function (): void {
+    Route::get('/', [LadderAdminController::class, 'index'])->name('pyramide.admin.index');
+    Route::match(['get', 'post'], 'create', [LadderAdminController::class, 'create'])->name('pyramide.admin.create');
 });
 
 Route::get('pyramide/{ladderId}', [LadderController::class, 'index'])

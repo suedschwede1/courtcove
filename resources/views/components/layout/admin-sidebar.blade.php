@@ -52,6 +52,14 @@
             </a>
         @endcan
 
+        @if(Route::has('pyramide.admin.index'))
+            @can('admin.pyramid')
+                <a href="{{ route('pyramide.admin.index') }}" onmouseover="if (!this.dataset.active) { this.style.background='#26292e'; this.style.color='#ffffff'; }" onmouseout="if (!this.dataset.active) { this.style.background='transparent'; this.style.color='#b2b6bd'; }" data-active="{{ request()->routeIs('pyramide.admin.*') ? '1' : '' }}" style="display:block; padding:12px 14px 12px {{ request()->routeIs('pyramide.admin.*') ? $itemPaddingActive : $itemPaddingDefault }}; font-family:var(--font-body); font-size:{{ $itemFontSize }}; line-height:1.35; text-decoration:none; transition:background 0.15s ease, color 0.15s ease; color:{{ request()->routeIs('pyramide.admin.*') ? '#ffffff' : '#b2b6bd' }}; font-weight:{{ request()->routeIs('pyramide.admin.*') ? '700' : '400' }}; background:{{ request()->routeIs('pyramide.admin.*') ? '#34363b' : 'transparent' }}; border-left:{{ request()->routeIs('pyramide.admin.*') ? '3px solid #bf4316' : '3px solid transparent' }};">
+                    {{ __('pyramid::ui.module') }}
+                </a>
+            @endcan
+        @endif
+
         @can('admin.config')
             <a href="{{ route('admin.squares.index') }}" onmouseover="if (!this.dataset.active) { this.style.background='#26292e'; this.style.color='#ffffff'; }" onmouseout="if (!this.dataset.active) { this.style.background='transparent'; this.style.color='#b2b6bd'; }" data-active="{{ request()->routeIs('admin.squares.*') ? '1' : '' }}" style="display:block; padding:12px 14px 12px {{ request()->routeIs('admin.squares.*') ? $itemPaddingActive : $itemPaddingDefault }}; font-family:var(--font-body); font-size:{{ $itemFontSize }}; line-height:1.35; text-decoration:none; transition:background 0.15s ease, color 0.15s ease; color:{{ request()->routeIs('admin.squares.*') ? '#ffffff' : '#b2b6bd' }}; font-weight:{{ request()->routeIs('admin.squares.*') ? '700' : '400' }}; background:{{ request()->routeIs('admin.squares.*') ? '#34363b' : 'transparent' }}; border-left:{{ request()->routeIs('admin.squares.*') ? '3px solid #bf4316' : '3px solid transparent' }};">
                 {{ __('booking.admin.squares.title') }}

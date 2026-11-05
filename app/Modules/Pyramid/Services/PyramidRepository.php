@@ -112,6 +112,24 @@ final class PyramidRepository
     }
 
     /**
+     * Running challenges (open or scheduled) of every ladder whose deadline day lies before $today,
+     * oldest deadline first; ladder, challenger and opponent are loaded.
+     *
+     * @return Collection<int, PyramidChallenge>
+     */
+    public function overdueChallenges(string $today): Collection
+    {
+        return PyramidChallenge::query()
+            ->with(['ladder', 'challenger', 'opponent'])
+            ->whereIn('status', ['open', 'scheduled'])
+            ->whereNotNull('deadline')
+            ->where('deadline', '<', $today.' 00:00:00')
+            ->orderBy('deadline')
+            ->orderBy('id')
+            ->get();
+    }
+
+    /**
      * @return Collection<int, PyramidChallenge>
      */
     public function allChallenges(int $ladderId): Collection
