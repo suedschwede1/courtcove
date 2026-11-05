@@ -6,6 +6,7 @@ namespace App\Modules\Pyramid;
 
 use App\Modules\Pyramid\Models\PyramidLadder;
 use App\Modules\Pyramid\Policies\PyramidLadderPolicy;
+use App\Modules\Pyramid\Staging\PyramidScrub;
 use App\Modules\TournamentBase\Routing\ModuleRoutes;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
@@ -13,6 +14,11 @@ use Illuminate\Support\ServiceProvider;
 
 class PyramidServiceProvider extends ServiceProvider
 {
+    public function register(): void
+    {
+        $this->app->tag([PyramidScrub::class], 'phase2.scrub');
+    }
+
     public function boot(): void
     {
         $this->loadMigrationsFrom(__DIR__.'/Database/Migrations');
