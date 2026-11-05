@@ -59,7 +59,7 @@ class AdminModalsTest extends TestCase
         foreach ($x->query('//div[@id="event-dialog"]//form//*[self::input or self::select or self::textarea][@id]') as $field) {
             $ids[] = $field->getAttribute('id');
         }
-        $this->assertSame(['event-name', 'event-date-start', 'event-time-start', 'event-date-end', 'event-time-end', 'event-sid', 'event-description'], $ids);
+        $this->assertSame(['event-name', 'event-date-start', 'event-time-start', 'event-date-end', 'event-time-end', 'event-sid', 'event-kind', 'event-description'], $ids);
         foreach ($ids as $id) {
             $this->node($x, '//div[@id="event-dialog"]//label[@for="'.$id.'"]');
         }

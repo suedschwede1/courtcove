@@ -24,7 +24,7 @@ enum EventKind: string
             return $kind;
         }
 
-        $name ??= (string) ($event->meta->firstWhere('key', 'name')?->value ?? '');
+        $name ??= (string) $event->meta->where('key', 'name')->pluck('value')->first();
         foreach ((array) config('calendar.closure_keywords', []) as $keyword) {
             if (is_string($keyword) && $keyword !== '' && mb_stripos($name, $keyword) !== false) {
                 return self::Closure;

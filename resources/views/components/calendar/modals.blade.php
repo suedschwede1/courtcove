@@ -355,10 +355,6 @@
                 <x-ui.input name="name" id="event-name" required data-modal-initial :placeholder="__('booking.modal.event_name_placeholder')" />
             </x-ui.field>
 
-            <x-ui.field for="event-kind" :label="__('booking.admin.events.kind')">
-                <x-ui.select name="kind" id="event-kind" :options="['event' => __('booking.admin.events.kind_event'), 'closure' => __('booking.admin.events.kind_closure')]" selected="event" />
-            </x-ui.field>
-
             <div class="ds-modal__row">
                 <x-ui.field for="event-date-start" :label="__('booking.modal.date_start')">
                     <x-ui.input type="date" name="date_start" id="event-date-start" required x-model="dateStartVal" />
@@ -376,6 +372,10 @@
 
             <x-ui.field for="event-sid" :label="__('booking.calendar.court')">
                 <x-ui.select name="sid" id="event-sid" :options="$squares->mapWithKeys(fn ($s) => [$s->sid => $s->display_name])->all()" x-model="sid" />
+            </x-ui.field>
+
+            <x-ui.field for="event-kind" :label="__('booking.admin.events.kind')">
+                <x-ui.select name="kind" id="event-kind" :options="['event' => __('booking.admin.events.kind_event'), 'closure' => __('booking.admin.events.kind_closure')]" selected="event" />
             </x-ui.field>
 
             <x-ui.field for="event-description" :label="__('booking.modal.event_description_optional')">
