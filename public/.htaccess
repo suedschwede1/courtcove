@@ -14,19 +14,19 @@
     RewriteCond %{THE_REQUEST} zf2-bridge [NC]
     RewriteRule ^ - [R=404,L]
 
-    # Ported modules (Pyramid) are served by Laravel; rollback = add the prefix back to the bridge rule
-    # (the "pyramide|" in the ^(tournament|...) line below). The same prefix in the slash-redirect
+    # Ported modules (Pyramid, Mixed) are served by Laravel; rollback = add the prefix back to the bridge rule
+    # ("pyramide|" or "mixed-tournament|" in the ^(tournament|...) line below). The same prefix in the slash-redirect
     # alternation is optional: /pyramide/... slashes are also handled by the generic slash rule further down.
     # A trailing slash on an allowlisted path is redirected to the slashless URL (base-path safe:
     # %1 is the full request path), because ZF2 has no route for "/tournament/".
     RewriteCond %{REQUEST_URI} (.+)/$
-    RewriteRule ^((tournament|mixed-tournament|draw|service)(/.*)?|user/(login|logout|password(-reset)?))/$ %1 [L,R=301]
+    RewriteRule ^((tournament|draw|service)(/.*)?|user/(login|logout|password(-reset)?))/$ %1 [L,R=301]
 
     # Phase 2: ported module paths go to Laravel although their prefix is still bridged.
     # Rollback for one module = delete its line.
     RewriteRule ^draw/record(/|$) index.php [L]
 
-    RewriteRule ^(tournament|mixed-tournament|draw|service)(/|$) zf2-bridge.php [L]
+    RewriteRule ^(tournament|draw|service)(/|$) zf2-bridge.php [L]
     RewriteRule ^user/(login|logout|password(-reset)?)(/|$) zf2-bridge.php [L]
 
     # Handle Authorization Header

@@ -21,4 +21,7 @@ return [
     'invalid_result' => 'Ungültiges Ergebnis.',
     'min_four' => 'Mindestens 4 Teilnehmer auswählen.',
     'extra_group_impossible' => 'Zu wenige Gruppen für die Zusatzgruppe bei so vielen Restspielern - bitte mehr Teilnehmer auswählen, den Modus "4er und 5er" verwenden, oder weniger Teilnehmer von Zusatzspielen ausnehmen.',
+    'csrf_expired' => 'Ungültiger oder abgelaufener Formularschlüssel. Bitte Seite neu laden.',
+    'event_not_found' => 'Event nicht gefunden.',
+    'round_not_found' => 'Runde nicht gefunden.',
 ];

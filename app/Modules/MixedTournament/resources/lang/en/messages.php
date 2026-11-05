@@ -21,4 +21,7 @@ return [
     'invalid_result' => 'Invalid result.',
     'min_four' => 'Select at least 4 participants.',
     'extra_group_impossible' => 'Too few groups for the extra group with this many leftover players - select more participants, use the "4s and 5s" mode, or exclude fewer participants from extra matches.',
+    'csrf_expired' => 'Invalid or expired form token. Please reload the page.',
+    'event_not_found' => 'Event not found.',
+    'round_not_found' => 'Round not found.',
 ];
