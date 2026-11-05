@@ -6,9 +6,12 @@ body {
     font-size: 12px;
 }
 
-a:where(:not([class^="ds-"], [class*=" ds-"])) {
-    color: var(--color-clay);
-    text-decoration: none;
+/* Layered below the Tailwind utilities: unlayered, this rule would beat text-ink etc. on every plain link. */
+@layer legacy {
+    a:where(:not([class^="ds-"], [class*=" ds-"])) {
+        color: var(--color-clay);
+        text-decoration: none;
+    }
 }
 
 .page-shell {

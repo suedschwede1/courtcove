@@ -1,4 +1,6 @@
 /*! src:hm-b26c8c89 */
+/* legacy sits above the Tailwind preflight but below components and utilities */
+@layer theme, base, legacy, components, utilities;
 @import 'tailwindcss';
 @import '@fontsource/barlow/latin-400.css';
 @import '@fontsource/barlow/latin-ext-400.css';

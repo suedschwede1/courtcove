@@ -64,7 +64,7 @@ final class LegacyCssOverrideTest extends TestCase
         $this->assertMatchesRegularExpression('/background\s*:\s*var\(--color-ground\)/', $b[1]);
         $this->assertMatchesRegularExpression('/(?<![-\w])color\s*:\s*var\(--color-ink\)/', $b[1]);
         $this->assertMatchesRegularExpression('/font-family\s*:\s*var\(--font-body\)/', $b[1]);
-        $this->assertSame(1, preg_match('/(?:^|\n)a:where\(:not\(\[class\^="ds-"\], \[class\*=" ds-"\]\)\)\s*\{([^}]*)\}/', $css, $a));
+        $this->assertSame(1, preg_match('/(?:^|\n)\s*a:where\(:not\(\[class\^="ds-"\], \[class\*=" ds-"\]\)\)\s*\{([^}]*)\}/', $css, $a));
         $this->assertMatchesRegularExpression('/(?<![-\w])color\s*:\s*var\(--color-clay\)/', $a[1]);
         $this->assertDoesNotMatchRegularExpression('/outline[^;]*!important/', $css);
     }
@@ -127,6 +127,21 @@ final class LegacyCssOverrideTest extends TestCase
         $this->assertNotSame([], $this->unguardedBareSelectors('input::placeholder { color: red; }'));
         $this->assertNotSame([], $this->unguardedBareSelectors('span, select[name="x"][required] { color: red; }'));
         $this->assertSame([], $this->unguardedBareSelectors('.x a { color: red; } a'.self::GUARD.' { color: red; }'));
+    }
+
+    #[Test]
+    public function legacy_link_rule_sits_in_a_layer_below_the_tailwind_utilities(): void
+    {
+        $app = $this->app();
+        $order = strpos($app, '@layer theme, base, legacy, components, utilities;');
+        $this->assertNotFalse($order, 'app.css must declare the layer order with legacy below components and utilities.');
+        $this->assertLessThan(strpos($app, "@import 'tailwindcss'"), $order, 'The layer order must be declared before the Tailwind import.');
+
+        $css = $this->booking();
+        $layer = CssBlocks::body($css, '@layer legacy');
+        $this->assertMatchesRegularExpression('/a:where\(:not\(\[class\^="ds-"\], \[class\*=" ds-"\]\)\)\s*\{[^}]*color\s*:\s*var\(--color-clay\)/', $layer);
+        // Unlayered, the rule would beat every Tailwind utility (text-ink, text-white) on plain links.
+        $this->assertDoesNotMatchRegularExpression('/(?:^|\})\s*a:where\([^{]*\{[^}]*(?<![-\w])color\s*:/', CssBlocks::withoutLayers($css));
     }
 
     #[Test]
