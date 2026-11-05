@@ -1,21 +1,6 @@
 (function () {
     'use strict';
 
-    // ─── Feedback modal (success / error after redirect) ────────────────────────
-    var feedbackModal = document.getElementById('feedback-modal');
-    if (feedbackModal) {
-        function closeFeedbackModal() { feedbackModal.style.display = 'none'; }
-        var fbClose = document.getElementById('feedback-modal-close');
-        var fbOk    = document.getElementById('feedback-modal-ok');
-        if (fbClose) { fbClose.addEventListener('click', closeFeedbackModal); }
-        if (fbOk)    { fbOk.addEventListener('click', closeFeedbackModal); }
-        feedbackModal.addEventListener('click', function (e) {
-            if (e.target === feedbackModal || e.target.classList.contains('booking-modal__viewport')) {
-                closeFeedbackModal();
-            }
-        });
-    }
-
     // ─── Panel toggle (Infos / Hints) ───────────────────────────────────────
     document.addEventListener('click', function (e) {
         var btn = e.target.closest('[data-panel-toggle]');

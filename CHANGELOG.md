@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-05
 
+- Success and error messages use the new dialog (sheet on phones) and close after 4 seconds unless you interact with them.
 - Shared dialog component: centred dialog on desktop, bottom sheet on phones, keeps focus inside and locks page scroll.
 - Legacy element rules use zero-specificity guards so existing buttons, links and inputs keep their original cascade.
 - Admin and Members pages show their prefix in the browser tab again even when a view sets its own title.

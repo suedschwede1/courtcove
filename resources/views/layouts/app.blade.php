@@ -31,24 +31,21 @@
 
     <main id="content">
         @if(session('success') || session('error'))
-            <div id="feedback-modal" class="booking-modal" style="display:block;">
-                <div class="booking-modal__viewport">
-                    <div class="booking-modal__card booking-modal__card--feedback">
-                        <button id="feedback-modal-close" class="booking-modal__close" title="{{ __('booking.feedback.close') }}">&#x2715;</button>
-                        <div class="booking-modal__header">
-                            <h2>{{ session('success') ? __('booking.feedback.success') : __('booking.feedback.notice') }}</h2>
-                        </div>
-                        <div class="booking-modal__body">
-                            <p class="{{ session('success') ? 'booking-modal__success' : 'booking-modal__warning' }} booking-modal__flash">{{ session('success') ?? session('error') }}</p>
-                            @if(session('booking_quote'))
-                                <p class="booking-modal__quote">{{ session('booking_quote') }}</p>
-                            @endif
-                        </div>
-                        <div class="booking-modal__actions">
-                            <button type="button" id="feedback-modal-ok" class="default-button">{{ __('booking.feedback.close') }}</button>
-                        </div>
-                    </div>
-                </div>
+            <div x-data="{ open: true, timer: null }" x-init="timer = setTimeout(() => open = false, 4000)" @pointerenter="clearTimeout(timer)" @focusin="clearTimeout(timer)">
+                <x-ui.modal id="feedback-modal" show="open">
+                    <x-slot:title>{{ session('success') ? __('booking.feedback.success') : __('booking.feedback.notice') }}</x-slot:title>
+                    @if(session('success'))
+                        <x-ui.notice tone="good">{{ session('success') }}</x-ui.notice>
+                    @else
+                        <x-ui.notice tone="problem">{{ session('error') }}</x-ui.notice>
+                    @endif
+                    @if(session('booking_quote'))
+                        <p class="ds-modal__quote">{{ session('booking_quote') }}</p>
+                    @endif
+                    <x-slot:footer>
+                        <x-ui.button :block="false" x-on:click="open = false" data-modal-initial>{{ __('booking.feedback.close') }}</x-ui.button>
+                    </x-slot:footer>
+                </x-ui.modal>
             </div>
         @endif
 
