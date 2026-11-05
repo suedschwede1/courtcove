@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Modules\Pyramid\Http\Controllers\Admin\ChallengeAdminController;
 use App\Modules\Pyramid\Http\Controllers\Admin\LadderAdminController;
 use App\Modules\Pyramid\Http\Controllers\Admin\PlayerAdminController;
 use App\Modules\Pyramid\Http\Controllers\ChallengeController;
@@ -52,7 +53,8 @@ Route::middleware('tournament-base.login:pyramid::admin.login_required')->prefix
     Route::get('ladder/{ladderId}/mitglieder', [LadderAdminController::class, 'members'])->whereNumber('ladderId')->name('pyramide.admin.members');
 
     // Ladder-level and player-level mutations: POST only. The paths are the ones PyramidLinks builds for the forms.
-    foreach (['seed' => 'seed', 'add-player' => 'addPlayer', 'copy-players' => 'copyPlayers', 'normalize' => 'normalize'] as $path => $action) {
+    foreach (['seed' => 'seed', 'add-player' => 'addPlayer', 'copy-players' => 'copyPlayers', 'normalize' => 'normalize',
+        'config' => 'config', 'close' => 'close', 'grant' => 'grant', 'revoke' => 'revoke'] as $path => $action) {
         Route::post('ladder/{ladderId}/'.$path, [LadderAdminController::class, $action])
             ->whereNumber('ladderId')
             ->name('pyramide.admin.'.$path);
@@ -68,6 +70,13 @@ Route::middleware('tournament-base.login:pyramid::admin.login_required')->prefix
             ->whereNumber('playerId')
             ->name('pyramide.admin.'.$name);
     }
+
+    Route::post('challenge/{challengeId}/override', [ChallengeAdminController::class, 'override'])
+        ->whereNumber('challengeId')
+        ->name('pyramide.admin.override-challenge');
+    Route::post('challenge/{challengeId}/correct-result', [ChallengeAdminController::class, 'correctResult'])
+        ->whereNumber('challengeId')
+        ->name('pyramide.admin.correct-result');
 });
 
 Route::get('pyramide/{ladderId}', [LadderController::class, 'index'])

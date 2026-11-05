@@ -13,6 +13,9 @@ return [
     'copy_source' => 'Bitte eine andere Rangliste als Quelle wählen.',
     'copy_failed' => 'Die Teilnehmer konnten nicht übernommen werden: ein Mitglied steht in der Zielrangliste bereits unter anderem Namen. Es wurde nichts übernommen.',
     'extend_limit' => 'Die neue Frist darf höchstens 28 Tage über der alten liegen.',
+    'grant_uid_required' => 'Bitte eine Benutzernummer angeben.',
+    'winner_not_participant' => 'Der Sieger muss einer der beiden Beteiligten sein.',
+    'unknown_decision' => 'Unbekannte Entscheidung.',
     'correct_unresolved' => 'Nur ein verbuchtes Ergebnis lässt sich richtigstellen.',
 
     'problem_orphans' => ':count aktive oder pausierte Teilnehmer ohne Position',
@@ -34,6 +37,14 @@ return [
         'player_updated' => ':label aktualisiert.',
         'copied' => ':count Teilnehmer aus ":title" auf die Warteliste übernommen.',
         'normalized' => 'Rangliste neu durchnummeriert.',
+        'extended' => 'Frist verlängert bis :date.',
+        'expired' => 'Forderung als verfallen eingetragen.',
+        'forfeited' => 'Forderung als nicht angetreten gewertet.',
+        'corrected' => 'Ergebnis richtiggestellt. Die Rangliste wurde NICHT verändert — Positionen bitte bei Bedarf von Hand korrigieren.',
+        'config_saved' => 'Einstellungen gespeichert.',
+        'closed' => 'Saison abgeschlossen.',
+        'granted' => 'Verwaltungsrecht vergeben.',
+        'revoked' => 'Verwaltungsrecht entzogen.',
     ],
 
     'index' => [

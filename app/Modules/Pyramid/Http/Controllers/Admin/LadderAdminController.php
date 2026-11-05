@@ -218,6 +218,61 @@ class LadderAdminController extends Controller
             ->with('success', __('pyramid::admin.flash.normalized'));
     }
 
+    public function config(Request $request, int $ladderId): RedirectResponse
+    {
+        $ladder = $this->administeredLadder($ladderId);
+        $back = redirect()->to(PyramidLinks::adminLadder((int) $ladder->id));
+
+        try {
+            $this->admin->configure($ladder, $request->only([
+                'title', 'category', 'days_to_play', 'winner_protected_days', 'loser_cooldown_days', 'is_default',
+            ]));
+        } catch (PyramidRuleException $e) {
+            return $back->with('error', $e->verdict->message());
+        }
+
+        return $back->with('success', __('pyramid::admin.flash.config_saved'));
+    }
+
+    public function close(int $ladderId): RedirectResponse
+    {
+        $ladder = $this->administeredLadder($ladderId);
+
+        $this->admin->close($ladder, $this->actorUid());
+
+        return redirect()->to(PyramidLinks::adminLadder((int) $ladder->id))
+            ->with('success', __('pyramid::admin.flash.closed'));
+    }
+
+    /**
+     * Same rule as ZF2: whoever administers the ladder may grant and revoke on THIS ladder (the ladder comes from
+     * the URL and is checked through the Gate; the target user number is free input, like the old form).
+     */
+    public function grant(Request $request, int $ladderId): RedirectResponse
+    {
+        $ladder = $this->administeredLadder($ladderId);
+        $back = redirect()->to(PyramidLinks::adminLadder((int) $ladder->id));
+        $uid = (int) $request->input('uid', 0);
+
+        if ($uid <= 0) {
+            return $back->with('error', __('pyramid::admin.grant_uid_required'));
+        }
+
+        $this->repo->addGrant((int) $ladder->id, $uid);
+
+        return $back->with('success', __('pyramid::admin.flash.granted'));
+    }
+
+    public function revoke(Request $request, int $ladderId): RedirectResponse
+    {
+        $ladder = $this->administeredLadder($ladderId);
+
+        $this->repo->removeGrant((int) $ladder->id, (int) $request->input('uid', 0));
+
+        return redirect()->to(PyramidLinks::adminLadder((int) $ladder->id))
+            ->with('success', __('pyramid::admin.flash.revoked'));
+    }
+
     private function actorUid(): int
     {
         return (int) Auth::user()->uid;

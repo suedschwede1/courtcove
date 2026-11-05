@@ -13,6 +13,9 @@ return [
     'copy_source' => 'Please choose a different ladder as the source.',
     'copy_failed' => 'The participants could not be copied: a member is already in the target ladder under a different name. Nothing was copied.',
     'extend_limit' => 'The new deadline may be at most 28 days after the old one.',
+    'grant_uid_required' => 'Please enter a user number.',
+    'winner_not_participant' => 'The winner must be one of the two participants.',
+    'unknown_decision' => 'Unknown decision.',
     'correct_unresolved' => 'Only a recorded result can be corrected.',
 
     'problem_orphans' => ':count active or paused participants without a position',
@@ -34,6 +37,14 @@ return [
         'player_updated' => ':label updated.',
         'copied' => ':count participants from ":title" copied to the waiting list.',
         'normalized' => 'Ladder renumbered.',
+        'extended' => 'Deadline extended to :date.',
+        'expired' => 'Challenge recorded as expired.',
+        'forfeited' => 'Challenge scored as a walkover.',
+        'corrected' => 'Result corrected. The ladder was NOT changed — please fix positions by hand if needed.',
+        'config_saved' => 'Settings saved.',
+        'closed' => 'Season closed.',
+        'granted' => 'Administration right granted.',
+        'revoked' => 'Administration right revoked.',
     ],
 
     'index' => [

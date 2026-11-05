@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Phase 2: Pyramid overdue decisions, result corrections, settings, season close and grants in Laravel.
 
 - Phase 2: Pyramid seeding, waiting list, player status and edits administered in Laravel.
 - Phase 2: Pyramid ladder administration page; the member picker now searches on demand instead of embedding all members.
