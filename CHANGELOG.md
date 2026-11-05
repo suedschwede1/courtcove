@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Phase 2: players pick their draw token in the new design; group and matches appear right after the pick.
 - Phase 2: token claims stay atomic against the draw status.
 - Phase 2: executing a draw re-verifies the commitment and writes result and token slots atomically.
 - Phase 2: draws admin in the new design (not live yet).
