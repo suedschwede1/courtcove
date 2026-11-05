@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-05
 
+- Phase 2: tournament modules send guests to the Laravel login with a return path and show expired forms as a notice.
 - Phase 2: Pyramid adoption, lock order and writer races checked against a real MySQL server; no behaviour change.
 - Phase 2: more Pyramid tests (ranking order, rule boundaries, forfeits, admin notes); no behaviour change.
 - Phase 2: Pyramid admin notes are stored trimmed (as in ZF2); empty dates render as a dash.

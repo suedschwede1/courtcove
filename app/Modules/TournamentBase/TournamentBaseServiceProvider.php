@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\TournamentBase;
 
+use App\Modules\TournamentBase\Http\Middleware\RequireModuleLogin;
+use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 use Random\Engine\Secure;
 use Random\Randomizer;
@@ -22,6 +24,8 @@ class TournamentBaseServiceProvider extends ServiceProvider
     {
         $this->loadTranslationsFrom(__DIR__.'/resources/lang', 'tournament-base');
         $this->loadViewsFrom(__DIR__.'/resources/views', 'tournament-base');
+
+        $this->app->make(Router::class)->aliasMiddleware('tournament-base.login', RequireModuleLogin::class);
 
         if ($this->app->runningInConsole()) {
             $this->commands([
