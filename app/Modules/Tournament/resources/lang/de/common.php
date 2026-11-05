@@ -26,6 +26,13 @@ return [
         'enter_result' => 'Ergebnis eintragen',
     ],
     'months_short' => ['Jan', 'Feb', 'März', 'Apr', 'Mai', 'Juni', 'Juli', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
+    'rounds' => [
+        '2' => 'Finale',
+        '4' => 'Halbfinale',
+        '8' => 'Viertelfinale',
+        '16' => 'Achtelfinale',
+        'last' => 'Runde der letzten :count',
+    ],
     'simulation_member' => 'einfaches Mitglied ohne Teilnahme',
     'tabs' => [
         'overview' => 'Übersicht',

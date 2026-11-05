@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Modules\Tournament\Http\Controllers\BracketController;
 use App\Modules\Tournament\Http\Controllers\GroupsController;
 use App\Modules\Tournament\Http\Controllers\MatchController;
 use App\Modules\Tournament\Http\Controllers\OverviewController;
@@ -19,6 +20,7 @@ Route::prefix('tournament')->name('tournament.')
         Route::get('', [OverviewController::class, 'index'])->name('index');
         Route::get('groups/{group?}', [GroupsController::class, 'show'])->where('group', '[A-Z]')->name('groups');
         Route::get('schedule/{filter?}', [ScheduleController::class, 'show'])->where('filter', '[a-z]+')->name('schedule');
+        Route::get('bracket/{phase?}', [BracketController::class, 'show'])->where('phase', '[A-Za-z_]+')->name('bracket');
         Route::get('modus', [OverviewController::class, 'mode'])->name('mode');
 
         // The match page: name and URL are final (the match cards link here); the page itself and the

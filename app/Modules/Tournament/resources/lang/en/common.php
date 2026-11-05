@@ -26,6 +26,13 @@ return [
         'enter_result' => 'Enter result',
     ],
     'months_short' => ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+    'rounds' => [
+        '2' => 'Final',
+        '4' => 'Semi-finals',
+        '8' => 'Quarter-finals',
+        '16' => 'Round of 16',
+        'last' => 'Round of the last :count',
+    ],
     'simulation_member' => 'plain member without participation',
     'tabs' => [
         'overview' => 'Overview',

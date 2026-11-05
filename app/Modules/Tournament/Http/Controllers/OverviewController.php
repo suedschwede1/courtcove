@@ -6,6 +6,7 @@ namespace App\Modules\Tournament\Http\Controllers;
 
 use App\Modules\Tournament\Services\FormatService;
 use App\Modules\Tournament\Services\TournamentManager;
+use App\Modules\Tournament\Support\RoundNames;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -174,7 +175,7 @@ class OverviewController extends TournamentPageController
             foreach ($format->bracketPhases() as $phase) {
                 $bracketPhases[] = [
                     'phase' => $phase,
-                    'rounds' => $format->rounds((int) $phase['size']),
+                    'rounds' => RoundNames::for((int) $phase['size']),
                     'seeded' => count($phase['lines']['seeded']),
                     'byes' => count($phase['lines']['bye'] ?? []),
                 ];
@@ -275,7 +276,7 @@ class OverviewController extends TournamentPageController
 
         foreach ($format->bracketPhases() as $phaseDef) {
             $key = $phaseDef['key'];
-            $rounds = $format->rounds((int) $phaseDef['size']);
+            $rounds = RoundNames::for((int) $phaseDef['size']);
             $byRound = [];
             $counts = ['played' => 0, 'scheduled' => 0, 'open' => 0, 'total' => 0];
             foreach ($all as $match) {
