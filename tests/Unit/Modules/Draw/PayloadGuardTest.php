@@ -84,6 +84,9 @@ class PayloadGuardTest extends TestCase
         $base = ['entries' => [1, 2], 'rule' => 'Regel'];
 
         $this->assertSame('draw::admin.commit.numeric_slot', $this->refusalKey(['slots' => ['A2', '7']] + $base));
+        $this->assertSame('draw::admin.commit.numeric_slot', $this->refusalKey(['slots' => ['A2', '12']] + $base));
+        $this->assertSame('draw::admin.commit.numeric_slot', $this->refusalKey(['slots' => ['305', 'B2']] + $base));
         $this->assertNull($this->refusalKey(['slots' => ['KO_A:1', 'S1']] + $base));
+        $this->assertNull($this->refusalKey(['slots' => ['1A', 'A12']] + $base)); // partial digits are fine
     }
 }

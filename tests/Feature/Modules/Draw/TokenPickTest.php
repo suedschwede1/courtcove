@@ -122,6 +122,25 @@ class TokenPickTest extends TestCase
     }
 
     #[Test]
+    public function draw_discarded_after_the_page_was_built_is_refused_under_the_lock(): void
+    {
+        $this->tokenDraw();
+        $c = TokenPageContext::load($this->draw, $this->users[3]);
+        Draw::query()->whereKey($this->draw->did)->update(['discarded' => '2027-03-01 10:00:00', 'discarded_reason' => 'Testgrund']);
+        $before = $this->snapshot();
+
+        try {
+            app(TokenPicker::class)->pick($c, (int) $this->tokenWithSlot('A2')->dtid, $this->users[3]);
+            $this->fail('no refusal');
+        } catch (ActionRefused $e) {
+            $this->assertSame('Diese Auslosung ist nicht mehr in der Wahlphase.', __($e->key, $e->replace));
+        }
+
+        // No claim reached the token: the discarded draw cannot get a claim between delete's check and delete.
+        $this->assertSame($before, $this->snapshot());
+    }
+
+    #[Test]
     public function second_pick_is_refused(): void
     {
         $this->tokenDraw();

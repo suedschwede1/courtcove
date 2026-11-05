@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-05
+- Phase 2: deleting a discarded draw locks it first, so no late token claim can slip in.
 - Phase 2: closing the pick phase assigns non-pickers reproducibly and fills the groups.
 - Phase 2: applying a draw to groups or bracket lines is validated first and happens exactly once.
 - Phase 2: players pick their draw token in the new design; group and matches appear right after the pick.

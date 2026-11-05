@@ -23,14 +23,23 @@ interface BeaconService
      */
     public function info(): array;
 
-    /** Unix time at which the given round falls (inverse of roundAt). */
+    /**
+     * Unix time at which the given round falls (inverse of roundAt).
+     *
+     * @throws \RuntimeException when the chain info cannot be fetched
+     */
     public function roundTime(int $round): int;
 
-    /** Round number in force at the given Unix time. */
+    /**
+     * Round number in force at the given Unix time.
+     *
+     * @throws \RuntimeException when the chain info cannot be fetched
+     */
     public function roundAt(int $timestamp): int;
 
     /**
      * @throws RoundNotFutureException when the round is not after the current one
+     * @throws \RuntimeException when the chain info cannot be fetched
      */
     public function assertFutureRound(int $round): true;
 

@@ -19,7 +19,8 @@
         'picking' => __('draw::admin.index.status_picking'),
         'closed' => __('draw::admin.index.status_closed'),
         'executed' => __('draw::admin.index.status_executed'),
-        default => __('draw::admin.index.status_committed'),
+        'committed' => __('draw::admin.index.status_committed'),
+        default => $status, // unknown value: shown raw (ZF2), so database drift is not disguised
     };
     $formOpen = $commitErrors !== [] || old('title') !== null;
     $hasRoute = static fn (string $name): bool => Route::has($name);

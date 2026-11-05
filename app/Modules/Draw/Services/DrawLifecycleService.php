@@ -61,13 +61,18 @@ final class DrawLifecycleService
         }
 
         $did = (int) $draw->did;
-        $claimed = DrawToken::query()->where('did', $did)->whereNotNull('claimed_tpid')->where('claimed_tpid', '!=', 0)->count();
-
-        if ($claimed > 0) {
-            throw new ActionRefused('draw::admin.delete.claimed', ['count' => $claimed]);
-        }
 
         DB::transaction(function () use ($did): void {
+            // Same lock order as pick and close: the draw row first, so no claim can slip in between the
+            // check and the delete.
+            Draw::query()->whereKey($did)->lockForUpdate()->first();
+
+            $claimed = DrawToken::query()->where('did', $did)->whereNotNull('claimed_tpid')->where('claimed_tpid', '!=', 0)->count();
+
+            if ($claimed > 0) {
+                throw new ActionRefused('draw::admin.delete.claimed', ['count' => $claimed]);
+            }
+
             DrawToken::query()->where('did', $did)->delete();
             DrawEligible::query()->where('did', $did)->delete();
             Draw::query()->whereKey($did)->delete();
