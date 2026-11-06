@@ -281,6 +281,7 @@ return [
         'all_dues' => 'Alle Beiträge',
         'recent' => 'Zuletzt geändert',
         'all_changes' => 'Zum Protokoll',
+        'open_dues_meta_households' => 'davon :count Haushaltsbeiträge',
     ],
     'history' => [
         'title' => 'Änderungsprotokoll',
@@ -482,6 +483,7 @@ return [
             'nothing' => 'Es gibt keine offenen eigenen Beiträge, die ersetzt werden können.',
             'no_rate' => 'Für den Tarif gibt es keinen Beitragssatz :year.',
         ],
+        'chip' => 'Haushalt',
     ],
     'import' => [
         'summary' => 'Import abgeschlossen: :created Mitglieder angelegt, :skipped übersprungen (bereits vorhanden), :updated aktualisiert, :dues Vorschreibungen erstellt.',

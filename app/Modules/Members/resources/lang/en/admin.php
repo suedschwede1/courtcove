@@ -281,6 +281,7 @@ return [
         'all_dues' => 'All dues',
         'recent' => 'Recently changed',
         'all_changes' => 'To the log',
+        'open_dues_meta_households' => 'of which :count household fees',
     ],
     'history' => [
         'title' => 'Change log',
@@ -482,6 +483,7 @@ return [
             'nothing' => 'There are no open own fees that can be replaced.',
             'no_rate' => 'There is no rate for the tariff in :year.',
         ],
+        'chip' => 'Household',
     ],
     'import' => [
         'summary' => 'Import finished: :created members created, :skipped skipped (already present), :updated updated, :dues dues created.',
