@@ -143,6 +143,21 @@ class Member extends Model
         return $query->whereHas('dues', fn (Builder $dues) => $dues->open());
     }
 
+    /**
+     * Active members for the overview figures (Aktiv, age structure, categories): status
+     * aktiv, except members linked to a placeholder booking account. Members without a
+     * linked account, or linked to a waiting, blocked or deleted one, keep counting: there
+     * the member's own status decides. One NOT EXISTS subquery, no per-row lookups.
+     *
+     * @param  Builder<Member>  $query
+     * @return Builder<Member>
+     */
+    public function scopeCountsAsActiveMember(Builder $query): Builder
+    {
+        return $this->scopeActive($query)
+            ->whereDoesntHave('user', fn (Builder $user) => $user->where($user->qualifyColumn('status'), 'placeholder'));
+    }
+
     public function fullName(): string
     {
         return trim("{$this->firstname} {$this->lastname}");

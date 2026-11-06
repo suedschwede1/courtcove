@@ -7,18 +7,33 @@ namespace App\Modules\Members\Http\Controllers;
 use App\Modules\Members\Models\FeeCategory;
 use App\Modules\Members\Models\FeeCategoryRate;
 use App\Modules\Members\Models\FiscalYear;
+use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
+/**
+ * Beitragskategorien: list of all categories with their rates per fiscal year, the rate matrix for one
+ * fiscal year, and an edit page per category (name plus one rate per fiscal year).
+ *
+ * The category id is a plain route parameter (no implicit model binding), so the route's
+ * `can:admin.members` runs before the id is looked up: users without the privilege get 403 for every id.
+ */
 class FeeCategoryController
 {
+    /** Largest value of fee_category_rates.amount, a decimal(8,2) column. */
+    private const MAX_AMOUNT = '999999.99';
+
     public function index(Request $request): View
     {
         $fiscalYears = FiscalYear::query()->orderBy('starts_on')->get();
-        $categories = FeeCategory::query()->orderBy('name')->get();
+        $categories = FeeCategory::query()->with('rates')->orderBy('name')->get();
 
-        $selectedFiscalYearId = (int) $request->query('fiscal_year_id', $fiscalYears->last()->id ?? 0);
+        $requestedYear = $request->query('fiscal_year_id');
+        $selectedFiscalYearId = is_string($requestedYear) && ctype_digit($requestedYear)
+            ? (int) $requestedYear
+            : (int) ($fiscalYears->last()->id ?? 0);
 
         $rates = FeeCategoryRate::query()
             ->where('fiscal_year_id', $selectedFiscalYearId)
@@ -47,22 +62,91 @@ class FeeCategoryController
     public function storeRates(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'fiscal_year_id' => ['required', 'exists:fiscal_years,id'],
-            'rates' => ['required', 'array'],
-            'rates.*' => ['nullable', 'numeric', 'min:0'],
+            'fiscal_year_id' => ['required', 'integer', 'exists:fiscal_years,id'],
+            'rates' => ['required', 'array', $this->keysExistIn('fee_categories')],
+            'rates.*' => ['nullable', 'numeric', 'min:0', 'max:'.self::MAX_AMOUNT],
         ]);
 
-        foreach ($validated['rates'] as $categoryId => $amount) {
-            if ($amount === null || $amount === '') {
-                continue;
-            }
+        $fiscalYearId = (int) $validated['fiscal_year_id'];
 
-            FeeCategoryRate::updateOrCreate(
-                ['fee_category_id' => $categoryId, 'fiscal_year_id' => $validated['fiscal_year_id']],
-                ['amount' => $amount]
-            );
+        DB::transaction(function () use ($validated, $fiscalYearId): void {
+            foreach ($validated['rates'] as $categoryId => $amount) {
+                $this->saveRate((int) $categoryId, $fiscalYearId, $amount);
+            }
+        });
+
+        return redirect()->route('members.fee-categories.index', ['fiscal_year_id' => $fiscalYearId]);
+    }
+
+    public function edit(string $feeCategory): View
+    {
+        $category = FeeCategory::query()->findOrFail((int) $feeCategory);
+
+        return view('members::fee-categories.edit', [
+            'category' => $category,
+            'fiscalYears' => FiscalYear::query()->orderBy('starts_on')->get(),
+            'rates' => $category->rates()->get()->keyBy('fiscal_year_id'),
+        ]);
+    }
+
+    public function update(Request $request, string $feeCategory): RedirectResponse
+    {
+        $category = FeeCategory::query()->findOrFail((int) $feeCategory);
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:64'],
+            'rates' => ['nullable', 'array', $this->keysExistIn('fiscal_years')],
+            'rates.*' => ['nullable', 'numeric', 'min:0', 'max:'.self::MAX_AMOUNT],
+        ]);
+
+        DB::transaction(function () use ($category, $validated): void {
+            $category->update(['name' => $validated['name']]);
+
+            foreach ($validated['rates'] ?? [] as $fiscalYearId => $amount) {
+                $this->saveRate($category->id, (int) $fiscalYearId, $amount);
+            }
+        });
+
+        return redirect()->route('members.fee-categories.index')
+            ->with('status', __('members::admin.fee_categories.saved'));
+    }
+
+    /** Creates or changes one rate; an empty amount leaves the stored rate as it is. */
+    private function saveRate(int $categoryId, int $fiscalYearId, mixed $amount): void
+    {
+        if ($amount === null || $amount === '') {
+            return;
         }
 
-        return redirect()->route('members.fee-categories.index', ['fiscal_year_id' => $validated['fiscal_year_id']]);
+        FeeCategoryRate::updateOrCreate(
+            ['fee_category_id' => $categoryId, 'fiscal_year_id' => $fiscalYearId],
+            ['amount' => $amount]
+        );
+    }
+
+    /**
+     * Rule for an array keyed by ids: every key must be the positive integer id of a row in $table.
+     */
+    private function keysExistIn(string $table): Closure
+    {
+        return function (string $attribute, mixed $value, Closure $fail) use ($table): void {
+            if (! is_array($value) || $value === []) {
+                return;
+            }
+
+            $ids = [];
+            foreach (array_keys($value) as $key) {
+                if (! is_int($key) && ! ctype_digit($key)) {
+                    $fail(__('validation.exists', ['attribute' => $attribute]));
+
+                    return;
+                }
+                $ids[(int) $key] = true;
+            }
+
+            if (DB::table($table)->whereIn('id', array_keys($ids))->count() !== count($ids)) {
+                $fail(__('validation.exists', ['attribute' => $attribute]));
+            }
+        };
     }
 }

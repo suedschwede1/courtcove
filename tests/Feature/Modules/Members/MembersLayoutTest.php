@@ -6,6 +6,7 @@ namespace Tests\Feature\Modules\Members;
 
 use App\Models\User;
 use App\Modules\Members\Models\ClubRole;
+use App\Modules\Members\Models\FeeCategory;
 use App\Modules\Members\Models\FiscalYear;
 use App\Modules\Members\Models\Member;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
@@ -65,6 +66,7 @@ class MembersLayoutTest extends TestCase
         $member = Member::factory()->create();
         $fiscalYear = FiscalYear::create(['name' => '2025/26', 'starts_on' => '2025-09-01', 'ends_on' => '2026-08-31']);
         $role = ClubRole::create(['name' => 'Kassier', 'is_board' => true]);
+        $feeCategory = FeeCategory::create(['name' => 'Vollmitglied']);
 
         return [
             route('members.dashboard') => 'members.dashboard',
@@ -79,6 +81,7 @@ class MembersLayoutTest extends TestCase
             route('members.fiscal-years.create') => 'members.fiscal-years.index',
             route('members.fiscal-years.edit', $fiscalYear) => 'members.fiscal-years.index',
             route('members.fee-categories.index') => 'members.fee-categories.index',
+            route('members.fee-categories.edit', $feeCategory) => 'members.fee-categories.index',
             route('members.functions.index') => 'members.functions.index',
             route('members.functions.create') => 'members.functions.index',
             route('members.functions.edit', $role) => 'members.functions.index',
@@ -96,8 +99,8 @@ class MembersLayoutTest extends TestCase
             ->reject(fn (string $name) => $name === 'members.export')
             ->values()->all();
 
-        $this->assertCount(17, $names);
-        $this->assertCount(17, $this->pages());
+        $this->assertCount(18, $names);
+        $this->assertCount(18, $this->pages());
     }
 
     #[Test]
@@ -346,7 +349,7 @@ class MembersLayoutTest extends TestCase
             $this->assertStringNotContainsString("@section('admin-", $source, $name);
             $pages++;
         }
-        $this->assertSame(17, $pages);
+        $this->assertSame(18, $pages);
     }
 
     #[Test]
