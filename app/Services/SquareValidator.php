@@ -74,15 +74,17 @@ final class SquareValidator
             return ValidationResult::fail(__('booking.messages.booking_in_past'));
         }
 
-        if ((int) $square->min_range_book > 0) {
-            $minimumStart = Carbon::now()->addSeconds((int) $square->min_range_book);
+        $minRangeBook = $this->bookingRules->value(BookingRules::MIN_RANGE_BOOK, $square);
+        if ($minRangeBook > 0) {
+            $minimumStart = Carbon::now()->addSeconds($minRangeBook);
             if ($dateStart->lessThan($minimumStart) && ! $shortTermOverrideActive && ! $this->canCreateAnyBooking($user)) {
                 return ValidationResult::fail(__('booking.messages.booking_too_early'));
             }
         }
 
-        if ((int) $square->range_book > 0) {
-            $maxBookableAt = Carbon::now()->addSeconds((int) $square->range_book);
+        $rangeBook = $this->bookingRules->value(BookingRules::RANGE_BOOK, $square);
+        if ($rangeBook > 0) {
+            $maxBookableAt = Carbon::now()->addSeconds($rangeBook);
             $sameDayAsMax = $dateStart->isSameDay($maxBookableAt);
             if ($dateStart->greaterThan($maxBookableAt) && ! $sameDayAsMax && ! $shortTermOverrideActive && ! $this->canCreateAnyBooking($user)) {
                 return ValidationResult::fail('Booking date exceeds the allowed advance booking range');
@@ -144,8 +146,8 @@ final class SquareValidator
     /** Whether the booking starts within the per-square short-term override window. */
     private function isShortTermLimitOverrideActive(Square $square, Carbon $dateStart): bool
     {
-        // Stored as square meta by Admin\SquareController, not as a bs_squares column.
-        $windowSeconds = (int) ($square->getMeta('short-booking-window') ?? '0');
+        // Global option booking.short_booking_window, fallback the former court meta (BookingRules).
+        $windowSeconds = $this->bookingRules->value(BookingRules::SHORT_BOOKING_WINDOW, $square);
         if ($windowSeconds <= 0) {
             return false;
         }

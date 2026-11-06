@@ -12,7 +12,8 @@ use App\Models\Square;
  * The court source is either a bs_squares column or a square meta key (kept for ZF2 / rollback and as
  * fallback while the option is not set). Court value and option use the same storage unit (`unit`) unless
  * `factor` converts: option value = court value * factor. `displayDivisor` turns the stored value into what
- * the admin forms show (e.g. seconds / 60 = minutes).
+ * the admin forms show (e.g. seconds / 60 = minutes). `newCourtDefault` fills the column of a new court when
+ * neither the option nor an existing court gives a value.
  */
 final readonly class BookingRule
 {
@@ -25,6 +26,7 @@ final readonly class BookingRule
         public int $factor = 1,
         public int $displayDivisor = 60,
         public string $displayUnit = 'Minutes',
+        public int $newCourtDefault = 0,
     ) {}
 
     /** The court's stored value converted to the option's unit, or null when the court has none. */
