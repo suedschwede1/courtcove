@@ -8,6 +8,14 @@ if [ -z "$staged" ]; then
     exit 0
 fi
 
+# Fast local feedback. CI checks the committed tree, including partially staged files.
+if printf '%s\n' "$staged" | grep -Eq '^(resources/|public/css/|app/Modules/.*/resources/views/|Modules/.*/resources/views/|app/Services/Ui(Linter|Rules)\.php$|app/Console/Commands/LintUiCommand\.php$|config/ui-design\.php$|ui-design-baseline\.json$)'; then
+    case "$(uname -s)" in
+        MINGW*|MSYS*|CYGWIN*) wsl php artisan lint:ui --summary || exit 1 ;;
+        *) php artisan lint:ui --summary || exit 1 ;;
+    esac
+fi
+
 if echo "$staged" | grep -qx 'CHANGELOG.md'; then
     exit 0
 fi

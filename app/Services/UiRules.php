@@ -19,7 +19,20 @@ class UiRules
         '#fbf1eb', '#fff', '#000', '#ffffff',
     ];
 
-    private const COLOUR_HEX = '/(?<![\w&])#(?:[0-9a-f]{6}|[0-9a-f]{3})\b/i';
+    /** #rgb, #rgba, #rrggbb and #rrggbbaa. */
+    private const COLOUR_HEX = '/(?<![\w&])#(?:[0-9a-f]{8}|[0-9a-f]{6}|[0-9a-f]{4}|[0-9a-f]{3})\b/i';
+
+    /**
+     * A CSS colour function with literal channels, e.g. rgb(255 0 0), rgba(0,0,0,.5),
+     * hsl(), hsla(), hwb(), lab(), lch(), oklab(), oklch(). Allowed token forms are
+     * functions whose arguments reference a token, e.g. rgb(var(--color-x-rgb) / .5);
+     * color-mix(in srgb, var(--color-*) …) is not a literal colour either. An underscore
+     * may precede the name: Tailwind arbitrary values use it as a space.
+     */
+    private const COLOUR_FUNCTION = '/(?<![a-z0-9-])(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch)\((?![^)]*var\()/i';
+
+    /** A custom property declaration such as `--shadow-dialog: …` (the token sheet). */
+    private const CUSTOM_PROPERTY = '/^\s*--[\w-]+\s*:/';
 
     private const SMALL_CONTROL = '(?:6|7|8|9|10)';
 
@@ -50,6 +63,22 @@ class UiRules
                 'hex' => true,
                 'allowed' => self::TOKEN_HEX,
                 'allowed_only_in' => ['app.css'],
+            ],
+            [
+                // Tailwind arbitrary values, style attributes, <style> blocks and bound
+                // Alpine styles (:style, x-bind:style) are all plain view source.
+                'id' => 'CLR-03',
+                'warn' => 'Literal colour function (rgb/hsl/oklch …) in a view: use a token class or var(--color-*)',
+                'pattern' => self::COLOUR_FUNCTION,
+                'exclude' => ['emails/'],
+            ],
+            [
+                'id' => 'CSS-02',
+                'warn' => 'Literal colour function (rgb/hsl/oklch …) in CSS: use var(--color-*) or define a custom property in app.css',
+                'pattern' => self::COLOUR_FUNCTION,
+                'files' => 'css',
+                'allow_line' => self::CUSTOM_PROPERTY,
+                'allow_line_only_in' => ['app.css'],
             ],
 
             // --- Buttons ---

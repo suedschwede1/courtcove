@@ -67,10 +67,10 @@
                         <x-ui.field :label="__('booking.admin.bookings.teammates')" for="admin-player2">
                             <input type="text" id="admin-player2" name="player_name_2" value="{{ old('player_name_2', $playerNames[2]) }}" list="admin-player-suggestions" maxlength="120" required class="ds-input">
                         </x-ui.field>
-                        <x-ui.field :label="__('booking.admin.bookings.player_name_3')" for="admin-player3" id="admin-player3-field">
+                        <x-ui.field :label="__('booking.admin.bookings.player_name_3')" for="admin-player3">
                             <input type="text" id="admin-player3" name="player_name_3" value="{{ old('player_name_3', $playerNames[3]) }}" list="admin-player-suggestions" maxlength="120" class="ds-input">
                         </x-ui.field>
-                        <x-ui.field :label="__('booking.admin.bookings.player_name_4')" for="admin-player4" id="admin-player4-field">
+                        <x-ui.field :label="__('booking.admin.bookings.player_name_4')" for="admin-player4">
                             <input type="text" id="admin-player4" name="player_name_4" value="{{ old('player_name_4', $playerNames[4]) }}" list="admin-player-suggestions" maxlength="120" class="ds-input">
                         </x-ui.field>
                     </div>

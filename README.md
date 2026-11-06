@@ -208,12 +208,21 @@ Views are built from shared Blade components and design tokens.
   inside `@theme static`; use the generated token classes instead of literal values.
 - **Components:** `x-ui.*` components live in `resources/views/components/ui/`; layout
   components (header, phone menu, …) live in `resources/views/components/layout/`.
+- **Form fields:** `x-ui.field` (class `App\View\Components\Ui\Field`) resolves one control
+  id for label, `x-ui.input`/`select`/`textarea`, help and error text: an explicit `id`
+  (on the field or the child) wins, otherwise `for`/`name`, made unique per page
+  (`email`, `email-2`). `id` and `name` on the field are control props, not wrapper
+  attributes.
 - **Component CSS:** `ds-*` classes are defined in `resources/css/ds.css`.
 - **Gallery:** `/_ui` renders every component for visual checks. It is only available in
-  the `local` and `testing` environments.
-- **Linter:** `php artisan lint:ui --summary` lists remaining legacy markup (literal
-  colors, inline styles, …); `--fail-over=N` exits non-zero when the finding count
-  exceeds `N`, so the count can be ratcheted down.
+  the `local`, `testing` and `dusk.local` environments.
+- **Linter:** `php artisan lint:ui --summary` checks views and CSS (literal colors,
+  inline styles, …) and exits non-zero on any blocking finding. Legacy findings of
+  `public/css/booking.css` are inventoried in `ui-design-baseline.json` and may only
+  shrink (`--prune-baseline`); `--fail-over=N` additionally caps the total count.
+- **Design checks:** run `wsl composer check:design` for UI/CSS changes. The GitHub
+  `Design checks` workflow runs the source rules, the design tests and a fresh-build
+  comparison of `public/build`. See [Design assurance](docs/DESIGN-ASSURANCE.md).
 - **Build:** after changing CSS or Blade classes, run `npm run build` and commit
   `public/build/` (the server has no Node.js).
 

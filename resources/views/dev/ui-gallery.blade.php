@@ -1,9 +1,18 @@
-{{-- Dev-only component gallery (local/testing). Strings here are exempt from lang keys. --}}
+{{-- Dev-only component gallery (local/testing/dusk). Strings here are exempt from lang keys. --}}
 @extends('layouts.app')
 
 @section('content')
-    <div>
+    <div data-testid="ui-gallery">
         <h1>UI gallery</h1>
+
+        <section x-data="{ dialogOpen: false }">
+            <h2>Dialog</h2>
+            <x-ui.button :block="false" data-testid="gallery-dialog-open" x-on:click="dialogOpen = true">Open dialog</x-ui.button>
+            <x-ui.modal id="gallery-dialog" show="dialogOpen" eyebrow="New booking" data-testid="gallery-dialog">
+                <x-slot:title>Book Court A</x-slot:title>
+                <p>Court A, Thu 5 Nov, 17:00 to 18:00</p>
+            </x-ui.modal>
+        </section>
 
         <section>
             <h2>Icons</h2>

@@ -99,7 +99,7 @@
         letter-spacing: 0.14em;
         text-transform: uppercase;
         /* DESIGN.md "Admin": the sidebar group label colour has no light token. */
-        color: rgb(167 157 143);
+        color: var(--ds-sidebar-label);
     }
 
     .ds-admin-sidebar__list {

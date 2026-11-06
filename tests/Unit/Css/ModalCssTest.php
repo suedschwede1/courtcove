@@ -36,7 +36,8 @@ final class ModalCssTest extends TestCase
         $this->assertStringContainsString('var(--shadow-dialog)', $panel);
         $this->assertStringContainsString('border-radius: 14px', $panel);
         $this->assertStringContainsString('var(--color-surface-sunk)', CssBlocks::body($css, '.ds-modal__footer'));
-        $this->assertStringContainsString('rgba(29, 27, 24, 0.55)', CssBlocks::body($css, '.ds-modal__backdrop'));
+        $this->assertStringContainsString('var(--ds-backdrop)', CssBlocks::body($css, '.ds-modal__backdrop'));
+        $this->assertStringContainsString('--ds-backdrop: rgba(29, 27, 24, 0.55);', (string) file_get_contents(resource_path('css/app.css')));
         $this->assertStringContainsString('var(--color-ground)', CssBlocks::body($css, '.ds-summary__item'));
     }
 

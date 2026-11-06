@@ -6,8 +6,16 @@ namespace App\Services;
 
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use RuntimeException;
 use SplFileInfo;
 
+/**
+ * Source checks complement, but cannot replace, a rendered design review.
+ *
+ * Every finding carries a line-independent fingerprint (file, rule, normalized
+ * source line, matched text) so the legacy baseline survives line shifts but not
+ * a changed or additional violation.
+ */
 class UiLinter
 {
     /** @var list<string> */
@@ -25,7 +33,7 @@ class UiLinter
         $this->basePath = rtrim($basePath ?? (is_string($roots) ? $roots : base_path()), '/\\');
     }
 
-    /** @return list<array{rule: string, file: string, line: int, message: string}> */
+    /** @return list<array{rule: string, file: string, line: int, message: string, source: string, fingerprint: string}> */
     public function run(): array
     {
         $findings = [];
@@ -33,7 +41,12 @@ class UiLinter
         foreach ($this->files() as $file) {
             $relativePath = $this->relativePath($file);
             $type = str_ends_with($file, '.css') ? 'css' : 'blade';
-            $lines = file($file, FILE_IGNORE_NEW_LINES) ?: [];
+            $source = file_get_contents($file);
+            if ($source === false) {
+                throw new RuntimeException('Cannot read UI source: '.$relativePath);
+            }
+            $rawLines = explode("\n", str_replace("\r\n", "\n", $source));
+            $lines = explode("\n", $this->blankComments(str_replace("\r\n", "\n", $source), $type));
 
             foreach ($this->rules as $rule) {
                 if (($rule['files'] ?? 'blade') !== $type) {
@@ -43,12 +56,22 @@ class UiLinter
                     continue;
                 }
 
-                if ($rule['context'] ?? false) {
-                    $findings = array_merge($findings, $this->applyContextRule($rule, $lines, $relativePath));
-                } elseif ($rule['hex'] ?? false) {
-                    $findings = array_merge($findings, $this->applyHexRule($rule, $lines, $relativePath, basename($file)));
-                } else {
-                    $findings = array_merge($findings, $this->applyLineRule($rule, $lines, $relativePath));
+                $hits = match (true) {
+                    (bool) ($rule['context'] ?? false) => $this->applyContextRule($rule, $lines),
+                    (bool) ($rule['hex'] ?? false) => $this->applyHexRule($rule, $lines, basename($file)),
+                    default => $this->applyLineRule($rule, $lines, basename($file)),
+                };
+
+                foreach ($hits as [$index, $match, $message]) {
+                    $snippet = trim((string) preg_replace('/\s+/', ' ', $rawLines[$index] ?? ''));
+                    $findings[] = [
+                        'rule' => (string) $rule['id'],
+                        'file' => $relativePath,
+                        'line' => $index + 1,
+                        'message' => $message,
+                        'source' => $snippet,
+                        'fingerprint' => hash('sha256', $relativePath."\0".$rule['id']."\0".$snippet."\0".$match),
+                    ];
                 }
             }
         }
@@ -56,16 +79,8 @@ class UiLinter
         return $findings;
     }
 
-    private function relativePath(string $file): string
-    {
-        $normalized = str_replace('\\', '/', $file);
-        $base = str_replace('\\', '/', $this->basePath).'/';
-
-        return str_starts_with($normalized, $base) ? substr($normalized, strlen($base)) : $normalized;
-    }
-
     /** @return list<string> */
-    private function files(): array
+    public function files(): array
     {
         $files = [];
 
@@ -85,9 +100,34 @@ class UiLinter
             }
         }
 
+        $files = array_values(array_unique($files));
         sort($files);
 
         return $files;
+    }
+
+    private function relativePath(string $file): string
+    {
+        $normalized = str_replace('\\', '/', $file);
+        $base = str_replace('\\', '/', $this->basePath).'/';
+
+        return str_starts_with($normalized, $base) ? substr($normalized, strlen($base)) : $normalized;
+    }
+
+    /**
+     * Comments never count as findings. They are blanked in place so offsets and
+     * line numbers stay intact. Block comments are only stripped from CSS: in Blade
+     * a path glob such as is('admin/*') would otherwise open a false comment.
+     */
+    private function blankComments(string $source, string $type): string
+    {
+        $pattern = $type === 'css' ? '/\/\*.*?\*\//s' : '/{{--.*?--}}|<!--.*?-->/s';
+
+        return preg_replace_callback(
+            $pattern,
+            static fn (array $m): string => (string) preg_replace('/[^\n]/', ' ', $m[0]),
+            $source,
+        ) ?? $source;
     }
 
     /** @param list<string> $excludes */
@@ -105,33 +145,37 @@ class UiLinter
     /**
      * @param  array<string, mixed>  $rule
      * @param  list<string>  $lines
-     * @return list<array{rule: string, file: string, line: int, message: string}>
+     * @return list<array{int, string, string}> line index, matched text, message
      */
-    private function applyLineRule(array $rule, array $lines, string $relativePath): array
+    private function applyLineRule(array $rule, array $lines, string $basename): array
     {
-        $findings = [];
+        // Optional allowance for whole lines, e.g. custom property declarations in the token sheet.
+        $allowLine = $rule['allow_line'] ?? null;
+        if ($allowLine !== null && isset($rule['allow_line_only_in']) && ! in_array($basename, $rule['allow_line_only_in'], true)) {
+            $allowLine = null;
+        }
+
+        $hits = [];
         foreach ($lines as $i => $line) {
-            if (preg_match($rule['pattern'], $line)) {
-                $findings[] = [
-                    'rule' => $rule['id'],
-                    'file' => $relativePath,
-                    'line' => $i + 1,
-                    'message' => $rule['warn'],
-                ];
+            if ($allowLine !== null && preg_match($allowLine, $line)) {
+                continue;
+            }
+            if (preg_match($rule['pattern'], $line, $m)) {
+                $hits[] = [$i, $m[0], (string) $rule['warn']];
             }
         }
 
-        return $findings;
+        return $hits;
     }
 
     /**
      * @param  array<string, mixed>  $rule
      * @param  list<string>  $lines
-     * @return list<array{rule: string, file: string, line: int, message: string}>
+     * @return list<array{int, string, string}>
      */
-    private function applyHexRule(array $rule, array $lines, string $relativePath, string $basename): array
+    private function applyHexRule(array $rule, array $lines, string $basename): array
     {
-        $findings = [];
+        $hits = [];
         $allowed = array_map('strtolower', $rule['allowed'] ?? []);
 
         if (isset($rule['allowed_only_in']) && ! in_array($basename, $rule['allowed_only_in'], true)) {
@@ -142,31 +186,26 @@ class UiLinter
             preg_match_all($rule['pattern'], $line, $matches);
             foreach ($matches[0] as $hex) {
                 if (! in_array(strtolower($hex), $allowed, true)) {
-                    $findings[] = [
-                        'rule' => $rule['id'],
-                        'file' => $relativePath,
-                        'line' => $i + 1,
-                        'message' => sprintf($rule['warn'], $hex),
-                    ];
+                    $hits[] = [$i, $hex, sprintf($rule['warn'], $hex)];
                 }
             }
         }
 
-        return $findings;
+        return $hits;
     }
 
     /**
      * @param  array<string, mixed>  $rule
      * @param  list<string>  $lines
-     * @return list<array{rule: string, file: string, line: int, message: string}>
+     * @return list<array{int, string, string}>
      */
-    private function applyContextRule(array $rule, array $lines, string $relativePath): array
+    private function applyContextRule(array $rule, array $lines): array
     {
-        $findings = [];
+        $hits = [];
         $require = $rule['context_require'] ?? '';
 
         foreach ($lines as $i => $line) {
-            if (! preg_match($rule['pattern'], $line)) {
+            if (! preg_match($rule['pattern'], $line, $m)) {
                 continue;
             }
 
@@ -175,15 +214,10 @@ class UiLinter
             $context = implode(' ', array_slice($lines, $start, $end - $start + 1));
 
             if (! str_contains($context, $require)) {
-                $findings[] = [
-                    'rule' => $rule['id'],
-                    'file' => $relativePath,
-                    'line' => $i + 1,
-                    'message' => $rule['warn'],
-                ];
+                $hits[] = [$i, $m[0], (string) $rule['warn']];
             }
         }
 
-        return $findings;
+        return $hits;
     }
 }
