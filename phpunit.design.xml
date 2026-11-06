@@ -4,6 +4,7 @@
         <testsuite name="Design">
             <file>tests/Unit/Services/UiLinterTest.php</file>
             <file>tests/Unit/Css/DesignTokensTest.php</file>
+            <file>tests/Unit/Css/BuildManifestIntegrityTest.php</file>
             <file>tests/Feature/Console/LintUiCommandTest.php</file>
             <file>tests/Feature/Ui/UiGalleryTest.php</file>
         </testsuite>

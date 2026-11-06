@@ -35,10 +35,20 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
-      - run: npm run build
+      - name: Fresh asset build
+        # Start from an empty directory so the result is exactly what a clean build emits.
+        run: |
+          rm -rf public/build
+          npm run build
+      - name: Committed build equals the fresh build
+        # Stage everything under public/build so added (new hashes), deleted (stale)
+        # and modified files all count; a plain `git diff` misses untracked files.
+        run: |
+          git add -A public/build
+          git status --short -- public/build
+          git diff --cached --exit-code -- public/build
       - run: composer check:design
       - run: php artisan view:cache
-      - run: git diff --exit-code -- public/build
 
   visual:
     name: Visual references
