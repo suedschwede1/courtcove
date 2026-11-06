@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\DatabaseController;
 use App\Http\Controllers\Admin\EventController;
 use App\Http\Controllers\Admin\LoginHistoryController;
 use App\Http\Controllers\Admin\OptionController;
+use App\Http\Controllers\Admin\SchedulerController;
 use App\Http\Controllers\Admin\SquareController;
 use App\Http\Controllers\Admin\StatisticsController;
 use App\Http\Controllers\Admin\TestMailController;
@@ -114,6 +115,13 @@ Route::middleware(['auth', 'admin.mode'])->prefix('admin')->name('admin.')->grou
         Route::get('config/verhalten', [OptionController::class, 'editBehavior'])->name('config.behavior.edit');
         Route::put('config/verhalten', [OptionController::class, 'updateBehavior'])->name('config.behavior.update');
         Route::resource('squares', SquareController::class)->except(['show']);
+        Route::get('scheduler', [SchedulerController::class, 'index'])->name('scheduler.index');
+        Route::post('scheduler/{task}/run', [SchedulerController::class, 'run'])
+            ->where('task', '[a-z0-9][a-z0-9:._-]{0,99}')
+            ->middleware('throttle:5,1')
+            ->name('scheduler.run');
+        Route::post('scheduler/queue/retry', [SchedulerController::class, 'retryFailed'])->name('scheduler.queue.retry');
+        Route::post('scheduler/queue/flush', [SchedulerController::class, 'flushFailed'])->name('scheduler.queue.flush');
         Route::get('testmail', [TestMailController::class, 'index'])->name('testmail.index');
         Route::post('testmail', [TestMailController::class, 'send'])->name('testmail.send');
         Route::get('database', [DatabaseController::class, 'index'])->name('database.index');
