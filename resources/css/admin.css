@@ -136,6 +136,50 @@
         font-weight: 700;
     }
 
+    /* Area shell: an entry holding the current page (tournament module, parent of the active sub-entry). */
+    .ds-admin-sidebar__link[aria-current="true"] {
+        color: var(--color-surface);
+        font-weight: 700;
+    }
+
+    /* Long entry names (event or draw titles) wrap inside the column instead of widening it. */
+    .ds-admin-sidebar__link {
+        gap: 8px;
+        padding-block: 6px;
+        overflow-wrap: anywhere;
+    }
+
+    /* Sub-group: indented below its entry with a guide line. */
+    .ds-admin-sidebar__list--sub {
+        margin: 2px 0 4px 12px;
+        padding-left: 8px;
+        border-left: 1px solid var(--color-chrome-line);
+    }
+
+    .ds-admin-sidebar__list--sub .ds-admin-sidebar__link {
+        min-height: 36px;
+        font-size: 14px;
+    }
+
+    .ds-admin-sidebar__badge {
+        display: inline-flex;
+        flex: none;
+        align-items: center;
+        margin-left: auto;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .ds-admin-sidebar__foot .ds-admin-sidebar__login {
+        width: 100%;
+    }
+
+    /* The sidebar's menu button inside a page's own phone bar (x-layout.phone-bar). */
+    .ds-phone-bar .ds-area-menu-button {
+        flex: none;
+        background: transparent;
+    }
+
     .ds-admin-sidebar__foot {
         display: flex;
         flex-direction: column;
@@ -331,6 +375,8 @@
         .ds-admin-sidebar.is-open {
             transform: none;
             visibility: visible;
+            /* Visible at once when opening, so the close button can take the focus; closing keeps the delay. */
+            transition: transform 0.15s, visibility 0s;
         }
 
         .ds-admin-sidebar .ds-admin-sidebar__close {
@@ -344,6 +390,23 @@
             padding: 0 12px;
             border-radius: 10px;
             font-size: 16px;
+        }
+
+        .ds-admin-sidebar__list--sub .ds-admin-sidebar__link {
+            min-height: 44px;
+            font-size: 15px;
+        }
+
+        /* Slide-in head as in the *-Menue-Mobil mockups: the area name ("Turniere", "Mitglieder") is the title. */
+        .ds-admin-sidebar__club {
+            display: none;
+        }
+
+        .ds-admin-sidebar__eyebrow {
+            font: 700 22px / 1.05 var(--font-display);
+            letter-spacing: 0;
+            text-transform: none;
+            color: var(--color-surface);
         }
 
         /* The mockup puts "Zum Kalender" at the bottom of the phone menu. */
