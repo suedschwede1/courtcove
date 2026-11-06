@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-06
+- Peak-time limit has its own global value "Max. Buchungen in den Stoßzeiten" (empty/0 = the global "Gleichzeitige Buchungen pro Benutzer" applies, both 0 = no peak limit) and no longer needs a global max-active value; counted as before across all courts (future bookings starting inside a window, checked when the new booking starts inside a window on a court with the switch on); privileged accounts only bypass it in admin mode.
 - Tests of the admin-mode booking limits now set the global max-active-bookings option (Konfiguration > Verhalten) instead of the removed per-court field (2026-11-06).
 - The admin mode switch is a POST form and sets a browser-session cookie (no 30-day/1-year lifetime, HttpOnly, SameSite=Lax, Secure and path like the session cookie); switching off, logging in and logging out delete it.
 - Administration, Mitglieder, Pyramide-, Mixed-, Turnier- and Auslosungs-Verwaltung show a page "Admin-Modus einschalten" with a button (returns to the requested page) instead of an error when a privileged account opens them without admin mode; AJAX calls get a clear 403 JSON. The menu entries stay visible; ladder and event grants keep working without admin mode.

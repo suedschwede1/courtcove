@@ -94,24 +94,23 @@ final class SquareValidator
 
         $maxActiveBookings = $this->maxActiveBookings();
 
-        if ($maxActiveBookings > 0 && ! $shortTermOverrideActive) {
-            $peakActive = $this->peakLimitService->isEnabled()
-                && $square->getMeta('peak_limit_enabled') === '1';
+        // Courts with the peak switch (and the global switch on) use the peak rule instead of the global
+        // max-active rule, as before: a new booking that starts inside a peak window is checked against the
+        // person's future bookings starting inside a window on ANY court, limit PeakLimitService::limit()
+        // (peak_limit.max, fallback booking.max_active_bookings, 0 = none). Bookings outside the windows on
+        // such a court are not limited. Privileged accounts only bypass it in admin mode (can()).
+        if (! $shortTermOverrideActive && $this->peakLimitService->appliesTo($square)) {
+            $peakLimit = $this->peakLimitService->limit();
 
-            if ($peakActive) {
-                if ($this->peakLimitService->isPeakTime($dateStart)) {
-                    $count = $this->getPeakActiveFutureBookingCount(
-                        $user,
-                        $this->peakLimitService->windows(),
-                        $excludeBookingId,
-                    );
-                    if ($count >= $maxActiveBookings) {
-                        return ValidationResult::fail(__('booking.messages.peak_limit_reached'));
-                    }
-                }
-            } elseif ($this->getActiveFutureBookingCount($user, $excludeBookingId) >= $maxActiveBookings) {
-                return ValidationResult::fail(__('booking.messages.max_active_bookings_reached'));
+            if ($peakLimit > 0
+                && $this->peakLimitService->isPeakTime($dateStart)
+                && ! $this->canCreateAnyBooking($user)
+                && $this->getPeakActiveFutureBookingCount($user, $this->peakLimitService->windows(), $excludeBookingId) >= $peakLimit) {
+                return ValidationResult::fail(__('booking.messages.peak_limit_reached'));
             }
+        } elseif ($maxActiveBookings > 0 && ! $shortTermOverrideActive
+            && $this->getActiveFutureBookingCount($user, $excludeBookingId) >= $maxActiveBookings) {
+            return ValidationResult::fail(__('booking.messages.max_active_bookings_reached'));
         }
 
         if ((int) $square->time_block_bookable_max > 0) {
