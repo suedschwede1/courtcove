@@ -284,4 +284,96 @@ class PeakLimitBehaviorTest extends TestCase
 
         $this->actingAsAdminMode($member)->book($court, 18)->assertStatus(422);
     }
+
+    // --- outside the windows: the global max-active limit applies on peak courts too -----------------
+
+    #[Test]
+    public function outside_the_windows_the_global_limit_applies_on_a_court_with_the_peak_switch(): void
+    {
+        $this->peakOn('5', '2');
+        $court = $this->court();
+        $user = $this->member();
+        $this->booking($user, $court, '2026-07-05', '13:00:00', '14:00:00');
+        $this->booking($user, $court, '2026-07-06', '13:00:00', '14:00:00');
+
+        $this->assertSame(__('booking.messages.max_active_bookings_reached'), $this->validate($court, $user, 13), '12:00-17:00 is outside the windows');
+        $this->assertSame(__('booking.messages.max_active_bookings_reached'), $this->validate($court, $user, 16));
+    }
+
+    #[Test]
+    public function outside_the_windows_below_the_global_limit_is_allowed(): void
+    {
+        $this->peakOn('5', '3');
+        $court = $this->court();
+        $user = $this->member();
+        $this->booking($user, $court, '2026-07-05', '13:00:00', '14:00:00');
+        $this->booking($user, $court, '2026-07-06', '13:00:00', '14:00:00');
+
+        $this->assertNull($this->validate($court, $user, 13));
+    }
+
+    #[Test]
+    public function inside_the_windows_both_limits_apply_and_the_stricter_one_wins(): void
+    {
+        // Peak limit stricter (1) than the global limit (3): peak message.
+        $this->peakOn('1', '3');
+        $court = $this->court();
+        $user = $this->member();
+        $this->booking($user, $court, '2026-07-05', '09:00:00', '10:00:00');
+        $this->assertSame(__('booking.messages.peak_limit_reached'), $this->validate($court, $user, 18));
+
+        // Global limit stricter (2, reached by two non-peak bookings) than the peak limit (5): global message.
+        $this->option('peak_limit.max', '5');
+        $this->option('booking.max_active_bookings', '2');
+        $other = $this->member();
+        $this->booking($other, $court, '2026-07-05', '13:00:00', '14:00:00');
+        $this->booking($other, $court, '2026-07-06', '13:00:00', '14:00:00');
+        $this->assertSame(__('booking.messages.max_active_bookings_reached'), $this->validate($court, $other, 18));
+    }
+
+    #[Test]
+    public function a_global_limit_of_zero_leaves_only_the_peak_rule_inside_the_windows(): void
+    {
+        $this->peakOn('1', '0');
+        $court = $this->court();
+        $user = $this->member();
+        foreach (['2026-07-03', '2026-07-04', '2026-07-05'] as $date) {
+            $this->booking($user, $court, $date, '13:00:00', '14:00:00');
+        }
+
+        $this->assertNull($this->validate($court, $user, 13), 'no global limit, outside the windows');
+        $this->assertNull($this->validate($court, $user, 18), 'no peak booking yet');
+    }
+
+    #[Test]
+    public function the_short_booking_window_lifts_both_limits(): void
+    {
+        $this->travelTo(self::DAY.' 17:50:00');
+        $this->peakOn('1', '1');
+        $this->option('booking.short_booking_window', '900');
+        $court = $this->court();
+        $user = $this->member();
+        $this->booking($user, $court, '2026-07-12', '09:00:00', '10:00:00');
+
+        $this->assertNull($this->validate($court, $user, 18), 'inside a window and above both limits');
+
+        $this->travelTo(self::DAY.' 14:50:00');
+        $this->assertNull($this->validate($court, $user, 15), 'outside the windows');
+    }
+
+    #[Test]
+    public function admin_mode_bypasses_the_peak_rule_but_not_the_global_max_active_limit(): void
+    {
+        $this->peakOn('1', '2');
+        $court = $this->court();
+        $admin = User::factory()->create(['status' => 'admin']);
+        $this->booking($admin, $court, '2026-07-05', '09:00:00', '10:00:00');
+
+        // Peak limit (1) reached, global (2) not: admin mode passes inside a window.
+        $this->actingAsAdminMode($admin)->book($court, 18)->assertOk();
+
+        // Now two active bookings: the global limit stops the admin in admin mode, too.
+        $response = $this->actingAsAdminMode($admin)->book($court, 14)->assertStatus(422);
+        $this->assertSame(__('booking.messages.max_active_bookings_reached'), $response->json('error'));
+    }
 }
