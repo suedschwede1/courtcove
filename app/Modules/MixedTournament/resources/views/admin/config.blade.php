@@ -22,7 +22,6 @@
 @endphp
 @include('mixed::admin.partials.event-head')
 
-@include('mixed::partials.tabs', ['event' => $event, 'active' => 'konfiguration', 'adminView' => true, 'canAdmin' => true])
 
 <div class="grid items-start gap-5 lg:grid-cols-2">
     <div class="flex flex-col gap-5">

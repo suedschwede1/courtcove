@@ -17,7 +17,7 @@
 @section('admin-eyebrow', __('members::admin.area.eyebrow'))
 
 @section('admin-sidebar')
-    <x-layout.admin-sidebar :groups="\App\Modules\Members\Support\MembersNavigation::groups(auth()->user(), request())" :eyebrow="__('booking.nav.members')" :label="__('members::admin.area.nav')" />
+    <x-layout.admin-sidebar :area="app(\App\Modules\Members\Support\MembersNavigation::class)" />
 @endsection
 
 @push('head')

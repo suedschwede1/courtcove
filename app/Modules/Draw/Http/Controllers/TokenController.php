@@ -12,7 +12,6 @@ use App\Modules\Draw\Services\TokenPicker;
 use App\Modules\Draw\Support\TokenPageContext;
 use App\Modules\Tournament\Services\NoCurrentTournament;
 use App\Modules\Tournament\Services\TournamentManager;
-use App\Modules\Tournament\Support\TournamentTabs;
 use App\Modules\TournamentBase\Support\ActionRefused;
 use App\Modules\TournamentBase\Support\ModuleFlash;
 use Illuminate\Contracts\View\View;
@@ -69,7 +68,6 @@ final class TokenController extends Controller
             // tournament::layout
             'tournament' => $c->tournament,
             'access' => $c->access,
-            'tabs' => TournamentTabs::for($c->access, $c->tournament, 'draw'),
             'stopUrl' => Route::has('tournament.admin.simulate') ? route('tournament.admin.simulate') : null,
             'testTournament' => $c->isTest ? (string) $c->tournament->title : null,
             'tokenHint' => null,

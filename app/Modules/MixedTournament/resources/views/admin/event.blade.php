@@ -17,7 +17,6 @@
 @endphp
 @include('mixed::admin.partials.event-head')
 
-@include('mixed::partials.tabs', ['event' => $event, 'active' => 'teilnehmer', 'adminView' => true, 'canAdmin' => true])
 
 <x-ui.card padding="none" class="ds-admin-rows" :title="__('mixed::admin.participants.title').' '.__('mixed::admin.participants.count', ['active' => $activeCount, 'total' => $totalCount])">
     {{-- Bulk actions as a toolbar row (in the card header they squeeze the title on phones). --}}

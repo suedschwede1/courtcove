@@ -22,7 +22,6 @@
     @endslot
 @endcomponent
 
-@include('mixed::partials.tabs', ['event' => $event, 'active' => 'teilnehmer', 'canAdmin' => $canAdmin])
 
 <div class="flex flex-wrap items-start gap-5">
     <section aria-labelledby="mixed-participants" class="flex min-w-0 flex-[999_1_640px] flex-col gap-3">

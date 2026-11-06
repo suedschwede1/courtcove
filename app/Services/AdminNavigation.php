@@ -5,17 +5,27 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\User;
-use App\Support\Ui\AdminNavGroup;
-use App\Support\Ui\NavItem;
+use App\Support\Navigation\AreaNavBuilder;
+use App\Support\Navigation\AreaNavGroup;
+use App\Support\Navigation\AreaNavigation;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 
 /**
- * Builds the grouped admin sidebar navigation from one list of rows.
+ * Navigation of the administration area in the area shell, built from one list of rows.
  */
-final class AdminNavigation
+final class AdminNavigation implements AreaNavigation
 {
+    public function eyebrow(): string
+    {
+        return __('booking.admin.nav.eyebrow');
+    }
+
+    public function label(): string
+    {
+        return __('booking.admin.nav.label');
+    }
+
     /**
      * Group key => [label key, rows]; row = [key, route name, gate, label key, active patterns, route must exist].
      *
@@ -53,37 +63,31 @@ final class AdminNavigation
     }
 
     /**
-     * @return list<AdminNavGroup>
+     * @return list<AreaNavGroup>
      */
-    public function groups(User $user, Request $request): array
+    public function groups(?User $user, Request $request): array
     {
-        $gate = Gate::forUser($user);
-        $activeSeen = false;
+        if ($user === null) {
+            return [];
+        }
+
+        $nav = new AreaNavBuilder($user, $request);
         $groups = [];
 
         foreach ($this->definition() as [$groupKey, $groupLabel, $rows]) {
             $items = [];
             foreach ($rows as $row) {
                 [$key, $routeName, $ability, $label, $patterns] = $row;
-                $mustExist = $row[5] ?? false;
-
-                if ($mustExist && ! Route::has($routeName)) {
-                    continue;
-                }
-                if (! $gate->allows($ability)) {
+                if (($row[5] ?? false) && ! Route::has($routeName)) {
                     continue;
                 }
 
-                $active = ! $activeSeen && $request->routeIs(...$patterns);
-                $activeSeen = $activeSeen || $active;
-                $items[] = new NavItem($key, __($label), route($routeName), '', $active, true);
+                $items[] = $nav->item($key, __($label), route($routeName), $patterns, $ability);
             }
 
-            if ($items !== []) {
-                $groups[] = new AdminNavGroup($groupKey, __($groupLabel), $items);
-            }
+            $groups[] = $nav->group($groupKey, __($groupLabel), $items);
         }
 
-        return $groups;
+        return AreaNavBuilder::groups($groups);
     }
 }

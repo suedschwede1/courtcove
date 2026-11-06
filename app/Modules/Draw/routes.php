@@ -8,12 +8,15 @@ use App\Modules\Draw\Http\Controllers\RecordController;
 use App\Modules\Draw\Http\Controllers\TokenController;
 use Illuminate\Support\Facades\Route;
 
-// Public record - deliberately WITHOUT login: anyone must be able to recompute the draw.
+// Public record: anyone must be able to recompute the draw. Club decision 2026-11-06: login required while
+// config tournament-base.require_login is on (tournament-base.public; the JSON then answers a guest with 401).
 Route::get('draw/record/{slug}', [RecordController::class, 'show'])
+    ->middleware('tournament-base.public')
     ->where('slug', '[A-Za-z0-9_-]{4,32}')
     ->name('draw.record');
 
 Route::get('draw/record/{slug}/json', [RecordController::class, 'json'])
+    ->middleware('tournament-base.public')
     ->where('slug', '[A-Za-z0-9_-]{4,32}')
     ->name('draw.record.json');
 

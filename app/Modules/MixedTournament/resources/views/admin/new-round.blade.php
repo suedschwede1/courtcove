@@ -17,7 +17,6 @@
 @endphp
 @include('mixed::admin.partials.event-head')
 
-@include('mixed::partials.tabs', ['event' => $event, 'active' => 'neue-runde', 'adminView' => true, 'canAdmin' => true])
 
 <div class="flex flex-wrap items-start gap-5">
     <div class="flex min-w-0 flex-[999_1_560px] flex-col gap-4">

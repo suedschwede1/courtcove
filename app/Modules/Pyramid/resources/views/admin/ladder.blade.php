@@ -2,9 +2,15 @@
 
 @section('title', __('pyramid::admin.ladder.title', ['title' => $ladder->title, 'season' => (int) $ladder->season]))
 @section('admin-title', $ladder->title)
-{{-- Phone admin bar (Admin-Pyramide-Mobil): back to the overview, the pyramid eyebrow above the ladder title. --}}
-@section('admin-back', \App\Modules\Pyramid\Support\PyramidLinks::adminIndex())
-@section('admin-eyebrow', __('pyramid::admin.index.eyebrow'))
+{{--
+    Phone admin bar (Admin-Pyramide-Mobil): back to the overview, the pyramid eyebrow above the ladder title, and the
+    menu button of the tournament sidebar.
+--}}
+@section('phone-bar')
+    <x-layout.phone-bar :title="$ladder->title" :eyebrow="__('pyramid::admin.index.eyebrow')" :back="\App\Modules\Pyramid\Support\PyramidLinks::adminIndex()" x-bind:inert="navOpen">
+        <x-layout.area-menu-button />
+    </x-layout.phone-bar>
+@endsection
 
 {{--
     Dashboard of one ladder. Needs: $ladder, $ladders, $counts (active players per ladder id), $otherLadders,

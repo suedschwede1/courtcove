@@ -1,6 +1,7 @@
 {{--
-    Title, status, meta line, ladder switcher and module tabs.
-    Needs: $ladder, $ladders (all ladders), $active (ranking|challenges|rules|admin), $canAdmin.
+    Title, status, meta line and ladder switcher. The module navigation (Rangliste, Forderungen, Regeln, Verwaltung)
+    is the tournament sidebar (PyramidNavigation).
+    Needs: $ladder, $ladders (all ladders).
     Optional: $playerCount and $openCount for the full meta line (season only without them).
 --}}
 @php
@@ -14,15 +15,6 @@
     $meta = isset($playerCount, $openCount)
         ? __('pyramid::ui.meta', ['season' => (int) $ladder->season, 'count' => $playerCount, 'open' => $openCount])
         : __('pyramid::ui.meta_season', ['season' => (int) $ladder->season]);
-
-    $tabs = [
-        ['label' => __('pyramid::ui.tab_ranking'), 'href' => PyramidLinks::ladder((int) $ladder->id), 'active' => $active === 'ranking'],
-        ['label' => __('pyramid::ui.tab_challenges'), 'href' => PyramidLinks::challenges(), 'active' => $active === 'challenges'],
-        ['label' => __('pyramid::ui.tab_rules'), 'href' => PyramidLinks::rules(), 'active' => $active === 'rules'],
-    ];
-    if ($canAdmin) {
-        $tabs[] = ['label' => __('pyramid::ui.tab_admin'), 'href' => PyramidLinks::adminLadder((int) $ladder->id), 'active' => $active === 'admin'];
-    }
 @endphp
 <div class="flex flex-col gap-4">
     <div class="flex flex-wrap items-center justify-between gap-3">
@@ -42,6 +34,4 @@
             </div>
         @endif
     </div>
-
-    @include('tournament-base::partials.module-tabs', ['items' => $tabs, 'label' => __('pyramid::ui.tabs_label')])
 </div>

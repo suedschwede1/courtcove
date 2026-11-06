@@ -20,6 +20,13 @@ class PyramidNotFoundPageTest extends TestCase
 {
     use LazilyRefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // These tests pin the public behaviour (config off); TournamentLoginRequiredTest covers the default.
+        config(['tournament-base.require_login' => false]);
+    }
+
     private function admin(): User
     {
         return User::factory()->status('admin')->create();
@@ -37,7 +44,7 @@ class PyramidNotFoundPageTest extends TestCase
             ->assertSee('Diese Pyramide gibt es nicht.')
             ->assertSee('Zur Pyramide')
             ->assertSee('href="'.route('pyramide.index').'"', false)
-            ->assertSee('ds-header', false);
+            ->assertSee('<aside id="admin-nav"', false);
         $this->assertInstanceOf(PyramidNotFound::class, $response->exception);
     }
 

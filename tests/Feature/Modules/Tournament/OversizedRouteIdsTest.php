@@ -23,6 +23,13 @@ class OversizedRouteIdsTest extends TestCase
     use BuildsChampionship;
     use LazilyRefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // These tests pin the public behaviour (config off); TournamentLoginRequiredTest covers the default.
+        config(['tournament-base.require_login' => false]);
+    }
+
     private const OVERSIZED = '99999999999999999999';
 
     /** @return list<Route> */

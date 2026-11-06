@@ -4,7 +4,7 @@
 
     $navigation = app(\App\Services\MainNavigation::class);
     $navItems = $navigation->items(auth()->user(), request());
-    $barItems = $navigation->bar($navItems);
+    $barItems = $navigation->bar($navItems, request());
     $activeItem = collect($navItems)->first(fn ($item) => $item->active);
     $sectionTitle = $activeItem?->label ?? $bookingName;
 @endphp

@@ -18,7 +18,6 @@
     @include('mixed::partials.event-head', ['event' => $event])
 @endif
 
-@include('mixed::partials.tabs', ['event' => $event, 'active' => 'wertung', 'canAdmin' => $canAdmin, 'adminView' => ! empty($adminView)])
 
 <section aria-label="{{ __('mixed::common.standings_title') }}" class="flex w-full max-w-4xl flex-col gap-3">
     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\TournamentBase;
 
+use App\Modules\TournamentBase\Http\Middleware\RequireLoginUnlessPublic;
 use App\Modules\TournamentBase\Http\Middleware\RequireModuleLogin;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Routing\Middleware\SubstituteBindings;
@@ -27,11 +28,16 @@ class TournamentBaseServiceProvider extends ServiceProvider
         $this->loadViewsFrom(__DIR__.'/resources/views', 'tournament-base');
         Blade::anonymousComponentPath(__DIR__.'/resources/views/components', 'tournament-base');
 
-        $this->app->make(Router::class)->aliasMiddleware('tournament-base.login', RequireModuleLogin::class);
+        $router = $this->app->make(Router::class);
+        $router->aliasMiddleware('tournament-base.login', RequireModuleLogin::class);
+        // The pages that can be public: login only while config tournament-base.require_login is on.
+        $router->aliasMiddleware('tournament-base.public', RequireLoginUnlessPublic::class);
 
         // After the session/auth middlewares (it needs the user) but before route-model binding, so a guest
         // is sent to the login before an unknown id can be told apart from a known one.
-        $this->app->make(Kernel::class)->addToMiddlewarePriorityBefore(SubstituteBindings::class, RequireModuleLogin::class);
+        $kernel = $this->app->make(Kernel::class);
+        $kernel->addToMiddlewarePriorityBefore(SubstituteBindings::class, RequireModuleLogin::class);
+        $kernel->addToMiddlewarePriorityBefore(SubstituteBindings::class, RequireLoginUnlessPublic::class);
 
         if ($this->app->runningInConsole()) {
             $this->commands([

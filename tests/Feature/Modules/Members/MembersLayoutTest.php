@@ -334,7 +334,7 @@ class MembersLayoutTest extends TestCase
         $layout = (string) file_get_contents(base_path(self::VIEWS.'layout.blade.php'));
         $this->assertStringContainsString("@extends('layouts.admin')", $layout);
         $this->assertStringContainsString("@section('admin-sidebar')", $layout);
-        $this->assertStringContainsString('MembersNavigation::groups(', $layout);
+        $this->assertStringContainsString('MembersNavigation::class', $layout);
 
         $pages = 0;
         foreach (glob(base_path(self::VIEWS.'{*,*/*}.blade.php'), GLOB_BRACE) ?: [] as $path) {

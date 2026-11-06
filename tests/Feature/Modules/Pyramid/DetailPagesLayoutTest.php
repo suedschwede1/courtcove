@@ -19,6 +19,13 @@ class DetailPagesLayoutTest extends TestCase
 {
     use LazilyRefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // These tests pin the public behaviour (config off); TournamentLoginRequiredTest covers the default.
+        config(['tournament-base.require_login' => false]);
+    }
+
     private function ladder(): PyramidLadder
     {
         return PyramidLadder::factory()->asDefault()->withRanking(10)->create();
@@ -70,7 +77,7 @@ class DetailPagesLayoutTest extends TestCase
     }
 
     #[Test]
-    public function detail_pages_bring_the_phone_top_bar_which_replaces_the_site_header_on_phones(): void
+    public function detail_pages_bring_the_phone_top_bar_which_replaces_the_shell_bar_and_keeps_the_menu(): void
     {
         [$ladder, $viewer, $challenge] = $this->scheduledChallenge();
         $back = 'href="'.url('/pyramide/'.$ladder->id).'"';
@@ -87,22 +94,22 @@ class DetailPagesLayoutTest extends TestCase
         foreach ($pages as $url => [$title, $user]) {
             $html = (string) $this->actingAs($user)->get($url)->assertOk()->getContent();
 
-            $this->assertStringContainsString('<div class="ds-header-host--phone-bar">', $html, $url);
-            $this->assertMatchesRegularExpression('#<header class="ds-phone-bar ds-on-chrome no-print">.*?'.preg_quote($back, '#').'.*?<h1 class="ds-phone-bar__title">'.preg_quote($title, '#').'</h1>#s', $html, $url);
+            $this->assertStringNotContainsString('<header class="ds-admin-bar', $html, $url);
+            $this->assertMatchesRegularExpression('#<header class="ds-phone-bar ds-on-chrome no-print" x-bind:inert="navOpen">.*?'.preg_quote($back, '#').'.*?<h1 class="ds-phone-bar__title">'.preg_quote($title, '#').'</h1>.*?aria-controls="admin-nav".*?</header>#s', $html, $url);
             // The desktop head stays, hidden on phones.
             $this->assertStringContainsString('<div class="flex items-center gap-2 max-md:hidden">', $html, $url);
         }
     }
 
     #[Test]
-    public function the_ladder_page_keeps_the_plain_site_header(): void
+    public function the_ladder_page_keeps_the_shell_phone_bar(): void
     {
         $this->ladder();
 
         $html = (string) $this->get('/pyramide')->assertOk()->getContent();
 
         $this->assertStringNotContainsString('ds-phone-bar', $html);
-        $this->assertStringNotContainsString('ds-header-host--phone-bar', $html);
+        $this->assertStringContainsString('<header class="ds-admin-bar ds-on-chrome"', $html);
     }
 
     #[Test]
