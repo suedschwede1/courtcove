@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-06
+- Members (family fee groundwork): suggestions of possible families from a shared address (normalised street and zip), e-mail or phone (last 9 digits) among current members without household; read-only, dismissed groups stay hidden, nothing is created automatically.
 - Members export: two new columns "Haushalt" (household name or last names) and "Zahlende Person" ("ja" for the paying person).
 - Members Rundmail: new audience "Beitrag {Jahr} offen" (active members with an open own due and, for an open household due, only the paying person); households without a paying person get no mail and are shown as "n Haushalte ohne zahlende Person (nicht angeschrieben)".
 - Members list: members of a household get a "Haushalt" badge, the dues column shows the household due status read-only with a link to the household, "Beitrag offen" and the due filter also find members covered by an open household due, and "Weitere Filter" can show members with or without household.
