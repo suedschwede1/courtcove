@@ -136,6 +136,17 @@
             </div>
         </x-ui.card>
 
+        <x-ui.card :title="__('booking.admin.cfg.section_system_mail')" padding="lg" class="ds-admin-form-card">
+            <div class="ds-admin-form-grid ds-admin-form-grid--2">
+                <x-ui.field :label="__('booking.admin.cfg.system_mail_booking_reply_to')" for="cf-sm-booking-reply" :help="__('booking.admin.cfg.system_mail_booking_reply_to_hint')">
+                    <x-ui.input id="cf-sm-booking-reply" name="system_mail_booking_reply_to" type="email" :value="$values['system_mail_booking_reply_to']" />
+                </x-ui.field>
+                <x-ui.field :label="__('booking.admin.cfg.system_mail_account_reply_to')" for="cf-sm-account-reply" :help="__('booking.admin.cfg.system_mail_account_reply_to_hint')">
+                    <x-ui.input id="cf-sm-account-reply" name="system_mail_account_reply_to" type="email" :value="$values['system_mail_account_reply_to']" />
+                </x-ui.field>
+            </div>
+        </x-ui.card>
+
         <div class="ds-admin-actions ds-admin-actions--sticky">
             <div class="ds-admin-actions__group ds-admin-actions__group--main">
                 <x-ui.button type="submit" :block="false" class="ds-admin-actions__save">{{ __('booking.admin.save') }}</x-ui.button>

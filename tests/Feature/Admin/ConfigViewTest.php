@@ -50,7 +50,7 @@ final class ConfigViewTest extends TestCase
 
         $form = '//form[@method="POST"][@action="'.route('admin.config.update').'"]';
         $this->assertSame(1, $this->nodes($form.'//input[@name="_method"][@value="PUT"]')->length);
-        $this->assertSame(5, $this->nodes($form.'//section[contains(@class,"ds-admin-form-card")]')->length);
+        $this->assertSame(6, $this->nodes($form.'//section[contains(@class,"ds-admin-form-card")]')->length);
 
         $names = ['client_name_full', 'client_name_short', 'contact_email', 'client_phone', 'client_website',
             'client_website_contact', 'client_website_imprint', 'client_website_privacy', 'logo_path',
@@ -59,7 +59,8 @@ final class ConfigViewTest extends TestCase
             'registration_welcome', 'registration_intro', 'registration_email_help', 'registration_privacy',
             'registration_success', 'tournament_mail_from_address', 'tournament_mail_from_name',
             'tournament_mail_reply_to_address', 'tournament_mail_reply_to_name', 'tournament_mail_signature_club',
-            'tournament_mail_signature_url', 'tournament_mail_signature_text'];
+            'tournament_mail_signature_url', 'tournament_mail_signature_text', 'system_mail_booking_reply_to',
+            'system_mail_account_reply_to'];
         foreach ($names as $name) {
             $controls = $this->nodes($form.'//*[self::input or self::textarea][@name="'.$name.'"]');
             $this->assertSame(1, $controls->length, $name);

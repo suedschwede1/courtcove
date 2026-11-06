@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-06
+- Admin "Texte": new card "Antwortadresse für System-/Buchungsmails" with one Reply-To address for booking mails and one for password/account mails; a filled field wins over the .env value, an emptied field removes it again.
 - Booking mails (confirmation, cancellation) and account mails (password reset, account activation, login code) can carry a Reply-To, one address per group from MAIL_BOOKING_REPLY_TO_ADDRESS / MAIL_ACCOUNT_REPLY_TO_ADDRESS; unset means no Reply-To header as before, and the tournament Reply-To stays separate.
 - Admin dashboard: the KPI that counts enabled booking accounts is labelled "Aktive Benutzerkonten" (English "Active user accounts") instead of "Aktive Mitglieder", so it is not mistaken for the club member count of the members area.
 - Members forms (Geschäftsjahr, Funktion, Mitglied, Anonymisieren, Zahlung, Beiträge, Rundmail, Mail-Konfiguration, Datenschutz) no longer fail with an error page when a rejected request sent a list where one value belongs (`name[]=x`) or one value where a list belongs: the shared input, textarea and select fields show such old input as empty and validation rejects it.
