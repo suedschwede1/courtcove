@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Mail;
 
 use App\Models\User;
+use App\Support\Mail\SystemMailSender;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -22,7 +23,10 @@ class UserActivated extends Mailable implements ShouldQueue
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: 'Ihr Konto wurde aktiviert');
+        return new Envelope(
+            subject: 'Ihr Konto wurde aktiviert',
+            replyTo: app(SystemMailSender::class)->replyTo(SystemMailSender::SCOPE_ACCOUNT),
+        );
     }
 
     public function content(): Content

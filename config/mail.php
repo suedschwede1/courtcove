@@ -121,8 +121,9 @@ return [
     |--------------------------------------------------------------------------
     |
     | Laravel applies this address to EVERY mail the application sends, so it
-    | stays unset: the club decided that only the tournament mails carry a
-    | Reply-To (see "tournament" below, fed by MAIL_REPLY_TO_ADDRESS).
+    | stays unset. Mails that carry a Reply-To set it explicitly in their
+    | envelope: the tournament mails (see "tournament" below, fed by
+    | MAIL_REPLY_TO_ADDRESS) and the booking/account mails (see "system").
     |
     */
 
@@ -157,6 +158,27 @@ return [
             'text' => env('TOURNAMENT_MAIL_SIGNATURE'),
             'club' => env('TOURNAMENT_MAIL_SIGNATURE_CLUB'),
             'url' => env('TOURNAMENT_MAIL_SIGNATURE_URL'),
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Reply-To of the Booking and Account Mails
+    |--------------------------------------------------------------------------
+    |
+    | Read by App\Support\Mail\SystemMailSender. "booking": booking
+    | confirmation and cancellation; "account": password reset, account
+    | activation and login code. A non-empty admin option (admin "Texte" page)
+    | wins over these values; empty everywhere means no Reply-To header.
+    |
+    */
+
+    'system' => [
+        'booking' => [
+            'reply_to' => ['address' => env('MAIL_BOOKING_REPLY_TO_ADDRESS')],
+        ],
+        'account' => [
+            'reply_to' => ['address' => env('MAIL_ACCOUNT_REPLY_TO_ADDRESS')],
         ],
     ],
 
