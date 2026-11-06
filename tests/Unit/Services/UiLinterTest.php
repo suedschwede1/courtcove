@@ -279,5 +279,54 @@ class UiLinterTest extends TestCase
         $this->assertSame('f.blade.php', $f['file']);
         $this->assertSame(1, $f['line']);
         $this->assertNotSame('', $f['message']);
+        $this->assertSame('<p class="text-red-600">x</p>', $f['source']);
+        $this->assertMatchesRegularExpression('/^[0-9a-f]{64}$/', $f['fingerprint']);
+    }
+
+    #[Test]
+    public function css_and_multiple_roots_are_scanned_but_other_files_are_not(): void
+    {
+        $this->writeFile('resources/views/a.blade.php', '<p class="text-red-500">x</p>');
+        $this->writeFile('app/Modules/Members/resources/views/mail/index.blade.php', '<p class="text-blue-500">x</p>');
+        $this->writeFile('resources/css/sample.css', '.card { color: #0066cc; }');
+        $this->writeFile('resources/views/ignored.php', '#ff0000');
+
+        $linter = new UiLinter([$this->tmpDir.'/resources', $this->tmpDir.'/app/Modules', $this->tmpDir.'/resources'], UiRules::all(), $this->tmpDir);
+
+        $this->assertCount(3, $linter->files());
+        $this->assertEqualsCanonicalizing(['CSS-01', 'CLR-02', 'CLR-02'], array_column($linter->run(), 'rule'));
+        $this->assertContains('app/Modules/Members/resources/views/mail/index.blade.php', array_column($linter->run(), 'file'));
+    }
+
+    #[Test]
+    public function comments_are_ignored_without_losing_line_numbers(): void
+    {
+        $this->writeView('page.blade.php', "{{-- #f00 --}}\n<!-- text-red-500 -->\n<p class=\"text-[#00f]\">Text</p>");
+        $this->writeFile('resources/css/page.css', "/* #123456\n   #654321 */\na { color: #abcdef; }\n");
+
+        $findings = (new UiLinter($this->tmpDir, UiRules::all()))->run();
+        $pairs = array_map(fn (array $f): array => [$f['rule'], $f['line']], $findings);
+
+        $this->assertEqualsCanonicalizing([['CLR-01', 3], ['CSS-01', 3]], $pairs);
+    }
+
+    #[Test]
+    public function a_path_glob_in_blade_does_not_open_a_comment(): void
+    {
+        $this->writeView('page.blade.php', "<a class=\"{{ request()->is('admin/*') ? 'x' : '' }}\">A</a>\n<p class=\"text-red-500\">x</p>\n<p>*/</p>");
+        $this->assertSame(1, $this->countRule('CLR-02'));
+    }
+
+    #[Test]
+    public function inserting_lines_preserves_a_fingerprint_but_changing_the_violation_does_not(): void
+    {
+        $this->writeView('page.blade.php', '<p class="text-[#f00]">Text</p>');
+        $original = (new UiLinter($this->tmpDir, UiRules::all()))->run()[0]['fingerprint'];
+
+        $this->writeView('page.blade.php', "\n\n".'<p class="text-[#f00]">Text</p>');
+        $this->assertSame($original, (new UiLinter($this->tmpDir, UiRules::all()))->run()[0]['fingerprint']);
+
+        $this->writeView('page.blade.php', '<p class="text-[#0f0]">Text</p>');
+        $this->assertNotSame($original, (new UiLinter($this->tmpDir, UiRules::all()))->run()[0]['fingerprint']);
     }
 }

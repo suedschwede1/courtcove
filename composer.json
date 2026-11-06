@@ -84,7 +84,15 @@
         "dusk": "@php vendor/bin/phpunit -c phpunit.dusk.xml",
         "dusk:visual": "@php vendor/bin/phpunit -c phpunit.dusk.xml --filter VisualRegressionTest",
         "analyse": "@php vendor/bin/phpstan analyse --no-progress",
+        "lint:ui": "@php artisan lint:ui",
+        "check:design": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php artisan config:clear",
+            "@lint:ui",
+            "@php vendor/bin/phpunit -c phpunit.design.xml"
+        ],
         "lint": [
+            "@lint:ui",
             "@php vendor/bin/pint --test",
             "@analyse"
         ],

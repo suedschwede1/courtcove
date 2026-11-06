@@ -210,10 +210,14 @@ Views are built from shared Blade components and design tokens.
   components (header, phone menu, …) live in `resources/views/components/layout/`.
 - **Component CSS:** `ds-*` classes are defined in `resources/css/ds.css`.
 - **Gallery:** `/_ui` renders every component for visual checks. It is only available in
-  the `local` and `testing` environments.
-- **Linter:** `php artisan lint:ui --summary` lists remaining legacy markup (literal
-  colors, inline styles, …); `--fail-over=N` exits non-zero when the finding count
-  exceeds `N`, so the count can be ratcheted down.
+  the `local`, `testing` and `dusk.local` environments.
+- **Linter:** `php artisan lint:ui --summary` checks views and CSS (literal colors,
+  inline styles, …) and exits non-zero on any blocking finding. Legacy findings of
+  `public/css/booking.css` are inventoried in `ui-design-baseline.json` and may only
+  shrink (`--prune-baseline`); `--fail-over=N` additionally caps the total count.
+- **Design checks:** run `wsl composer check:design` for UI/CSS changes. The GitHub
+  `Design checks` workflow runs the source rules, the design tests and a fresh-build
+  comparison of `public/build`. See [Design assurance](docs/DESIGN-ASSURANCE.md).
 - **Build:** after changing CSS or Blade classes, run `npm run build` and commit
   `public/build/` (the server has no Node.js).
 

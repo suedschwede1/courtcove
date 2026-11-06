@@ -1,0 +1,197 @@
+{
+    "version": 1,
+    "findings": {
+        "00067aedad9b237a2391cab4703a4a655f1e5af03a39e245d341ed9cff0c75ce": {
+            "file": "public/css/booking.css",
+            "rule": "CSS-01",
+            "source": "border: 1px solid #dcccb5;",
+            "count": 1
+        },
+        "008e28a41fb9bb97d1c613ca50318b8593bd26b97cbe9884a2176a7c993ee730": {
+            "file": "public/css/booking.css",
+            "rule": "CSS-01",
+            "source": "border-top: 1px solid #e5e5e5;",
+            "count": 1
+        },
+        "17985d08211750f12b5a51f8ba941a2d1f31eddd0fbce787d779e04fd14111c3": {
+            "file": "public/css/booking.css",
+            "rule": "CSS-01",
+            "source": "color: #c75518;",
+            "count": 1
+        },
+        "2e90d38ed88903c610e9a40eaba22c9818edbfc2f61e9ce374830ae79e344a5a": {
+            "file": "public/css/booking.css",
+            "rule": "CSS-01",
+            "source": "color: #333333;",
+            "count": 1
+        },
+        "2ec435c3d5e4f4c212cae78306060ad8fd9717d9ceba0bbf70c1f7d2a3f5eaa6": {
+            "file": "public/css/booking.css",
+            "rule": "CSS-01",
+            "source": ".modal-primary-button { background: #c75518; }",
+            "count": 1
+        },
+        "3e8bf9f21ace027e2f5c90c06d9eedc65670be3b4a35a46b4ad1b5bd938bfdf9": {
+            "file": "public/css/booking.css",
+            "rule": "CSS-01",
+            "source": "color: #4d4d4d;",
+            "count": 1
+        },
+        "46d4e339eaad539b1bcc681f9b589485b45f0cda1b3a167bc788c6d827c4a05d": {
+            "file": "public/css/booking.css",
+            "rule": "CSS-01",
+            "source": "background: linear-gradient(180deg, #ffffff 0%, #f7f2ea 100%);",
+            "count": 1
+        },
+        "480a422efc57a52175324e239aa14ac08d2233365f783feaa498e3f499f9f7c8": {
+            "file": "public/css/booking.css",
+            "rule": "CSS-01",
+            "source": "background: #f7f7f7;",
+            "count": 2
+        },
+        "53fdf03189af03a482e70d671b3048a5e723e796b44f6aab69c024a7a14a5040": {
+            "file": "public/css/booking.css",
+            "rule": "CSS-01",
+            "source": "border: 1px solid #ddd5c9;",
+            "count": 1
+        },
+        "5b8d7dc9c08193f0eef554462f46ee6b308b67b0d95c3375caf5daabc61a95af": {
+            "file": "public/css/booking.css",
+            "rule": "CSS-01",
+            "source": "background: #fff;",
+            "count": 5
+        },
+        "5c4840e4fc38c24624c111402f6b74ed957b028879621fa2e88a029288ba9e87": {
+            "file": "public/css/booking.css",
+            "rule": "CSS-01",
+            "source": "color: #222;",
+            "count": 2
+        },
+        "5e4ce4daeee5a0a636fe6a69b70a44fb9718827ab5ea4517b16db2a46467d4e5": {
+            "file": "public/css/booking.css",
+            "rule": "CSS-01",
+            "source": "border: 1px solid #d1cbc0;",
+            "count": 2
+        },
+        "64256b495a27bcb7452786279131eb0a1b1b45dbe61224eb271b5a99175e97b2": {
+            "file": "public/css/booking.css",
+            "rule": "CSS-01",
+            "source": "background: #f3f0ea;",
+            "count": 1
+        },
+        "76aace65b9a95c08fe4ceee21433b2bb693ee672b515fbf4170b02557417760f": {
+            "file": "public/css/booking.css",
+            "rule": "CSS-01",
+            "source": ".modal-danger-button { background: #a84433; }",
+            "count": 1
+        },
+        "793eae91379de6476fca0125588311bb01e5a6114082dbda23a68448e7d06ef6": {
+            "file": "public/css/booking.css",
+            "rule": "CSS-01",
+            "source": "color: #666666;",
+            "count": 1
+        },
+        "7e14e982ec9a0e68cdbc9ca7ff797ca2b05526c72dfd8264770bc6e6e96f9add": {
+            "file": "public/css/booking.css",
+            "rule": "CSS-01",
+            "source": "border-color: #c75518;",
+            "count": 1
+        },
+        "85c5c6db0714182007cb44b66d1d7cbd5d9883ac5510a31f61b485d7cd1efcee": {
+            "file": "public/css/booking.css",
+            "rule": "CSS-01",
+            "source": "border: 1px solid #d8d8d8;",
+            "count": 1
+        },
+        "8900c318d47329bc3df1bd9d48bbe91f9bce4bba1868b5e496d6ee2520f26b7c": {
+            "file": "public/css/booking.css",
+            "rule": "CSS-01",
+            "source": "border: 1px solid #b8b8b8;",
+            "count": 1
+        },
+        "9467c95e173176f05698cd9239b9c6523030be961600055f464f1d3367f39c3e": {
+            "file": "public/css/booking.css",
+            "rule": "CSS-01",
+            "source": ".modal-danger-button--delete { background: #7f2a22; }",
+            "count": 1
+        },
+        "9629190b9bffaed3538b45d981db03d95b9442680a585b512458793f46769ee9": {
+            "file": "public/css/booking.css",
+            "rule": "CSS-01",
+            "source": "color: #5f574c;",
+            "count": 2
+        },
+        "aba1149d602f9483eaa9de2f9ed193210f74318ea3dc254985bde7f5b530bc1e": {
+            "file": "public/css/booking.css",
+            "rule": "CSS-01",
+            "source": "border: 1px solid #d9d2c7;",
+            "count": 1
+        },
+        "aca7794d6c1c03724d35f018ec9f2ccc06919049c39c931371df522bcaeb4b5f": {
+            "file": "public/css/booking.css",
+            "rule": "CSS-01",
+            "source": "border-color: #c6bba9;",
+            "count": 1
+        },
+        "accfaaa9d09aca038247540a9da18e78a4c7745f95ab9a12e009ca72f5e6e9b0": {
+            "file": "public/css/booking.css",
+            "rule": "CSS-01",
+            "source": "background: linear-gradient(180deg, #ffffff 0%, #f7f2ea 100%);",
+            "count": 1
+        },
+        "b54a8ef9da305b8be002b025e69b5529cb605d02a12ada93e7e3f42c3cb7aabf": {
+            "file": "public/css/booking.css",
+            "rule": "CSS-01",
+            "source": "color: #333;",
+            "count": 2
+        },
+        "bb37fc0a5af27c8479c8c01a627f3b9c8cc616af64efd12946a91e0f29590a2f": {
+            "file": "public/css/booking.css",
+            "rule": "CSS-01",
+            "source": "color: #a54c1c;",
+            "count": 1
+        },
+        "bc2dda2827f97ece3c57e8a10909982732558853d205f333bdf598f58e8e745b": {
+            "file": "public/css/booking.css",
+            "rule": "CSS-01",
+            "source": "color: #2a241d;",
+            "count": 2
+        },
+        "c17b53cc0cbea618ab13842ba1fa38c8e6fd8dd8fc9b82e2d33b4433874a7be3": {
+            "file": "public/css/booking.css",
+            "rule": "CSS-01",
+            "source": "color: #c96b00;",
+            "count": 1
+        },
+        "c85bb0c89e9fbfd6aaded38f85708a9b938183e302bfcd143fbcaa2fc8ad3296": {
+            "file": "public/css/booking.css",
+            "rule": "CSS-01",
+            "source": "color: #8c765e;",
+            "count": 1
+        },
+        "cf71d114769562b9bbb6c9039f8f58ded5673d0548eb322498a122970478f236": {
+            "file": "public/css/booking.css",
+            "rule": "CSS-01",
+            "source": "border-color: #e0b497;",
+            "count": 1
+        },
+        "d42a8075a1a5bfeec3ee8bc5f3befe39f6aaf9d95a6e82c56342ed9cf6d39082": {
+            "file": "public/css/booking.css",
+            "rule": "CSS-01",
+            "source": "background: #f3eadc;",
+            "count": 1
+        },
+        "e4b8e89409d8c02becb06ac2dbff328770defba3c0c0067794f5aeaddf1dfbbd": {
+            "file": "public/css/booking.css",
+            "rule": "CSS-01",
+            "source": "background: #fffaf3;",
+            "count": 1
+        },
+        "f1065bd14b818d6fdf7b6c341ff6e45568ec8853dbfb82e3192a74aec146f003": {
+            "file": "public/css/booking.css",
+            "rule": "CSS-01",
+            "source": "color: #fff;",
+            "count": 1
+        }
+    }
+}

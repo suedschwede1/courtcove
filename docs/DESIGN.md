@@ -298,7 +298,7 @@ All components live under `resources/views/components/`.
 | Calendar grid | `calendar/grid.blade.php` | Booking table; cell clicks via Alpine `$dispatch('open-booking', {...})` |
 | Calendar modals | `calendar/modals.blade.php` | All modals in the booking flow (create booking, cancel, feedback, admin iframe) |
 
-**No Livewire.** Alpine.js is used directly on HTML elements (`x-data`, `x-show`, `x-model`, `x-transition`). There are no registered `<x-*>` component tags.
+**No Livewire.** Alpine.js is used directly on HTML elements (`x-data`, `x-show`, `x-model`, `x-transition`). Shared Blade components live under `components/ui/` (`x-ui.button`, `x-ui.field`, `x-ui.input`, `x-ui.modal`, …); the dev gallery `/_ui` shows them (local, testing and Dusk environments only). See [DESIGN-ASSURANCE.md](DESIGN-ASSURANCE.md) for the enforced checks, the legacy inventory and screenshot review.
 
 ### Popup layout pattern
 
