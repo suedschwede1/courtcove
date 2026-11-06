@@ -581,7 +581,7 @@ final class BookingService
         }
 
         $booking->loadMissing(['square', 'reservations']);
-        $cancelRange = (int) ($booking->square?->range_cancel ?? 0);
+        $cancelRange = $booking->square !== null ? app(BookingRules::class)->value(BookingRules::RANGE_CANCEL, $booking->square) : 0;
         if ($cancelRange <= 0) {
             return false;
         }

@@ -48,8 +48,9 @@ final class SquareFormViewTest extends TestCase
         $square = Square::factory()->create(['name' => 'Court A']);
         $this->load(route('admin.squares.edit', $square));
 
+        // Buchungszeitraum card and the grid/pseudo fields moved to Verhalten > Buchungsregeln (2026-11-06).
         $this->assertGreaterThanOrEqual(4, $this->nodes('//main//section[contains(@class,"ds-admin-form-card")]')->length);
-        foreach (['allow_notes', 'pseudo_time_block_bookable'] as $name) {
+        foreach (['allow_notes', 'peak_limit_enabled'] as $name) {
             $this->assertSame(1, $this->nodes('//label[contains(@class,"ds-option")]/input[@type="checkbox"][@name="'.$name.'"][@value="1"]')->length, $name.' tile');
         }
         $this->assertSame(1, $this->nodes('//h1[contains(@class,"ds-admin-head__title")]')->length);
@@ -67,6 +68,6 @@ final class SquareFormViewTest extends TestCase
             $this->assertInstanceOf(DOMElement::class, $input);
             $this->assertSame(1, $this->nodes('//label[@for="'.$input->getAttribute('id').'"]')->length, $input->getAttribute('name').' has a label');
         }
-        $this->assertSame(6, $this->nodes('//main//input[@type="number"]')->length); // Zeitblock min./max. buchbar moved to Verhalten
+        $this->assertSame(1, $this->nodes('//main//input[@type="number"]')->length); // only Priorität; the booking rules moved to Verhalten
     }
 }
