@@ -10,11 +10,13 @@
         'ausstehend' => __('members::admin.dues.status_ausstehend'),
         'ueberfaellig' => __('members::admin.dues.status_ueberfaellig'),
     ];
+    // "Offen" is the default (no status parameter); "Alle" is an explicit choice that stays in the URL.
     $statusFilterOptions = [
         'offen' => __('members::admin.dues.status_filter_offen'),
-        'ausstehend' => __('members::admin.dues.status_ausstehend'),
-        'ueberfaellig' => __('members::admin.dues.status_ueberfaellig'),
-        'bezahlt' => __('members::admin.dues.status_bezahlt'),
+        'alle' => __('members::admin.dues.status_filter_alle'),
+        'ausstehend' => __('members::admin.dues.status_filter_ausstehend'),
+        'ueberfaellig' => __('members::admin.dues.status_filter_ueberfaellig'),
+        'bezahlt' => __('members::admin.dues.status_filter_bezahlt'),
     ];
     $composeOpen = $errors->hasAny(['member_id', 'fee_category_id', 'amount', 'teilbetrag', 'kommentar']);
     $generateFiscalYear = $generateFiscalYears->firstWhere('id', $generateFiscalYearId);
@@ -35,7 +37,7 @@
             <x-ui.input name="search" :value="$filters['search'] ?? ''" />
         </x-ui.field>
         <x-ui.field class="mbr-filters__field" :label="__('members::admin.dues.status')" for="due-status">
-            <x-ui.select name="status" :options="$statusFilterOptions" :selected="$filters['status'] ?? ''" :placeholder="__('members::admin.common.all')" />
+            <x-ui.select name="status" :options="$statusFilterOptions" :selected="$filters['status']" />
         </x-ui.field>
         <x-ui.button type="submit" variant="secondary" :block="false" class="mbr-filters__submit">{{ __('members::admin.common.filter') }}</x-ui.button>
     </form>

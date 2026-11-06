@@ -149,10 +149,12 @@ class MemberDue extends Model
         });
     }
 
-    /** Offener Rest: Betrag minus Teilbetrag, nie negativ; 0 bei Status "bezahlt". */
+    /** Offener Rest: Betrag minus Teilbetrag, nie negativ; 0 bei Status "bezahlt" oder mit verknüpfter Zahlung. */
     public function outstandingAmount(): string
     {
-        if ($this->status === 'bezahlt') {
+        // A linked payment always covers the whole due (PaymentController checks the sum).
+        $hasPayment = $this->relationLoaded('payments') ? $this->payments->isNotEmpty() : $this->payments()->exists();
+        if ($this->status === 'bezahlt' || $hasPayment) {
             return '0.00';
         }
 

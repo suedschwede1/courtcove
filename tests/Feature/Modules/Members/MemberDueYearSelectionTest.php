@@ -88,7 +88,8 @@ class MemberDueYearSelectionTest extends TestCase
     public static function filterCombinations(): array
     {
         return [
-            'no status' => ['', ['Offen27', 'Bezahlt27'], ['Offen26']],
+            'no status (default offen)' => ['', ['Offen27'], ['Bezahlt27', 'Offen26']],
+            'alle' => ['alle', ['Offen27', 'Bezahlt27'], ['Offen26']],
             'ausstehend' => ['ausstehend', ['Offen27'], ['Bezahlt27', 'Offen26']],
             'offen' => ['offen', ['Offen27'], ['Bezahlt27', 'Offen26']],
             'bezahlt' => ['bezahlt', ['Bezahlt27'], ['Offen27']],

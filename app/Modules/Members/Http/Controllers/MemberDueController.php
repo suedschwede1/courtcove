@@ -23,8 +23,15 @@ class MemberDueController
     /** Session key of the business year last shown in the dues list. */
     private const YEAR_SESSION_KEY = 'members.dues.fiscal_year_id';
 
-    /** Status filter values: "offen" = every unpaid due, the others match the displayed status. */
-    private const STATUS_FILTERS = ['offen', 'ausstehend', 'ueberfaellig', 'bezahlt'];
+    /**
+     * Status filter values in display order: "offen" = every due that is neither paid nor settled by
+     * a payment (outstanding and overdue, future years included), "alle" = no status filter, the
+     * others match the displayed status.
+     */
+    private const STATUS_FILTERS = ['offen', 'alle', 'ausstehend', 'ueberfaellig', 'bezahlt'];
+
+    /** Club decision: the dues list opens with the open dues. */
+    private const DEFAULT_STATUS_FILTER = 'offen';
 
     public function index(Request $request): View
     {
@@ -69,14 +76,20 @@ class MemberDueController
             });
         }
 
+        // No status parameter (or an unusable one) means the default "offen"; "alle" must be
+        // chosen explicitly and then travels in the query string like every other value.
         $statusFilter = $request->query('status');
-        $statusFilter = is_string($statusFilter) && in_array($statusFilter, self::STATUS_FILTERS, true) ? $statusFilter : '';
+        $statusFilter = is_string($statusFilter) && in_array($statusFilter, self::STATUS_FILTERS, true)
+            ? $statusFilter
+            : self::DEFAULT_STATUS_FILTER;
+        // A due with a linked payment is settled whatever its stored status says, so it is never
+        // "ausstehend" or "überfällig" here (it still shows under "Alle").
         match ($statusFilter) {
             'offen' => $duesQuery->open(),
             'bezahlt' => $duesQuery->where('status', 'bezahlt'),
-            'ausstehend' => $duesQuery->where('status', 'ausstehend')
+            'ausstehend' => $duesQuery->where('status', 'ausstehend')->whereDoesntHave('payments')
                 ->where(fn ($q) => $q->whereNull('faellig_am')->orWhere('faellig_am', '>=', now()->toDateString())),
-            'ueberfaellig' => $duesQuery->overdue(),
+            'ueberfaellig' => $duesQuery->overdue()->whereDoesntHave('payments'),
             default => null,
         };
 
@@ -109,8 +122,7 @@ class MemberDueController
             'filters' => array_filter(
                 ['search' => $search, 'status' => $statusFilter],
                 fn ($value) => $value !== '',
-            ),
-            'members' => Member::query()->active()->orderBy('lastname')->orderBy('firstname')->get(),
+            ),            'members' => Member::query()->active()->orderBy('lastname')->orderBy('firstname')->get(),
             'feeCategories' => FeeCategory::query()->orderBy('name')->get(),
             'feeCategoryRates' => FeeCategoryRate::where('fiscal_year_id', $selectedFiscalYearId)->pluck('amount', 'fee_category_id'),
         ]);

@@ -313,7 +313,7 @@ class MemberDuePaidOnTest extends TestCase
 
         $response = $this->actingAs($this->admin())
             ->withUnencryptedCookie('locale', $locale)
-            ->get('/members/dues?fiscal_year_id='.$fy->id)
+            ->get('/members/dues?status=alle&fiscal_year_id='.$fy->id)
             ->assertOk()
             ->assertSee('>'.$label.'</th>', false)
             ->assertSee('data-field="bezahlt_am"', false)
