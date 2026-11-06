@@ -11,6 +11,7 @@ use App\Modules\Members\Models\FeeCategoryRate;
 use App\Modules\Members\Models\FiscalYear;
 use App\Modules\Members\Models\HouseholdDue;
 use App\Modules\Members\Models\Member;
+use App\Modules\Members\Models\MemberDue;
 use App\Modules\Members\Models\MemberHousehold;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -88,6 +89,20 @@ class HouseholdClosedYearRaceTest extends TestCase
         $this->actingAs($this->admin())->post('/members/household-dues', ['household_id' => $this->household->id, 'fiscal_year_id' => $this->year->id])
             ->assertSessionHasErrors('fiscal_year_id');
 
+        $this->assertSame(0, HouseholdDue::count());
+    }
+
+    #[Test]
+    public function replacing_own_dues_by_the_household_due(): void
+    {
+        $adults = FeeCategory::create(['name' => 'Erwachsene']);
+        $own = MemberDue::create(['member_id' => $this->members[0]->id, 'fiscal_year_id' => $this->year->id, 'fee_category_id' => $adults->id, 'amount' => 150]);
+        $this->closeOnLock($this->year);
+
+        $this->actingAs($this->admin())->post("/members/households/{$this->household->id}/replace-dues", ['fiscal_year_id' => $this->year->id, 'confirm' => 1])
+            ->assertSessionHasErrors('fiscal_year_id');
+
+        $this->assertNotNull($own->fresh());
         $this->assertSame(0, HouseholdDue::count());
     }
 

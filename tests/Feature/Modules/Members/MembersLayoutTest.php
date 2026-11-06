@@ -78,6 +78,7 @@ class MembersLayoutTest extends TestCase
             route('members.payments.create', $member) => 'members.index',
             route('members.households.index') => 'members.households.index',
             route('members.households.show', $household->id) => 'members.households.index',
+            route('members.households.replace-dues.preview', ['household' => $household->id, 'fiscal_year_id' => $fiscalYear->id]) => 'members.households.index',
             route('members.dues.index') => 'members.dues.index',
             route('members.mail.index') => 'members.mail.index',
             route('members.changes.index') => 'members.changes.index',
@@ -103,8 +104,8 @@ class MembersLayoutTest extends TestCase
             ->reject(fn (string $name) => $name === 'members.export')
             ->values()->all();
 
-        $this->assertCount(20, $names);
-        $this->assertCount(20, $this->pages());
+        $this->assertCount(21, $names);
+        $this->assertCount(21, $this->pages());
     }
 
     #[Test]

@@ -8,7 +8,9 @@ use App\Modules\Members\Models\FeeCategory;
 use App\Modules\Members\Models\FiscalYear;
 use App\Modules\Members\Models\HouseholdDue;
 use App\Modules\Members\Models\Member;
+use App\Modules\Members\Models\MemberDue;
 use App\Modules\Members\Models\MemberHousehold;
+use App\Modules\Members\Support\HouseholdDueReplacer;
 use App\Modules\Members\Support\HouseholdRuleException;
 use App\Modules\Members\Support\HouseholdService;
 use Closure;
@@ -91,15 +93,48 @@ class HouseholdController
         return redirect()->route('members.households.show', $household->id)->with('status', __('members::admin.households.created'));
     }
 
-    public function show(int $household): View
+    public function show(Request $request, int $household): View
     {
-        $household = MemberHousehold::query()
-            ->with([
-                'members' => fn ($members) => $members->with('feeCategory')->orderBy('lastname')->orderBy('firstname'),
-                'feeCategory',
-                'dues' => fn ($dues) => $dues->with('fiscalYear')->withExists('payments'),
-            ])
-            ->findOrFail($household);
+        return $this->showPage(MemberHousehold::query()->findOrFail($household), null);
+    }
+
+    /** GET …/replace-dues?fiscal_year_id=: the household page with the replacement preview; changes nothing. */
+    public function replacePreview(Request $request, int $household): View
+    {
+        $household = MemberHousehold::query()->findOrFail($household);
+        $yearId = self::scalar($request, 'fiscal_year_id');
+        $year = ctype_digit($yearId) ? FiscalYear::query()->find((int) $yearId) : null;
+        abort_if($year === null, 404);
+
+        return $this->showPage($household, $year);
+    }
+
+    /** POST …/replace-dues: replaces the unpaid own dues of the year after the confirmation. */
+    public function replace(Request $request, int $household): RedirectResponse
+    {
+        $household = MemberHousehold::query()->findOrFail($household);
+        $validated = $request->validate([
+            'fiscal_year_id' => ['required', 'integer', 'exists:fiscal_years,id'],
+            'confirm' => ['accepted'],
+        ], ['confirm.accepted' => __('members::admin.households.replace.confirm_required')]);
+
+        try {
+            $count = app(HouseholdDueReplacer::class)->replace($household, FiscalYear::query()->findOrFail((int) $validated['fiscal_year_id']));
+        } catch (HouseholdRuleException $e) {
+            return back()->withErrors(['fiscal_year_id' => $e->getMessage()]);
+        }
+
+        return redirect()->route('members.households.show', $household->id)
+            ->with('status', __('members::admin.households.replace.done', ['count' => $count]));
+    }
+
+    private function showPage(MemberHousehold $household, ?FiscalYear $previewYear): View
+    {
+        $household->load([
+            'members' => fn ($members) => $members->with('feeCategory')->orderBy('lastname')->orderBy('firstname'),
+            'feeCategory',
+            'dues' => fn ($dues) => $dues->with('fiscalYear')->withExists('payments'),
+        ]);
         $fiscalYear = $this->households->currentFiscalYear();
         $currentDue = $household->dues->firstWhere('fiscal_year_id', $fiscalYear->id ?? 0);
         $coveredIds = $currentDue?->coveredMembers()->pluck('members.id')->map(fn ($id) => (int) $id)->all() ?? [];
@@ -113,6 +148,10 @@ class HouseholdController
             ->orderBy('lastname')->orderBy('firstname')
             ->get();
 
+        // Own dues of the members in the current year: hints and the way to "Durch Haushaltsbeitrag ersetzen".
+        $ownDues = $fiscalYear === null ? collect() : MemberDue::query()->with('member')->withExists('payments')
+            ->whereIn('member_id', $household->members->pluck('id'))->where('fiscal_year_id', $fiscalYear->id)->get();
+
         return view('members::households.show', [
             'household' => $household,
             'fiscalYear' => $fiscalYear,
@@ -124,6 +163,9 @@ class HouseholdController
                 ->orderBy('name')->get(),
             'openYears' => FiscalYear::query()->whereNull('abgeschlossen_am')->orderBy('starts_on')->get(),
             'dues' => $household->dues->sortByDesc(fn (HouseholdDue $due) => $due->fiscalYear->starts_on->toDateString())->values(),
+            'ownDues' => $ownDues,
+            'previewYear' => $previewYear,
+            'preview' => $previewYear !== null ? app(HouseholdDueReplacer::class)->preview($household, $previewYear) : null,
         ]);
     }
 

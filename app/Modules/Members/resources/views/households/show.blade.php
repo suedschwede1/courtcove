@@ -43,6 +43,9 @@
 
 <div class="mbr-detail">
 <div class="mbr-detail__main">
+    @if($preview)
+        @include('members::households._replace-preview')
+    @endif
     <x-ui.card :title="__('members::admin.households.card_master')">
         <form id="household-form" method="POST" action="{{ route('members.households.update', $household->id) }}" class="ui-form-shell">
             @csrf
@@ -58,6 +61,23 @@
             </x-ui.field>
         </form>
     </x-ui.card>
+
+    {{-- Own dues of members in the current year (decision 1): unpaid ones can be replaced, paid ones only get a hint. --}}
+    @foreach($ownDues as $ownDue)
+        @php $hintData = ['name' => $ownDue->member->fullName(), 'year' => $fiscalYear?->name, 'amount' => MembersFormat::money($ownDue->amount)]; @endphp
+        @if($ownDue->isReplaceable())
+            <x-ui.notice tone="neutral">
+                <p class="m-0">{{ __('members::admin.households.replace.hint_replaceable', $hintData) }}</p>
+                @if(! $dissolved && $household->feeCategory?->isPerHousehold() && ! ($preview && $previewYear?->id === $fiscalYear?->id))
+                    <div class="mt-3">
+                        <x-ui.button variant="secondary" :block="false" :href="route('members.households.replace-dues.preview', ['household' => $household->id, 'fiscal_year_id' => $fiscalYear?->id])">{{ __('members::admin.households.replace.button') }}</x-ui.button>
+                    </div>
+                @endif
+            </x-ui.notice>
+        @else
+            <x-ui.notice tone="neutral">{{ __('members::admin.households.replace.hint_paid', $hintData) }}</x-ui.notice>
+        @endif
+    @endforeach
 
     <x-ui.card class="mbr-table-card" padding="none" :title="__('members::admin.households.card_members')">
         @if($household->members->isEmpty())
