@@ -26,6 +26,11 @@ return [
     'admin_mode' => [
         'api_tokens_active' => (bool) env('ADMIN_MODE_API_TOKENS_ACTIVE', true),
     ],
+    // PHP CLI binary for the cron line shown on the admin page "Geplante Aufgaben" (cron may use another PHP
+    // than the web server: use the full path of the PHP 8.4 CLI of the hosting).
+    'scheduler' => [
+        'php_binary' => env('SCHEDULER_PHP_BINARY', 'php'),
+    ],
     'login_verification' => [
         'code_ttl_minutes' => 10,
         'max_attempts' => 5,

@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Option;
 use App\Modules\TournamentBase\Support\MailSender;
 use App\Services\BookingRules;
+use App\Services\CalendarHours;
 use App\Support\Mail\SystemMailSender;
 use Illuminate\Contracts\Validation\Validator as ValidatorContract;
 use Illuminate\Http\RedirectResponse;
@@ -96,6 +97,8 @@ final class OptionController extends Controller
         'maintenance' => 'service.maintenance',
         'quotes_enabled' => 'service.quotes.enabled',
         'calendar_hide' => 'service.calendar.day-exceptions',
+        'calendar_time_start' => CalendarHours::KEY_START,
+        'calendar_time_end' => CalendarHours::KEY_END,
         'max_active_bookings' => 'booking.max_active_bookings',
         'peak_limit_enabled' => 'peak_limit.enabled',
         'peak_limit_max' => 'peak_limit.max',
@@ -144,6 +147,10 @@ final class OptionController extends Controller
             $values['quotes_enabled'] = '1';
         }
 
+        $hours = app(CalendarHours::class);
+        $values['calendar_time_start'] = $hours->start();
+        $values['calendar_time_end'] = $hours->end();
+
         if ($values['max_active_bookings'] === '') {
             $values['max_active_bookings'] = '0';
         }
@@ -168,6 +175,7 @@ final class OptionController extends Controller
     {
         $validator = Validator::make($request->all(), $this->behaviorRules());
         $validator->after(fn (ValidatorContract $v) => $this->validatePeakWindows($v, $request));
+        $validator->after(fn (ValidatorContract $v) => $this->validateCalendarHours($v, $request));
         $validator->after(fn (ValidatorContract $v) => $this->validateTimeBlocks($v, $request));
         $validator->after(fn (ValidatorContract $v) => $this->validateBookingRules($v, $request));
         $data = $validator->validate();
@@ -341,6 +349,8 @@ final class OptionController extends Controller
             'maintenance' => ['nullable', 'in:0,1'],
             'quotes_enabled' => ['nullable', 'in:0,1'],
             'calendar_hide' => ['nullable', 'string', 'max:4096'],
+            'calendar_time_start' => ['nullable', 'string', 'regex:'.self::TIME_PATTERN],
+            'calendar_time_end' => ['nullable', 'string', 'regex:'.self::TIME_PATTERN],
             'max_active_bookings' => ['nullable', 'integer', 'min:0', 'max:999'],
             'peak_limit_enabled' => ['nullable', 'in:0,1'],
             'peak_limit_max' => ['nullable', 'integer', 'min:0', 'max:999'],
@@ -356,6 +366,22 @@ final class OptionController extends Controller
             'peak_limit_w2_start' => ['nullable', 'string', 'regex:'.self::TIME_PATTERN],
             'peak_limit_w2_end' => ['nullable', 'string', 'regex:'.self::TIME_PATTERN],
         ];
+    }
+
+    /** The calendar start must lie before its end (an empty field keeps the stored or default value). */
+    private function validateCalendarHours(ValidatorContract $validator, Request $request): void
+    {
+        if ($validator->errors()->hasAny(['calendar_time_start', 'calendar_time_end'])) {
+            return;
+        }
+
+        $hours = app(CalendarHours::class);
+        $start = $request->input('calendar_time_start') ?: $hours->start();
+        $end = $request->input('calendar_time_end') ?: $hours->end();
+
+        if ((string) $start >= (string) $end) {
+            $validator->errors()->add('calendar_time_end', __('booking.admin.calendar_hours.order'));
+        }
     }
 
     /** The Buchungsvorlauf (minutes) must be shorter than "Buchung im Voraus" (days) when that is limited. */

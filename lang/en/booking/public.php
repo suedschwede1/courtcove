@@ -161,6 +161,7 @@ return [
             'event' => 'Event',
             'blocked' => 'Court closure',
             'tournament' => 'Tournament match',
+            'closed' => 'Closed',
             'past' => 'Past',
         ],
         'operator_eyebrow' => 'Your Organization',
