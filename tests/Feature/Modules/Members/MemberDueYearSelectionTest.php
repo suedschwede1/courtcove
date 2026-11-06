@@ -281,7 +281,7 @@ class MemberDueYearSelectionTest extends TestCase
             ->withUnencryptedCookie('locale', 'en')
             ->get('/members/dues?fiscal_year_id='.$this->years[2027]->id)
             ->assertOk()
-            ->assertSee('No dues have been generated for business year 2027 yet.');
+            ->assertSee('No dues have been generated for fiscal year 2027 yet.');
     }
 
     #[Test]
