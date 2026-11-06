@@ -576,6 +576,22 @@ final class DatabaseSchemaChecker
                 'risk_flags' => fn (Blueprint $t) => $t->string('risk_flags', 128)->nullable(),
                 'created_at' => fn (Blueprint $t) => $t->timestamp('created_at')->nullable()->index(),
             ],
+            'player_exchange_searches' => [
+                'id' => fn (Blueprint $t) => $t->id(),
+                'bid' => fn (Blueprint $t) => $t->unsignedInteger('bid')->unique(),
+                'needed' => fn (Blueprint $t) => $t->unsignedTinyInteger('needed'),
+                'ends_at' => fn (Blueprint $t) => $t->dateTime('ends_at'),
+                'status' => fn (Blueprint $t) => $t->string('status', 12)->default('open'),
+                'created_at' => fn (Blueprint $t) => $t->timestamp('created_at')->nullable(),
+                'updated_at' => fn (Blueprint $t) => $t->timestamp('updated_at')->nullable(),
+            ],
+            'player_exchange_signups' => [
+                'id' => fn (Blueprint $t) => $t->id(),
+                'search_id' => fn (Blueprint $t) => $t->unsignedBigInteger('search_id'),
+                'uid' => fn (Blueprint $t) => $t->unsignedInteger('uid'),
+                'slot' => fn (Blueprint $t) => $t->unsignedTinyInteger('slot'),
+                'created_at' => fn (Blueprint $t) => $t->timestamp('created_at')->nullable(),
+            ],
         ];
     }
 
@@ -697,6 +713,10 @@ final class DatabaseSchemaChecker
             ],
             'login_history' => [
                 fn (Blueprint $t) => $t->index(['user_id', 'created_at'], 'dp_login_history_user_created'),
+            ],
+            'player_exchange_signups' => [
+                fn (Blueprint $t) => $t->unique(['search_id', 'uid'], 'dp_player_exchange_signups_search_uid'),
+                fn (Blueprint $t) => $t->unique(['search_id', 'slot'], 'dp_player_exchange_signups_search_slot'),
             ],
             'club_role_mail_category' => [
                 fn (Blueprint $t) => $t->primary(['club_role_id', 'mail_category_id']),
