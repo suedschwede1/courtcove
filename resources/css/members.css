@@ -771,6 +771,177 @@
     }
 }
 
+/*
+ * Member page dues card (Mitglied-Detail mockup): one compact line per year, the extras
+ * (Bezahlt bis, Teilbetrag, Kommentar) in a details row. The card is a size container, so the
+ * narrow layout follows the card width (phone and the two-column detail page at 1024px alike),
+ * and the table never needs to scroll sideways.
+ */
+@layer components {
+    .mbr-dues-card {
+        container-type: inline-size;
+    }
+
+    .mbr-dues-table th[scope='col'],
+    .mbr-dues-table td {
+        padding: 10px 12px;
+    }
+
+    .mbr-dues-table th[scope='col'] {
+        white-space: nowrap;
+    }
+
+    .mbr-dues-table th[scope='col']:first-child,
+    .mbr-dues-table td:first-child {
+        padding-left: 18px;
+    }
+
+    .mbr-dues-table .mbr-due-year {
+        width: 1%;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .mbr-due-info {
+        color: var(--color-ink-2);
+    }
+
+    .mbr-due-info__extra {
+        display: block;
+        font-size: 13px;
+        color: var(--color-ink-3);
+    }
+
+    .mbr-dues-table .mbr-due-amount {
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    .mbr-dues-table td.mbr-due-toggle {
+        width: 1%;
+        padding: 2px 8px;
+        text-align: right;
+    }
+
+    .mbr-due-toggle .ds-icon {
+        transition: transform 0.15s;
+    }
+
+    .mbr-due-toggle .is-open .ds-icon {
+        transform: rotate(180deg);
+    }
+
+    .mbr-dues-table tbody tr.mbr-due-extra {
+        border-top: 0;
+    }
+
+    .mbr-dues-table tr.mbr-due-extra > td {
+        padding-top: 0;
+        vertical-align: top;
+    }
+
+    .mbr-due-extra__label {
+        display: block;
+        margin-bottom: 4px;
+        font: 700 12px / 16px var(--font-body);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--color-ink-3);
+    }
+
+    .mbr-dues-card__footer {
+        padding: 12px 18px;
+        border-top: 1px solid var(--color-line);
+    }
+
+    @container (width < 36rem) {
+        .mbr-dues-table thead {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+        }
+
+        .mbr-dues-table,
+        .mbr-dues-table tbody {
+            display: block;
+        }
+
+        /* year | status, category | amount, paid on | details toggle */
+        .mbr-dues-table tr.mbr-due-line {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            grid-template-areas: 'year status' 'info amount' 'paid toggle';
+            align-items: center;
+            column-gap: 12px;
+            row-gap: 2px;
+            padding: 12px 16px;
+        }
+
+        .mbr-dues-table tr.mbr-due-line > td,
+        .mbr-dues-table tr.mbr-due-line > td:first-child,
+        .mbr-dues-table td.mbr-due-toggle {
+            display: block;
+            width: auto;
+            padding: 0;
+        }
+
+        .mbr-dues-table .mbr-due-year {
+            grid-area: year;
+        }
+
+        .mbr-dues-table .mbr-due-status {
+            grid-area: status;
+            justify-self: end;
+        }
+
+        .mbr-dues-table .mbr-due-info {
+            grid-area: info;
+        }
+
+        .mbr-dues-table .mbr-due-amount {
+            grid-area: amount;
+        }
+
+        .mbr-dues-table .mbr-due-paid {
+            grid-area: paid;
+            font-size: 14px;
+        }
+
+        .mbr-dues-table .mbr-due-paid[data-label]::before {
+            content: attr(data-label) ': ';
+            color: var(--color-ink-3);
+        }
+
+        .mbr-dues-table td.mbr-due-toggle {
+            grid-area: toggle;
+            justify-self: end;
+        }
+
+        .mbr-dues-table tr.mbr-due-extra {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 10px 12px;
+            padding: 0 16px 14px;
+        }
+
+        .mbr-dues-table tr.mbr-due-extra > td,
+        .mbr-dues-table tr.mbr-due-extra > td:first-child {
+            display: block;
+            padding: 0;
+        }
+
+        .mbr-dues-table tr.mbr-due-extra > td[data-field='kommentar'] {
+            grid-column: 1 / -1;
+        }
+
+        .mbr-dues-table .mbr-due-extra__spacer {
+            display: none;
+        }
+    }
+}
+
 /* Dues list: tools card (filter, generate, compose), bulk bar, row checkboxes. */
 @layer components {
     .mbr-dues-tools > .ds-card__body {

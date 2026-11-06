@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Modules\Api\Mcp\Tools;
 
+use App\Modules\Members\Models\FiscalYear;
 use App\Modules\Members\Models\MemberDue;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
@@ -46,8 +48,16 @@ class UpdateDueTool extends Tool
         $due = MemberDue::findOrFail($validated['due_id']);
         unset($validated['due_id']);
 
-        $due->update($validated);
+        // A closed fiscal year is locked; checked with the year row locked (year first).
+        return DB::transaction(function () use ($due, $validated): Response {
+            $closed = FiscalYear::lockForWrite($due->fiscal_year_id);
+            if ($closed !== null) {
+                return Response::error($closed->lockedMessage());
+            }
 
-        return Response::json((new DueResource($due->fresh(['member', 'fiscalYear', 'feeCategory'])))->resolve());
+            $due->update($validated);
+
+            return Response::json((new DueResource($due->fresh(['member', 'fiscalYear', 'feeCategory'])))->resolve());
+        });
     }
 }

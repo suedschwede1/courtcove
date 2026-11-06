@@ -139,6 +139,9 @@ final class MembersInlineEditTest extends DuskTestCase
             $this->browse(function (Browser $browser) use ($admin, $member, $due): void {
                 $browser->loginAs($admin)
                     ->visit('/members/'.$member->id.'/edit')
+                    // Teilbetrag sits in the details row of the compact dues card.
+                    ->click('td.mbr-due-toggle button')
+                    ->waitFor('td[data-field="teilbetrag"]')
                     ->click('td[data-field="teilbetrag"]')
                     ->waitFor('td[data-field="teilbetrag"] input')
                     ->clear('td[data-field="teilbetrag"] input')

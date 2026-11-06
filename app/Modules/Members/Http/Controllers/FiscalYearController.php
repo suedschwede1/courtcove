@@ -10,6 +10,9 @@ use App\Modules\Members\Models\MemberDue;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class FiscalYearController
 {
@@ -27,12 +30,7 @@ class FiscalYearController
 
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:32'],
-            'starts_on' => ['required', 'date'],
-            'ends_on' => ['required', 'date', 'after:starts_on'],
-            'faellig_am' => ['nullable', 'date'],
-        ]);
+        $validated = $this->validateYear($request, null);
 
         FiscalYear::create($validated);
 
@@ -55,14 +53,13 @@ class FiscalYearController
             return back()->withErrors(['fiscal_year' => $fiscalYear->lockedMessage()]);
         }
 
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:32'],
-            'starts_on' => ['required', 'date'],
-            'ends_on' => ['required', 'date', 'after:starts_on'],
-            'faellig_am' => ['nullable', 'date'],
-        ]);
+        $validated = $this->validateYear($request, $fiscalYear);
 
-        $fiscalYear->update($validated);
+        // Checked again with the year row locked: a close between validation and saving wins.
+        DB::transaction(function () use ($fiscalYear, $validated): void {
+            FiscalYear::lockOpenOrFail($fiscalYear->id, 'fiscal_year');
+            $fiscalYear->update($validated);
+        });
 
         return redirect()->route('members.fiscal-years.index');
     }
@@ -85,7 +82,20 @@ class FiscalYearController
             return back()->withErrors(['confirm_open_dues' => __('members::admin.fiscal_years.close_confirm_required', ['count' => $openDues])]);
         }
 
-        $year->close((int) $request->user()?->getAuthIdentifier());
+        // Both checks again with the year row locked, so a concurrent close or a due written
+        // meanwhile is seen; writers lock the same row first, so they wait for this close.
+        DB::transaction(function () use ($request, $year): void {
+            if (FiscalYear::lockForWrite($year->id) !== null) {
+                throw ValidationException::withMessages(['fiscal_year' => __('members::admin.fiscal_years.already_closed', ['year' => $year->name])]);
+            }
+
+            $openDues = MemberDue::query()->open()->where('fiscal_year_id', $year->id)->count();
+            if ($openDues > 0 && $request->input('confirm_open_dues') !== '1') {
+                throw ValidationException::withMessages(['confirm_open_dues' => __('members::admin.fiscal_years.close_confirm_required', ['count' => $openDues])]);
+            }
+
+            $year->close((int) $request->user()?->getAuthIdentifier());
+        });
 
         return redirect()->route('members.fiscal-years.edit', $year)
             ->with('status', __('members::admin.fiscal_years.closed_success', ['year' => $year->name]));
@@ -102,10 +112,61 @@ class FiscalYearController
             return back()->withErrors(['fiscal_year' => __('members::admin.fiscal_years.not_closed', ['year' => $year->name])]);
         }
 
-        $year->reopen();
+        DB::transaction(function () use ($year): void {
+            if (FiscalYear::lockForWrite($year->id) === null) {
+                throw ValidationException::withMessages(['fiscal_year' => __('members::admin.fiscal_years.not_closed', ['year' => $year->name])]);
+            }
+
+            $year->reopen();
+        });
 
         return redirect()->route('members.fiscal-years.edit', $year)
             ->with('status', __('members::admin.fiscal_years.reopened_success', ['year' => $year->name]));
+    }
+
+    /**
+     * Year form rules. Dates are plain Y-m-d strings (the date inputs), so array or malformed
+     * input is a validation error and never reaches a date comparison. The end may equal the
+     * start but not lie before it, and the range must not overlap any other year (closed years
+     * included); the edited year itself is ignored.
+     *
+     * @return array{name: string, starts_on: string, ends_on: string, faellig_am?: string|null}
+     */
+    private function validateYear(Request $request, ?FiscalYear $current): array
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => ['required', 'string', 'max:32'],
+            'starts_on' => ['bail', 'required', 'string', 'date_format:Y-m-d'],
+            'ends_on' => ['bail', 'required', 'string', 'date_format:Y-m-d'],
+            'faellig_am' => ['nullable', 'date'],
+        ]);
+
+        $validator->after(function (\Illuminate\Validation\Validator $validator) use ($current): void {
+            if ($validator->errors()->hasAny(['starts_on', 'ends_on'])) {
+                return;
+            }
+
+            $start = (string) $validator->getValue('starts_on');
+            $end = (string) $validator->getValue('ends_on');
+
+            if ($end < $start) {
+                $validator->errors()->add('ends_on', __('members::admin.fiscal_years.ends_before_start'));
+
+                return;
+            }
+
+            $other = FiscalYear::firstOverlapping($start, $end, $current?->id);
+            if ($other !== null) {
+                $validator->errors()->add('starts_on', __('members::admin.fiscal_years.overlap', [
+                    'year' => $other->name,
+                    'starts_on' => $other->starts_on->isoFormat('L'),
+                    'ends_on' => $other->ends_on->isoFormat('L'),
+                ]));
+            }
+        });
+
+        /** @var array{name: string, starts_on: string, ends_on: string, faellig_am?: string|null} */
+        return $validator->validate();
     }
 
     private function findYear(string $id): FiscalYear

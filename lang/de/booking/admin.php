@@ -307,7 +307,7 @@ return [
         'statistics' => [
             'title' => 'Statistik',
             'search' => 'Name suchen',
-            'member' => 'Mitglied',
+            'member' => 'Benutzer',
             'total' => 'Buchungen',
             'single' => 'Einzel',
             'double' => 'Doppel',
@@ -318,8 +318,8 @@ return [
             'summary_total' => 'Buchungen gesamt',
             'summary_last_month' => 'Letzter Monat',
             'summary_this_year' => 'Buchungen dieses Jahr',
-            'summary_members_this_year' => 'Mitglieder mit Buchung (Jahr)',
-            'summary_members_this_month' => 'Mitglieder mit Buchung (Monat)',
+            'summary_members_this_year' => 'Benutzer mit Buchung (Jahr)',
+            'summary_members_this_month' => 'Benutzer mit Buchung (Monat)',
             'summary_cancellation_rate' => 'Storno-Quote gesamt',
         ],
         'users' => [

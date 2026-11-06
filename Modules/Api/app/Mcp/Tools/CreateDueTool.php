@@ -8,6 +8,7 @@ use App\Modules\Members\Models\FeeCategoryRate;
 use App\Modules\Members\Models\FiscalYear;
 use App\Modules\Members\Models\MemberDue;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
@@ -51,24 +52,32 @@ class CreateDueTool extends Tool
 
         $fiscalYear = FiscalYear::findOrFail($validated['fiscal_year_id']);
 
-        if (($validated['amount'] ?? null) === null) {
-            $rate = FeeCategoryRate::where('fee_category_id', $validated['fee_category_id'])
-                ->where('fiscal_year_id', $validated['fiscal_year_id'])
-                ->first();
-
-            if (! $rate) {
-                return Response::error(__('members::admin.dues.no_rate_for_category_year'));
+        // A closed fiscal year is locked; checked with the year row locked (year first).
+        return DB::transaction(function () use ($validated, $fiscalYear): Response {
+            $closed = FiscalYear::lockForWrite($fiscalYear->id);
+            if ($closed !== null) {
+                return Response::error($closed->lockedMessage());
             }
 
-            $validated['amount'] = $rate->amount;
-        }
+            if (($validated['amount'] ?? null) === null) {
+                $rate = FeeCategoryRate::where('fee_category_id', $validated['fee_category_id'])
+                    ->where('fiscal_year_id', $validated['fiscal_year_id'])
+                    ->first();
 
-        $due = MemberDue::create([
-            ...$validated,
-            'status' => 'ausstehend',
-            'faellig_am' => $fiscalYear->faellig_am ?? $fiscalYear->starts_on,
-        ]);
+                if (! $rate) {
+                    return Response::error(__('members::admin.dues.no_rate_for_category_year'));
+                }
 
-        return Response::json((new DueResource($due->load(['member', 'fiscalYear', 'feeCategory'])))->resolve());
+                $validated['amount'] = $rate->amount;
+            }
+
+            $due = MemberDue::create([
+                ...$validated,
+                'status' => 'ausstehend',
+                'faellig_am' => $fiscalYear->faellig_am ?? $fiscalYear->starts_on,
+            ]);
+
+            return Response::json((new DueResource($due->load(['member', 'fiscalYear', 'feeCategory'])))->resolve());
+        });
     }
 }

@@ -1,8 +1,9 @@
 {{--
     "Bezahlt am" cell of a due row (dues list and member dues card). Editable inline only while the
     due is paid; the status cell of the same row announces changes via the 'due-paid-on' event.
+    Optional $cellClass adds a class to the cell (layout hook of the member dues card).
 --}}
-<td class="tabular-nums"
+<td class="tabular-nums {{ $cellClass ?? '' }}"
     data-field="bezahlt_am"
     data-label="{{ __('members::admin.dues.bezahlt_am') }}"
     x-data="{

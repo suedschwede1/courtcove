@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Members\Http\Controllers;
 
+use App\Modules\Members\Models\FiscalYear;
 use App\Modules\Members\Models\Member;
 use App\Modules\Members\Models\MemberDue;
 use App\Modules\Members\Models\Payment;
@@ -81,6 +82,15 @@ class PaymentController
         }
 
         DB::transaction(function () use ($validated, $member, $dueIds): void {
+            // Lock order: the dues' year rows first, then the due rows. A year closed since
+            // validation refuses the payment here.
+            $yearIds = MemberDue::query()->whereKey($dueIds)->pluck('fiscal_year_id')->all();
+            if (FiscalYear::lockForWrite($yearIds) !== null) {
+                throw ValidationException::withMessages([
+                    'member_due_ids' => __('members::admin.payments.due_in_closed_year'),
+                ]);
+            }
+
             // Re-check inside the transaction (with the due rows locked) so two
             // concurrent submissions cannot allocate the same due twice.
             $alreadyPaid = MemberDue::query()
