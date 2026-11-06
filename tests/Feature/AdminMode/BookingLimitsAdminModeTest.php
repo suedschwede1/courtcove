@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\AdminMode;
 
 use App\Models\Booking;
+use App\Models\Option;
 use App\Models\Reservation;
 use App\Models\Square;
 use App\Models\User;
@@ -177,7 +178,8 @@ class BookingLimitsAdminModeTest extends TestCase
     public function editing_the_partner_of_an_own_booking_does_not_count_that_booking_twice(): void
     {
         $member = $this->account('member', false);
-        $square = $this->square(['time_block_bookable_max' => 3600, 'max_active_bookings' => 1]);
+        $square = $this->square(['time_block_bookable_max' => 3600]);
+        Option::updateOrCreate(['key' => 'booking.max_active_bookings', 'locale' => null], ['value' => '1']);
         $booking = $this->existingBooking($member, $square, self::DAY, '09:00:00', '10:00:00');
 
         $this->actingAs($member)->withHeader('X-Requested-With', 'XMLHttpRequest')
@@ -256,7 +258,9 @@ class BookingLimitsAdminModeTest extends TestCase
         // Unchanged rule (no privilege bypass in the validator); in admin mode the calendar offers the
         // admin booking form instead, which does not apply member limits.
         $admin = $this->account('admin', false);
-        $square = $this->square(['max_active_bookings' => 1]);
+        $square = $this->square();
+        // The limit is one global option now (Konfiguration > Verhalten), not a per-court field.
+        Option::updateOrCreate(['key' => 'booking.max_active_bookings', 'locale' => null], ['value' => '1']);
         $this->existingBooking($admin, $square, '2026-07-05', '09:00:00', '10:00:00');
 
         $this->actingAsWithoutAdminMode($admin);
