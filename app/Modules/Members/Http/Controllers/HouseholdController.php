@@ -160,16 +160,16 @@ class HouseholdController
         $validated = $request->validate(['member_id' => ['required', 'integer']]);
         $member = Member::query()->find((int) $validated['member_id']);
         if ($member === null) {
-            return back()->withErrors(['member_id' => __('members::admin.households.errors.member_not_found')]);
+            return back()->withErrors([self::errorKey($request) => __('members::admin.households.errors.member_not_found')]);
         }
 
         try {
             $this->households->addMember($household, $member);
         } catch (HouseholdRuleException $e) {
-            return back()->withErrors(['member_id' => $e->getMessage()]);
+            return back()->withErrors([self::errorKey($request) => $e->getMessage()]);
         }
 
-        $redirect = redirect()->route('members.households.show', $household->id)
+        $redirect = self::backTo($request, $household, $member)
             ->with('status', __('members::admin.households.member_added', ['name' => $member->fullName()]));
 
         // Decision 5: a different address never blocks, it only gets a neutral hint.
@@ -178,7 +178,7 @@ class HouseholdController
             : $redirect;
     }
 
-    public function removeMember(int $household, int $member): RedirectResponse
+    public function removeMember(Request $request, int $household, int $member): RedirectResponse
     {
         $household = MemberHousehold::query()->findOrFail($household);
         $member = Member::query()->findOrFail($member);
@@ -186,11 +186,39 @@ class HouseholdController
         try {
             $this->households->removeMember($household, $member);
         } catch (HouseholdRuleException $e) {
-            return back()->withErrors(['member_id' => $e->getMessage()]);
+            return back()->withErrors([self::errorKey($request) => $e->getMessage()]);
         }
 
-        return redirect()->route('members.households.show', $household->id)
+        return self::backTo($request, $household, $member)
             ->with('status', __('members::admin.households.member_removed', ['name' => $member->fullName()]));
+    }
+
+    /** "Neuen Haushalt anlegen" on the member page: a household without tariff with just this member. */
+    public function storeFromMember(int $member): RedirectResponse
+    {
+        $member = Member::query()->findOrFail($member);
+
+        try {
+            $household = $this->households->create([$member->id], null, null);
+        } catch (HouseholdRuleException $e) {
+            return redirect()->route('members.edit', $member)->withErrors(['household' => $e->getMessage()]);
+        }
+
+        return redirect()->route('members.households.show', $household->id)->with('status', __('members::admin.households.created'));
+    }
+
+    /** Actions started on the member page (from=member) return there; otherwise to the household page. */
+    private static function backTo(Request $request, MemberHousehold $household, Member $member): RedirectResponse
+    {
+        return $request->input('from') === 'member'
+            ? redirect()->route('members.edit', $member)
+            : redirect()->route('members.households.show', $household->id);
+    }
+
+    /** Error key: 'household' on the member page (its dues form already uses member_id), else 'member_id'. */
+    private static function errorKey(Request $request): string
+    {
+        return $request->input('from') === 'member' ? 'household' : 'member_id';
     }
 
     public function dissolve(int $household): RedirectResponse

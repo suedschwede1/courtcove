@@ -83,6 +83,7 @@ Route::middleware(['auth', 'admin.mode', 'can:admin.members'])
         Route::post('members/households/{household}/members', [HouseholdController::class, 'addMember'])->whereNumber('household')->name('members.households.members.add');
         Route::delete('members/households/{household}/members/{member}', [HouseholdController::class, 'removeMember'])->whereNumber(['household', 'member'])->name('members.households.members.remove');
         Route::post('members/households/{household}/dissolve', [HouseholdController::class, 'dissolve'])->whereNumber('household')->name('members.households.dissolve');
+        Route::post('members/{member}/household', [HouseholdController::class, 'storeFromMember'])->whereNumber('member')->name('members.household.store-from-member');
 
         Route::resource('members', MemberController::class)->except(['show', 'destroy']);
     });
