@@ -9,7 +9,12 @@
 @section('body')
 <div class="ds-admin" x-data="{ navOpen: false }" x-on:keydown.escape.window="if (navOpen) { navOpen = false; $refs.navButton?.focus() }" x-on:resize.window="if (navOpen && window.innerWidth >= 768) navOpen = false" x-effect="document.documentElement.classList.toggle('ds-scroll-lock', navOpen)">
     @unless(request('popup'))
-        <x-layout.admin-sidebar />
+        {{-- An area with its own sidebar navigation (Members) fills admin-sidebar. --}}
+        @hasSection('admin-sidebar')
+            @yield('admin-sidebar')
+        @else
+            <x-layout.admin-sidebar />
+        @endif
 
         <div class="ds-admin-backdrop" x-cloak x-show="navOpen" x-on:click="navOpen = false"></div>
 

@@ -136,6 +136,37 @@
         font-weight: 700;
     }
 
+    /* Sub-group (Members "Einstellungen"): the children sit indented under their entry while one is current. */
+    .ds-admin-sidebar__link--parent {
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .ds-admin-sidebar__link--parent.is-expanded {
+        color: var(--color-surface);
+        font-weight: 700;
+    }
+
+    .ds-admin-sidebar__chevron {
+        flex: none;
+        color: var(--color-chrome-muted);
+    }
+
+    .ds-admin-sidebar__sublist {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        margin: 2px 0 0 10px;
+        padding: 0 0 0 8px;
+        border-left: 1px solid var(--color-chrome-line);
+        list-style: none;
+    }
+
+    .ds-admin-sidebar__link.ds-admin-sidebar__sublink {
+        min-height: 36px;
+        font-size: 14px;
+    }
+
     .ds-admin-sidebar__foot {
         display: flex;
         flex-direction: column;
@@ -344,6 +375,11 @@
             padding: 0 12px;
             border-radius: 10px;
             font-size: 16px;
+        }
+
+        .ds-admin-sidebar__link.ds-admin-sidebar__sublink {
+            min-height: 44px;
+            font-size: 15px;
         }
 
         /* The mockup puts "Zum Kalender" at the bottom of the phone menu. */
