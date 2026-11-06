@@ -186,6 +186,14 @@ return [
             'label' => 'Simultaneous bookings per user (0 = unlimited)',
             'hint' => 'Applies to all courts together: all future active bookings of the user are counted.',
         ],
+        'time_blocks' => [
+            'title' => 'Booking duration',
+            'min_label' => 'Minimum bookable time block (minutes)',
+            'min_hint' => 'Shortest booking, for all courts; a shorter booking is extended to this length. 0 = no minimum. Empty = the former court values still apply.',
+            'max_label' => 'Maximum bookable time block (minutes)',
+            'max_hint' => 'At most this many minutes per person and day, all courts counted together (example: 60 = one hour per day). 0 = unlimited. Empty = the former court values still apply.',
+            'max_below_min' => 'The maximum bookable time block must be 0 (unlimited) or at least the minimum bookable time block.',
+        ],
         'peak_limit' => [
             'title' => 'Peak-Time Limit',
             'enabled' => 'Enable peak-time limit',

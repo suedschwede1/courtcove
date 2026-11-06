@@ -60,12 +60,6 @@
         <x-ui.field :label="__('booking.admin.squares.time_block')" for="sf-time-block">
             <x-ui.input id="sf-time-block" name="time_block" type="number" min="0" :value="old('time_block', $form['time_block'])" />
         </x-ui.field>
-        <x-ui.field :label="__('booking.admin.squares.time_block_bookable')" for="sf-time-block-bookable">
-            <x-ui.input id="sf-time-block-bookable" name="time_block_bookable" type="number" min="0" :value="old('time_block_bookable', $form['time_block_bookable'])" />
-        </x-ui.field>
-        <x-ui.field :label="__('booking.admin.squares.time_block_bookable_max')" for="sf-time-block-max">
-            <x-ui.input id="sf-time-block-max" name="time_block_bookable_max" type="number" min="0" :value="old('time_block_bookable_max', $form['time_block_bookable_max'])" />
-        </x-ui.field>
     </div>
     <x-ui.option-group :columns="2" class="ds-admin-flags">
         <x-ui.option-tile type="checkbox" name="pseudo_time_block_bookable" value="1" :label="__('booking.admin.squares.pseudo_time_block_bookable')" :checked="(bool) old('pseudo_time_block_bookable', $form['pseudo_time_block_bookable'])" />

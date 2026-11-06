@@ -25,6 +25,7 @@ final class SquareValidator
 {
     public function __construct(
         private readonly PeakLimitService $peakLimitService = new PeakLimitService,
+        private readonly BookingRules $bookingRules = new BookingRules,
     ) {}
 
     public function validate(
@@ -88,7 +89,9 @@ final class SquareValidator
             }
         }
 
-        if ((int) $square->time_block_bookable > 0 && $durationSeconds < (int) $square->time_block_bookable) {
+        // Minimum duration and daily limit are global settings (BookingRules: option, else the court value).
+        $minimumSeconds = $this->bookingRules->minimumSeconds($square);
+        if ($minimumSeconds > 0 && $durationSeconds < $minimumSeconds) {
             return ValidationResult::fail(__('booking.messages.booking_duration_too_short'));
         }
 
@@ -113,10 +116,11 @@ final class SquareValidator
             return ValidationResult::fail(__('booking.messages.max_active_bookings_reached'));
         }
 
-        if ((int) $square->time_block_bookable_max > 0) {
+        $dailyMaxSeconds = $this->bookingRules->dailyMaxSeconds($square);
+        if ($dailyMaxSeconds > 0) {
             $dailyUsed = $this->getDailyUsedSeconds($user, $dateStart, $excludeBookingId);
 
-            if ($dailyUsed + $durationSeconds > (int) $square->time_block_bookable_max
+            if ($dailyUsed + $durationSeconds > $dailyMaxSeconds
                 && ! $shortTermOverrideActive
                 && ! $this->canCreateAnyBooking($user)) {
                 return ValidationResult::fail(__('booking.messages.daily_booking_limit_exceeded'));
