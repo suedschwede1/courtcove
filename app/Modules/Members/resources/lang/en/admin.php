@@ -203,7 +203,7 @@ return [
     ],
     'mail' => [
         'title' => 'Group mail',
-        'config_title' => 'Mail Settings',
+        'config_title' => 'Mail configuration',
         'bcc' => 'BCC',
         'to_all' => 'Mail to all members',
         'to_board' => 'Mail to board',
@@ -261,10 +261,10 @@ return [
         'confirm_delete_template' => 'Really delete this template?',
     ],
     'dsgvo' => [
-        'title' => 'GDPR',
+        'title' => 'Data protection',
         'retention_years' => 'Retention period after leaving (years)',
         'retention_years_hint' => 'Departed members can only be anonymized once this period has passed.',
         'save' => 'Save',
-        'saved' => 'GDPR settings saved.',
+        'saved' => 'Data protection settings saved.',
     ],
 ];

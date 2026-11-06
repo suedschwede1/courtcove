@@ -88,7 +88,7 @@ class MembersNavigationTest extends TestCase
 
         $this->assertSame(['Mitglieder', 'Einstellungen'], array_map(fn (AdminNavGroup $g) => $g->label, $groups));
         $this->assertSame(['Übersicht', 'Mitglieder', 'Beiträge', 'Rundmail', 'Protokoll'], array_map(fn (NavItem $i) => $i->label, $groups[0]->items));
-        $this->assertSame(['Fiskaljahre', 'Beitragskategorien', 'Funktionen', 'Mail-Einstellungen', 'DSGVO'], array_map(fn (NavItem $i) => $i->label, $groups[1]->items));
+        $this->assertSame(['Geschäftsjahre', 'Beitragskategorien', 'Funktionen', 'Mail-Konfiguration', 'Datenschutz'], array_map(fn (NavItem $i) => $i->label, $groups[1]->items));
     }
 
     #[Test]
