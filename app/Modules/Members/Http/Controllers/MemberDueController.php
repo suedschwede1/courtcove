@@ -9,6 +9,8 @@ use App\Modules\Members\Models\FeeCategoryRate;
 use App\Modules\Members\Models\FiscalYear;
 use App\Modules\Members\Models\Member;
 use App\Modules\Members\Models\MemberDue;
+use App\Modules\Members\Support\DuesGenerationReport;
+use App\Modules\Members\Support\DuesGenerator;
 use App\Modules\Members\Support\MembersFormat;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
@@ -116,6 +118,7 @@ class MemberDueController
             'generateFiscalYearId' => $generateFiscalYearId,
             'generateFiscalYears' => $generateFiscalYears,
             'yearNotice' => $yearNotice,
+            'duesReport' => DuesGenerationReport::fromArray($request->session()->get('dues_report')),
             'yearHasDues' => $yearHasDues,
             'dues' => $dues,
             'outstandingTotal' => $outstandingTotal,
@@ -184,74 +187,23 @@ class MemberDueController
         $fiscalYearId = (int) $validated['fiscal_year_id'];
         $newFiscalYear = FiscalYear::findOrFail($fiscalYearId);
 
-        $created = 0;
-        $skippedDeactivated = 0;
+        // DuesGenerator runs in one transaction with the year row locked first: a close since validation
+        // refuses the whole run, and a close requested meanwhile waits until the dues are committed.
+        $report = app(DuesGenerator::class)->generate($newFiscalYear);
 
-        // One transaction with the year row locked first: a close since validation refuses the
-        // whole run, and a close requested meanwhile waits until the generated dues are committed.
-        DB::transaction(function () use ($fiscalYearId, $newFiscalYear, &$created, &$skippedDeactivated): void {
-            FiscalYear::lockOpenOrFail($fiscalYearId, 'fiscal_year_id');
-
-            $this->generateDues($fiscalYearId, $newFiscalYear, $created, $skippedDeactivated);
-        });
-
-        $message = __('members::admin.dues.generated', ['count' => $created]);
-        // Generation silently skips categories without a rate; with no rate at all, say why nothing happened.
-        if ($created === 0 && ! FeeCategoryRate::where('fiscal_year_id', $fiscalYearId)->exists()) {
+        $message = __('members::admin.dues.generated', ['count' => $report->total()]);
+        // With no rate at all, say why nothing happened.
+        if ($report->total() === 0 && ! FeeCategoryRate::where('fiscal_year_id', $fiscalYearId)->exists()) {
             $message .= ' '.__('members::admin.dues.no_rates_for_year', ['year' => $newFiscalYear->name]);
         }
+        $skippedDeactivated = count($report->skipped['deactivated_category']);
         if ($skippedDeactivated > 0) {
             $message .= ' '.__('members::admin.dues.generate_skipped_deactivated', ['count' => $skippedDeactivated]);
         }
 
         return redirect()->route('members.dues.index', ['fiscal_year_id' => $fiscalYearId])
-            ->with('status', $message);
-    }
-
-    /** Creates the missing dues of the year from each active member's last category; counts what it did. */
-    private function generateDues(int $fiscalYearId, FiscalYear $newFiscalYear, int &$created, int &$skippedDeactivated): void
-    {
-        $existingMemberIds = MemberDue::where('fiscal_year_id', $fiscalYearId)->pluck('member_id');
-        $deactivatedIds = FeeCategory::query()->whereNotNull('deactivated_at')->pluck('id')->map(fn ($id) => (int) $id)->all();
-
-        Member::query()
-            ->active()
-            ->whereNotIn('id', $existingMemberIds)
-            ->each(function (Member $member) use ($fiscalYearId, $newFiscalYear, $deactivatedIds, &$created, &$skippedDeactivated) {
-                // "Last year's category" assumes fiscal years are created in chronological
-                // order, so the highest fiscal_year_id is the most recent one.
-                $lastDue = $member->dues()->latest('fiscal_year_id')->first();
-
-                if (! $lastDue) {
-                    return;
-                }
-
-                // A deactivated category is not used for new dues; the member is counted and reported.
-                if (in_array((int) $lastDue->fee_category_id, $deactivatedIds, true)) {
-                    $skippedDeactivated++;
-
-                    return;
-                }
-
-                $rate = FeeCategoryRate::where('fee_category_id', $lastDue->fee_category_id)
-                    ->where('fiscal_year_id', $fiscalYearId)
-                    ->first();
-
-                if (! $rate) {
-                    return;
-                }
-
-                MemberDue::create([
-                    'member_id' => $member->id,
-                    'fiscal_year_id' => $fiscalYearId,
-                    'fee_category_id' => $lastDue->fee_category_id,
-                    'amount' => $rate->amount,
-                    'status' => 'ausstehend',
-                    'faellig_am' => $newFiscalYear->faellig_am ?? $newFiscalYear->starts_on,
-                ]);
-
-                $created++;
-            });
+            ->with('status', $message)
+            ->with('dues_report', $report->toArray());
     }
 
     /** Markiert alle ausgewählten Beitragszeilen in einem Schritt als bezahlt, optional bis zu einem gewählten Fiskaljahr im Voraus. */

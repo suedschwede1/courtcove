@@ -28,6 +28,9 @@
 @if($yearNotice)
     <x-ui.notice tone="attention">{{ $yearNotice }}</x-ui.notice>
 @endif
+@if($duesReport)
+    @include('members::dues._generation-report', ['report' => $duesReport])
+@endif
 
 <x-ui.card class="mbr-dues-tools" as="div" x-data="{ composing: {{ $composeOpen ? 'true' : 'false' }} }">
     <form method="GET" action="{{ route('members.dues.index') }}" class="mbr-filters">

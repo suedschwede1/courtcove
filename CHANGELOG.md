@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-06
+- Members: generating dues creates one household due per household and year (from 2 active or dormant members, amount from the household tariff rate, current year included) covering members without an own due, falls back to the member category for new members, and reports every member or household that got no due with a reason and links (no category, no rate, deactivated, household too small, own due to replace or check).
 - Members: a fee category can be billed "Pauschal pro Haushalt" (badge in the list, choice on the category page); the billing cannot change while members, households or dues use the category, and per-household categories are never offered or accepted for a single member or an individual due.
 - Members: member page card "Haushalt · optional" (household link and size, the current-year household due status, "Haushalt verlassen", or assigning to a household / "Neuen Haushalt anlegen"); the member protocol shows household and payer changes by household name (the global protocol only says that they changed).
 - Members: household page with name, tariff and paying person, the members with their coverage in the current fiscal year, adding (members of another household are shown but locked; a different address only gives a hint) and removing members, the household dues, and "Auflösen" (dues and coverage stay until year end).
