@@ -532,7 +532,7 @@ return [
             'config_link' => 'Configuration',
             'heading' => 'Dashboard',
             'bookings_today' => 'Bookings today',
-            'active_members' => 'Active members',
+            'active_members' => 'Active user accounts',
             'administrator_singular' => 'Administrator',
             'administrator_plural' => 'Administrators',
             'this_week' => 'This week',
