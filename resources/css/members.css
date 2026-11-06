@@ -276,9 +276,15 @@
     }
 
     /* Seven compact columns that fit next to the sidebar at 1440 (no sideways scrolling). */
-    .mbr-list-table th[scope='col'],
-    .mbr-list-table .mbr-name {
+    .mbr-list-table th[scope='col'] {
         white-space: nowrap;
+    }
+
+    /* Names stay on one line where there is room; narrower screens let them wrap instead of scrolling. */
+    @media (width >= 80rem) {
+        .mbr-list-table .mbr-name {
+            white-space: nowrap;
+        }
     }
 
     /* Relative: the screen-reader label inside stays within the scroll box instead of widening the page. */
