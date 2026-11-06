@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Members\Support;
 
 use App\Modules\Members\Models\MemberChange;
+use App\Modules\Members\Models\MemberHousehold;
 use Illuminate\Support\Carbon;
 
 /**
@@ -43,6 +44,7 @@ final class MemberChangeSummary
         'status' => 'members::admin.members.status',
         'notiz' => 'members::admin.members.notiz',
         'user_id' => 'members::admin.members.user_account',
+        'household_id' => 'members::admin.members.household',
     ];
 
     /**
@@ -57,6 +59,9 @@ final class MemberChangeSummary
         if ($change->action === 'anonymized') {
             return [(string) __('members::admin.history.anonymized')];
         }
+        if ($change->action === 'household_payer') {
+            return [self::payerLine($change, $revealPersonal)];
+        }
 
         $lines = [];
         foreach ($change->changedFields() as ['field' => $field, 'old' => $old, 'new' => $new]) {
@@ -66,7 +71,8 @@ final class MemberChangeSummary
 
             $label = isset(self::LABELS[$field]) ? (string) __(self::LABELS[$field]) : $field;
 
-            if (in_array($field, self::PERSONAL, true) && ! $revealPersonal) {
+            // Household labels are built from last names: personal data like the name fields.
+            if ((in_array($field, self::PERSONAL, true) || $field === 'household_id') && ! $revealPersonal) {
                 $lines[] = (string) __('members::admin.history.changed', ['field' => $label]);
 
                 continue;
@@ -80,6 +86,32 @@ final class MemberChangeSummary
         }
 
         return $lines === [] ? [(string) __('members::admin.history.no_changes')] : $lines;
+    }
+
+    /** "Zahlende Person für Haushalt Familie Muster" / "Nicht mehr zahlende Person …"; without the label when hidden. */
+    private static function payerLine(MemberChange $change, bool $revealPersonal): string
+    {
+        if (! $revealPersonal) {
+            return (string) __('members::admin.history.household_payer_changed');
+        }
+
+        $new = $change->after['household_payer'] ?? null;
+        $old = $change->before['household_payer'] ?? null;
+
+        return $new !== null
+            ? (string) __('members::admin.history.household_payer_set', ['household' => self::householdLabel($new)])
+            : (string) __('members::admin.history.household_payer_cleared', ['household' => self::householdLabel($old)]);
+    }
+
+    private static function householdLabel(mixed $id): string
+    {
+        if (! is_int($id) && ! (is_string($id) && ctype_digit($id))) {
+            return '—';
+        }
+        $id = (int) $id;
+
+        return MemberHousehold::query()->with('members')->find($id)?->label()
+            ?? (string) __('members::admin.households.unnamed', ['id' => $id]);
     }
 
     /**
@@ -102,6 +134,7 @@ final class MemberChangeSummary
                 default => 'active',
             }),
             'fee_category_id' => $categoryNames[$value] ?? (string) $value,
+            'household_id' => self::householdLabel($value),
             default => is_scalar($value) ? (string) $value : (string) json_encode($value),
         };
     }

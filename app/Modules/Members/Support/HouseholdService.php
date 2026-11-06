@@ -1,0 +1,278 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Modules\Members\Support;
+
+use App\Modules\Members\Models\FeeCategory;
+use App\Modules\Members\Models\FiscalYear;
+use App\Modules\Members\Models\Member;
+use App\Modules\Members\Models\MemberHousehold;
+use Illuminate\Support\Facades\DB;
+
+/**
+ * The single place for household writes. Rules:
+ * - a member belongs to at most one household; departed or anonymised members cannot join;
+ * - a dissolved household accepts no new members;
+ * - the tariff is empty (just a grouping) or an active per-household fee category;
+ * - the payer is a member of the household; cleared on leave, departure and anonymisation;
+ * - a joiner is covered by the household due of the current fiscal year without surcharge when that
+ *   due exists, the year is open, and the member has no own due and no coverage there (decision 6);
+ * - coverage rows and household dues are never deleted here: coverage lasts until year end (decision 7).
+ * Every change to a member's household is logged on that member (protocol).
+ */
+final class HouseholdService
+{
+    /**
+     * @param  list<int>  $memberIds
+     *
+     * @throws HouseholdRuleException
+     */
+    public function create(array $memberIds, ?int $feeCategoryId, ?string $name): MemberHousehold
+    {
+        $this->assertTariff($feeCategoryId);
+
+        return DB::transaction(function () use ($memberIds, $feeCategoryId, $name): MemberHousehold {
+            $household = MemberHousehold::create([
+                'name' => self::cleanName($name),
+                'fee_category_id' => $feeCategoryId,
+            ]);
+
+            foreach ($memberIds as $memberId) {
+                $member = Member::query()->find($memberId);
+                if ($member === null) {
+                    throw new HouseholdRuleException(__('members::admin.households.errors.member_not_found'));
+                }
+                $this->addMember($household, $member);
+            }
+
+            return $household;
+        });
+    }
+
+    /**
+     * Name and tariff of a household; the tariff follows the same rule as on create, except that a
+     * now deactivated category may be kept.
+     *
+     * @throws HouseholdRuleException
+     */
+    public function updateDetails(MemberHousehold $household, ?string $name, ?int $feeCategoryId): void
+    {
+        $this->assertTariff($feeCategoryId, $household->fee_category_id);
+
+        $household->update(['name' => self::cleanName($name), 'fee_category_id' => $feeCategoryId]);
+    }
+
+    /** @throws HouseholdRuleException */
+    public function addMember(MemberHousehold $household, Member $member): void
+    {
+        DB::transaction(function () use ($household, $member): void {
+            $household = MemberHousehold::query()->lockForUpdate()->findOrFail($household->id);
+            $locked = Member::query()->lockForUpdate()->findOrFail($member->id);
+
+            if ($household->isDissolved()) {
+                throw new HouseholdRuleException(__('members::admin.households.errors.dissolved'));
+            }
+            if ($locked->household_id === $household->id) {
+                throw new HouseholdRuleException(__('members::admin.households.errors.already_member', ['name' => $locked->fullName()]));
+            }
+            if ($locked->household_id !== null) {
+                throw new HouseholdRuleException(__('members::admin.households.errors.other_household', [
+                    'name' => $locked->fullName(),
+                    'household' => $locked->household?->label() ?? '',
+                ]));
+            }
+            if (! in_array($locked->status, MemberHousehold::BILLABLE_STATUSES, true) || $locked->anonymized_at !== null) {
+                throw new HouseholdRuleException(__('members::admin.households.errors.not_billable', ['name' => $locked->fullName()]));
+            }
+            if ($household->feeCategory !== null && ! $household->feeCategory->isPerHousehold()) {
+                throw new HouseholdRuleException(__('members::admin.households.errors.category_not_per_household'));
+            }
+
+            $before = MemberChangeLogger::snapshot($locked);
+            $locked->forceFill(['household_id' => $household->id])->save();
+            MemberChangeLogger::log($locked, 'updated', $before);
+
+            $this->coverJoiner($household, $locked);
+        });
+    }
+
+    /** Removes the member; the payer is cleared if it is this member. Coverage stays until year end. */
+    public function removeMember(MemberHousehold $household, Member $member): void
+    {
+        DB::transaction(function () use ($household, $member): void {
+            $household = MemberHousehold::query()->lockForUpdate()->findOrFail($household->id);
+            $locked = Member::query()->lockForUpdate()->findOrFail($member->id);
+
+            if ($locked->household_id !== $household->id) {
+                throw new HouseholdRuleException(__('members::admin.households.errors.not_member', ['name' => $locked->fullName()]));
+            }
+
+            if ($household->payer_member_id === $locked->id) {
+                $this->changePayer($household, null);
+            }
+
+            $before = MemberChangeLogger::snapshot($locked);
+            $locked->forceFill(['household_id' => null])->save();
+            MemberChangeLogger::log($locked, 'updated', $before);
+        });
+    }
+
+    /**
+     * Sets or clears the payer; the payer must be a member of this household.
+     *
+     * @throws HouseholdRuleException
+     */
+    public function setPayer(MemberHousehold $household, ?Member $payer): void
+    {
+        DB::transaction(function () use ($household, $payer): void {
+            $household = MemberHousehold::query()->lockForUpdate()->findOrFail($household->id);
+
+            if ($payer !== null) {
+                $payer = Member::query()->findOrFail($payer->id);
+                if ($payer->household_id !== $household->id) {
+                    throw new HouseholdRuleException(__('members::admin.households.errors.payer_not_member', ['name' => $payer->fullName()]));
+                }
+            }
+
+            $this->changePayer($household, $payer);
+        });
+    }
+
+    /** All members leave, the payer is cleared, dissolved_at is set; household dues and coverage stay. */
+    public function dissolve(MemberHousehold $household): void
+    {
+        DB::transaction(function () use ($household): void {
+            $household = MemberHousehold::query()->lockForUpdate()->findOrFail($household->id);
+            if ($household->isDissolved()) {
+                return;
+            }
+
+            if ($household->payer_member_id !== null) {
+                $this->changePayer($household, null);
+            }
+
+            foreach ($household->members()->lockForUpdate()->get() as $member) {
+                $before = MemberChangeLogger::snapshot($member);
+                $member->forceFill(['household_id' => null])->save();
+                MemberChangeLogger::log($member, 'updated', $before);
+            }
+
+            $household->forceFill(['dissolved_at' => now()])->save();
+        });
+    }
+
+    /** A departed member no longer pays for a household (the membership itself stays until removed). */
+    public function memberDeparted(Member $member): void
+    {
+        DB::transaction(function () use ($member): void {
+            $households = MemberHousehold::query()->where('payer_member_id', $member->id)->lockForUpdate()->get();
+            foreach ($households as $household) {
+                $this->changePayer($household, null);
+            }
+        });
+    }
+
+    /**
+     * Called inside the anonymise transaction before the 'anonymized' snapshot is logged, so that
+     * snapshot records the household change: household_id and payer are cleared; a household left
+     * without members loses its name (no surname survives) and is dissolved.
+     */
+    public function detachForAnonymisation(Member $member): void
+    {
+        DB::transaction(function () use ($member): void {
+            $householdId = $member->household_id;
+            MemberHousehold::query()->where('payer_member_id', $member->id)->update(['payer_member_id' => null]);
+            if ($householdId === null) {
+                return;
+            }
+
+            $member->forceFill(['household_id' => null])->save();
+
+            $household = MemberHousehold::query()->lockForUpdate()->find($householdId);
+            if ($household !== null && ! $household->members()->exists()) {
+                $household->forceFill(['name' => null, 'dissolved_at' => $household->dissolved_at ?? now()])->save();
+            }
+        });
+    }
+
+    /** The fiscal year containing today, else the last one (same rule as the overview). */
+    public function currentFiscalYear(): ?FiscalYear
+    {
+        $years = FiscalYear::query()->orderBy('starts_on')->get();
+
+        return $years->first(fn (FiscalYear $year) => $year->covers()) ?? $years->last();
+    }
+
+    /**
+     * Covers a joiner by the current year's household due (decision 6). Never in a closed year, never
+     * on top of an own due or an existing coverage in that year.
+     */
+    private function coverJoiner(MemberHousehold $household, Member $member): void
+    {
+        $year = $this->currentFiscalYear();
+        if ($year === null || $year->isClosed()) {
+            return;
+        }
+
+        $due = $household->dues()->where('fiscal_year_id', $year->id)->first();
+        if ($due === null) {
+            return;
+        }
+
+        $hasOwnDue = $member->dues()->where('fiscal_year_id', $year->id)->exists();
+        $isCovered = $member->coveringHouseholdDues()->wherePivot('fiscal_year_id', $year->id)->exists();
+        if ($hasOwnDue || $isCovered) {
+            return;
+        }
+
+        $due->coveredMembers()->attach($member->id, ['fiscal_year_id' => $year->id]);
+    }
+
+    /** Writes the new payer and logs 'household_payer' on the old and on the new payer. */
+    private function changePayer(MemberHousehold $household, ?Member $payer): void
+    {
+        $oldId = $household->payer_member_id;
+        $newId = $payer?->id;
+        if ($oldId === $newId) {
+            return;
+        }
+
+        $household->forceFill(['payer_member_id' => $newId])->save();
+
+        $old = $oldId !== null ? Member::query()->find($oldId) : null;
+        if ($old !== null) {
+            MemberChangeLogger::log($old, 'household_payer',
+                [...MemberChangeLogger::snapshot($old), 'household_payer' => $household->id],
+                ['household_payer' => null]);
+        }
+        if ($payer !== null) {
+            MemberChangeLogger::log($payer, 'household_payer',
+                [...MemberChangeLogger::snapshot($payer), 'household_payer' => null],
+                ['household_payer' => $household->id]);
+        }
+    }
+
+    /** @throws HouseholdRuleException */
+    private function assertTariff(?int $feeCategoryId, ?int $keepId = null): void
+    {
+        if ($feeCategoryId === null) {
+            return;
+        }
+
+        $category = FeeCategory::query()->find($feeCategoryId);
+        if ($category === null || ! $category->isPerHousehold()) {
+            throw new HouseholdRuleException(__('members::admin.households.errors.category_not_per_household'));
+        }
+        if ($category->isDeactivated() && $category->id !== $keepId) {
+            throw new HouseholdRuleException(__('members::admin.fee_categories.not_assignable', ['name' => $category->name]));
+        }
+    }
+
+    private static function cleanName(?string $name): ?string
+    {
+        $name = $name !== null ? trim($name) : null;
+
+        return $name === '' ? null : $name;
+    }
+}

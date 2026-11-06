@@ -10,6 +10,8 @@ use App\Modules\Members\Models\FeeCategory;
 use App\Modules\Members\Models\FiscalYear;
 use App\Modules\Members\Models\Member;
 use App\Modules\Members\Models\MemberChange;
+use App\Modules\Members\Support\HouseholdService;
+use App\Modules\Members\Support\MemberChangeLogger;
 use App\Modules\Members\Support\MemberListFilter;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
@@ -136,6 +138,9 @@ class MemberController
             $member->clubRoles()->sync($request->input('club_roles', []));
             $member->setLeftAt($leftAt);
             $this->logChange($member, $departs ? 'departed' : 'updated', $before);
+            if ($departs) {
+                app(HouseholdService::class)->memberDeparted($member);
+            }
         });
 
         return redirect()->route('members.index');
@@ -185,6 +190,9 @@ class MemberController
                     default => $member->update([$validated['field'] => $validated['value']]),
                 };
                 $this->logChange($member, $departs ? 'departed' : 'updated', $before);
+                if ($departs) {
+                    app(HouseholdService::class)->memberDeparted($member);
+                }
             });
         } catch (\Throwable $e) {
             report($e);
@@ -239,6 +247,8 @@ class MemberController
         $before = $member->toArray();
 
         DB::transaction(function () use ($member, $before) {
+            // Household link and payer go in the same transaction, so the 'anonymized' snapshot records them.
+            app(HouseholdService::class)->detachForAnonymisation($member);
             $member->update([
                 'firstname' => 'Ehemaliges',
                 'lastname' => "Mitglied #{$member->member_number}",
@@ -258,14 +268,9 @@ class MemberController
             ->with('success', __('members::admin.members.anonymize_success'));
     }
 
+    /** @param  array<string, mixed>|null  $before */
     private function logChange(Member $member, string $action, ?array $before): void
     {
-        MemberChange::create([
-            'member_id' => $member->id,
-            'admin_user_id' => auth()->id(),
-            'action' => $action,
-            'before' => $before,
-            'after' => $member->fresh()->toArray(),
-        ]);
+        MemberChangeLogger::log($member, $action, $before);
     }
 }

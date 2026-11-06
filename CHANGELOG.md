@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-06
+- Members: household changes (join, leave, payer, dissolve) run through one service that logs each change on the member, covers joiners in the current household due without surcharge, never deletes household dues or coverage, clears the payer on departure and detaches an anonymised member in the same protocol entry.
 - Members (family fee groundwork): household and household-due models with per-year coverage, the effective due per member (own due first, else the covering household due) and the "replaceable own due" rule (unpaid, no payment, no partial amount); no screen uses them yet.
 - Members (family fee groundwork): new additive tables for households, household dues, their coverage and payments plus `members.household_id` and `fee_categories.billing_unit` (default "member"); nothing creates a household, existing members, categories and dues are unchanged, and the database page tracks the new schema.
 - Tests of the admin-mode booking limits now set the global max-active-bookings option (Konfiguration > Verhalten) instead of the removed per-court field (2026-11-06).

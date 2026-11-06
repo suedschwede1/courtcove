@@ -98,6 +98,7 @@ return [
         'anonymized_at' => 'Anonymized on :date',
         'anonymize_field_locked' => 'Field locked because this member has been anonymized.',
         'send_mail' => 'Send group mail',
+        'household' => 'Household',
     ],
     'payments' => [
         'new_payment' => 'Record payment',
@@ -256,6 +257,9 @@ return [
         'change' => ':field: :old → :new',
         'changed' => ':field changed',
         'anonymized' => 'Anonymised',
+        'household_payer_set' => 'Paying person for household :household',
+        'household_payer_cleared' => 'No longer paying person for household :household',
+        'household_payer_changed' => 'Paying person of a household changed',
     ],
     'changes' => [
         'title' => 'Log',
@@ -344,5 +348,15 @@ return [
     ],
     'households' => [
         'unnamed' => 'Household #:id',
+        'errors' => [
+            'member_not_found' => 'This member does not exist.',
+            'dissolved' => 'The household is dissolved and accepts no more members.',
+            'already_member' => ':name already belongs to this household.',
+            'other_household' => ':name belongs to household :household. Remove the member there first.',
+            'not_billable' => ':name has left or is anonymised and cannot be assigned to a household.',
+            'category_not_per_household' => 'Only fee categories billed once per household can be a household tariff.',
+            'payer_not_member' => ':name does not belong to this household and cannot be the paying person.',
+            'not_member' => ':name does not belong to this household.',
+        ],
     ],
 ];

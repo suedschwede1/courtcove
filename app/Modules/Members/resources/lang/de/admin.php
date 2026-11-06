@@ -98,6 +98,7 @@ return [
         'anonymized_at' => 'Anonymisiert am :date',
         'anonymize_field_locked' => 'Feld gesperrt, da dieses Mitglied anonymisiert wurde.',
         'send_mail' => 'Rundmail senden',
+        'household' => 'Haushalt',
     ],
     'payments' => [
         'new_payment' => 'Zahlung erfassen',
@@ -256,6 +257,9 @@ return [
         'change' => ':field: :old → :new',
         'changed' => ':field geändert',
         'anonymized' => 'Anonymisiert',
+        'household_payer_set' => 'Zahlende Person für Haushalt :household',
+        'household_payer_cleared' => 'Nicht mehr zahlende Person für Haushalt :household',
+        'household_payer_changed' => 'Zahlende Person eines Haushalts geändert',
     ],
     'changes' => [
         'title' => 'Protokoll',
@@ -344,5 +348,15 @@ return [
     ],
     'households' => [
         'unnamed' => 'Haushalt #:id',
+        'errors' => [
+            'member_not_found' => 'Dieses Mitglied gibt es nicht.',
+            'dissolved' => 'Der Haushalt ist aufgelöst und nimmt keine Mitglieder mehr auf.',
+            'already_member' => ':name gehört bereits zu diesem Haushalt.',
+            'other_household' => ':name gehört zum Haushalt :household. Entferne das Mitglied erst dort.',
+            'not_billable' => ':name ist ausgetreten oder anonymisiert und kann keinem Haushalt zugeordnet werden.',
+            'category_not_per_household' => 'Als Tarif eines Haushalts gehen nur Beitragskategorien, die pauschal pro Haushalt gelten.',
+            'payer_not_member' => ':name gehört nicht zu diesem Haushalt und kann nicht die zahlende Person sein.',
+            'not_member' => ':name gehört nicht zu diesem Haushalt.',
+        ],
     ],
 ];
