@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Tournament;
 
+use App\Modules\Tournament\Preflight\TournamentPreflight;
 use App\Modules\Tournament\Services\TournamentManager;
+use App\Modules\Tournament\Staging\TournamentScrub;
 use App\Modules\TournamentBase\Routing\ModuleRoutes;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -15,6 +17,9 @@ class TournamentServiceProvider extends ServiceProvider
     {
         // One instance per request, like ZF2's shared service (its per-tid cache must not outlive a request).
         $this->app->scoped(TournamentManager::class);
+
+        $this->app->tag([TournamentScrub::class], 'phase2.scrub');
+        $this->app->tag([TournamentPreflight::class], 'phase2.preflight');
     }
 
     public function boot(): void

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Modules\Tournament;
 
+use App\Modules\Tournament\Database\Seeders\TournamentDemoSeeder;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use PHPUnit\Framework\Attributes\Group;
@@ -103,6 +105,59 @@ class TournamentMysqlAdoptionTest extends MysqlTestCase
         foreach (self::TABLES as $table) {
             $this->assertEqualsCanonicalizing($fresh[$table], $this->columnShape($table), $table);
         }
+    }
+
+    /** @return array{int, string} */
+    private function preflight(): array
+    {
+        $code = Artisan::call('phase2:preflight', ['module' => 'tournament']);
+
+        return [$code, Artisan::output()];
+    }
+
+    #[Test]
+    public function preflight_spec_matches_fresh_migrations(): void
+    {
+        $this->seed(TournamentDemoSeeder::class);
+
+        [$code, $output] = $this->preflight();
+
+        $this->assertSame(0, $code, $output);
+        $this->assertStringNotContainsString('[FAIL]', $output);
+        $this->assertStringNotContainsString('[WARN]', $output);
+        $this->assertStringContainsString('[PASS] columns:bs_tournament_matches: 30 columns match', $output);
+        $this->assertStringContainsString('[PASS] charset:bs_tournaments: utf8mb4_unicode_ci', $output);
+        $this->assertStringNotContainsString('[SKIP]', $output);
+    }
+
+    #[Test]
+    public function preflight_passes_on_the_adopted_live_shape(): void
+    {
+        $this->loadLiveShape();
+        $this->runModuleMigrations();
+        $this->seed(TournamentDemoSeeder::class);
+
+        [$code, $output] = $this->preflight();
+
+        $this->assertSame(0, $code, $output);
+        $this->assertStringNotContainsString('[FAIL]', $output);
+        $this->assertStringNotContainsString('[WARN] columns', $output);
+        $this->assertStringContainsString('[PASS] unique:bs_tournament_matches(tid,mkey)', $output);
+        $this->assertStringContainsString('[PASS] unique:bs_tournament_players(tid,uid)', $output);
+    }
+
+    #[Test]
+    public function utf8mb3_table_and_enum_drift_fail(): void
+    {
+        DB::statement('ALTER TABLE bs_tournament_lines CONVERT TO CHARACTER SET utf8mb3');
+        DB::statement("ALTER TABLE bs_tournaments MODIFY status ENUM('setup','finished') NOT NULL DEFAULT 'setup'");
+
+        [$code, $output] = $this->preflight();
+
+        $this->assertSame(1, $code, $output);
+        $this->assertStringContainsString('[FAIL] charset:bs_tournament_lines', $output);
+        $this->assertStringContainsString("[FAIL] columns:bs_tournaments: column status has type enum('setup','finished')", $output);
+        $this->assertStringContainsString('[PASS] charset:bs_tournament_players', $output);
     }
 
     /** @return list<string> name, type (display width stripped) and nullability */
