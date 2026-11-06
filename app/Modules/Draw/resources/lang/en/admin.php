@@ -64,6 +64,7 @@ return [
         'not_picking' => 'This draw is not in the picking phase.',
         'parallel' => 'The picking phase has already been closed in parallel.',
         'claim_race' => 'A free token was taken in parallel; closing aborted.',
+        'failed' => 'Closing the picking phase failed: internal error, details are in the error log.',
         'success' => 'Picking phase closed. :picked token(s) picked by the players, :assigned assigned. The server seed is now in the record - anybody can recompute the draw.',
         'not_marked' => 'The internal apply did not mark the draw as applied.',
         'generated' => 'All players are assigned, :count group matches created.',

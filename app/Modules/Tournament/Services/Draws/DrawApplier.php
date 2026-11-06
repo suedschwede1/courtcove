@@ -25,8 +25,10 @@ use Illuminate\Support\Facades\DB;
  * updates and the conditional mark `applied_at IS NULL` run together: if a parallel apply marked the draw
  * first, not exactly one row is affected and everything rolls back (the written timestamp always differs
  * from the NULL guard, so the affected-rows count is the signal, as in ZF2).
+ *
+ * Not final only for beforeMark(), the test seam of the MySQL race test (ApplyRaceMysqlTest).
  */
-final class DrawApplier
+class DrawApplier
 {
     public function __construct(private readonly TournamentManager $m) {}
 
@@ -104,6 +106,8 @@ final class DrawApplier
                 }
             }
 
+            $this->beforeMark($did);
+
             $marked = Draw::query()->whereKey($did)->whereNull('applied_at')->update([
                 'applied_at' => now()->format('Y-m-d H:i:s'),
                 'applied_uid' => $uid,
@@ -118,4 +122,7 @@ final class DrawApplier
 
         return count($updates);
     }
+
+    /** Runs inside the transaction after the row updates, right before the conditional mark. */
+    protected function beforeMark(int $did): void {}
 }

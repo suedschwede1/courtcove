@@ -45,6 +45,7 @@ return [
         'already' => 'Du hast bereits Token :token gewählt. Eine Änderung ist nicht möglich.',
         'unknown' => 'Diesen Token gibt es nicht.',
         'closed_meanwhile' => 'Diese Auslosung ist nicht mehr in der Wahlphase.',
+        'busy' => 'Gerade wählen mehrere gleichzeitig. Bitte nochmals versuchen.',
         'blocked' => 'Token :token ist nicht wählbar. Bitte einen anderen nehmen.',
         'taken' => 'Token :token war schneller weg. Bitte einen anderen wählen.',
         'group_failed' => 'Token ist belegt, die Gruppenzuteilung hat aber nicht geklappt: :message',

@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-06
+- Phase 2: a token pick held up by a parallel close or pick asks to try again instead of failing, and close no longer shows internal error texts.
 - Phase 2: a manual lot decision that does not match the open tie is refused, an outdated one is ignored and flagged in the championship admin instead of breaking the tables.
 - Phase 2: championship test tools (view as player, simulated results, reset) ported.
 - Phase 2: knockout bracket refresh (qualifiers, byes, advancing winners) ported.

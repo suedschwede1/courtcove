@@ -45,6 +45,7 @@ return [
         'already' => 'You already picked token :token. It cannot be changed.',
         'unknown' => 'This token does not exist.',
         'closed_meanwhile' => 'This draw is no longer in the picking phase.',
+        'busy' => 'Several people are picking at the same moment. Please try again.',
         'blocked' => 'Token :token cannot be picked. Please take another one.',
         'taken' => 'Token :token was taken first. Please pick another one.',
         'group_failed' => 'The token is yours, but the group allocation failed: :message',

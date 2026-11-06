@@ -12,8 +12,12 @@ use App\Modules\Tournament\Services\GenerationService;
 use App\Modules\Tournament\Services\TournamentManager;
 use App\Modules\TournamentBase\Support\ActionRefused;
 use Exception;
+use Illuminate\Database\DeadlockException;
+use Illuminate\Database\DetectsConcurrencyErrors;
+use Illuminate\Database\QueryException;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  * A participant picks a token (ported from ZF2 TokenController::pickAction).
@@ -23,9 +27,15 @@ use Illuminate\Support\Facades\DB;
  * also checks the draw status, commit. Only after the commit the group is written to the player row and
  * the matches are generated: the token is claimed, that is what matters; a failure there leaves the claim
  * in place and the tournament director can catch up with "anwenden".
+ *
+ * Concurrency: a lock wait timeout or deadlock (a close or another pick holds the draw row too long) and a
+ * unique violation without a held token (a parallel pick of the same player that rolled back) end in a
+ * "try again" flash, never in an error page; ZF2 caught every exception and flashed it.
  */
 final class TokenPicker
 {
+    use DetectsConcurrencyErrors;
+
     private const SLOT = '/^([A-Z]+)([0-9]+)$/';
 
     public function __construct(
@@ -99,7 +109,21 @@ final class TokenPicker
             // A parallel request of the same player claimed another token first.
             $this->refuseIfHolding($c->did, $tpid);
 
-            throw $e;
+            Log::warning('Token pick hit the unique key without a held token', ['did' => $c->did, 'tpid' => $tpid, 'error' => $e->getMessage()]);
+
+            throw new ActionRefused('draw::tokens.pick.busy');
+        } catch (QueryException|DeadlockException $e) {
+            // DB::transaction rethrows a concurrency error inside an outer transaction as DeadlockException.
+            if (! $e instanceof DeadlockException && ! $this->causedByConcurrencyError($e)) {
+                throw $e;
+            }
+
+            // The other request may have finished meanwhile: then the player learns which token he holds.
+            $this->refuseIfHolding($c->did, $tpid);
+
+            Log::warning('Token pick gave up on a concurrent lock', ['did' => $c->did, 'tpid' => $tpid, 'error' => $e->getMessage()]);
+
+            throw new ActionRefused('draw::tokens.pick.busy');
         }
 
         // Make the assignment effective at once: the draw has already run, so the slot is on the token and
@@ -118,7 +142,9 @@ final class TokenPicker
                 // Matches appear once both players are known; GenerationService skips incomplete pairs.
                 $this->generation->generate($c->tid);
             } catch (Exception $e) {
-                $flashes[] = ['type' => 'error', 'text' => (string) __('draw::tokens.pick.group_failed', ['message' => $e->getMessage()])];
+                // The raw message may carry SQL or an internal English text: logged, not shown.
+                Log::error('Group write or generation after a token pick failed', ['did' => $c->did, 'tpid' => $tpid, 'exception' => $e]);
+                $flashes[] = ['type' => 'error', 'text' => (string) __('draw::tokens.pick.group_failed', ['message' => __('draw::common.internal_error')])];
             }
         }
 

@@ -64,6 +64,7 @@ return [
         'not_picking' => 'Diese Auslosung ist nicht in der Wahlphase.',
         'parallel' => 'Die Wahlphase wurde parallel bereits geschlossen.',
         'claim_race' => 'Ein freier Token wurde parallel belegt; Schließen abgebrochen.',
+        'failed' => 'Wahlphase schließen fehlgeschlagen: interner Fehler, Details stehen im Fehlerprotokoll.',
         'success' => 'Wahlphase geschlossen. :picked Token(s) selbst gewählt, :assigned zugeteilt. Der Server-Seed ist jetzt im Protokoll - die Ziehung ist damit für jeden nachrechenbar.',
         'not_marked' => 'Die interne Anwendung hat die Ziehung nicht als angewendet markiert.',
         'generated' => 'Alle Spieler sind zugeteilt, :count Gruppenpartien angelegt.',

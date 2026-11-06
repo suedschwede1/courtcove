@@ -86,7 +86,7 @@
                             @endif
                         </div>
                         @if ($pickable)
-                            <x-ui.button x-on:click="pending = {{ \Illuminate\Support\Js::from(['dtid' => (int) $token['dtid'], 'title' => __('draw::tokens.confirm_title', ['token' => $token['token']])]) }}">{{ __('draw::tokens.pick_button') }}</x-ui.button>
+                            <x-ui.button aria-label="{{ __('draw::tokens.confirm_title', ['token' => $token['token']]) }}" x-on:click="pending = {{ \Illuminate\Support\Js::from(['dtid' => (int) $token['dtid'], 'title' => __('draw::tokens.confirm_title', ['token' => $token['token']])]) }}">{{ __('draw::tokens.pick_button') }}</x-ui.button>
                         @elseif ($token['claimed_tpid'])
                             <p class="text-body-s text-ink">
                                 {{ $takenBy !== null ? $takenBy['label'] : __('draw::tokens.taken') }}

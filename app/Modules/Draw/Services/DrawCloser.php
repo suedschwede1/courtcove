@@ -15,6 +15,7 @@ use App\Modules\Tournament\Support\TournamentAccess;
 use App\Modules\TournamentBase\Support\ActionRefused;
 use Exception;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
 /**
@@ -65,8 +66,12 @@ final class DrawCloser
         } catch (ActionRefused $e) {
             return [['type' => 'error', 'text' => (string) __($e->key, $e->replace)]];
         } catch (Exception $e) {
-            // ZF2 flashed any failure of the transaction (e.g. more non-pickers than free tokens).
-            return [['type' => 'error', 'text' => $e->getMessage()]];
+            // ZF2 flashed any failure of the transaction (e.g. more non-pickers than free tokens) raw; the
+            // message may carry SQL (a lock wait while a pick holds the draw row) or an internal English
+            // text, so it is logged and a translated generic text is shown. Nothing was changed.
+            Log::error('Closing the picking phase failed', ['did' => $did, 'exception' => $e]);
+
+            return [['type' => 'error', 'text' => (string) __('draw::admin.close.failed')]];
         }
 
         $flashes = [[
@@ -91,7 +96,12 @@ final class DrawCloser
 
                 $flashes[] = ['type' => 'success', 'text' => (string) __('draw::admin.close.generated', ['count' => (int) $generated['created']['matches']])];
             } catch (Exception $e) {
-                $message = $e instanceof ActionRefused ? (string) __($e->key, $e->replace) : $e->getMessage();
+                if ($e instanceof ActionRefused) {
+                    $message = (string) __($e->key, $e->replace);
+                } else {
+                    Log::error('Apply or generation after closing the picking phase failed', ['did' => $did, 'exception' => $e]);
+                    $message = (string) __('draw::common.internal_error');
+                }
                 $flashes[] = ['type' => 'error', 'text' => (string) __('draw::admin.close.apply_failed', ['message' => $message])];
             }
         }
@@ -180,7 +190,10 @@ final class DrawCloser
         );
 
         foreach ($assignment as $entry) {
-            if (! $this->claimer->claim($entry['dtid'], $entry['tpid'], $entry['uid'], 'fallback')) {
+            // The uid comes from the raw row: cast here instead of relying on the driver returning ints.
+            $uid = $entry['uid'] === null ? null : (int) $entry['uid'];
+
+            if (! $this->claimer->claim($entry['dtid'], $entry['tpid'], $uid, 'fallback')) {
                 throw new ActionRefused('draw::admin.close.claim_race');
             }
         }

@@ -16,6 +16,11 @@ use Illuminate\Support\Facades\DB;
  *
  * The UNIQUE KEY (did, claimed_tpid) keeps one player from holding two tokens; its violation propagates
  * as in ZF2.
+ *
+ * SQLite (test driver only) does not serialise picks: lockDraw() takes no row lock there, and a deferred
+ * BEGIN takes no lock on the SELECT either, so two concurrent picks could both recompute the partner block
+ * before either writes. The claim statement itself stays atomic. The serialisation is proven on MySQL by
+ * TokenRaceMysqlTest (composer test:mysql).
  */
 final class TokenClaimer
 {
