@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-06
+- Members (family fee groundwork): new additive tables for households, household dues, their coverage and payments plus `members.household_id` and `fee_categories.billing_unit` (default "member"); nothing creates a household, existing members, categories and dues are unchanged, and the database page tracks the new schema.
 - Members overview: members whose linked booking account is a placeholder are left out of every figure (Mitglieder, davon Jugend, ruhend, Aktiv, age structure, categories) and count as "Ohne Benutzerkonto"; the member list, dues, Rundmail and export are unchanged.
 - Admin "Texte": a rejected mail address or name in the tournament and Reply-To cards is reported with the field label ("Antwortadresse für Buchungsmails") instead of the raw input name.
 - Admin "Texte": new card "Antwortadresse für System-/Buchungsmails" with one Reply-To address for booking mails and one for password/account mails; a filled field wins over the .env value, an emptied field removes it again.
