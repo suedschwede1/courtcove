@@ -104,6 +104,9 @@ class MemberController
             'clubRoles' => ClubRole::query()->orderByDesc('is_board')->orderBy('name')->get(),
             'fiscalYears' => FiscalYear::query()->orderBy('starts_on')->get(),
             'dues' => $member->dues()->with('fiscalYear', 'feeCategory')->get()->sortByDesc(fn ($due) => $due->fiscalYear->starts_on),
+            // Household dues covering the member: read-only rows with a "Haushalt" chip in the dues card.
+            'coveringDues' => $member->coveringHouseholdDues()->with('fiscalYear', 'household.members')->withExists('payments')->get()
+                ->sortByDesc(fn (HouseholdDue $due) => $due->fiscalYear->starts_on->toDateString())->values(),
             'changes' => MemberChange::where('member_id', $member->id)->with('adminUser')->latest()->get(),
             'users' => User::query()->orderBy('alias')->get(),
             ...$this->householdCardData($member),

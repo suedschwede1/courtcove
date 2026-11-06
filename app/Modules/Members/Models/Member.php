@@ -240,14 +240,19 @@ class Member extends Model
         return (int) (static::query()->max('member_number') ?? 0) + 1;
     }
 
+    /** End of the last fiscal year that is paid: by an own due or by a paid household due covering the member. */
     public function paidUntil(): ?Carbon
     {
-        return $this->dues()
+        $own = $this->dues()
             ->get()
             ->filter(fn (MemberDue $due) => $due->isPaid())
-            ->map(fn (MemberDue $due) => $due->fiscalYear->ends_on)
-            ->sort()
-            ->last();
+            ->map(fn (MemberDue $due) => $due->fiscalYear->ends_on);
+        $household = $this->coveringHouseholdDues()
+            ->get()
+            ->filter(fn (HouseholdDue $due) => $due->isPaid())
+            ->map(fn (HouseholdDue $due) => $due->fiscalYear->ends_on);
+
+        return $own->concat($household)->sort()->last();
     }
 
     /** Setzt das Austrittsdatum und leitet daraus automatisch den Status ab: gesetzt = ausgetreten, geleert = aktiv. */

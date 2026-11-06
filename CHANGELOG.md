@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-06
+- Members: the dues card on the member page lists the household dues covering the member as read-only rows with a "Haushalt" chip linking to the household, and "bezahlt bis" also counts paid household coverage.
 - Members overview: "Beitrag offen" and "Bezahlt" count each household due once (count and sum, with "davon n Haushaltsbeiträge"), and the open-dues list links household rows to the household.
 - Members: the payment form on a member page also offers the open household due covering the member or of their household ("Haushalt … · Jahr · Betrag"); the exact-amount rule applies to member and household dues together, a paid household due cannot be allocated twice, and the payment marks the household due paid for every covered member.
 - Members: the Beiträge page lists the household dues of the year once in their own card (household, covered members, amount, open rest) with the same inline cells as member dues (status, Bezahlt am, Bezahlt bis, Teilbetrag, Kommentar), search by household or covered member, the status filter, the bulk "als bezahlt markieren" and paid-through creating the following household dues; closed years stay locked, the open total and the close confirmation count each household due once.
