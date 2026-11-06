@@ -181,6 +181,11 @@ return [
         'on' => 'An',
         'off' => 'Aus',
         'save' => 'Speichern',
+        'max_active_bookings' => [
+            'title' => 'Buchungen einschränken',
+            'label' => 'Gleichzeitige Buchungen pro Benutzer (0 = unbegrenzt)',
+            'hint' => 'Gilt für alle Plätze zusammen: Gezählt werden alle zukünftigen aktiven Buchungen des Benutzers.',
+        ],
         'peak_limit' => [
             'title' => 'Stoßzeiten-Limit',
             'enabled' => 'Stoßzeiten-Limit aktivieren',
@@ -517,7 +522,6 @@ return [
             'range_book' => 'Buchung im Voraus (Tage)',
             'short_booking_window' => 'Kurzfristige Buchung trotz Limits (Minuten)',
             'short_booking_window_hint' => 'Innerhalb dieses Fensters vor Spielbeginn werden Buchungsvorlauf, Tageslimit und maximale aktive Buchungen ignoriert. 0 = deaktiviert.',
-            'max_active_bookings' => 'Buchungen einschränken (gleichzeitig pro Benutzer, 0 = unbegrenzt)',
             'range_cancel' => 'Stornierung (Stunden)',
             'label_free' => 'Bezeichnung freier Plätze',
             'time_column' => 'Zeit',
@@ -525,7 +529,6 @@ return [
             'confirm_delete' => 'Platz löschen?',
             'readonly_message_hint' => 'Nachricht, die angezeigt wird, wenn der Platz gesperrt ist.',
             'range_book_hint' => 'Wie viele Tage im Voraus kann max. gebucht werden?',
-            'max_active_bookings_hint' => 'Auf 0 setzen, um beliebig viele Buchungen zu erlauben.',
             'range_cancel_hint' => 'Bis wann darf spätestens storniert werden? 0 = nie stornieren, 0,01 = praktisch immer.',
             'label_free_hint' => 'Individuelle Bezeichnung freier Plätze; Standard ist „Frei".',
         ],

@@ -107,7 +107,6 @@ final class SquareController extends Controller
             'min_range_book' => (int) round($square->min_range_book / 60),
             'range_book' => (int) round(((int) $square->range_book) / 86400),
             'short_booking_window' => (int) round(((int) ($square->getMeta('short-booking-window') ?? '0')) / 60),
-            'max_active_bookings' => (int) $square->max_active_bookings,
             'range_cancel' => round(((int) $square->range_cancel) / 3600, 2),
             'label_free' => (string) $square->getMeta('label.free'),
             'peak_limit_enabled' => $square->getMeta('peak_limit_enabled') === '1',
@@ -132,7 +131,6 @@ final class SquareController extends Controller
             'min_range_book' => ['required', 'integer', 'min:0'],
             'range_book' => ['required', 'integer', 'min:0'],
             'short_booking_window' => ['required', 'integer', 'min:0'],
-            'max_active_bookings' => ['required', 'integer', 'min:0'],
             'range_cancel' => ['required', 'numeric', 'min:0'],
             'label_free' => ['nullable', 'string', 'max:64'],
             'peak_limit_enabled' => ['nullable', 'in:0,1'],
@@ -150,7 +148,6 @@ final class SquareController extends Controller
             'time_block_bookable_max' => (int) $data['time_block_bookable_max'] * 60,
             'min_range_book' => (int) $data['min_range_book'] * 60,
             'range_book' => (int) $data['range_book'] * 86400,
-            'max_active_bookings' => (int) $data['max_active_bookings'],
             'range_cancel' => (int) round(((float) $data['range_cancel']) * 3600),
         ];
 
@@ -201,7 +198,7 @@ final class SquareController extends Controller
             'time_start' => '08:00', 'time_end' => '23:00', 'time_block' => 60,
             'time_block_bookable' => 30, 'pseudo_time_block_bookable' => false,
             'time_block_bookable_max' => 180, 'min_range_book' => 0, 'range_book' => 56,
-            'short_booking_window' => 0, 'max_active_bookings' => 0, 'range_cancel' => 24, 'label_free' => '',
+            'short_booking_window' => 0, 'range_cancel' => 24, 'label_free' => '',
             'peak_limit_enabled' => false,
         ];
     }

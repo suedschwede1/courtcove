@@ -50,6 +50,12 @@
             </x-ui.field>
         </x-ui.card>
 
+        <x-ui.card :title="__('booking.admin.max_active_bookings.title')" padding="lg" class="ds-admin-form-card">
+            <x-ui.field :label="__('booking.admin.max_active_bookings.label')" for="cf-max-active" :help="__('booking.admin.max_active_bookings.hint')">
+                <x-ui.input id="cf-max-active" name="max_active_bookings" type="number" min="0" max="999" :value="old('max_active_bookings', $values['max_active_bookings'])" />
+            </x-ui.field>
+        </x-ui.card>
+
         <x-ui.card :title="__('booking.admin.peak_limit.title')" padding="lg" class="ds-admin-form-card">
             <div class="ds-admin-choice">
                 <x-ui.option-group :columns="2" class="ds-admin-flags ds-admin-flags--single" aria-describedby="cf-peak-help">

@@ -71,6 +71,7 @@ final class OptionController extends Controller
         'maintenance' => 'service.maintenance',
         'quotes_enabled' => 'service.quotes.enabled',
         'calendar_hide' => 'service.calendar.day-exceptions',
+        'max_active_bookings' => 'booking.max_active_bookings',
         'peak_limit_enabled' => 'peak_limit.enabled',
         'peak_limit_w1_start' => 'peak_limit.window_1_start',
         'peak_limit_w1_end' => 'peak_limit.window_1_end',
@@ -115,6 +116,10 @@ final class OptionController extends Controller
 
         if ($values['quotes_enabled'] === '') {
             $values['quotes_enabled'] = '1';
+        }
+
+        if ($values['max_active_bookings'] === '') {
+            $values['max_active_bookings'] = '0';
         }
 
         return view('admin.config.behavior', [
@@ -274,6 +279,7 @@ final class OptionController extends Controller
             'maintenance' => ['nullable', 'in:0,1'],
             'quotes_enabled' => ['nullable', 'in:0,1'],
             'calendar_hide' => ['nullable', 'string', 'max:4096'],
+            'max_active_bookings' => ['nullable', 'integer', 'min:0', 'max:999'],
             'peak_limit_enabled' => ['nullable', 'in:0,1'],
             'peak_limit_w1_start' => ['nullable', 'regex:/^\d{2}:\d{2}$/'],
             'peak_limit_w1_end' => ['nullable', 'regex:/^\d{2}:\d{2}$/'],

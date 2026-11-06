@@ -30,7 +30,7 @@ class SquareManagementTest extends TestCase
             'time_start' => '08:00', 'time_end' => '22:00',
             'time_block' => 60, 'time_block_bookable' => 30, 'time_block_bookable_max' => 180,
             'min_range_book' => 0, 'range_book' => 56, 'short_booking_window' => 0,
-            'max_active_bookings' => 0, 'range_cancel' => 24, 'label_free' => 'frei',
+            'range_cancel' => 24, 'label_free' => 'frei',
         ], $overrides);
     }
 
