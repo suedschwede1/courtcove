@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureAdminMode;
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\StripFourByteCharacters;
 use App\Http\Middleware\TrackAdminModeRequest;
@@ -18,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // admin_mode stays unencrypted: it only takes effect for accounts that hold a privilege (App\Support\AdminMode).
         $middleware->encryptCookies(except: ['locale', 'admin_mode']);
         $middleware->prepend(TrackAdminModeRequest::class);
+        $middleware->alias(['admin.mode' => EnsureAdminMode::class]);
         $middleware->web(append: [SetLocale::class, StripFourByteCharacters::class]);
         $middleware->api(append: [StripFourByteCharacters::class]);
     })
