@@ -260,7 +260,7 @@ class MembersListRestyleTest extends TestCase
         $manifest = json_decode((string) file_get_contents(public_path('build/manifest.json')), true, flags: JSON_THROW_ON_ERROR);
         $css = (string) file_get_contents(public_path('build/'.$manifest['resources/css/app.css']['file']));
         // The screen-reader label of the last column stays inside the scroll box.
-        $this->assertMatchesRegularExpression('/\.mbr-list-table \.mbr-cell-open\{position:relative/', $css);
+        $this->assertMatchesRegularExpression('/\.mbr-list-table \.mbr-cell-open\{[^}]*position:relative/', $css);
         // Search field may shrink; on phones the chips scroll inside their own row.
         $this->assertMatchesRegularExpression('/\.mbr-search\{[^}]*min-width:0/', $css);
         $this->assertMatchesRegularExpression('/\.mbr-chips\{[^}]*flex-wrap:nowrap[^}]*overflow-x:auto/', $css);

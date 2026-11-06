@@ -97,7 +97,7 @@ final readonly class MemberListFilter
                     'bezahlt' => $dues->where('status', 'bezahlt'),
                     'ausstehend' => $dues->where('status', 'ausstehend')
                         ->where(fn (Builder $q) => $q->whereNull('faellig_am')->orWhere('faellig_am', '>=', now()->toDateString())),
-                    default => $dues->overdue(),
+                    default => $dues->scopes(['overdue']),
                 };
             });
         }

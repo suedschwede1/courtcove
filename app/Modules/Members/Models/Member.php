@@ -140,7 +140,7 @@ class Member extends Model
      */
     public function scopeWithOpenDues(Builder $query): Builder
     {
-        return $query->whereHas('dues', fn (Builder $dues) => $dues->open());
+        return $query->whereHas('dues', fn (Builder $dues) => $dues->scopes(['open']));
     }
 
     /**
