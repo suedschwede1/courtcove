@@ -5,7 +5,7 @@
     opens one shared confirm modal instead of the old inline confirm() dialogs.
     Needs: $draws, $suggestedRound, $beaconError, $commitErrors.
 --}}
-@extends('layouts.admin')
+@extends('tournament-base::layouts.area')
 
 @section('admin-title', __('draw::admin.index.title'))
 

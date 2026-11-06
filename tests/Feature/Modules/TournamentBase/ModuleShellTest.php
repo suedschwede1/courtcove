@@ -13,6 +13,7 @@ use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\ViewErrorBag;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -184,18 +185,16 @@ class ModuleShellTest extends TestCase
     }
 
     #[Test]
-    public function module_layout_renders_title_tabs_and_content(): void
+    public function module_layout_renders_title_sidebar_and_content(): void
     {
         $this->actingAs(User::factory()->create(['status' => 'enabled']));
+        view()->share('errors', new ViewErrorBag);
         ModuleFlash::info('Hinweis eins');
 
         $html = Blade::render(<<<'BLADE'
             @extends('tournament-base::layouts.module')
             @section('title', 'Demo-Meisterschaft')
             @section('eyebrow', 'Vereinsmeisterschaft 2027')
-            @section('tabs')
-                @include('tournament-base::partials.module-tabs', ['items' => [['label' => 'Übersicht', 'href' => '/tournament', 'active' => true]]])
-            @endsection
             @section('module-content')
                 <p>Inhalt der Seite</p>
             @endsection
@@ -203,7 +202,8 @@ class ModuleShellTest extends TestCase
 
         $this->assertStringContainsString('Demo-Meisterschaft', $html);
         $this->assertStringContainsString('Vereinsmeisterschaft 2027', $html);
-        $this->assertStringContainsString('aria-current="page"', $html);
+        $this->assertStringContainsString('<aside id="admin-nav"', $html);
+        $this->assertStringNotContainsString('ds-tabs', $html);
         $this->assertStringContainsString('Hinweis eins', $html);
         $this->assertStringContainsString('Inhalt der Seite', $html);
     }

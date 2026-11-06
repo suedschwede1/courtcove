@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Route;
 
 /**
  * Shared context of every championship page (old IndexController::context() and partial/nav.phtml):
- * the tournament (resolved first, then the access level), the module tabs, the test mode and test
+ * the tournament (resolved first, then the access level), the test mode and test
  * tournament bars and the open token-draw hint.
  */
 final class TournamentPage
@@ -29,8 +29,8 @@ final class TournamentPage
     /**
      * The page context, or null when no championship exists at all.
      *
-     * @param  string  $active  key of the active tab (see TournamentTabs)
-     * @return array{tournament: Tournament, tid: int, format: FormatService, access: AccessContext, showContacts: bool, tabs: list<array{label: string, href: string, active: bool}>, tokenHint: array{did: int, title: string, deadline: string|null, url: string|null}|null, stopUrl: string|null, testTournament: string|null, players: array<int, array<string, mixed>>}|null
+     * @param  string  $active  key of the page (kept for the callers; the sidebar finds the active entry by route)
+     * @return array{tournament: Tournament, tid: int, format: FormatService, access: AccessContext, showContacts: bool, tokenHint: array{did: int, title: string, deadline: string|null, url: string|null}|null, stopUrl: string|null, testTournament: string|null, players: array<int, array<string, mixed>>}|null
      */
     public function build(User $user, string $active): ?array
     {
@@ -49,7 +49,6 @@ final class TournamentPage
             'format' => $this->m->format($tid),
             'access' => $access,
             'showContacts' => $access->level >= TournamentAccess::PARTICIPANT,
-            'tabs' => TournamentTabs::for($access, $t, $active),
             'tokenHint' => $this->tokenHint($tid, $access->tpid),
             'stopUrl' => Route::has('tournament.admin.simulate') ? route('tournament.admin.simulate') : null,
             'testTournament' => ! empty($t->is_test) ? (string) $t->title : null,

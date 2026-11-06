@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Modules\TournamentBase\Support;
 
 use App\Models\User;
+use App\Modules\Draw\Support\DrawNavigation;
 use App\Modules\Pyramid\Support\PyramidNavigation;
+use App\Modules\Tournament\Support\ChampionshipNavigation;
 use App\Support\Navigation\AreaNavBuilder;
 use App\Support\Navigation\AreaNavGroup;
 use App\Support\Navigation\AreaNavigation;
@@ -23,6 +25,8 @@ final class TournamentAreaNavigation implements AreaNavigation
     /** Order of the groups and of the parts inside a group. */
     private const MODULES = [
         PyramidNavigation::class,
+        ChampionshipNavigation::class,
+        DrawNavigation::class,
     ];
 
     /** @var list<TournamentModuleNavigation>|null */

@@ -99,14 +99,14 @@ class OverviewPageTest extends TestCase
     }
 
     #[Test]
-    public function admin_sees_draw_and_admin_tabs(): void
+    public function admin_sees_draw_and_admin_entries(): void
     {
         $this->stubLaterRoutes();
         $this->championship();
 
         $html = $this->actingAs($this->admin())->get('/tournament')->assertOk()->getContent();
 
-        $this->assertStringContainsString('>Auslosung</a>', $html);
+        $this->assertStringContainsString('>Auslosungen verwalten</a>', $html);
         $this->assertStringContainsString('href="'.route('draw.index').'"', $html);
         $this->assertStringContainsString('>Leitung</a>', $html);
         $this->assertStringContainsString('href="'.route('tournament.admin').'"', $html);
@@ -120,7 +120,7 @@ class OverviewPageTest extends TestCase
 
         $html = $this->actingAs($this->member())->get('/tournament')->assertOk()->getContent();
 
-        $this->assertStringNotContainsString('>Auslosung</a>', $html);
+        $this->assertStringNotContainsString('>Auslosungen verwalten</a>', $html);
         $this->assertStringNotContainsString('>Leitung</a>', $html);
         foreach (['Übersicht', 'Modus'] as $tab) {
             $this->assertStringContainsString('>'.$tab.'</a>', $html);
@@ -168,7 +168,7 @@ class OverviewPageTest extends TestCase
         $this->assertStringContainsString('Testmodus', $html);
         $this->assertStringContainsString('Ansicht von Demo Spieler 02', $html);
         $this->assertStringContainsString('action="'.route('tournament.admin.simulate').'"', $html);
-        // the simulated level hides the admin tabs
+        // the simulated level hides the admin entry
         $this->assertStringNotContainsString('>Leitung</a>', $html);
     }
 

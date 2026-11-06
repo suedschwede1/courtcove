@@ -1,5 +1,5 @@
 {{-- Championship admin without any championship (ZF2 answered with an error page). --}}
-@extends('layouts.admin')
+@extends('tournament-base::layouts.area')
 
 @section('admin-title', __('tournament::admin.index.title'))
 

@@ -1,9 +1,13 @@
-@extends('layouts.app')
+{{--
+    Public draw record (verification page, no login): in the tournament area shell; guests see only this record in the
+    sidebar. The JSON endpoint is separate and untouched.
+--}}
+@extends('tournament-base::layouts.area')
 
 @section('title', __('draw::record.title'))
 
-@section('content')
-<div class="mx-auto flex w-full max-w-[1000px] flex-col gap-4 px-4 py-6">
+@section('admin-content')
+<div class="mx-auto flex w-full min-w-0 max-w-[1000px] flex-col gap-4">
 @if ($draw === null)
     <h1 class="font-display text-[36px] font-bold leading-none text-ink">{{ __('draw::record.not_found') }}</h1>
 @else
