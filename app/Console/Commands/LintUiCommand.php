@@ -113,18 +113,56 @@ class LintUiCommand extends Command
             }
         }
 
+        $obsolete = $this->obsoleteExceptions($baseline, $current, array_column($rules, 'id'));
+
         $count = count($findings);
         $fileCount = count(array_unique(array_column($findings, 'file')));
         $this->line(str_repeat('-', 55));
         $this->warn("{$count} warnings in {$fileCount} files.");
         $this->line(sprintf('%d blocking findings; %d baselined legacy findings.', $blocking, $count - $blocking));
 
+        if ($obsolete !== []) {
+            // A stale allowance would let the fixed defect come back unnoticed.
+            $this->error(sprintf('Obsolete baseline exceptions (the findings are gone): %d', count($obsolete)));
+            foreach ($obsolete as $entry) {
+                $this->line(sprintf('  [%s] %s (%d unused): %s', $entry['rule'], $entry['file'], $entry['unused'], $entry['source']));
+            }
+            $this->line('Remove them with: php artisan lint:ui --prune-baseline');
+        }
+
         $failOver = $this->option('fail-over');
         if ($failOver !== null && $failOver !== '' && $count > (int) $failOver) {
             return self::FAILURE;
         }
 
-        return $blocking === 0 ? self::SUCCESS : self::FAILURE;
+        return $blocking === 0 && $obsolete === [] ? self::SUCCESS : self::FAILURE;
+    }
+
+    /**
+     * Baseline allowances no current finding uses: the entry's finding is gone, it
+     * occurs fewer times than allowed, or its path has been migrated since. Only
+     * entries of the rules that ran are judged, so --rule stays meaningful.
+     *
+     * @param  array<string, array{file: string, rule: string, source: string, count: int}>  $baseline
+     * @param  array<string, array{file: string, rule: string, source: string, count: int}>  $current
+     * @param  list<string>  $ruleIds
+     * @return list<array{file: string, rule: string, source: string, unused: int}>
+     */
+    private function obsoleteExceptions(array $baseline, array $current, array $ruleIds): array
+    {
+        $obsolete = [];
+        foreach ($baseline as $key => $entry) {
+            if (! in_array($entry['rule'] ?? null, $ruleIds, true)) {
+                continue;
+            }
+            $usable = $this->migrated((string) $entry['file']) ? 0 : ($current[$key]['count'] ?? 0);
+            $unused = $entry['count'] - min($entry['count'], $usable);
+            if ($unused > 0) {
+                $obsolete[] = ['file' => (string) $entry['file'], 'rule' => (string) $entry['rule'], 'source' => (string) ($entry['source'] ?? ''), 'unused' => $unused];
+            }
+        }
+
+        return $obsolete;
     }
 
     /**

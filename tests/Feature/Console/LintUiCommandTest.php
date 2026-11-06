@@ -69,6 +69,77 @@ class LintUiCommandTest extends TestCase
     }
 
     #[Test]
+    public function an_exception_that_is_still_needed_passes(): void
+    {
+        $this->useFixture();
+        $this->artisan('lint:ui --write-baseline')->assertSuccessful();
+
+        $this->artisan('lint:ui --summary')
+            ->doesntExpectOutputToContain('Obsolete baseline')
+            ->expectsOutputToContain('0 blocking findings; 1 baselined legacy findings.')
+            ->assertSuccessful();
+    }
+
+    #[Test]
+    public function an_exception_that_is_no_longer_needed_fails_and_is_listed(): void
+    {
+        $this->useFixture();
+        $this->artisan('lint:ui --write-baseline')->assertSuccessful();
+        file_put_contents($this->fixture.'/page.blade.php', '<p class="text-ink">Fixed</p>');
+
+        $file = substr($this->fixture, strlen(base_path()) + 1).'/page.blade.php';
+        $this->artisan('lint:ui --summary')
+            ->expectsOutputToContain('Obsolete baseline exceptions (the findings are gone)')
+            ->expectsOutputToContain('[CLR-02] '.$file.' (1 unused): <p class="text-red-500">Legacy</p>')
+            ->expectsOutputToContain('php artisan lint:ui --prune-baseline')
+            ->assertFailed();
+    }
+
+    #[Test]
+    public function a_surplus_occurrence_count_is_obsolete_too(): void
+    {
+        $this->useFixture();
+        file_put_contents($this->fixture.'/page.blade.php', '<p class="text-red-500">Legacy</p>'."\n".'<p class="text-red-500">Legacy</p>');
+        $this->artisan('lint:ui --write-baseline')->assertSuccessful();
+        file_put_contents($this->fixture.'/page.blade.php', '<p class="text-red-500">Legacy</p>');
+
+        $this->artisan('lint:ui --summary')
+            ->expectsOutputToContain('(1 unused)')
+            ->assertFailed();
+    }
+
+    #[Test]
+    public function pruning_removes_obsolete_exceptions_so_the_run_passes_again(): void
+    {
+        $this->useFixture();
+        file_put_contents($this->fixture.'/other.blade.php', '<p class="text-blue-500">Other legacy</p>');
+        $this->artisan('lint:ui --write-baseline')->assertSuccessful();
+        file_put_contents($this->fixture.'/page.blade.php', '<p class="text-ink">Fixed</p>');
+        $this->artisan('lint:ui --summary')->assertFailed();
+
+        $this->artisan('lint:ui --prune-baseline --summary')->assertSuccessful();
+
+        $findings = json_decode((string) file_get_contents($this->fixture.'/baseline.json'), true)['findings'];
+        $this->assertSame(['<p class="text-blue-500">Other legacy</p>'], array_values(array_column($findings, 'source')));
+        $this->artisan('lint:ui --summary')->assertSuccessful();
+    }
+
+    #[Test]
+    public function a_rule_filter_only_judges_exceptions_of_the_selected_rules(): void
+    {
+        $this->useFixture();
+        file_put_contents($this->fixture.'/page.blade.php', '<p class="text-red-500">Legacy</p>'."\n".'<div style="margin: 0">Legacy</div>');
+        $this->artisan('lint:ui --write-baseline')->assertSuccessful();
+
+        $this->artisan('lint:ui --rule=CLR --summary')->assertSuccessful();
+        $this->artisan('lint:ui --rule=STY --summary')->assertSuccessful();
+
+        file_put_contents($this->fixture.'/page.blade.php', '<p class="text-red-500">Legacy</p>');
+        $this->artisan('lint:ui --rule=CLR --summary')->assertSuccessful();
+        $this->artisan('lint:ui --rule=STY --summary')->assertFailed();
+    }
+
+    #[Test]
     public function duplicate_occurrences_cannot_reuse_one_exception(): void
     {
         $this->useFixture();

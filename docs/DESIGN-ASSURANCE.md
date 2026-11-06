@@ -61,6 +61,9 @@ CI checks the actual commit, so partial staging cannot bypass the remote check.
 `ui-design-baseline.json` records legacy findings by file, rule, normalized source line
 and occurrence count. Line shifts alone do not invalidate an exception. New source,
 additional occurrences and any violation in a migrated path fail with a nonzero exit.
+Obsolete exceptions fail as well: when a baselined finding is fixed (or occurs fewer
+times than allowed) the run lists the unused entries and exits nonzero until they are
+removed with `--prune-baseline`, so the allowance cannot silently cover a regression.
 
 - `php artisan lint:ui --summary`: blocking and total counts.
 - `php artisan lint:ui --strict`: report all legacy debt as errors.
