@@ -58,6 +58,7 @@
                 <th scope="col">{{ __('members::admin.members.fee_category') }}</th>
                 <th scope="col">{{ __('members::admin.dues.amount') }}</th>
                 <th scope="col">{{ __('members::admin.dues.status') }}</th>
+                <th scope="col">{{ __('members::admin.dues.bezahlt_am') }}</th>
                 <th scope="col">{{ __('members::admin.dues.paid_through') }}</th>
                 <th scope="col">{{ __('members::admin.dues.teilbetrag') }}</th>
                 <th scope="col">{{ __('members::admin.dues.kommentar') }}</th>
@@ -83,7 +84,7 @@
                         async save() {
                             this.error = null;
                             const result = await window.saveDueField({{ $due->id }}, 'status', this.value);
-                            if (result.ok) { this.editing = false; this.value = result.value; this.displayValue = result.value; this.justSaved = true; setTimeout(() => this.justSaved = false, 1500); }
+                            if (result.ok) { this.editing = false; this.value = result.value; this.displayValue = result.value; window.announceDuePaidOn({{ $due->id }}, result.data); this.justSaved = true; setTimeout(() => this.justSaved = false, 1500); }
                             else { this.error = result.message; }
                         }
                     }"
@@ -99,6 +100,7 @@
                         <p class="ds-field__error" x-show="error" x-text="error"></p>
                     </div>
                 </td>
+                @include('members::dues._paid-on-cell', ['due' => $due])
                 <td data-label="{{ __('members::admin.dues.paid_through') }}">
                     <select class="ds-select" aria-label="{{ __('members::admin.dues.paid_through') }}" onchange="window.saveDuePaidThrough({{ $due->id }}, this.value)">
                         <option value="">–</option>
@@ -153,7 +155,7 @@
                 </td>
             </tr>
         @empty
-            <tr><td colspan="7" class="text-ink-2">–</td></tr>
+            <tr><td colspan="8" class="text-ink-2">–</td></tr>
         @endforelse
     </x-ui.table>
 </x-ui.card>

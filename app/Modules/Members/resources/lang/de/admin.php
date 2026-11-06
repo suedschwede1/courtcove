@@ -81,7 +81,6 @@ return [
         'new_payment' => 'Zahlung erfassen',
         'created' => 'Zahlung erfasst.',
         'amount' => 'Betrag (€)',
-        'paid_at' => 'Zahlungsdatum',
         'note' => 'Notiz',
         'covers' => 'Deckt folgende Beiträge ab',
         'due_already_paid' => 'Einer der ausgewählten Beiträge wurde bereits bezahlt.',
@@ -151,6 +150,9 @@ return [
         'bulk_mark_paid' => 'Ausgewählte als bezahlt markieren',
         'bulk_marked_paid' => ':count Beitrag/Beiträge als bezahlt markiert.',
         'selected_count' => ':count ausgewählt',
+        'bezahlt_am' => 'Bezahlt am',
+        'bezahlt_am_invalid' => 'Bitte ein gültiges Datum angeben, das nicht in der Zukunft liegt.',
+        'bezahlt_am_requires_paid' => '„Bezahlt am“ gibt es nur bei bezahlten Beiträgen. Bitte zuerst den Status auf „Bezahlt“ setzen.',
     ],
     'dashboard' => [
         'title' => 'Übersicht',

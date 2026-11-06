@@ -171,16 +171,18 @@ class MemberDueController
             'due_ids.*' => ['integer', 'exists:member_dues,id'],
             'bezahlt_bis_fiscal_year_id' => ['nullable', 'exists:fiscal_years,id'],
             'fiscal_year_id' => ['nullable', 'exists:fiscal_years,id'],
-        ]);
+            'bezahlt_am' => ['nullable', ...MemberDue::paidOnRules()],
+        ], MemberDue::paidOnMessages('bezahlt_am'));
 
         $targetFiscalYearId = $validated['bezahlt_bis_fiscal_year_id'] ?? null;
+        $paidOn = $validated['bezahlt_am'] ?? now()->toDateString();
         $dues = MemberDue::with('fiscalYear')->whereIn('id', $validated['due_ids'])->get();
         $count = 0;
 
-        DB::transaction(function () use ($dues, $targetFiscalYearId, &$count): void {
+        DB::transaction(function () use ($dues, $targetFiscalYearId, $paidOn, &$count): void {
             foreach ($dues as $due) {
                 if ($targetFiscalYearId === null) {
-                    $due->update(['status' => 'bezahlt']);
+                    $due->update(['status' => 'bezahlt', 'bezahlt_am' => $due->bezahlt_am ?? $paidOn]);
                     $count++;
 
                     continue;
@@ -195,7 +197,7 @@ class MemberDueController
                     continue;
                 }
 
-                $this->applyPaidThrough($due, (int) $targetFiscalYearId);
+                $this->applyPaidThrough($due, (int) $targetFiscalYearId, $paidOn);
                 $count++;
             }
         });
@@ -212,34 +214,58 @@ class MemberDueController
             'status' => ['required', 'string', Rule::in(MemberDue::STATUSES)],
             'teilbetrag' => ['nullable', 'numeric', 'decimal:0,2', 'min:0', 'max:999999.99'],
             'kommentar' => ['nullable', 'string', 'max:1000'],
+            'bezahlt_am' => ['required', ...MemberDue::paidOnRules()],
         ];
 
-        $field = $request->string('field')->value();
+        $field = $request->input('field');
+        $field = is_string($field) ? $field : '';
 
         try {
             $validated = $request->validate([
                 'field' => ['required', 'string', Rule::in(array_keys($fieldRules))],
                 'value' => $fieldRules[$field] ?? ['prohibited'],
-            ]);
+            ], MemberDue::paidOnMessages('value'));
         } catch (ValidationException $e) {
             return response()->json(['message' => $e->validator->errors()->first()], 422);
         }
 
+        // "Bezahlt am" belongs to paid dues only; an open due gets its date by being marked paid.
+        if ($validated['field'] === 'bezahlt_am' && $due->status !== 'bezahlt') {
+            return response()->json(['message' => __('members::admin.dues.bezahlt_am_requires_paid')], 422);
+        }
+
+        $changes = [$validated['field'] => $validated['value']];
+        if ($validated['field'] === 'status') {
+            // Marking paid by hand defaults the date to today (an existing date is kept);
+            // any other status means "not paid", so the date goes away.
+            $changes['bezahlt_am'] = $validated['value'] === 'bezahlt'
+                ? ($due->bezahlt_am ?? now()->toDateString())
+                : null;
+        }
+
         try {
-            $due->update([$validated['field'] => $validated['value']]);
+            $due->update($changes);
         } catch (\Throwable $e) {
             report($e);
 
             return response()->json(['message' => __('members::admin.dues.field_update_failed')], 500);
         }
 
-        return response()->json([
+        $response = [
             'value' => match ($validated['field']) {
                 'teilbetrag' => MembersFormat::optionalMoney($due->teilbetrag),
                 'kommentar' => $due->kommentar ?: '–',
+                'bezahlt_am' => $due->paidOnDisplay(),
                 default => (string) $due->{$validated['field']},
             },
-        ]);
+        ];
+
+        if (in_array($validated['field'], ['status', 'bezahlt_am'], true)) {
+            $response['bezahlt_am'] = $due->bezahlt_am?->toDateString();
+            $response['bezahlt_am_display'] = $due->paidOnDisplay();
+        }
+
+        return response()->json($response);
     }
 
     /** Markiert eine Beitragszeile als im Voraus bezahlt bis zu einem späteren Fiskaljahr und legt/aktualisiert dazwischenliegende Zeilen entsprechend. */
@@ -260,13 +286,13 @@ class MemberDueController
 
         $targetFiscalYearId = (int) $validated['fiscal_year_id'];
 
-        DB::transaction(fn () => $this->applyPaidThrough($due, $targetFiscalYearId));
+        DB::transaction(fn () => $this->applyPaidThrough($due, $targetFiscalYearId, now()->toDateString()));
 
         return response()->json(['status' => 'bezahlt']);
     }
 
     /** Markiert eine Beitragszeile und alle dazwischenliegenden Fiskaljahre bis zum Zieljahr als bezahlt. Muss innerhalb einer Transaktion aufgerufen werden. */
-    private function applyPaidThrough(MemberDue $due, int $targetFiscalYearId): void
+    private function applyPaidThrough(MemberDue $due, int $targetFiscalYearId, string $paidOn): void
     {
         $target = FiscalYear::findOrFail($targetFiscalYearId);
 
@@ -287,6 +313,7 @@ class MemberDueController
                 $existing->update([
                     'status' => 'bezahlt',
                     'bezahlt_bis_fiscal_year_id' => $targetFiscalYearId,
+                    'bezahlt_am' => $existing->bezahlt_am ?? $paidOn,
                 ]);
 
                 continue;
@@ -300,12 +327,14 @@ class MemberDueController
                 'status' => 'bezahlt',
                 'bezahlt_bis_fiscal_year_id' => $targetFiscalYearId,
                 'faellig_am' => $fiscalYear->faellig_am ?? $fiscalYear->starts_on,
+                'bezahlt_am' => $paidOn,
             ]);
         }
 
         $due->update([
             'status' => 'bezahlt',
             'bezahlt_bis_fiscal_year_id' => $targetFiscalYearId,
+            'bezahlt_am' => $due->bezahlt_am ?? $paidOn,
         ]);
     }
 }

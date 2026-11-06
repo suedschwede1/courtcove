@@ -20,7 +20,7 @@
                     return { ok: false, message: data.message || saveFailed };
                 }
 
-                return { ok: true, value: data.value };
+                return { ok: true, value: data.value, data };
             } catch (e) {
                 return { ok: false, message: saveFailed };
             }
@@ -32,7 +32,15 @@
         window.saveDueField = async (dueId, field, value) =>
             saveField(`{{ url('/members') }}/dues/${dueId}/field`, field, value);
 
-        window.saveDuePaidThrough = async (dueId, fiscalYearId) => {
+        // A status change sets or clears "Bezahlt am" on the server; tell the row's date cell.
+        window.announceDuePaidOn = (dueId, data) => {
+            if (!data || !('bezahlt_am' in data)) return;
+            window.dispatchEvent(new CustomEvent('due-paid-on', {
+                detail: { id: dueId, value: data.bezahlt_am ?? null, display: data.bezahlt_am_display ?? '–' },
+            }));
+        };
+
+        window.saveDuePaidThrough =async (dueId, fiscalYearId) => {
             if (!fiscalYearId) return;
 
             try {

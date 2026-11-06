@@ -30,7 +30,7 @@ class PaymentController
     {
         $validated = $request->validate([
             'amount' => ['required', 'numeric', 'decimal:0,2', 'min:0.01', 'max:999999.99'],
-            'paid_at' => ['required', 'date'],
+            'paid_at' => ['required', ...MemberDue::paidOnRules()],
             'note' => ['nullable', 'string', 'max:255'],
             'member_due_ids' => ['required', 'array', 'min:1'],
             'member_due_ids.*' => [
@@ -47,7 +47,7 @@ class PaymentController
                     }
                 },
             ],
-        ]);
+        ], MemberDue::paidOnMessages('paid_at'));
 
         $dueIds = array_map(intval(...), $validated['member_due_ids']);
 
@@ -91,7 +91,9 @@ class PaymentController
 
             $payment->dues()->attach($dueIds);
 
-            MemberDue::whereKey($dueIds)->update(['status' => 'bezahlt']);
+            // A payment always covers its dues in full (checked above), so its date is
+            // the date each of these dues was settled.
+            MemberDue::whereKey($dueIds)->update(['status' => 'bezahlt', 'bezahlt_am' => $validated['paid_at']]);
         });
 
         return redirect()->route('members.edit', $member)

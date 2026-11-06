@@ -81,7 +81,6 @@ return [
         'new_payment' => 'Record payment',
         'created' => 'Payment recorded.',
         'amount' => 'Amount (€)',
-        'paid_at' => 'Payment date',
         'note' => 'Note',
         'covers' => 'Covers the following dues',
         'due_already_paid' => 'One of the selected dues has already been paid.',
@@ -151,6 +150,9 @@ return [
         'bulk_mark_paid' => 'Mark selected as paid',
         'bulk_marked_paid' => ':count due(s) marked as paid.',
         'selected_count' => ':count selected',
+        'bezahlt_am' => 'Paid on',
+        'bezahlt_am_invalid' => 'Please enter a valid date that is not in the future.',
+        'bezahlt_am_requires_paid' => '"Paid on" only applies to paid dues. Set the status to "Paid" first.',
     ],
     'dashboard' => [
         'title' => 'Overview',

@@ -107,6 +107,9 @@
             <x-ui.field class="mbr-filters__field" :label="__('members::admin.dues.paid_through')" for="due-bulk-paid-through" :error="$errors->first('bezahlt_bis_fiscal_year_id') ?: $errors->first('due_ids')">
                 <x-ui.select name="bezahlt_bis_fiscal_year_id" :options="$bulkPaidThroughYears->pluck('name', 'id')->all()" :placeholder="__('members::admin.common.no')" />
             </x-ui.field>
+            <x-ui.field class="mbr-filters__field" :label="__('members::admin.dues.bezahlt_am')" for="due-bulk-paid-on" :error="$errors->first('bezahlt_am')">
+                <x-ui.input type="date" name="bezahlt_am" :value="old('bezahlt_am', now()->toDateString())" :max="now()->toDateString()" :min="\App\Modules\Members\Models\MemberDue::PAID_ON_MIN" />
+            </x-ui.field>
             <x-ui.button id="dues-bulk-mark-paid" type="submit" :block="false" x-bind:disabled="selected.length === 0">{{ __('members::admin.dues.bulk_mark_paid') }}</x-ui.button>
         </div>
         <x-ui.table :caption="__('members::admin.dues.title')">
@@ -118,6 +121,7 @@
                     <th scope="col" class="mbr-phone-hidden">{{ __('members::admin.members.fee_category') }}</th>
                     <th scope="col">{{ __('members::admin.dues.amount') }}</th>
                     <th scope="col">{{ __('members::admin.dues.status') }}</th>
+                    <th scope="col">{{ __('members::admin.dues.bezahlt_am') }}</th>
                     <th scope="col">{{ __('members::admin.dues.paid_through') }}</th>
                     <th scope="col">{{ __('members::admin.dues.teilbetrag') }}</th>
                     <th scope="col">{{ __('members::admin.dues.kommentar') }}</th>
@@ -152,6 +156,7 @@
                                     // on the next page load; right after a manual edit we show the raw value
                                     // the admin just chose, matching what was actually stored.
                                     this.displayValue = result.value;
+                                    window.announceDuePaidOn({{ $due->id }}, result.data);
                                     this.justSaved = true;
                                     setTimeout(() => this.justSaved = false, 1500);
                                 } else {
@@ -171,6 +176,7 @@
                             <p class="ds-field__error" x-show="error" x-text="error"></p>
                         </div>
                     </td>
+                    @include('members::dues._paid-on-cell', ['due' => $due])
                     <td data-label="{{ __('members::admin.dues.paid_through') }}">
                         <select class="ds-select" aria-label="{{ __('members::admin.dues.paid_through') }}" onchange="window.saveDuePaidThrough({{ $due->id }}, this.value)">
                             <option value="">–</option>
@@ -237,7 +243,7 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="9" class="text-ink-2">–</td></tr>
+                <tr><td colspan="10" class="text-ink-2">–</td></tr>
             @endforelse
         </x-ui.table>
         @if($dues->hasPages())

@@ -10,8 +10,9 @@
             <x-ui.field :label="__('members::admin.payments.amount')" for="pf-amount" :error="$errors->first('amount')">
                 <x-ui.input type="number" step="0.01" min="0.01" name="amount" />
             </x-ui.field>
-            <x-ui.field :label="__('members::admin.payments.paid_at')" for="pf-paid-at" :error="$errors->first('paid_at')">
-                <x-ui.input type="date" name="paid_at" :value="old('paid_at', now()->toDateString())" />
+            {{-- The payment date becomes "Bezahlt am" of every due this payment covers. --}}
+            <x-ui.field :label="__('members::admin.dues.bezahlt_am')" for="pf-paid-at" :error="$errors->first('paid_at')">
+                <x-ui.input type="date" name="paid_at" :value="old('paid_at', now()->toDateString())" :max="now()->toDateString()" :min="\App\Modules\Members\Models\MemberDue::PAID_ON_MIN" required />
             </x-ui.field>
             <x-ui.field :label="__('members::admin.payments.note')" for="pf-note" :error="$errors->first('note')">
                 <x-ui.input name="note" />
