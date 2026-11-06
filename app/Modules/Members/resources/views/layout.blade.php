@@ -1,31 +1,35 @@
 {{--
-    Layout of the standalone Members area: the normal app header (layouts.app, "Mitglieder" active), no admin
-    sidebar. Each page brings x-members::page-header (eyebrow, h1, tab row) and fills members-content.
+    Layout of the Members area: the admin shell (layouts.admin) with its own sidebar navigation (MembersNavigation:
+    group Mitglieder with Übersicht, Mitglieder, Beiträge, Rundmail, Protokoll; group Einstellungen with the settings
+    pages) and the phone bar with the slide-in menu. Each page brings x-members::page-header (eyebrow, h1, actions) and fills
+    members-content.
 --}}
-@extends('layouts.app')
+@extends('layouts.admin')
 
-@section('title')
+@section('layout-title')
     @yield('members-title') - {{ __('members::admin.area.eyebrow') }}
+@endsection
+
+@section('admin-title')
+    @yield('members-title')
+@endsection
+
+@section('admin-eyebrow', __('members::admin.area.eyebrow'))
+
+@section('admin-sidebar')
+    <x-layout.admin-sidebar :groups="\App\Modules\Members\Support\MembersNavigation::groups(auth()->user(), request())" :eyebrow="__('booking.nav.members')" :label="__('members::admin.area.nav')" />
 @endsection
 
 @push('head')
     <meta name="csrf-token" content="{{ csrf_token() }}">
 @endpush
 
-@section('content')
-<div class="mx-auto flex w-full max-w-350 flex-col gap-6 px-4 py-6 md:px-6 md:py-8">
+@section('admin-content')
     @if(session('status'))
         <x-ui.notice tone="good">{{ session('status') }}</x-ui.notice>
-    @endif
-    @if(session('info'))
-        <x-ui.notice tone="neutral">{{ session('info') }}</x-ui.notice>
-    @endif
-    @if($errors->any())
-        <x-ui.notice tone="problem">{{ $errors->first() }}</x-ui.notice>
     @endif
 
     @yield('members-content')
 
     @stack('members-phone-action')
-</div>
 @endsection

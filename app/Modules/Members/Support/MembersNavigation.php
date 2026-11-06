@@ -4,101 +4,66 @@ declare(strict_types=1);
 
 namespace App\Modules\Members\Support;
 
+use App\Models\User;
+use App\Support\Ui\AdminNavGroup;
+use App\Support\Ui\NavItem;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 /**
- * Navigation of the standalone Members area: one row of tabs under the page header
- * (overview, members, dues, mail, change log, settings) and, on the settings pages, a second row
- * with the settings pages. An entry is active when the current route matches one of
- * its patterns.
+ * Navigation of the Members area in the left sidebar of the admin shell, as in the Mitglieder-* mockups: group
+ * "Mitglieder" (overview, members, dues, mail, change log) and group "Einstellungen" (the settings pages). An entry
+ * is active when the current route matches one of its patterns; only entries the user's gate allows are listed.
  */
 final class MembersNavigation
 {
     /**
-     * tab key => [route, active route patterns, label key]; the settings tab takes the patterns of SETTINGS.
+     * group key => [group label key, rows]; row key => [route, gate, label key, active route patterns].
      *
-     * @var array<string, array{0: string, 1: list<string>, 2: string}>
+     * @var array<string, array{0: string, 1: array<string, array{0: string, 1: string, 2: string, 3: list<string>}>}>
      */
-    private const TABS = [
-        'dashboard' => ['members.dashboard', ['members.dashboard'], 'members::admin.dashboard.title'],
-        'members' => ['members.index', ['members.index', 'members.create', 'members.edit', 'members.payments.*'], 'members::admin.members.title'],
-        'dues' => ['members.dues.index', ['members.dues.*'], 'members::admin.dues.title'],
-        'mail' => ['members.mail.index', ['members.mail.index', 'members.mail.templates.*'], 'members::admin.mail.title'],
-        'changes' => ['members.changes.index', ['members.changes.*'], 'members::admin.changes.title'],
-        'settings' => ['members.fiscal-years.index', [], 'members::admin.settings.title'],
+    private const GROUPS = [
+        'members' => ['members::admin.members.title', [
+            'dashboard' => ['members.dashboard', 'admin.members', 'members::admin.dashboard.title', ['members.dashboard']],
+            'members' => ['members.index', 'admin.members', 'members::admin.members.title', ['members.index', 'members.create', 'members.edit', 'members.payments.*']],
+            'dues' => ['members.dues.index', 'admin.members', 'members::admin.dues.title', ['members.dues.*']],
+            'mail' => ['members.mail.index', 'admin.members', 'members::admin.mail.title', ['members.mail.index', 'members.mail.templates.*']],
+            'changes' => ['members.changes.index', 'admin.members', 'members::admin.changes.title', ['members.changes.*']],
+        ]],
+        'settings' => ['members::admin.settings.title', [
+            'fiscal_years' => ['members.fiscal-years.index', 'admin.members', 'members::admin.fiscal_years.title', ['members.fiscal-years.*']],
+            'fee_categories' => ['members.fee-categories.index', 'admin.members', 'members::admin.fee_categories.title', ['members.fee-categories.*']],
+            'functions' => ['members.functions.index', 'admin.members', 'members::admin.functions.title', ['members.functions.*']],
+            'mail_config' => ['members.mail.config', 'admin.members', 'members::admin.mail.config_title', ['members.mail.config']],
+            'dsgvo' => ['members.dsgvo.index', 'admin.members', 'members::admin.dsgvo.title', ['members.dsgvo.*']],
+        ]],
     ];
 
     /**
-     * Pages of the settings tab: key => [route, active route patterns, label key]
+     * The sidebar groups of the Members area; a group without a visible entry is left out.
      *
-     * @var array<string, array{0: string, 1: list<string>, 2: string}>
+     * @return list<AdminNavGroup>
      */
-    private const SETTINGS = [
-        'fiscal_years' => ['members.fiscal-years.index', ['members.fiscal-years.*'], 'members::admin.fiscal_years.title'],
-        'fee_categories' => ['members.fee-categories.index', ['members.fee-categories.*'], 'members::admin.fee_categories.title'],
-        'functions' => ['members.functions.index', ['members.functions.*'], 'members::admin.functions.title'],
-        'mail_config' => ['members.mail.config', ['members.mail.config'], 'members::admin.mail.config_title'],
-        'dsgvo' => ['members.dsgvo.index', ['members.dsgvo.*'], 'members::admin.dsgvo.title'],
-    ];
-
-    /**
-     * The module's tab row; the settings tab is active on every settings page.
-     *
-     * @return list<array{key: string, label: string, url: string, active: bool}>
-     */
-    public static function tabs(Request $request): array
+    public static function groups(?User $user, Request $request): array
     {
-        $tabs = [];
-        foreach (self::TABS as $key => [$route, $patterns, $label]) {
-            $tabs[] = self::item($request, $key, $route, $key === 'settings' ? self::settingsPatterns() : $patterns, $label);
+        if ($user === null) {
+            return [];
         }
 
-        return $tabs;
-    }
-
-    /**
-     * The second row on the settings pages; null on every other page.
-     *
-     * @return list<array{key: string, label: string, url: string, active: bool}>|null
-     */
-    public static function settings(Request $request): ?array
-    {
-        if (! $request->routeIs(...self::settingsPatterns())) {
-            return null;
+        $gate = Gate::forUser($user);
+        $groups = [];
+        foreach (self::GROUPS as $groupKey => [$groupLabel, $rows]) {
+            $items = [];
+            foreach ($rows as $key => [$route, $ability, $label, $patterns]) {
+                if ($gate->allows($ability)) {
+                    $items[] = new NavItem($key, (string) __($label), route($route), '', $request->routeIs(...$patterns));
+                }
+            }
+            if ($items !== []) {
+                $groups[] = new AdminNavGroup($groupKey, (string) __($groupLabel), $items);
+            }
         }
 
-        $items = [];
-        foreach (self::SETTINGS as $key => [$route, $patterns, $label]) {
-            $items[] = self::item($request, $key, $route, $patterns, $label);
-        }
-
-        return $items;
-    }
-
-    /**
-     * @return list<string>
-     */
-    private static function settingsPatterns(): array
-    {
-        $patterns = [];
-        foreach (self::SETTINGS as [, $itemPatterns]) {
-            array_push($patterns, ...$itemPatterns);
-        }
-
-        return $patterns;
-    }
-
-    /**
-     * @param  list<string>  $patterns
-     * @return array{key: string, label: string, url: string, active: bool}
-     */
-    private static function item(Request $request, string $key, string $route, array $patterns, string $label): array
-    {
-        return [
-            'key' => $key,
-            'label' => (string) __($label),
-            'url' => route($route),
-            'active' => $patterns !== [] && $request->routeIs(...$patterns),
-        ];
+        return $groups;
     }
 }
