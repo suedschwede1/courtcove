@@ -8,9 +8,20 @@ use Facebook\WebDriver\Remote\RemoteWebDriver;
 use Illuminate\Support\Collection;
 use Laravel\Dusk\TestCase as BaseTestCase;
 use PHPUnit\Framework\Attributes\BeforeClass;
+use Tests\Browser\Support\AdminModeBrowser;
 
 abstract class DuskTestCase extends BaseTestCase
 {
+    /**
+     * Browsers start loginAs() sessions in admin mode (privileges only count with it, see App\Support\AdminMode).
+     *
+     * @param  RemoteWebDriver  $driver
+     */
+    protected function newBrowser($driver): AdminModeBrowser
+    {
+        return new AdminModeBrowser($driver);
+    }
+
     /**
      * Prepare for Dusk test execution.
      */
