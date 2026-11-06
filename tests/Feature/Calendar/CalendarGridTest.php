@@ -259,7 +259,7 @@ final class CalendarGridTest extends TestCase
         $this->event($this->squares[1]->sid, '2026-11-04 06:00', '2026-11-04 10:00', 'Example Dawn');
 
         $admin = User::factory()->create(['status' => 'admin']);
-        $xp = $this->xpath($this->actingAs($admin)->get('/calendar?date=2026-11-04')->assertOk()->getContent());
+        $xp = $this->xpath($this->actingAs($admin)->withUnencryptedCookie('admin_mode', '1')->get('/calendar?date=2026-11-04')->assertOk()->getContent());
 
         $row8 = $this->slots($this->row($xp, '1', 8));
         foreach ([[$row8[0], 'Example Early', 'single'], [$row8[1], 'Example Dawn', 'start']] as [$slot, $name, $part]) {
