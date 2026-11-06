@@ -151,8 +151,7 @@ class BookingTimeBlocksConfigTest extends TestCase
             $xp = $this->xpath($this->actingAs($this->admin())->get($url)->assertOk()->getContent());
             $this->assertSame(0, $xp->query('//input[@name="time_block_bookable"]')->length, $url);
             $this->assertSame(0, $xp->query('//input[@name="time_block_bookable_max"]')->length, $url);
-            $this->assertSame(1, $xp->query('//input[@name="time_block"]')->length, $url.' grid stays');
-            $this->assertSame(1, $xp->query('//input[@name="pseudo_time_block_bookable"]')->length, $url.' pseudo stays');
+            $this->assertSame(1, $xp->query('//input[@name="time_start"]')->length, $url.' opening hours stay');
         }
     }
 

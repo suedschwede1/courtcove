@@ -98,13 +98,13 @@ class SquareManagementTest extends TestCase
     #[Test]
     public function edit_page_reverse_converts_values(): void
     {
-        $square = Square::factory()->create([
-            'time_block' => 3600, 'range_book' => 56 * 86400, 'range_cancel' => 86400,
-        ]);
+        $square = Square::factory()->create(['time_start' => '07:30:00', 'time_end' => '21:15:00']);
 
+        // The booking rules (range_book etc.) are global now; the court form shows the opening hours as HH:MM.
         $this->actingAs($this->admin())->get(route('admin.squares.edit', $square))
             ->assertOk()
-            ->assertSee('value="56"', false);   // range_book 56*86400 sec ÷ 86400 = 56 days
+            ->assertSee('value="07:30"', false)
+            ->assertSee('value="21:15"', false);
     }
 
     #[Test]

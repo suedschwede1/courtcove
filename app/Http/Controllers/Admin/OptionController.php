@@ -77,6 +77,19 @@ final class OptionController extends Controller
         'time_block_bookable_max' => BookingRules::TIME_BLOCK_MAX,
     ];
 
+    /**
+     * Card "Buchungsregeln" (BookingRules): form field => option key. The form shows the rule's display unit
+     * (BookingRule::displayDivisor: minutes, days, hours), the option stores seconds; an emptied field removes
+     * the option so the former court values apply again.
+     */
+    private const RULE_MAP = [
+        'rule_time_block' => BookingRules::TIME_BLOCK,
+        'rule_min_range_book' => BookingRules::MIN_RANGE_BOOK,
+        'rule_range_book' => BookingRules::RANGE_BOOK,
+        'rule_short_booking_window' => BookingRules::SHORT_BOOKING_WINDOW,
+        'rule_range_cancel' => BookingRules::RANGE_CANCEL,
+    ];
+
     private const BEHAVIOR_MAP = [
         'registration' => 'service.user.registration',
         'activation' => 'service.user.activation',
@@ -141,6 +154,11 @@ final class OptionController extends Controller
             $values[$field] = $seconds === null ? '' : (string) intdiv($seconds, 60);
         }
 
+        foreach (self::RULE_MAP as $field => $key) {
+            $seconds = app(BookingRules::class)->globalValue($key);
+            $values[$field] = $seconds === null ? '' : BookingRules::rule($key)->display($seconds);
+        }
+
         return view('admin.config.behavior', [
             'values' => $values,
         ]);
@@ -151,7 +169,18 @@ final class OptionController extends Controller
         $validator = Validator::make($request->all(), $this->behaviorRules());
         $validator->after(fn (ValidatorContract $v) => $this->validatePeakWindows($v, $request));
         $validator->after(fn (ValidatorContract $v) => $this->validateTimeBlocks($v, $request));
+        $validator->after(fn (ValidatorContract $v) => $this->validateBookingRules($v, $request));
         $data = $validator->validate();
+
+        $rules = [];
+        foreach (self::RULE_MAP as $field => $key) {
+            if (array_key_exists($field, $data)) {
+                $rules[$field] = $data[$field] === null
+                    ? null
+                    : (string) (int) round(((float) $data[$field]) * BookingRules::rule($key)->displayDivisor);
+            }
+        }
+        $this->persistClearable(self::RULE_MAP, $rules);
 
         $timeBlocks = [];
         foreach (array_keys(self::TIME_BLOCK_MAP) as $field) {
@@ -317,11 +346,30 @@ final class OptionController extends Controller
             'peak_limit_max' => ['nullable', 'integer', 'min:0', 'max:999'],
             'time_block_bookable_min' => ['nullable', 'integer', 'min:0', 'max:1440'],
             'time_block_bookable_max' => ['nullable', 'integer', 'min:0', 'max:1440'],
+            'rule_time_block' => ['nullable', 'integer', 'min:1', 'max:1440'],
+            'rule_min_range_book' => ['nullable', 'integer', 'min:0', 'max:525600'],
+            'rule_range_book' => ['nullable', 'integer', 'min:0', 'max:3650'],
+            'rule_short_booking_window' => ['nullable', 'integer', 'min:0', 'max:1440'],
+            'rule_range_cancel' => ['nullable', 'numeric', 'min:0', 'max:8760', 'regex:/^\d+(\.\d{1,2})?$/'],
             'peak_limit_w1_start' => ['nullable', 'string', 'regex:'.self::TIME_PATTERN],
             'peak_limit_w1_end' => ['nullable', 'string', 'regex:'.self::TIME_PATTERN],
             'peak_limit_w2_start' => ['nullable', 'string', 'regex:'.self::TIME_PATTERN],
             'peak_limit_w2_end' => ['nullable', 'string', 'regex:'.self::TIME_PATTERN],
         ];
+    }
+
+    /** The Buchungsvorlauf (minutes) must be shorter than "Buchung im Voraus" (days) when that is limited. */
+    private function validateBookingRules(ValidatorContract $validator, Request $request): void
+    {
+        if ($validator->errors()->hasAny(['rule_min_range_book', 'rule_range_book'])) {
+            return;
+        }
+
+        $minRange = $request->input('rule_min_range_book');
+        $range = $request->input('rule_range_book');
+        if (is_numeric($minRange) && is_numeric($range) && (int) $range > 0 && (int) $minRange * 60 >= (int) $range * 86400) {
+            $validator->errors()->add('rule_min_range_book', __('booking.admin.booking_rules.vorlauf_beyond_range'));
+        }
     }
 
     /** The daily maximum is 0 (unlimited) or at least the minimum duration (both in minutes). */

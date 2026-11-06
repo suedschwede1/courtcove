@@ -50,6 +50,27 @@
             </x-ui.field>
         </x-ui.card>
 
+        <x-ui.card :title="__('booking.admin.booking_rules.title')" padding="lg" class="ds-admin-form-card">
+            <p class="ds-field__help">{{ __('booking.admin.booking_rules.intro') }}</p>
+            <div class="ds-admin-form-grid">
+                <x-ui.field :label="__('booking.admin.booking_rules.time_block')" for="cf-rule-time-block" :help="__('booking.admin.booking_rules.time_block_hint')">
+                    <x-ui.input id="cf-rule-time-block" name="rule_time_block" type="number" min="1" max="1440" step="1" inputmode="numeric" :value="old('rule_time_block', $values['rule_time_block'])" />
+                </x-ui.field>
+                <x-ui.field :label="__('booking.admin.booking_rules.min_range_book')" for="cf-rule-min-range" :help="__('booking.admin.booking_rules.min_range_book_hint')">
+                    <x-ui.input id="cf-rule-min-range" name="rule_min_range_book" type="number" min="0" step="1" inputmode="numeric" :value="old('rule_min_range_book', $values['rule_min_range_book'])" />
+                </x-ui.field>
+                <x-ui.field :label="__('booking.admin.booking_rules.range_book')" for="cf-rule-range" :help="__('booking.admin.booking_rules.range_book_hint')">
+                    <x-ui.input id="cf-rule-range" name="rule_range_book" type="number" min="0" max="3650" step="1" inputmode="numeric" :value="old('rule_range_book', $values['rule_range_book'])" />
+                </x-ui.field>
+                <x-ui.field :label="__('booking.admin.booking_rules.short_booking_window')" for="cf-rule-short" :help="__('booking.admin.booking_rules.short_booking_window_hint')">
+                    <x-ui.input id="cf-rule-short" name="rule_short_booking_window" type="number" min="0" max="1440" step="1" inputmode="numeric" :value="old('rule_short_booking_window', $values['rule_short_booking_window'])" />
+                </x-ui.field>
+                <x-ui.field :label="__('booking.admin.booking_rules.range_cancel')" for="cf-rule-cancel" :help="__('booking.admin.booking_rules.range_cancel_hint')">
+                    <x-ui.input id="cf-rule-cancel" name="rule_range_cancel" type="number" min="0" max="8760" step="0.01" inputmode="decimal" :value="old('rule_range_cancel', $values['rule_range_cancel'])" />
+                </x-ui.field>
+            </div>
+        </x-ui.card>
+
         <x-ui.card :title="__('booking.admin.time_blocks.title')" padding="lg" class="ds-admin-form-card">
             <div class="ds-admin-split">
                 <x-ui.field :label="__('booking.admin.time_blocks.min_label')" for="cf-time-block-min" :help="__('booking.admin.time_blocks.min_hint')">
