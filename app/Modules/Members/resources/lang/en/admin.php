@@ -219,6 +219,11 @@ return [
         'year_not_found' => 'The selected fiscal year does not exist. Showing :year.',
         'no_rates_for_year' => 'No fee rates are set for fiscal year :year, please add them under Fee categories first.',
         'bezahlt_am_requires_paid' => '"Paid on" only applies to paid dues. Set the status to "Paid" first.',
+        'year_short' => 'Year',
+        'category_short' => 'Category',
+        'due_on' => 'due :date',
+        'details' => 'Details',
+        'details_for' => 'Show or hide the details of :year',
     ],
     'dashboard' => [
         'title' => 'Overview',

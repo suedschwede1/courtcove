@@ -219,6 +219,11 @@ return [
         'year_not_found' => 'Das gewählte Geschäftsjahr gibt es nicht. Angezeigt wird :year.',
         'no_rates_for_year' => 'Für Geschäftsjahr :year sind keine Beitragssätze hinterlegt, bitte zuerst unter Beitragskategorien eintragen.',
         'bezahlt_am_requires_paid' => '„Bezahlt am“ gibt es nur bei bezahlten Beiträgen. Bitte zuerst den Status auf „Bezahlt“ setzen.',
+        'year_short' => 'Jahr',
+        'category_short' => 'Kategorie',
+        'due_on' => 'fällig :date',
+        'details' => 'Details',
+        'details_for' => 'Details zu :year ein- oder ausblenden',
     ],
     'dashboard' => [
         'title' => 'Übersicht',
