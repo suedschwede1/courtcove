@@ -80,10 +80,16 @@
     </div>
     <x-ui.option-group :columns="2" class="ds-admin-flags">
         <x-ui.option-tile type="checkbox" name="allow_notes" value="1" :label="__('booking.admin.squares.allow_notes')" :checked="(bool) old('allow_notes', $form['allow_notes'])" />
+        {{-- Always shown; while the limit is globally off it shows the stored value, is disabled and is not saved. --}}
         @if($peakLimitGlobal ?? false)
             <x-ui.option-tile type="checkbox" name="peak_limit_enabled" value="1" :label="__('booking.admin.squares.peak_limit_enabled')" :checked="(bool) old('peak_limit_enabled', $form['peak_limit_enabled'])" />
+        @else
+            <x-ui.option-tile type="checkbox" name="peak_limit_enabled" value="1" :label="__('booking.admin.squares.peak_limit_enabled')" :checked="(bool) $form['peak_limit_enabled']" disabled aria-describedby="sf-peak-global-off" />
         @endif
     </x-ui.option-group>
+    @unless($peakLimitGlobal ?? false)
+        <p class="ds-field__help" id="sf-peak-global-off">{{ __('booking.admin.squares.peak_limit_global_off') }} (<a href="{{ route('admin.config.behavior.edit') }}" class="ds-admin-link">{{ __('booking.admin.squares.peak_limit_global_off_link') }}</a>)</p>
+    @endunless
 </x-ui.card>
 
 <x-ui.card :title="__('booking.admin.squares.section_display')" padding="lg" class="ds-admin-form-card">

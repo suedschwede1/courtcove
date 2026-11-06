@@ -8,9 +8,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Option;
 use App\Modules\TournamentBase\Support\MailSender;
 use App\Support\Mail\SystemMailSender;
+use Illuminate\Contracts\Validation\Validator as ValidatorContract;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\View\View;
 
 final class OptionController extends Controller
@@ -65,6 +67,9 @@ final class OptionController extends Controller
         'system_mail_account_reply_to' => SystemMailSender::OPTION_ACCOUNT_REPLY_TO_ADDRESS,
     ];
 
+    /** HH:MM, 00:00 to 23:59. */
+    private const TIME_PATTERN = '/^([01]\d|2[0-3]):[0-5]\d$/';
+
     private const BEHAVIOR_MAP = [
         'registration' => 'service.user.registration',
         'activation' => 'service.user.activation',
@@ -73,6 +78,7 @@ final class OptionController extends Controller
         'calendar_hide' => 'service.calendar.day-exceptions',
         'max_active_bookings' => 'booking.max_active_bookings',
         'peak_limit_enabled' => 'peak_limit.enabled',
+        'peak_limit_max' => 'peak_limit.max',
         'peak_limit_w1_start' => 'peak_limit.window_1_start',
         'peak_limit_w1_end' => 'peak_limit.window_1_end',
         'peak_limit_w2_start' => 'peak_limit.window_2_start',
@@ -129,7 +135,12 @@ final class OptionController extends Controller
 
     public function updateBehavior(Request $request): RedirectResponse
     {
-        $data = $request->validate($this->behaviorRules());
+        $validator = Validator::make($request->all(), $this->behaviorRules());
+        $validator->after(fn (ValidatorContract $v) => $this->validatePeakWindows($v, $request));
+        $data = $validator->validate();
+
+        // An unticked checkbox sends nothing: without this the global peak switch could never be turned off.
+        $data['peak_limit_enabled'] = $request->boolean('peak_limit_enabled') ? '1' : '0';
         $this->persist(self::BEHAVIOR_MAP, $data);
 
         return redirect()->route('admin.config.behavior.edit')->with('success', __('booking.messages.config_saved'));
@@ -281,11 +292,41 @@ final class OptionController extends Controller
             'calendar_hide' => ['nullable', 'string', 'max:4096'],
             'max_active_bookings' => ['nullable', 'integer', 'min:0', 'max:999'],
             'peak_limit_enabled' => ['nullable', 'in:0,1'],
-            'peak_limit_w1_start' => ['nullable', 'regex:/^\d{2}:\d{2}$/'],
-            'peak_limit_w1_end' => ['nullable', 'regex:/^\d{2}:\d{2}$/'],
-            'peak_limit_w2_start' => ['nullable', 'regex:/^\d{2}:\d{2}$/'],
-            'peak_limit_w2_end' => ['nullable', 'regex:/^\d{2}:\d{2}$/'],
+            'peak_limit_max' => ['nullable', 'integer', 'min:0', 'max:999'],
+            'peak_limit_w1_start' => ['nullable', 'string', 'regex:'.self::TIME_PATTERN],
+            'peak_limit_w1_end' => ['nullable', 'string', 'regex:'.self::TIME_PATTERN],
+            'peak_limit_w2_start' => ['nullable', 'string', 'regex:'.self::TIME_PATTERN],
+            'peak_limit_w2_end' => ['nullable', 'string', 'regex:'.self::TIME_PATTERN],
         ];
+    }
+
+    /**
+     * Window 1 and window 2 must each start before they end, and window 2 must start at or after the end of
+     * window 1 (no overlap). Empty fields count with the value the page shows (stored or default).
+     */
+    private function validatePeakWindows(ValidatorContract $validator, Request $request): void
+    {
+        $fields = ['peak_limit_w1_start', 'peak_limit_w1_end', 'peak_limit_w2_start', 'peak_limit_w2_end'];
+        if (array_intersect($fields, $validator->errors()->keys()) !== []) {
+            return;
+        }
+
+        $current = $this->loadValues(self::BEHAVIOR_MAP, true);
+        $times = [];
+        foreach ($fields as $field) {
+            $value = $request->input($field);
+            $times[$field] = is_string($value) && $value !== '' ? $value : (string) $current[$field];
+        }
+
+        if ($times['peak_limit_w1_start'] >= $times['peak_limit_w1_end']) {
+            $validator->errors()->add('peak_limit_w1_end', __('booking.admin.peak_limit.window_order'));
+        }
+        if ($times['peak_limit_w2_start'] >= $times['peak_limit_w2_end']) {
+            $validator->errors()->add('peak_limit_w2_end', __('booking.admin.peak_limit.window_order'));
+        }
+        if ($times['peak_limit_w2_start'] < $times['peak_limit_w1_end']) {
+            $validator->errors()->add('peak_limit_w2_start', __('booking.admin.peak_limit.windows_overlap'));
+        }
     }
 
     private function peakDefaults(): array

@@ -63,6 +63,9 @@
                 </x-ui.option-group>
                 <p class="ds-field__help" id="cf-peak-help">{{ __('booking.admin.peak_limit.hint') }}</p>
             </div>
+            <x-ui.field :label="__('booking.admin.peak_limit.max_label')" for="cf-peak-max" :help="__('booking.admin.peak_limit.max_hint')">
+                <x-ui.input id="cf-peak-max" name="peak_limit_max" type="number" min="0" max="999" step="1" inputmode="numeric" :value="old('peak_limit_max', $values['peak_limit_max'])" />
+            </x-ui.field>
             <div class="ds-admin-split">
                 <x-ui.field :label="__('booking.admin.peak_limit.window_1_from')" for="cf-peak-w1-start">
                     <x-ui.input id="cf-peak-w1-start" name="peak_limit_w1_start" type="time" :value="old('peak_limit_w1_start', $values['peak_limit_w1_start'])" />
@@ -77,6 +80,7 @@
                     <x-ui.input id="cf-peak-w2-end" name="peak_limit_w2_end" type="time" :value="old('peak_limit_w2_end', $values['peak_limit_w2_end'])" />
                 </x-ui.field>
             </div>
+            <p class="ds-field__help">{{ __('booking.admin.peak_limit.example') }}</p>
         </x-ui.card>
 
         <div class="ds-admin-actions ds-admin-actions--sticky">
