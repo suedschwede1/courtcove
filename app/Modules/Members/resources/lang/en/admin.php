@@ -344,4 +344,10 @@ return [
         'save' => 'Save',
         'saved' => 'Data protection settings saved.',
     ],
+    'import' => [
+        'summary' => 'Import finished: :created members created, :skipped skipped (already present), :updated updated, :dues dues created.',
+        'closed_year_skips' => 'Dues in closed fiscal years skipped: :count.',
+        'deactivated_category_skips' => 'Rows skipped because the fee category is deactivated: :count (:categories).',
+        'not_imported_fields' => 'Not imported (no field in the data model): age, booking system, remark.',
+    ],
 ];

@@ -25,6 +25,9 @@ class ImportMembersCommand extends Command
     /** Dues not created because their business year is closed. */
     private int $closedYearSkips = 0;
 
+    /** @var array<string, int> Rows not imported because their fee category is deactivated, per category name. */
+    private array $deactivatedCategorySkips = [];
+
     /** Mitgliedsarten aus der Vereinsverwaltung → Beitragskategorien in dieser App. */
     private const CATEGORY_ALIASES = [
         'Vollmitglied' => 'Vollzahler',
@@ -37,6 +40,10 @@ class ImportMembersCommand extends Command
 
     public function handle(): int
     {
+        // The command instance can be reused (scheduler, tests): start every run with fresh counters.
+        $this->closedYearSkips = 0;
+        $this->deactivatedCategorySkips = [];
+
         $file = (string) $this->argument('file');
 
         if (! is_readable($file)) {
@@ -86,6 +93,15 @@ class ImportMembersCommand extends Command
                     ->first();
 
                 $category = $this->resolveCategory($row);
+
+                // A deactivated category cannot be assigned to anyone new: the whole row is skipped
+                // (no member, no backfill, no dues) and counted in the summary.
+                if ($category !== null && $category->isDeactivated()) {
+                    $this->deactivatedCategorySkips[$category->name] = ($this->deactivatedCategorySkips[$category->name] ?? 0) + 1;
+
+                    continue;
+                }
+
                 $nuligaId = $this->resolveNuligaId($row, $firstname, $lastname, $member?->id, $usedNuligaIds);
 
                 if ($member) {
@@ -121,13 +137,29 @@ class ImportMembersCommand extends Command
             }
         });
 
-        $this->info("Import abgeschlossen: {$created} Mitglieder angelegt, {$skipped} übersprungen (bereits vorhanden), {$updated} aktualisiert, {$duesCreated} Vorschreibungen erstellt.");
-        if ($this->closedYearSkips > 0) {
-            $this->line("Vorschreibungen in abgeschlossenen Geschäftsjahren übersprungen: {$this->closedYearSkips}.");
-        }
-        $this->line('Nicht importiert (kein Feld im Datenmodell): Alter, Reservierungssystem, Bemerkung.');
+        $this->printSummary($created, $skipped, $updated, $duesCreated);
 
         return self::SUCCESS;
+    }
+
+    /** Summary lines (translated): counts, then skipped dues of closed years and rows of deactivated categories. */
+    private function printSummary(int $created, int $skipped, int $updated, int $duesCreated): void
+    {
+        $this->info(__('members::admin.import.summary', ['created' => $created, 'skipped' => $skipped, 'updated' => $updated, 'dues' => $duesCreated]));
+        if ($this->closedYearSkips > 0) {
+            $this->line(__('members::admin.import.closed_year_skips', ['count' => $this->closedYearSkips]));
+        }
+        if ($this->deactivatedCategorySkips !== []) {
+            $perCategory = [];
+            foreach ($this->deactivatedCategorySkips as $name => $count) {
+                $perCategory[] = "{$name}: {$count}";
+            }
+            $this->warn(__('members::admin.import.deactivated_category_skips', [
+                'count' => array_sum($this->deactivatedCategorySkips),
+                'categories' => implode(', ', $perCategory),
+            ]));
+        }
+        $this->line(__('members::admin.import.not_imported_fields'));
     }
 
     /**

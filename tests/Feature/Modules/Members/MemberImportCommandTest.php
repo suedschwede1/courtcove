@@ -222,4 +222,79 @@ class MemberImportCommandTest extends TestCase
         $this->assertSame(123456, $anna->nuliga_id);
         $this->assertNull($bernd->nuliga_id);
     }
+
+    private function writeDeactivatedCategoryCsv(): string
+    {
+        $csv = <<<'CSV'
+        Name,Vorname,Mitgliedsart,MB ,Bemerkung,Email,Strasse,PLZ,Ort,Privat,Mobil,Geschlecht,GebDatum,ID-Nr,Alter,Reservierungssystem
+        Muster,Anna,Vollmitglied,bezahlt 25,,anna@example.com,Teststr. 1,4400,Teststadt,,,weiblich,01.02.1980,,46,Ja
+        Neu,Nora,Altkategorie,bezahlt 25,,nora@example.com,Weg 3,4400,Teststadt,,,weiblich,05.06.1990,222333,36,Nein
+        Klein,Kurt,Kind,bezahlt 25,,,Weg 4,4400,Teststadt,,,maennlich,07.08.2015,,11,Nein
+        Da,Dora,Altkategorie,bezahlt 25,,,Weg 5,4400,Teststadt,,,weiblich,09.10.1970,,56,Nein
+        CSV;
+        $file = sys_get_temp_dir().'/members-import-test-deactivated.csv';
+        file_put_contents($file, $csv);
+
+        return $file;
+    }
+
+    #[Test]
+    public function rows_with_a_deactivated_category_are_skipped_and_counted(): void
+    {
+        FeeCategory::create(['name' => 'Altkategorie'])->deactivate();
+        FeeCategory::create(['name' => 'Kinder, Schüler'])->deactivate(); // reached through the alias "Kind"
+        $dora = Member::factory()->create(['firstname' => 'Dora', 'lastname' => 'Da', 'birthdate' => '1970-10-09', 'fee_category_id' => null, 'street' => null]);
+
+        $this->artisan('members:import-csv', ['file' => $this->writeDeactivatedCategoryCsv()])
+            ->expectsOutputToContain('Zeilen mit deaktivierter Beitragskategorie übersprungen: 3 (Altkategorie: 2, Kinder, Schüler: 1).')
+            ->assertSuccessful();
+
+        // Only Anna (active category) is imported; no member, due, payment or backfill for the others.
+        $this->assertSame(2, Member::query()->count());
+        $this->assertNotNull(Member::where('lastname', 'Muster')->first());
+        $this->assertNull(Member::where('lastname', 'Neu')->first());
+        $this->assertNull(Member::where('lastname', 'Klein')->first());
+        $this->assertNull($dora->fresh()->fee_category_id);
+        $this->assertNull($dora->fresh()->street);
+        $this->assertSame(0, MemberDue::where('member_id', $dora->id)->count());
+        $this->assertSame(0, MemberDue::query()->whereHas('feeCategory', fn ($query) => $query->whereNotNull('deactivated_at'))->count());
+    }
+
+    #[Test]
+    public function the_summary_counts_exclude_skipped_rows(): void
+    {
+        FeeCategory::create(['name' => 'Altkategorie'])->deactivate();
+        FeeCategory::create(['name' => 'Kinder, Schüler'])->deactivate();
+        Member::factory()->create(['firstname' => 'Dora', 'lastname' => 'Da', 'birthdate' => '1970-10-09']);
+        $dues = now()->year === 2025 ? 1 : 2;
+
+        $this->artisan('members:import-csv', ['file' => $this->writeDeactivatedCategoryCsv()])
+            ->expectsOutputToContain("Import abgeschlossen: 1 Mitglieder angelegt, 0 übersprungen (bereits vorhanden), 0 aktualisiert, {$dues} Vorschreibungen erstellt.")
+            ->assertSuccessful();
+    }
+
+    #[Test]
+    public function the_import_summary_is_translated(): void
+    {
+        FeeCategory::create(['name' => 'Altkategorie'])->deactivate();
+        FeeCategory::create(['name' => 'Kinder, Schüler'])->deactivate();
+        app()->setLocale('en');
+        $dues = now()->year === 2025 ? 1 : 2;
+
+        $this->artisan('members:import-csv', ['file' => $this->writeDeactivatedCategoryCsv()])
+            ->expectsOutputToContain("Import finished: 1 members created, 0 skipped (already present), 0 updated, {$dues} dues created.")
+            ->assertSuccessful();
+
+        $this->artisan('members:import-csv', ['file' => $this->writeDeactivatedCategoryCsv()])
+            ->expectsOutputToContain('Rows skipped because the fee category is deactivated: 3 (Altkategorie: 2, Kinder, Schüler: 1).')
+            ->assertSuccessful();
+    }
+
+    #[Test]
+    public function without_deactivated_categories_no_skip_line_is_printed(): void
+    {
+        $this->artisan('members:import-csv', ['file' => $this->writeCsv()])
+            ->doesntExpectOutputToContain('deaktivierter Beitragskategorie')
+            ->assertSuccessful();
+    }
 }

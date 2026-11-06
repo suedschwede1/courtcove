@@ -344,4 +344,10 @@ return [
         'save' => 'Speichern',
         'saved' => 'Datenschutz-Einstellungen gespeichert.',
     ],
+    'import' => [
+        'summary' => 'Import abgeschlossen: :created Mitglieder angelegt, :skipped übersprungen (bereits vorhanden), :updated aktualisiert, :dues Vorschreibungen erstellt.',
+        'closed_year_skips' => 'Vorschreibungen in abgeschlossenen Geschäftsjahren übersprungen: :count.',
+        'deactivated_category_skips' => 'Zeilen mit deaktivierter Beitragskategorie übersprungen: :count (:categories).',
+        'not_imported_fields' => 'Nicht importiert (kein Feld im Datenmodell): Alter, Reservierungssystem, Bemerkung.',
+    ],
 ];
