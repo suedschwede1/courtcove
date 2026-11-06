@@ -342,4 +342,7 @@ return [
         'save' => 'Speichern',
         'saved' => 'Datenschutz-Einstellungen gespeichert.',
     ],
+    'households' => [
+        'unnamed' => 'Haushalt #:id',
+    ],
 ];

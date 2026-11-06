@@ -109,4 +109,15 @@ class MemberDue extends Model
     {
         return $this->belongsToMany(Payment::class, 'payment_dues');
     }
+
+    /**
+     * Whether "Durch Haushaltsbeitrag ersetzen" may delete this own due: not marked paid, no linked
+     * payment and no partial amount. Paid or partly paid dues are never touched.
+     */
+    public function isReplaceable(): bool
+    {
+        return $this->status !== 'bezahlt'
+            && ! $this->payments()->exists()
+            && (float) ($this->teilbetrag ?? 0) === 0.0;
+    }
 }
