@@ -212,10 +212,10 @@ return [
         'peak_limit' => [
             'title' => 'Stoßzeiten-Limit',
             'enabled' => 'Stoßzeiten-Limit aktivieren',
-            'hint' => 'Definiert Zeitfenster, in denen ein gesondertes Buchungslimit gilt. Es wirkt nur auf Plätzen, bei denen „Stoßzeiten-Limit für diesen Platz aktivieren“ eingeschaltet ist.',
+            'hint' => 'Definiert Zeitfenster, in denen ein gesondertes Buchungslimit gilt. Es wirkt nur auf Plätzen, bei denen „Stoßzeiten-Limit für diesen Platz aktivieren“ eingeschaltet ist. Außerhalb der Zeitfenster gilt auf diesen Plätzen wie überall „Gleichzeitige Buchungen pro Benutzer“; in den Zeitfenstern gelten beide Limits, das strengere entscheidet.',
             'max_label' => 'Max. Buchungen in den Stoßzeiten',
             'max_hint' => 'Gilt für alle Plätze zusammen: Gezählt werden die zukünftigen Buchungen der Person, die in einem der beiden Zeitfenster beginnen. Leer oder 0 = es gilt „Gleichzeitige Buchungen pro Benutzer“; sind beide 0, gibt es kein Stoßzeiten-Limit.',
-            'example' => 'Beispiel: Zeitfenster 08:00–12:00 und 17:00–21:00, Max. 2. Wer schon Buchungen am Montag 18:00 und Mittwoch 09:00 hat, kann keine weitere Buchung mit Beginn in einem Zeitfenster anlegen (z. B. Freitag 17:00); Freitag 14:00 geht weiter. Eine Buchung, die um 12:00 oder 21:00 beginnt, liegt nicht mehr im Zeitfenster.',
+            'example' => 'Beispiel: Zeitfenster 08:00–12:00 und 17:00–21:00, Max. 2. Wer schon Buchungen am Montag 18:00 und Mittwoch 09:00 hat, kann keine weitere Buchung mit Beginn in einem Zeitfenster anlegen (z. B. Freitag 17:00); Freitag 14:00 geht weiter, solange das Limit „Gleichzeitige Buchungen pro Benutzer“ nicht erreicht ist. Eine Buchung, die um 12:00 oder 21:00 beginnt, liegt nicht mehr im Zeitfenster.',
             'window_order' => 'Das Zeitfenster muss vor seinem Ende beginnen.',
             'windows_overlap' => 'Zeitfenster 2 darf erst nach dem Ende von Zeitfenster 1 beginnen (die Zeitfenster dürfen sich nicht überschneiden).',
             'window_1_from' => 'Zeitfenster 1 von',

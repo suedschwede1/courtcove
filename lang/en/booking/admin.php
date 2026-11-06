@@ -212,10 +212,10 @@ return [
         'peak_limit' => [
             'title' => 'Peak-Time Limit',
             'enabled' => 'Enable peak-time limit',
-            'hint' => 'Defines time windows in which a separate booking limit applies. It only affects courts with “Enable peak-time limit for this court” switched on.',
+            'hint' => 'Defines time windows in which a separate booking limit applies. It only affects courts with “Enable peak-time limit for this court” switched on. Outside the windows the “Simultaneous bookings per user” limit applies on these courts as everywhere; inside the windows both limits apply and the stricter one decides.',
             'max_label' => 'Max. bookings in peak times',
             'max_hint' => 'Applies to all courts together: the person\'s future bookings that start inside one of the two windows are counted. Empty or 0 = “Simultaneous bookings per user” applies; if both are 0 there is no peak-time limit.',
-            'example' => 'Example: windows 08:00–12:00 and 17:00–21:00, max. 2. Someone who already has bookings on Monday 18:00 and Wednesday 09:00 cannot add another booking starting inside a window (e.g. Friday 17:00); Friday 14:00 still works. A booking starting at 12:00 or 21:00 is outside the window.',
+            'example' => 'Example: windows 08:00–12:00 and 17:00–21:00, max. 2. Someone who already has bookings on Monday 18:00 and Wednesday 09:00 cannot add another booking starting inside a window (e.g. Friday 17:00); Friday 14:00 still works as long as the “Simultaneous bookings per user” limit is not reached. A booking starting at 12:00 or 21:00 is outside the window.',
             'window_order' => 'The time window must start before it ends.',
             'windows_overlap' => 'Time window 2 must start after time window 1 ends (the windows must not overlap).',
             'window_1_from' => 'Time window 1 from',
