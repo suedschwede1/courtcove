@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\URL;
 
 final class PlayerExchangeService
 {
@@ -24,6 +25,12 @@ final class PlayerExchangeService
     public function isOptedIn(User $user): bool
     {
         return $user->meta()->where('key', self::META_KEY)->value('value') === '1';
+    }
+
+    /** Signed one-click unsubscribe link (no login, no expiry) for the e-mails. */
+    public function unsubscribeUrl(User $user): string
+    {
+        return URL::signedRoute('player-exchange.unsubscribe', ['user' => $user->uid]);
     }
 
     /**

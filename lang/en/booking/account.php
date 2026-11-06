@@ -48,5 +48,10 @@ return [
         'date' => 'Date',
         'time' => 'Time',
         'status' => 'Status',
+        'player_exchange' => 'Player exchange',
+        'player_exchange_label' => 'Email me when someone is looking for a playing partner',
+        'player_exchange_help' => 'Members can look for playing partners through the player exchange. If you take part, you get an email about it and can respond with one click. Every email contains a link to unsubscribe.',
+        'player_exchange_unsubscribed' => 'You have left the player exchange and will no longer get emails about it.',
+        'player_exchange_unsubscribed_hint' => 'You can rejoin at any time in your account.',
     ],
 ];

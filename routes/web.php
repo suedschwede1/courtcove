@@ -23,6 +23,7 @@ use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\LocaleController;
+use App\Http\Controllers\PlayerExchangeController;
 use App\Http\Controllers\UiGalleryController;
 use Illuminate\Support\Facades\Route;
 
@@ -69,6 +70,11 @@ Route::get('/user/registration', static fn () => redirect()->route('register'));
 Route::get('/user/activation/{any?}', static fn () => redirect()->route('login'))->where('any', '.*');
 Route::get('/square/{any?}', static fn () => redirect()->route('calendar.index'))->where('any', '.*');
 Route::get('/backend/{any?}', static fn () => redirect()->route('admin.dashboard'))->where('any', '.*');
+
+// Signed one-click unsubscribe link from player exchange e-mails: no login, no expiry.
+Route::get('/player-exchange/unsubscribe/{user}', [PlayerExchangeController::class, 'unsubscribe'])
+    ->middleware('signed')
+    ->name('player-exchange.unsubscribe');
 
 Route::middleware('auth')->group(function (): void {
     Route::get('/bookings/create', [BookingController::class, 'create'])->name('bookings.create');
