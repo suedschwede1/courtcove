@@ -1,0 +1,37 @@
+<?php
+
+return [
+    'cleaned' => '(Vergleich der Zweiten ohne Spiel gg. :name, 4.: :points Pkt, Sätze :sets, Games :games)',
+    'col_games' => 'Games',
+    'col_played' => 'Sp',
+    'col_player' => 'Spieler',
+    'col_points' => 'Pkt',
+    'col_rank' => '#',
+    'col_sets' => 'Sätze',
+    'decided' => [
+        'game_diff' => 'Reihenfolge über die Gamedifferenz entschieden',
+        'head_to_head' => 'Reihenfolge über das direkte Spiel entschieden',
+        'lot' => 'gleichauf in allen Kriterien – hier muss gelost werden',
+        'lot_drawn' => 'gleichauf in allen Kriterien – durch das Los entschieden',
+        'set_diff' => 'Reihenfolge über die Satzdifferenz entschieden',
+    ],
+    'filter_label' => 'Gruppen',
+    'footnote' => 'Reihung: Punkte, direktes Spiel, Satzdifferenz, Gamedifferenz, Los. Die Spalten Sätze und Games zeigen die für die Reihung gewertete Differenz.',
+    'group' => 'Gruppe :group',
+    'info_ac' => 'Alle Spieler dieses Bewerbs sind für KO A qualifiziert. Die Platzierung entscheidet über die Setzung.',
+    'info_default' => 'Gruppensieger und die zwei besten Zweiten steigen in KO A auf, die übrigen spielen KO B.',
+    'itn' => 'ITN :itn',
+    'lot_badge' => 'Los',
+    'matches_summary' => ':played gespielt, :scheduled geplant, :open ohne Termin',
+    'matches_title' => 'Spiele der Gruppe',
+    'meta' => ':size Spieler · jeder gegen jeden',
+    'no_matches' => 'Noch keine Partien angelegt.',
+    'not_drawn' => 'Diese Gruppe ist noch nicht ausgelost.',
+    'status' => [
+        'ko_b' => 'KO B',
+        'possible' => 'Aufstieg möglich',
+        'qualified' => 'qualifiziert KO A',
+        'winner' => 'Aufsteiger KO A',
+    ],
+    'you' => 'du',
+];

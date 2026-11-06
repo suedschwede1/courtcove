@@ -42,6 +42,52 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 - Pyramid: an unknown ladder, player or challenge shows a friendly not-found page with a way back (status stays 404; the administration gets it in the admin shell).
 - Pyramid: the result form shows live whether the entered score is valid and who won (same check as on saving; without JavaScript the form still checks on submit).
 - Tournament config (live-DB guard name, court names) moved to config/tournament-base.php so env values survive config:cache; static analysis is clean again.
+- Phase 2: an oversized or zero match id answers 404 instead of an error page, and a failed immediate draw in a test tournament shows a generic text instead of the internal error.
+- Phase 2: closing a picking phase shows the actionable reasons (more players than free tokens, no tournament, no format, not marked as applied) translated again; only unexpected errors stay generic.
+- Phase 2 go-live (module 4): the club championship and the draw admin and token pages are served by Laravel (with the deploy of this branch; rollback: re-add tournament|draw| to the bridge rule in public/.htaccess).
+- Phase 2: championship admin notes from bracket generation and refresh are shown translated, internal errors only as a generic text.
+- Phase 2: phase2:preflight tournament and fictional championship demo data for staging.
+- Phase 2: a token pick held up by a parallel close or pick asks to try again instead of failing, and close no longer shows internal error texts.
+- Phase 2: a manual lot decision that does not match the open tie is refused, an outdated one is ignored and flagged in the championship admin instead of breaking the tables.
+- Phase 2: championship test tools (view as player, simulated results, reset) ported.
+- Phase 2: knockout bracket refresh (qualifiers, byes, advancing winners) ported.
+- Phase 2: championship admin fits narrow cards (group list, stacked draw fields) and lists only applicable draws as to-dos.
+- Phase 2: championship group and knockout draws are prepared, executed and applied in Laravel.
+- Phase 2: admins manage couples, comments and manual lot decisions.
+- Phase 2: admins create, activate and test-copy championships in Laravel.
+- Phase 2: championship admin in the new design (not live yet).
+
+## 2026-11-05
+- Phase 2: deleting a discarded draw locks it first, so no late token claim can slip in.
+- Phase 2: closing the pick phase assigns non-pickers reproducibly and fills the groups.
+- Phase 2: applying a draw to groups or bracket lines is validated first and happens exactly once.
+- Phase 2: players pick their draw token in the new design; group and matches appear right after the pick.
+- Phase 2: token claims stay atomic against the draw status.
+- Phase 2: executing a draw re-verifies the commitment and writes result and token slots atomically.
+- Phase 2: draws admin in the new design (not live yet).
+- Phase 2: manual draws refuse line/paragraph separators and numeric slot names, so every new draw verifies with the Python verifier.
+- Phase 2: public randomness beacon client ported (two endpoints, 10 s timeout).
+- Phase 2: championship pages show the ITN to every member again (as before), tint your own matches in the schedule and word KO WhatsApp messages correctly.
+- Phase 2: championship result entry with live validation and confirmation by the opponent.
+- Phase 2: championship pages polished after the visual check (phone chip rows, key figure cards).
+- Phase 2: "Meine Spiele" in the new design.
+- Phase 2: participants list; contacts only for participants.
+- Phase 2: knockout bracket in the new design.
+- Phase 2: championship schedule with status and group filters in the new design.
+- Phase 2: group tables with tie-break explanation in the new design.
+- Phase 2: championship overview and rules pages in the new design (not live yet).
+- Phase 2: a non-string match_format or runner_up mode in a stored tournament format falls back to the default instead of failing.
+- Phase 2: tournament matches shown as match cards (new design).
+- Phase 2: tournament areas redirect guests to the Laravel login with a module message and explain expired forms.
+- Phase 2: championship access levels (member, participant, admin) and "view as player" ported.
+- Phase 2: match generation runs in one transaction and reads fresh player rows.
+- Phase 2: automatic lot tie-break (HMAC of the first draw's seed) ported byte-exactly.
+- Phase 2: championship read model (groups, promotion, progress) ported.
+- Phase 2: knockout placeholder resolution ported unchanged.
+- Phase 2: match and bracket generation ported unchanged.
+- Phase 2: championship standings and tie-breaks ported unchanged (golden vectors).
+- Phase 2: tournament format configuration ported unchanged (golden vectors).
+- Phase 2: tournament tables adopted in place (guarded create migrations, no-op rollback, schema manifest).
 - Phase 2: Mixed roster entries with a placeholder birth date (e.g. 1900) no longer break adding participants; implausible ITN values in the member export are ignored.
 - Phase 2 go-live (module 3): /mixed-tournament is served by Laravel; rollback = re-add the path to the bridge allowlist.
 - Phase 2: Mixed scorecards and blank scorecards as A4 print pages (page break per wave, no wave number).

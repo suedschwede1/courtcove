@@ -112,7 +112,7 @@ class Phase2ScrubStagingCommandTest extends TestCase
         DB::table('migrations')->insert(['migration' => 'survivor-row', 'batch' => 9999]);
 
         $this->artisan('phase2:scrub-staging', ['--force' => true, '--no-interaction' => true])
-            ->expectsOutput('Tables: bs_draw_eligible, bs_draw_tokens, bs_draws, bs_pyramid_events, bs_pyramid_challenges, bs_pyramid_grants, bs_pyramid_players, bs_pyramid_ladders, bs_mixed_event_grants, bs_mixed_matches, bs_mixed_round_players, bs_mixed_rounds, bs_mixed_avoid_pairs, bs_mixed_participants, bs_mixed_events, bs_mixed_members')
+            ->expectsOutput('Tables: bs_draw_eligible, bs_draw_tokens, bs_draws, bs_pyramid_events, bs_pyramid_challenges, bs_pyramid_grants, bs_pyramid_players, bs_pyramid_ladders, bs_mixed_event_grants, bs_mixed_matches, bs_mixed_round_players, bs_mixed_rounds, bs_mixed_avoid_pairs, bs_mixed_participants, bs_mixed_events, bs_mixed_members, bs_tournament_lines, bs_tournament_matches, bs_tournament_players, bs_tournaments')
             ->assertExitCode(0);
 
         $this->assertFalse($this->untouched());

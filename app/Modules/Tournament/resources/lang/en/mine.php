@@ -1,0 +1,33 @@
+<?php
+
+return [
+    'badge' => [
+        'lost' => 'Lost',
+        'open' => 'no date',
+        'scheduled' => 'scheduled',
+        'won' => 'Won',
+    ],
+    'group' => 'Group :group',
+    'itn' => 'ITN :itn',
+    'kpi_open' => 'open matches',
+    'kpi_rank' => 'Rank in the group',
+    'kpi_wins' => 'Wins',
+    'lost' => 'Lost :score',
+    'lot' => 'Several players in your group are equal in every criterion – the placement has to be decided by lot.',
+    'next' => 'Your next match',
+    'no_date' => 'no date yet',
+    'no_matches' => 'No matches have been created for you yet. They appear as soon as another player joins your group.',
+    'not_confirmed' => 'not confirmed',
+    'not_drawn' => 'not drawn yet',
+    'not_participant' => 'You are not registered as a participant of the club championship. You can view tables, schedule and results under the other menu items.',
+    'opponent' => 'against :name',
+    'opponent_open' => 'Opponent open',
+    'view_result' => 'View result',
+    'walkover' => '(w.o.)',
+    'whatsapp' => 'WhatsApp',
+    'whatsapp_open_group' => 'Hi :name! When would our club championship match in group :group suit you?',
+    'whatsapp_open_ko' => 'Hi :name! When would our club championship match (:phase) suit you?',
+    'whatsapp_scheduled_group' => 'Hi :name! Our club championship match (group :group) is on :date. Does that suit you?',
+    'whatsapp_scheduled_ko' => 'Hi :name! Our club championship match (:phase) is on :date. Does that suit you?',
+    'won' => 'Won :score',
+];

@@ -30,9 +30,9 @@ class MixedGoLiveTest extends TestCase
             $this->assertNotSame('zf2', $router->route($path), $path);
         }
 
-        // The still-bridged prefixes keep answering from ZF2.
-        $this->assertSame('zf2', $router->route('tournament'));
-        $this->assertSame('zf2', $router->route('draw/tokens/1'));
+        // The still-bridged paths (ZF2 service pages and login) keep answering from ZF2.
+        $this->assertSame('zf2', $router->route('service/help'));
+        $this->assertSame('zf2', $router->route('user/login'));
     }
 
     #[Test]

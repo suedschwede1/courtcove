@@ -8,6 +8,7 @@ use App\Modules\TournamentBase\Http\Middleware\RequireModuleLogin;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 use Random\Engine\Secure;
 use Random\Randomizer;
@@ -24,6 +25,7 @@ class TournamentBaseServiceProvider extends ServiceProvider
     {
         $this->loadTranslationsFrom(__DIR__.'/resources/lang', 'tournament-base');
         $this->loadViewsFrom(__DIR__.'/resources/views', 'tournament-base');
+        Blade::anonymousComponentPath(__DIR__.'/resources/views/components', 'tournament-base');
 
         $this->app->make(Router::class)->aliasMiddleware('tournament-base.login', RequireModuleLogin::class);
 

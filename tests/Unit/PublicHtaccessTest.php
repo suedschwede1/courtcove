@@ -45,7 +45,7 @@ class PublicHtaccessTest extends TestCase
         $contents = file_get_contents(dirname(__DIR__, 2).'/public/.htaccess');
 
         $this->assertSame(
-            ['^(tournament|draw|service)(/|$)', '^user/(login|logout|password(-reset)?)(/|$)'],
+            ['^(service)(/|$)', '^user/(login|logout|password(-reset)?)(/|$)'],
             $this->bridgePatterns($contents),
         );
     }
@@ -60,7 +60,6 @@ class PublicHtaccessTest extends TestCase
         ) !== [];
 
         foreach ([
-            'tournament', 'tournament/standings', 'draw/1',
             'service/help', 'service/info', 'user/login', 'user/logout', 'user/password', 'user/password-reset',
             'user/login/',
         ] as $path) {
@@ -68,6 +67,7 @@ class PublicHtaccessTest extends TestCase
         }
 
         foreach ([
+            'tournament', 'tournament/standings', 'tournament/admin', 'draw', 'draw/1', 'draw/tokens/1', 'draw/record/x',
             'calendar', 'square', 'square/booking', 'backend', 'backend/user', 'bookings', 'bookings/create', 'my-bookings',
             'admin', 'login', 'register', 'user/bookings', 'user/settings', 'user/registration', 'user/activation/abc',
             'pyramide', 'pyramide/5', 'pyramide/admin', 'mixed-tournament', 'mixed-tournament/groups', 'tournaments', 'drawing', 'services', 'user/loginx', 'user/password-resetx', 'zf2-bridge.php', '',
@@ -99,7 +99,7 @@ class PublicHtaccessTest extends TestCase
 
         $this->assertSame(1, preg_match('#^\s*RewriteRule\s+(\S+)\s+%1\s+\[L,R=301\]\s*$#m', $contents, $m));
         $this->assertLessThan(
-            strpos($contents, 'RewriteRule ^(tournament|draw|service)(/|$) zf2-bridge.php'),
+            strpos($contents, 'RewriteRule ^(service)(/|$) zf2-bridge.php'),
             strpos($contents, $m[0]),
         );
         $this->assertStringContainsString('RewriteCond %{REQUEST_URI} (.+)/$
@@ -107,11 +107,12 @@ class PublicHtaccessTest extends TestCase
 
         $matches = static fn (string $path): bool => preg_match('#'.str_replace('#', '\#', $m[1]).'#', $path) === 1;
 
-        foreach (['tournament/', 'draw/1/', 'service/help/', 'user/login/', 'user/password-reset/'] as $path) {
+        foreach (['service/help/', 'user/login/', 'user/password-reset/'] as $path) {
             $this->assertTrue($matches($path), "$path/ must be redirected to the slashless URL");
         }
 
-        foreach (['tournament', 'pyramide/', 'mixed-tournament/', 'calendar/', 'login/', 'bookings/', 'user/bookings/', 'square/', 'admin/', 'tournaments/', 'user/loginx/'] as $path) {
+        // Ported prefixes are no longer in this alternation; the generic slash rule redirects them.
+        foreach (['tournament', 'tournament/', 'draw/1/', 'pyramide/', 'mixed-tournament/', 'calendar/', 'login/', 'bookings/', 'user/bookings/', 'square/', 'admin/', 'tournaments/', 'user/loginx/'] as $path) {
             $this->assertFalse($matches($path), "$path must not be touched");
         }
     }
@@ -134,24 +135,87 @@ class PublicHtaccessTest extends TestCase
         $this->assertSame(0, preg_match('#zf2-bridge#i', 'GET /mixed-tournament HTTP/1.1'));
     }
 
-    public function test_draw_record_is_served_by_laravel_and_the_rest_of_draw_stays_bridged(): void
+    public function test_tournament_and_draw_are_served_by_laravel(): void
     {
         $r = HtaccessRouter::fromFile(dirname(__DIR__, 2).'/public/.htaccess');
 
-        foreach (['draw/record', 'draw/record/x', 'draw/record/x/json', 'draw/record/0123456789ab', 'draw/record/0123456789ab/json'] as $p) {
+        foreach ([
+            'tournament', 'tournament/groups/A', 'tournament/schedule/open', 'tournament/bracket/KO_A', 'tournament/players',
+            'tournament/mine', 'tournament/modus', 'tournament/admin', 'tournament/admin/reset', 'tournament/match/1',
+            'tournament/match/1/save', 'tournamentx',
+            'draw', 'draw/commit', 'draw/open/3', 'draw/close/3', 'draw/execute/3', 'draw/delete/3', 'draw/tokens/1',
+            'draw/tokens/1/pick', 'draw/record', 'draw/record/x', 'draw/record/x/json', 'draw/record/0123456789ab',
+            'draw/record/0123456789ab/json', 'draw/recordx', 'draw/records/x', 'drawing',
+        ] as $p) {
             $this->assertSame('laravel', $r->route($p), $p);
         }
 
-        foreach (['draw', 'draw/1', 'draw/tokens/1', 'draw/tokens/1/pick', 'draw/commit', 'draw/open/3', 'draw/close/3', 'draw/execute/3', 'draw/delete/3', 'draw/recordx', 'draw/records/x'] as $p) {
-            $this->assertSame('zf2', $r->route($p), $p);
-        }
-
-        foreach (['draw/record/x/', 'draw/record/x/json/'] as $p) {
+        // The generic slash rule handles the trailing slash of the ported prefixes now.
+        foreach (['tournament/', 'tournament/admin/', 'draw/', 'draw/tokens/1/', 'draw/record/x/', 'draw/record/x/json/'] as $p) {
             $this->assertSame('redirect', $r->route($p), $p);
         }
 
-        foreach (['calendar', 'members/dashboard', 'drawing'] as $p) {
+        // What remains on the bridge: the ZF2 service pages and ZF2's own login paths.
+        foreach (['service/help', 'service/info', 'user/login', 'user/logout', 'user/password', 'user/password-reset'] as $p) {
+            $this->assertSame('zf2', $r->route($p), $p);
+        }
+
+        foreach (['calendar', 'members/dashboard', 'pyramide', 'mixed-tournament'] as $p) {
             $this->assertSame('laravel', $r->route($p), $p);
+        }
+    }
+
+    /**
+     * The module 1 carve-out is gone: with "draw" off the bridge it would only catch "/draw/record/x/" before the
+     * generic slash rule (Laravel would answer the slashed URL instead of redirecting it).
+     */
+    public function test_no_carve_out_lines_remain(): void
+    {
+        $contents = file_get_contents(dirname(__DIR__, 2).'/public/.htaccess');
+
+        // The only rule to the front controller is the final catch-all.
+        preg_match_all('#^\s*RewriteRule\s+(\S+)\s+index\.php\s+\[L\]\s*$#m', $contents, $m);
+        $this->assertSame(['^'], $m[1]);
+        $this->assertDoesNotMatchRegularExpression('#^\s*RewriteRule\s+\^draw/record#m', $contents);
+    }
+
+    /** The rollback documented in the .htaccess comment restores the previous routing exactly. */
+    public function test_documented_rollback_restores_the_previous_routing(): void
+    {
+        $contents = file_get_contents(dirname(__DIR__, 2).'/public/.htaccess');
+        $bridge = 'RewriteRule ^(tournament|draw|service)(/|$) zf2-bridge.php [L]';
+        $slash = 'RewriteRule ^((tournament|draw|service)(/.*)?|user/(login|logout|password(-reset)?))/$ %1 [L,R=301]';
+        $carve = 'RewriteRule ^draw/record(/|$) index.php [L]';
+
+        foreach ([$bridge, $slash, $carve] as $line) {
+            $this->assertStringContainsString('#   '.$line, $contents, 'the rollback line is quoted in the comment');
+        }
+
+        $rolledBack = str_replace(
+            ['    RewriteRule ^((service)(/.*)?|user/(login|logout|password(-reset)?))/$ %1 [L,R=301]', '    RewriteRule ^(service)(/|$) zf2-bridge.php [L]'],
+            ['    '.$slash, '    '.$carve."\n\n    ".$bridge],
+            $contents,
+            $count,
+        );
+        $this->assertSame(2, $count);
+
+        $dir = sys_get_temp_dir().'/htaccess-rollback-'.getmypid();
+        is_dir($dir) || mkdir($dir);
+        file_put_contents($dir.'/.htaccess', $rolledBack);
+        $r = HtaccessRouter::fromFile($dir.'/.htaccess');
+        unlink($dir.'/.htaccess');
+        rmdir($dir);
+
+        foreach (['tournament', 'tournament/admin', 'tournament/match/1/save', 'draw', 'draw/tokens/1', 'draw/close/3', 'service/help', 'user/login'] as $p) {
+            $this->assertSame('zf2', $r->route($p), $p);
+        }
+
+        foreach (['draw/record/x', 'draw/record/x/json', 'pyramide', 'mixed-tournament', 'calendar'] as $p) {
+            $this->assertSame('laravel', $r->route($p), $p);
+        }
+
+        foreach (['tournament/', 'draw/tokens/1/', 'draw/record/x/', 'service/help/'] as $p) {
+            $this->assertSame('redirect', $r->route($p), $p);
         }
     }
 
@@ -167,7 +231,7 @@ class PublicHtaccessTest extends TestCase
             $this->assertSame('redirect', $r->route($p), $p);
         }
 
-        foreach (['tournament', 'draw', 'draw/tokens/1', 'service/help', 'user/login'] as $p) {
+        foreach (['service/help', 'user/login'] as $p) {
             $this->assertSame('zf2', $r->route($p), $p);
         }
 
@@ -185,7 +249,7 @@ class PublicHtaccessTest extends TestCase
         // The generic slash rule (not the bridge rule) handles the trailing slash now.
         $this->assertSame('redirect', $r->route('mixed-tournament/'));
 
-        foreach (['tournament', 'draw/tokens/1', 'draw', 'service/help', 'user/login'] as $p) {
+        foreach (['service/help', 'user/login'] as $p) {
             $this->assertSame('zf2', $r->route($p), $p);
         }
     }
@@ -231,19 +295,5 @@ class PublicHtaccessTest extends TestCase
         $this->assertSame('redirect', HtaccessRouter::fromFile($file)->route('x/'));
 
         unlink($file);
-    }
-
-    public function test_carve_outs_sit_between_the_slash_redirect_and_the_bridge(): void
-    {
-        $contents = file_get_contents(dirname(__DIR__, 2).'/public/.htaccess');
-
-        $redirect = strpos($contents, '%1 [L,R=301]');
-        $carve = strpos($contents, 'RewriteRule ^draw/record(/|$) index.php [L]');
-        $bridge = strpos($contents, 'zf2-bridge.php [L]');
-
-        $this->assertNotFalse($redirect);
-        $this->assertNotFalse($carve);
-        $this->assertLessThan($carve, $redirect);
-        $this->assertLessThan($bridge, $carve);
     }
 }

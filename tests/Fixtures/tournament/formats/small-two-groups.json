@@ -1,0 +1,45 @@
+{
+    "version": 1,
+    "match_format": "best_of_3_mtb",
+    "ranking": {
+        "points_per_win": 2,
+        "tiebreak_scope": "tied",
+        "criteria": ["points", "head_to_head", "set_diff", "game_diff", "lot"]
+    },
+    "runner_up": { "mode": "points" },
+    "phases": [
+        {
+            "key": "G1",
+            "type": "groups",
+            "label": "Gruppenphase",
+            "seed_range": [1, 6],
+            "heads": 1,
+            "groups": [
+                { "key": "A", "size": 3 },
+                { "key": "B", "size": 3 }
+            ],
+            "draw": { "mode": "token", "slot_order": "by_position" }
+        },
+        {
+            "key": "KO",
+            "type": "bracket",
+            "label": "KO-Runde",
+            "size": 4,
+            "qualify": [
+                { "from": "G1", "rule": "group_winners", "pool": "w" },
+                { "from": "G1", "rule": "best_seconds", "pool": "w", "count": 2 }
+            ],
+            "seeding": [
+                { "from": "G1", "rule": "group_winners", "count": 2, "order": "record" }
+            ],
+            "lines": {
+                "seeded": { "1": 1, "2": 4 },
+                "bye": [],
+                "pools": { "w": [2, 3] },
+                "pool_codes": { "w": { "prefix": "W", "start": 3 } }
+            },
+            "protect": { "no_same_pool_in_round_1": ["w"] },
+            "draw": { "mode": "direct", "timing": "post" }
+        }
+    ]
+}

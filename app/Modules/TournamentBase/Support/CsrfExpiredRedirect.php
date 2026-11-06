@@ -7,6 +7,7 @@ namespace App\Modules\TournamentBase\Support;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Http\Request;
 use Illuminate\Session\TokenMismatchException;
+use Illuminate\Support\Facades\Route;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Throwable;
 
@@ -50,7 +51,7 @@ class CsrfExpiredRedirect
     private static function fallbackRoute(Request $request): string
     {
         foreach ((array) config('tournament-base.csrf_redirect_fallbacks', []) as $pattern => $name) {
-            if ($request->routeIs((string) $pattern)) {
+            if ($request->routeIs((string) $pattern) && Route::has((string) $name)) {
                 return (string) $name;
             }
         }

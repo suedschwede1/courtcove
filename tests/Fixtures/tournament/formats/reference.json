@@ -1,0 +1,219 @@
+{
+    "version": 1,
+    "match_format": "best_of_3_mtb",
+    "ranking": {
+        "points_per_win": 2,
+        "tiebreak_scope": "tied",
+        "criteria": [
+            "points",
+            "head_to_head",
+            "set_diff",
+            "game_diff",
+            "lot"
+        ]
+    },
+    "runner_up": {
+        "mode": "drop_last"
+    },
+    "phases": [
+        {
+            "key": "AC",
+            "type": "groups",
+            "label": "Oberer Bewerb",
+            "seed_range": [
+                1,
+                10
+            ],
+            "heads": 1,
+            "groups": [
+                {
+                    "key": "A",
+                    "size": 3
+                },
+                {
+                    "key": "B",
+                    "size": 3
+                },
+                {
+                    "key": "C",
+                    "size": 4
+                }
+            ],
+            "draw": {
+                "mode": "token",
+                "slot_order": "by_position"
+            }
+        },
+        {
+            "key": "DG",
+            "type": "groups",
+            "label": "Unterer Bewerb",
+            "seed_range": [
+                11,
+                24
+            ],
+            "heads": 1,
+            "groups": [
+                {
+                    "key": "D",
+                    "size": 3
+                },
+                {
+                    "key": "E",
+                    "size": 3
+                },
+                {
+                    "key": "F",
+                    "size": 4
+                },
+                {
+                    "key": "G",
+                    "size": 4
+                }
+            ],
+            "draw": {
+                "mode": "token",
+                "slot_order": "by_position"
+            }
+        },
+        {
+            "key": "KO_A",
+            "type": "bracket",
+            "label": "KO-Bewerb A",
+            "size": 16,
+            "qualify": [
+                {
+                    "from": "AC",
+                    "rule": "all",
+                    "pool": "ac"
+                },
+                {
+                    "from": "DG",
+                    "rule": "group_winners",
+                    "pool": "q"
+                },
+                {
+                    "from": "DG",
+                    "rule": "best_seconds",
+                    "pool": "q",
+                    "count": 2
+                }
+            ],
+            "seeding": [
+                {
+                    "from": "AC",
+                    "rule": "group_winners",
+                    "count": 3,
+                    "order": "record"
+                },
+                {
+                    "from": "AC",
+                    "rule": "best_seconds",
+                    "count": 1,
+                    "order": "record"
+                }
+            ],
+            "lines": {
+                "seeded": {
+                    "1": 1,
+                    "2": 16,
+                    "3": 9,
+                    "4": 8
+                },
+                "bye": [],
+                "pools": {
+                    "q": [
+                        3,
+                        5,
+                        7,
+                        10,
+                        11,
+                        13
+                    ],
+                    "ac": [
+                        2,
+                        4,
+                        6,
+                        12,
+                        14,
+                        15
+                    ]
+                },
+                "pool_codes": {
+                    "q": {
+                        "prefix": "Q",
+                        "start": 1
+                    },
+                    "ac": {
+                        "prefix": "AC",
+                        "start": 5
+                    }
+                }
+            },
+            "protect": {
+                "no_same_pool_in_round_1": [
+                    "q"
+                ]
+            },
+            "swap_rules": [
+                {
+                    "if_same_group_as_line": 15,
+                    "seed": 2,
+                    "swap_with_seed": 3
+                }
+            ],
+            "draw": {
+                "mode": "direct",
+                "timing": "pre"
+            }
+        },
+        {
+            "key": "KO_B",
+            "type": "bracket",
+            "label": "KO-Bewerb B",
+            "size": 8,
+            "qualify": [
+                {
+                    "from": "DG",
+                    "rule": "remainder",
+                    "pool": "rest"
+                }
+            ],
+            "seeding": [
+                {
+                    "from": "DG",
+                    "rule": "remainder",
+                    "count": 2,
+                    "order": "drop_last"
+                }
+            ],
+            "lines": {
+                "seeded": {
+                    "1": 1,
+                    "2": 8
+                },
+                "bye": [],
+                "pools": {
+                    "rest": [
+                        2,
+                        3,
+                        4,
+                        5,
+                        6,
+                        7
+                    ]
+                },
+                "pool_codes": {
+                    "rest": {
+                        "prefix": "REST",
+                        "start": 3
+                    }
+                }
+            },
+            "draw": {
+                "mode": "direct",
+                "timing": "pre"
+            }
+        }
+    ]
+}
