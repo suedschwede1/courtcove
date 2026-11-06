@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Modules\Members\Http\Controllers;
 
 use App\Modules\Members\Models\FiscalYear;
+use App\Modules\Members\Models\HouseholdDue;
 use App\Modules\Members\Models\Member;
 use App\Modules\Members\Models\MemberDue;
 use App\Modules\Members\Models\Payment;
 use App\Modules\Members\Support\MembersFormat;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -26,7 +28,29 @@ class PaymentController
             ->with(['fiscalYear', 'feeCategory'])
             ->get();
 
-        return view('members::payments.create', ['member' => $member, 'openDues' => $openDues]);
+        return view('members::payments.create', [
+            'member' => $member,
+            'openDues' => $openDues,
+            'openHouseholdDues' => self::householdDuesFor($member)->open()
+                ->whereHas('fiscalYear', fn ($q) => $q->whereNull('abgeschlossen_am'))
+                ->with(['fiscalYear', 'household.members'])->get(),
+        ]);
+    }
+
+    /**
+     * Household dues a payment on this member's page may settle: those covering the member and those of
+     * the member's current household (the person who actually pays enters it on their own page).
+     *
+     * @return Builder<HouseholdDue>
+     */
+    private static function householdDuesFor(Member $member): Builder
+    {
+        return HouseholdDue::query()->where(function (Builder $q) use ($member): void {
+            $q->whereHas('coveredMembers', fn ($m) => $m->whereKey($member->id));
+            if ($member->household_id !== null) {
+                $q->orWhere('household_id', $member->household_id);
+            }
+        });
     }
 
     public function store(Request $request, Member $member): RedirectResponse
@@ -35,7 +59,7 @@ class PaymentController
             'amount' => ['required', 'numeric', 'decimal:0,2', 'min:0.01', 'max:999999.99'],
             'paid_at' => ['required', ...MemberDue::paidOnRules()],
             'note' => ['nullable', 'string', 'max:255'],
-            'member_due_ids' => ['required', 'array', 'min:1'],
+            'member_due_ids' => ['required_without:household_due_ids', 'array', 'min:1'],
             'member_due_ids.*' => [
                 'integer',
                 'exists:member_dues,id,member_id,'.$member->id,
@@ -61,16 +85,33 @@ class PaymentController
                     }
                 },
             ],
+            'household_due_ids' => ['nullable', 'array', 'min:1'],
+            'household_due_ids.*' => [
+                'integer',
+                function (string $attribute, mixed $value, callable $fail) use ($member): void {
+                    $due = is_int($value) || (is_string($value) && ctype_digit($value))
+                        ? self::householdDuesFor($member)->whereKey((int) $value)->with('fiscalYear')->first()
+                        : null;
+                    if ($due === null) {
+                        $fail(__('members::admin.payments.household_due_not_related'));
+                    } elseif ($due->isPaid()) {
+                        $fail(__('members::admin.payments.due_already_paid'));
+                    } elseif ($due->fiscalYear->isClosed()) {
+                        $fail(__('members::admin.payments.due_in_closed_year'));
+                    }
+                },
+            ],
         ], MemberDue::paidOnMessages('paid_at'));
 
-        $dueIds = array_map(intval(...), $validated['member_due_ids']);
+        $dueIds = array_map(intval(...), $validated['member_due_ids'] ?? []);
+        $householdDueIds = array_map(intval(...), $validated['household_due_ids'] ?? []);
 
         // The payment must cover the selected dues exactly - otherwise a partial
         // payment would mark them as paid and block the remainder forever.
-        $expectedCents = (int) MemberDue::query()
-            ->whereKey($dueIds)
-            ->get()
-            ->sum(fn (MemberDue $due): int => (int) round(((float) $due->amount) * 100));
+        $expectedCents = (int) MemberDue::query()->whereKey($dueIds)->get()
+            ->sum(fn (MemberDue $due): int => (int) round(((float) $due->amount) * 100))
+            + (int) HouseholdDue::query()->whereKey($householdDueIds)->get()
+                ->sum(fn (HouseholdDue $due): int => (int) round(((float) $due->amount) * 100));
         $paidCents = (int) round(((float) $validated['amount']) * 100);
 
         if ($paidCents !== $expectedCents) {
@@ -81,27 +122,29 @@ class PaymentController
             ]);
         }
 
-        DB::transaction(function () use ($validated, $member, $dueIds): void {
+        $errorKey = $dueIds !== [] ? 'member_due_ids' : 'household_due_ids';
+
+        DB::transaction(function () use ($validated, $member, $dueIds, $householdDueIds, $errorKey): void {
             // Lock order: the dues' year rows first, then the due rows. A year closed since
             // validation refuses the payment here.
-            $yearIds = MemberDue::query()->whereKey($dueIds)->pluck('fiscal_year_id')->all();
+            $yearIds = [
+                ...MemberDue::query()->whereKey($dueIds)->pluck('fiscal_year_id')->all(),
+                ...HouseholdDue::query()->whereKey($householdDueIds)->pluck('fiscal_year_id')->all(),
+            ];
             if (FiscalYear::lockForWrite($yearIds) !== null) {
                 throw ValidationException::withMessages([
-                    'member_due_ids' => __('members::admin.payments.due_in_closed_year'),
+                    $errorKey => __('members::admin.payments.due_in_closed_year'),
                 ]);
             }
 
             // Re-check inside the transaction (with the due rows locked) so two
             // concurrent submissions cannot allocate the same due twice.
-            $alreadyPaid = MemberDue::query()
-                ->whereKey($dueIds)
-                ->paid()
-                ->lockForUpdate()
-                ->exists();
+            $alreadyPaid = MemberDue::query()->whereKey($dueIds)->paid()->lockForUpdate()->exists()
+                || HouseholdDue::query()->whereKey($householdDueIds)->paid()->lockForUpdate()->exists();
 
             if ($alreadyPaid) {
                 throw ValidationException::withMessages([
-                    'member_due_ids' => __('members::admin.payments.due_already_paid'),
+                    $errorKey => __('members::admin.payments.due_already_paid'),
                 ]);
             }
 
@@ -112,11 +155,16 @@ class PaymentController
                 'note' => $validated['note'] ?? null,
             ]);
 
-            $payment->dues()->attach($dueIds);
-
             // A payment always covers its dues in full (checked above), so its date is
             // the date each of these dues was settled.
-            MemberDue::whereKey($dueIds)->update(['status' => 'bezahlt', 'bezahlt_am' => $validated['paid_at']]);
+            if ($dueIds !== []) {
+                $payment->dues()->attach($dueIds);
+                MemberDue::whereKey($dueIds)->update(['status' => 'bezahlt', 'bezahlt_am' => $validated['paid_at']]);
+            }
+            if ($householdDueIds !== []) {
+                $payment->householdDues()->attach($householdDueIds);
+                HouseholdDue::whereKey($householdDueIds)->update(['status' => 'bezahlt', 'bezahlt_am' => $validated['paid_at']]);
+            }
         });
 
         return redirect()->route('members.edit', $member)

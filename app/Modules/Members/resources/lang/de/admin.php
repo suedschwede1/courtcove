@@ -109,6 +109,8 @@ return [
         'due_already_paid' => 'Einer der ausgewählten Beiträge wurde bereits bezahlt.',
         'due_in_closed_year' => 'Ein ausgewählter Beitrag gehört zu einem abgeschlossenen Geschäftsjahr und kann nicht mehr bezahlt werden.',
         'amount_mismatch' => 'Der Betrag muss der Summe der ausgewählten Beiträge entsprechen (:sum).',
+        'household_due_label' => 'Haushalt :household · :year · :amount',
+        'household_due_not_related' => 'Dieser Haushaltsbeitrag gehört nicht zu diesem Mitglied oder seinem Haushalt.',
     ],
     'common' => [
         'all' => 'Alle',

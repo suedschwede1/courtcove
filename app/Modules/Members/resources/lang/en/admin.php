@@ -109,6 +109,8 @@ return [
         'due_already_paid' => 'One of the selected dues has already been paid.',
         'due_in_closed_year' => 'A selected due belongs to a closed fiscal year and can no longer be paid.',
         'amount_mismatch' => 'The amount must match the sum of the selected dues (:sum).',
+        'household_due_label' => 'Household :household · :year · :amount',
+        'household_due_not_related' => 'This household fee does not belong to this member or their household.',
     ],
     'common' => [
         'all' => 'All',

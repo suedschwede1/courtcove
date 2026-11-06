@@ -36,4 +36,10 @@ class Payment extends Model
     {
         return $this->belongsToMany(MemberDue::class, 'payment_dues');
     }
+
+    /** @return BelongsToMany<HouseholdDue, $this> */
+    public function householdDues(): BelongsToMany
+    {
+        return $this->belongsToMany(HouseholdDue::class, 'household_due_payment', 'payment_id', 'household_due_id')->withTimestamps();
+    }
 }

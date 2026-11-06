@@ -129,6 +129,20 @@ class HouseholdClosedYearRaceTest extends TestCase
     }
 
     #[Test]
+    public function paying_a_household_due(): void
+    {
+        $due = HouseholdDue::create(['household_id' => $this->household->id, 'fiscal_year_id' => $this->year->id, 'fee_category_id' => $this->family->id, 'amount' => 235]);
+        $due->coveredMembers()->attach($this->members[0]->id, ['fiscal_year_id' => $this->year->id]);
+        $this->closeOnLock($this->year);
+
+        $this->actingAs($this->admin())->post("/members/{$this->members[0]->id}/payments", ['amount' => '235.00', 'paid_at' => '2026-11-06', 'household_due_ids' => [$due->id]])
+            ->assertSessionHasErrors('household_due_ids');
+
+        $this->assertSame('ausstehend', $due->fresh()?->status);
+        $this->assertSame(0, DB::table('payments')->count());
+    }
+
+    #[Test]
     public function covering_a_joiner(): void
     {
         $due = HouseholdDue::create(['household_id' => $this->household->id, 'fiscal_year_id' => $this->year->id, 'fee_category_id' => $this->family->id, 'amount' => 235]);
