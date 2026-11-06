@@ -109,7 +109,7 @@
             </x-ui.field>
             <x-ui.button id="dues-bulk-mark-paid" type="submit" :block="false" x-bind:disabled="selected.length === 0">{{ __('members::admin.dues.bulk_mark_paid') }}</x-ui.button>
         </div>
-        <p class="mbr-dues-outstanding text-ink-2 px-4 py-2" data-testid="dues-outstanding-total">{{ __('members::admin.dues.outstanding_total') }}: <strong class="tabular-nums">{{ MembersFormat::money($outstandingTotal) }}</strong></p>
+        <p class="text-ink-2 px-4 py-2" data-testid="dues-outstanding-total">{{ __('members::admin.dues.outstanding_total') }}: <strong class="tabular-nums">{{ MembersFormat::money($outstandingTotal) }}</strong></p>
         <x-ui.table :caption="__('members::admin.dues.title')">
             <x-slot:head>
                 <tr>
