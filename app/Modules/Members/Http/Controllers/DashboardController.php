@@ -16,8 +16,7 @@ class DashboardController
     public function index(): View
     {
         $activeCount = Member::query()->active()->count();
-        // Current members: active or dormant, not departed.
-        $current = fn () => Member::query()->whereIn('status', ['aktiv', 'ruhend']);
+        $current = fn () => Member::query()->current();
 
         $fiscalYears = FiscalYear::query()->orderBy('starts_on')->get();
         $currentFiscalYear = $fiscalYears->first(
@@ -35,8 +34,7 @@ class DashboardController
 
         return view('members::dashboard', [
             'memberCount' => $current()->count(),
-            // Youth: 18 or younger today.
-            'youthCount' => $current()->where('birthdate', '>', now()->subYears(19)->toDateString())->count(),
+            'youthCount' => $current()->youth()->count(),
             'dormantCount' => Member::query()->where('status', 'ruhend')->count(),
             // Informational only: the link to a booking-system account is optional.
             'withoutAccountCount' => $current()->whereNull('user_id')->count(),

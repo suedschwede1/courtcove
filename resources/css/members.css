@@ -149,7 +149,7 @@
     }
 }
 
-/* Members list: filters, table card, phone cards. */
+/* Shared filter rows (log, dues, detail forms) and table cards; the members list adds its own search row and phone cards. */
 @layer components {
     .mbr-filter-card {
         padding: 16px 20px;
@@ -170,12 +170,6 @@
         flex: 1 1 160px;
     }
 
-    .mbr-chips {
-        gap: 6px;
-        overflow-x: auto;
-        padding-bottom: 2px;
-    }
-
     .mbr-phone-only {
         display: none;
     }
@@ -193,23 +187,6 @@
     }
 
     .mbr-name {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        font-weight: 700;
-    }
-
-    .mbr-initials {
-        display: inline-flex;
-        flex: 0 0 auto;
-        align-items: center;
-        justify-content: center;
-        width: 34px;
-        height: 34px;
-        border-radius: 50%;
-        background: var(--color-sand);
-        color: var(--color-ink-2);
-        font-size: 13px;
         font-weight: 700;
     }
 
@@ -223,26 +200,184 @@
         white-space: nowrap;
     }
 
-    @media (width >= 48rem) {
-        /* The status select stays in the row; the other two sit inline instead of in a disclosure. */
-        .mbr-filters__more {
-            flex: 2 1 332px;
-            border: 0;
-            border-radius: 0;
-            background: transparent;
-        }
+    /* Members list (mockup Mitglieder-Liste): search field and quick-filter chips in one row, "more filters" below. */
+    .mbr-list-filters {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+    }
 
-        .mbr-filters__more > .ds-disclosure__summary {
+    .mbr-search {
+        position: relative;
+        flex: 1 1 280px;
+        min-width: 0;
+    }
+
+    .mbr-search__icon {
+        position: absolute;
+        top: 50%;
+        left: 12px;
+        color: var(--color-ink-3);
+        transform: translateY(-50%);
+        pointer-events: none;
+    }
+
+    .mbr-search .mbr-search__input {
+        width: 100%;
+        padding-left: 38px;
+    }
+
+    .mbr-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .mbr-chips .ds-chip {
+        flex-shrink: 0;
+        min-height: 40px;
+        font-size: 14px;
+    }
+
+    .mbr-more-filters {
+        flex: 1 1 100%;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+    }
+
+    .mbr-more-filters > .ds-disclosure__summary {
+        align-self: flex-start;
+        min-height: 32px;
+        padding: 0;
+        font-size: var(--text-body-s);
+        font-weight: 600;
+        color: var(--color-ink-2);
+    }
+
+    .mbr-more-filters > .ds-disclosure__body {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: 12px;
+        padding: 4px 0 0;
+    }
+
+    .mbr-more-filters__departed {
+        align-self: center;
+        font-size: var(--text-body-s);
+    }
+
+    .mbr-list-empty {
+        margin: 0;
+        padding: 24px 20px;
+        color: var(--color-ink-2);
+    }
+
+    /* Seven compact columns that fit next to the sidebar at 1440 (no sideways scrolling). */
+    .mbr-list-table th[scope='col'],
+    .mbr-list-table .mbr-name {
+        white-space: nowrap;
+    }
+
+    /* Relative: the screen-reader label inside stays within the scroll box instead of widening the page. */
+    .mbr-list-table .mbr-cell-open {
+        position: relative;
+        width: 44px;
+        text-align: right;
+    }
+
+    /* Narrow desktops and tablets: the "(optional)" hint goes first, below 64rem phone and account columns too
+       (both stay on the detail page). */
+    @media (width < 80rem) {
+        .mbr-list-table .mbr-optional-hint {
             display: none;
         }
+    }
 
-        .mbr-filters__more > .ds-disclosure__body {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            padding: 0;
+    @media (width < 64rem) {
+        .mbr-list-table .mbr-col-wide {
+            display: none;
         }
+    }
 
+    .mbr-name-editor {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 16rem;
+    }
+
+    .mbr-due-editor {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 10rem;
+    }
+
+    .mbr-list-foot {
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 12px 20px;
+        font-size: 14px;
+        color: var(--color-ink-2);
+    }
+
+    .mbr-list-foot__hint {
+        flex: 1 1 auto;
+    }
+
+    /* Phone cards (mockup Mitglieder-Liste-Mobil). */
+    .mbr-member-cards {
+        flex-direction: column;
+        gap: 8px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .mbr-member-card {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-height: 60px;
+        padding: 8px 14px;
+        border: 1px solid var(--color-line);
+        border-radius: var(--radius-lg);
+        background: var(--color-surface);
+        text-decoration: none;
+    }
+
+    .mbr-member-card__text {
+        display: flex;
+        flex: 1 1 auto;
+        flex-direction: column;
+        min-width: 0;
+    }
+
+    .mbr-member-card__name {
+        overflow: hidden;
+        font-size: 16px;
+        font-weight: 700;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .mbr-member-card__meta {
+        font-size: 13px;
+        color: var(--color-ink-3);
+    }
+
+    .mbr-member-card__badges {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 4px;
+    }
+
+    @media (width >= 48rem) {
         .mbr-table-card .ds-table th[scope='col'] {
             padding: 12px;
         }
@@ -266,6 +401,18 @@
             font-size: 14px;
             font-weight: 600;
         }
+
+        .mbr-list-table {
+            font-size: 14px;
+        }
+
+        .mbr-list-table th[scope='col'] {
+            font-size: 12px;
+        }
+
+        .mbr-table-card .mbr-list-table td.mbr-cell-open {
+            padding: 4px 12px 4px 0;
+        }
     }
 
     @media (width < 48rem) {
@@ -274,9 +421,8 @@
             display: none;
         }
 
-        .mbr-chips {
+        .mbr-phone-only.mbr-member-cards {
             display: flex;
-            flex: 1 1 100%;
         }
 
         .mbr-filter-card {
@@ -291,7 +437,6 @@
         }
 
         .mbr-filters__search,
-        .mbr-filters__more,
         .mbr-filters__submit {
             flex: 1 1 100%;
         }
@@ -302,16 +447,33 @@
             font-size: 17px;
         }
 
-        .mbr-filters__more > .ds-disclosure__body {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+        .mbr-list-filters {
+            gap: 8px;
         }
 
-        .mbr-chips .ds-chip {
-            flex-shrink: 0;
-            min-height: 40px;
-            font-size: 14px;
+        .mbr-search {
+            flex-basis: 100%;
+        }
+
+        .mbr-search .mbr-search__input {
+            min-height: 48px;
+            border-radius: var(--radius-lg);
+            font-size: 16px;
+        }
+
+        /* The chips scroll inside their own row (the page itself never scrolls sideways). */
+        .mbr-chips {
+            flex: 1 1 100%;
+            flex-wrap: nowrap;
+            min-width: 0;
+            overflow-x: auto;
+            padding-bottom: 2px;
+            scrollbar-width: none;
+        }
+
+        .mbr-more-filters > .ds-disclosure__body {
+            flex-direction: column;
+            align-items: stretch;
         }
 
         /* Each row becomes a card. */
@@ -355,12 +517,6 @@
             text-align: left;
         }
 
-        .mbr-table-card .mbr-initials {
-            width: 40px;
-            height: 40px;
-            font-size: 14px;
-        }
-
         .mbr-table-card .ds-badge {
             padding: 3px 8px;
             font-size: 12px;
@@ -370,6 +526,10 @@
             justify-content: center;
             padding: 8px 0 0;
             border-top: 0;
+        }
+
+        .mbr-list-empty {
+            padding: 16px 0;
         }
     }
 }
@@ -385,6 +545,26 @@
 
 .mbr-row-link:hover {
     text-decoration: underline;
+}
+
+.mbr-member-card,
+.mbr-member-card:hover {
+    color: var(--color-ink);
+}
+
+.mbr-open-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    color: var(--color-ink-3);
+}
+
+.mbr-open-link:hover {
+    background: var(--color-surface-sunk);
+    color: var(--color-ink);
 }
 
 .mbr-change__name {

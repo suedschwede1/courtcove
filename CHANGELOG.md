@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-06
+- Members list follows the new mockups: seven compact columns (Nr., Name as "Nachname, Vorname", Kategorie, Status, Beitrag of the current fiscal year, Telefon, Benutzerkonto optional) that fit next to the side menu without sideways scrolling, a search field for name, number or e-mail, server-side chips Alle / Aktiv / Ruhend / Jugend (18 or younger) / Beitrag offen (any open due) that keep search and pager, "Weitere Filter" for category, dues status and departed members, and compact cards on phones that open the member; "Alle" (active and dormant) is now the default instead of only active members.
 - Members settings use the labels of the new mockups: "Geschäftsjahre" instead of "Fiskaljahre" (also in dues and fee-category texts), "Mail-Konfiguration" instead of "Mail-Einstellungen" and "Datenschutz" instead of "DSGVO" (English "Mail configuration", "Data protection") in the side menu, page titles and flashes; the URLs stay the same.
 - Members area gets a side menu on the left like the administration: group "Mitglieder" (Übersicht, Mitglieder, Beiträge, Rundmail, Protokoll) and group "Einstellungen" (Fiskaljahre, Beitragskategorien, Funktionen, Mail-Einstellungen, DSGVO), with "Zum Kalender" and the slide-in menu behind ☰ on phones; the tab row and the settings chip row under the page title are gone, all /members URLs stay the same.
 

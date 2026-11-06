@@ -44,6 +44,9 @@ class Member extends Model
 
     public const STATUSES = ['aktiv', 'ruhend', 'ausgetreten'];
 
+    /** Oldest age that still counts as youth (overview figure and the "Jugend" list filter). */
+    public const YOUTH_MAX_AGE = 18;
+
     protected $fillable = [
         'member_number', 'nuliga_id', 'user_id', 'firstname', 'lastname', 'birthdate', 'gender',
         'email', 'phone', 'street', 'zip', 'city', 'fee_category_id', 'joined_at', 'left_at', 'status',
@@ -104,6 +107,40 @@ class Member extends Model
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', 'aktiv');
+    }
+
+    /**
+     * Current members: active or dormant, not departed.
+     *
+     * @param  Builder<Member>  $query
+     * @return Builder<Member>
+     */
+    public function scopeCurrent(Builder $query): Builder
+    {
+        return $query->whereIn('status', ['aktiv', 'ruhend']);
+    }
+
+    /**
+     * Youth: YOUTH_MAX_AGE (18) or younger today; members without a birth date never count as youth.
+     *
+     * @param  Builder<Member>  $query
+     * @return Builder<Member>
+     */
+    public function scopeYouth(Builder $query): Builder
+    {
+        // whereDate: SQLite keeps the time part of a date cast ("2007-11-06 00:00:00"), so compare dates only.
+        return $query->whereDate('birthdate', '>', now()->subYears(self::YOUTH_MAX_AGE + 1)->toDateString());
+    }
+
+    /**
+     * Members with at least one open due (any fiscal year): not marked paid and without a payment (MemberDue::open).
+     *
+     * @param  Builder<Member>  $query
+     * @return Builder<Member>
+     */
+    public function scopeWithOpenDues(Builder $query): Builder
+    {
+        return $query->whereHas('dues', fn (Builder $dues) => $dues->open());
     }
 
     public function fullName(): string

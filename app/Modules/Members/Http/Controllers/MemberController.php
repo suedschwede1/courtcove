@@ -10,6 +10,7 @@ use App\Modules\Members\Models\FeeCategory;
 use App\Modules\Members\Models\FiscalYear;
 use App\Modules\Members\Models\Member;
 use App\Modules\Members\Models\MemberChange;
+use App\Modules\Members\Support\MemberListFilter;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -25,47 +26,30 @@ class MemberController
 
     public function index(Request $request): View
     {
-        $query = Member::query()->with(['feeCategory', 'dues.fiscalYear']);
+        $filter = MemberListFilter::fromRequest($request);
 
-        $statusFilter = $request->string('status')->value();
-        if (in_array($statusFilter, Member::STATUSES, true)) {
-            $query->where('status', $statusFilter);
-        } elseif ($statusFilter === '') {
-            $query->active();
-        }
+        $fiscalYears = FiscalYear::query()->orderBy('starts_on')->get();
+        // The "Beitrag <year>" column shows the due of the current fiscal year (the one containing today, else the latest).
+        $currentFiscalYear = $fiscalYears->first(
+            fn (FiscalYear $fiscalYear) => now()->between($fiscalYear->starts_on, $fiscalYear->ends_on),
+        ) ?? $fiscalYears->last();
 
-        $search = trim($request->string('search')->value());
-        if ($search !== '') {
-            $query->where(function ($q) use ($search) {
-                $q->where('firstname', 'like', "%{$search}%")
-                    ->orWhere('lastname', 'like', "%{$search}%");
-            });
-        }
+        $query = Member::query()->with([
+            'feeCategory',
+            'dues' => fn ($dues) => $dues->where('fiscal_year_id', $currentFiscalYear->id ?? 0)->withExists('payments'),
+        ]);
+        $filter->apply($query);
 
-        if ($request->filled('fee_category')) {
-            $query->where('fee_category_id', $request->integer('fee_category'));
-        }
-
-        $zahlungFilter = $request->string('zahlung')->value();
-        if (in_array($zahlungFilter, ['bezahlt', 'ausstehend', 'ueberfaellig'], true)) {
-            $query->whereHas('dues', function ($dueQuery) use ($zahlungFilter) {
-                match ($zahlungFilter) {
-                    'bezahlt' => $dueQuery->where('status', 'bezahlt'),
-                    'ausstehend' => $dueQuery->where('status', 'ausstehend')
-                        ->where(fn ($q) => $q->whereNull('faellig_am')->orWhere('faellig_am', '>=', now()->toDateString())),
-                    'ueberfaellig' => $dueQuery->scopes(['overdue']),
-                };
-            });
-        }
+        $members = $query->orderBy('lastname')->orderBy('firstname')->orderBy('id')
+            ->paginate(25)
+            ->appends($filter->query());
 
         return view('members::members.index', [
-            'members' => $query->orderBy('lastname')->orderBy('firstname')->paginate(25)->withQueryString(),
-            'filters' => array_filter(
-                $request->only('status', 'search', 'fee_category', 'zahlung'),
-                fn ($value) => $value !== null && $value !== '',
-            ),
+            'members' => $members,
+            'filter' => $filter,
             'feeCategories' => FeeCategory::query()->orderBy('name')->get(),
-            'fiscalYears' => FiscalYear::query()->orderBy('starts_on')->get(),
+            'fiscalYears' => $fiscalYears,
+            'currentFiscalYear' => $currentFiscalYear,
         ]);
     }
 
