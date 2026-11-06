@@ -19,6 +19,13 @@ class DetailPagesLayoutTest extends TestCase
 {
     use LazilyRefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // These tests pin the public behaviour (config off); TournamentLoginRequiredTest covers the default.
+        config(['tournament-base.require_login' => false]);
+    }
+
     private function ladder(): PyramidLadder
     {
         return PyramidLadder::factory()->asDefault()->withRanking(10)->create();

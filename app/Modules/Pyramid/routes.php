@@ -13,14 +13,17 @@ use Illuminate\Support\Facades\Route;
 
 // Public group: readable without login. Later tasks add their routes of the module's route table
 // above the last route; `pyramide/{ladderId}` stays registered last so no fixed word is shadowed.
-Route::get('pyramide', [LadderController::class, 'index'])->name('pyramide.index');
+// Readable without login only while config tournament-base.require_login is off (tournament-base.public).
+Route::get('pyramide', [LadderController::class, 'index'])->middleware('tournament-base.public')->name('pyramide.index');
 
-Route::get('pyramide/regeln', [LadderController::class, 'rules'])->name('pyramide.rules');
-Route::get('pyramide/forderungen', [LadderController::class, 'challenges'])->name('pyramide.challenges');
+Route::get('pyramide/regeln', [LadderController::class, 'rules'])->middleware('tournament-base.public')->name('pyramide.rules');
+Route::get('pyramide/forderungen', [LadderController::class, 'challenges'])->middleware('tournament-base.public')->name('pyramide.challenges');
 Route::get('pyramide/spieler/{playerId}', [PlayerController::class, 'show'])
+    ->middleware('tournament-base.public')
     ->whereNumber('playerId')
     ->name('pyramide.player');
 Route::get('pyramide/forderung/{challengeId}', [ChallengeController::class, 'show'])
+    ->middleware('tournament-base.public')
     ->whereNumber('challengeId')
     ->name('pyramide.challenge.show');
 
@@ -86,5 +89,6 @@ Route::middleware('tournament-base.login:pyramid::admin.login_required')->prefix
 });
 
 Route::get('pyramide/{ladderId}', [LadderController::class, 'index'])
+    ->middleware('tournament-base.public')
     ->whereNumber('ladderId')
     ->name('pyramide.ladder');

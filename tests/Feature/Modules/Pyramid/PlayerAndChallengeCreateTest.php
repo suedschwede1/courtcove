@@ -26,6 +26,13 @@ class PlayerAndChallengeCreateTest extends TestCase
 {
     use LazilyRefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // These tests pin the public behaviour (config off); TournamentLoginRequiredTest covers the default.
+        config(['tournament-base.require_login' => false]);
+    }
+
     private function ladder(int $players = 10, array $attributes = []): PyramidLadder
     {
         return PyramidLadder::factory()->asDefault()->withRanking($players)->create($attributes);

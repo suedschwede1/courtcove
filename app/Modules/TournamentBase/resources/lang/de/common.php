@@ -5,6 +5,7 @@ declare(strict_types=1);
 return [
     'area' => 'Turnierbereich',
     'csrf_expired' => 'Ungültiger oder abgelaufener Formularschlüssel. Bitte Seite neu laden.',
+    'login_required' => 'Für die Turniere musst du angemeldet sein.',
     'match' => [
         'no_date' => 'noch kein Termin',
     ],

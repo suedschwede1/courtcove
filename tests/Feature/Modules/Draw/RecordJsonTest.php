@@ -16,6 +16,13 @@ class RecordJsonTest extends TestCase
 {
     use LazilyRefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // These tests pin the public behaviour (config off); TournamentLoginRequiredTest covers the default.
+        config(['tournament-base.require_login' => false]);
+    }
+
     private const BASE_KEYS = ['title', 'status', 'payload', 'commitment', 'beacon_source', 'created', 'discarded', 'discarded_reason'];
 
     private const REVEAL_KEYS = ['server_seed', 'beacon_value', 'final_seed', 'assignment', 'executed'];

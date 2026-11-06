@@ -13,6 +13,13 @@ class RecordPageTest extends TestCase
 {
     use LazilyRefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // These tests pin the public behaviour (config off); TournamentLoginRequiredTest covers the default.
+        config(['tournament-base.require_login' => false]);
+    }
+
     #[Test]
     public function anonymous_user_sees_a_committed_draw_without_secrets(): void
     {

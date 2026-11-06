@@ -40,6 +40,7 @@ class ModuleRoutesTest extends TestCase
         Event::listen(RequestHandled::class, function (RequestHandled $event) use (&$captured): void {
             $captured = $event->request->query('q');
         });
+        config(['tournament-base.require_login' => false]); // the public record JSON
         $this->get('draw/record/zzzz9999/json?q=Ball%20%F0%9F%8E%BE%20ok');
 
         $this->assertSame('Ball  ok', $captured);
