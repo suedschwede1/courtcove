@@ -14,8 +14,9 @@
 ])
 
 @php
-    $firstHour = 8;
-    $lastHour = 19;
+    $calendarHours = app(\App\Services\CalendarHours::class);
+    $firstHour = $calendarHours->firstHour();
+    $lastHour = $calendarHours->lastHour();
     $sids = $squares->pluck('sid')->values()->all();
 
     // Expand every event block over its courts and hours, so each court column
@@ -104,12 +105,14 @@
                                 :date-key="$dateKey"
                             />
                         @else
+                            @php($closed = ! $calendarHours->isOpen($square, $h))
                             <x-calendar.cell
                                 :square="$square"
                                 :date-key="$dateKey"
                                 :hour="$h"
                                 :date-label="$dateLabels[$dateKey]['full']"
-                                :is-past="$dateKey < $today || ($dateKey === $today && ($h + 1) <= $now->hour)"
+                                :is-past="$closed || $dateKey < $today || ($dateKey === $today && ($h + 1) <= $now->hour)"
+                                :closed="$closed"
                                 :reservation="$reservationsBySlot[$dateKey][$square->sid][$h] ?? null"
                                 :is-logged-in="$isLoggedIn"
                                 :is-admin="$isAdmin"
