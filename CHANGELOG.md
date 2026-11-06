@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-06
+- Player exchange: a new single booking can open a player search (number of missing players, at most places minus booker minus named players); it ends one hour before the start and is refused when the booking starts in less than an hour (no booking is created then); no UI or mail yet.
 - Player exchange opt-in: "Mein Konto" has a checkbox "Spielerbörse" (de/en texts) that joins or leaves the exchange; a signed, non-expiring link /player-exchange/unsubscribe/{user} opts a member out with one click without login (tampered links get 403) and shows a confirmation page.
 - Player exchange foundation: new tables player_exchange_searches and player_exchange_signups, models PlayerSearch and PlayerSignup, and an opt-in service (user meta player-exchange) that lists active opted-in members with an e-mail address; no UI yet.
 - Members Geschäftsjahre: the closed-year lock is proven on MySQL with two connections (composer test:mysql): a close and a payment or due write into that year never both succeed (the write is refused, or one side waits for the other).

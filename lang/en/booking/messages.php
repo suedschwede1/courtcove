@@ -40,5 +40,10 @@ return [
         'no_active_bookings' => 'You currently have no active bookings.',
         'confirm_cancel_booking' => 'Really cancel this booking?',
         'event_default_name' => 'Event',
+        'player_exchange' => [
+            'needed_invalid' => 'Please state how many players you are looking for (at least 1).',
+            'too_many' => 'You are looking for more players than there are free places on the court.',
+            'too_late' => 'You can no longer search for players for this booking: it starts in less than an hour.',
+        ],
     ],
 ];

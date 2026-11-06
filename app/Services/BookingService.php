@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Exceptions\BookingValidationException;
+use App\Exceptions\PlayerExchangeException;
 use App\Mail\BookingCancelled;
 use App\Mail\BookingConfirmed;
 use App\Models\Booking;
@@ -418,11 +419,12 @@ final class BookingService
         Carbon $dateStart,
         Carbon $dateEnd,
         array $meta = [],
+        int $searchPlayers = 0,
     ): Booking {
         $dateEnd = $this->normalizeBookableEnd($square, $dateStart, $dateEnd);
         $this->assertSingleBookingIsValid($user, $square, $quantity, $dateStart, $dateEnd);
 
-        $booking = DB::transaction(function () use ($user, $square, $quantity, $dateStart, $dateEnd, $meta): Booking {
+        $booking = DB::transaction(function () use ($user, $square, $quantity, $dateStart, $dateEnd, $meta, $searchPlayers): Booking {
             // Serialize concurrent bookings on this square (row lock as mutex),
             // then re-check the slot so two parallel requests cannot both book it.
             Square::query()->whereKey($square->sid)->lockForUpdate()->get();
@@ -449,7 +451,17 @@ final class BookingService
                 $booking->meta()->create($entry);
             }
 
-            return $booking->load('reservations', 'meta');
+            $booking->load('reservations', 'meta');
+
+            if ($searchPlayers > 0) {
+                try {
+                    app(PlayerExchangeService::class)->openSearch($booking, $searchPlayers);
+                } catch (PlayerExchangeException $e) {
+                    throw new BookingValidationException($e->getMessage());
+                }
+            }
+
+            return $booking;
         });
 
         if (! empty($user->email) && $this->isMailConfigured()) {

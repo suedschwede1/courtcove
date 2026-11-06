@@ -40,5 +40,10 @@ return [
         'no_active_bookings' => 'Sie haben derzeit keine aktiven Buchungen.',
         'confirm_cancel_booking' => 'Diese Buchung wirklich stornieren?',
         'event_default_name' => 'Veranstaltung',
+        'player_exchange' => [
+            'needed_invalid' => 'Bitte gib an, wie viele Mitspieler du suchst (mindestens 1).',
+            'too_many' => 'Du suchst mehr Mitspieler, als auf dem Platz noch frei sind.',
+            'too_late' => 'Für diese Buchung kannst du keine Mitspieler mehr suchen: Sie beginnt in weniger als einer Stunde.',
+        ],
     ],
 ];
