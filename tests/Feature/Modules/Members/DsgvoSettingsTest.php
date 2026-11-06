@@ -77,4 +77,12 @@ class DsgvoSettingsTest extends TestCase
         $this->actingAs($user)->get(route('members.dsgvo.index'))->assertForbidden();
         $this->actingAs($user)->post(route('members.dsgvo.update'), ['retention_years' => 5])->assertForbidden();
     }
+
+    #[Test]
+    public function the_privacy_page_names_the_household_purpose(): void
+    {
+        $this->actingAs($this->admin())->get('/members/dsgvo')
+            ->assertSeeText(__('members::admin.dsgvo.purposes_title'))
+            ->assertSeeText('Familienzuordnung zur Beitragsberechnung');
+    }
 }

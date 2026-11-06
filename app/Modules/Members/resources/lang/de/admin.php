@@ -382,6 +382,7 @@ return [
         'save' => 'Speichern',
         'saved' => 'Datenschutz-Einstellungen gespeichert.',
         'purpose_households' => 'Familienzuordnung zur Beitragsberechnung: Mitglieder können einem Haushalt zugeordnet werden, um einen gemeinsamen Haushaltsbeitrag zu berechnen. Vorschläge vergleichen Adresse, E-Mail und Telefon und werden nie automatisch übernommen.',
+        'purposes_title' => 'Verarbeitungszwecke',
     ],
     'households' => [
         'unnamed' => 'Haushalt #:id',

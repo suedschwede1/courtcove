@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-06
+- Members Datenschutz page: new card "Verarbeitungszwecke" naming the family assignment for fee calculation (suggestions compare address, e-mail and phone and are never applied automatically).
 - Members: page "Mögliche Familien" (button on the Haushalte list) lists suggested families with their reasons; a household is created only by "Haushalt anlegen" with the ticked members (optional name and tariff), "Kein Haushalt" hides the suggestion; the page names the processing purpose and creates nothing on its own.
 - Members (family fee groundwork): suggestions of possible families from a shared address (normalised street and zip), e-mail or phone (last 9 digits) among current members without household; read-only, dismissed groups stay hidden, nothing is created automatically.
 - Members export: two new columns "Haushalt" (household name or last names) and "Zahlende Person" ("ja" for the paying person).

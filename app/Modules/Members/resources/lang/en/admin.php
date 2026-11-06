@@ -382,6 +382,7 @@ return [
         'save' => 'Save',
         'saved' => 'Data protection settings saved.',
         'purpose_households' => 'Family assignment for fee calculation: members can be assigned to a household to calculate one joint household fee. Suggestions compare address, e-mail and phone and are never applied automatically.',
+        'purposes_title' => 'Processing purposes',
     ],
     'households' => [
         'unnamed' => 'Household #:id',
