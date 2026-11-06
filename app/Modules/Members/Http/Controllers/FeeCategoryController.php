@@ -134,6 +134,25 @@ class FeeCategoryController
             ->with('status', __('members::admin.fee_categories.saved'));
     }
 
+    /** Deactivates a category (no deletion): its dues, rates and members stay as they are. */
+    public function deactivate(string $feeCategory): RedirectResponse
+    {
+        $category = FeeCategory::query()->findOrFail((int) $feeCategory);
+        $category->deactivate();
+
+        return back(fallback: route('members.fee-categories.index'))
+            ->with('status', __('members::admin.fee_categories.deactivated_success', ['name' => $category->name]));
+    }
+
+    public function reactivate(string $feeCategory): RedirectResponse
+    {
+        $category = FeeCategory::query()->findOrFail((int) $feeCategory);
+        $category->reactivate();
+
+        return back(fallback: route('members.fee-categories.index'))
+            ->with('status', __('members::admin.fee_categories.reactivated_success', ['name' => $category->name]));
+    }
+
     /** Whether saving $amount would create or change the stored rate (an empty amount never does). */
     private function changesRate(int $categoryId, int $fiscalYearId, mixed $amount): bool
     {

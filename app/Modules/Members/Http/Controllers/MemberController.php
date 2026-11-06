@@ -78,7 +78,7 @@ class MemberController
             'street' => ['nullable', 'string', 'max:255'],
             'zip' => ['nullable', 'string', 'max:10'],
             'city' => ['nullable', 'string', 'max:128'],
-            'fee_category_id' => ['nullable', 'exists:fee_categories,id'],
+            'fee_category_id' => ['nullable', FeeCategory::assignableRule()],
             'joined_at' => ['required', 'date'],
         ]);
 
@@ -119,7 +119,7 @@ class MemberController
             'street' => ['nullable', 'string', 'max:255'],
             'zip' => ['nullable', 'string', 'max:10'],
             'city' => ['nullable', 'string', 'max:128'],
-            'fee_category_id' => ['nullable', 'exists:fee_categories,id'],
+            'fee_category_id' => ['nullable', FeeCategory::assignableRule($member->fee_category_id)],
             'joined_at' => ['required', 'date'],
             'left_at' => ['nullable', 'date'],
             'notiz' => ['nullable', 'string', 'max:5000'],
@@ -149,7 +149,7 @@ class MemberController
             'lastname' => ['required', 'string', 'max:128'],
             'email' => ['nullable', 'email', 'max:128'],
             'phone' => ['nullable', 'string', 'max:64'],
-            'fee_category_id' => ['nullable', 'exists:fee_categories,id'],
+            'fee_category_id' => ['nullable', FeeCategory::assignableRule($member->fee_category_id)],
             'joined_at' => ['required', 'date'],
             'left_at' => ['nullable', 'date'],
             'status' => ['required', 'string', Rule::in(['aktiv', 'ruhend'])],

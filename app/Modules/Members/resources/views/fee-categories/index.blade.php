@@ -27,7 +27,12 @@
             @foreach($categories as $category)
                 @php($categoryRates = $category->rates->keyBy('fiscal_year_id'))
                 <tr>
-                    <td class="ds-cell--title" data-label="{{ __('members::admin.fee_categories.name') }}">{{ $category->name }}</td>
+                    <td class="ds-cell--title" data-label="{{ __('members::admin.fee_categories.name') }}">
+                        {{ $category->name }}
+                        @if($category->isDeactivated())
+                            <x-ui.badge tone="neutral">{{ __('members::admin.fee_categories.deactivated') }}</x-ui.badge>
+                        @endif
+                    </td>
                     <td data-label="{{ __('members::admin.fee_categories.rates') }}">
                         <div class="flex flex-wrap gap-2">
                             @forelse($fiscalYears->filter(fn ($fiscalYear) => $categoryRates->has($fiscalYear->id)) as $fiscalYear)
@@ -38,7 +43,10 @@
                         </div>
                     </td>
                     <td class="mbr-cell-actions" data-label="{{ __('members::admin.common.actions') }}">
-                        <x-ui.button variant="secondary" :block="false" :href="route('members.fee-categories.edit', $category)">{{ __('members::admin.common.edit') }}</x-ui.button>
+                        <div class="flex flex-wrap gap-2">
+                            <x-ui.button variant="secondary" :block="false" :href="route('members.fee-categories.edit', $category)">{{ __('members::admin.common.edit') }}</x-ui.button>
+                            @include('members::fee-categories._toggle', ['category' => $category])
+                        </div>
                     </td>
                 </tr>
             @endforeach

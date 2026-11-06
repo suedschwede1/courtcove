@@ -161,7 +161,7 @@
                             <select x-model="value" @change="save()" class="ds-select" aria-label="{{ __('members::admin.members.fee_category') }}">
                                 <option value=""></option>
                                 @foreach($feeCategories as $category)
-                                    <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                    <option value="{{ $category->id }}" @disabled($category->isDeactivated())>{{ $category->labelWithState() }}</option>
                                 @endforeach
                             </select>
                             <p class="ds-field__error" x-show="error" x-text="error"></p>

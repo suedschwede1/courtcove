@@ -6,7 +6,12 @@
     foreach (Member::GENDERS as $gender) {
         $genderOptions[$gender] = __("members::admin.members.gender_{$gender}");
     }
-    $categoryOptions = ['' => ''] + $feeCategories->pluck('name', 'id')->all();
+    // Active categories, plus the member's own category if it was deactivated (it stays, marked);
+    // other deactivated categories cannot be newly assigned and are not offered.
+    $categoryOptions = ['' => ''] + $feeCategories
+        ->filter(fn ($category) => ! $category->isDeactivated() || $category->id === ($member->fee_category_id ?? null))
+        ->mapWithKeys(fn ($category) => [$category->id => $category->labelWithState()])
+        ->all();
 
     $selectedRoleIds = \App\Support\Ui\FormValue::list(old('club_roles', ($member ?? null)?->clubRoles->pluck('id')->all() ?? []));
     $boardRoles = ($clubRoles ?? collect())->where('is_board', true);

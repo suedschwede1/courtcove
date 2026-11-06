@@ -46,4 +46,15 @@
         <x-ui.button type="submit" :block="false">{{ __('members::admin.common.save') }}</x-ui.button>
     </div>
 </form>
+
+{{-- Deactivate instead of delete; a separate form because forms cannot be nested. --}}
+<x-ui.card :title="__('members::admin.fee_categories.state_card')">
+    <div class="flex flex-col items-start gap-3">
+        @if($category->isDeactivated())
+            <x-ui.badge tone="neutral">{{ __('members::admin.fee_categories.deactivated') }}</x-ui.badge>
+        @endif
+        <p class="m-0 text-body-s text-ink-2">{{ __('members::admin.fee_categories.deactivate_help') }}</p>
+        @include('members::fee-categories._toggle', ['category' => $category])
+    </div>
+</x-ui.card>
 @endsection

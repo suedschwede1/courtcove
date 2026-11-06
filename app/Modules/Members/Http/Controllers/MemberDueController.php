@@ -123,7 +123,8 @@ class MemberDueController
                 ['search' => $search, 'status' => $statusFilter],
                 fn ($value) => $value !== '',
             ),            'members' => Member::query()->active()->orderBy('lastname')->orderBy('firstname')->get(),
-            'feeCategories' => FeeCategory::query()->orderBy('name')->get(),
+            // Only active categories can be chosen for a new due.
+            'feeCategories' => FeeCategory::query()->active()->orderBy('name')->get(),
             'feeCategoryRates' => FeeCategoryRate::where('fiscal_year_id', $selectedFiscalYearId)->pluck('amount', 'fee_category_id'),
         ]);
     }
@@ -138,7 +139,7 @@ class MemberDueController
                     ->where('fiscal_year_id', (int) $request->input('fiscal_year_id')),
             ],
             'fiscal_year_id' => ['required', 'exists:fiscal_years,id', $this->openYearRule()],
-            'fee_category_id' => ['required', 'exists:fee_categories,id'],
+            'fee_category_id' => ['required', FeeCategory::assignableRule()],
             'amount' => ['nullable', 'numeric', 'decimal:0,2', 'min:0', 'max:999999.99'],
             'teilbetrag' => ['nullable', 'numeric', 'decimal:0,2', 'min:0', 'max:999999.99'],
             'kommentar' => ['nullable', 'string', 'max:1000'],
@@ -181,16 +182,25 @@ class MemberDueController
         $existingMemberIds = MemberDue::where('fiscal_year_id', $fiscalYearId)->pluck('member_id');
 
         $created = 0;
+        $skippedDeactivated = 0;
+        $deactivatedIds = FeeCategory::query()->whereNotNull('deactivated_at')->pluck('id')->map(fn ($id) => (int) $id)->all();
 
         Member::query()
             ->active()
             ->whereNotIn('id', $existingMemberIds)
-            ->each(function (Member $member) use ($fiscalYearId, $newFiscalYear, &$created) {
+            ->each(function (Member $member) use ($fiscalYearId, $newFiscalYear, $deactivatedIds, &$created, &$skippedDeactivated) {
                 // "Last year's category" assumes fiscal years are created in chronological
                 // order, so the highest fiscal_year_id is the most recent one.
                 $lastDue = $member->dues()->latest('fiscal_year_id')->first();
 
                 if (! $lastDue) {
+                    return;
+                }
+
+                // A deactivated category is not used for new dues; the member is counted and reported.
+                if (in_array((int) $lastDue->fee_category_id, $deactivatedIds, true)) {
+                    $skippedDeactivated++;
+
                     return;
                 }
 
@@ -218,6 +228,9 @@ class MemberDueController
         // Generation silently skips categories without a rate; with no rate at all, say why nothing happened.
         if ($created === 0 && ! FeeCategoryRate::where('fiscal_year_id', $fiscalYearId)->exists()) {
             $message .= ' '.__('members::admin.dues.no_rates_for_year', ['year' => $newFiscalYear->name]);
+        }
+        if ($skippedDeactivated > 0) {
+            $message .= ' '.__('members::admin.dues.generate_skipped_deactivated', ['count' => $skippedDeactivated]);
         }
 
         return redirect()->route('members.dues.index', ['fiscal_year_id' => $fiscalYearId])

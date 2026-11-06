@@ -446,6 +446,7 @@ final class DatabaseSchemaChecker
             'fee_categories' => [
                 'id' => fn (Blueprint $t) => $t->id(),
                 'name' => fn (Blueprint $t) => $t->string('name', 64),
+                'deactivated_at' => fn (Blueprint $t) => $t->timestamp('deactivated_at')->nullable(),
                 'created_at' => fn (Blueprint $t) => $t->timestamp('created_at')->nullable(),
                 'updated_at' => fn (Blueprint $t) => $t->timestamp('updated_at')->nullable(),
             ],
