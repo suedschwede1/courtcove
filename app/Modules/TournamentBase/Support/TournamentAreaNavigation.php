@@ -16,10 +16,10 @@ use App\Support\Navigation\AreaNavItem;
 use Illuminate\Http\Request;
 
 /**
- * Navigation of the tournament area: ONE common sidebar for every page of Pyramid, championship, draws and Mixed
- * (mockups Turnier-Pyramide, Turnier-Menue-Mobil). One group per module with the module name as heading
- * (Forderungspyramide, Vereinsmeisterschaft with the draws, Mixed-/Fun-Turnier) and the module's entries; a group
- * without a visible entry is left out. Exactly one entry of the whole sidebar is the current page.
+ * Navigation of the tournament area. Every tournament is standalone with its own sidebar: on a page of Pyramid,
+ * the championship (with its draws) or Mixed the sidebar lists only that module's entries (group heading = module
+ * name, eyebrow = module name). Only a page that belongs to no module (e.g. an error page inside the area) gets the
+ * groups of all modules. A group without a visible entry is left out; exactly one entry is the current page.
  */
 final class TournamentAreaNavigation implements AreaNavigation
 {
@@ -36,7 +36,7 @@ final class TournamentAreaNavigation implements AreaNavigation
 
     public function eyebrow(): string
     {
-        return __('tournament-base::common.nav.area');
+        return $this->moduleLabel(request());
     }
 
     public function label(): string
@@ -53,7 +53,12 @@ final class TournamentAreaNavigation implements AreaNavigation
 
         /** @var array<string, array{label: string, items: list<AreaNavItem|null>}> $groups */
         $groups = [];
+        $current = $this->current($request);
         foreach ($this->modules() as $module) {
+            if ($current !== null && $module->group() !== $current->group()) {
+                continue;
+            }
+
             $key = $module->group();
             $groups[$key] ??= ['label' => $module->label(), 'items' => []];
             $groups[$key]['items'] = [...$groups[$key]['items'], ...$module->entries($nav)];
@@ -70,13 +75,21 @@ final class TournamentAreaNavigation implements AreaNavigation
     /** Name of the current module (phone bar title), else the area name. */
     public function moduleLabel(Request $request): string
     {
+        $current = $this->current($request);
+
+        return $current !== null ? $current->label() : __('tournament-base::common.nav.area');
+    }
+
+    /** The module the request is a page of (null: none). */
+    private function current(Request $request): ?TournamentModuleNavigation
+    {
         foreach ($this->modules() as $module) {
             if ($module->matches($request)) {
-                return $module->label();
+                return $module;
             }
         }
 
-        return $this->eyebrow();
+        return null;
     }
 
     /**

@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-06
+- Tournaments are standalone: a page of the Forderungspyramide, the Vereinsmeisterschaft (with its draws) or the Mixed-/Fun-Turnier shows only that tournament's own sidebar (its name as heading and eyebrow) instead of one common sidebar with all three; the admin sidebar group "Turniere" is the way between them.
 - Multi-hour calendar events and court closures now stay joined on phones, with one label and an outline around the whole event instead of repeated hourly tiles.
 - The calendar cell title for a closed court no longer shows a raw translation key: the missing `calendar.closed` label (Geschlossen / Closed) was added.
 - `booking:adopt-booking-rules --override=<rule>=<value in the display unit>` (repeatable, e.g. `--override=short_booking_window=15`) sets a rule globally even when the courts disagree and reports, per court, which stored value it supersedes and where the effective behaviour changes; honours `--dry-run`, replaces an already set option only together with `--force`, validates everything before writing.

@@ -23,7 +23,8 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
- * The common tournament sidebar (area shell) on every page of Pyramid, championship, draws and Mixed: groups and
+ * The tournament sidebar (area shell) on every page of Pyramid, championship, draws and Mixed. Each tournament is
+ * standalone: a page lists only its own module's group (the draws sit in the championship's). Groups and
  * entries by permission (admin, member, guest with the login requirement off), exactly one active entry per GET
  * route, the phone slide-in markup, no module tab rows left, print views without the shell.
  */
@@ -161,17 +162,25 @@ class TournamentSidebarTest extends TestCase
     }
 
     #[Test]
-    public function an_admin_sees_one_common_sidebar_with_a_group_per_module(): void
+    public function an_admin_sees_only_the_sidebar_of_the_current_tournament(): void
     {
         $this->seedModules();
+        $admin = $this->actingAs($this->admin());
 
-        $groups = $this->sidebar((string) $this->actingAs($this->admin())->get(route('pyramide.index'))->getContent());
+        $groups = $this->sidebar((string) $admin->get(route('pyramide.index'))->getContent());
+        $this->assertSame(['Forderungspyramide' => ['Rangliste', 'Forderungen', 'Regeln', 'Verwaltung']], $groups);
 
-        $this->assertSame(['Forderungspyramide', 'Vereinsmeisterschaft', 'Mixed-/Fun-Turnier'], array_keys($groups));
-        $this->assertSame(['Rangliste', 'Forderungen', 'Regeln', 'Verwaltung'], $groups['Forderungspyramide']);
+        $groups = $this->sidebar((string) $admin->get(route('tournament.index'))->getContent());
+        $this->assertSame(['Vereinsmeisterschaft'], array_keys($groups));
         $this->assertSame(['Übersicht', 'Gruppen', 'KO-Raster', 'Spielplan', 'Meine Spiele', 'Teilnehmer', 'Modus', 'Leitung'],
             array_slice($groups['Vereinsmeisterschaft'], 0, 8));
         $this->assertSame('Auslosungen verwalten', end($groups['Vereinsmeisterschaft']));
+
+        // The draw admin belongs to the championship.
+        $this->assertSame(['Vereinsmeisterschaft'], array_keys($this->sidebar((string) $admin->get(route('draw.index'))->getContent())));
+
+        $groups = $this->sidebar((string) $admin->get(route('mixed.admin.index'))->getContent());
+        $this->assertSame(['Mixed-/Fun-Turnier'], array_keys($groups));
         $this->assertContains('Wertung', $groups['Mixed-/Fun-Turnier']);
         $this->assertNotContains('Veranstaltungen', $groups['Mixed-/Fun-Turnier']); // a default event exists
         $this->assertContains('Mitglieder importieren', $groups['Mixed-/Fun-Turnier']);
@@ -190,8 +199,8 @@ class TournamentSidebarTest extends TestCase
             foreach (['pyramide.admin.index', 'tournament.admin', 'draw.index', 'mixed.admin.index', 'mixed.admin.import-members'] as $admin) {
                 $this->assertStringNotContainsString('href="'.route($admin).'"', $nav, $name.' / '.$admin);
             }
-            $this->assertStringContainsString('>Rangliste</a>', $nav, $name);
-            $this->assertStringContainsString('>Übersicht</a>', $nav, $name);
+            $own = ['pyramide.index' => 'Rangliste', 'tournament.index' => 'Übersicht', 'mixed.index' => 'Teilnehmer'][$name];
+            $this->assertStringContainsString('>'.$own.'</a>', $nav, $name);
         }
     }
 
@@ -207,8 +216,7 @@ class TournamentSidebarTest extends TestCase
         // On a record page the guest gets that record only (slugs are not listed to guests).
         $html = (string) $this->get(route('draw.record', ['slug' => 'demo-direct']))->assertOk()->getContent();
         $groups = $this->sidebar($html);
-        $this->assertSame(['Rangliste', 'Forderungen', 'Regeln'], $groups['Forderungspyramide']);
-        $this->assertSame(['Losprotokoll'], $groups['Vereinsmeisterschaft']);
+        $this->assertSame(['Vereinsmeisterschaft' => ['Losprotokoll']], $groups);
         $this->assertStringNotContainsString('demo-committed', $html);
         $this->assertStringContainsString('aria-current="page">Losprotokoll</a>', $html);
         // The guest's sidebar foot and phone bar offer the login.
