@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-06
+- The calendar cell title for a closed court no longer shows a raw translation key: the missing `calendar.closed` label (Geschlossen / Closed) was added.
 - `booking:adopt-booking-rules --override=<rule>=<value in the display unit>` (repeatable, e.g. `--override=short_booking_window=15`) sets a rule globally even when the courts disagree and reports, per court, which stored value it supersedes and where the effective behaviour changes; honours `--dry-run`, replaces an already set option only together with `--force`, validates everything before writing.
 - Courts with the peak-time switch no longer have a limit-free zone: outside the peak windows the global "Gleichzeitige Buchungen pro Benutzer" limit applies, inside the windows the peak limit applies in addition and the stricter one wins; the short-booking window lifts both, admin mode still bypasses only the peak rule (the global limit has no admin bypass); help texts de+en updated.
 - Calendar grid: Konfiguration > Verhalten > Buchungsplan has a global start and end (options calendar.time_start / calendar.time_end, default 08:00 to 20:00) that build the calendar rows instead of the fixed 8 to 19; the court time fields become opening hours ("Öffnungszeit von/bis"), hours outside them show as closed and cannot be booked from the calendar, existing bookings stay visible.

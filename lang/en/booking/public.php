@@ -184,6 +184,7 @@ return [
         'cancel_title' => 'Cancel booking on :court',
         'edit_title' => 'Edit booking on :court',
         'occupied' => 'Occupied',
+        'closed' => 'Closed',
         'court_number' => 'Court :number',
         'until_hour' => 'to :hour',
         'book_cell' => 'Book :court, :time',
