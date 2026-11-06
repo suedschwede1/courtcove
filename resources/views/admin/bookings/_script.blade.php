@@ -4,10 +4,11 @@ document.addEventListener('DOMContentLoaded', function () {
     var repeat = document.getElementById('admin-booking-repeat');
     var dateEnd = document.getElementById('admin-booking-date-end');
     var dateStart = document.querySelector('input[name="date"]');
-    var player3Field = document.getElementById('admin-player3-field');
-    var player4Field = document.getElementById('admin-player4-field');
     var player3Input = document.getElementById('admin-player3');
     var player4Input = document.getElementById('admin-player4');
+    // The x-ui.field wrapper carries no id of its own (its id is the control id).
+    var player3Field = player3Input ? player3Input.closest('.ds-field') : null;
+    var player4Field = player4Input ? player4Input.closest('.ds-field') : null;
 
     function syncAdminBookingFields() {
         var quantity = document.querySelector('input[name="quantity"]:checked');

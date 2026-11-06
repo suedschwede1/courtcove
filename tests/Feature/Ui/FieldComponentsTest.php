@@ -93,6 +93,92 @@ class FieldComponentsTest extends TestCase
         $this->assertStringContainsString('ds-textarea ds-textarea--invalid', $html);
     }
 
+    /** @return list<string> every id attribute value in the markup */
+    private function ids(string $html): array
+    {
+        preg_match_all('/(?<![\w:-])id="([^"]*)"/', $html, $m);
+
+        return $m[1];
+    }
+
+    #[Test]
+    public function an_explicit_field_id_is_the_one_shared_control_id(): void
+    {
+        $html = $this->render('<x-ui.field name="email" id="contact-email" label="E-Mail" help="Hilfe" error="Ungültig"><x-ui.input type="email" /></x-ui.field>');
+
+        $this->assertSame(['contact-email', 'contact-email-help', 'contact-email-error'], $this->ids($html));
+        $this->assertStringContainsString('<div class="ds-field"><label class="ds-field__label" for="contact-email">', $html);
+        $this->assertStringContainsString('name="email" id="contact-email"', $html);
+        $this->assertStringContainsString('aria-describedby="contact-email-help contact-email-error"', $html);
+    }
+
+    #[Test]
+    public function an_explicit_id_on_the_child_input_wins_for_label_help_and_error(): void
+    {
+        $html = $this->render('<x-ui.field for="email" label="E-Mail" help="Hilfe" error="Ungültig"><x-ui.input name="email" id="contact-email" /></x-ui.field>');
+
+        $this->assertSame(['contact-email', 'contact-email-help', 'contact-email-error'], $this->ids($html));
+        $this->assertStringContainsString('for="contact-email"', $html);
+        $this->assertStringContainsString('aria-describedby="contact-email-help contact-email-error"', $html);
+    }
+
+    #[Test]
+    public function the_field_name_reaches_the_child_input(): void
+    {
+        $this->withViewErrors(['email' => 'Ungültig']);
+        $html = $this->render('<x-ui.field name="email" label="E-Mail"><x-ui.input /></x-ui.field>');
+
+        $this->assertStringContainsString('<label class="ds-field__label" for="email">', $html);
+        $this->assertStringContainsString('name="email" id="email"', $html);
+        $this->assertStringContainsString('<p class="ds-field__error" id="email-error">Ungültig</p>', $html);
+        $this->assertStringNotContainsString('<div class="ds-field" name=', $html);
+    }
+
+    #[Test]
+    public function repeated_names_in_one_form_get_unique_associated_ids(): void
+    {
+        $html = $this->render('<form>'
+            .'<x-ui.field for="email" label="Privat" help="A"><x-ui.input name="email" /></x-ui.field>'
+            .'<x-ui.field for="email" label="Beruflich" error="B"><x-ui.input name="email" /></x-ui.field>'
+            .'<x-ui.field for="note" label="Notiz"><x-ui.textarea name="note" /></x-ui.field>'
+            .'<x-ui.field for="note" label="Notiz 2"><x-ui.select name="note" :options="[]" /></x-ui.field>'
+            .'</form>');
+
+        $this->assertSame(['email', 'email-help', 'email-2', 'email-2-error', 'note', 'note-2'], $this->ids($html));
+        $this->assertStringContainsString('for="email">Privat', $html);
+        $this->assertStringContainsString('for="email-2">Beruflich', $html);
+        $this->assertStringContainsString('id="email-2" value="" class="ds-input ds-input--invalid" aria-describedby="email-2-error"', $html);
+        $this->assertStringContainsString('for="note-2">Notiz 2', $html);
+        $this->assertStringContainsString('<select name="note" id="note-2"', $html);
+    }
+
+    #[Test]
+    public function an_auto_id_skips_ids_that_were_given_explicitly(): void
+    {
+        $html = $this->render('<x-ui.input name="q" id="q" /><x-ui.field for="q" label="Suche"><x-ui.input name="q" /></x-ui.field>');
+
+        $this->assertSame(['q', 'q-2'], $this->ids($html));
+        $this->assertStringContainsString('for="q-2"', $html);
+    }
+
+    #[Test]
+    public function a_raw_control_in_the_slot_keeps_its_own_id_for_the_label(): void
+    {
+        $html = $this->render('<x-ui.field for="player" label="Spieler"><input type="hidden" id="token" name="token" value="x"><input type="text" id="admin-player" name="player" class="ds-input"></x-ui.field>');
+
+        $this->assertStringContainsString('<label class="ds-field__label" for="admin-player">', $html);
+    }
+
+    #[Test]
+    public function ids_restart_for_every_rendered_page(): void
+    {
+        $first = $this->render('<x-ui.field for="email" label="E"><x-ui.input name="email" /></x-ui.field>');
+        $second = $this->render('<x-ui.field for="email" label="E"><x-ui.input name="email" /></x-ui.field>');
+
+        $this->assertSame($first, $second);
+        $this->assertSame(['email'], $this->ids($second));
+    }
+
     #[Test]
     public function option_group_with_tiles(): void
     {

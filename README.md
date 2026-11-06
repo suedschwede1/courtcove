@@ -208,6 +208,11 @@ Views are built from shared Blade components and design tokens.
   inside `@theme static`; use the generated token classes instead of literal values.
 - **Components:** `x-ui.*` components live in `resources/views/components/ui/`; layout
   components (header, phone menu, …) live in `resources/views/components/layout/`.
+- **Form fields:** `x-ui.field` (class `App\View\Components\Ui\Field`) resolves one control
+  id for label, `x-ui.input`/`select`/`textarea`, help and error text: an explicit `id`
+  (on the field or the child) wins, otherwise `for`/`name`, made unique per page
+  (`email`, `email-2`). `id` and `name` on the field are control props, not wrapper
+  attributes.
 - **Component CSS:** `ds-*` classes are defined in `resources/css/ds.css`.
 - **Gallery:** `/_ui` renders every component for visual checks. It is only available in
   the `local`, `testing` and `dusk.local` environments.
