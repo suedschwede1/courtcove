@@ -117,7 +117,7 @@
     }
 
     .ds-icon-btn--chrome {
-        background: rgb(255 255 255 / 0.1);
+        background: var(--ds-chrome-overlay);
         color: var(--color-surface);
     }
 
@@ -1331,7 +1331,7 @@
     .ds-modal__backdrop {
         position: absolute;
         inset: 0;
-        background: rgba(29, 27, 24, 0.55);
+        background: var(--ds-backdrop);
     }
 
     .ds-modal__panel {

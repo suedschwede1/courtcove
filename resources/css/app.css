@@ -22,6 +22,14 @@
     --wm-src: 'hm-b26c8c89';
 }
 
+/* Literal colours without a theme token (DESIGN.md). Colour functions such as rgb()
+   are only allowed as custom properties in this file, never in component CSS. */
+:root {
+    --ds-backdrop: rgba(29, 27, 24, 0.55);
+    --ds-chrome-overlay: rgb(255 255 255 / 0.1);
+    --ds-sidebar-label: rgb(167 157 143);
+}
+
 @theme static {
     --color-ground: #F5F1EA;
     --color-surface: #FFFFFF;

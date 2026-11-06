@@ -37,6 +37,21 @@ The linter (`app/Services/UiRules.php`) rejects literal colors outside the token
 stock Tailwind palette colors, undersized controls/type, foreign fonts, inline styling,
 character icons and emoji. Email templates keep their separate inline-CSS contract.
 These are source heuristics, not a CSS cascade or DOM/accessibility validator.
+
+Allowed colour forms:
+
+- Views: token classes (`bg-clay`, `text-ink-2`) or `var(--color-*)`, e.g.
+  `bg-[var(--color-clay)]`. Literal colours are findings wherever they appear in a view
+  (class lists incl. Tailwind arbitrary values, `style` attributes, `<style>` blocks,
+  `:style` / `x-bind:style` bindings): hex (`#rgb`, `#rgba`, `#rrggbb`, `#rrggbbaa`,
+  `CLR-01`), Tailwind palette classes (`CLR-02`) and colour functions with literal
+  channels such as `rgb()`, `rgba()`, `hsl()`, `hsla()`, `hwb()`, `lab()`, `lch()`,
+  `oklab()`, `oklch()` (`CLR-03`).
+- CSS: `var(--color-*)`, and colour functions whose arguments reference a token, e.g.
+  `rgb(var(--color-x-rgb) / 0.5)` or `color-mix(in srgb, var(--color-surface) 80%, transparent)`.
+  Literal hex values (`CSS-01`) and literal colour functions (`CSS-02`) are only allowed
+  in `resources/css/app.css`: token hex values anywhere there, colour functions only as
+  custom property declarations (`--shadow-dialog: …`, `--ds-backdrop: …`).
 The pre-commit hook (enable with `git config core.hooksPath .githooks`) also runs the
 source check for staged UI paths. It checks the working tree for fast local feedback;
 CI checks the actual commit, so partial staging cannot bypass the remote check.

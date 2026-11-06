@@ -59,7 +59,7 @@ class UiLinter
                 $hits = match (true) {
                     (bool) ($rule['context'] ?? false) => $this->applyContextRule($rule, $lines),
                     (bool) ($rule['hex'] ?? false) => $this->applyHexRule($rule, $lines, basename($file)),
-                    default => $this->applyLineRule($rule, $lines),
+                    default => $this->applyLineRule($rule, $lines, basename($file)),
                 };
 
                 foreach ($hits as [$index, $match, $message]) {
@@ -147,10 +147,19 @@ class UiLinter
      * @param  list<string>  $lines
      * @return list<array{int, string, string}> line index, matched text, message
      */
-    private function applyLineRule(array $rule, array $lines): array
+    private function applyLineRule(array $rule, array $lines, string $basename): array
     {
+        // Optional allowance for whole lines, e.g. custom property declarations in the token sheet.
+        $allowLine = $rule['allow_line'] ?? null;
+        if ($allowLine !== null && isset($rule['allow_line_only_in']) && ! in_array($basename, $rule['allow_line_only_in'], true)) {
+            $allowLine = null;
+        }
+
         $hits = [];
         foreach ($lines as $i => $line) {
+            if ($allowLine !== null && preg_match($allowLine, $line)) {
+                continue;
+            }
             if (preg_match($rule['pattern'], $line, $m)) {
                 $hits[] = [$i, $m[0], (string) $rule['warn']];
             }

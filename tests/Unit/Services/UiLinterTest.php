@@ -123,6 +123,79 @@ class UiLinterTest extends TestCase
         $this->assertSame(2, $this->countRule('CSS-01'));
     }
 
+    /** @return array<string, array{string}> */
+    public static function literalColourFunctionsInViews(): array
+    {
+        return [
+            'tailwind rgb' => ['<div class="bg-[rgb(255,0,255)]">x</div>'],
+            'tailwind rgba' => ['<div class="text-[rgba(0,0,0,.5)]">x</div>'],
+            'tailwind hsl' => ['<div class="border-[hsl(10_50%_50%)]">x</div>'],
+            'tailwind hsla' => ['<div class="bg-[hsla(10,50%,50%,.4)]">x</div>'],
+            'tailwind oklch' => ['<div class="fill-[oklch(0.7_0.1_30)]">x</div>'],
+            'tailwind shadow' => ['<div class="shadow-[0_0_0_1px_rgba(0,0,0,.1)]">x</div>'],
+            'inline style attribute' => ['<div style="color: rgb(255 0 255)">x</div>'],
+            'single-quoted style attribute' => ["<div style='background: hsl(200 50% 50%)'>x</div>"],
+            'style block' => ["<style>\n  .x { color: oklch(0.6 0.2 30); }\n</style>"],
+            'alpine bound style' => ['<div :style="{ color: \'rgba(255, 0, 255, 0.5)\' }">x</div>'],
+            'alpine x-bind style' => ['<div x-bind:style="active ? \'background: rgb(1 2 3)\' : \'\'">x</div>'],
+            'uppercase function' => ['<div class="bg-[RGB(1,2,3)]">x</div>'],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('literalColourFunctionsInViews')]
+    public function literal_colour_functions_in_views_are_flagged(string $markup): void
+    {
+        $this->writeView('a.blade.php', $markup);
+        $this->assertSame(1, $this->countRule('CLR-03'), $markup);
+    }
+
+    /** @return array<string, array{string}> */
+    public static function tokenColourFormsInViews(): array
+    {
+        return [
+            'token class' => ['<div class="bg-clay text-on-clay">x</div>'],
+            'arbitrary token var' => ['<div class="bg-[var(--color-clay)]">x</div>'],
+            'rgb with a token channel var' => ['<div class="bg-[rgb(var(--color-clay-rgb)/0.5)]">x</div>'],
+            'color-mix of tokens' => ['<div x-bind:style="\'background: color-mix(in srgb, var(--color-clay) 20%, transparent)\'">x</div>'],
+            'prose mentioning rgb' => ['<p>RGB values (red, green, blue)</p>'],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('tokenColourFormsInViews')]
+    public function token_colour_forms_in_views_pass(string $markup): void
+    {
+        $this->writeView('a.blade.php', $markup);
+        $this->assertSame(0, $this->countRule('CLR-03'), $markup);
+    }
+
+    #[Test]
+    public function literal_colour_functions_in_css_are_allowed_only_as_app_css_custom_properties(): void
+    {
+        $this->writeFile('resources/css/app.css', ":root {\n  --ds-backdrop: rgba(29, 27, 24, 0.55);\n}\n@theme static {\n  --shadow-dialog: 0 20px 50px rgba(0, 0, 0, 0.25);\n}\n");
+        $this->assertSame(0, $this->countRule('CSS-02'));
+
+        $this->writeFile('resources/css/app.css', "a { color: rgb(1 2 3); }\n");
+        $this->assertSame(1, $this->countRule('CSS-02'));
+
+        $this->writeFile('resources/css/other.css', ":root { --x: hsl(1 2% 3%); }\n.a { background: oklch(0.6 0.2 30); }\n.b { color: HSLA(1, 2%, 3%, .5); }\n");
+        $this->assertSame(4, $this->countRule('CSS-02'));
+
+        $this->writeFile('resources/css/other.css', ".a { background: rgb(var(--color-ink-rgb) / 0.5); color: color-mix(in srgb, var(--color-ink) 50%, transparent); }\n");
+        $this->assertSame(1, $this->countRule('CSS-02'));
+    }
+
+    #[Test]
+    public function four_and_eight_digit_hex_colours_are_flagged(): void
+    {
+        $this->writeView('a.blade.php', '<div class="text-[#ff00ff80]">x</div>');
+        $this->writeView('b.blade.php', '<div style="color:#f0f8">x</div>');
+        $this->writeFile('resources/css/other.css', ".a { color: #12345678; }\n");
+        $this->assertSame(2, $this->countRule('CLR-01'));
+        $this->assertSame(1, $this->countRule('CSS-01'));
+    }
+
     #[Test]
     public function styled_raw_button_is_flagged_outside_components(): void
     {
