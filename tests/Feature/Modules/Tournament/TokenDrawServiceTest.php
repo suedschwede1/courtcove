@@ -18,8 +18,11 @@ use App\Modules\Tournament\Services\Draws\TokenDrawService;
 use App\Modules\TournamentBase\Support\ActionRefused;
 use App\Modules\TournamentBase\Support\ModuleFlash;
 use App\Modules\TournamentBase\Support\TestModeSession;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use PHPUnit\Framework\Attributes\Test;
 use RuntimeException;
 use Tests\Support\FakeBeaconService;
@@ -325,5 +328,28 @@ class TokenDrawServiceTest extends TestCase
     private function keyAndReplace(ActionRefused $e): array
     {
         return [$e->key, $e->replace];
+    }
+
+    #[Test]
+    public function a_failed_test_execution_shows_no_raw_exception_text(): void
+    {
+        $this->potTournament(['is_test' => 1, 'active' => 0]);
+        $round = $this->beacon->roundAt(now()->getTimestamp() - 120);
+        $this->beacon->publish($round, str_repeat('cd', 32));
+        Log::spy();
+        DB::listen(function (QueryExecuted $q): void {
+            if (str_starts_with($q->sql, 'update "bs_draws" set')) {
+                throw new RuntimeException('SQLSTATE[HY000]: General error: secret_table');
+            }
+        });
+
+        $result = $this->prepare(1200, '', 2, 30);
+
+        $this->assertSame('committed', $result['draw']->status);
+        $this->assertSame(
+            ['type' => 'error', 'text' => 'Anlegen hat geklappt, das Ziehen nicht: interner Fehler, Details stehen im Fehlerprotokoll - im Auslosungsbereich "Ziehen und Wahlphase öffnen" aufrufen.'],
+            end($result['flashes']),
+        );
+        Log::shouldHaveReceived('error')->once();
     }
 }

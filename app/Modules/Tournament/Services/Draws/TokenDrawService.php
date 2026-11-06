@@ -20,6 +20,7 @@ use App\Modules\Tournament\Services\TournamentManager;
 use App\Modules\TournamentBase\Support\ActionRefused;
 use Exception;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 use TypeError;
 
@@ -205,14 +206,16 @@ final class TokenDrawService
                 $executed = Draw::query()->find((int) $draw->did);
 
                 if ($executed === null || $executed->status !== 'picking' || ! $executed->final_seed) {
-                    throw new RuntimeException((string) __('tournament::admin.prepare.not_opened'));
+                    throw new ActionRefused('tournament::admin.prepare.not_opened');
                 }
 
                 $flashes[] = ['type' => 'success', 'text' => (string) __('tournament::admin.prepare.test_opened')];
             } catch (ActionRefused $e) {
                 $flashes[] = ['type' => 'error', 'text' => (string) __('tournament::admin.prepare.test_failed', ['message' => (string) __($e->key, $e->replace)])];
             } catch (Exception $e) {
-                $flashes[] = ['type' => 'error', 'text' => (string) __('tournament::admin.prepare.test_failed', ['message' => $e->getMessage()])];
+                // The raw message may carry SQL or an internal English text: logged, a generic text is shown.
+                Log::error('Test tournament draw could not be executed', ['did' => (int) $draw->did, 'exception' => $e]);
+                $flashes[] = ['type' => 'error', 'text' => (string) __('tournament::admin.prepare.test_failed', ['message' => __('tournament::admin.service.internal')])];
             }
         }
 

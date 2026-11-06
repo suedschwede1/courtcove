@@ -14,8 +14,11 @@ use App\Modules\Tournament\Models\TournamentMatch;
 use App\Modules\Tournament\Services\Draws\BracketDrawService;
 use App\Modules\TournamentBase\Support\ActionRefused;
 use App\Modules\TournamentBase\Support\ModuleFlash;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Feature\Modules\Tournament\Concerns\BuildsChampionship;
 use Tests\Support\FakeBeaconService;
@@ -181,5 +184,28 @@ class BracketDrawServiceTest extends TestCase
             ->assertRedirect(route('draw.index'));
         $this->assertStringStartsWith('KO-Ziehung angelegt.', ModuleFlash::all()[0]['text']);
         $this->assertSame('drand:round:'.$this->beacon->roundAt(now()->getTimestamp() + 1800), Draw::query()->value('beacon_source'));
+    }
+
+    #[Test]
+    public function a_failed_test_bracket_execution_shows_no_raw_exception_text(): void
+    {
+        $this->championship([], ['is_test' => 1, 'active' => 0]);
+        $this->playGroupPhase();
+        $round = $this->beacon->roundAt(now()->getTimestamp() - 120);
+        $this->beacon->publish($round, str_repeat('12', 32));
+        Log::spy();
+        DB::listen(function (QueryExecuted $q): void {
+            if (str_starts_with($q->sql, 'update "bs_draws" set')) {
+                throw new \RuntimeException('SQLSTATE[HY000]: General error: secret_table');
+            }
+        });
+
+        $result = $this->prepare();
+
+        $last = end($result['flashes']);
+        $this->assertSame('error', $last['type']);
+        $this->assertStringEndsWith('interner Fehler, Details stehen im Fehlerprotokoll', $last['text']);
+        $this->assertStringNotContainsString('SQLSTATE', $last['text']);
+        Log::shouldHaveReceived('error')->once();
     }
 }

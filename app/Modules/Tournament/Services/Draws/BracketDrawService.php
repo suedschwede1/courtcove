@@ -16,6 +16,7 @@ use App\Modules\Tournament\Models\Tournament;
 use App\Modules\Tournament\Services\TournamentManager;
 use App\Modules\TournamentBase\Support\ActionRefused;
 use Exception;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 use TypeError;
 
@@ -147,7 +148,9 @@ final class BracketDrawService
             } catch (ActionRefused $e) {
                 $flashes[] = ['type' => 'error', 'text' => (string) __('tournament::admin.prepare.bracket_test_failed', ['message' => (string) __($e->key, $e->replace)])];
             } catch (Exception $e) {
-                $flashes[] = ['type' => 'error', 'text' => (string) __('tournament::admin.prepare.bracket_test_failed', ['message' => $e->getMessage()])];
+                // The raw message may carry SQL or an internal English text: logged, a generic text is shown.
+                Log::error('Test tournament draw could not be executed', ['did' => (int) $draw->did, 'exception' => $e]);
+                $flashes[] = ['type' => 'error', 'text' => (string) __('tournament::admin.prepare.bracket_test_failed', ['message' => __('tournament::admin.service.internal')])];
             }
         }
 

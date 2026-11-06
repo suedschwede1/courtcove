@@ -12,6 +12,7 @@ use App\Modules\Tournament\Models\TournamentMatch;
 use App\Modules\Tournament\Services\MatchResultService;
 use App\Modules\Tournament\Services\NoCurrentTournament;
 use App\Modules\Tournament\Support\AccessContext;
+use App\Modules\Tournament\Support\AdminInput;
 use App\Modules\Tournament\Support\MatchPresenter;
 use App\Modules\Tournament\Support\MatchWriteRule;
 use App\Modules\Tournament\Support\TournamentAccess;
@@ -46,7 +47,7 @@ class MatchController extends Controller
         private readonly MatchResultService $results,
     ) {}
 
-    public function show(Request $request, TournamentPage $pages, MatchPresenter $presenter, ScoreService $scores, int $tmid): View
+    public function show(Request $request, TournamentPage $pages, MatchPresenter $presenter, ScoreService $scores, string $tmid): View
     {
         $user = $this->user($request);
         $page = $pages->build($user, 'schedule');
@@ -126,7 +127,7 @@ class MatchController extends Controller
         ]);
     }
 
-    public function save(SaveMatchRequest $request, int $tmid): RedirectResponse
+    public function save(SaveMatchRequest $request, string $tmid): RedirectResponse
     {
         return $this->act($request, $tmid, function (TournamentMatch $match, User $user, AccessContext $access) use ($request): void {
             $key = $this->results->save($match, $request->matchInput(), $user, $access->isAdmin());
@@ -134,7 +135,7 @@ class MatchController extends Controller
         });
     }
 
-    public function confirm(Request $request, int $tmid): RedirectResponse
+    public function confirm(Request $request, string $tmid): RedirectResponse
     {
         return $this->act($request, $tmid, function (TournamentMatch $match, User $user, AccessContext $access): void {
             $this->results->confirm($match, $user, $access->isAdmin());
@@ -142,7 +143,7 @@ class MatchController extends Controller
         });
     }
 
-    public function delete(Request $request, int $tmid): RedirectResponse
+    public function delete(Request $request, string $tmid): RedirectResponse
     {
         return $this->act($request, $tmid, function (TournamentMatch $match, User $user, AccessContext $access): void {
             $this->results->delete($match, $access->isAdmin());
@@ -151,11 +152,11 @@ class MatchController extends Controller
     }
 
     /** A GET on a POST-only path goes to the match page (ZF2), after resolving the match like every route. */
-    public function redirectToMatch(Request $request, int $tmid): RedirectResponse
+    public function redirectToMatch(Request $request, string $tmid): RedirectResponse
     {
-        $this->match($this->tournament($this->user($request)), $tmid);
+        $match = $this->match($this->tournament($this->user($request)), $tmid);
 
-        return redirect()->route('tournament.match', ['tmid' => $tmid]);
+        return redirect()->route('tournament.match', ['tmid' => (int) $match->tmid]);
     }
 
     /**
@@ -164,13 +165,13 @@ class MatchController extends Controller
      *
      * @param  callable(TournamentMatch, User, AccessContext): void  $action
      */
-    private function act(Request $request, int $tmid, callable $action): RedirectResponse
+    private function act(Request $request, string $tmid, callable $action): RedirectResponse
     {
         $user = $this->user($request);
         $t = $this->tournament($user);
         $match = $this->match($t, $tmid);
         $access = $this->access->context($user, $t);
-        $back = redirect()->route('tournament.match', ['tmid' => $tmid]);
+        $back = redirect()->route('tournament.match', ['tmid' => (int) $match->tmid]);
 
         if (! MatchWriteRule::canWrite($match->getAttributes(), $access, $t)) {
             ModuleFlash::error(__(MatchWriteRule::deniedKey($match->getAttributes(), $access)));
@@ -204,9 +205,16 @@ class MatchController extends Controller
         }
     }
 
-    private function match(Tournament $t, int $tmid): TournamentMatch
+    /**
+     * The route only checks for digits: an oversized, zero or overflowing id is a 404 here, after the login and
+     * the tournament are resolved (never a TypeError).
+     */
+    private function match(Tournament $t, string $tmid): TournamentMatch
     {
-        return TournamentMatch::query()->where('tid', $t->tid)->where('tmid', $tmid)->firstOrFail();
+        $id = AdminInput::digits($tmid);
+        abort_if($id === 0, 404);
+
+        return TournamentMatch::query()->where('tid', $t->tid)->where('tmid', $id)->firstOrFail();
     }
 
     /**
