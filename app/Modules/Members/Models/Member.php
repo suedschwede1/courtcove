@@ -144,18 +144,52 @@ class Member extends Model
     }
 
     /**
-     * Active members for the overview figures (Aktiv, age structure, categories): status
-     * aktiv, except members linked to a placeholder booking account. Members without a
-     * linked account, or linked to a waiting, blocked or deleted one, keep counting: there
-     * the member's own status decides. One NOT EXISTS subquery, no per-row lookups.
+     * Members not linked to a placeholder booking account (a stand-in name, not a real
+     * person's account). Members without a linked account, or linked to a waiting, blocked
+     * or deleted one, stay in: there the member's own status decides. One NOT EXISTS
+     * subquery, no per-row lookups. Shared rule of every figure on the members overview.
+     *
+     * @param  Builder<Member>  $query
+     * @return Builder<Member>
+     */
+    public function scopeWithoutPlaceholderAccount(Builder $query): Builder
+    {
+        return $query->whereDoesntHave('user', fn (Builder $user) => $user->where($user->qualifyColumn('status'), 'placeholder'));
+    }
+
+    /**
+     * Members without a real booking account: no link at all, or a link to a placeholder.
+     *
+     * @param  Builder<Member>  $query
+     * @return Builder<Member>
+     */
+    public function scopeWithoutRealAccount(Builder $query): Builder
+    {
+        return $query->where(fn (Builder $sub) => $sub->whereNull('user_id')
+            ->orWhereHas('user', fn (Builder $user) => $user->where($user->qualifyColumn('status'), 'placeholder')));
+    }
+
+    /**
+     * Current members (aktiv or ruhend) for the overview figures: see withoutPlaceholderAccount().
+     *
+     * @param  Builder<Member>  $query
+     * @return Builder<Member>
+     */
+    public function scopeCountsAsCurrentMember(Builder $query): Builder
+    {
+        return $this->scopeWithoutPlaceholderAccount($this->scopeCurrent($query));
+    }
+
+    /**
+     * Active members for the overview figures (Aktiv, age structure, categories): see
+     * withoutPlaceholderAccount().
      *
      * @param  Builder<Member>  $query
      * @return Builder<Member>
      */
     public function scopeCountsAsActiveMember(Builder $query): Builder
     {
-        return $this->scopeActive($query)
-            ->whereDoesntHave('user', fn (Builder $user) => $user->where($user->qualifyColumn('status'), 'placeholder'));
+        return $this->scopeWithoutPlaceholderAccount($this->scopeActive($query));
     }
 
     public function fullName(): string

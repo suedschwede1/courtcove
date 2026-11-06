@@ -42,7 +42,8 @@ class ActiveMemberCountTest extends TestCase
      * Accounts: admin, assist and two members enabled, two placeholders, one each disabled
      * (waiting for activation), blocked and deleted. Club members: six with status
      * aktiv (without account, linked to an enabled, placeholder, disabled, blocked and
-     * deleted account), two ruhend (one linked to a placeholder) and one ausgetreten.
+     * deleted account; the one without account is a youth), three ruhend (linked to the
+     * assist, linked to a placeholder and a youth, without account) and one ausgetreten.
      */
     private function seedClub(bool $flag): void
     {
@@ -64,14 +65,15 @@ class ActiveMemberCountTest extends TestCase
             'fee_category_id' => $category->id,
         ]);
 
-        $member(['user_id' => null]);
+        $member(['user_id' => null, 'birthdate' => now()->subYears(15)->toDateString()]);
         $member(['user_id' => $enabled->uid]);
         $member(['user_id' => $placeholder->uid]);
         $member(['user_id' => $disabled->uid]);
         $member(['user_id' => $blocked->uid]);
         $member(['user_id' => $deleted->uid]);
         $member(['user_id' => $assist->uid, 'status' => 'ruhend']);
-        $member(['user_id' => $placeholderToo->uid, 'status' => 'ruhend']);
+        $member(['user_id' => $placeholderToo->uid, 'status' => 'ruhend', 'birthdate' => now()->subYears(16)->toDateString()]);
+        $member(['user_id' => null, 'status' => 'ruhend']);
         $member(['user_id' => $enabledToo->uid, 'status' => 'ausgetreten', 'left_at' => '2025-01-01']);
     }
 
@@ -113,7 +115,7 @@ class ActiveMemberCountTest extends TestCase
 
     #[Test]
     #[DataProvider('flags')]
-    public function members_overview_does_not_count_members_linked_to_a_placeholder_as_active(bool $flag): void
+    public function members_overview_leaves_members_linked_to_a_placeholder_out_of_every_count(bool $flag): void
     {
         $this->seedClub($flag);
 
@@ -122,10 +124,13 @@ class ActiveMemberCountTest extends TestCase
         // Aktiv: status aktiv, without account or linked to any account but a placeholder.
         $this->assertSame(5, $response->viewData('activeCount'));
         $this->assertSame(5, array_sum($response->viewData('ageStructure')['buckets']) + $response->viewData('ageStructure')['unknown']);
+        $this->assertSame(1, $response->viewData('ageStructure')['buckets']['up_to_18']);
         $this->assertSame(['Vollmitglied' => 5], $response->viewData('categoryBreakdown'));
-        // Unchanged figures: Mitglieder (aktiv + ruhend), ruhend, without account.
-        $this->assertSame(8, $response->viewData('memberCount'));
+        // Mitglieder (aktiv + ruhend), davon Jugend and ruhend follow the same rule.
+        $this->assertSame(7, $response->viewData('memberCount'));
+        $this->assertSame(1, $response->viewData('youthCount'));
         $this->assertSame(2, $response->viewData('dormantCount'));
-        $this->assertSame(1, $response->viewData('withoutAccountCount'));
+        // Ohne Benutzerkonto: no link or a link to a placeholder (no real account), aktiv or ruhend.
+        $this->assertSame(4, $response->viewData('withoutAccountCount'));
     }
 }

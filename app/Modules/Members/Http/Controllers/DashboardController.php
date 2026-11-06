@@ -15,9 +15,9 @@ class DashboardController
 {
     public function index(): View
     {
-        // Members linked to a placeholder account are not counted as active.
+        // Members linked to a placeholder account are left out of every figure (Member::scopeWithoutPlaceholderAccount).
         $activeCount = Member::query()->countsAsActiveMember()->count();
-        $current = fn () => Member::query()->current();
+        $current = fn () => Member::query()->countsAsCurrentMember();
 
         $fiscalYears = FiscalYear::query()->orderBy('starts_on')->get();
         $currentFiscalYear = $fiscalYears->first(
@@ -36,9 +36,9 @@ class DashboardController
         return view('members::dashboard', [
             'memberCount' => $current()->count(),
             'youthCount' => $current()->youth()->count(),
-            'dormantCount' => Member::query()->where('status', 'ruhend')->count(),
-            // Informational only: the link to a booking-system account is optional.
-            'withoutAccountCount' => $current()->whereNull('user_id')->count(),
+            'dormantCount' => Member::query()->where('status', 'ruhend')->withoutPlaceholderAccount()->count(),
+            // Informational only: the link to a booking-system account is optional; a placeholder is no real account.
+            'withoutAccountCount' => Member::query()->current()->withoutRealAccount()->count(),
             'openDuesTop' => $openDues->sortBy(fn (MemberDue $due) => [$due->member->lastname ?? '', $due->member->firstname ?? ''])->take(5)->values(),
             'recentChanges' => MemberChange::query()->with(['member', 'adminUser'])->orderByDesc('created_at')->orderByDesc('id')->limit(5)->get(),
             'categoryNames' => FeeCategory::query()->pluck('name', 'id')->all(),
