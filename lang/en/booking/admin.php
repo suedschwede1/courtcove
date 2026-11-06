@@ -181,6 +181,11 @@ return [
         'on' => 'On',
         'off' => 'Off',
         'save' => 'Save',
+        'max_active_bookings' => [
+            'title' => 'Restrict bookings',
+            'label' => 'Simultaneous bookings per user (0 = unlimited)',
+            'hint' => 'Applies to all courts together: all future active bookings of the user are counted.',
+        ],
         'peak_limit' => [
             'title' => 'Peak-Time Limit',
             'enabled' => 'Enable peak-time limit',
@@ -517,7 +522,6 @@ return [
             'range_book' => 'Book in advance (days)',
             'short_booking_window' => 'Short-notice booking despite limits (minutes)',
             'short_booking_window_hint' => 'Within this window before start time, booking lead time, daily limit, and maximum active bookings are ignored. 0 = disabled.',
-            'max_active_bookings' => 'Restrict bookings (simultaneously per user, 0 = unlimited)',
             'range_cancel' => 'Cancellation (hours)',
             'label_free' => 'Label for available courts',
             'time_column' => 'Time',
@@ -525,7 +529,6 @@ return [
             'confirm_delete' => 'Delete court?',
             'readonly_message_hint' => 'Message shown when the court is blocked.',
             'range_book_hint' => 'How many days in advance can be booked at most?',
-            'max_active_bookings_hint' => 'Set to 0 to allow any number of bookings.',
             'range_cancel_hint' => 'Until when can a booking still be canceled? 0 = never cancel, 0.01 = almost always.',
             'label_free_hint' => 'Custom label for available courts; the default is "Available".',
         ],

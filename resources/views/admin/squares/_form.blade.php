@@ -43,9 +43,6 @@
         <x-ui.field :label="__('booking.admin.squares.short_booking_window')" for="sf-short-booking-window" :help="__('booking.admin.squares.short_booking_window_hint')">
             <x-ui.input id="sf-short-booking-window" name="short_booking_window" type="number" min="0" :value="old('short_booking_window', $form['short_booking_window'])" />
         </x-ui.field>
-        <x-ui.field :label="__('booking.admin.squares.max_active_bookings')" for="sf-max-bookings" :help="__('booking.admin.squares.max_active_bookings_hint')">
-            <x-ui.input id="sf-max-bookings" name="max_active_bookings" type="number" min="0" :value="old('max_active_bookings', $form['max_active_bookings'])" />
-        </x-ui.field>
         <x-ui.field :label="__('booking.admin.squares.range_cancel')" for="sf-range-cancel" :help="__('booking.admin.squares.range_cancel_hint')">
             <x-ui.input id="sf-range-cancel" name="range_cancel" type="number" step="0.01" min="0" :value="old('range_cancel', $form['range_cancel'])" />
         </x-ui.field>

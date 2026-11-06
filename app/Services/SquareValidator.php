@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Enums\SquareStatus;
 use App\Models\Booking;
+use App\Models\Option;
 use App\Models\Reservation;
 use App\Models\Square;
 use App\Models\User;
@@ -85,7 +86,9 @@ final class SquareValidator
             return ValidationResult::fail(__('booking.messages.booking_duration_too_short'));
         }
 
-        if ((int) $square->max_active_bookings > 0 && ! $shortTermOverrideActive) {
+        $maxActiveBookings = $this->maxActiveBookings();
+
+        if ($maxActiveBookings > 0 && ! $shortTermOverrideActive) {
             $peakActive = $this->peakLimitService->isEnabled()
                 && $square->getMeta('peak_limit_enabled') === '1';
 
@@ -95,11 +98,11 @@ final class SquareValidator
                         $user,
                         $this->peakLimitService->windows(),
                     );
-                    if ($count >= (int) $square->max_active_bookings) {
+                    if ($count >= $maxActiveBookings) {
                         return ValidationResult::fail(__('booking.messages.peak_limit_reached'));
                     }
                 }
-            } elseif ($this->getActiveFutureBookingCount($user) >= (int) $square->max_active_bookings) {
+            } elseif ($this->getActiveFutureBookingCount($user) >= $maxActiveBookings) {
                 return ValidationResult::fail(__('booking.messages.max_active_bookings_reached'));
             }
         }
@@ -115,6 +118,12 @@ final class SquareValidator
         }
 
         return ValidationResult::pass();
+    }
+
+    /** Global limit of open bookings per user across all courts (option; 0 = unlimited). */
+    private function maxActiveBookings(): int
+    {
+        return max(0, (int) Option::getValue('booking.max_active_bookings', '0'));
     }
 
     private function canCreateAnyBooking(User $user): bool
