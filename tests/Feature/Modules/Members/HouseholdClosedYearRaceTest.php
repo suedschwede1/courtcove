@@ -107,6 +107,28 @@ class HouseholdClosedYearRaceTest extends TestCase
     }
 
     #[Test]
+    public function inline_cells_paid_through_and_bulk_on_household_dues(): void
+    {
+        $due = HouseholdDue::create(['household_id' => $this->household->id, 'fiscal_year_id' => $this->year->id, 'fee_category_id' => $this->family->id, 'amount' => 235]);
+        $next = FiscalYear::create(['name' => '2027', 'starts_on' => '2027-01-01', 'ends_on' => '2027-12-31']);
+        $admin = $this->admin();
+
+        $this->closeOnLock($this->year);
+        $this->actingAs($admin)->patchJson("/members/household-dues/{$due->id}/field", ['field' => 'status', 'value' => 'bezahlt'])->assertStatus(422);
+        DB::table('fiscal_years')->where('id', $this->year->id)->update(['abgeschlossen_am' => null]);
+
+        $this->closeOnLock($next);
+        $this->actingAs($admin)->patchJson("/members/household-dues/{$due->id}/paid-through", ['fiscal_year_id' => $next->id])->assertStatus(422);
+        DB::table('fiscal_years')->where('id', $next->id)->update(['abgeschlossen_am' => null]);
+
+        $this->closeOnLock($this->year);
+        $this->actingAs($admin)->post('/members/dues/bulk-mark-paid', ['household_due_ids' => [$due->id]])->assertSessionHasErrors('due_ids');
+
+        $this->assertSame('ausstehend', $due->fresh()?->status);
+        $this->assertSame(1, HouseholdDue::count());
+    }
+
+    #[Test]
     public function covering_a_joiner(): void
     {
         $due = HouseholdDue::create(['household_id' => $this->household->id, 'fiscal_year_id' => $this->year->id, 'fee_category_id' => $this->family->id, 'amount' => 235]);

@@ -248,6 +248,7 @@ return [
         'covered_by_household' => 'The member is covered :year by household :household and gets no own fee.',
         'household_due_exists' => 'There is already a household fee for :year.',
         'household_due_created' => 'Household fee added.',
+        'household_card' => 'Household fees :year (:count)',
     ],
     'dashboard' => [
         'title' => 'Overview',

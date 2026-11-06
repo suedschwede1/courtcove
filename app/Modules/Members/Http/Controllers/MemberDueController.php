@@ -12,6 +12,7 @@ use App\Modules\Members\Models\Member;
 use App\Modules\Members\Models\MemberDue;
 use App\Modules\Members\Support\DuesGenerationReport;
 use App\Modules\Members\Support\DuesGenerator;
+use App\Modules\Members\Support\HouseholdService;
 use App\Modules\Members\Support\MembersFormat;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
@@ -99,6 +100,32 @@ class MemberDueController
         $outstandingTotal = (clone $duesQuery)->get(['member_dues.*'])
             ->sum(fn (MemberDue $due): float => (float) $due->outstandingAmount());
 
+        // Household dues of the year: few rows, not paginated, same search (household name or a covered
+        // member) and status filter; each counts once in the outstanding total.
+        $householdQuery = HouseholdDue::query()
+            ->with(['household.members', 'coveredMembers' => fn ($q) => $q->orderBy('firstname'), 'payments', 'fiscalYear'])
+            ->where('fiscal_year_id', $selectedFiscalYearId);
+        if ($search !== '') {
+            $householdQuery->where(function ($q) use ($search): void {
+                $q->whereHas('household', fn ($h) => $h->where('name', 'like', "%{$search}%"))
+                    ->orWhereHas('coveredMembers', fn ($m) => $m->where('firstname', 'like', "%{$search}%")->orWhere('lastname', 'like', "%{$search}%"))
+                    ->orWhereHas('household.members', fn ($m) => $m->where('lastname', 'like', "%{$search}%"));
+            });
+        }
+        match ($statusFilter) {
+            'offen' => $householdQuery->open(),
+            'bezahlt' => $householdQuery->where('status', 'bezahlt'),
+            'ausstehend' => $householdQuery->where('status', 'ausstehend')->whereDoesntHave('payments')
+                ->where(fn ($q) => $q->whereNull('faellig_am')->orWhere('faellig_am', '>=', now()->toDateString())),
+            'ueberfaellig' => $householdQuery->overdue()->whereDoesntHave('payments'),
+            default => null,
+        };
+        $householdDues = $householdQuery->orderBy('id')->get()
+            ->sortBy(fn (HouseholdDue $due) => mb_strtolower($due->household->label()), SORT_NATURAL)->values();
+        if ($householdDues->isNotEmpty()) {
+            $outstandingTotal += $householdDues->sum(fn (HouseholdDue $due): float => (float) $due->outstandingAmount());
+        }
+
         $dues = $duesQuery->orderBy('member_id')->paginate(25)->withQueryString();
 
         $generateFiscalYears = $fiscalYears->filter(
@@ -123,6 +150,7 @@ class MemberDueController
             'yearHasDues' => $yearHasDues,
             'dues' => $dues,
             'outstandingTotal' => $outstandingTotal,
+            'householdDues' => $householdDues,
             'filters' => array_filter(
                 ['search' => $search, 'status' => $statusFilter],
                 fn ($value) => $value !== '',
@@ -221,12 +249,14 @@ class MemberDueController
             ->with('dues_report', $report->toArray());
     }
 
-    /** Markiert alle ausgewählten Beitragszeilen in einem Schritt als bezahlt, optional bis zu einem gewählten Fiskaljahr im Voraus. */
+    /** Markiert alle ausgewählten Beitragszeilen (Mitglieds- und Haushaltsbeiträge) in einem Schritt als bezahlt, optional bis zu einem gewählten Fiskaljahr im Voraus. */
     public function bulkMarkPaid(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'due_ids' => ['required', 'array', 'min:1'],
+            'due_ids' => ['required_without:household_due_ids', 'array', 'min:1'],
             'due_ids.*' => ['integer', 'exists:member_dues,id'],
+            'household_due_ids' => ['nullable', 'array', 'min:1'],
+            'household_due_ids.*' => ['integer', 'exists:household_dues,id'],
             'bezahlt_bis_fiscal_year_id' => ['nullable', 'exists:fiscal_years,id'],
             'fiscal_year_id' => ['nullable', 'exists:fiscal_years,id'],
             'bezahlt_am' => ['nullable', ...MemberDue::paidOnRules()],
@@ -234,11 +264,13 @@ class MemberDueController
 
         $targetFiscalYearId = $validated['bezahlt_bis_fiscal_year_id'] ?? null;
         $paidOn = $validated['bezahlt_am'] ?? now()->toDateString();
-        $dues = MemberDue::with('fiscalYear')->whereIn('id', $validated['due_ids'])->get();
+        $dues = MemberDue::with('fiscalYear')->whereIn('id', $validated['due_ids'] ?? [])->get();
+        $householdDues = HouseholdDue::with('fiscalYear', 'household')->whereIn('id', $validated['household_due_ids'] ?? [])->get();
         $count = 0;
 
         // A closed year refuses the whole batch (nothing is half-applied).
-        $closedDue = $dues->first(fn (MemberDue $due) => $due->fiscalYear->isClosed());
+        $closedDue = $dues->first(fn (MemberDue $due) => $due->fiscalYear->isClosed())
+            ?? $householdDues->first(fn (HouseholdDue $due) => $due->fiscalYear->isClosed());
         if ($closedDue !== null) {
             throw ValidationException::withMessages(['due_ids' => $closedDue->fiscalYear->lockedMessage()]);
         }
@@ -250,17 +282,27 @@ class MemberDueController
                     throw ValidationException::withMessages(['bezahlt_bis_fiscal_year_id' => $closedYear->lockedMessage()]);
                 }
             }
+            foreach ($householdDues as $due) {
+                $closedYear = FiscalYear::query()->whereKey(HouseholdService::yearIdsUpTo($due, $target))->whereNotNull('abgeschlossen_am')->orderBy('starts_on')->first();
+                if ($closedYear !== null) {
+                    throw ValidationException::withMessages(['bezahlt_bis_fiscal_year_id' => $closedYear->lockedMessage()]);
+                }
+            }
         }
 
-        DB::transaction(function () use ($dues, $targetFiscalYearId, $paidOn, &$count): void {
+        DB::transaction(function () use ($dues, $householdDues, $targetFiscalYearId, $paidOn, &$count): void {
             // Both checks again with every touched year row locked (years first), so a year
             // closed since validation refuses the whole batch.
-            $ownYearIds = $dues->pluck('fiscal_year_id')->map(fn ($id): int => (int) $id)->unique()->values()->all();
+            $ownYearIds = $dues->pluck('fiscal_year_id')->merge($householdDues->pluck('fiscal_year_id'))
+                ->map(fn ($id): int => (int) $id)->unique()->values()->all();
             $rangeYearIds = [];
-            if ($targetFiscalYearId !== null) {
-                $target = FiscalYear::findOrFail($targetFiscalYearId);
+            $target = $targetFiscalYearId !== null ? FiscalYear::findOrFail($targetFiscalYearId) : null;
+            if ($target !== null) {
                 foreach ($dues as $due) {
                     $rangeYearIds = [...$rangeYearIds, ...$this->yearIdsUpTo($due, $target)];
+                }
+                foreach ($householdDues as $due) {
+                    $rangeYearIds = [...$rangeYearIds, ...HouseholdService::yearIdsUpTo($due, $target)];
                 }
             }
             FiscalYear::lockForWrite([...$ownYearIds, ...$rangeYearIds]);
@@ -275,23 +317,36 @@ class MemberDueController
             }
 
             foreach ($dues as $due) {
-                if ($targetFiscalYearId === null) {
+                if ($target === null) {
                     $due->update(['status' => 'bezahlt', 'bezahlt_am' => $due->bezahlt_am ?? $paidOn]);
                     $count++;
 
                     continue;
                 }
 
-                $target = FiscalYear::find($targetFiscalYearId);
-
                 // Skip rows whose own fiscal year is already after the chosen "bezahlt bis"
                 // year instead of failing the whole batch — the other selected rows are
                 // still valid.
-                if ($target === null || $target->starts_on->lt($due->fiscalYear->starts_on)) {
+                if ($target->starts_on->lt($due->fiscalYear->starts_on)) {
                     continue;
                 }
 
                 $this->applyPaidThrough($due, (int) $targetFiscalYearId, $paidOn);
+                $count++;
+            }
+
+            foreach ($householdDues as $due) {
+                if ($target === null) {
+                    $due->update(['status' => 'bezahlt', 'bezahlt_am' => $due->bezahlt_am ?? $paidOn]);
+                    $count++;
+
+                    continue;
+                }
+                if ($target->starts_on->lt($due->fiscalYear->starts_on)) {
+                    continue;
+                }
+
+                app(HouseholdService::class)->payThrough($due, $target, $paidOn);
                 $count++;
             }
         });

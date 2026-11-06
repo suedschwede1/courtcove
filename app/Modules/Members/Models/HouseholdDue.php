@@ -64,6 +64,12 @@ class HouseholdDue extends Model
             ->first();
     }
 
+    /** "Bezahlt am" for display: "02.03.2026", or a dash when not set (same as MemberDue). */
+    public function paidOnDisplay(): string
+    {
+        return $this->bezahlt_am?->format('d.m.Y') ?? '–';
+    }
+
     /** "2026 über Haushalt Familie Muster abgedeckt": the refusal for an individual due of a covered member. */
     public function coveredMessage(): string
     {

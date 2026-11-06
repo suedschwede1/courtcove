@@ -87,6 +87,8 @@ Route::middleware(['auth', 'admin.mode', 'can:admin.members'])
         Route::get('members/households/{household}/replace-dues', [HouseholdController::class, 'replacePreview'])->whereNumber('household')->name('members.households.replace-dues.preview');
         Route::post('members/households/{household}/replace-dues', [HouseholdController::class, 'replace'])->whereNumber('household')->name('members.households.replace-dues');
         Route::post('members/household-dues', [HouseholdDueController::class, 'store'])->name('members.household-dues.store');
+        Route::patch('members/household-dues/{householdDue}/field', [HouseholdDueController::class, 'updateField'])->whereNumber('householdDue')->name('members.household-dues.update-field');
+        Route::patch('members/household-dues/{householdDue}/paid-through', [HouseholdDueController::class, 'markPaidThrough'])->whereNumber('householdDue')->name('members.household-dues.mark-paid-through');
         Route::post('members/{member}/household', [HouseholdController::class, 'storeFromMember'])->whereNumber('member')->name('members.household.store-from-member');
 
         Route::resource('members', MemberController::class)->except(['show', 'destroy']);

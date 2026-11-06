@@ -248,6 +248,7 @@ return [
         'covered_by_household' => 'Das Mitglied ist :year über den Haushalt :household abgedeckt und bekommt keinen eigenen Beitrag.',
         'household_due_exists' => 'Für :year gibt es schon einen Haushaltsbeitrag.',
         'household_due_created' => 'Haushaltsbeitrag angelegt.',
+        'household_card' => 'Haushaltsbeiträge :year (:count)',
     ],
     'dashboard' => [
         'title' => 'Übersicht',

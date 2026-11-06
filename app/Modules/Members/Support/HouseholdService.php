@@ -200,6 +200,68 @@ final class HouseholdService
         });
     }
 
+    /**
+     * Ids of the years after the due's own year up to and including $target ("Bezahlt bis").
+     *
+     * @return list<int>
+     */
+    public static function yearIdsUpTo(HouseholdDue $due, FiscalYear $target): array
+    {
+        return FiscalYear::query()
+            ->where('starts_on', '>', $due->fiscalYear->starts_on)
+            ->where('starts_on', '<=', $target->starts_on)
+            ->pluck('id')->map(fn ($id): int => (int) $id)->all();
+    }
+
+    /**
+     * Paid in advance up to $target: the due and every household due of the years in between become
+     * paid; a missing one is created (same tariff and amount) covering the then-billable members without
+     * own due or coverage. A dissolved household gets no new dues. Call inside a transaction that holds
+     * the locks of the due's year and of every year up to $target.
+     */
+    public function payThrough(HouseholdDue $due, FiscalYear $target, string $paidOn): void
+    {
+        $household = $due->household;
+        $intervening = FiscalYear::query()
+            ->where('starts_on', '>', $due->fiscalYear->starts_on)
+            ->where('starts_on', '<=', $target->starts_on)
+            ->orderBy('starts_on')->get();
+
+        foreach ($intervening as $year) {
+            $existing = HouseholdDue::query()->where('household_id', $household->id)->where('fiscal_year_id', $year->id)->first();
+            if ($existing !== null) {
+                $existing->update([
+                    'status' => 'bezahlt',
+                    'bezahlt_bis_fiscal_year_id' => $target->id,
+                    'bezahlt_am' => $existing->bezahlt_am ?? $paidOn,
+                ]);
+
+                continue;
+            }
+            if ($household->isDissolved()) {
+                continue;
+            }
+
+            $created = HouseholdDue::create([
+                'household_id' => $household->id,
+                'fiscal_year_id' => $year->id,
+                'fee_category_id' => $due->fee_category_id,
+                'amount' => $due->amount,
+                'status' => 'bezahlt',
+                'bezahlt_bis_fiscal_year_id' => $target->id,
+                'faellig_am' => $year->faellig_am ?? $year->starts_on,
+                'bezahlt_am' => $paidOn,
+            ]);
+            $this->coverBillable($created);
+        }
+
+        $due->update([
+            'status' => 'bezahlt',
+            'bezahlt_bis_fiscal_year_id' => $target->id,
+            'bezahlt_am' => $due->bezahlt_am ?? $paidOn,
+        ]);
+    }
+
     /** The fiscal year containing today, else the last one (same rule as the overview). */
     public function currentFiscalYear(): ?FiscalYear
     {
