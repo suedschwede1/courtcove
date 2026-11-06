@@ -30,6 +30,8 @@ Route::middleware(['auth', 'can:admin.members'])
         Route::get('members/fee-categories', [FeeCategoryController::class, 'index'])->name('members.fee-categories.index');
         Route::post('members/fee-categories', [FeeCategoryController::class, 'store'])->name('members.fee-categories.store');
         Route::post('members/fee-categories/rates', [FeeCategoryController::class, 'storeRates'])->name('members.fee-categories.rates.store');
+        Route::get('members/fee-categories/{feeCategory}/edit', [FeeCategoryController::class, 'edit'])->whereNumber('feeCategory')->name('members.fee-categories.edit');
+        Route::put('members/fee-categories/{feeCategory}', [FeeCategoryController::class, 'update'])->whereNumber('feeCategory')->name('members.fee-categories.update');
 
         Route::get('members/dues', [MemberDueController::class, 'index'])->name('members.dues.index');
         Route::post('members/dues', [MemberDueController::class, 'store'])->name('members.dues.store');
