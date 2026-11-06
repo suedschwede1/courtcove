@@ -32,6 +32,7 @@ class MembersNavigationTest extends TestCase
         'members.payments.create' => [['member' => 1], 'members'],
         'members.households.index' => [[], 'households'],
         'members.households.show' => [['household' => 1], 'households'],
+        'members.households.suggestions' => [[], 'households'],
         'members.households.replace-dues.preview' => [['household' => 1, 'fiscal_year_id' => 1], 'households'],
         'members.export' => [[], null],
         'members.dues.index' => [[], 'dues'],

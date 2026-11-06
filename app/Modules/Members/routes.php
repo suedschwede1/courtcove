@@ -10,6 +10,7 @@ use App\Modules\Members\Http\Controllers\FeeCategoryController;
 use App\Modules\Members\Http\Controllers\FiscalYearController;
 use App\Modules\Members\Http\Controllers\HouseholdController;
 use App\Modules\Members\Http\Controllers\HouseholdDueController;
+use App\Modules\Members\Http\Controllers\HouseholdSuggestionController;
 use App\Modules\Members\Http\Controllers\MailController;
 use App\Modules\Members\Http\Controllers\MemberController;
 use App\Modules\Members\Http\Controllers\MemberDueController;
@@ -79,6 +80,10 @@ Route::middleware(['auth', 'admin.mode', 'can:admin.members'])
         // Households (family fee): before the members resource so "households" is never read as a member id.
         Route::get('members/households', [HouseholdController::class, 'index'])->name('members.households.index');
         Route::post('members/households', [HouseholdController::class, 'store'])->name('members.households.store');
+        // "Mögliche Familien": static paths before members/households/{household}.
+        Route::get('members/households/suggestions', [HouseholdSuggestionController::class, 'index'])->name('members.households.suggestions');
+        Route::post('members/households/suggestions/confirm', [HouseholdSuggestionController::class, 'confirm'])->name('members.households.suggestions.confirm');
+        Route::post('members/households/suggestions/dismiss', [HouseholdSuggestionController::class, 'dismiss'])->name('members.households.suggestions.dismiss');
         Route::get('members/households/{household}', [HouseholdController::class, 'show'])->whereNumber('household')->name('members.households.show');
         Route::put('members/households/{household}', [HouseholdController::class, 'update'])->whereNumber('household')->name('members.households.update');
         Route::post('members/households/{household}/members', [HouseholdController::class, 'addMember'])->whereNumber('household')->name('members.households.members.add');

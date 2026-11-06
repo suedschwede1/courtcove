@@ -77,6 +77,7 @@ class MembersLayoutTest extends TestCase
             route('members.edit', $member) => 'members.index',
             route('members.payments.create', $member) => 'members.index',
             route('members.households.index') => 'members.households.index',
+            route('members.households.suggestions') => 'members.households.index',
             route('members.households.show', $household->id) => 'members.households.index',
             route('members.households.replace-dues.preview', ['household' => $household->id, 'fiscal_year_id' => $fiscalYear->id]) => 'members.households.index',
             route('members.dues.index') => 'members.dues.index',
@@ -104,8 +105,8 @@ class MembersLayoutTest extends TestCase
             ->reject(fn (string $name) => $name === 'members.export')
             ->values()->all();
 
-        $this->assertCount(21, $names);
-        $this->assertCount(21, $this->pages());
+        $this->assertCount(22, $names);
+        $this->assertCount(22, $this->pages());
     }
 
     #[Test]
@@ -354,7 +355,7 @@ class MembersLayoutTest extends TestCase
             $this->assertStringNotContainsString("@section('admin-", $source, $name);
             $pages++;
         }
-        $this->assertSame(20, $pages);
+        $this->assertSame(21, $pages);
     }
 
     #[Test]

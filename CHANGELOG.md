@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-06
+- Members: page "Mögliche Familien" (button on the Haushalte list) lists suggested families with their reasons; a household is created only by "Haushalt anlegen" with the ticked members (optional name and tariff), "Kein Haushalt" hides the suggestion; the page names the processing purpose and creates nothing on its own.
 - Members (family fee groundwork): suggestions of possible families from a shared address (normalised street and zip), e-mail or phone (last 9 digits) among current members without household; read-only, dismissed groups stay hidden, nothing is created automatically.
 - Members export: two new columns "Haushalt" (household name or last names) and "Zahlende Person" ("ja" for the paying person).
 - Members Rundmail: new audience "Beitrag {Jahr} offen" (active members with an open own due and, for an open household due, only the paying person); households without a paying person get no mail and are shown as "n Haushalte ohne zahlende Person (nicht angeschrieben)".
