@@ -253,7 +253,7 @@ class MemberManagementTest extends TestCase
     }
 
     #[Test]
-    public function the_list_marks_name_email_category_and_phone_as_editable_fields(): void
+    public function the_list_marks_name_category_and_phone_as_editable_fields(): void
     {
         $category = FeeCategory::create(['name' => 'Vollzahler']);
         Member::factory()->create([
@@ -265,8 +265,8 @@ class MemberManagementTest extends TestCase
             ->assertOk()
             ->assertSee('data-field="firstname"', false)
             ->assertSee('data-field="fee_category_id"', false)
-            ->assertSee('data-field="email"', false)
             ->assertSee('data-field="phone"', false)
+            ->assertDontSee('data-field="email"', false)
             ->assertSee('window.saveMemberField', false);
     }
 
@@ -401,8 +401,8 @@ class MemberManagementTest extends TestCase
 
         $response = $this->actingAs($this->admin())->get('/members');
 
-        $response->assertOk()->assertSeeInOrder(['Verknuepft Mitglied', 'verknüpft']);
-        $response->assertSeeInOrder(['Unverknuepft Mitglied', '–']);
+        $response->assertOk()->assertSeeInOrder(['Mitglied, Verknuepft', 'verknüpft']);
+        $response->assertSeeInOrder(['Mitglied, Unverknuepft', '–', 'Mitglied, Verknuepft']);
     }
 
     #[Test]

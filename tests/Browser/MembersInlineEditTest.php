@@ -43,32 +43,53 @@ final class MembersInlineEditTest extends DuskTestCase
     }
 
     #[Test]
-    public function invalid_email_keeps_the_editor_open(): void
+    public function an_empty_last_name_keeps_the_editor_open(): void
     {
         $admin = $this->createAdminUser('dusk_members');
         $member = $this->createMember();
 
         try {
             $this->browse(function (Browser $browser) use ($admin): void {
+                $lastname = 'td[data-field="firstname"] input[aria-label="Nachname"]';
                 $browser->loginAs($admin)
                     ->visit('/members')
-                    ->click('td[data-field="email"]')
-                    ->waitFor('td[data-field="email"] input')
-                    ->clear('td[data-field="email"] input')
-                    ->type('td[data-field="email"] input', 'kein-mail')
-                    ->keys('td[data-field="email"] input', '{enter}')
-                    ->waitFor('td[data-field="email"] p.ds-field__error', 5)
-                    ->assertVisible('td[data-field="email"] input');
+                    ->click('td[data-field="firstname"]')
+                    ->waitFor($lastname)
+                    ->clear($lastname)
+                    ->keys($lastname, '{enter}')
+                    ->waitFor('td[data-field="firstname"] p.ds-field__error', 5)
+                    ->assertVisible($lastname);
             });
 
-            $this->assertSame('anna.muster@example.com', $member->fresh()?->email);
+            $this->assertSame('Muster', $member->fresh()?->lastname);
         } finally {
             $this->deleteTestUser('dusk_members');
         }
     }
 
     #[Test]
-    public function status_can_be_changed_at_phone_width(): void
+    public function status_can_be_changed_in_the_table(): void
+    {
+        $admin = $this->createAdminUser('dusk_members');
+        $id = $this->createMember()->id;
+
+        try {
+            $this->browse(function (Browser $browser) use ($admin, $id): void {
+                $browser->resize(1440, 900)
+                    ->loginAs($admin)
+                    ->visit('/members')
+                    ->click('td[data-field="status"]')
+                    ->waitFor('td[data-field="status"] select')
+                    ->select('td[data-field="status"] select', 'ruhend')
+                    ->waitUsing(5, 100, fn () => Member::find($id)?->status === 'ruhend');
+            });
+        } finally {
+            $this->deleteTestUser('dusk_members');
+        }
+    }
+
+    #[Test]
+    public function phone_cards_open_the_member(): void
     {
         $admin = $this->createAdminUser('dusk_members');
         $id = $this->createMember()->id;
@@ -78,10 +99,9 @@ final class MembersInlineEditTest extends DuskTestCase
                 $browser->resize(390, 844)
                     ->loginAs($admin)
                     ->visit('/members')
-                    ->click('td[data-field="status"]')
-                    ->waitFor('td[data-field="status"] select')
-                    ->select('td[data-field="status"] select', 'ruhend')
-                    ->waitUsing(5, 100, fn () => Member::find($id)?->status === 'ruhend');
+                    ->assertMissing('td[data-field="status"]')
+                    ->click('a.mbr-member-card')
+                    ->waitForLocation('/members/'.$id.'/edit');
             });
         } finally {
             $this->deleteTestUser('dusk_members');

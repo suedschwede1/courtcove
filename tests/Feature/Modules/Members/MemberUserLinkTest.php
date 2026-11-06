@@ -99,7 +99,7 @@ class MemberUserLinkTest extends TestCase
         $html = (string) $this->actingAs($this->admin())->get(route('members.index'))->assertOk()->getContent();
 
         $this->assertStringContainsString(e(__('members::admin.members.user_account')), $html);
-        $this->assertMatchesRegularExpression('#<span class="text-ink-3[^"]*">\('.preg_quote(e(__('members::admin.members.optional')), '#').'\)</span>#', $html);
+        $this->assertMatchesRegularExpression('#<span class="[^"]*text-ink-3[^"]*">\('.preg_quote(e(__('members::admin.members.optional')), '#').'\)</span>#', $html);
         $this->assertMatchesRegularExpression('#<a href="'.preg_quote(route('admin.users.edit', $user), '#').'"[^>]*>'.preg_quote(e(__('members::admin.members.linked')), '#').'</a>#', $html);
         $this->assertMatchesRegularExpression('#data-label="'.preg_quote(e(__('members::admin.members.user_account')), '#').'">\s*–\s*</td>#', $html);
         $this->assertStringNotContainsString(e(__('members::admin.members.booking_user_short')).'</th>', $html);
