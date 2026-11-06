@@ -84,6 +84,10 @@ Route::middleware('auth')->group(function (): void {
     Route::put('/bookings/{booking}', [BookingController::class, 'update'])->name('bookings.update');
     Route::delete('/bookings/{booking}', [BookingController::class, 'destroy'])->name('bookings.destroy');
 
+    Route::post('/bookings/{booking}/join', [PlayerExchangeController::class, 'join'])->name('player-exchange.join');
+    Route::delete('/bookings/{booking}/join', [PlayerExchangeController::class, 'leave'])->name('player-exchange.leave');
+    Route::post('/bookings/{booking}/search/end', [PlayerExchangeController::class, 'end'])->name('player-exchange.end');
+
     Route::get('/my-bookings', [AccountController::class, 'bookings'])->name('account.bookings');
     Route::get('/my-account', [AccountController::class, 'edit'])->name('account.edit');
     Route::put('/my-account', [AccountController::class, 'update'])->name('account.update');

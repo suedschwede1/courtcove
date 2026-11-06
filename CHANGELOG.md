@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-06
+- Player exchange: opted-in active members can join an open search (POST /bookings/{booking}/join; their name goes into the first free player slot, the last place sets the search to filled) and leave it again until one hour before the start (DELETE, a filled search opens again); the booker can end an open search (POST /bookings/{booking}/search/end, booking and joined players stay). Joining is refused for the booker, after the deadline, when full, or when the member already has an active booking or a signup at an overlapping time on any court; joins run under a row lock on the booking, so two parallel joins never get the last place twice (proven on MySQL). No UI or mail yet.
 - Schema checker knows the player exchange tables (player_exchange_searches, player_exchange_signups), so the manifest test passes again.
 - Player exchange: a new single booking can open a player search (number of missing players, at most places minus booker minus named players); it ends one hour before the start and is refused when the booking starts in less than an hour (no booking is created then); no UI or mail yet.
 - Player exchange opt-in: "Mein Konto" has a checkbox "Spielerbörse" (de/en texts) that joins or leaves the exchange; a signed, non-expiring link /player-exchange/unsubscribe/{user} opts a member out with one click without login (tampered links get 403) and shows a confirmation page.
