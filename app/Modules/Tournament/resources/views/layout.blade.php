@@ -1,16 +1,13 @@
 {{--
-    Frame of every championship page: tournament title, module tabs, the test mode / test tournament bars,
-    the open token-draw hint, the module flash list and the page content (section tournament-content).
-    Needs the shared page context (TournamentPage::build()): $tournament, $access, $tabs, $stopUrl,
-    $testTournament, $tokenHint.
+    Frame of every championship page: tournament title, the test mode / test tournament bars, the open token-draw
+    hint, the module flash list and the page content (section tournament-content). The module navigation is the
+    tournament sidebar (ChampionshipNavigation).
+    Needs the shared page context (TournamentPage::build()): $tournament, $access, $stopUrl, $testTournament,
+    $tokenHint.
 --}}
 @extends('tournament-base::layouts.module')
 
 @section('title', $tournament->title)
-
-@section('tabs')
-    @include('tournament-base::partials.module-tabs', ['items' => $tabs, 'label' => __('tournament::common.tabs_label')])
-@endsection
 
 @section('module-banner')
     @include('tournament-base::partials.test-banner', ['simulation' => $access->simulation, 'stopUrl' => $stopUrl, 'testTournament' => $testTournament])

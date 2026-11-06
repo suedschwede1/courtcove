@@ -5,7 +5,7 @@ namespace Tests\Feature\Admin;
 use App\Models\User;
 use App\Modules\Members\Models\Member;
 use App\Services\AdminNavigation;
-use App\Support\Ui\AdminNavGroup;
+use App\Support\Navigation\AreaNavGroup;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Http\Request;
 use PHPUnit\Framework\Attributes\Test;
@@ -16,7 +16,7 @@ final class AdminNavigationTest extends TestCase
     use LazilyRefreshDatabase;
 
     /**
-     * @return list<AdminNavGroup>
+     * @return list<AreaNavGroup>
      */
     private function groupsFor(User $user, string $url, string $method = 'GET'): array
     {
@@ -27,7 +27,7 @@ final class AdminNavigationTest extends TestCase
     }
 
     /**
-     * @param  list<AdminNavGroup>  $groups
+     * @param  list<AreaNavGroup>  $groups
      * @return list<string>
      */
     private function activeKeys(array $groups): array

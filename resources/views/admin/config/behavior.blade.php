@@ -50,6 +50,38 @@
             </x-ui.field>
         </x-ui.card>
 
+        <x-ui.card :title="__('booking.admin.booking_rules.title')" padding="lg" class="ds-admin-form-card">
+            <p class="ds-field__help">{{ __('booking.admin.booking_rules.intro') }}</p>
+            <div class="ds-admin-form-grid">
+                <x-ui.field :label="__('booking.admin.booking_rules.time_block')" for="cf-rule-time-block" :help="__('booking.admin.booking_rules.time_block_hint')">
+                    <x-ui.input id="cf-rule-time-block" name="rule_time_block" type="number" min="1" max="1440" step="1" inputmode="numeric" :value="old('rule_time_block', $values['rule_time_block'])" />
+                </x-ui.field>
+                <x-ui.field :label="__('booking.admin.booking_rules.min_range_book')" for="cf-rule-min-range" :help="__('booking.admin.booking_rules.min_range_book_hint')">
+                    <x-ui.input id="cf-rule-min-range" name="rule_min_range_book" type="number" min="0" step="1" inputmode="numeric" :value="old('rule_min_range_book', $values['rule_min_range_book'])" />
+                </x-ui.field>
+                <x-ui.field :label="__('booking.admin.booking_rules.range_book')" for="cf-rule-range" :help="__('booking.admin.booking_rules.range_book_hint')">
+                    <x-ui.input id="cf-rule-range" name="rule_range_book" type="number" min="0" max="3650" step="1" inputmode="numeric" :value="old('rule_range_book', $values['rule_range_book'])" />
+                </x-ui.field>
+                <x-ui.field :label="__('booking.admin.booking_rules.short_booking_window')" for="cf-rule-short" :help="__('booking.admin.booking_rules.short_booking_window_hint')">
+                    <x-ui.input id="cf-rule-short" name="rule_short_booking_window" type="number" min="0" max="1440" step="1" inputmode="numeric" :value="old('rule_short_booking_window', $values['rule_short_booking_window'])" />
+                </x-ui.field>
+                <x-ui.field :label="__('booking.admin.booking_rules.range_cancel')" for="cf-rule-cancel" :help="__('booking.admin.booking_rules.range_cancel_hint')">
+                    <x-ui.input id="cf-rule-cancel" name="rule_range_cancel" type="number" min="0" max="8760" step="0.01" inputmode="decimal" :value="old('rule_range_cancel', $values['rule_range_cancel'])" />
+                </x-ui.field>
+            </div>
+        </x-ui.card>
+
+        <x-ui.card :title="__('booking.admin.time_blocks.title')" padding="lg" class="ds-admin-form-card">
+            <div class="ds-admin-split">
+                <x-ui.field :label="__('booking.admin.time_blocks.min_label')" for="cf-time-block-min" :help="__('booking.admin.time_blocks.min_hint')">
+                    <x-ui.input id="cf-time-block-min" name="time_block_bookable_min" type="number" min="0" max="1440" step="1" inputmode="numeric" :value="old('time_block_bookable_min', $values['time_block_bookable_min'])" />
+                </x-ui.field>
+                <x-ui.field :label="__('booking.admin.time_blocks.max_label')" for="cf-time-block-max" :help="__('booking.admin.time_blocks.max_hint')">
+                    <x-ui.input id="cf-time-block-max" name="time_block_bookable_max" type="number" min="0" max="1440" step="1" inputmode="numeric" :value="old('time_block_bookable_max', $values['time_block_bookable_max'])" />
+                </x-ui.field>
+            </div>
+        </x-ui.card>
+
         <x-ui.card :title="__('booking.admin.max_active_bookings.title')" padding="lg" class="ds-admin-form-card">
             <x-ui.field :label="__('booking.admin.max_active_bookings.label')" for="cf-max-active" :help="__('booking.admin.max_active_bookings.hint')">
                 <x-ui.input id="cf-max-active" name="max_active_bookings" type="number" min="0" max="999" :value="old('max_active_bookings', $values['max_active_bookings'])" />
@@ -63,6 +95,9 @@
                 </x-ui.option-group>
                 <p class="ds-field__help" id="cf-peak-help">{{ __('booking.admin.peak_limit.hint') }}</p>
             </div>
+            <x-ui.field :label="__('booking.admin.peak_limit.max_label')" for="cf-peak-max" :help="__('booking.admin.peak_limit.max_hint')">
+                <x-ui.input id="cf-peak-max" name="peak_limit_max" type="number" min="0" max="999" step="1" inputmode="numeric" :value="old('peak_limit_max', $values['peak_limit_max'])" />
+            </x-ui.field>
             <div class="ds-admin-split">
                 <x-ui.field :label="__('booking.admin.peak_limit.window_1_from')" for="cf-peak-w1-start">
                     <x-ui.input id="cf-peak-w1-start" name="peak_limit_w1_start" type="time" :value="old('peak_limit_w1_start', $values['peak_limit_w1_start'])" />
@@ -77,6 +112,7 @@
                     <x-ui.input id="cf-peak-w2-end" name="peak_limit_w2_end" type="time" :value="old('peak_limit_w2_end', $values['peak_limit_w2_end'])" />
                 </x-ui.field>
             </div>
+            <p class="ds-field__help">{{ __('booking.admin.peak_limit.example') }}</p>
         </x-ui.card>
 
         <div class="ds-admin-actions ds-admin-actions--sticky">

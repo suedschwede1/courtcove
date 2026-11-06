@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Option;
 use App\Models\Square;
+use App\Services\BookingRules;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -41,7 +42,7 @@ final class SquareController extends Controller
         $square = Square::create(array_merge([
             'capacity' => self::DEFAULT_CAPACITY,
             'capacity_heterogenic' => self::DEFAULT_CAPACITY_HETEROGENIC,
-        ], $payload['columns']));
+        ], app(BookingRules::class)->columnsForNewCourt(), $payload['columns']));
         $this->applyMeta($square, $payload['meta']);
 
         return redirect()->route('admin.squares.index')->with('success', __('booking.messages.square_created'));
@@ -100,14 +101,6 @@ final class SquareController extends Controller
             'name_visibility' => $visibility,
             'time_start' => substr((string) $square->time_start, 0, 5),
             'time_end' => substr((string) $square->time_end, 0, 5),
-            'time_block' => (int) round($square->time_block / 60),
-            'time_block_bookable' => (int) round($square->time_block_bookable / 60),
-            'pseudo_time_block_bookable' => $square->getMeta('pseudo-time-block-bookable') === 'true',
-            'time_block_bookable_max' => (int) round(((int) $square->time_block_bookable_max) / 60),
-            'min_range_book' => (int) round($square->min_range_book / 60),
-            'range_book' => (int) round(((int) $square->range_book) / 86400),
-            'short_booking_window' => (int) round(((int) ($square->getMeta('short-booking-window') ?? '0')) / 60),
-            'range_cancel' => round(((int) $square->range_cancel) / 3600, 2),
             'label_free' => (string) $square->getMeta('label.free'),
             'peak_limit_enabled' => $square->getMeta('peak_limit_enabled') === '1',
         ];
@@ -125,13 +118,6 @@ final class SquareController extends Controller
             'name_visibility' => ['required', 'in:none,private,public'],
             'time_start' => ['required', 'regex:/^\d{2}:\d{2}$/'],
             'time_end' => ['required', 'regex:/^\d{2}:\d{2}$/'],
-            'time_block' => ['required', 'integer', 'min:0'],
-            'time_block_bookable' => ['required', 'integer', 'min:0'],
-            'time_block_bookable_max' => ['required', 'integer', 'min:0'],
-            'min_range_book' => ['required', 'integer', 'min:0'],
-            'range_book' => ['required', 'integer', 'min:0'],
-            'short_booking_window' => ['required', 'integer', 'min:0'],
-            'range_cancel' => ['required', 'numeric', 'min:0'],
             'label_free' => ['nullable', 'string', 'max:64'],
             'peak_limit_enabled' => ['nullable', 'in:0,1'],
         ]);
@@ -143,12 +129,6 @@ final class SquareController extends Controller
             'allow_notes' => $request->boolean('allow_notes') ? 1 : 0,
             'time_start' => $data['time_start'].':00',
             'time_end' => $data['time_end'].':00',
-            'time_block' => (int) $data['time_block'] * 60,
-            'time_block_bookable' => (int) $data['time_block_bookable'] * 60,
-            'time_block_bookable_max' => (int) $data['time_block_bookable_max'] * 60,
-            'min_range_book' => (int) $data['min_range_book'] * 60,
-            'range_book' => (int) $data['range_book'] * 86400,
-            'range_cancel' => (int) round(((float) $data['range_cancel']) * 3600),
         ];
 
         [$privateNames, $publicNames] = match ($data['name_visibility']) {
@@ -157,18 +137,19 @@ final class SquareController extends Controller
             default => ['false', 'false'],
         };
 
-        $shortBookingWindowSeconds = (int) $data['short_booking_window'] * 60;
-
         $meta = [
             'alias' => $this->nullIfBlank($data['alias'] ?? null),
             'readonly.message' => $this->nullIfBlank($data['readonly_message'] ?? null),
             'private_names' => $privateNames,
             'public_names' => $publicNames,
-            'pseudo-time-block-bookable' => $request->boolean('pseudo_time_block_bookable') ? 'true' : 'false',
-            'short-booking-window' => $shortBookingWindowSeconds > 0 ? (string) $shortBookingWindowSeconds : null,
             'label.free' => $this->nullIfBlank($data['label_free'] ?? null),
             'peak_limit_enabled' => $request->boolean('peak_limit_enabled') ? '1' : '0',
         ];
+
+        // While the peak limit is globally off the court switch is shown disabled and not sent: keep the stored value.
+        if (Option::getValue('peak_limit.enabled', '0') !== '1') {
+            unset($meta['peak_limit_enabled']);
+        }
 
         return ['columns' => $columns, 'meta' => $meta];
     }
@@ -195,10 +176,7 @@ final class SquareController extends Controller
             'name' => '', 'alias' => '', 'status' => 'enabled', 'readonly_message' => '',
             'priority' => 1,
             'allow_notes' => false, 'name_visibility' => 'private',
-            'time_start' => '08:00', 'time_end' => '23:00', 'time_block' => 60,
-            'time_block_bookable' => 30, 'pseudo_time_block_bookable' => false,
-            'time_block_bookable_max' => 180, 'min_range_book' => 0, 'range_book' => 56,
-            'short_booking_window' => 0, 'range_cancel' => 24, 'label_free' => '',
+            'time_start' => '08:00', 'time_end' => '23:00', 'label_free' => '',
             'peak_limit_enabled' => false,
         ];
     }

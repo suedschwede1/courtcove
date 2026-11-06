@@ -1,8 +1,8 @@
-{{-- Frame of every Mixed player page: public layout, page gutter, module flash notices. --}}
-@extends('layouts.app')
+{{-- Frame of every Mixed player page: the tournament area shell, the content width and the module warning notice. --}}
+@extends('tournament-base::layouts.area')
 
-@section('content')
-<div class="mx-auto flex w-full max-w-page flex-col gap-4 px-4 pb-10 pt-5 md:px-6">
+@section('admin-content')
+<div class="mx-auto flex w-full min-w-0 max-w-page flex-col gap-4">
     @include('mixed::partials.flash')
     @yield('mixed-content')
 </div>

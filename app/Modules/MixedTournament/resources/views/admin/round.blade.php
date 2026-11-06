@@ -42,7 +42,6 @@
     @endslot
 @endcomponent
 
-@include('mixed::partials.tabs', ['event' => $event, 'active' => 'round:'.$round->id, 'adminView' => true, 'canAdmin' => $canAdmin])
 
 @if ($withResults)
     @include('mixed::partials.scroll-restore', ['scrollId' => $round->id])

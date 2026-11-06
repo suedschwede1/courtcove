@@ -6,8 +6,8 @@ namespace Tests\Feature\Modules\Members;
 
 use App\Models\User;
 use App\Modules\Members\Support\MembersNavigation;
-use App\Support\Ui\AdminNavGroup;
-use App\Support\Ui\NavItem;
+use App\Support\Navigation\AreaNavGroup;
+use App\Support\Navigation\AreaNavItem;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -56,10 +56,10 @@ class MembersNavigationTest extends TestCase
     #[Test]
     public function two_groups_list_the_areas_and_the_settings_pages_in_order(): void
     {
-        $groups = MembersNavigation::groups($this->admin(), $this->requestFor('members.dashboard'));
+        $groups = app(MembersNavigation::class)->groups($this->admin(), $this->requestFor('members.dashboard'));
 
-        $this->assertSame(['members', 'settings'], array_map(fn (AdminNavGroup $g) => $g->key, $groups));
-        $this->assertSame([__('members::admin.members.title'), __('members::admin.settings.title')], array_map(fn (AdminNavGroup $g) => $g->label, $groups));
+        $this->assertSame(['members', 'settings'], array_map(fn (AreaNavGroup $g) => $g->key, $groups));
+        $this->assertSame([__('members::admin.members.title'), __('members::admin.settings.title')], array_map(fn (AreaNavGroup $g) => $g->label, $groups));
 
         $expected = [
             'dashboard' => ['members.dashboard', 'members::admin.dashboard.title'],
@@ -88,11 +88,11 @@ class MembersNavigationTest extends TestCase
     public function german_labels(): void
     {
         app()->setLocale('de');
-        $groups = MembersNavigation::groups($this->admin(), $this->requestFor('members.dashboard'));
+        $groups = app(MembersNavigation::class)->groups($this->admin(), $this->requestFor('members.dashboard'));
 
-        $this->assertSame(['Mitglieder', 'Einstellungen'], array_map(fn (AdminNavGroup $g) => $g->label, $groups));
-        $this->assertSame(['Übersicht', 'Mitglieder', 'Haushalte', 'Beiträge', 'Rundmail', 'Protokoll'], array_map(fn (NavItem $i) => $i->label, $groups[0]->items));
-        $this->assertSame(['Geschäftsjahre', 'Beitragskategorien', 'Funktionen', 'Mail-Konfiguration', 'Datenschutz'], array_map(fn (NavItem $i) => $i->label, $groups[1]->items));
+        $this->assertSame(['Mitglieder', 'Einstellungen'], array_map(fn (AreaNavGroup $g) => $g->label, $groups));
+        $this->assertSame(['Übersicht', 'Mitglieder', 'Haushalte', 'Beiträge', 'Rundmail', 'Protokoll'], array_map(fn (AreaNavItem $i) => $i->label, $groups[0]->items));
+        $this->assertSame(['Geschäftsjahre', 'Beitragskategorien', 'Funktionen', 'Mail-Konfiguration', 'Datenschutz'], array_map(fn (AreaNavItem $i) => $i->label, $groups[1]->items));
     }
 
     #[Test]
@@ -114,7 +114,7 @@ class MembersNavigationTest extends TestCase
         $admin = $this->admin();
 
         foreach (self::GET_ROUTES as $route => [$parameters, $entry]) {
-            $groups = MembersNavigation::groups($admin, $this->requestFor($route, $parameters));
+            $groups = app(MembersNavigation::class)->groups($admin, $this->requestFor($route, $parameters));
 
             $this->assertSame($entry === null ? [] : [$entry], $this->activeKeys($groups), $route);
         }
@@ -125,14 +125,14 @@ class MembersNavigationTest extends TestCase
     {
         $admin = $this->admin();
 
-        $this->assertSame(['mail'], $this->activeKeys(MembersNavigation::groups($admin, $this->requestFor('members.mail.templates.update', ['mailTemplate' => 1], 'PUT'))));
-        $this->assertSame(['functions'], $this->activeKeys(MembersNavigation::groups($admin, $this->requestFor('members.functions.update', ['clubRole' => 1], 'PUT'))));
+        $this->assertSame(['mail'], $this->activeKeys(app(MembersNavigation::class)->groups($admin, $this->requestFor('members.mail.templates.update', ['mailTemplate' => 1], 'PUT'))));
+        $this->assertSame(['functions'], $this->activeKeys(app(MembersNavigation::class)->groups($admin, $this->requestFor('members.functions.update', ['clubRole' => 1], 'PUT'))));
     }
 
     #[Test]
     public function nothing_is_active_outside_the_module(): void
     {
-        $this->assertSame([], $this->activeKeys(MembersNavigation::groups($this->admin(), $this->requestFor('admin.dashboard'))));
+        $this->assertSame([], $this->activeKeys(app(MembersNavigation::class)->groups($this->admin(), $this->requestFor('admin.dashboard'))));
     }
 
     #[Test]
@@ -140,17 +140,17 @@ class MembersNavigationTest extends TestCase
     {
         $request = $this->requestFor('members.dashboard');
 
-        $this->assertSame([], MembersNavigation::groups(null, $request));
-        $this->assertSame([], MembersNavigation::groups(User::factory()->create(['status' => 'user']), $request));
+        $this->assertSame([], app(MembersNavigation::class)->groups(null, $request));
+        $this->assertSame([], app(MembersNavigation::class)->groups(User::factory()->create(['status' => 'user']), $request));
 
         $bookingAssist = User::factory()->status('assist')->create();
         $bookingAssist->syncPrivileges(['admin.see-menu', 'admin.booking', 'admin.user']);
-        $this->assertSame([], MembersNavigation::groups($bookingAssist->fresh(), $request));
+        $this->assertSame([], app(MembersNavigation::class)->groups($bookingAssist->fresh(), $request));
 
         $membersAssist = User::factory()->status('assist')->create();
         $membersAssist->syncPrivileges(['admin.members']);
-        $groups = MembersNavigation::groups($membersAssist->fresh(), $request);
-        $this->assertSame(['members', 'settings'], array_map(fn (AdminNavGroup $g) => $g->key, $groups));
+        $groups = app(MembersNavigation::class)->groups($membersAssist->fresh(), $request);
+        $this->assertSame(['members', 'settings'], array_map(fn (AreaNavGroup $g) => $g->key, $groups));
         $this->assertCount(6, $groups[0]->items);
         $this->assertCount(5, $groups[1]->items);
     }
@@ -168,16 +168,16 @@ class MembersNavigationTest extends TestCase
     }
 
     /**
-     * @param  list<NavItem>  $items
+     * @param  list<AreaNavItem>  $items
      * @return list<string>
      */
     private function keys(array $items): array
     {
-        return array_map(fn (NavItem $i) => $i->key, $items);
+        return array_map(fn (AreaNavItem $i) => $i->key, $items);
     }
 
     /**
-     * @param  list<AdminNavGroup>  $groups
+     * @param  list<AreaNavGroup>  $groups
      * @return list<string>
      */
     private function activeKeys(array $groups): array

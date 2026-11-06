@@ -5,17 +5,17 @@ declare(strict_types=1);
 namespace App\Modules\Members\Support;
 
 use App\Models\User;
-use App\Support\Ui\AdminNavGroup;
-use App\Support\Ui\NavItem;
+use App\Support\Navigation\AreaNavBuilder;
+use App\Support\Navigation\AreaNavGroup;
+use App\Support\Navigation\AreaNavigation;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 
 /**
- * Navigation of the Members area in the left sidebar of the admin shell, as in the Mitglieder-* mockups: group
+ * Navigation of the Members area in the left sidebar of the area shell, as in the Mitglieder-* mockups: group
  * "Mitglieder" (overview, members, dues, mail, change log) and group "Einstellungen" (the settings pages). An entry
  * is active when the current route matches one of its patterns; only entries the user's gate allows are listed.
  */
-final class MembersNavigation
+final class MembersNavigation implements AreaNavigation
 {
     /**
      * group key => [group label key, rows]; row key => [route, gate, label key, active route patterns].
@@ -40,31 +40,37 @@ final class MembersNavigation
         ]],
     ];
 
+    public function eyebrow(): string
+    {
+        return (string) __('booking.nav.members');
+    }
+
+    public function label(): string
+    {
+        return (string) __('members::admin.area.nav');
+    }
+
     /**
      * The sidebar groups of the Members area; a group without a visible entry is left out.
      *
-     * @return list<AdminNavGroup>
+     * @return list<AreaNavGroup>
      */
-    public static function groups(?User $user, Request $request): array
+    public function groups(?User $user, Request $request): array
     {
         if ($user === null) {
             return [];
         }
 
-        $gate = Gate::forUser($user);
+        $nav = new AreaNavBuilder($user, $request);
         $groups = [];
         foreach (self::GROUPS as $groupKey => [$groupLabel, $rows]) {
             $items = [];
             foreach ($rows as $key => [$route, $ability, $label, $patterns]) {
-                if ($gate->allows($ability)) {
-                    $items[] = new NavItem($key, (string) __($label), route($route), '', $request->routeIs(...$patterns));
-                }
+                $items[] = $nav->item($key, (string) __($label), route($route), $patterns, $ability);
             }
-            if ($items !== []) {
-                $groups[] = new AdminNavGroup($groupKey, (string) __($groupLabel), $items);
-            }
+            $groups[] = $nav->group($groupKey, (string) __($groupLabel), $items);
         }
 
-        return $groups;
+        return AreaNavBuilder::groups($groups);
     }
 }

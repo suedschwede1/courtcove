@@ -151,6 +151,8 @@ return [
         'already_closed' => 'Fiscal year :year is already closed.',
         'not_closed' => 'Fiscal year :year is not closed.',
         'locked' => 'Fiscal year :year is closed. Changes are no longer possible.',
+        'overlap' => 'The date range overlaps fiscal year :year (:starts_on – :ends_on).',
+        'ends_before_start' => 'The end must not be before the start.',
     ],
     'fee_categories' => [
         'title' => 'Fee categories',
@@ -218,6 +220,11 @@ return [
         'year_not_found' => 'The selected fiscal year does not exist. Showing :year.',
         'no_rates_for_year' => 'No fee rates are set for fiscal year :year, please add them under Fee categories first.',
         'bezahlt_am_requires_paid' => '"Paid on" only applies to paid dues. Set the status to "Paid" first.',
+        'year_short' => 'Year',
+        'category_short' => 'Category',
+        'due_on' => 'due :date',
+        'details' => 'Details',
+        'details_for' => 'Show or hide the details of :year',
     ],
     'dashboard' => [
         'title' => 'Overview',
@@ -427,5 +434,11 @@ return [
             'payer_not_member' => ':name does not belong to this household and cannot be the paying person.',
             'not_member' => ':name does not belong to this household.',
         ],
+    ],
+    'import' => [
+        'summary' => 'Import finished: :created members created, :skipped skipped (already present), :updated updated, :dues dues created.',
+        'closed_year_skips' => 'Dues in closed fiscal years skipped: :count.',
+        'deactivated_category_skips' => 'Rows skipped because the fee category is deactivated: :count (:categories).',
+        'not_imported_fields' => 'Not imported (no field in the data model): age, booking system, remark.',
     ],
 ];

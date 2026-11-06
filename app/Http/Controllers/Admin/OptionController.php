@@ -7,10 +7,13 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Option;
 use App\Modules\TournamentBase\Support\MailSender;
+use App\Services\BookingRules;
 use App\Support\Mail\SystemMailSender;
+use Illuminate\Contracts\Validation\Validator as ValidatorContract;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\View\View;
 
 final class OptionController extends Controller
@@ -65,6 +68,28 @@ final class OptionController extends Controller
         'system_mail_account_reply_to' => SystemMailSender::OPTION_ACCOUNT_REPLY_TO_ADDRESS,
     ];
 
+    /** HH:MM, 00:00 to 23:59. */
+    private const TIME_PATTERN = '/^([01]\d|2[0-3]):[0-5]\d$/';
+
+    /** Global "Zeitblock min./max. buchbar" (BookingRules): form in minutes, option in seconds, clearable. */
+    private const TIME_BLOCK_MAP = [
+        'time_block_bookable_min' => BookingRules::TIME_BLOCK_MIN,
+        'time_block_bookable_max' => BookingRules::TIME_BLOCK_MAX,
+    ];
+
+    /**
+     * Card "Buchungsregeln" (BookingRules): form field => option key. The form shows the rule's display unit
+     * (BookingRule::displayDivisor: minutes, days, hours), the option stores seconds; an emptied field removes
+     * the option so the former court values apply again.
+     */
+    private const RULE_MAP = [
+        'rule_time_block' => BookingRules::TIME_BLOCK,
+        'rule_min_range_book' => BookingRules::MIN_RANGE_BOOK,
+        'rule_range_book' => BookingRules::RANGE_BOOK,
+        'rule_short_booking_window' => BookingRules::SHORT_BOOKING_WINDOW,
+        'rule_range_cancel' => BookingRules::RANGE_CANCEL,
+    ];
+
     private const BEHAVIOR_MAP = [
         'registration' => 'service.user.registration',
         'activation' => 'service.user.activation',
@@ -73,6 +98,7 @@ final class OptionController extends Controller
         'calendar_hide' => 'service.calendar.day-exceptions',
         'max_active_bookings' => 'booking.max_active_bookings',
         'peak_limit_enabled' => 'peak_limit.enabled',
+        'peak_limit_max' => 'peak_limit.max',
         'peak_limit_w1_start' => 'peak_limit.window_1_start',
         'peak_limit_w1_end' => 'peak_limit.window_1_end',
         'peak_limit_w2_start' => 'peak_limit.window_2_start',
@@ -122,6 +148,17 @@ final class OptionController extends Controller
             $values['max_active_bookings'] = '0';
         }
 
+        // Stored in seconds like the former court columns, shown in minutes; empty = not set (court values apply).
+        foreach (self::TIME_BLOCK_MAP as $field => $key) {
+            $seconds = app(BookingRules::class)->globalValue($key);
+            $values[$field] = $seconds === null ? '' : (string) intdiv($seconds, 60);
+        }
+
+        foreach (self::RULE_MAP as $field => $key) {
+            $seconds = app(BookingRules::class)->globalValue($key);
+            $values[$field] = $seconds === null ? '' : BookingRules::rule($key)->display($seconds);
+        }
+
         return view('admin.config.behavior', [
             'values' => $values,
         ]);
@@ -129,7 +166,32 @@ final class OptionController extends Controller
 
     public function updateBehavior(Request $request): RedirectResponse
     {
-        $data = $request->validate($this->behaviorRules());
+        $validator = Validator::make($request->all(), $this->behaviorRules());
+        $validator->after(fn (ValidatorContract $v) => $this->validatePeakWindows($v, $request));
+        $validator->after(fn (ValidatorContract $v) => $this->validateTimeBlocks($v, $request));
+        $validator->after(fn (ValidatorContract $v) => $this->validateBookingRules($v, $request));
+        $data = $validator->validate();
+
+        $rules = [];
+        foreach (self::RULE_MAP as $field => $key) {
+            if (array_key_exists($field, $data)) {
+                $rules[$field] = $data[$field] === null
+                    ? null
+                    : (string) (int) round(((float) $data[$field]) * BookingRules::rule($key)->displayDivisor);
+            }
+        }
+        $this->persistClearable(self::RULE_MAP, $rules);
+
+        $timeBlocks = [];
+        foreach (array_keys(self::TIME_BLOCK_MAP) as $field) {
+            if (array_key_exists($field, $data)) {
+                $timeBlocks[$field] = $data[$field] === null ? null : (string) ((int) $data[$field] * 60);
+            }
+        }
+        $this->persistClearable(self::TIME_BLOCK_MAP, $timeBlocks);
+
+        // An unticked checkbox sends nothing: without this the global peak switch could never be turned off.
+        $data['peak_limit_enabled'] = $request->boolean('peak_limit_enabled') ? '1' : '0';
         $this->persist(self::BEHAVIOR_MAP, $data);
 
         return redirect()->route('admin.config.behavior.edit')->with('success', __('booking.messages.config_saved'));
@@ -281,11 +343,76 @@ final class OptionController extends Controller
             'calendar_hide' => ['nullable', 'string', 'max:4096'],
             'max_active_bookings' => ['nullable', 'integer', 'min:0', 'max:999'],
             'peak_limit_enabled' => ['nullable', 'in:0,1'],
-            'peak_limit_w1_start' => ['nullable', 'regex:/^\d{2}:\d{2}$/'],
-            'peak_limit_w1_end' => ['nullable', 'regex:/^\d{2}:\d{2}$/'],
-            'peak_limit_w2_start' => ['nullable', 'regex:/^\d{2}:\d{2}$/'],
-            'peak_limit_w2_end' => ['nullable', 'regex:/^\d{2}:\d{2}$/'],
+            'peak_limit_max' => ['nullable', 'integer', 'min:0', 'max:999'],
+            'time_block_bookable_min' => ['nullable', 'integer', 'min:0', 'max:1440'],
+            'time_block_bookable_max' => ['nullable', 'integer', 'min:0', 'max:1440'],
+            'rule_time_block' => ['nullable', 'integer', 'min:1', 'max:1440'],
+            'rule_min_range_book' => ['nullable', 'integer', 'min:0', 'max:525600'],
+            'rule_range_book' => ['nullable', 'integer', 'min:0', 'max:3650'],
+            'rule_short_booking_window' => ['nullable', 'integer', 'min:0', 'max:1440'],
+            'rule_range_cancel' => ['nullable', 'numeric', 'min:0', 'max:8760', 'regex:/^\d+(\.\d{1,2})?$/'],
+            'peak_limit_w1_start' => ['nullable', 'string', 'regex:'.self::TIME_PATTERN],
+            'peak_limit_w1_end' => ['nullable', 'string', 'regex:'.self::TIME_PATTERN],
+            'peak_limit_w2_start' => ['nullable', 'string', 'regex:'.self::TIME_PATTERN],
+            'peak_limit_w2_end' => ['nullable', 'string', 'regex:'.self::TIME_PATTERN],
         ];
+    }
+
+    /** The Buchungsvorlauf (minutes) must be shorter than "Buchung im Voraus" (days) when that is limited. */
+    private function validateBookingRules(ValidatorContract $validator, Request $request): void
+    {
+        if ($validator->errors()->hasAny(['rule_min_range_book', 'rule_range_book'])) {
+            return;
+        }
+
+        $minRange = $request->input('rule_min_range_book');
+        $range = $request->input('rule_range_book');
+        if (is_numeric($minRange) && is_numeric($range) && (int) $range > 0 && (int) $minRange * 60 >= (int) $range * 86400) {
+            $validator->errors()->add('rule_min_range_book', __('booking.admin.booking_rules.vorlauf_beyond_range'));
+        }
+    }
+
+    /** The daily maximum is 0 (unlimited) or at least the minimum duration (both in minutes). */
+    private function validateTimeBlocks(ValidatorContract $validator, Request $request): void
+    {
+        if (array_intersect(array_keys(self::TIME_BLOCK_MAP), $validator->errors()->keys()) !== []) {
+            return;
+        }
+
+        $min = $request->input('time_block_bookable_min');
+        $max = $request->input('time_block_bookable_max');
+        if (is_numeric($min) && is_numeric($max) && (int) $max > 0 && (int) $max < (int) $min) {
+            $validator->errors()->add('time_block_bookable_max', __('booking.admin.time_blocks.max_below_min'));
+        }
+    }
+
+    /**
+     * Window 1 and window 2 must each start before they end, and window 2 must start at or after the end of
+     * window 1 (no overlap). Empty fields count with the value the page shows (stored or default).
+     */
+    private function validatePeakWindows(ValidatorContract $validator, Request $request): void
+    {
+        $fields = ['peak_limit_w1_start', 'peak_limit_w1_end', 'peak_limit_w2_start', 'peak_limit_w2_end'];
+        if (array_intersect($fields, $validator->errors()->keys()) !== []) {
+            return;
+        }
+
+        $current = $this->loadValues(self::BEHAVIOR_MAP, true);
+        $times = [];
+        foreach ($fields as $field) {
+            $value = $request->input($field);
+            $times[$field] = is_string($value) && $value !== '' ? $value : (string) $current[$field];
+        }
+
+        if ($times['peak_limit_w1_start'] >= $times['peak_limit_w1_end']) {
+            $validator->errors()->add('peak_limit_w1_end', __('booking.admin.peak_limit.window_order'));
+        }
+        if ($times['peak_limit_w2_start'] >= $times['peak_limit_w2_end']) {
+            $validator->errors()->add('peak_limit_w2_end', __('booking.admin.peak_limit.window_order'));
+        }
+        if ($times['peak_limit_w2_start'] < $times['peak_limit_w1_end']) {
+            $validator->errors()->add('peak_limit_w2_start', __('booking.admin.peak_limit.windows_overlap'));
+        }
     }
 
     private function peakDefaults(): array

@@ -13,13 +13,14 @@ use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\ViewErrorBag;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
  * The shared module shell as used by the championship (Plan D Task 12). Plans B/C already built the login
- * middleware (`tournament-base.login`), the 419 redirect (CsrfExpiredRedirect) and the tab partial
- * (`module-tabs`); this pins them for the `tournament.*` routes and adds the flash list and the banners.
+ * middleware (`tournament-base.login`) and the 419 redirect (CsrfExpiredRedirect); this pins them for the
+ * `tournament.*` routes and adds the flash list and the banners. The module tabs became the tournament sidebar.
  */
 class ModuleShellTest extends TestCase
 {
@@ -142,19 +143,6 @@ class ModuleShellTest extends TestCase
     }
 
     #[Test]
-    public function tabs_mark_the_active_item(): void
-    {
-        $html = view('tournament-base::partials.module-tabs', ['items' => [
-            ['label' => 'Übersicht', 'href' => '/tournament', 'active' => false],
-            ['label' => 'Gruppen', 'href' => '/tournament/groups', 'active' => true],
-            ['label' => 'Spielplan', 'href' => '/tournament/schedule'],
-        ]])->render();
-
-        $this->assertSame(1, substr_count($html, 'aria-current="page"'));
-        $this->assertMatchesRegularExpression('#href="/tournament/groups"[^>]*aria-current="page"#', $html);
-    }
-
-    #[Test]
     public function test_banner_shows_the_simulated_view_and_a_post_stop_button(): void
     {
         $html = view('tournament-base::partials.test-banner', [
@@ -184,18 +172,16 @@ class ModuleShellTest extends TestCase
     }
 
     #[Test]
-    public function module_layout_renders_title_tabs_and_content(): void
+    public function module_layout_renders_title_sidebar_and_content(): void
     {
         $this->actingAs(User::factory()->create(['status' => 'enabled']));
+        view()->share('errors', new ViewErrorBag);
         ModuleFlash::info('Hinweis eins');
 
         $html = Blade::render(<<<'BLADE'
             @extends('tournament-base::layouts.module')
             @section('title', 'Demo-Meisterschaft')
             @section('eyebrow', 'Vereinsmeisterschaft 2027')
-            @section('tabs')
-                @include('tournament-base::partials.module-tabs', ['items' => [['label' => 'Übersicht', 'href' => '/tournament', 'active' => true]]])
-            @endsection
             @section('module-content')
                 <p>Inhalt der Seite</p>
             @endsection
@@ -203,7 +189,8 @@ class ModuleShellTest extends TestCase
 
         $this->assertStringContainsString('Demo-Meisterschaft', $html);
         $this->assertStringContainsString('Vereinsmeisterschaft 2027', $html);
-        $this->assertStringContainsString('aria-current="page"', $html);
+        $this->assertStringContainsString('<aside id="admin-nav"', $html);
+        $this->assertStringNotContainsString('ds-tabs', $html);
         $this->assertStringContainsString('Hinweis eins', $html);
         $this->assertStringContainsString('Inhalt der Seite', $html);
     }

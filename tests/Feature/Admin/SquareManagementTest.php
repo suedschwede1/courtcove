@@ -66,8 +66,8 @@ class SquareManagementTest extends TestCase
 
         $square = Square::where('name', 'Center')->firstOrFail();
         $this->assertSame(3600, (int) $square->time_block);               // 60 min × 60
-        $this->assertSame(1800, (int) $square->time_block_bookable);      // 30 min × 60
-        $this->assertSame(10800, (int) $square->time_block_bookable_max); // 180 min × 60
+        $this->assertSame(1800, (int) $square->time_block_bookable);      // no court/option yet: former default 30 min (field is global now)
+        $this->assertSame(10800, (int) $square->time_block_bookable_max); // former default 180 min
         $this->assertSame(56 * 86400, (int) $square->range_book);         // 56 days
         $this->assertSame(86400, (int) $square->range_cancel);            // 24 h × 3600
         $this->assertSame('Alpha Court', $square->getMeta('alias'));
@@ -98,13 +98,13 @@ class SquareManagementTest extends TestCase
     #[Test]
     public function edit_page_reverse_converts_values(): void
     {
-        $square = Square::factory()->create([
-            'time_block' => 3600, 'range_book' => 56 * 86400, 'range_cancel' => 86400,
-        ]);
+        $square = Square::factory()->create(['time_start' => '07:30:00', 'time_end' => '21:15:00']);
 
+        // The booking rules (range_book etc.) are global now; the court form shows the opening hours as HH:MM.
         $this->actingAs($this->admin())->get(route('admin.squares.edit', $square))
             ->assertOk()
-            ->assertSee('value="56"', false);   // range_book 56*86400 sec ÷ 86400 = 56 days
+            ->assertSee('value="07:30"', false)
+            ->assertSee('value="21:15"', false);
     }
 
     #[Test]

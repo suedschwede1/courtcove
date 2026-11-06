@@ -33,6 +33,8 @@ class ChallengeActionsTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        // These tests pin the public behaviour (config off); TournamentLoginRequiredTest covers the default.
+        config(['tournament-base.require_login' => false]);
 
         $this->ladder = PyramidLadder::factory()->asDefault()->withRanking(10)->create();
         $this->challengerUser = $this->userAt(8, '+43 000 000 0008');

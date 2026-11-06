@@ -80,6 +80,16 @@ class FeeCategoryController
         }
 
         DB::transaction(function () use ($validated, $fiscalYearId): void {
+            // Again with the year row locked (year first): a close since validation still wins.
+            $closed = FiscalYear::lockForWrite($fiscalYearId);
+            if ($closed !== null) {
+                foreach ($validated['rates'] as $categoryId => $amount) {
+                    if ($this->changesRate((int) $categoryId, $fiscalYearId, $amount)) {
+                        throw ValidationException::withMessages(['fiscal_year_id' => $closed->lockedMessage()]);
+                    }
+                }
+            }
+
             foreach ($validated['rates'] as $categoryId => $amount) {
                 $this->saveRate((int) $categoryId, $fiscalYearId, $amount);
             }
@@ -109,20 +119,14 @@ class FeeCategoryController
             'rates.*' => ['nullable', 'numeric', 'min:0', 'max:'.self::MAX_AMOUNT],
         ]);
 
-        // Rates of a closed business year are locked; sending back the unchanged stored value is fine.
-        $closedYears = FiscalYear::query()->whereNotNull('abgeschlossen_am')->get()->keyBy('id');
-        $lockErrors = [];
-        foreach ($validated['rates'] ?? [] as $fiscalYearId => $amount) {
-            $year = $closedYears->get((int) $fiscalYearId);
-            if ($year !== null && $this->changesRate($category->id, (int) $fiscalYearId, $amount)) {
-                $lockErrors['rates.'.$fiscalYearId] = $year->lockedMessage();
-            }
-        }
-        if ($lockErrors !== []) {
-            throw ValidationException::withMessages($lockErrors);
-        }
+        $rates = $validated['rates'] ?? [];
+        $this->refuseClosedYearRates($category, $rates);
 
-        DB::transaction(function () use ($category, $validated): void {
+        DB::transaction(function () use ($category, $validated, $rates): void {
+            // Again with the year rows locked (years first): a close since validation still wins.
+            FiscalYear::lockForWrite(array_keys($rates));
+            $this->refuseClosedYearRates($category, $rates);
+
             $category->update(['name' => $validated['name']]);
 
             foreach ($validated['rates'] ?? [] as $fiscalYearId => $amount) {
@@ -151,6 +155,31 @@ class FeeCategoryController
 
         return back(fallback: route('members.fee-categories.index'))
             ->with('status', __('members::admin.fee_categories.reactivated_success', ['name' => $category->name]));
+    }
+
+    /**
+     * Rates of a closed business year are locked; sending back the unchanged stored value is fine.
+     *
+     * @param  array<int|string, mixed>  $rates  amounts keyed by fiscal year id
+     */
+    private function refuseClosedYearRates(FeeCategory $category, array $rates): void
+    {
+        if ($rates === []) {
+            return;
+        }
+
+        $closedYears = FiscalYear::query()->whereKey(array_map(intval(...), array_keys($rates)))
+            ->whereNotNull('abgeschlossen_am')->get()->keyBy('id');
+        $lockErrors = [];
+        foreach ($rates as $fiscalYearId => $amount) {
+            $year = $closedYears->get((int) $fiscalYearId);
+            if ($year !== null && $this->changesRate($category->id, (int) $fiscalYearId, $amount)) {
+                $lockErrors['rates.'.$fiscalYearId] = $year->lockedMessage();
+            }
+        }
+        if ($lockErrors !== []) {
+            throw ValidationException::withMessages($lockErrors);
+        }
     }
 
     /** Whether saving $amount would create or change the stored rate (an empty amount never does). */

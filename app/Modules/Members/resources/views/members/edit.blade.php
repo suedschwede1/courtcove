@@ -11,6 +11,10 @@
         'ueberfaellig' => __('members::admin.dues.status_ueberfaellig'),
     ];
     $composeOpen = $errors->hasAny(['member_id', 'fiscal_year_id', 'teilbetrag', 'kommentar']);
+    // Details rows (Bezahlt bis, Teilbetrag, Kommentar) start open where they hold something.
+    $openDues = $dues->reject(fn ($due) => $due->fiscalYear->isClosed())
+        ->mapWithKeys(fn ($due) => [(string) $due->id => $due->teilbetrag !== null || ($due->kommentar ?? '') !== '' || $due->bezahlt_bis_fiscal_year_id !== null])
+        ->all();
 @endphp
 <x-members::page-header :title="$member->fullName()">
     <x-slot:actions>
@@ -29,7 +33,7 @@
     @include('members::members._form', ['member' => $member])
 </form>
 
-<x-ui.card class="mbr-dues-card" padding="none" :title="__('members::admin.dues.title')" x-data="{ composing: {{ $composeOpen ? 'true' : 'false' }} }">
+<x-ui.card class="mbr-dues-card" padding="none" :title="__('members::admin.dues.title')" x-data="{ composing: {{ $composeOpen ? 'true' : 'false' }}, openDues: {{ json_encode((object) $openDues, JSON_THROW_ON_ERROR) }} }">
     <x-slot:actions>
         <x-ui.button variant="secondary" :block="false" icon="plus" aria-controls="md-compose" x-bind:aria-expanded="composing.toString()" x-on:click="composing = !composing">{{ __('members::admin.dues.new') }}</x-ui.button>
     </x-slot:actions>
@@ -52,17 +56,16 @@
         </x-ui.field>
         <x-ui.button type="submit" :block="false">{{ __('members::admin.common.save') }}</x-ui.button>
     </form>
-    <x-ui.table :caption="__('members::admin.dues.title')">
+    {{-- Compact list (Mitglied-Detail mockup): one line per year; Bezahlt bis, Teilbetrag and Kommentar in a details row. --}}
+    <x-ui.table class="mbr-dues-table" :stack="false" :caption="__('members::admin.dues.title')">
         <x-slot:head>
             <tr>
-                <th scope="col">{{ __('members::admin.dues.fiscal_year') }}</th>
-                <th scope="col">{{ __('members::admin.members.fee_category') }}</th>
-                <th scope="col">{{ __('members::admin.dues.amount') }}</th>
+                <th scope="col">{{ __('members::admin.dues.year_short') }}</th>
+                <th scope="col">{{ __('members::admin.dues.category_short') }}</th>
+                <th scope="col" class="mbr-due-amount">{{ __('members::admin.dues.amount') }}</th>
                 <th scope="col">{{ __('members::admin.dues.status') }}</th>
                 <th scope="col">{{ __('members::admin.dues.bezahlt_am') }}</th>
-                <th scope="col">{{ __('members::admin.dues.paid_through') }}</th>
-                <th scope="col">{{ __('members::admin.dues.teilbetrag') }}</th>
-                <th scope="col">{{ __('members::admin.dues.kommentar') }}</th>
+                <th scope="col"><span class="sr-only">{{ __('members::admin.dues.details') }}</span></th>
             </tr>
         </x-slot:head>
         @forelse($dues as $due)
@@ -72,11 +75,11 @@
             @php
                 $teilbetragDisplay = MembersFormat::optionalMoney($due->teilbetrag);
             @endphp
-            <tr>
-                <td class="ds-cell--title" data-label="{{ __('members::admin.dues.fiscal_year') }}">{{ $due->fiscalYear->name }}</td>
-                <td class="text-ink-2" data-label="{{ __('members::admin.members.fee_category') }}">{{ $due->feeCategory->name }}</td>
-                <td class="tabular-nums whitespace-nowrap" data-label="{{ __('members::admin.dues.amount') }}">{{ MembersFormat::money($due->amount) }}</td>
-                <td class="cursor-pointer"
+            <tr class="mbr-due-line">
+                <td class="mbr-due-year ds-cell--title" data-label="{{ __('members::admin.dues.year_short') }}">{{ $due->fiscalYear->name }}</td>
+                <td class="mbr-due-info" data-label="{{ __('members::admin.dues.category_short') }}">{{ $due->feeCategory->name }}@if($due->status !== 'bezahlt' && $due->faellig_am !== null) · {{ __('members::admin.dues.due_on', ['date' => $due->faellig_am->isoFormat('L')]) }}@endif</td>
+                <td class="mbr-due-amount tabular-nums whitespace-nowrap" data-label="{{ __('members::admin.dues.amount') }}" data-amount>{{ MembersFormat::money($due->amount) }}</td>
+                <td class="mbr-due-status cursor-pointer"
                     data-field="status"
                     data-label="{{ __('members::admin.dues.status') }}"
                     x-data="{
@@ -104,40 +107,19 @@
                         <p class="ds-field__error" x-show="error" x-text="error"></p>
                     </div>
                 </td>
-                @include('members::dues._paid-on-cell', ['due' => $due])
-                <td data-label="{{ __('members::admin.dues.paid_through') }}">
-                    <select class="ds-select" aria-label="{{ __('members::admin.dues.paid_through') }}" onchange="window.saveDuePaidThrough({{ $due->id }}, this.value)">
-                        <option value="">–</option>
-                        @foreach($fiscalYears->filter(fn ($fy) => $fy->starts_on->gte($due->fiscalYear->starts_on)) as $fiscalYear)
-                            <option value="{{ $fiscalYear->id }}" @selected($due->bezahlt_bis_fiscal_year_id === $fiscalYear->id)>{{ $fiscalYear->name }}</option>
-                        @endforeach
-                    </select>
+                @include('members::dues._paid-on-cell', ['due' => $due, 'cellClass' => 'mbr-due-paid'])
+                <td class="mbr-due-toggle">
+                    <x-ui.icon-button icon="chevron-down" variant="text" :label="__('members::admin.dues.details_for', ['year' => $due->fiscalYear->name])"
+                        aria-controls="due-extra-{{ $due->id }}"
+                        x-bind:aria-expanded="(!!openDues[{{ $due->id }}]).toString()"
+                        x-bind:class="{ 'is-open': openDues[{{ $due->id }}] }"
+                        x-on:click="openDues[{{ $due->id }}] = !openDues[{{ $due->id }}]" />
                 </td>
-                <td class="cursor-pointer tabular-nums"
-                    data-field="teilbetrag"
-                    data-label="{{ __('members::admin.dues.teilbetrag') }}"
-                    x-data="{
-                        editing: false, error: null, justSaved: false,
-                        value: @js($due->teilbetrag ?? ''),
-                        display: @js($teilbetragDisplay),
-                        async save() {
-                            this.error = null;
-                            const result = await window.saveDueField({{ $due->id }}, 'teilbetrag', this.value || null);
-                            if (result.ok) { this.editing = false; this.display = result.value; this.justSaved = true; setTimeout(() => this.justSaved = false, 1500); }
-                            else { this.error = result.message; }
-                        }
-                    }"
-                    @click="if (!editing) editing = true"
-                    @click.outside="if (!error) editing = false">
-                    <span x-show="!editing" x-text="display" :class="{ 'mbr-partial': display !== '–', 'mbr-saved': justSaved }">{{ $teilbetragDisplay }}</span>
-                    <div x-show="editing" @click.stop>
-                        <input type="number" step="0.01" min="0" x-model="value" @blur="save()" @keydown.enter.prevent="$event.target.blur()" class="ds-input" :class="{ 'ds-input--invalid': error }" aria-label="{{ __('members::admin.dues.teilbetrag') }}">
-                        <p class="ds-field__error" x-show="error" x-text="error"></p>
-                    </div>
-                </td>
+            </tr>
+            <tr class="mbr-due-extra" id="due-extra-{{ $due->id }}" x-show="openDues[{{ $due->id }}]" @unless($openDues[$due->id] ?? false) x-cloak @endunless>
+                <td class="mbr-due-extra__spacer" aria-hidden="true"></td>
                 <td class="cursor-pointer text-ink-2"
                     data-field="kommentar"
-                    data-label="{{ __('members::admin.dues.kommentar') }}"
                     x-data="{
                         editing: false, error: null, justSaved: false,
                         value: @js($due->kommentar ?? ''),
@@ -151,18 +133,53 @@
                     }"
                     @click="if (!editing) editing = true"
                     @click.outside="if (!error) editing = false">
+                    <span class="mbr-due-extra__label">{{ __('members::admin.dues.kommentar') }}</span>
                     <span x-show="!editing" x-text="display" :class="{ 'mbr-saved': justSaved }">{{ $due->kommentar ?: '–' }}</span>
                     <div x-show="editing" @click.stop>
                         <input type="text" x-model="value" @blur="save()" @keydown.enter.prevent="$event.target.blur()" class="ds-input" :class="{ 'ds-input--invalid': error }" aria-label="{{ __('members::admin.dues.kommentar') }}">
                         <p class="ds-field__error" x-show="error" x-text="error"></p>
                     </div>
                 </td>
+                <td class="cursor-pointer tabular-nums" colspan="2"
+                    data-field="teilbetrag"
+                    x-data="{
+                        editing: false, error: null, justSaved: false,
+                        value: @js($due->teilbetrag ?? ''),
+                        display: @js($teilbetragDisplay),
+                        async save() {
+                            this.error = null;
+                            const result = await window.saveDueField({{ $due->id }}, 'teilbetrag', this.value || null);
+                            if (result.ok) { this.editing = false; this.display = result.value; this.justSaved = true; setTimeout(() => this.justSaved = false, 1500); }
+                            else { this.error = result.message; }
+                        }
+                    }"
+                    @click="if (!editing) editing = true"
+                    @click.outside="if (!error) editing = false">
+                    <span class="mbr-due-extra__label">{{ __('members::admin.dues.teilbetrag') }}</span>
+                    <span x-show="!editing" x-text="display" class="whitespace-nowrap" :class="{ 'mbr-partial': display !== '–', 'mbr-saved': justSaved }">{{ $teilbetragDisplay }}</span>
+                    <div x-show="editing" @click.stop>
+                        <input type="number" step="0.01" min="0" x-model="value" @blur="save()" @keydown.enter.prevent="$event.target.blur()" class="ds-input" :class="{ 'ds-input--invalid': error }" aria-label="{{ __('members::admin.dues.teilbetrag') }}">
+                        <p class="ds-field__error" x-show="error" x-text="error"></p>
+                    </div>
+                </td>
+                <td colspan="2" data-field="paid_through">
+                    <label class="mbr-due-extra__label" for="due-paid-through-{{ $due->id }}">{{ __('members::admin.dues.paid_through') }}</label>
+                    <select id="due-paid-through-{{ $due->id }}" class="ds-select" onchange="window.saveDuePaidThrough({{ $due->id }}, this.value)">
+                        <option value="">–</option>
+                        @foreach($fiscalYears->filter(fn ($fy) => $fy->starts_on->gte($due->fiscalYear->starts_on)) as $fiscalYear)
+                            <option value="{{ $fiscalYear->id }}" @selected($due->bezahlt_bis_fiscal_year_id === $fiscalYear->id)>{{ $fiscalYear->name }}</option>
+                        @endforeach
+                    </select>
+                </td>
             </tr>
             @endif
         @empty
-            <tr><td colspan="8" class="text-ink-2">–</td></tr>
+            <tr><td colspan="6" class="text-ink-2">–</td></tr>
         @endforelse
     </x-ui.table>
+    <div class="mbr-dues-card__footer">
+        <x-ui.button variant="secondary" :block="false" :href="route('members.payments.create', $member)">{{ __('members::admin.payments.new_payment') }}</x-ui.button>
+    </div>
 </x-ui.card>
 </div>
 

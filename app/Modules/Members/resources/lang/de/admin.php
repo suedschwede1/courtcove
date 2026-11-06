@@ -151,6 +151,8 @@ return [
         'already_closed' => 'Geschäftsjahr :year ist bereits abgeschlossen.',
         'not_closed' => 'Geschäftsjahr :year ist nicht abgeschlossen.',
         'locked' => 'Geschäftsjahr :year ist abgeschlossen. Änderungen sind nicht mehr möglich.',
+        'overlap' => 'Der Zeitraum überschneidet sich mit Geschäftsjahr :year (:starts_on – :ends_on).',
+        'ends_before_start' => 'Das Ende darf nicht vor dem Beginn liegen.',
     ],
     'fee_categories' => [
         'title' => 'Beitragskategorien',
@@ -218,6 +220,11 @@ return [
         'year_not_found' => 'Das gewählte Geschäftsjahr gibt es nicht. Angezeigt wird :year.',
         'no_rates_for_year' => 'Für Geschäftsjahr :year sind keine Beitragssätze hinterlegt, bitte zuerst unter Beitragskategorien eintragen.',
         'bezahlt_am_requires_paid' => '„Bezahlt am“ gibt es nur bei bezahlten Beiträgen. Bitte zuerst den Status auf „Bezahlt“ setzen.',
+        'year_short' => 'Jahr',
+        'category_short' => 'Kategorie',
+        'due_on' => 'fällig :date',
+        'details' => 'Details',
+        'details_for' => 'Details zu :year ein- oder ausblenden',
     ],
     'dashboard' => [
         'title' => 'Übersicht',
@@ -427,5 +434,11 @@ return [
             'payer_not_member' => ':name gehört nicht zu diesem Haushalt und kann nicht die zahlende Person sein.',
             'not_member' => ':name gehört nicht zu diesem Haushalt.',
         ],
+    ],
+    'import' => [
+        'summary' => 'Import abgeschlossen: :created Mitglieder angelegt, :skipped übersprungen (bereits vorhanden), :updated aktualisiert, :dues Vorschreibungen erstellt.',
+        'closed_year_skips' => 'Vorschreibungen in abgeschlossenen Geschäftsjahren übersprungen: :count.',
+        'deactivated_category_skips' => 'Zeilen mit deaktivierter Beitragskategorie übersprungen: :count (:categories).',
+        'not_imported_fields' => 'Nicht importiert (kein Feld im Datenmodell): Alter, Reservierungssystem, Bemerkung.',
     ],
 ];

@@ -1,7 +1,8 @@
 {{--
     Bar of a detail page (challenge, player, confirm). The mockup shows no ladder header, chips or tabs above these cards.
-    Phones: the phone top bar (back arrow and page title, as in the phone mockups) replaces the site header.
-    From 48rem: the desktop head with back chevron, ladder context and the page title.
+    Phones: the phone top bar (back arrow and page title, as in the phone mockups) replaces the shell's bar and keeps
+    the menu button of the tournament sidebar. From 48rem: the desktop head with back chevron, ladder context and the
+    page title.
     Needs: $ladder, $title.
 --}}
 @php
@@ -10,7 +11,9 @@
     $backUrl = PyramidLinks::ladder((int) $ladder->id);
 @endphp
 @section('phone-bar')
-    <x-layout.phone-bar :title="$title" :back="$backUrl" :back-label="__('pyramid::ui.detail.back')" heading />
+    <x-layout.phone-bar :title="$title" :back="$backUrl" :back-label="__('pyramid::ui.detail.back')" heading x-bind:inert="navOpen">
+        <x-layout.area-menu-button />
+    </x-layout.phone-bar>
 @endsection
 <div class="flex items-center gap-2 max-md:hidden">
     <x-ui.icon-button icon="chevron-left" variant="text" :href="$backUrl" :label="__('pyramid::ui.detail.back')" />

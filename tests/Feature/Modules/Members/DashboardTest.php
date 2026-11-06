@@ -163,7 +163,7 @@ class DashboardTest extends TestCase
         $this->assertSame(5, substr_count(substr($open, 0, (int) strpos($open, '</section>')), 'class="mbr-due-row"'));
         $this->assertStringNotContainsString('Bezahlt, Test', $open);
         $this->assertStringContainsString('Aigner, Test', $open);
-        $this->assertStringContainsString('href="'.route('members.dues.index').'"', $html);
+        $this->assertStringContainsString('href="'.route('members.dues.index', ['status' => 'alle']).'"', $html);
 
         $this->assertStringContainsString('Geaendert, Gerda', $html);
         $this->assertStringContainsString('Telefon geändert', $html);

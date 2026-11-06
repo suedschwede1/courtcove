@@ -7,7 +7,7 @@
     instead of the old inline confirm() dialogs. Needs AdminDashboard::build() plus $defaultDeadline,
     $defaultSeason.
 --}}
-@extends('layouts.admin')
+@extends('tournament-base::layouts.area')
 
 @section('admin-title', __('tournament::admin.index.title'))
 

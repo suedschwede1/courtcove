@@ -25,6 +25,7 @@ final class SquareValidator
 {
     public function __construct(
         private readonly PeakLimitService $peakLimitService = new PeakLimitService,
+        private readonly BookingRules $bookingRules = new BookingRules,
     ) {}
 
     public function validate(
@@ -73,51 +74,55 @@ final class SquareValidator
             return ValidationResult::fail(__('booking.messages.booking_in_past'));
         }
 
-        if ((int) $square->min_range_book > 0) {
-            $minimumStart = Carbon::now()->addSeconds((int) $square->min_range_book);
+        $minRangeBook = $this->bookingRules->value(BookingRules::MIN_RANGE_BOOK, $square);
+        if ($minRangeBook > 0) {
+            $minimumStart = Carbon::now()->addSeconds($minRangeBook);
             if ($dateStart->lessThan($minimumStart) && ! $shortTermOverrideActive && ! $this->canCreateAnyBooking($user)) {
                 return ValidationResult::fail(__('booking.messages.booking_too_early'));
             }
         }
 
-        if ((int) $square->range_book > 0) {
-            $maxBookableAt = Carbon::now()->addSeconds((int) $square->range_book);
+        $rangeBook = $this->bookingRules->value(BookingRules::RANGE_BOOK, $square);
+        if ($rangeBook > 0) {
+            $maxBookableAt = Carbon::now()->addSeconds($rangeBook);
             $sameDayAsMax = $dateStart->isSameDay($maxBookableAt);
             if ($dateStart->greaterThan($maxBookableAt) && ! $sameDayAsMax && ! $shortTermOverrideActive && ! $this->canCreateAnyBooking($user)) {
                 return ValidationResult::fail('Booking date exceeds the allowed advance booking range');
             }
         }
 
-        if ((int) $square->time_block_bookable > 0 && $durationSeconds < (int) $square->time_block_bookable) {
+        // Minimum duration and daily limit are global settings (BookingRules: option, else the court value).
+        $minimumSeconds = $this->bookingRules->minimumSeconds($square);
+        if ($minimumSeconds > 0 && $durationSeconds < $minimumSeconds) {
             return ValidationResult::fail(__('booking.messages.booking_duration_too_short'));
         }
 
         $maxActiveBookings = $this->maxActiveBookings();
 
-        if ($maxActiveBookings > 0 && ! $shortTermOverrideActive) {
-            $peakActive = $this->peakLimitService->isEnabled()
-                && $square->getMeta('peak_limit_enabled') === '1';
+        // Courts with the peak switch (and the global switch on) use the peak rule instead of the global
+        // max-active rule, as before: a new booking that starts inside a peak window is checked against the
+        // person's future bookings starting inside a window on ANY court, limit PeakLimitService::limit()
+        // (peak_limit.max, fallback booking.max_active_bookings, 0 = none). Bookings outside the windows on
+        // such a court are not limited. Privileged accounts only bypass it in admin mode (can()).
+        if (! $shortTermOverrideActive && $this->peakLimitService->appliesTo($square)) {
+            $peakLimit = $this->peakLimitService->limit();
 
-            if ($peakActive) {
-                if ($this->peakLimitService->isPeakTime($dateStart)) {
-                    $count = $this->getPeakActiveFutureBookingCount(
-                        $user,
-                        $this->peakLimitService->windows(),
-                        $excludeBookingId,
-                    );
-                    if ($count >= $maxActiveBookings) {
-                        return ValidationResult::fail(__('booking.messages.peak_limit_reached'));
-                    }
-                }
-            } elseif ($this->getActiveFutureBookingCount($user, $excludeBookingId) >= $maxActiveBookings) {
-                return ValidationResult::fail(__('booking.messages.max_active_bookings_reached'));
+            if ($peakLimit > 0
+                && $this->peakLimitService->isPeakTime($dateStart)
+                && ! $this->canCreateAnyBooking($user)
+                && $this->getPeakActiveFutureBookingCount($user, $this->peakLimitService->windows(), $excludeBookingId) >= $peakLimit) {
+                return ValidationResult::fail(__('booking.messages.peak_limit_reached'));
             }
+        } elseif ($maxActiveBookings > 0 && ! $shortTermOverrideActive
+            && $this->getActiveFutureBookingCount($user, $excludeBookingId) >= $maxActiveBookings) {
+            return ValidationResult::fail(__('booking.messages.max_active_bookings_reached'));
         }
 
-        if ((int) $square->time_block_bookable_max > 0) {
+        $dailyMaxSeconds = $this->bookingRules->dailyMaxSeconds($square);
+        if ($dailyMaxSeconds > 0) {
             $dailyUsed = $this->getDailyUsedSeconds($user, $dateStart, $excludeBookingId);
 
-            if ($dailyUsed + $durationSeconds > (int) $square->time_block_bookable_max
+            if ($dailyUsed + $durationSeconds > $dailyMaxSeconds
                 && ! $shortTermOverrideActive
                 && ! $this->canCreateAnyBooking($user)) {
                 return ValidationResult::fail(__('booking.messages.daily_booking_limit_exceeded'));
@@ -141,8 +146,8 @@ final class SquareValidator
     /** Whether the booking starts within the per-square short-term override window. */
     private function isShortTermLimitOverrideActive(Square $square, Carbon $dateStart): bool
     {
-        // Stored as square meta by Admin\SquareController, not as a bs_squares column.
-        $windowSeconds = (int) ($square->getMeta('short-booking-window') ?? '0');
+        // Global option booking.short_booking_window, fallback the former court meta (BookingRules).
+        $windowSeconds = $this->bookingRules->value(BookingRules::SHORT_BOOKING_WINDOW, $square);
         if ($windowSeconds <= 0) {
             return false;
         }

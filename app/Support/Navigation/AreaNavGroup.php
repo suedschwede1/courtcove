@@ -2,12 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\Support\Ui;
+namespace App\Support\Navigation;
 
-final readonly class AdminNavGroup
+/**
+ * A labelled group of an area sidebar.
+ */
+final readonly class AreaNavGroup
 {
     /**
-     * @param  list<NavItem>  $items
+     * @param  list<AreaNavItem>  $items
      */
     public function __construct(
         public string $key,

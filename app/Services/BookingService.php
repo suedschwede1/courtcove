@@ -581,7 +581,7 @@ final class BookingService
         }
 
         $booking->loadMissing(['square', 'reservations']);
-        $cancelRange = (int) ($booking->square?->range_cancel ?? 0);
+        $cancelRange = $booking->square !== null ? app(BookingRules::class)->value(BookingRules::RANGE_CANCEL, $booking->square) : 0;
         if ($cancelRange <= 0) {
             return false;
         }
@@ -760,7 +760,7 @@ final class BookingService
 
     private function normalizeBookableEnd(Square $square, Carbon $dateStart, Carbon $dateEnd): Carbon
     {
-        $minimumSeconds = (int) $square->time_block_bookable;
+        $minimumSeconds = app(BookingRules::class)->minimumSeconds($square);
         if ($minimumSeconds <= 0) {
             return $dateEnd;
         }
