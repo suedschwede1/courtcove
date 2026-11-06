@@ -45,6 +45,15 @@
         </x-ui.card>
 
         <x-ui.card :title="__('booking.admin.cfg.section_calendar')" padding="lg" class="ds-admin-form-card">
+            <div class="ds-admin-split">
+                <x-ui.field :label="__('booking.admin.calendar_hours.start')" for="cf-cal-start">
+                    <x-ui.input id="cf-cal-start" name="calendar_time_start" type="time" :value="old('calendar_time_start', $values['calendar_time_start'])" />
+                </x-ui.field>
+                <x-ui.field :label="__('booking.admin.calendar_hours.end')" for="cf-cal-end">
+                    <x-ui.input id="cf-cal-end" name="calendar_time_end" type="time" :value="old('calendar_time_end', $values['calendar_time_end'])" />
+                </x-ui.field>
+            </div>
+            <p class="ds-field__help">{{ __('booking.admin.calendar_hours.hint') }}</p>
             <x-ui.field :label="__('booking.admin.calendar_hide')" for="cf-hide" :help="__('booking.admin.calendar_hide_hint')">
                 <x-ui.textarea id="cf-hide" name="calendar_hide" rows="5" :value="old('calendar_hide', $values['calendar_hide'])" />
             </x-ui.field>

@@ -4,6 +4,7 @@
     'hour',
     'dateLabel',
     'isPast',
+    'closed' => false,
     'reservation' => null,
     'isLoggedIn',
     'isAdmin',
@@ -75,6 +76,11 @@
         $cellTitle = $isPast
             ? ($squareLabel . ' – ' . __('booking.calendar.past'))
             : ($squareLabel . ' – ' . __('booking.calendar.occupied'));
+    }
+
+    if ($closed && ! $reservation) {
+        $cellTitle = $squareLabel . ' – ' . __('booking.calendar.closed');
+        $slotClass .= ' slot-cell--closed';
     }
 
     if ($isTournament) {

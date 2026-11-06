@@ -161,6 +161,7 @@ return [
             'event' => 'Veranstaltung',
             'blocked' => 'Platzsperre',
             'tournament' => 'Turnierspiel',
+            'closed' => 'Geschlossen',
             'past' => 'Vergangen',
         ],
         'operator_eyebrow' => 'Ihr Betrieb',
