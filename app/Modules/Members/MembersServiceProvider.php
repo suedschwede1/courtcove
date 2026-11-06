@@ -24,6 +24,7 @@ class MembersServiceProvider extends ServiceProvider
 
         if ($this->app->runningInConsole()) {
             $this->commands([
+                Console\BackfillPaidOnCommand::class,
                 Console\ImportMembersCommand::class,
                 Console\ImportNuligaLicenseCommand::class,
             ]);

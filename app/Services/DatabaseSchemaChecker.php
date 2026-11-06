@@ -489,6 +489,7 @@ final class DatabaseSchemaChecker
                 'kommentar' => fn (Blueprint $t) => $t->text('kommentar')->nullable(),
                 'bezahlt_bis_fiscal_year_id' => fn (Blueprint $t) => $t->foreignId('bezahlt_bis_fiscal_year_id')->nullable()->constrained('fiscal_years')->nullOnDelete(),
                 'faellig_am' => fn (Blueprint $t) => $t->date('faellig_am')->nullable(),
+                'bezahlt_am' => fn (Blueprint $t) => $t->date('bezahlt_am')->nullable(),
                 'created_at' => fn (Blueprint $t) => $t->timestamp('created_at')->nullable(),
                 'updated_at' => fn (Blueprint $t) => $t->timestamp('updated_at')->nullable(),
             ],
