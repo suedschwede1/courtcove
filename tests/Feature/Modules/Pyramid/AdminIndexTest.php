@@ -189,7 +189,9 @@ class AdminIndexTest extends TestCase
         DB::flushQueryLog();
         DB::enableQueryLog();
         $this->actingAs($admin)->get('/pyramide/admin')->assertOk()->assertSee('3 Teilnehmer')->assertSee('2 Teilnehmer');
-        $playerQueries = collect(DB::getQueryLog())->filter(fn (array $q): bool => str_contains($q['query'], 'bs_pyramid_players'))->count();
+        // The sidebar's own lookup of the viewer's participant row ("Mein Profil") is not part of the overview.
+        $playerQueries = collect(DB::getQueryLog())->filter(fn (array $q): bool => str_contains($q['query'], 'bs_pyramid_players')
+            && ! str_contains($q['query'], '"uid" = ?'))->count();
         DB::disableQueryLog();
 
         $this->assertSame(1, $playerQueries);
@@ -208,7 +210,9 @@ class AdminIndexTest extends TestCase
         $link = '#<a href="[^"]*/pyramide/admin"[^>]*>\s*Forderungspyramide\s*</a>#';
 
         $this->assertMatchesRegularExpression($link, $this->actingAs($this->admin())->get('/admin')->assertOk()->getContent());
-        $this->assertMatchesRegularExpression($link, $this->actingAs($this->admin())->get('/pyramide/admin')->assertOk()->getContent());
+        // In the tournament area the module's own entry "Verwaltung" leads there and is the current page.
+        $this->assertMatchesRegularExpression('#<a href="[^"]*/pyramide/admin" class="ds-admin-sidebar__link" aria-current="page">Verwaltung</a>#',
+            $this->actingAs($this->admin())->get('/pyramide/admin')->assertOk()->getContent());
     }
 
     #[Test]

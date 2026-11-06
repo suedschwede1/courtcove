@@ -44,7 +44,7 @@ class PyramidNotFoundPageTest extends TestCase
             ->assertSee('Diese Pyramide gibt es nicht.')
             ->assertSee('Zur Pyramide')
             ->assertSee('href="'.route('pyramide.index').'"', false)
-            ->assertSee('ds-header', false);
+            ->assertSee('<aside id="admin-nav"', false);
         $this->assertInstanceOf(PyramidNotFound::class, $response->exception);
     }
 

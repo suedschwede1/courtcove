@@ -35,11 +35,11 @@ class AdminLadderPhoneLayoutTest extends TestCase
     }
 
     #[Test]
-    public function the_admin_bar_has_a_back_arrow_to_the_overview_and_the_pyramid_eyebrow(): void
+    public function the_phone_bar_has_a_back_arrow_to_the_overview_the_pyramid_eyebrow_and_the_menu(): void
     {
         [, , $html] = $this->page();
 
-        $this->assertMatchesRegularExpression('#<header class="ds-admin-bar[^"]*".*?href="'.preg_quote(route('pyramide.admin.index'), '#').'".*?<p class="ds-admin-bar__eyebrow">Forderungspyramide verwalten</p>\s*<p class="ds-admin-bar__title">Herren 2026</p>#s', $html);
+        $this->assertMatchesRegularExpression('#<header class="ds-phone-bar[^"]*"[^>]*>.*?href="'.preg_quote(route('pyramide.admin.index'), '#').'".*?<p class="ds-phone-bar__eyebrow">Forderungspyramide verwalten</p>\s*<p class="ds-phone-bar__title">Herren 2026</p>.*?aria-controls="admin-nav".*?</header>#s', $html);
     }
 
     #[Test]
