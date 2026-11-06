@@ -115,7 +115,30 @@ class FeeCategory extends Model
 
             if ($category->isDeactivated() && $category->id !== $keepId) {
                 $fail(__('members::admin.fee_categories.not_assignable', ['name' => $category->name]));
+
+                return;
+            }
+
+            // A flat household fee is never a member's own category or an individual due.
+            if ($category->isPerHousehold()) {
+                $fail(__('members::admin.fee_categories.not_per_member', ['name' => $category->name]));
             }
         };
+    }
+
+    /**
+     * Whether switching to $unit would change the meaning of existing data: per member → per household
+     * while members or member dues use it; per household → per member while households or household
+     * dues use it. Switching to the current unit is never locked.
+     */
+    public function billingUnitLockedFor(string $unit): bool
+    {
+        if ($unit === ($this->billing_unit ?? 'member')) {
+            return false;
+        }
+
+        return $unit === 'household'
+            ? Member::query()->where('fee_category_id', $this->id)->exists() || MemberDue::query()->where('fee_category_id', $this->id)->exists()
+            : MemberHousehold::query()->where('fee_category_id', $this->id)->exists() || HouseholdDue::query()->where('fee_category_id', $this->id)->exists();
     }
 }

@@ -124,7 +124,7 @@ class MemberDueController
                 fn ($value) => $value !== '',
             ),            'members' => Member::query()->active()->orderBy('lastname')->orderBy('firstname')->get(),
             // Only active categories can be chosen for a new due.
-            'feeCategories' => FeeCategory::query()->active()->orderBy('name')->get(),
+            'feeCategories' => FeeCategory::query()->active()->perMember()->orderBy('name')->get(),
             'feeCategoryRates' => FeeCategoryRate::where('fiscal_year_id', $selectedFiscalYearId)->pluck('amount', 'fee_category_id'),
         ]);
     }

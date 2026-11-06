@@ -178,6 +178,13 @@ return [
         'deactivated_success' => 'Beitragskategorie „:name“ deaktiviert.',
         'reactivated_success' => 'Beitragskategorie „:name“ reaktiviert.',
         'not_assignable' => 'Die Beitragskategorie „:name“ ist deaktiviert und kann nicht neu zugeordnet werden.',
+        'billing_unit' => 'Abrechnung',
+        'unit_member' => 'Pro Mitglied',
+        'unit_household' => 'Pauschal pro Haushalt',
+        'per_household' => 'pro Haushalt',
+        'per_household_help' => 'Pauschal pro Haushalt: Der Satz gilt einmal pro Haushalt und Geschäftsjahr, unabhängig von der Anzahl der Mitglieder.',
+        'billing_unit_locked' => 'Die Abrechnung lässt sich nicht ändern, solange Mitglieder, Haushalte oder Beiträge diese Kategorie verwenden.',
+        'not_per_member' => 'Die Beitragskategorie „:name“ gilt pauschal pro Haushalt und kann keinem einzelnen Mitglied zugeordnet werden.',
     ],
     'dues' => [
         'generate_skipped_deactivated' => ':count Mitglied(er) übersprungen, weil die Beitragskategorie deaktiviert ist.',

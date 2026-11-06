@@ -178,6 +178,13 @@ return [
         'deactivated_success' => 'Fee category ":name" deactivated.',
         'reactivated_success' => 'Fee category ":name" reactivated.',
         'not_assignable' => 'The fee category ":name" is deactivated and cannot be newly assigned.',
+        'billing_unit' => 'Billing',
+        'unit_member' => 'Per member',
+        'unit_household' => 'Flat per household',
+        'per_household' => 'per household',
+        'per_household_help' => 'Flat per household: the rate applies once per household and fiscal year, regardless of the number of members.',
+        'billing_unit_locked' => 'The billing cannot be changed while members, households or fees use this category.',
+        'not_per_member' => 'The fee category ":name" is billed flat per household and cannot be assigned to a single member.',
     ],
     'dues' => [
         'generate_skipped_deactivated' => ':count member(s) skipped because their fee category is deactivated.',

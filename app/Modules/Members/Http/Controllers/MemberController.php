@@ -52,7 +52,7 @@ class MemberController
         return view('members::members.index', [
             'members' => $members,
             'filter' => $filter,
-            'feeCategories' => FeeCategory::query()->orderBy('name')->get(),
+            'feeCategories' => FeeCategory::query()->perMember()->orderBy('name')->get(),
             'fiscalYears' => $fiscalYears,
             'currentFiscalYear' => $currentFiscalYear,
         ]);
@@ -62,7 +62,7 @@ class MemberController
     {
         return view('members::members.create', [
             'nextNumber' => Member::nextNumber(),
-            'feeCategories' => FeeCategory::query()->orderBy('name')->get(),
+            'feeCategories' => FeeCategory::query()->perMember()->orderBy('name')->get(),
             'clubRoles' => ClubRole::query()->orderByDesc('is_board')->orderBy('name')->get(),
             'users' => User::query()->orderBy('alias')->get(),
         ]);
@@ -100,7 +100,7 @@ class MemberController
     {
         return view('members::members.edit', [
             'member' => $member,
-            'feeCategories' => FeeCategory::query()->orderBy('name')->get(),
+            'feeCategories' => FeeCategory::query()->perMember()->orderBy('name')->get(),
             'clubRoles' => ClubRole::query()->orderByDesc('is_board')->orderBy('name')->get(),
             'fiscalYears' => FiscalYear::query()->orderBy('starts_on')->get(),
             'dues' => $member->dues()->with('fiscalYear', 'feeCategory')->get()->sortByDesc(fn ($due) => $due->fiscalYear->starts_on),

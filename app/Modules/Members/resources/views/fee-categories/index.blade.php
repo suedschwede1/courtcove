@@ -29,6 +29,9 @@
                 <tr>
                     <td class="ds-cell--title" data-label="{{ __('members::admin.fee_categories.name') }}">
                         {{ $category->name }}
+                        @if($category->isPerHousehold())
+                            <x-ui.badge tone="neutral">{{ __('members::admin.fee_categories.per_household') }}</x-ui.badge>
+                        @endif
                         @if($category->isDeactivated())
                             <x-ui.badge tone="neutral">{{ __('members::admin.fee_categories.deactivated') }}</x-ui.badge>
                         @endif
@@ -59,6 +62,9 @@
         @csrf
         <x-ui.field class="mbr-inline-form__field" :label="__('members::admin.fee_categories.name')" for="fc-name">
             <x-ui.input name="name" id="fc-name" maxlength="64" required :value="is_string(old('name')) ? old('name') : ''" />
+        </x-ui.field>
+        <x-ui.field class="mbr-inline-form__field" :label="__('members::admin.fee_categories.billing_unit')" for="billing_unit" :error="$errors->first('billing_unit')">
+            <x-ui.select :options="['member' => __('members::admin.fee_categories.unit_member'), 'household' => __('members::admin.fee_categories.unit_household')]" :selected="\App\Support\Ui\FormValue::string(old('billing_unit', 'member'))" />
         </x-ui.field>
         <x-ui.button type="submit" :block="false">{{ __('members::admin.common.save') }}</x-ui.button>
     </form>
