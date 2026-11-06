@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-06
+- Members > Beitragskategorien lists every existing category with its rates per fiscal year (or "Noch kein Beitragssatz") and a "Bearbeiten" page to rename it and add or change a rate per fiscal year; without a fiscal year the page now says so and links to creating one, instead of hiding all categories.
 - Members area gets a side menu on the left like the administration: group "Mitglieder" (Übersicht, Mitglieder, Beiträge, Rundmail, Protokoll) and group "Einstellungen" (Fiskaljahre, Beitragskategorien, Funktionen, Mail-Einstellungen, DSGVO), with "Zum Kalender" and the slide-in menu behind ☰ on phones; the tab row and the settings chip row under the page title are gone, all /members URLs stay the same.
 
 ## 2026-11-05

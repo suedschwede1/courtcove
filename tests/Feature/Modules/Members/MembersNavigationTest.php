@@ -38,6 +38,7 @@ class MembersNavigationTest extends TestCase
         'members.fiscal-years.create' => [[], 'fiscal_years'],
         'members.fiscal-years.edit' => [['fiscalYear' => 1], 'fiscal_years'],
         'members.fee-categories.index' => [[], 'fee_categories'],
+        'members.fee-categories.edit' => [['feeCategory' => 1], 'fee_categories'],
         'members.functions.index' => [[], 'functions'],
         'members.functions.create' => [[], 'functions'],
         'members.functions.edit' => [['clubRole' => 1], 'functions'],
