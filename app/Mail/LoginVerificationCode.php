@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Mail;
 
+use App\Support\Mail\SystemMailSender;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -21,7 +22,10 @@ class LoginVerificationCode extends Mailable implements ShouldQueue
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: __('booking.mail.login_verification_subject'));
+        return new Envelope(
+            subject: __('booking.mail.login_verification_subject'),
+            replyTo: app(SystemMailSender::class)->replyTo(SystemMailSender::SCOPE_ACCOUNT),
+        );
     }
 
     public function content(): Content

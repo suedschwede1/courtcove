@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\TournamentBase\Support;
 
-use App\Models\Option;
-use Illuminate\Database\QueryException;
+use App\Support\Mail\ResolvesMailOptions;
 use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Envelope;
 
@@ -25,6 +24,8 @@ use Illuminate\Mail\Mailables\Envelope;
  */
 final class MailSender
 {
+    use ResolvesMailOptions;
+
     public const OPTION_FROM_ADDRESS = 'service.mail.tournament.from.address';
 
     public const OPTION_FROM_NAME = 'service.mail.tournament.from.name';
@@ -108,39 +109,5 @@ final class MailSender
         $text = trim(str_replace(["\r\n", "\r"], "\n", $text));
 
         return "\n".strtr($text, [':club' => $club, ':url' => $url])."\n";
-    }
-
-    /**
-     * First non-empty value: the admin option, then the config keys in the given order.
-     */
-    private function value(string $option, string ...$configKeys): string
-    {
-        $value = $this->option($option);
-
-        foreach ($configKeys as $key) {
-            if ($value !== '') {
-                break;
-            }
-
-            $config = config($key);
-            $value = is_scalar($config) ? trim((string) $config) : '';
-        }
-
-        return $value;
-    }
-
-    /**
-     * A missing options table (fresh install before migrating, bare unit tests) must not
-     * stop a mail; the config and default values apply then.
-     */
-    private function option(string $key): string
-    {
-        try {
-            $value = Option::getValue($key, '');
-        } catch (QueryException) {
-            return '';
-        }
-
-        return is_scalar($value) ? trim((string) $value) : '';
     }
 }

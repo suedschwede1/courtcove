@@ -97,8 +97,18 @@ final class DashboardViewTest extends TestCase
             fn ($n) => trim($n->textContent),
             iterator_to_array($this->nodes('//div[contains(@class,"ds-admin-kpis")]//*['.self::cls('ds-kpi__label').']'))
         );
-        $this->assertSame(['Buchungen heute', 'Aktive Mitglieder', 'Diese Woche', 'Veranstaltungen'], $labels);
+        $this->assertSame(['Buchungen heute', 'Aktive Benutzerkonten', 'Diese Woche', 'Veranstaltungen'], $labels);
         $this->assertStringNotContainsString('border-top', $html);
+    }
+
+    #[Test]
+    public function the_account_kpi_says_user_accounts_not_members_in_both_languages(): void
+    {
+        $this->actingAs($this->admin())->get(route('admin.dashboard'))
+            ->assertOk()->assertSee('Aktive Benutzerkonten')->assertDontSee('Aktive Mitglieder');
+
+        $this->actingAs($this->admin())->withUnencryptedCookie('locale', 'en')->get(route('admin.dashboard'))
+            ->assertOk()->assertSee('Active user accounts')->assertDontSee('Active members');
     }
 
     #[Test]

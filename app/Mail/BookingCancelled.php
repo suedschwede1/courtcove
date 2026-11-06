@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Mail;
 
 use App\Models\Booking;
+use App\Support\Mail\SystemMailSender;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -34,7 +35,10 @@ class BookingCancelled extends Mailable implements ShouldQueue
 
         $title = $parts ? implode(', ', $parts) : 'Buchung #'.$this->booking->bid;
 
-        return new Envelope(subject: 'Stornierungsbestätigung – '.$title);
+        return new Envelope(
+            subject: 'Stornierungsbestätigung – '.$title,
+            replyTo: app(SystemMailSender::class)->replyTo(SystemMailSender::SCOPE_BOOKING),
+        );
     }
 
     public function content(): Content

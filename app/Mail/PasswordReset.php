@@ -6,6 +6,7 @@ namespace App\Mail;
 
 use App\Models\Option;
 use App\Models\User;
+use App\Support\Mail\SystemMailSender;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -25,6 +26,7 @@ class PasswordReset extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
+            replyTo: app(SystemMailSender::class)->replyTo(SystemMailSender::SCOPE_ACCOUNT),
             subject: __('booking.mail.password_reset_subject', ['system' => $this->bookingName()]),
         );
     }

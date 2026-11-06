@@ -40,7 +40,7 @@ final class DashboardController extends Controller
             ->map(fn (Collection $group) => $group->count())
             ->all();
 
-        // Active members
+        // Active (enabled) booking accounts, shown as "Aktive Benutzerkonten"
         $activeMembersCount = User::query()->active()->count();
         $adminCount = User::query()->withRole('admin')->count();
 

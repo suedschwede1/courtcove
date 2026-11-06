@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Option;
 use App\Modules\TournamentBase\Support\MailSender;
+use App\Support\Mail\SystemMailSender;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -55,6 +56,15 @@ final class OptionController extends Controller
         'tournament_mail_signature_text' => MailSender::OPTION_SIGNATURE_TEXT,
     ];
 
+    /**
+     * Reply-To of the booking and account mails (read by SystemMailSender); clearable
+     * like the tournament mail fields.
+     */
+    private const SYSTEM_MAIL_MAP = [
+        'system_mail_booking_reply_to' => SystemMailSender::OPTION_BOOKING_REPLY_TO_ADDRESS,
+        'system_mail_account_reply_to' => SystemMailSender::OPTION_ACCOUNT_REPLY_TO_ADDRESS,
+    ];
+
     private const BEHAVIOR_MAP = [
         'registration' => 'service.user.registration',
         'activation' => 'service.user.activation',
@@ -71,7 +81,7 @@ final class OptionController extends Controller
     public function edit(): View
     {
         return view('admin.config.edit', [
-            'values' => $this->loadValues(self::GENERAL_MAP) + $this->loadValues(self::TOURNAMENT_MAIL_MAP) + [
+            'values' => $this->loadValues(self::GENERAL_MAP) + $this->loadValues(self::TOURNAMENT_MAIL_MAP) + $this->loadValues(self::SYSTEM_MAIL_MAP) + [
                 'registration' => '',
                 'activation' => '',
                 'maintenance' => '',
@@ -86,9 +96,14 @@ final class OptionController extends Controller
 
     public function update(Request $request): RedirectResponse
     {
-        $data = $request->validate($this->generalRules() + $this->tournamentMailRules());
+        $data = $request->validate(
+            $this->generalRules() + $this->tournamentMailRules() + $this->systemMailRules(),
+            [],
+            $this->mailAttributeNames(),
+        );
         $this->persist(self::GENERAL_MAP, $data);
         $this->persistClearable(self::TOURNAMENT_MAIL_MAP, $data);
+        $this->persistClearable(self::SYSTEM_MAIL_MAP, $data);
         $this->flushCaches();
 
         return redirect()->route('admin.config.edit')->with('success', __('booking.messages.config_saved'));
@@ -221,6 +236,34 @@ final class OptionController extends Controller
             'tournament_mail_signature_url' => ['nullable', 'string', 'url', 'max:255'],
             'tournament_mail_signature_text' => ['nullable', 'string', 'max:1000'],
         ];
+    }
+
+    /**
+     * Same address rule as the tournament Reply-To (RFC 5321 length, one address per field).
+     */
+    private function systemMailRules(): array
+    {
+        return [
+            'system_mail_booking_reply_to' => ['nullable', 'string', 'email', 'max:254'],
+            'system_mail_account_reply_to' => ['nullable', 'string', 'email', 'max:254'],
+        ];
+    }
+
+    /**
+     * The field labels of the mail cards, so the error summary names the field instead of
+     * the raw input name ("system mail booking reply to").
+     *
+     * @return array<string, string>
+     */
+    private function mailAttributeNames(): array
+    {
+        $names = [];
+
+        foreach (array_keys(self::TOURNAMENT_MAIL_MAP + self::SYSTEM_MAIL_MAP) as $field) {
+            $names[$field] = (string) __('booking.admin.cfg.'.$field);
+        }
+
+        return $names;
     }
 
     private function behaviorRules(): array
