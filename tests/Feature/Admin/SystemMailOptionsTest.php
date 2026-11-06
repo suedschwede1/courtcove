@@ -131,6 +131,18 @@ class SystemMailOptionsTest extends TestCase
     }
 
     #[Test]
+    public function the_error_message_names_the_field_by_its_label(): void
+    {
+        $admin = $this->admin();
+
+        $this->actingAs($admin)->put('/admin/config', ['system_mail_account_reply_to' => 'keine-adresse'])
+            ->assertSessionHasErrors(['system_mail_account_reply_to' => 'Das Feld Antwortadresse für Passwort-/Kontomails muss eine gültige E-Mail-Adresse sein.']);
+
+        $this->actingAs($admin)->withUnencryptedCookie('locale', 'en')->put('/admin/config', ['tournament_mail_reply_to_address' => 'no-address'])
+            ->assertSessionHasErrors(['tournament_mail_reply_to_address' => 'The Reply-To Address field must be a valid email address.']);
+    }
+
+    #[Test]
     public function an_address_at_the_length_limit_is_accepted(): void
     {
         $address = str_repeat('a', 64).'@'.str_repeat('b', 46).'.'.str_repeat('c', 45).'.'.str_repeat('d', 45).'.'.str_repeat('e', 45).'.test';

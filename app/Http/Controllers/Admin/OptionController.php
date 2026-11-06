@@ -96,7 +96,11 @@ final class OptionController extends Controller
 
     public function update(Request $request): RedirectResponse
     {
-        $data = $request->validate($this->generalRules() + $this->tournamentMailRules() + $this->systemMailRules());
+        $data = $request->validate(
+            $this->generalRules() + $this->tournamentMailRules() + $this->systemMailRules(),
+            [],
+            $this->mailAttributeNames(),
+        );
         $this->persist(self::GENERAL_MAP, $data);
         $this->persistClearable(self::TOURNAMENT_MAIL_MAP, $data);
         $this->persistClearable(self::SYSTEM_MAIL_MAP, $data);
@@ -243,6 +247,23 @@ final class OptionController extends Controller
             'system_mail_booking_reply_to' => ['nullable', 'string', 'email', 'max:254'],
             'system_mail_account_reply_to' => ['nullable', 'string', 'email', 'max:254'],
         ];
+    }
+
+    /**
+     * The field labels of the mail cards, so the error summary names the field instead of
+     * the raw input name ("system mail booking reply to").
+     *
+     * @return array<string, string>
+     */
+    private function mailAttributeNames(): array
+    {
+        $names = [];
+
+        foreach (array_keys(self::TOURNAMENT_MAIL_MAP + self::SYSTEM_MAIL_MAP) as $field) {
+            $names[$field] = (string) __('booking.admin.cfg.'.$field);
+        }
+
+        return $names;
     }
 
     private function behaviorRules(): array
