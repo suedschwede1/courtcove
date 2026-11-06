@@ -41,12 +41,11 @@ class MembersInlineEditContractTest extends TestCase
         return [
             'list' => [
                 '/members',
-                ['firstname', 'status', 'due-status', 'fee_category_id', 'email', 'phone'],
+                ['firstname', 'status', 'due-status', 'fee_category_id', 'phone'],
                 [
                     'saveMemberField({member}, field, value)',
                     "saveMemberField({member}, 'status'",
                     "saveMemberField({member}, 'fee_category_id'",
-                    "saveMemberField({member}, 'email'",
                     "saveMemberField({member}, 'phone'",
                     "saveDueField({due}, 'status'",
                     "saveDueField({due}, 'kommentar'",

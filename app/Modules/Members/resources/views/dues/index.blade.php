@@ -121,6 +121,7 @@
             </x-ui.field>
             <x-ui.button id="dues-bulk-mark-paid" type="submit" :block="false" x-bind:disabled="selected.length === 0">{{ __('members::admin.dues.bulk_mark_paid') }}</x-ui.button>
         </div>
+        <p class="text-ink-2 px-4 py-2" data-testid="dues-outstanding-total">{{ __('members::admin.dues.outstanding_total') }}: <strong class="tabular-nums">{{ MembersFormat::money($outstandingTotal) }}</strong></p>
         <x-ui.table :caption="__('members::admin.dues.title')">
             <x-slot:head>
                 <tr>
@@ -129,6 +130,7 @@
                     <th scope="col" class="mbr-phone-hidden">{{ __('members::admin.dues.fiscal_year') }}</th>
                     <th scope="col" class="mbr-phone-hidden">{{ __('members::admin.members.fee_category') }}</th>
                     <th scope="col">{{ __('members::admin.dues.amount') }}</th>
+                    <th scope="col">{{ __('members::admin.dues.outstanding') }}</th>
                     <th scope="col">{{ __('members::admin.dues.status') }}</th>
                     <th scope="col">{{ __('members::admin.dues.bezahlt_am') }}</th>
                     <th scope="col">{{ __('members::admin.dues.paid_through') }}</th>
@@ -146,6 +148,7 @@
                     <td class="mbr-phone-hidden text-ink-2" data-label="{{ __('members::admin.dues.fiscal_year') }}">{{ $due->fiscalYear->name }}</td>
                     <td class="mbr-phone-hidden text-ink-2" data-label="{{ __('members::admin.members.fee_category') }}">{{ $due->feeCategory->name }}</td>
                     <td class="tabular-nums" data-label="{{ __('members::admin.dues.amount') }}">{{ MembersFormat::money($due->amount) }}</td>
+                    <td class="tabular-nums" data-label="{{ __('members::admin.dues.outstanding') }}">{{ $due->outstandingAmount() === '0.00' ? '–' : MembersFormat::money($due->outstandingAmount()) }}</td>
                     <td class="cursor-pointer"
                         data-field="status"
                         data-label="{{ __('members::admin.dues.status') }}"
@@ -252,7 +255,7 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="10" class="text-ink-2">
+                <tr><td colspan="11" class="text-ink-2">
                     @if(! $yearHasDues && $selectedFiscalYear)
                         <p class="m-0">{{ __('members::admin.dues.none_generated', ['year' => $selectedFiscalYear->name]) }}</p>
                         <p class="m-0 text-body-s">{{ __('members::admin.dues.none_generated_hint', ['year' => $selectedFiscalYear->name]) }}</p>

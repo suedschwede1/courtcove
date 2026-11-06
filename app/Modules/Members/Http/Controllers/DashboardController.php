@@ -17,8 +17,7 @@ class DashboardController
     {
         // Members linked to a placeholder account are not counted as active.
         $activeCount = Member::query()->countsAsActiveMember()->count();
-        // Current members: active or dormant, not departed.
-        $current = fn () => Member::query()->whereIn('status', ['aktiv', 'ruhend']);
+        $current = fn () => Member::query()->current();
 
         // Same default as the dues list (year containing today, else latest with dues, else latest).
         $currentFiscalYear = FiscalYear::defaultFor(FiscalYear::query()->orderBy('starts_on')->get());
@@ -34,8 +33,7 @@ class DashboardController
 
         return view('members::dashboard', [
             'memberCount' => $current()->count(),
-            // Youth: 18 or younger today.
-            'youthCount' => $current()->where('birthdate', '>', now()->subYears(19)->toDateString())->count(),
+            'youthCount' => $current()->youth()->count(),
             'dormantCount' => Member::query()->where('status', 'ruhend')->count(),
             // Informational only: the link to a booking-system account is optional.
             'withoutAccountCount' => $current()->whereNull('user_id')->count(),

@@ -9,7 +9,7 @@
     $aria = ($describedBy !== '' ? ' aria-describedby="'.e($describedBy).'"' : '')
         .($hasError ? ' aria-invalid="true"' : '')
         .($required ? ' required' : '');
-    $value = $value ?? old($name, '');
+    $value = \App\Support\Ui\FormValue::string($value ?? old($name, ''));
     $class = ['score' => 'ds-input ds-input--score', 'default' => 'ds-input'][$variant ?? 'default'];
     $class .= $hasError ? ' ds-input--invalid' : '';
     $aria = ($variant === 'score' ? ' inputmode="numeric"' : '').$aria;

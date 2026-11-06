@@ -42,7 +42,7 @@
         </x-ui.field>
         <x-ui.field class="mbr-filters__field" :label="__('members::admin.dues.fiscal_year')" for="md-fiscal-year" :error="$errors->first('fiscal_year_id') ?: $errors->first('member_id')">
             {{-- Preselect the current business year (old() wins after a validation error) instead of the oldest one. --}}
-            <x-ui.select name="fiscal_year_id" :options="$fiscalYears->pluck('name', 'id')->all()" :selected="(string) old('fiscal_year_id', \App\Modules\Members\Models\FiscalYear::defaultFor($fiscalYears)?->id)" />
+            <x-ui.select name="fiscal_year_id" :options="$fiscalYears->pluck('name', 'id')->all()" :selected="\App\Support\Ui\FormValue::string(old('fiscal_year_id',\App\Modules\Members\Models\FiscalYear::defaultFor($fiscalYears)?->id))" />
         </x-ui.field>
         <x-ui.field class="mbr-filters__field" :label="__('members::admin.dues.teilbetrag')" for="md-teilbetrag" :error="$errors->first('teilbetrag')">
             <x-ui.input type="number" name="teilbetrag" step="0.01" min="0" />

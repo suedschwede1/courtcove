@@ -8,7 +8,7 @@
     }
     $categoryOptions = ['' => ''] + $feeCategories->pluck('name', 'id')->all();
 
-    $selectedRoleIds = old('club_roles', ($member ?? null)?->clubRoles->pluck('id')->all() ?? []);
+    $selectedRoleIds = \App\Support\Ui\FormValue::list(old('club_roles', ($member ?? null)?->clubRoles->pluck('id')->all() ?? []));
     $boardRoles = ($clubRoles ?? collect())->where('is_board', true);
     $otherRoles = ($clubRoles ?? collect())->where('is_board', false);
 @endphp

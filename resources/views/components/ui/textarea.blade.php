@@ -9,7 +9,7 @@
     $aria = ($describedBy !== '' ? ' aria-describedby="'.e($describedBy).'"' : '')
         .($hasError ? ' aria-invalid="true"' : '')
         .($required ? ' required' : '');
-    $value = $value ?? old($name, '');
+    $value = \App\Support\Ui\FormValue::string($value ?? old($name, ''));
     $class = $hasError ? 'ds-textarea ds-textarea--invalid' : 'ds-textarea';
     $rowsAttr = $rows !== null ? ' rows="'.e($rows).'"' : '';
 @endphp
