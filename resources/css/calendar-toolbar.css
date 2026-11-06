@@ -337,9 +337,10 @@ body:has(.cal-page) {
         display: none;
     }
 
+    /* Phone: no Info/Hinweise buttons and no panels under the board. */
     .cal-toolbar__panels,
     #content:has(.cal-page) > .help-panel {
-        padding: 0 16px;
+        display: none;
     }
 }
 
