@@ -169,6 +169,8 @@ class LintUiCommandTest extends TestCase
         $this->artisan('lint:ui --strict --summary')->assertFailed();
         file_put_contents($this->fixture.'/baseline.json', '{bad json');
         $this->artisan('lint:ui --summary')->assertFailed();
+        file_put_contents($this->fixture.'/baseline.json', '{"version":1,"findings":{"abc":{"count":1}}}');
+        $this->artisan('lint:ui --summary')->expectsOutputToContain('Invalid baseline entry')->assertFailed();
     }
 
     #[Test]

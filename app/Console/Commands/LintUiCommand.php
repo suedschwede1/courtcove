@@ -152,13 +152,13 @@ class LintUiCommand extends Command
     {
         $obsolete = [];
         foreach ($baseline as $key => $entry) {
-            if (! in_array($entry['rule'] ?? null, $ruleIds, true)) {
+            if (! in_array($entry['rule'], $ruleIds, true)) {
                 continue;
             }
-            $usable = $this->migrated((string) $entry['file']) ? 0 : ($current[$key]['count'] ?? 0);
+            $usable = $this->migrated($entry['file']) ? 0 : ($current[$key]['count'] ?? 0);
             $unused = $entry['count'] - min($entry['count'], $usable);
             if ($unused > 0) {
-                $obsolete[] = ['file' => (string) $entry['file'], 'rule' => (string) $entry['rule'], 'source' => (string) ($entry['source'] ?? ''), 'unused' => $unused];
+                $obsolete[] = ['file' => $entry['file'], 'rule' => $entry['rule'], 'source' => $entry['source'], 'unused' => $unused];
             }
         }
 
@@ -182,6 +182,11 @@ class LintUiCommand extends Command
         foreach ($data['findings'] as $entry) {
             if (! is_array($entry) || ! is_int($entry['count'] ?? null) || $entry['count'] < 1) {
                 throw new JsonException('Invalid baseline count.');
+            }
+            foreach (['file', 'rule', 'source'] as $field) {
+                if (! is_string($entry[$field] ?? null)) {
+                    throw new JsonException('Invalid baseline entry: missing '.$field.'.');
+                }
             }
         }
 
