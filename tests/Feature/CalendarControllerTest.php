@@ -423,7 +423,8 @@ class CalendarControllerTest extends TestCase
         ]);
         EventMeta::create(['eid' => $event->eid, 'key' => 'name', 'value' => 'Admin Turnier']);
 
-        $this->actingAs($admin)->get('/calendar?date='.Carbon::today()->format('Y-m-d'))
+        // Event editing is only offered while admin mode is on (cookie `admin_mode`).
+        $this->actingAs($admin)->withUnencryptedCookie('admin_mode', '1')->get('/calendar?date='.Carbon::today()->format('Y-m-d'))
             ->assertOk()
             ->assertSee('data-action="event-edit"', false)
             ->assertSee(route('admin.events.edit', $event), false);
