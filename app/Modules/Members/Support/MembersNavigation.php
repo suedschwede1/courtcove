@@ -26,6 +26,7 @@ final class MembersNavigation
         'members' => ['members::admin.members.title', [
             'dashboard' => ['members.dashboard', 'admin.members', 'members::admin.dashboard.title', ['members.dashboard']],
             'members' => ['members.index', 'admin.members', 'members::admin.members.title', ['members.index', 'members.create', 'members.edit', 'members.payments.*']],
+            'households' => ['members.households.index', 'admin.members', 'members::admin.households.title', ['members.households.*', 'members.household-dues.*']],
             'dues' => ['members.dues.index', 'admin.members', 'members::admin.dues.title', ['members.dues.*']],
             'mail' => ['members.mail.index', 'admin.members', 'members::admin.mail.title', ['members.mail.index', 'members.mail.templates.*']],
             'changes' => ['members.changes.index', 'admin.members', 'members::admin.changes.title', ['members.changes.*']],

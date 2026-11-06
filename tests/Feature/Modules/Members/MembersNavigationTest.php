@@ -30,6 +30,7 @@ class MembersNavigationTest extends TestCase
         'members.create' => [[], 'members'],
         'members.edit' => [['member' => 1], 'members'],
         'members.payments.create' => [['member' => 1], 'members'],
+        'members.households.index' => [[], 'households'],
         'members.export' => [[], null],
         'members.dues.index' => [[], 'dues'],
         'members.mail.index' => [[], 'mail'],
@@ -62,6 +63,7 @@ class MembersNavigationTest extends TestCase
         $expected = [
             'dashboard' => ['members.dashboard', 'members::admin.dashboard.title'],
             'members' => ['members.index', 'members::admin.members.title'],
+            'households' => ['members.households.index', 'members::admin.households.title'],
             'dues' => ['members.dues.index', 'members::admin.dues.title'],
             'mail' => ['members.mail.index', 'members::admin.mail.title'],
             'changes' => ['members.changes.index', 'members::admin.changes.title'],
@@ -71,7 +73,7 @@ class MembersNavigationTest extends TestCase
             'mail_config' => ['members.mail.config', 'members::admin.mail.config_title'],
             'dsgvo' => ['members.dsgvo.index', 'members::admin.dsgvo.title'],
         ];
-        $this->assertSame(['dashboard', 'members', 'dues', 'mail', 'changes'], $this->keys($groups[0]->items));
+        $this->assertSame(['dashboard', 'members', 'households', 'dues', 'mail', 'changes'], $this->keys($groups[0]->items));
         $this->assertSame(['fiscal_years', 'fee_categories', 'functions', 'mail_config', 'dsgvo'], $this->keys($groups[1]->items));
         foreach ([...$groups[0]->items, ...$groups[1]->items] as $item) {
             [$route, $label] = $expected[$item->key];
@@ -88,7 +90,7 @@ class MembersNavigationTest extends TestCase
         $groups = MembersNavigation::groups($this->admin(), $this->requestFor('members.dashboard'));
 
         $this->assertSame(['Mitglieder', 'Einstellungen'], array_map(fn (AdminNavGroup $g) => $g->label, $groups));
-        $this->assertSame(['Übersicht', 'Mitglieder', 'Beiträge', 'Rundmail', 'Protokoll'], array_map(fn (NavItem $i) => $i->label, $groups[0]->items));
+        $this->assertSame(['Übersicht', 'Mitglieder', 'Haushalte', 'Beiträge', 'Rundmail', 'Protokoll'], array_map(fn (NavItem $i) => $i->label, $groups[0]->items));
         $this->assertSame(['Geschäftsjahre', 'Beitragskategorien', 'Funktionen', 'Mail-Konfiguration', 'Datenschutz'], array_map(fn (NavItem $i) => $i->label, $groups[1]->items));
     }
 
@@ -148,7 +150,7 @@ class MembersNavigationTest extends TestCase
         $membersAssist->syncPrivileges(['admin.members']);
         $groups = MembersNavigation::groups($membersAssist->fresh(), $request);
         $this->assertSame(['members', 'settings'], array_map(fn (AdminNavGroup $g) => $g->key, $groups));
-        $this->assertCount(5, $groups[0]->items);
+        $this->assertCount(6, $groups[0]->items);
         $this->assertCount(5, $groups[1]->items);
     }
 

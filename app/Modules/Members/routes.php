@@ -8,6 +8,7 @@ use App\Modules\Members\Http\Controllers\DashboardController;
 use App\Modules\Members\Http\Controllers\DsgvoSettingsController;
 use App\Modules\Members\Http\Controllers\FeeCategoryController;
 use App\Modules\Members\Http\Controllers\FiscalYearController;
+use App\Modules\Members\Http\Controllers\HouseholdController;
 use App\Modules\Members\Http\Controllers\MailController;
 use App\Modules\Members\Http\Controllers\MemberController;
 use App\Modules\Members\Http\Controllers\MemberDueController;
@@ -73,6 +74,10 @@ Route::middleware(['auth', 'admin.mode', 'can:admin.members'])
 
         Route::get('members/dsgvo', [DsgvoSettingsController::class, 'index'])->name('members.dsgvo.index');
         Route::post('members/dsgvo', [DsgvoSettingsController::class, 'update'])->name('members.dsgvo.update');
+
+        // Households (family fee): before the members resource so "households" is never read as a member id.
+        Route::get('members/households', [HouseholdController::class, 'index'])->name('members.households.index');
+        Route::post('members/households', [HouseholdController::class, 'store'])->name('members.households.store');
 
         Route::resource('members', MemberController::class)->except(['show', 'destroy']);
     });
