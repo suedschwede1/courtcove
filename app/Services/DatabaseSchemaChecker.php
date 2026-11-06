@@ -576,6 +576,19 @@ final class DatabaseSchemaChecker
                 'risk_flags' => fn (Blueprint $t) => $t->string('risk_flags', 128)->nullable(),
                 'created_at' => fn (Blueprint $t) => $t->timestamp('created_at')->nullable()->index(),
             ],
+            'scheduled_task_runs' => [
+                'id' => fn (Blueprint $t) => $t->id(),
+                'name' => fn (Blueprint $t) => $t->string('name', 100),
+                'command' => fn (Blueprint $t) => $t->string('command', 255)->nullable(),
+                'started_at' => fn (Blueprint $t) => $t->dateTime('started_at'),
+                'finished_at' => fn (Blueprint $t) => $t->dateTime('finished_at')->nullable(),
+                'duration_ms' => fn (Blueprint $t) => $t->unsignedInteger('duration_ms')->nullable(),
+                'status' => fn (Blueprint $t) => $t->string('status', 16),
+                'exit_code' => fn (Blueprint $t) => $t->integer('exit_code')->nullable(),
+                'output_excerpt' => fn (Blueprint $t) => $t->text('output_excerpt')->nullable(),
+                'triggered_by' => fn (Blueprint $t) => $t->string('triggered_by', 16)->default('scheduler'),
+                'user_id' => fn (Blueprint $t) => $t->unsignedInteger('user_id')->nullable(),
+            ],
         ];
     }
 
@@ -697,6 +710,11 @@ final class DatabaseSchemaChecker
             ],
             'login_history' => [
                 fn (Blueprint $t) => $t->index(['user_id', 'created_at'], 'dp_login_history_user_created'),
+            ],
+            'scheduled_task_runs' => [
+                fn (Blueprint $t) => $t->index(['name', 'started_at'], 'dp_scheduled_task_runs_name_started'),
+                fn (Blueprint $t) => $t->index(['status', 'started_at'], 'dp_scheduled_task_runs_status_started'),
+                fn (Blueprint $t) => $t->index('started_at', 'dp_scheduled_task_runs_started'),
             ],
             'club_role_mail_category' => [
                 fn (Blueprint $t) => $t->primary(['club_role_id', 'mail_category_id']),

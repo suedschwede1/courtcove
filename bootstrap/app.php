@@ -1,10 +1,12 @@
 <?php
 
+use App\Console\Scheduling\ScheduleDefinition;
 use App\Http\Middleware\EnsureAdminMode;
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\StripFourByteCharacters;
 use App\Http\Middleware\TrackAdminModeRequest;
 use App\Modules\TournamentBase\Support\CsrfExpiredRedirect;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -23,4 +25,6 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [SetLocale::class, StripFourByteCharacters::class]);
         $middleware->api(append: [StripFourByteCharacters::class]);
     })
+    // Scheduled tasks: see App\Console\Scheduling\ScheduleDefinition (server cron runs `php artisan schedule:run` every minute).
+    ->withSchedule(fn (Schedule $schedule) => (new ScheduleDefinition)->define($schedule))
     ->withExceptions(fn (Exceptions $exceptions) => CsrfExpiredRedirect::register($exceptions))->create();
