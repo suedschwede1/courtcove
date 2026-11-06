@@ -66,8 +66,8 @@ class SquareManagementTest extends TestCase
 
         $square = Square::where('name', 'Center')->firstOrFail();
         $this->assertSame(3600, (int) $square->time_block);               // 60 min × 60
-        $this->assertSame(1800, (int) $square->time_block_bookable);      // 30 min × 60
-        $this->assertSame(10800, (int) $square->time_block_bookable_max); // 180 min × 60
+        $this->assertSame(1800, (int) $square->time_block_bookable);      // no court/option yet: former default 30 min (field is global now)
+        $this->assertSame(10800, (int) $square->time_block_bookable_max); // former default 180 min
         $this->assertSame(56 * 86400, (int) $square->range_book);         // 56 days
         $this->assertSame(86400, (int) $square->range_cancel);            // 24 h × 3600
         $this->assertSame('Alpha Court', $square->getMeta('alias'));

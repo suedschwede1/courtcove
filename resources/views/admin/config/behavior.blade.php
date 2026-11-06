@@ -50,6 +50,17 @@
             </x-ui.field>
         </x-ui.card>
 
+        <x-ui.card :title="__('booking.admin.time_blocks.title')" padding="lg" class="ds-admin-form-card">
+            <div class="ds-admin-split">
+                <x-ui.field :label="__('booking.admin.time_blocks.min_label')" for="cf-time-block-min" :help="__('booking.admin.time_blocks.min_hint')">
+                    <x-ui.input id="cf-time-block-min" name="time_block_bookable_min" type="number" min="0" max="1440" step="1" inputmode="numeric" :value="old('time_block_bookable_min', $values['time_block_bookable_min'])" />
+                </x-ui.field>
+                <x-ui.field :label="__('booking.admin.time_blocks.max_label')" for="cf-time-block-max" :help="__('booking.admin.time_blocks.max_hint')">
+                    <x-ui.input id="cf-time-block-max" name="time_block_bookable_max" type="number" min="0" max="1440" step="1" inputmode="numeric" :value="old('time_block_bookable_max', $values['time_block_bookable_max'])" />
+                </x-ui.field>
+            </div>
+        </x-ui.card>
+
         <x-ui.card :title="__('booking.admin.max_active_bookings.title')" padding="lg" class="ds-admin-form-card">
             <x-ui.field :label="__('booking.admin.max_active_bookings.label')" for="cf-max-active" :help="__('booking.admin.max_active_bookings.hint')">
                 <x-ui.input id="cf-max-active" name="max_active_bookings" type="number" min="0" max="999" :value="old('max_active_bookings', $values['max_active_bookings'])" />

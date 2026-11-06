@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Option;
 use App\Modules\TournamentBase\Support\MailSender;
+use App\Services\BookingRules;
 use App\Support\Mail\SystemMailSender;
 use Illuminate\Contracts\Validation\Validator as ValidatorContract;
 use Illuminate\Http\RedirectResponse;
@@ -70,6 +71,12 @@ final class OptionController extends Controller
     /** HH:MM, 00:00 to 23:59. */
     private const TIME_PATTERN = '/^([01]\d|2[0-3]):[0-5]\d$/';
 
+    /** Global "Zeitblock min./max. buchbar" (BookingRules): form in minutes, option in seconds, clearable. */
+    private const TIME_BLOCK_MAP = [
+        'time_block_bookable_min' => BookingRules::TIME_BLOCK_MIN,
+        'time_block_bookable_max' => BookingRules::TIME_BLOCK_MAX,
+    ];
+
     private const BEHAVIOR_MAP = [
         'registration' => 'service.user.registration',
         'activation' => 'service.user.activation',
@@ -128,6 +135,12 @@ final class OptionController extends Controller
             $values['max_active_bookings'] = '0';
         }
 
+        // Stored in seconds like the former court columns, shown in minutes; empty = not set (court values apply).
+        foreach (self::TIME_BLOCK_MAP as $field => $key) {
+            $seconds = app(BookingRules::class)->globalValue($key);
+            $values[$field] = $seconds === null ? '' : (string) intdiv($seconds, 60);
+        }
+
         return view('admin.config.behavior', [
             'values' => $values,
         ]);
@@ -137,7 +150,16 @@ final class OptionController extends Controller
     {
         $validator = Validator::make($request->all(), $this->behaviorRules());
         $validator->after(fn (ValidatorContract $v) => $this->validatePeakWindows($v, $request));
+        $validator->after(fn (ValidatorContract $v) => $this->validateTimeBlocks($v, $request));
         $data = $validator->validate();
+
+        $timeBlocks = [];
+        foreach (array_keys(self::TIME_BLOCK_MAP) as $field) {
+            if (array_key_exists($field, $data)) {
+                $timeBlocks[$field] = $data[$field] === null ? null : (string) ((int) $data[$field] * 60);
+            }
+        }
+        $this->persistClearable(self::TIME_BLOCK_MAP, $timeBlocks);
 
         // An unticked checkbox sends nothing: without this the global peak switch could never be turned off.
         $data['peak_limit_enabled'] = $request->boolean('peak_limit_enabled') ? '1' : '0';
@@ -293,11 +315,27 @@ final class OptionController extends Controller
             'max_active_bookings' => ['nullable', 'integer', 'min:0', 'max:999'],
             'peak_limit_enabled' => ['nullable', 'in:0,1'],
             'peak_limit_max' => ['nullable', 'integer', 'min:0', 'max:999'],
+            'time_block_bookable_min' => ['nullable', 'integer', 'min:0', 'max:1440'],
+            'time_block_bookable_max' => ['nullable', 'integer', 'min:0', 'max:1440'],
             'peak_limit_w1_start' => ['nullable', 'string', 'regex:'.self::TIME_PATTERN],
             'peak_limit_w1_end' => ['nullable', 'string', 'regex:'.self::TIME_PATTERN],
             'peak_limit_w2_start' => ['nullable', 'string', 'regex:'.self::TIME_PATTERN],
             'peak_limit_w2_end' => ['nullable', 'string', 'regex:'.self::TIME_PATTERN],
         ];
+    }
+
+    /** The daily maximum is 0 (unlimited) or at least the minimum duration (both in minutes). */
+    private function validateTimeBlocks(ValidatorContract $validator, Request $request): void
+    {
+        if (array_intersect(array_keys(self::TIME_BLOCK_MAP), $validator->errors()->keys()) !== []) {
+            return;
+        }
+
+        $min = $request->input('time_block_bookable_min');
+        $max = $request->input('time_block_bookable_max');
+        if (is_numeric($min) && is_numeric($max) && (int) $max > 0 && (int) $max < (int) $min) {
+            $validator->errors()->add('time_block_bookable_max', __('booking.admin.time_blocks.max_below_min'));
+        }
     }
 
     /**

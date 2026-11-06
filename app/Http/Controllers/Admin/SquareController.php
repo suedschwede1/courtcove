@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Option;
 use App\Models\Square;
+use App\Services\BookingRules;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -41,7 +42,7 @@ final class SquareController extends Controller
         $square = Square::create(array_merge([
             'capacity' => self::DEFAULT_CAPACITY,
             'capacity_heterogenic' => self::DEFAULT_CAPACITY_HETEROGENIC,
-        ], $payload['columns']));
+        ], $this->timeBlockColumnsForNewCourt(), $payload['columns']));
         $this->applyMeta($square, $payload['meta']);
 
         return redirect()->route('admin.squares.index')->with('success', __('booking.messages.square_created'));
@@ -101,9 +102,7 @@ final class SquareController extends Controller
             'time_start' => substr((string) $square->time_start, 0, 5),
             'time_end' => substr((string) $square->time_end, 0, 5),
             'time_block' => (int) round($square->time_block / 60),
-            'time_block_bookable' => (int) round($square->time_block_bookable / 60),
             'pseudo_time_block_bookable' => $square->getMeta('pseudo-time-block-bookable') === 'true',
-            'time_block_bookable_max' => (int) round(((int) $square->time_block_bookable_max) / 60),
             'min_range_book' => (int) round($square->min_range_book / 60),
             'range_book' => (int) round(((int) $square->range_book) / 86400),
             'short_booking_window' => (int) round(((int) ($square->getMeta('short-booking-window') ?? '0')) / 60),
@@ -126,8 +125,6 @@ final class SquareController extends Controller
             'time_start' => ['required', 'regex:/^\d{2}:\d{2}$/'],
             'time_end' => ['required', 'regex:/^\d{2}:\d{2}$/'],
             'time_block' => ['required', 'integer', 'min:0'],
-            'time_block_bookable' => ['required', 'integer', 'min:0'],
-            'time_block_bookable_max' => ['required', 'integer', 'min:0'],
             'min_range_book' => ['required', 'integer', 'min:0'],
             'range_book' => ['required', 'integer', 'min:0'],
             'short_booking_window' => ['required', 'integer', 'min:0'],
@@ -144,8 +141,6 @@ final class SquareController extends Controller
             'time_start' => $data['time_start'].':00',
             'time_end' => $data['time_end'].':00',
             'time_block' => (int) $data['time_block'] * 60,
-            'time_block_bookable' => (int) $data['time_block_bookable'] * 60,
-            'time_block_bookable_max' => (int) $data['time_block_bookable_max'] * 60,
             'min_range_book' => (int) $data['min_range_book'] * 60,
             'range_book' => (int) $data['range_book'] * 86400,
             'range_cancel' => (int) round(((float) $data['range_cancel']) * 3600),
@@ -193,6 +188,23 @@ final class SquareController extends Controller
         return ($value === null || $value === '') ? null : $value;
     }
 
+    /**
+     * "Zeitblock min./max. buchbar" are global (BookingRules); the columns stay for ZF2/rollback/fallback.
+     * A new court stores the global value, else the first court's value, else the former form defaults.
+     *
+     * @return array{time_block_bookable: int, time_block_bookable_max: int}
+     */
+    private function timeBlockColumnsForNewCourt(): array
+    {
+        $rules = app(BookingRules::class);
+        $first = Square::query()->orderBy('sid')->first();
+
+        return [
+            'time_block_bookable' => $rules->globalValue(BookingRules::TIME_BLOCK_MIN) ?? (int) ($first->time_block_bookable ?? 1800),
+            'time_block_bookable_max' => $rules->globalValue(BookingRules::TIME_BLOCK_MAX) ?? (int) ($first->time_block_bookable_max ?? 10800),
+        ];
+    }
+
     /** @return array<string, mixed> Default form values for a new square. */
     private function defaults(): array
     {
@@ -201,8 +213,8 @@ final class SquareController extends Controller
             'priority' => 1,
             'allow_notes' => false, 'name_visibility' => 'private',
             'time_start' => '08:00', 'time_end' => '23:00', 'time_block' => 60,
-            'time_block_bookable' => 30, 'pseudo_time_block_bookable' => false,
-            'time_block_bookable_max' => 180, 'min_range_book' => 0, 'range_book' => 56,
+            'pseudo_time_block_bookable' => false,
+            'min_range_book' => 0, 'range_book' => 56,
             'short_booking_window' => 0, 'range_cancel' => 24, 'label_free' => '',
             'peak_limit_enabled' => false,
         ];

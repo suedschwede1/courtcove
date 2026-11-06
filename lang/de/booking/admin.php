@@ -186,6 +186,14 @@ return [
             'label' => 'Gleichzeitige Buchungen pro Benutzer (0 = unbegrenzt)',
             'hint' => 'Gilt für alle Plätze zusammen: Gezählt werden alle zukünftigen aktiven Buchungen des Benutzers.',
         ],
+        'time_blocks' => [
+            'title' => 'Buchungsdauer',
+            'min_label' => 'Zeitblock min. buchbar (Minuten)',
+            'min_hint' => 'Kürzeste Buchung, gilt für alle Plätze; eine kürzere Buchung wird auf diese Dauer verlängert. 0 = keine Mindestdauer. Leer = es gelten noch die alten Platzwerte.',
+            'max_label' => 'Zeitblock max. buchbar (Minuten)',
+            'max_hint' => 'Höchstens so viele Minuten pro Person und Tag, alle Plätze zusammengezählt (Beispiel: 60 = eine Stunde pro Tag). 0 = unbegrenzt. Leer = es gelten noch die alten Platzwerte.',
+            'max_below_min' => 'Zeitblock max. buchbar muss 0 (unbegrenzt) oder mindestens so groß wie Zeitblock min. buchbar sein.',
+        ],
         'peak_limit' => [
             'title' => 'Stoßzeiten-Limit',
             'enabled' => 'Stoßzeiten-Limit aktivieren',
