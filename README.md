@@ -178,19 +178,20 @@ Legacy ZF2 booking URLs (`/user/bookings`, `/user/settings`, `/user/registration
 **302** to their Laravel equivalents (not 301, so a rollback to ZF2 is not poisoned by
 cached redirects).
 
-**Tournament pages (legacy ZF2) on the same host.** `/tournament`, `/mixed-tournament`,
-`/pyramide`, `/draw`, `/service/...` and ZF2's own `/user/login|logout|password[-reset]` are
-rewritten by `public/.htaccess` to `public/zf2-bridge.php`, which runs the ZF2 app installed
+**Remaining legacy ZF2 paths on the same host.** The tournament modules (`/tournament`,
+`/draw`, `/pyramide`, `/mixed-tournament`) are served by Laravel and no longer bridged. Only
+`/service/...` and ZF2's own `/user/login|logout|password[-reset]` are still rewritten by
+`public/.htaccess` (a strict allowlist) to `public/zf2-bridge.php`, which runs the ZF2 app installed
 outside the web root (default location next to the app directory, used **only** when the
 app directory is named `bookingnew`; any other directory, e.g. staging, needs the
 `ZF2_PUBLIC` env var or an untracked `zf2.path` file in the app root containing the absolute
-path of ZF2's `public` dir, otherwise the tournament pages answer 503). There is no separate
-tournament subdomain. On every deploy the script symlinks ZF2's static dirs (`css css-client
+path of ZF2's `public` dir, otherwise those paths answer 503). There is no separate
+subdomain. On every deploy the script symlinks ZF2's static dirs (`css css-client
 docs docs-client imgs imgs-client js js-client misc misc-client vendor`) into `public/`.
-Members have two logins (Laravel `/login`, ZF2 `/user/login`) with the same credentials. ZF2
-runs under the domain's PHP version (8.4). Do not copy the old install's one-off
-`public/*.php` maintenance scripts into the ZF2 copy. The routing test table and runbook are
-kept locally.
+ZF2 runs under the domain's PHP version (8.4). Do not copy the old install's one-off
+`public/*.php` maintenance scripts into the ZF2 copy. The routing test table, the go-live and
+rollback steps and the later bridge removal are described in the local runbook (not part of the
+repository).
 
 *Historical:* the app was previously hosted on a shared host without SSH and updated by FTP
 upload of changed files.

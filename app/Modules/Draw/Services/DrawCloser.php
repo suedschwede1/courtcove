@@ -10,6 +10,7 @@ use App\Modules\Draw\Models\DrawEligible;
 use App\Modules\Draw\Models\DrawToken;
 use App\Modules\Tournament\Services\Draws\DrawApplier;
 use App\Modules\Tournament\Services\GenerationService;
+use App\Modules\Tournament\Services\NoCurrentTournament;
 use App\Modules\Tournament\Services\TournamentManager;
 use App\Modules\Tournament\Support\TournamentAccess;
 use App\Modules\TournamentBase\Support\ActionRefused;
@@ -17,6 +18,7 @@ use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
+use Throwable;
 
 /**
  * Closes the picking phase of a token draw (ported from ZF2 Draw AdminController::closeAction).
@@ -66,12 +68,19 @@ final class DrawCloser
         } catch (ActionRefused $e) {
             return [['type' => 'error', 'text' => (string) __($e->key, $e->replace)]];
         } catch (Exception $e) {
-            // ZF2 flashed any failure of the transaction (e.g. more non-pickers than free tokens) raw; the
-            // message may carry SQL (a lock wait while a pick holds the draw row) or an internal English
-            // text, so it is logged and a translated generic text is shown. Nothing was changed.
-            Log::error('Closing the picking phase failed', ['did' => $did, 'exception' => $e]);
+            // ZF2 flashed any failure of the transaction raw. The known conditions an admin can act on (more
+            // non-pickers than free tokens, ...) are shown translated; anything else may carry SQL (a lock
+            // wait while a pick holds the draw row) or an internal text, so it is logged and a generic text
+            // is shown. Nothing was changed either way.
+            $known = $this->knownMessage($e);
 
-            return [['type' => 'error', 'text' => (string) __('draw::admin.close.failed')]];
+            if ($known === null) {
+                Log::error('Closing the picking phase failed', ['did' => $did, 'exception' => $e]);
+
+                return [['type' => 'error', 'text' => (string) __('draw::admin.close.failed')]];
+            }
+
+            return [['type' => 'error', 'text' => $known]];
         }
 
         $flashes = [[
@@ -89,7 +98,7 @@ final class DrawCloser
                 $applied = Draw::query()->find($did);
 
                 if (! $applied || ! $applied->applied_at) {
-                    throw new RuntimeException((string) __('draw::admin.close.not_marked'));
+                    throw new ActionRefused('draw::admin.close.not_marked');
                 }
 
                 $generated = $this->generation->generate((int) $draw->tid);
@@ -99,14 +108,49 @@ final class DrawCloser
                 if ($e instanceof ActionRefused) {
                     $message = (string) __($e->key, $e->replace);
                 } else {
-                    Log::error('Apply or generation after closing the picking phase failed', ['did' => $did, 'exception' => $e]);
-                    $message = (string) __('draw::common.internal_error');
+                    $message = $this->knownMessage($e);
+
+                    if ($message === null) {
+                        Log::error('Apply or generation after closing the picking phase failed', ['did' => $did, 'exception' => $e]);
+                        $message = (string) __('draw::common.internal_error');
+                    }
                 }
                 $flashes[] = ['type' => 'error', 'text' => (string) __('draw::admin.close.apply_failed', ['message' => $message])];
             }
         }
 
         return $flashes;
+    }
+
+    /**
+     * The service exceptions an admin can act on, translated (the services keep their ZF2 wording); null
+     * for anything unknown, which must never be shown raw.
+     */
+    private function knownMessage(Throwable $e): ?string
+    {
+        if ($e instanceof NoCurrentTournament) {
+            return (string) __('draw::admin.close.no_tournament');
+        }
+
+        if (! $e instanceof RuntimeException) {
+            return null;
+        }
+
+        $message = $e->getMessage();
+
+        if (preg_match('/^more players without a token \((\d+)\) than free tokens \((\d+)\) - the token count does not match the pool$/', $message, $m) === 1) {
+            return (string) __('draw::admin.close.pool_mismatch', ['players' => $m[1], 'tokens' => $m[2]]);
+        }
+
+        if (preg_match('/^tokens \((\d+)\) and slots \((\d+)\) must match$/', $message, $m) === 1) {
+            return (string) __('draw::admin.close.slot_mismatch', ['tokens' => $m[1], 'slots' => $m[2]]);
+        }
+
+        if (preg_match('/^tournament (\d+) has no format configuration/', $message) === 1) {
+            return (string) __('draw::admin.close.no_format');
+        }
+
+        return null;
     }
 
     /**

@@ -6,6 +6,7 @@ namespace Tests\Feature\Modules\Draw;
 
 use App\Models\User;
 use App\Modules\Draw\Contracts\BeaconService;
+use App\Modules\Draw\Models\Draw;
 use App\Modules\Draw\Models\DrawEligible;
 use App\Modules\Draw\Models\DrawToken;
 use App\Modules\Draw\Services\DrawCloser;
@@ -14,6 +15,7 @@ use App\Modules\Draw\Support\TokenPageContext;
 use App\Modules\Tournament\Models\TournamentMatch;
 use App\Modules\Tournament\Models\TournamentPlayer;
 use App\Modules\Tournament\Services\Draws\DrawApplier;
+use App\Modules\Tournament\Services\TournamentManager;
 use App\Modules\TournamentBase\Support\ActionRefused;
 use App\Modules\TournamentBase\Support\ModuleFlash;
 use Illuminate\Database\Events\QueryExecuted;
@@ -181,7 +183,7 @@ class PickAndCloseFailureTest extends TestCase
     }
 
     #[Test]
-    public function a_failed_close_shows_a_generic_text_and_logs_the_detail(): void
+    public function more_non_pickers_than_tokens_is_shown_translated(): void
     {
         $this->app->instance(BeaconService::class, new FakeBeaconService(1700000000, 30));
         $admin = User::factory()->create(['status' => 'admin']);
@@ -190,12 +192,90 @@ class PickAndCloseFailureTest extends TestCase
         Log::spy();
 
         $this->assertSame(
-            [['type' => 'error', 'text' => 'Wahlphase schließen fehlgeschlagen: interner Fehler, Details stehen im Fehlerprotokoll.']],
+            [['type' => 'error', 'text' => 'Mehr Spieler ohne Token (5) als freie Tokens (4) - die Tokenanzahl passt nicht zum Lostopf.']],
             $this->close($admin),
         );
         $this->assertSame('picking', $this->draw->fresh()->status);
-        Log::shouldHaveReceived('error')->withArgs(fn (string $message, array $context): bool => $context['exception'] instanceof RuntimeException
-            && str_contains($context['exception']->getMessage(), 'more players without a token'))->once();
+        Log::shouldNotHaveReceived('error');
+    }
+
+    #[Test]
+    public function a_token_slot_mismatch_is_shown_translated(): void
+    {
+        $this->app->instance(BeaconService::class, new FakeBeaconService(1700000000, 30));
+        $admin = User::factory()->create(['status' => 'admin']);
+        $this->tokenDraw();
+        $this->failOn('update "bs_draws" set "status"', new RuntimeException('tokens (3) and slots (4) must match'));
+
+        $this->assertSame([['type' => 'error', 'text' => 'Tokens (3) und Slots (4) müssen übereinstimmen.']], $this->close($admin));
+        $this->assertSame('picking', $this->draw->fresh()->status);
+    }
+
+    #[Test]
+    public function an_unknown_close_failure_shows_a_generic_text_and_logs_the_detail(): void
+    {
+        $this->app->instance(BeaconService::class, new FakeBeaconService(1700000000, 30));
+        $admin = User::factory()->create(['status' => 'admin']);
+        $this->tokenDraw();
+        Log::spy();
+        $this->failOn('update "bs_draws" set "status"', self::queryError('General error: 1 near "secret_table": syntax error', 'HY000', 1));
+
+        $flashes = $this->close($admin);
+
+        $this->assertSame([['type' => 'error', 'text' => 'Wahlphase schließen fehlgeschlagen: interner Fehler, Details stehen im Fehlerprotokoll.']], $flashes);
+        $this->assertStringNotContainsString('SQLSTATE', $flashes[0]['text']);
+        $this->assertSame('picking', $this->draw->fresh()->status);
+        Log::shouldHaveReceived('error')->withArgs(fn (string $message, array $context): bool => $context['exception'] instanceof QueryException)->once();
+    }
+
+    #[Test]
+    public function no_tournament_is_shown_translated(): void
+    {
+        $this->app->instance(BeaconService::class, new FakeBeaconService(1700000000, 30));
+        $admin = User::factory()->create(['status' => 'admin']);
+        $this->tokenDraw([], withTid: false);
+        $this->tournament->newQuery()->whereKey($this->tournament->tid)->update(['is_test' => 1, 'active' => 0]);
+
+        $this->assertSame([['type' => 'error', 'text' => 'Es ist kein Turnier eingerichtet.']], $this->close($admin));
+    }
+
+    #[Test]
+    public function a_missing_format_after_close_is_shown_translated(): void
+    {
+        $this->app->instance(BeaconService::class, new FakeBeaconService(1700000000, 30));
+        $admin = User::factory()->create(['status' => 'admin']);
+        $this->tokenDraw();
+        $this->tournament->newQuery()->whereKey($this->tournament->tid)->update(['format' => null]);
+
+        $flashes = $this->close($admin);
+
+        $this->assertSame(['success', 'success', 'error'], array_column($flashes, 'type'));
+        $this->assertSame(
+            'Wahlphase ist geschlossen, das Zuteilen der Nichtwähler ist aber fehlgeschlagen: Das Turnier hat keine Formatkonfiguration. - in der Turnierleitung "anwenden" aufrufen.',
+            $flashes[2]['text'],
+        );
+    }
+
+    #[Test]
+    public function an_apply_that_does_not_mark_the_draw_is_reported(): void
+    {
+        $this->app->instance(BeaconService::class, new FakeBeaconService(1700000000, 30));
+        $admin = User::factory()->create(['status' => 'admin']);
+        $this->tokenDraw();
+        $this->app->instance(DrawApplier::class, new class(app(TournamentManager::class)) extends DrawApplier
+        {
+            public function apply(Draw $draw, int $currentTid, User $by): int
+            {
+                return 0;
+            }
+        });
+
+        $flashes = $this->close($admin);
+
+        $this->assertSame(
+            'Wahlphase ist geschlossen, das Zuteilen der Nichtwähler ist aber fehlgeschlagen: Die interne Anwendung hat die Ziehung nicht als angewendet markiert. - in der Turnierleitung "anwenden" aufrufen.',
+            $flashes[2]['text'] ?? null,
+        );
     }
 
     #[Test]

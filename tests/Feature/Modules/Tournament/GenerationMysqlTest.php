@@ -9,6 +9,7 @@ use App\Modules\Tournament\Models\TournamentLine;
 use App\Modules\Tournament\Models\TournamentMatch;
 use App\Modules\Tournament\Models\TournamentPlayer;
 use App\Modules\Tournament\Services\GenerationService;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Group;
@@ -66,6 +67,18 @@ class GenerationMysqlTest extends MysqlTestCase
         // matches are inserted with grp NULL, after heads, group matches and bracket lines were already written.
         DB::statement('ALTER TABLE bs_tournament_matches MODIFY grp CHAR(1) NOT NULL');
 
+        // Count what was really written before the failure, independent of the order inside the service.
+        $written = ['heads' => 0, 'matches' => 0, 'lines' => 0];
+        DB::listen(function (QueryExecuted $q) use (&$written): void {
+            if (str_starts_with($q->sql, 'update `bs_tournament_players`')) {
+                $written['heads']++;
+            } elseif (str_starts_with($q->sql, 'insert into `bs_tournament_matches`')) {
+                $written['matches']++;
+            } elseif (str_starts_with($q->sql, 'insert into `bs_tournament_lines`')) {
+                $written['lines']++;
+            }
+        });
+
         $failed = null;
         try {
             app(GenerationService::class)->generate($tid);
@@ -77,6 +90,7 @@ class GenerationMysqlTest extends MysqlTestCase
 
         $this->assertInstanceOf(QueryException::class, $failed, 'the forced database error reaches the caller');
         $this->assertSame(1048, $failed->errorInfo[1]);
+        $this->assertSame(['heads' => 2, 'matches' => 6, 'lines' => 4], $written, 'heads, group matches and lines were written before the failure');
         $this->assertSame(0, TournamentMatch::query()->where('tid', $tid)->count(), 'group and bracket matches rolled back');
         $this->assertSame(0, TournamentLine::query()->where('tid', $tid)->count(), 'bracket lines rolled back');
         $this->assertSame($before, $this->players($tid), 'the head assignment rolled back');

@@ -404,6 +404,7 @@ class TokenRaceMysqlTest extends MysqlTestCase
         $this->closeAsAdmin($admin);
 
         $this->assertMatchesRegularExpression('/^update `bs_draws` set `status` = \?, `closed` = \? where `bs_draws`\.`did` = \? and `status` = \?$/', $writes[0][0] ?? '');
+        $this->assertSame(1, $writes[0][1] ?? null, 'the status update runs inside the close transaction');
         $claims = array_values(array_filter($writes, fn (array $w): bool => str_starts_with($w[0], 'update `bs_draw_tokens`')));
         $this->assertCount(4, $claims);
         foreach ($claims as [$sql, $level]) {
