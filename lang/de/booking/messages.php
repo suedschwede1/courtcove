@@ -58,6 +58,7 @@ return [
             'joined' => 'Du bist als Mitspieler angemeldet.',
             'left' => 'Du hast dich als Mitspieler ausgetragen.',
             'ended' => 'Die Mitspielersuche ist beendet. Deine Buchung bleibt bestehen.',
+            'retry' => 'Gerade ändern mehrere gleichzeitig diese Buchung. Bitte versuch es nochmal.',
         ],
     ],
 ];

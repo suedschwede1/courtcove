@@ -58,6 +58,7 @@ return [
             'joined' => 'You have joined as a player.',
             'left' => 'You have left as a player.',
             'ended' => 'The player search has ended. Your booking stays.',
+            'retry' => 'Several people are changing this booking at the same time. Please try again.',
         ],
     ],
 ];

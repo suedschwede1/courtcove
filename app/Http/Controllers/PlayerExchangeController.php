@@ -9,10 +9,12 @@ use App\Models\Booking;
 use App\Models\User;
 use App\Services\PlayerExchangeService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\DetectsConcurrencyErrors;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use PDOException;
 
 /**
  * Player exchange endpoints: joining, leaving and ending a search (logged in), and the
@@ -20,6 +22,8 @@ use Illuminate\Support\Carbon;
  */
 final class PlayerExchangeController extends Controller
 {
+    use DetectsConcurrencyErrors;
+
     /** One-click unsubscribe from the link in player exchange e-mails. */
     public function unsubscribe(User $user, PlayerExchangeService $exchange): View
     {
@@ -57,12 +61,18 @@ final class PlayerExchangeController extends Controller
 
         try {
             $action();
-        } catch (PlayerExchangeException $e) {
+        } catch (PlayerExchangeException|PDOException $e) {
+            if ($e instanceof PDOException && ! $this->isLockConflict($e)) {
+                throw $e;
+            }
+            // A deadlock or lock wait left over after the service's retries is a busy moment, not a 500.
+            $message = $e instanceof PDOException ? __('booking.messages.player_exchange.retry') : $e->getMessage();
+
             if ($json) {
-                return response()->json(['error' => $e->getMessage()], 422);
+                return response()->json(['error' => $message], 422);
             }
 
-            return $this->toCalendar($booking)->with('error', $e->getMessage());
+            return $this->toCalendar($booking)->with('error', $message);
         }
 
         if ($json) {
@@ -70,6 +80,15 @@ final class PlayerExchangeController extends Controller
         }
 
         return $this->toCalendar($booking)->with('success', __('booking.messages.player_exchange.'.$successKey));
+    }
+
+    /**
+     * MySQL deadlock (1213) or lock wait timeout (1205), or the same detected by message
+     * (also Laravel's DeadlockException, thrown instead of retrying inside an outer transaction).
+     */
+    private function isLockConflict(PDOException $e): bool
+    {
+        return in_array($e->errorInfo[1] ?? null, [1205, 1213], true) || $this->causedByConcurrencyError($e);
     }
 
     private function toCalendar(Booking $booking): RedirectResponse

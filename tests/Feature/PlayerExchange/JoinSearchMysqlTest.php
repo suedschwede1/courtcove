@@ -14,6 +14,7 @@ use App\Services\BookingService;
 use App\Services\PlayerExchangeService;
 use Carbon\Carbon;
 use Illuminate\Database\Connection;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -167,6 +168,90 @@ class JoinSearchMysqlTest extends MysqlTestCase
         $this->assertSame(1, PlayerSignup::query()->count());
         $this->assertSame((int) $this->other->uid, (int) PlayerSignup::query()->value('uid'));
         $this->assertSame([], $this->booking->fresh(['meta'])->player_names, 'the refused join wrote no name');
+    }
+
+    #[Test]
+    public function the_same_member_joining_two_overlapping_searches_in_parallel_gets_only_one(): void
+    {
+        $start = Carbon::parse('2026-11-08 10:30:00');
+        $elsewhere = app(BookingService::class)->createSingle(
+            User::factory()->create(['alias' => 'Otto Anders']), Square::factory()->create(), 2, $start, $start->copy()->addHour(), [], 1,
+        );
+        $elsewhereSearch = PlayerSearch::query()->where('bid', $elsewhere->bid)->sole();
+
+        $injected = false;
+        // The member's join on the overlapping booking holds his user row and commits while this
+        // join waits for that row. No plain read may have run before: the busy check must see it.
+        DB::connection()->beforeExecuting(function (string $sql) use (&$injected, $elsewhere, $elsewhereSearch): void {
+            if ($injected || ! str_contains($sql, 'from `bs_users`') || ! str_ends_with($sql, 'for update')) {
+                return;
+            }
+            $injected = true;
+            $second = $this->second();
+            $second->beginTransaction();
+            $second->select(self::LOCK_SQL, [$elsewhere->bid]);
+            $second->select('SELECT uid FROM bs_users WHERE uid = ? FOR UPDATE', [$this->first->uid]);
+            $second->insert(
+                'INSERT INTO player_exchange_signups (search_id, uid, slot, created_at) VALUES (?, ?, ?, ?)',
+                [$elsewhereSearch->id, $this->first->uid, 2, '2026-11-06 08:00:00'],
+            );
+            $second->update('UPDATE player_exchange_searches SET status = ? WHERE id = ?', [PlayerSearch::FILLED, $elsewhereSearch->id]);
+            $second->commit();
+        });
+
+        try {
+            app(PlayerExchangeService::class)->join($this->first, $this->booking);
+            $this->fail('the member is already signed up at an overlapping time');
+        } catch (PlayerExchangeException $e) {
+            $this->assertSame(__('booking.messages.player_exchange.busy'), $e->getMessage());
+        }
+
+        $this->assertTrue($injected, 'the parallel join of the same member ran');
+        $this->assertSame([(int) $elsewhereSearch->id], PlayerSignup::query()->pluck('search_id')->map(fn ($id) => (int) $id)->all());
+        $this->assertSame(PlayerSearch::OPEN, $this->search->fresh()->status);
+    }
+
+    #[Test]
+    public function join_takes_the_booking_and_the_user_row_lock_before_any_plain_read(): void
+    {
+        /** @var list<string> $log */
+        $log = [];
+        DB::listen(function (QueryExecuted $q) use (&$log): void {
+            if ($q->connectionName !== SecondConnection::NAME && $q->connection->transactionLevel() > 0) {
+                $log[] = $q->sql;
+            }
+        });
+
+        app(PlayerExchangeService::class)->join($this->first, $this->booking);
+
+        $this->assertMatchesRegularExpression('/^select \* from `bs_bookings` where `bs_bookings`\.`bid` = \? limit 1 for update$/', $log[0] ?? '');
+        $this->assertMatchesRegularExpression('/^select \* from `bs_users` where `bs_users`\.`uid` = \? for update$/', $log[1] ?? '');
+        $locking = array_values(array_filter($log, fn (string $sql): bool => str_ends_with($sql, 'for update')));
+        $this->assertCount(2, $locking, 'no further locking reads (they would take gap locks on search and signups): '.implode(' | ', $locking));
+    }
+
+    #[Test]
+    public function a_deadlock_on_the_first_attempt_is_retried_and_the_join_goes_through(): void
+    {
+        $attempts = 0;
+        DB::connection()->beforeExecuting(function (string $sql) use (&$attempts): void {
+            if (! str_starts_with($sql, 'insert into `player_exchange_signups`')) {
+                return;
+            }
+            if (++$attempts === 1) {
+                $pdo = new \PDOException('SQLSTATE[40001]: Serialization failure: 1213 Deadlock found when trying to get lock; try restarting transaction');
+                $pdo->errorInfo = ['40001', 1213, 'Deadlock found when trying to get lock; try restarting transaction'];
+
+                throw new QueryException('mysql', $sql, [], $pdo);
+            }
+        });
+
+        $signup = app(PlayerExchangeService::class)->join($this->first, $this->booking);
+
+        $this->assertSame(2, $attempts, 'rolled back and attempted again');
+        $this->assertSame(2, (int) $signup->slot);
+        $this->assertSame(1, PlayerSignup::query()->count());
+        $this->assertSame(['Max Muster'], $this->booking->fresh(['meta'])->player_names);
     }
 
     #[Test]

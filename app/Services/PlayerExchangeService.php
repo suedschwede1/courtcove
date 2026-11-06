@@ -35,6 +35,9 @@ final class PlayerExchangeService
         return $user->meta()->where('key', self::META_KEY)->value('value') === '1';
     }
 
+    /** Deadlocks and lock wait timeouts are retried this often before the error reaches the caller. */
+    private const TRANSACTION_ATTEMPTS = 3;
+
     /** Minutes before the first reservation start at which a search ends. */
     public const DEADLINE_MINUTES = 60;
 
@@ -100,19 +103,19 @@ final class PlayerExchangeService
     /**
      * Sign the member up for the first free place of the booking's open search.
      *
-     * Runs under the booking row lock: every check reads the state after a parallel
-     * join or leave has committed, so the last place is never given twice.
+     * Runs under the booking row lock and the member's user row lock, both taken before
+     * any plain read: under REPEATABLE READ the first plain read fixes the snapshot, so
+     * every check then sees what a parallel join or leave on this booking, or a parallel
+     * join of the same member elsewhere, has committed. The last place is never given
+     * twice and a member is never signed up twice at the same time.
      *
      * @throws PlayerExchangeException
      */
     public function join(User $user, Booking $booking): PlayerSignup
     {
         [$signup, $search] = DB::transaction(function () use ($user, $booking): array {
-            $locked = $this->lockBooking($booking);
-            // One member's joins are serialised as well, so two parallel joins of the same
-            // member on overlapping bookings cannot both pass the busy check.
-            User::query()->whereKey($user->uid)->lockForUpdate()->get();
-            $search = $this->lockedSearch($locked);
+            $locked = $this->lockBooking($booking, $user);
+            $search = $this->currentSearch($locked);
 
             if ($search === null || ! in_array($search->status, [PlayerSearch::OPEN, PlayerSearch::FILLED], true)) {
                 throw $this->refused('not_open');
@@ -130,7 +133,9 @@ final class PlayerExchangeService
                 throw $this->refused('inactive');
             }
 
-            $signups = $search->signups()->lockForUpdate()->get();
+            // Plain read: the booking lock already serialises everything on this search, and a
+            // FOR UPDATE here would take gap locks that block joins on neighbouring searches.
+            $signups = $search->signups()->get();
             if ($signups->contains(fn (PlayerSignup $s): bool => (int) $s->uid === (int) $user->uid)) {
                 throw $this->refused('already_joined');
             }
@@ -158,7 +163,7 @@ final class PlayerExchangeService
             }
 
             return [$signup, $search];
-        });
+        }, self::TRANSACTION_ATTEMPTS);
 
         $this->notifyOwnerJoined($search, $user);
 
@@ -175,9 +180,9 @@ final class PlayerExchangeService
     {
         DB::transaction(function () use ($user, $booking): void {
             $locked = $this->lockBooking($booking);
-            $search = $this->lockedSearch($locked);
+            $search = $this->currentSearch($locked);
 
-            $signup = $search?->signups()->where('uid', $user->uid)->lockForUpdate()->first();
+            $signup = $search?->signups()->where('uid', $user->uid)->first();
             if ($search === null || $signup === null
                 || ! in_array($search->status, [PlayerSearch::OPEN, PlayerSearch::FILLED, PlayerSearch::ENDED], true)) {
                 throw $this->refused('not_joined');
@@ -194,7 +199,7 @@ final class PlayerExchangeService
             if ($search->status === PlayerSearch::FILLED) {
                 $search->update(['status' => PlayerSearch::OPEN]);
             }
-        });
+        }, self::TRANSACTION_ATTEMPTS);
     }
 
     /**
@@ -210,13 +215,13 @@ final class PlayerExchangeService
                 throw $this->refused('not_owner');
             }
 
-            $search = $this->lockedSearch($locked);
+            $search = $this->currentSearch($locked);
             if ($search === null || $search->status !== PlayerSearch::OPEN) {
                 throw $this->refused('not_open');
             }
 
             $search->update(['status' => PlayerSearch::ENDED]);
-        });
+        }, self::TRANSACTION_ATTEMPTS);
     }
 
     /**
@@ -262,13 +267,19 @@ final class PlayerExchangeService
     }
 
     /**
-     * Lock the booking row (the mutex for its search) and load it fresh.
+     * Lock the booking row (the mutex for its search) and, for a join, the member's user
+     * row (the mutex for that member's joins); only then load the booking. These must be
+     * the first statements of the transaction: locking reads see the latest commit, and
+     * the snapshot for the plain reads after them is taken only once both locks are held.
      *
      * @throws PlayerExchangeException
      */
-    private function lockBooking(Booking $booking): Booking
+    private function lockBooking(Booking $booking, ?User $member = null): Booking
     {
         $locked = Booking::query()->whereKey($booking->bid)->lockForUpdate()->first();
+        if ($member !== null) {
+            User::query()->whereKey($member->uid)->lockForUpdate()->get();
+        }
         if ($locked === null || ! in_array($locked->status, Booking::ACTIVE_STATUSES, true)) {
             throw $this->refused('not_open');
         }
@@ -276,9 +287,10 @@ final class PlayerExchangeService
         return $locked->load('reservations', 'meta');
     }
 
-    private function lockedSearch(Booking $locked): ?PlayerSearch
+    /** Plain read: callers hold the booking row lock, which serialises every change to its search. */
+    private function currentSearch(Booking $locked): ?PlayerSearch
     {
-        return PlayerSearch::query()->where('bid', $locked->bid)->lockForUpdate()->first();
+        return PlayerSearch::query()->where('bid', $locked->bid)->first();
     }
 
     /** @return array<int, string> slot (2-4) => name */

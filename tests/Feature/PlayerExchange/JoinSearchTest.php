@@ -13,8 +13,12 @@ use App\Models\User;
 use App\Services\BookingService;
 use App\Services\PlayerExchangeService;
 use Carbon\Carbon;
+use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use PDOException;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -268,6 +272,86 @@ class JoinSearchTest extends TestCase
         $booking = $this->searchingBooking(2, 1);
 
         $this->post(route('player-exchange.join', $booking))->assertRedirect(route('login'));
+        $this->postJson(route('player-exchange.join', $booking))->assertUnauthorized();
+        $this->delete(route('player-exchange.leave', $booking))->assertRedirect(route('login'));
+        $this->deleteJson(route('player-exchange.leave', $booking))->assertUnauthorized();
+        $this->post(route('player-exchange.end', $booking))->assertRedirect(route('login'));
+        $this->postJson(route('player-exchange.end', $booking))->assertUnauthorized();
+
         $this->assertSame(0, PlayerSignup::query()->count());
+        $this->assertSame(PlayerSearch::OPEN, PlayerSearch::query()->where('bid', $booking->bid)->value('status'));
+    }
+
+    #[Test]
+    public function a_deadlock_is_answered_with_a_retry_message_instead_of_a_500(): void
+    {
+        $booking = $this->searchingBooking(2, 1);
+        $member = $this->member('Max Muster');
+
+        $attempts = 0;
+        DB::connection()->beforeExecuting(function (string $sql) use (&$attempts): void {
+            if (str_starts_with($sql, 'insert into "player_exchange_signups"')) {
+                $attempts++;
+                $pdo = new PDOException('SQLSTATE[40001]: Serialization failure: 1213 Deadlock found when trying to get lock; try restarting transaction');
+                $pdo->errorInfo = ['40001', 1213, 'Deadlock found when trying to get lock; try restarting transaction'];
+
+                throw new QueryException('sqlite', $sql, [], $pdo);
+            }
+        });
+
+        $this->actingAs($member)
+            ->postJson(route('player-exchange.join', $booking))
+            ->assertStatus(422)
+            ->assertExactJson(['error' => __('booking.messages.player_exchange.retry')]);
+        // Inside the test's wrapping transaction Laravel does not retry but throws a DeadlockException;
+        // the retries at top level are covered by JoinSearchMysqlTest.
+        $this->assertGreaterThan(0, $attempts);
+
+        $this->actingAs($member)
+            ->post(route('player-exchange.join', $booking))
+            ->assertRedirect(route('calendar.index', ['date' => '2026-11-08']))
+            ->assertSessionHas('error', __('booking.messages.player_exchange.retry'));
+
+        $this->assertSame(0, PlayerSignup::query()->count());
+        $this->assertSame([], $booking->fresh(['meta'])->player_names);
+    }
+
+    #[Test]
+    public function join_reads_the_booking_and_then_the_user_row_before_anything_else(): void
+    {
+        $booking = $this->searchingBooking(2, 1);
+        $member = $this->member('Max Muster');
+        $base = DB::transactionLevel();
+
+        /** @var list<string> $log */
+        $log = [];
+        DB::listen(function (QueryExecuted $q) use (&$log, $base): void {
+            if ($q->connection->transactionLevel() > $base) {
+                $log[] = $q->sql;
+            }
+        });
+
+        $this->exchange()->join($member, $booking);
+
+        // On MySQL both are FOR UPDATE (see JoinSearchMysqlTest); any plain read before them would fix a stale snapshot.
+        $this->assertMatchesRegularExpression('/^select \* from "bs_bookings" where "bs_bookings"\."bid" = \? limit 1/', $log[0] ?? '');
+        $this->assertMatchesRegularExpression('/^select \* from "bs_users" where "bs_users"\."uid" = \?/', $log[1] ?? '');
+    }
+
+    #[Test]
+    public function other_database_errors_are_not_turned_into_a_retry_message(): void
+    {
+        $booking = $this->searchingBooking(2, 1);
+        $member = $this->member('Max Muster');
+
+        DB::connection()->beforeExecuting(function (string $sql): void {
+            if (str_starts_with($sql, 'insert into "player_exchange_signups"')) {
+                throw new QueryException('sqlite', $sql, [], new PDOException('no such column: slot'));
+            }
+        });
+
+        $this->withoutExceptionHandling();
+        $this->expectException(QueryException::class);
+        $this->actingAs($member)->postJson(route('player-exchange.join', $booking));
     }
 }
