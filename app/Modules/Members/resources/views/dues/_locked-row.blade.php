@@ -18,14 +18,14 @@
     @if($context === 'list')
         <td class="mbr-check-cell"></td>
         <td class="ds-cell--title" data-label="{{ __('members::admin.members.name') }}">{{ $due->member->fullName() }}</td>
-        <td class="mbr-phone-hidden text-ink-2" data-label="{{ __('members::admin.dues.fiscal_year') }}">{{ $due->fiscalYear->labelWithState() }}</td>
+        <td class="mbr-phone-hidden text-ink-2" data-label="{{ __('members::admin.dues.fiscal_year') }}">{{ $due->fiscalYear->name }}</td>
         <td class="mbr-phone-hidden text-ink-2" data-label="{{ __('members::admin.members.fee_category') }}">{{ $due->feeCategory->name }}</td>
-        <td class="tabular-nums" data-label="{{ __('members::admin.dues.amount') }}">{{ MembersFormat::money($due->amount) }}</td>
-        <td class="tabular-nums" data-label="{{ __('members::admin.dues.outstanding') }}">{{ $due->outstandingAmount() === '0.00' ? '–' : MembersFormat::money($due->outstandingAmount()) }}</td>
+        <td class="tabular-nums whitespace-nowrap" data-label="{{ __('members::admin.dues.amount') }}">{{ MembersFormat::money($due->amount) }}</td>
+        <td class="tabular-nums whitespace-nowrap" data-label="{{ __('members::admin.dues.outstanding') }}">{{ $due->outstandingAmount() === '0.00' ? '–' : MembersFormat::money($due->outstandingAmount()) }}</td>
     @else
         <td class="ds-cell--title" data-label="{{ __('members::admin.dues.fiscal_year') }}">{{ $due->fiscalYear->labelWithState() }}</td>
         <td class="text-ink-2" data-label="{{ __('members::admin.members.fee_category') }}">{{ $due->feeCategory->name }}</td>
-        <td class="tabular-nums" data-label="{{ __('members::admin.dues.amount') }}">{{ MembersFormat::money($due->amount) }}</td>
+        <td class="tabular-nums whitespace-nowrap" data-label="{{ __('members::admin.dues.amount') }}">{{ MembersFormat::money($due->amount) }}</td>
     @endif
     <td data-label="{{ __('members::admin.dues.status') }}"><span class="ds-badge {{ $badgeClasses[$shownStatus] ?? '' }}">{{ $statusLabels[$shownStatus] ?? $shownStatus }}</span></td>
     <td class="tabular-nums" data-label="{{ __('members::admin.dues.bezahlt_am') }}">{{ $due->paidOnDisplay() }}</td>
