@@ -15,7 +15,8 @@ class DashboardController
 {
     public function index(): View
     {
-        $activeCount = Member::query()->active()->count();
+        // Members linked to a placeholder account are not counted as active.
+        $activeCount = Member::query()->countsAsActiveMember()->count();
         // Current members: active or dormant, not departed.
         $current = fn () => Member::query()->whereIn('status', ['aktiv', 'ruhend']);
 
@@ -65,7 +66,7 @@ class DashboardController
             ->mapWithKeys(fn (FeeCategory $category) => [$category->name => 0])
             ->all();
 
-        Member::query()->active()->with('feeCategory')->get()->each(function (Member $member) use (&$breakdown): void {
+        Member::query()->countsAsActiveMember()->with('feeCategory')->get()->each(function (Member $member) use (&$breakdown): void {
             $name = $member->feeCategory->name ?? __('members::admin.dashboard.no_category');
             $breakdown[$name] = ($breakdown[$name] ?? 0) + 1;
         });
@@ -89,7 +90,7 @@ class DashboardController
         ];
         $unknown = 0;
 
-        Member::query()->active()->get(['birthdate'])->each(function (Member $member) use (&$buckets, &$unknown): void {
+        Member::query()->countsAsActiveMember()->get(['birthdate'])->each(function (Member $member) use (&$buckets, &$unknown): void {
             if (! $member->birthdate) {
                 $unknown++;
 
