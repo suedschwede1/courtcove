@@ -177,7 +177,9 @@ class Member extends Model
      */
     public function scopeWithOpenDues(Builder $query): Builder
     {
-        return $query->whereHas('dues', fn (Builder $dues) => $dues->scopes(['open']));
+        // Own open dues or an open household due covering the member (family fee).
+        return $query->where(fn (Builder $q) => $q->whereHas('dues', fn (Builder $dues) => $dues->scopes(['open']))
+            ->orWhereHas('coveringHouseholdDues', fn (Builder $dues) => $dues->scopes(['open'])));
     }
 
     /**

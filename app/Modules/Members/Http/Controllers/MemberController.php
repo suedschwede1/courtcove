@@ -42,6 +42,9 @@ class MemberController
         $query = Member::query()->with([
             'feeCategory',
             'dues' => fn ($dues) => $dues->where('fiscal_year_id', $currentFiscalYear->id ?? 0)->withExists('payments'),
+            // Family fee: the household (chip) and the household due covering the member in that year (read-only status).
+            'household.members',
+            'coveringHouseholdDues' => fn ($dues) => $dues->wherePivot('fiscal_year_id', $currentFiscalYear->id ?? 0)->withExists('payments')->with('household.members'),
         ]);
         $filter->apply($query);
 

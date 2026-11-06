@@ -484,6 +484,9 @@ return [
             'no_rate' => 'There is no rate for the tariff in :year.',
         ],
         'chip' => 'Household',
+        'chip_label' => 'Household :household',
+        'filter_with' => 'with household',
+        'filter_without' => 'without household',
     ],
     'import' => [
         'summary' => 'Import finished: :created members created, :skipped skipped (already present), :updated updated, :dues dues created.',

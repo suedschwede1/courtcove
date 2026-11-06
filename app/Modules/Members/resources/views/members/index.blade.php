@@ -69,6 +69,9 @@
         <x-ui.field class="mbr-filters__field" :label="__('members::admin.dues.title')" for="mi-zahlung">
             <x-ui.select name="zahlung" :options="$dueLabels" :selected="$filter->dueStatus ?? ''" :placeholder="__('members::admin.common.all')" />
         </x-ui.field>
+        <x-ui.field class="mbr-filters__field" :label="__('members::admin.households.chip')" for="mi-haushalt">
+            <x-ui.select name="haushalt" :options="['mit' => __('members::admin.households.filter_with'), 'ohne' => __('members::admin.households.filter_without')]" :selected="$filter->household ?? ''" :placeholder="__('members::admin.common.all')" />
+        </x-ui.field>
         <x-ui.button type="submit" variant="secondary" :block="false">{{ __('members::admin.common.filter') }}</x-ui.button>
         @if($filter->chip !== 'ausgetreten')
             <a href="{{ route('members.index', $filter->query(['filter' => 'ausgetreten'])) }}" class="mbr-text-link mbr-more-filters__departed">{{ __('members::admin.members.show_departed') }}</a>
@@ -98,6 +101,7 @@
             @foreach($members as $member)
                 @php
                     $due = $member->dues->first();
+                    $householdDue = $due === null ? $member->coveringHouseholdDues->first() : null;
                 @endphp
                 <tr>
                     <td class="text-ink-2" data-label="{{ __('members::admin.members.number_short') }}">
@@ -126,6 +130,9 @@
                         @click="if (!editing) editing = true"
                         @click.outside="if (!error) editing = false">
                         <span x-show="!editing" x-text="lastname + ', ' + firstname" class="mbr-name" :class="{ 'mbr-saved': justSaved }">{{ $member->lastname }}, {{ $member->firstname }}</span>
+                        @if($member->household)
+                            <span x-show="!editing" class="ds-badge ds-badge--neutral" title="{{ $member->household->label() }}" aria-label="{{ __('members::admin.households.chip_label', ['household' => $member->household->label()]) }}">{{ __('members::admin.households.chip') }}</span>
+                        @endif
                         <div x-show="editing" @click.stop class="mbr-name-editor">
                             <div class="flex gap-1">
                                 <input type="text" x-model="firstname" @blur="save('firstname')" @keydown.enter.prevent="$event.target.blur()" class="ds-input" :class="{ 'ds-input--invalid': error }" aria-label="{{ __('members::admin.members.firstname') }}">
@@ -256,6 +263,13 @@
                                 <input type="text" x-model="kommentar" @blur="saveKommentar()" @keydown.enter.prevent="$event.target.blur()" placeholder="{{ __('members::admin.dues.kommentar') }}" aria-label="{{ __('members::admin.dues.kommentar') }}" class="ds-input" :class="{ 'ds-input--invalid': error }">
                                 <p class="ds-field__error" x-show="error" x-text="error"></p>
                             </div>
+                        @elseif($householdDue)
+                            {{-- Household due: read-only here (changing it would change it for the whole family). --}}
+                            @php $hStatus = $householdDue->payments_exists ? 'bezahlt' : $householdDue->displayStatus(); @endphp
+                            <span class="flex items-center gap-1" data-household-status="{{ $householdDue->id }}">
+                                <span class="ds-badge {{ StatusTone::badgeClasses(StatusTone::DUE)[$hStatus] ?? '' }}">{{ $dueLabels[$hStatus] ?? $hStatus }}</span>
+                                <x-ui.icon-button icon="chevron-right" variant="text" :href="route('members.households.show', $householdDue->household_id)" :label="__('members::admin.households.open', ['name' => $householdDue->household->label()])" />
+                            </span>
                         @else
                             <span>–</span>
                         @endif
@@ -308,7 +322,7 @@
         <ul class="mbr-member-cards mbr-phone-only" aria-label="{{ __('members::admin.members.list_label') }}">
             @foreach($members as $member)
                 @php
-                    $due = $member->dues->first();
+                    $due = $member->dues->first() ?? $member->coveringHouseholdDues->first();
                     $dueOpen = $due !== null && $due->status !== 'bezahlt' && ! $due->payments_exists;
                 @endphp
                 <li>
@@ -316,6 +330,9 @@
                         <span class="mbr-member-card__text">
                             <span class="mbr-member-card__name">{{ $member->lastname }}, {{ $member->firstname }}</span>
                             <span class="mbr-member-card__meta">{{ __('members::admin.members.number_prefix', ['number' => $member->member_number]) }}@if($member->feeCategory) · {{ $member->feeCategory->name }}@endif</span>
+                            @if($member->household)
+                                <span class="mbr-member-card__meta">{{ __('members::admin.households.chip_label', ['household' => $member->household->label()]) }}</span>
+                            @endif
                         </span>
                         <span class="mbr-member-card__badges">
                             @if(! $dueOpen || $member->status !== 'aktiv')

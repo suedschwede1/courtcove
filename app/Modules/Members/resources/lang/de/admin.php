@@ -484,6 +484,9 @@ return [
             'no_rate' => 'Für den Tarif gibt es keinen Beitragssatz :year.',
         ],
         'chip' => 'Haushalt',
+        'chip_label' => 'Haushalt :household',
+        'filter_with' => 'mit Haushalt',
+        'filter_without' => 'ohne Haushalt',
     ],
     'import' => [
         'summary' => 'Import abgeschlossen: :created Mitglieder angelegt, :skipped übersprungen (bereits vorhanden), :updated aktualisiert, :dues Vorschreibungen erstellt.',
