@@ -9,6 +9,7 @@ use App\Modules\Members\Http\Controllers\DsgvoSettingsController;
 use App\Modules\Members\Http\Controllers\FeeCategoryController;
 use App\Modules\Members\Http\Controllers\FiscalYearController;
 use App\Modules\Members\Http\Controllers\HouseholdController;
+use App\Modules\Members\Http\Controllers\HouseholdDueController;
 use App\Modules\Members\Http\Controllers\MailController;
 use App\Modules\Members\Http\Controllers\MemberController;
 use App\Modules\Members\Http\Controllers\MemberDueController;
@@ -83,6 +84,7 @@ Route::middleware(['auth', 'admin.mode', 'can:admin.members'])
         Route::post('members/households/{household}/members', [HouseholdController::class, 'addMember'])->whereNumber('household')->name('members.households.members.add');
         Route::delete('members/households/{household}/members/{member}', [HouseholdController::class, 'removeMember'])->whereNumber(['household', 'member'])->name('members.households.members.remove');
         Route::post('members/households/{household}/dissolve', [HouseholdController::class, 'dissolve'])->whereNumber('household')->name('members.households.dissolve');
+        Route::post('members/household-dues', [HouseholdDueController::class, 'store'])->name('members.household-dues.store');
         Route::post('members/{member}/household', [HouseholdController::class, 'storeFromMember'])->whereNumber('member')->name('members.household.store-from-member');
 
         Route::resource('members', MemberController::class)->except(['show', 'destroy']);

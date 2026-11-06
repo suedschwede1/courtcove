@@ -79,4 +79,29 @@ class HouseholdClosedYearRaceTest extends TestCase
 
         $this->assertSame(0, HouseholdDue::count());
     }
+
+    #[Test]
+    public function entering_a_household_due_by_hand(): void
+    {
+        $this->closeOnLock($this->year);
+
+        $this->actingAs($this->admin())->post('/members/household-dues', ['household_id' => $this->household->id, 'fiscal_year_id' => $this->year->id])
+            ->assertSessionHasErrors('fiscal_year_id');
+
+        $this->assertSame(0, HouseholdDue::count());
+    }
+
+    #[Test]
+    public function covering_a_joiner(): void
+    {
+        $due = HouseholdDue::create(['household_id' => $this->household->id, 'fiscal_year_id' => $this->year->id, 'fee_category_id' => $this->family->id, 'amount' => 235]);
+        $clara = Member::factory()->create();
+        $this->closeOnLock($this->year);
+
+        $this->actingAs($this->admin())->post("/members/households/{$this->household->id}/members", ['member_id' => $clara->id])
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame($this->household->id, $clara->fresh()?->household_id);
+        $this->assertSame(0, $due->coveredMembers()->count());
+    }
 }

@@ -245,6 +245,9 @@ return [
             'own_due_replaceable' => ':count Haushaltsmitglieder mit eigenem offenem Beitrag (ersetzen möglich)',
             'own_due_paid' => ':count Haushaltsmitglieder mit bezahltem oder teilbezahltem eigenem Beitrag (manuell prüfen)',
         ],
+        'covered_by_household' => 'Das Mitglied ist :year über den Haushalt :household abgedeckt und bekommt keinen eigenen Beitrag.',
+        'household_due_exists' => 'Für :year gibt es schon einen Haushaltsbeitrag.',
+        'household_due_created' => 'Haushaltsbeitrag angelegt.',
     ],
     'dashboard' => [
         'title' => 'Übersicht',
@@ -454,6 +457,11 @@ return [
             'payer_not_member' => ':name gehört nicht zu diesem Haushalt und kann nicht die zahlende Person sein.',
             'not_member' => ':name gehört nicht zu diesem Haushalt.',
         ],
+        'due_create' => 'Haushaltsbeitrag anlegen',
+        'due_amount' => 'Betrag (€)',
+        'due_amount_help' => 'Leer: Beitragssatz des Tarifs für das Geschäftsjahr.',
+        'error_no_tariff' => 'Der Haushalt hat keinen Tarif pro Haushalt. Wähle zuerst einen Tarif.',
+        'error_too_small' => 'Ein Haushaltsbeitrag braucht mindestens 2 aktive oder ruhende Mitglieder im Haushalt.',
     ],
     'import' => [
         'summary' => 'Import abgeschlossen: :created Mitglieder angelegt, :skipped übersprungen (bereits vorhanden), :updated aktualisiert, :dues Vorschreibungen erstellt.',

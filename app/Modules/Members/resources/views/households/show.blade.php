@@ -150,6 +150,20 @@
                 @endforeach
             </x-ui.table>
         @endif
+        @if(! $dissolved && $household->feeCategory?->isPerHousehold() && $openYears->isNotEmpty())
+            {{-- Manual household due: amount empty = the tariff's rate for the year. --}}
+            <form method="POST" action="{{ route('members.household-dues.store') }}" class="mbr-filters mbr-compose">
+                @csrf
+                <input type="hidden" name="household_id" value="{{ $household->id }}">
+                <x-ui.field class="mbr-filters__field" :label="__('members::admin.dues.fiscal_year')" for="fiscal_year_id" :error="$errors->first('fiscal_year_id') ?: $errors->first('household_id')">
+                    <x-ui.select :options="$openYears->pluck('name', 'id')->all()" :selected="FormValue::string(old('fiscal_year_id', $fiscalYear?->id))" />
+                </x-ui.field>
+                <x-ui.field class="mbr-filters__field" :label="__('members::admin.households.due_amount')" for="amount" :help="__('members::admin.households.due_amount_help')" :error="$errors->first('amount')">
+                    <x-ui.input type="number" step="0.01" min="0" max="999999.99" inputmode="decimal" :value="FormValue::string(old('amount'))" />
+                </x-ui.field>
+                <x-ui.button type="submit" variant="secondary" :block="false" icon="plus">{{ __('members::admin.households.due_create') }}</x-ui.button>
+            </form>
+        @endif
     </x-ui.card>
 </div>
 </div>

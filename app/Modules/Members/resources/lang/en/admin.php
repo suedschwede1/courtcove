@@ -245,6 +245,9 @@ return [
             'own_due_replaceable' => ':count household members with an own open fee (can be replaced)',
             'own_due_paid' => ':count household members with a paid or partly paid own fee (check by hand)',
         ],
+        'covered_by_household' => 'The member is covered :year by household :household and gets no own fee.',
+        'household_due_exists' => 'There is already a household fee for :year.',
+        'household_due_created' => 'Household fee added.',
     ],
     'dashboard' => [
         'title' => 'Overview',
@@ -454,6 +457,11 @@ return [
             'payer_not_member' => ':name does not belong to this household and cannot be the paying person.',
             'not_member' => ':name does not belong to this household.',
         ],
+        'due_create' => 'Add household fee',
+        'due_amount' => 'Amount (€)',
+        'due_amount_help' => 'Empty: the tariff\'s rate for the fiscal year.',
+        'error_no_tariff' => 'The household has no per-household tariff. Choose a tariff first.',
+        'error_too_small' => 'A household fee needs at least 2 active or dormant members in the household.',
     ],
     'import' => [
         'summary' => 'Import finished: :created members created, :skipped skipped (already present), :updated updated, :dues dues created.',

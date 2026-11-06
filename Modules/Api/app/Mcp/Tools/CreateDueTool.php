@@ -6,6 +6,7 @@ namespace Modules\Api\Mcp\Tools;
 
 use App\Modules\Members\Models\FeeCategoryRate;
 use App\Modules\Members\Models\FiscalYear;
+use App\Modules\Members\Models\HouseholdDue;
 use App\Modules\Members\Models\MemberDue;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Support\Facades\DB;
@@ -57,6 +58,11 @@ class CreateDueTool extends Tool
             $closed = FiscalYear::lockForWrite($fiscalYear->id);
             if ($closed !== null) {
                 return Response::error($closed->lockedMessage());
+            }
+            // No own due on top of household coverage in the same year.
+            $covering = HouseholdDue::coveringFor((int) $validated['member_id'], $fiscalYear->id);
+            if ($covering !== null) {
+                return Response::error($covering->coveredMessage());
             }
 
             if (($validated['amount'] ?? null) === null) {

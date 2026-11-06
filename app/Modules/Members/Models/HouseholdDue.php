@@ -54,6 +54,22 @@ class HouseholdDue extends Model
         'bezahlt_am' => 'date',
     ];
 
+    /** The household due covering the member in the fiscal year, if any (at most one, unique in the database). */
+    public static function coveringFor(int $memberId, int $fiscalYearId): ?self
+    {
+        return self::query()
+            ->whereIn('id', fn ($q) => $q->select('household_due_id')->from('household_due_member')
+                ->where('member_id', $memberId)->where('fiscal_year_id', $fiscalYearId))
+            ->with('household.members', 'fiscalYear')
+            ->first();
+    }
+
+    /** "2026 über Haushalt Familie Muster abgedeckt": the refusal for an individual due of a covered member. */
+    public function coveredMessage(): string
+    {
+        return __('members::admin.dues.covered_by_household', ['year' => $this->fiscalYear->name, 'household' => $this->household->label()]);
+    }
+
     /** @return BelongsTo<MemberHousehold, $this> */
     public function household(): BelongsTo
     {

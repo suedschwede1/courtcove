@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Members\Http\Controllers;
 
 use App\Modules\Members\Models\FeeCategory;
+use App\Modules\Members\Models\FiscalYear;
 use App\Modules\Members\Models\HouseholdDue;
 use App\Modules\Members\Models\Member;
 use App\Modules\Members\Models\MemberHousehold;
@@ -121,6 +122,7 @@ class HouseholdController
             'tariffs' => FeeCategory::query()->perHousehold()
                 ->where(fn ($q) => $q->whereNull('deactivated_at')->orWhere('id', $household->fee_category_id))
                 ->orderBy('name')->get(),
+            'openYears' => FiscalYear::query()->whereNull('abgeschlossen_am')->orderBy('starts_on')->get(),
             'dues' => $household->dues->sortByDesc(fn (HouseholdDue $due) => $due->fiscalYear->starts_on->toDateString())->values(),
         ]);
     }

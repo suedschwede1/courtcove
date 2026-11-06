@@ -6,6 +6,7 @@ namespace App\Modules\Members\Support;
 
 use App\Modules\Members\Models\FeeCategory;
 use App\Modules\Members\Models\FiscalYear;
+use App\Modules\Members\Models\HouseholdDue;
 use App\Modules\Members\Models\Member;
 use App\Modules\Members\Models\MemberHousehold;
 use Illuminate\Support\Facades\DB;
@@ -67,6 +68,9 @@ final class HouseholdService
     public function addMember(MemberHousehold $household, Member $member): void
     {
         DB::transaction(function () use ($household, $member): void {
+            // Year row first (lock order of the dues code): a closed current year gets no new coverage.
+            $year = $this->currentFiscalYear();
+            $openYear = $year !== null && FiscalYear::lockForWrite($year->id) === null ? $year : null;
             $household = MemberHousehold::query()->lockForUpdate()->findOrFail($household->id);
             $locked = Member::query()->lockForUpdate()->findOrFail($member->id);
 
@@ -93,7 +97,7 @@ final class HouseholdService
             $locked->forceFill(['household_id' => $household->id])->save();
             MemberChangeLogger::log($locked, 'updated', $before);
 
-            $this->coverJoiner($household, $locked);
+            $this->coverJoiner($household, $locked, $openYear);
         });
     }
 
@@ -208,10 +212,9 @@ final class HouseholdService
      * Covers a joiner by the current year's household due (decision 6). Never in a closed year, never
      * on top of an own due or an existing coverage in that year.
      */
-    private function coverJoiner(MemberHousehold $household, Member $member): void
+    private function coverJoiner(MemberHousehold $household, Member $member, ?FiscalYear $year): void
     {
-        $year = $this->currentFiscalYear();
-        if ($year === null || $year->isClosed()) {
+        if ($year === null) {
             return;
         }
 
@@ -220,13 +223,44 @@ final class HouseholdService
             return;
         }
 
+        $this->coverIfFree($due, $member, $year);
+    }
+
+    /**
+     * Covers every billable member of the due's household that has no own due and no coverage in the
+     * due's year (call inside a transaction that holds the year-row lock). Returns how many were added.
+     */
+    public function coverBillable(HouseholdDue $due): int
+    {
+        $year = $due->fiscalYear;
+        $added = 0;
+        foreach ($due->household->billableMembers()->get() as $member) {
+            $added += $this->coverIfFree($due, $member, $year) ? 1 : 0;
+        }
+
+        return $added;
+    }
+
+    /** Billable members of the household (aktiv/ruhend, not anonymised) that the due could still cover. */
+    public static function coverableCount(MemberHousehold $household, FiscalYear $year): int
+    {
+        return $household->billableMembers()
+            ->whereDoesntHave('dues', fn ($q) => $q->where('fiscal_year_id', $year->id))
+            ->whereDoesntHave('coveringHouseholdDues', fn ($q) => $q->where('household_due_member.fiscal_year_id', $year->id))
+            ->count();
+    }
+
+    private function coverIfFree(HouseholdDue $due, Member $member, FiscalYear $year): bool
+    {
         $hasOwnDue = $member->dues()->where('fiscal_year_id', $year->id)->exists();
         $isCovered = $member->coveringHouseholdDues()->wherePivot('fiscal_year_id', $year->id)->exists();
         if ($hasOwnDue || $isCovered) {
-            return;
+            return false;
         }
 
         $due->coveredMembers()->attach($member->id, ['fiscal_year_id' => $year->id]);
+
+        return true;
     }
 
     /** Writes the new payer and logs 'household_payer' on the old and on the new payer. */

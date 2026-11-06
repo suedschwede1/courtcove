@@ -7,6 +7,7 @@ namespace App\Modules\Members\Http\Controllers;
 use App\Modules\Members\Models\FeeCategory;
 use App\Modules\Members\Models\FeeCategoryRate;
 use App\Modules\Members\Models\FiscalYear;
+use App\Modules\Members\Models\HouseholdDue;
 use App\Modules\Members\Models\Member;
 use App\Modules\Members\Models\MemberDue;
 use App\Modules\Members\Support\DuesGenerationReport;
@@ -140,6 +141,16 @@ class MemberDueController
                 'exists:members,id',
                 Rule::unique('member_dues', 'member_id')
                     ->where('fiscal_year_id', (int) $request->input('fiscal_year_id')),
+                // Never an own due on top of household coverage in the same year (no double billing).
+                function (string $attribute, mixed $value, \Closure $fail) use ($request): void {
+                    $yearId = $request->input('fiscal_year_id');
+                    if (is_scalar($value) && ctype_digit((string) $value) && is_scalar($yearId) && ctype_digit((string) $yearId)) {
+                        $covering = HouseholdDue::coveringFor((int) $value, (int) $yearId);
+                        if ($covering !== null) {
+                            $fail($covering->coveredMessage());
+                        }
+                    }
+                },
             ],
             'fiscal_year_id' => ['required', 'exists:fiscal_years,id', $this->openYearRule()],
             'fee_category_id' => ['required', FeeCategory::assignableRule()],
@@ -153,6 +164,10 @@ class MemberDueController
         DB::transaction(function () use ($validated, $fiscalYear): void {
             // Again with the year row locked (year first): a close since validation still wins.
             FiscalYear::lockOpenOrFail($fiscalYear->id, 'fiscal_year_id');
+            $covering = HouseholdDue::coveringFor((int) $validated['member_id'], $fiscalYear->id);
+            if ($covering !== null) {
+                throw ValidationException::withMessages(['member_id' => $covering->coveredMessage()]);
+            }
 
             if (($validated['amount'] ?? null) === null) {
                 $rate = FeeCategoryRate::where('fee_category_id', $validated['fee_category_id'])
@@ -460,6 +475,11 @@ class MemberDueController
             ->get();
 
         foreach ($intervening as $fiscalYear) {
+            // A year in which a household due covers the member is paid through the household: no own due there.
+            if (HouseholdDue::coveringFor($due->member_id, $fiscalYear->id) !== null) {
+                continue;
+            }
+
             $existing = MemberDue::where('member_id', $due->member_id)
                 ->where('fiscal_year_id', $fiscalYear->id)
                 ->first();
