@@ -1,7 +1,6 @@
 {{--
     Left sidebar of the admin shell. Without props it lists the administration groups (AdminNavigation); an area
-    with its own navigation (Members) passes groups, eyebrow and label. An item with children is a sub-group: the
-    children are listed under it while one of them is the current page.
+    with its own navigation (Members) passes groups, eyebrow and label.
 --}}
 @props(['groups' => null, 'eyebrow' => null, 'label' => null])
 @php
@@ -31,21 +30,7 @@
                 <p class="ds-admin-sidebar__group" id="admin-nav-{{ $group->key }}">{{ $group->label }}</p>
                 <ul class="ds-admin-sidebar__list" aria-labelledby="admin-nav-{{ $group->key }}">
                     @foreach($group->items as $item)
-                        @if($item->children === [])
-                            <li><a href="{{ $item->url }}" class="ds-admin-sidebar__link"@if($item->active) aria-current="page"@endif>{{ $item->label }}</a></li>
-                        @else
-                            @php($expanded = collect($item->children)->contains(fn ($child) => $child->active))
-                            <li>
-                                <a href="{{ $item->url }}" @class(['ds-admin-sidebar__link', 'ds-admin-sidebar__link--parent', 'is-expanded' => $expanded])@if($item->active) aria-current="page"@endif>{{ $item->label }}<x-ui.icon :name="$expanded ? 'chevron-down' : 'chevron-right'" :size="16" class="ds-admin-sidebar__chevron" /></a>
-                                @if($expanded)
-                                    <ul class="ds-admin-sidebar__sublist" aria-label="{{ $item->label }}">
-                                        @foreach($item->children as $child)
-                                            <li><a href="{{ $child->url }}" class="ds-admin-sidebar__link ds-admin-sidebar__sublink"@if($child->active) aria-current="page"@endif>{{ $child->label }}</a></li>
-                                        @endforeach
-                                    </ul>
-                                @endif
-                            </li>
-                        @endif
+                        <li><a href="{{ $item->url }}" class="ds-admin-sidebar__link"@if($item->active) aria-current="page"@endif>{{ $item->label }}</a></li>
                     @endforeach
                 </ul>
             </div>

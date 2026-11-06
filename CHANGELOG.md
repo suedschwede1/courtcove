@@ -9,7 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-06
-- Members area gets a side menu on the left like the administration: Übersicht, Mitglieder, Beiträge, Rundmail, Protokoll, Einstellungen (the settings pages open as a sub-group under "Einstellungen"), with "Zum Kalender" and the slide-in menu behind ☰ on phones; the tab row and the settings chip row under the page title are gone, all /members URLs stay the same.
+- Members area gets a side menu on the left like the administration: group "Mitglieder" (Übersicht, Mitglieder, Beiträge, Rundmail, Protokoll) and group "Einstellungen" (Fiskaljahre, Beitragskategorien, Funktionen, Mail-Einstellungen, DSGVO), with "Zum Kalender" and the slide-in menu behind ☰ on phones; the tab row and the settings chip row under the page title are gone, all /members URLs stay the same.
 
 ## 2026-11-05
 - Members labels: dues list uses singular labels ("Fiskaljahr", "Beitragskategorie", "Fiskaljahr für neue Beiträge") and "Betrag" without "(€)" next to amounts that carry the sign; the phone filter disclosure is "Weitere Filter"; the overview says "5 von 19 angezeigt" for open dues; the detail history card is "Änderungsprotokoll" with spacing in the account card; the new-function form saves with "Speichern".

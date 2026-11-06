@@ -14,9 +14,9 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
- * Every Members page renders in the admin shell with the Members sidebar (Übersicht, Mitglieder, Beiträge,
- * Rundmail, Protokoll, Einstellungen; the settings pages as a sub-group under "Einstellungen"), the phone bar with
- * the slide-in menu, and no tab rows under the page head.
+ * Every Members page renders in the admin shell with the Members sidebar (group "Mitglieder": Übersicht, Mitglieder,
+ * Beiträge, Rundmail, Protokoll; group "Einstellungen": the settings pages), the phone bar with the slide-in menu,
+ * and no tab rows under the page head.
  */
 class MembersLayoutTest extends TestCase
 {
@@ -24,10 +24,10 @@ class MembersLayoutTest extends TestCase
 
     private const VIEWS = 'app/Modules/Members/resources/views/';
 
-    /** Top-level sidebar routes in order. */
-    private const ENTRIES = ['members.dashboard', 'members.index', 'members.dues.index', 'members.mail.index', 'members.changes.index', 'members.fiscal-years.index'];
+    /** Routes of the group "Mitglieder" in order. */
+    private const ENTRIES = ['members.dashboard', 'members.index', 'members.dues.index', 'members.mail.index', 'members.changes.index'];
 
-    /** Settings sub-group routes in order. */
+    /** Routes of the group "Einstellungen" in order. */
     private const SETTINGS = ['members.fiscal-years.index', 'members.fee-categories.index', 'members.functions.index', 'members.mail.config', 'members.dsgvo.index'];
 
     private function admin(): User
@@ -56,10 +56,9 @@ class MembersLayoutTest extends TestCase
     }
 
     /**
-     * Every HTML page of the module => [route of the active top-level entry or null, route of the active settings
-     * page or null].
+     * Every HTML page of the module => route of its highlighted sidebar entry.
      *
-     * @return array<string, array{0: string|null, 1: string|null}>
+     * @return array<string, string>
      */
     private function pages(): array
     {
@@ -68,23 +67,23 @@ class MembersLayoutTest extends TestCase
         $role = ClubRole::create(['name' => 'Kassier', 'is_board' => true]);
 
         return [
-            route('members.dashboard') => ['members.dashboard', null],
-            route('members.index') => ['members.index', null],
-            route('members.create') => ['members.index', null],
-            route('members.edit', $member) => ['members.index', null],
-            route('members.payments.create', $member) => ['members.index', null],
-            route('members.dues.index') => ['members.dues.index', null],
-            route('members.mail.index') => ['members.mail.index', null],
-            route('members.changes.index') => ['members.changes.index', null],
-            route('members.fiscal-years.index') => [null, 'members.fiscal-years.index'],
-            route('members.fiscal-years.create') => [null, 'members.fiscal-years.index'],
-            route('members.fiscal-years.edit', $fiscalYear) => [null, 'members.fiscal-years.index'],
-            route('members.fee-categories.index') => [null, 'members.fee-categories.index'],
-            route('members.functions.index') => [null, 'members.functions.index'],
-            route('members.functions.create') => [null, 'members.functions.index'],
-            route('members.functions.edit', $role) => [null, 'members.functions.index'],
-            route('members.mail.config') => [null, 'members.mail.config'],
-            route('members.dsgvo.index') => [null, 'members.dsgvo.index'],
+            route('members.dashboard') => 'members.dashboard',
+            route('members.index') => 'members.index',
+            route('members.create') => 'members.index',
+            route('members.edit', $member) => 'members.index',
+            route('members.payments.create', $member) => 'members.index',
+            route('members.dues.index') => 'members.dues.index',
+            route('members.mail.index') => 'members.mail.index',
+            route('members.changes.index') => 'members.changes.index',
+            route('members.fiscal-years.index') => 'members.fiscal-years.index',
+            route('members.fiscal-years.create') => 'members.fiscal-years.index',
+            route('members.fiscal-years.edit', $fiscalYear) => 'members.fiscal-years.index',
+            route('members.fee-categories.index') => 'members.fee-categories.index',
+            route('members.functions.index') => 'members.functions.index',
+            route('members.functions.create') => 'members.functions.index',
+            route('members.functions.edit', $role) => 'members.functions.index',
+            route('members.mail.config') => 'members.mail.config',
+            route('members.dsgvo.index') => 'members.dsgvo.index',
         ];
     }
 
@@ -131,19 +130,23 @@ class MembersLayoutTest extends TestCase
     }
 
     #[Test]
-    public function the_sidebar_lists_the_members_entries_and_never_the_admin_groups(): void
+    public function the_sidebar_lists_the_members_groups_and_never_the_admin_groups(): void
     {
         $admin = $this->admin();
 
         foreach (array_keys($this->pages()) as $url) {
             $nav = $this->sidebarNav((string) $this->actingAs($admin)->get($url)->assertOk()->getContent());
 
-            // Sub-group links carry ds-admin-sidebar__sublink and do not match.
-            preg_match_all('#<a href="([^"]+)" class="ds-admin-sidebar__link(?:"| ds-admin-sidebar__link--parent)#', $nav, $m);
-            $this->assertSame(array_map(fn (string $r) => route($r), self::ENTRIES), $m[1], $url);
+            $this->assertSame(2, substr_count($nav, '<p class="ds-admin-sidebar__group"'), $url);
+            $this->assertStringContainsString('id="admin-nav-members">'.e(__('members::admin.members.title')).'</p>', $nav, $url);
+            $this->assertStringContainsString('id="admin-nav-settings">'.e(__('members::admin.settings.title')).'</p>', $nav, $url);
 
-            $this->assertSame(1, substr_count($nav, '<p class="ds-admin-sidebar__group"'), $url);
-            $this->assertStringContainsString('id="admin-nav-members">'.e(__('members::admin.area.eyebrow')).'</p>', $nav, $url);
+            foreach (['members' => self::ENTRIES, 'settings' => self::SETTINGS] as $group => $routes) {
+                $list = $this->between($nav, '<ul class="ds-admin-sidebar__list" aria-labelledby="admin-nav-'.$group.'">', '</ul>');
+                preg_match_all('#<a href="([^"]+)" class="ds-admin-sidebar__link"#', $list, $m);
+                $this->assertSame(array_map(fn (string $r) => route($r), $routes), $m[1], $url.' '.$group);
+            }
+
             foreach (['admin.dashboard', 'admin.bookings.index', 'admin.users.index', 'admin.squares.index'] as $adminRoute) {
                 $this->assertStringNotContainsString('href="'.route($adminRoute).'"', $nav, $url);
             }
@@ -155,39 +158,11 @@ class MembersLayoutTest extends TestCase
     {
         $admin = $this->admin();
 
-        foreach ($this->pages() as $url => [$entryRoute, $settingsRoute]) {
+        foreach ($this->pages() as $url => $entryRoute) {
             $nav = $this->sidebarNav((string) $this->actingAs($admin)->get($url)->assertOk()->getContent());
 
             $this->assertSame(1, substr_count($nav, 'aria-current='), $url);
-            if ($entryRoute !== null) {
-                $this->assertMatchesRegularExpression('#<li><a href="'.preg_quote(route($entryRoute), '#').'" class="ds-admin-sidebar__link" aria-current="page">#', $nav, $url);
-            } else {
-                $this->assertMatchesRegularExpression('#<a href="'.preg_quote(route((string) $settingsRoute), '#').'" class="ds-admin-sidebar__link ds-admin-sidebar__sublink" aria-current="page">#', $nav, $url);
-            }
-        }
-    }
-
-    #[Test]
-    public function the_settings_sub_group_is_expanded_only_on_settings_pages(): void
-    {
-        $admin = $this->admin();
-
-        foreach ($this->pages() as $url => [, $settingsRoute]) {
-            $nav = $this->sidebarNav((string) $this->actingAs($admin)->get($url)->assertOk()->getContent());
-
-            if ($settingsRoute === null) {
-                $this->assertStringNotContainsString('ds-admin-sidebar__sublist', $nav, $url);
-                $this->assertMatchesRegularExpression('#class="ds-admin-sidebar__link ds-admin-sidebar__link--parent">'.preg_quote(e(__('members::admin.settings.title')), '#').'#', $nav, $url);
-
-                continue;
-            }
-
-            $this->assertMatchesRegularExpression('#class="ds-admin-sidebar__link ds-admin-sidebar__link--parent is-expanded">'.preg_quote(e(__('members::admin.settings.title')), '#').'#', $nav, $url);
-            $sub = $this->between($nav, '<ul class="ds-admin-sidebar__sublist"', '</ul>');
-            $this->assertStringContainsString('aria-label="'.e(__('members::admin.settings.title')).'"', $sub, $url);
-            preg_match_all('#<a href="([^"]+)" class="ds-admin-sidebar__link ds-admin-sidebar__sublink"#', $sub, $links);
-            $this->assertSame(array_map(fn (string $r) => route($r), self::SETTINGS), $links[1], $url);
-            $this->assertSame(1, substr_count($sub, 'aria-current="page"'), $url);
+            $this->assertMatchesRegularExpression('#<li><a href="'.preg_quote(route($entryRoute), '#').'" class="ds-admin-sidebar__link" aria-current="page">#', $nav, $url);
         }
     }
 
@@ -263,7 +238,6 @@ class MembersLayoutTest extends TestCase
         // The content column may shrink, and below 48rem the sidebar is a fixed overlay, not a column.
         $this->assertMatchesRegularExpression('/\.ds-admin-main\{[^}]*min-width:0/', $css);
         $this->assertMatchesRegularExpression('/\.ds-admin-sidebar\{(?=[^}]*position:fixed)(?=[^}]*max-width:85vw)[^}]*\}/', $css);
-        $this->assertMatchesRegularExpression('/\.ds-admin-sidebar__sublist\{/', $css);
     }
 
     #[Test]
@@ -306,7 +280,6 @@ class MembersLayoutTest extends TestCase
         $this->assertStringContainsString('id="admin-nav-operations"', $nav);
         $this->assertStringContainsString('id="admin-nav-users"', $nav);
         $this->assertStringNotContainsString('/members', $nav);
-        $this->assertStringNotContainsString('ds-admin-sidebar__sublist', $nav);
     }
 
     #[Test]

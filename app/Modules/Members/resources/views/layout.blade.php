@@ -1,7 +1,7 @@
 {{--
     Layout of the Members area: the admin shell (layouts.admin) with its own sidebar navigation (MembersNavigation:
-    Übersicht, Mitglieder, Beiträge, Rundmail, Protokoll, Einstellungen with the settings pages as a sub-group) and
-    the phone bar with the slide-in menu. Each page brings x-members::page-header (eyebrow, h1, actions) and fills
+    group Mitglieder with Übersicht, Mitglieder, Beiträge, Rundmail, Protokoll; group Einstellungen with the settings
+    pages) and the phone bar with the slide-in menu. Each page brings x-members::page-header (eyebrow, h1, actions) and fills
     members-content.
 --}}
 @extends('layouts.admin')
