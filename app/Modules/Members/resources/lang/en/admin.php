@@ -372,6 +372,8 @@ return [
         'no_templates' => 'No templates yet.',
         'load' => 'Load',
         'confirm_delete_template' => 'Really delete this template?',
+        'to_open_dues' => 'Fee :year open',
+        'households_without_payer' => ':count households without a paying person (not mailed)',
     ],
     'dsgvo' => [
         'title' => 'Data protection',

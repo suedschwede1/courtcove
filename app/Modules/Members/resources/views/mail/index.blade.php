@@ -136,6 +136,8 @@
                     </form>
                     <button type="button" class="ds-btn ds-btn--primary" x-ref="sendButton" @click="confirmOpen = true">{{ __('members::admin.mail.send') }}</button>
                     <span class="text-sm text-ink-2" x-text="currentAudience().countLabel"></span>
+                    {{-- e.g. "Haushalte ohne zahlende Person (nicht angeschrieben)" for the open-dues audience. --}}
+                    <span class="text-sm text-ink-2" x-show="currentAudience().note" x-cloak x-text="currentAudience().note" data-testid="mail-audience-note">{{ $audienceOptions->firstWhere('key', $defaultAudience)['note'] ?? '' }}</span>
 
                     <form method="POST" action="{{ route('members.mail.test') }}" class="flex flex-1 basis-full flex-wrap items-center gap-2 border-t border-line pt-3 md:basis-72 md:border-t-0 md:border-l md:pt-0 md:pl-4">
                         @csrf

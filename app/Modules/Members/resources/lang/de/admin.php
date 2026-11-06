@@ -372,6 +372,8 @@ return [
         'no_templates' => 'Noch keine Vorlagen.',
         'load' => 'Laden',
         'confirm_delete_template' => 'Diese Vorlage wirklich löschen?',
+        'to_open_dues' => 'Beitrag :year offen',
+        'households_without_payer' => ':count Haushalte ohne zahlende Person (nicht angeschrieben)',
     ],
     'dsgvo' => [
         'title' => 'Datenschutz',
