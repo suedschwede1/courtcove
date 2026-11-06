@@ -152,6 +152,12 @@ return [
         'selected_count' => ':count ausgewählt',
         'bezahlt_am' => 'Bezahlt am',
         'bezahlt_am_invalid' => 'Bitte ein gültiges Datum angeben, das nicht in der Zukunft liegt.',
+        'status_filter_offen' => 'Offen (alle unbezahlten)',
+        'none_generated' => 'Für Geschäftsjahr :year sind noch keine Beiträge erzeugt.',
+        'none_generated_hint' => 'Oben „Beiträge für :year generieren“ wählen (dafür braucht jede Beitragskategorie einen Beitragssatz für :year) oder einen Beitrag manuell anlegen.',
+        'none_for_filters' => 'Keine Beiträge für diese Filter.',
+        'year_not_found' => 'Das gewählte Geschäftsjahr gibt es nicht. Angezeigt wird :year.',
+        'no_rates_for_year' => 'Für Geschäftsjahr :year sind keine Beitragssätze hinterlegt, bitte zuerst unter Beitragskategorien eintragen.',
         'bezahlt_am_requires_paid' => '„Bezahlt am“ gibt es nur bei bezahlten Beiträgen. Bitte zuerst den Status auf „Bezahlt“ setzen.',
     ],
     'dashboard' => [

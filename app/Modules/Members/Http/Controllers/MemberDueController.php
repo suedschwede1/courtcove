@@ -20,20 +20,48 @@ use Illuminate\Validation\ValidationException;
 
 class MemberDueController
 {
+    /** Session key of the business year last shown in the dues list. */
+    private const YEAR_SESSION_KEY = 'members.dues.fiscal_year_id';
+
+    /** Status filter values: "offen" = every unpaid due, the others match the displayed status. */
+    private const STATUS_FILTERS = ['offen', 'ausstehend', 'ueberfaellig', 'bezahlt'];
+
     public function index(Request $request): View
     {
         $fiscalYears = FiscalYear::query()->orderBy('starts_on')->get();
-        $currentFiscalYear = $fiscalYears->first(
-            fn (FiscalYear $fiscalYear) => now()->between($fiscalYear->starts_on, $fiscalYear->ends_on),
-        );
-        $defaultFiscalYearId = $currentFiscalYear->id ?? $fiscalYears->last()->id ?? 0;
-        $selectedFiscalYearId = (int) $request->query('fiscal_year_id', $defaultFiscalYearId);
+        $defaultFiscalYear = FiscalYear::defaultFor($fiscalYears);
+
+        // The year comes from the query string; without one, the year chosen last in this
+        // session is kept, so leaving the list (member page, payment) does not reset it.
+        // Anything that is not the id of an existing year falls back to the default with a notice
+        // (before, such input silently showed an empty list under the oldest year's name).
+        $requestedYear = $request->query('fiscal_year_id');
+        $selectedFiscalYear = null;
+        $yearNotice = null;
+        if ($requestedYear !== null) {
+            if (is_string($requestedYear) && ctype_digit($requestedYear)) {
+                $selectedFiscalYear = $fiscalYears->firstWhere('id', (int) $requestedYear);
+            }
+            if ($selectedFiscalYear === null && $defaultFiscalYear !== null) {
+                $yearNotice = __('members::admin.dues.year_not_found', ['year' => $defaultFiscalYear->name]);
+            }
+        } else {
+            $remembered = $request->session()->get(self::YEAR_SESSION_KEY);
+            $selectedFiscalYear = is_int($remembered) ? $fiscalYears->firstWhere('id', $remembered) : null;
+        }
+        $selectedFiscalYear ??= $defaultFiscalYear;
+        if ($selectedFiscalYear !== null) {
+            $request->session()->put(self::YEAR_SESSION_KEY, $selectedFiscalYear->id);
+        }
+        $selectedFiscalYearId = $selectedFiscalYear->id ?? 0;
+        $defaultFiscalYearId = $defaultFiscalYear->id ?? 0;
 
         $duesQuery = MemberDue::query()
             ->with(['member', 'feeCategory', 'payments', 'fiscalYear', 'bezahltBisFiscalYear'])
             ->where('fiscal_year_id', $selectedFiscalYearId);
 
-        $search = trim($request->string('search')->value());
+        $search = $request->query('search');
+        $search = is_string($search) ? trim($search) : '';
         if ($search !== '') {
             $duesQuery->whereHas('member', function ($q) use ($search) {
                 $q->where('firstname', 'like', "%{$search}%")
@@ -41,31 +69,42 @@ class MemberDueController
             });
         }
 
-        $statusFilter = $request->string('status')->value();
-        if (in_array($statusFilter, MemberDue::STATUSES, true)) {
-            match ($statusFilter) {
-                'bezahlt' => $duesQuery->where('status', 'bezahlt'),
-                'ausstehend' => $duesQuery->where('status', 'ausstehend')
-                    ->where(fn ($q) => $q->whereNull('faellig_am')->orWhere('faellig_am', '>=', now()->toDateString())),
-                'ueberfaellig' => $duesQuery->overdue(),
-            };
-        }
+        $statusFilter = $request->query('status');
+        $statusFilter = is_string($statusFilter) && in_array($statusFilter, self::STATUS_FILTERS, true) ? $statusFilter : '';
+        match ($statusFilter) {
+            'offen' => $duesQuery->open(),
+            'bezahlt' => $duesQuery->where('status', 'bezahlt'),
+            'ausstehend' => $duesQuery->where('status', 'ausstehend')
+                ->where(fn ($q) => $q->whereNull('faellig_am')->orWhere('faellig_am', '>=', now()->toDateString())),
+            'ueberfaellig' => $duesQuery->overdue(),
+            default => null,
+        };
 
         $dues = $duesQuery->orderBy('member_id')->paginate(25)->withQueryString();
 
         $generateFiscalYears = $fiscalYears->filter(
             fn (FiscalYear $fiscalYear) => $fiscalYear->ends_on->toDateString() >= now()->toDateString(),
         )->values();
+        // The generate select follows the listed year when dues can still be generated for it.
+        $generateFiscalYearId = $generateFiscalYears->contains('id', $selectedFiscalYearId)
+            ? $selectedFiscalYearId
+            : $defaultFiscalYearId;
+
+        $yearHasDues = $dues->isNotEmpty() || MemberDue::where('fiscal_year_id', $selectedFiscalYearId)->exists();
 
         return view('members::dues.index', [
             'fiscalYears' => $fiscalYears,
             'selectedFiscalYearId' => $selectedFiscalYearId,
+            'selectedFiscalYear' => $selectedFiscalYear,
             'defaultFiscalYearId' => $defaultFiscalYearId,
+            'generateFiscalYearId' => $generateFiscalYearId,
             'generateFiscalYears' => $generateFiscalYears,
+            'yearNotice' => $yearNotice,
+            'yearHasDues' => $yearHasDues,
             'dues' => $dues,
             'filters' => array_filter(
-                $request->only('search', 'status'),
-                fn ($value) => $value !== null && $value !== '',
+                ['search' => $search, 'status' => $statusFilter],
+                fn ($value) => $value !== '',
             ),
             'members' => Member::query()->active()->orderBy('lastname')->orderBy('firstname')->get(),
             'feeCategories' => FeeCategory::query()->orderBy('name')->get(),
@@ -159,8 +198,14 @@ class MemberDueController
                 $created++;
             });
 
+        $message = __('members::admin.dues.generated', ['count' => $created]);
+        // Generation silently skips categories without a rate; with no rate at all, say why nothing happened.
+        if ($created === 0 && ! FeeCategoryRate::where('fiscal_year_id', $fiscalYearId)->exists()) {
+            $message .= ' '.__('members::admin.dues.no_rates_for_year', ['year' => $newFiscalYear->name]);
+        }
+
         return redirect()->route('members.dues.index', ['fiscal_year_id' => $fiscalYearId])
-            ->with('status', __('members::admin.dues.generated', ['count' => $created]));
+            ->with('status', $message);
     }
 
     /** Markiert alle ausgewählten Beitragszeilen in einem Schritt als bezahlt, optional bis zu einem gewählten Fiskaljahr im Voraus. */
@@ -202,9 +247,10 @@ class MemberDueController
             }
         });
 
-        return redirect()->route('members.dues.index', array_filter([
+        // Back to the list as it was (year, status, search, page); the fallback keeps at least the year.
+        return redirect()->back(fallback: route('members.dues.index', array_filter([
             'fiscal_year_id' => $validated['fiscal_year_id'] ?? null,
-        ]))->with('status', __('members::admin.dues.bulk_marked_paid', ['count' => $count]));
+        ])))->with('status', __('members::admin.dues.bulk_marked_paid', ['count' => $count]));
     }
 
     /** Speichert genau ein Feld eines Beitrags — für die direkt editierbaren Zellen der Liste. */

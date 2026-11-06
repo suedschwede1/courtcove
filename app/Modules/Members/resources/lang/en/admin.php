@@ -152,6 +152,12 @@ return [
         'selected_count' => ':count selected',
         'bezahlt_am' => 'Paid on',
         'bezahlt_am_invalid' => 'Please enter a valid date that is not in the future.',
+        'status_filter_offen' => 'Open (all unpaid)',
+        'none_generated' => 'No dues have been generated for business year :year yet.',
+        'none_generated_hint' => 'Use "Generate dues for :year" above (every fee category needs a rate for :year) or create a due manually.',
+        'none_for_filters' => 'No dues match these filters.',
+        'year_not_found' => 'The selected business year does not exist. Showing :year.',
+        'no_rates_for_year' => 'No fee rates are set for business year :year, please add them under Fee categories first.',
         'bezahlt_am_requires_paid' => '"Paid on" only applies to paid dues. Set the status to "Paid" first.',
     ],
     'dashboard' => [

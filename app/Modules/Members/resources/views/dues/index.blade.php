@@ -10,12 +10,21 @@
         'ausstehend' => __('members::admin.dues.status_ausstehend'),
         'ueberfaellig' => __('members::admin.dues.status_ueberfaellig'),
     ];
+    $statusFilterOptions = [
+        'offen' => __('members::admin.dues.status_filter_offen'),
+        'ausstehend' => __('members::admin.dues.status_ausstehend'),
+        'ueberfaellig' => __('members::admin.dues.status_ueberfaellig'),
+        'bezahlt' => __('members::admin.dues.status_bezahlt'),
+    ];
     $composeOpen = $errors->hasAny(['member_id', 'fee_category_id', 'amount', 'teilbetrag', 'kommentar']);
-    $defaultFiscalYear = $generateFiscalYears->firstWhere('id', $defaultFiscalYearId);
+    $generateFiscalYear = $generateFiscalYears->firstWhere('id', $generateFiscalYearId);
     $selectedFY = $fiscalYears->firstWhere('id', $selectedFiscalYearId);
     $bulkPaidThroughYears = $fiscalYears->filter(fn ($fy) => $selectedFY === null || $fy->starts_on->gte($selectedFY->starts_on));
 @endphp
 <x-members::page-header :title="__('members::admin.dues.title')" />
+@if($yearNotice)
+    <x-ui.notice tone="attention">{{ $yearNotice }}</x-ui.notice>
+@endif
 
 <x-ui.card class="mbr-dues-tools" as="div" x-data="{ composing: {{ $composeOpen ? 'true' : 'false' }} }">
     <form method="GET" action="{{ route('members.dues.index') }}" class="mbr-filters">
@@ -26,23 +35,23 @@
             <x-ui.input name="search" :value="$filters['search'] ?? ''" />
         </x-ui.field>
         <x-ui.field class="mbr-filters__field" :label="__('members::admin.dues.status')" for="due-status">
-            <x-ui.select name="status" :options="$dueLabels" :selected="$filters['status'] ?? ''" :placeholder="__('members::admin.common.all')" />
+            <x-ui.select name="status" :options="$statusFilterOptions" :selected="$filters['status'] ?? ''" :placeholder="__('members::admin.common.all')" />
         </x-ui.field>
         <x-ui.button type="submit" variant="secondary" :block="false" class="mbr-filters__submit">{{ __('members::admin.common.filter') }}</x-ui.button>
     </form>
 
     <form method="POST" action="{{ route('members.dues.generate') }}" class="mbr-filters mbr-dues-tools__row"
         x-data="{
-            fiscalYearId: '{{ $defaultFiscalYearId }}',
+            fiscalYearId: '{{ $generateFiscalYearId }}',
             names: @js($generateFiscalYears->mapWithKeys(fn ($fy) => [(string) $fy->id => $fy->name])),
             template: @js(__('members::admin.dues.generate_for', ['year' => '__YEAR__'])),
             get label() { return this.template.replace('__YEAR__', this.names[this.fiscalYearId] ?? ''); }
         }">
         @csrf
         <x-ui.field class="mbr-filters__field" :label="__('members::admin.dues.generate_year')" for="due-generate-year" :error="$errors->first('fiscal_year_id')">
-            <x-ui.select name="fiscal_year_id" :options="$generateFiscalYears->pluck('name', 'id')->all()" :selected="(string) $defaultFiscalYearId" x-model="fiscalYearId" />
+            <x-ui.select name="fiscal_year_id" :options="$generateFiscalYears->pluck('name', 'id')->all()" :selected="(string) $generateFiscalYearId" x-model="fiscalYearId" />
         </x-ui.field>
-        <x-ui.button type="submit" :block="false" x-text="label">{{ __('members::admin.dues.generate_for', ['year' => $defaultFiscalYear->name ?? '']) }}</x-ui.button>
+        <x-ui.button type="submit" :block="false" x-text="label">{{ __('members::admin.dues.generate_for', ['year' => $generateFiscalYear->name ?? '']) }}</x-ui.button>
         <x-ui.button variant="secondary" :block="false" icon="plus" class="mbr-dues-tools__toggle" aria-controls="due-compose" x-bind:aria-expanded="composing.toString()" x-on:click="composing = !composing">{{ __('members::admin.dues.new') }}</x-ui.button>
     </form>
 
@@ -243,7 +252,14 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="10" class="text-ink-2">–</td></tr>
+                <tr><td colspan="10" class="text-ink-2">
+                    @if(! $yearHasDues && $selectedFiscalYear)
+                        <p class="m-0">{{ __('members::admin.dues.none_generated', ['year' => $selectedFiscalYear->name]) }}</p>
+                        <p class="m-0 text-body-s">{{ __('members::admin.dues.none_generated_hint', ['year' => $selectedFiscalYear->name]) }}</p>
+                    @else
+                        {{ __('members::admin.dues.none_for_filters') }}
+                    @endif
+                </td></tr>
             @endforelse
         </x-ui.table>
         @if($dues->hasPages())
