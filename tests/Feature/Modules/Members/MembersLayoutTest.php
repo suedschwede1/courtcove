@@ -9,6 +9,7 @@ use App\Modules\Members\Models\ClubRole;
 use App\Modules\Members\Models\FeeCategory;
 use App\Modules\Members\Models\FiscalYear;
 use App\Modules\Members\Models\Member;
+use App\Modules\Members\Models\MemberHousehold;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use PHPUnit\Framework\Attributes\Test;
@@ -67,6 +68,7 @@ class MembersLayoutTest extends TestCase
         $fiscalYear = FiscalYear::create(['name' => '2025/26', 'starts_on' => '2025-09-01', 'ends_on' => '2026-08-31']);
         $role = ClubRole::create(['name' => 'Kassier', 'is_board' => true]);
         $feeCategory = FeeCategory::create(['name' => 'Vollmitglied']);
+        $household = MemberHousehold::create(['name' => 'Familie Muster']);
 
         return [
             route('members.dashboard') => 'members.dashboard',
@@ -75,6 +77,7 @@ class MembersLayoutTest extends TestCase
             route('members.edit', $member) => 'members.index',
             route('members.payments.create', $member) => 'members.index',
             route('members.households.index') => 'members.households.index',
+            route('members.households.show', $household->id) => 'members.households.index',
             route('members.dues.index') => 'members.dues.index',
             route('members.mail.index') => 'members.mail.index',
             route('members.changes.index') => 'members.changes.index',
@@ -100,8 +103,8 @@ class MembersLayoutTest extends TestCase
             ->reject(fn (string $name) => $name === 'members.export')
             ->values()->all();
 
-        $this->assertCount(19, $names);
-        $this->assertCount(19, $this->pages());
+        $this->assertCount(20, $names);
+        $this->assertCount(20, $this->pages());
     }
 
     #[Test]
@@ -350,7 +353,7 @@ class MembersLayoutTest extends TestCase
             $this->assertStringNotContainsString("@section('admin-", $source, $name);
             $pages++;
         }
-        $this->assertSame(19, $pages);
+        $this->assertSame(20, $pages);
     }
 
     #[Test]

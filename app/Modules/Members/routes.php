@@ -78,6 +78,11 @@ Route::middleware(['auth', 'admin.mode', 'can:admin.members'])
         // Households (family fee): before the members resource so "households" is never read as a member id.
         Route::get('members/households', [HouseholdController::class, 'index'])->name('members.households.index');
         Route::post('members/households', [HouseholdController::class, 'store'])->name('members.households.store');
+        Route::get('members/households/{household}', [HouseholdController::class, 'show'])->whereNumber('household')->name('members.households.show');
+        Route::put('members/households/{household}', [HouseholdController::class, 'update'])->whereNumber('household')->name('members.households.update');
+        Route::post('members/households/{household}/members', [HouseholdController::class, 'addMember'])->whereNumber('household')->name('members.households.members.add');
+        Route::delete('members/households/{household}/members/{member}', [HouseholdController::class, 'removeMember'])->whereNumber(['household', 'member'])->name('members.households.members.remove');
+        Route::post('members/households/{household}/dissolve', [HouseholdController::class, 'dissolve'])->whereNumber('household')->name('members.households.dissolve');
 
         Route::resource('members', MemberController::class)->except(['show', 'destroy']);
     });

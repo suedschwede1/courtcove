@@ -118,9 +118,9 @@ class HouseholdPagesTest extends TestCase
     public function creating_a_household_creates_nothing_else(): void
     {
         [, $family] = $this->yearAndFamily();
-        $this->actingAs($this->admin())->post('/members/households', ['name' => 'Familie Muster', 'fee_category_id' => $family->id])
-            ->assertRedirect(route('members.households.index'));
+        $response = $this->actingAs($this->admin())->post('/members/households', ['name' => 'Familie Muster', 'fee_category_id' => $family->id]);
         $this->assertSame(1, MemberHousehold::count());
+        $response->assertRedirect(route('members.households.show', MemberHousehold::sole()->id));
         $this->assertSame('Familie Muster', MemberHousehold::sole()->name);
         $this->assertSame(0, HouseholdDue::count());
         $this->assertSame(0, Member::query()->whereNotNull('household_id')->count());

@@ -31,6 +31,7 @@ class MembersNavigationTest extends TestCase
         'members.edit' => [['member' => 1], 'members'],
         'members.payments.create' => [['member' => 1], 'members'],
         'members.households.index' => [[], 'households'],
+        'members.households.show' => [['household' => 1], 'households'],
         'members.export' => [[], null],
         'members.dues.index' => [[], 'dues'],
         'members.mail.index' => [[], 'mail'],
