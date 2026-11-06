@@ -212,7 +212,8 @@ class MemberController
         ]);
 
         $validator->after(function ($validator) use ($request, $member): void {
-            if (strtoupper(trim((string) $request->input('confirmation'))) !== self::ANONYMIZE_CONFIRMATION) {
+            $confirmation = $request->input('confirmation');
+            if (! is_string($confirmation) || strtoupper(trim($confirmation)) !== self::ANONYMIZE_CONFIRMATION) {
                 $validator->errors()->add(
                     'confirmation',
                     __('members::admin.members.anonymize_confirmation_invalid', [

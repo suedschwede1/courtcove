@@ -1,5 +1,5 @@
 @php
-    $selectedMailCategoryIds = old('mail_category_ids', ($clubRole->mailCategories ?? collect())->pluck('id')->all() ?? []);
+    $selectedMailCategoryIds = \App\Support\Ui\FormValue::list(old('mail_category_ids', ($clubRole->mailCategories ?? collect())->pluck('id')->all()));
 @endphp
 <x-ui.card>
     <div class="grid gap-4">
