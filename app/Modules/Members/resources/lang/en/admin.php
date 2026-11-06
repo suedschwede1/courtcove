@@ -5,7 +5,7 @@ declare(strict_types=1);
 return [
     'area' => [
         'eyebrow' => 'Member management',
-        'tabs' => 'Member management',
+        'nav' => 'Member management',
     ],
     'settings' => [
         'title' => 'Settings',
