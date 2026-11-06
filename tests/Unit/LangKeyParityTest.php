@@ -57,6 +57,8 @@ class LangKeyParityTest extends TestCase
     private const OWN_PLACEHOLDERS_PER_LANGUAGE = [
         // PyramidFormat::shortDate passes day, month, month_name and day_number: "14.08." / "August 14".
         'app/Modules/Pyramid/resources/lang/de/ui.php::fmt.short_date',
+        // ZF2 wording "uebernommen:copied": the placeholder is glued to a word in German, the translator still replaces it.
+        'app/Modules/Tournament/resources/lang/de/admin.php::lifecycle.created',
     ];
 
     /**

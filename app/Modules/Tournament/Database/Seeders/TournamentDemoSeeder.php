@@ -324,7 +324,6 @@ class TournamentDemoSeeder extends Seeder
             ->withPayload($payload)
             ->executed(hash('sha256', 'demo-tn-beacon-'.$slug))
             ->create();
-        assert($draw instanceof Draw);
 
         foreach ($pool as $player) {
             DrawEligible::query()->create(['did' => $draw->did, 'tpid' => (int) $player['tpid']]);
@@ -349,7 +348,6 @@ class TournamentDemoSeeder extends Seeder
             ->withPayload(['entries' => $entries, 'slots' => $slots, 'rule' => sprintf(BracketDrawService::RULE, $phaseKey, $pool)]);
 
         $draw = ($executed ? $factory->executed(hash('sha256', 'demo-tn-beacon-'.$slug)) : $factory)->create();
-        assert($draw instanceof Draw);
 
         return $draw;
     }
