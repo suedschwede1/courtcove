@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-06
+- Phase 2 go-live (module 4): the club championship and the draw admin and token pages are served by Laravel (with the deploy of this branch; rollback: re-add tournament|draw| to the bridge rule in public/.htaccess).
 - Phase 2: championship admin notes from bracket generation and refresh are shown translated, internal errors only as a generic text.
 - Phase 2: phase2:preflight tournament and fictional championship demo data for staging.
 - Phase 2: a token pick held up by a parallel close or pick asks to try again instead of failing, and close no longer shows internal error texts.

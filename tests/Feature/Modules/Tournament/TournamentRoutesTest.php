@@ -95,6 +95,84 @@ class TournamentRoutesTest extends TestCase
         $this->assertSame($tabled, $registered);
     }
 
+    /**
+     * Every route of the old Tournament and Draw module.config.php (spec commit), keyed by its ZF2 route name, with a
+     * sample URL. ZF2 accepted any verb; pages are GET, and the actions that checked isPost() are POST in Laravel,
+     * where a GET on them redirects as ZF2 did (second row "<name> GET").
+     *
+     * @return array<string, array{string, string, string}> method, uri, Laravel route name
+     */
+    public static function zf2RouteTable(): array
+    {
+        $rows = [
+            'tournament' => ['GET', 'tournament', 'tournament.index'],
+            'tournament/groups' => ['GET', 'tournament/groups', 'tournament.groups'],
+            'tournament/groups :group' => ['GET', 'tournament/groups/C', 'tournament.groups'],
+            'tournament/schedule' => ['GET', 'tournament/schedule', 'tournament.schedule'],
+            'tournament/schedule :filter' => ['GET', 'tournament/schedule/offen', 'tournament.schedule'],
+            'tournament/bracket' => ['GET', 'tournament/bracket', 'tournament.bracket'],
+            'tournament/bracket :phase' => ['GET', 'tournament/bracket/KO_B', 'tournament.bracket'],
+            'tournament/players' => ['GET', 'tournament/players', 'tournament.players'],
+            'tournament/mine' => ['GET', 'tournament/mine', 'tournament.mine'],
+            'tournament/mode' => ['GET', 'tournament/modus', 'tournament.mode'],
+            'tournament/match' => ['GET', 'tournament/match/12', 'tournament.match'],
+            'tournament/admin' => ['GET', 'tournament/admin', 'tournament.admin'],
+            'draw' => ['GET', 'draw', 'draw.index'],
+            'draw/tokens' => ['GET', 'draw/tokens/4', 'draw.tokens'],
+            'draw/record' => ['GET', 'draw/record/abcd', 'draw.record'],
+            'draw/record-json' => ['GET', 'draw/record/abcd_EF-12/json', 'draw.record.json'],
+        ];
+
+        $post = [
+            'tournament/match-confirm' => ['tournament/match/12/confirm', 'tournament.match.confirm', 'tournament.match.redirect'],
+            'tournament/match-save' => ['tournament/match/12/save', 'tournament.match.save', 'tournament.match.redirect'],
+            'tournament/match-delete' => ['tournament/match/12/delete', 'tournament.match.delete', 'tournament.match.redirect'],
+            'tournament/admin/comment' => ['tournament/admin/comment/7', 'tournament.admin.comment', 'tournament.admin.comment.redirect'],
+            'tournament/admin/apply-draw' => ['tournament/admin/apply-draw/3', 'tournament.admin.apply-draw', 'tournament.admin.apply-draw.redirect'],
+            'draw/commit' => ['draw/commit', 'draw.commit', 'draw.commit.redirect'],
+            'draw/open' => ['draw/open/3', 'draw.open', 'draw.action.redirect'],
+            'draw/close' => ['draw/close/3', 'draw.close', 'draw.action.redirect'],
+            'draw/delete' => ['draw/delete/3', 'draw.delete', 'draw.action.redirect'],
+            'draw/execute' => ['draw/execute/3', 'draw.execute', 'draw.action.redirect'],
+            'draw/tokens-pick' => ['draw/tokens/4/pick', 'draw.tokens.pick', 'draw.tokens.pick.redirect'],
+        ];
+
+        foreach ([
+            'generate' => 'generate', 'lot' => 'lot', 'simulate' => 'simulate', 'prepare-draw' => 'prepare-draw',
+            'prepare-bracket-draw' => 'prepare-bracket-draw', 'select-tournament' => 'select', 'clone-test' => 'clone-test',
+            'reset' => 'reset', 'refresh-bracket' => 'refresh-bracket', 'create' => 'create', 'activate' => 'activate',
+            'partner' => 'partner', 'simulate-results' => 'simulate-results',
+        ] as $path => $name) {
+            $post['tournament/admin/'.$path] = ['tournament/admin/'.$path, 'tournament.admin.'.$name, 'tournament.admin.redirect'];
+        }
+
+        foreach ($post as $zf2 => [$uri, $name, $redirect]) {
+            $rows[$zf2] = ['POST', $uri, $name];
+            $rows[$zf2.' GET'] = ['GET', $uri, $redirect];
+        }
+
+        return $rows;
+    }
+
+    #[Test]
+    #[DataProvider('zf2RouteTable')]
+    public function every_zf2_url_resolves_in_laravel(string $method, string $uri, string $name): void
+    {
+        $this->assertSame($name, $this->resolve($uri, $method)->getName());
+    }
+
+    #[Test]
+    public function the_zf2_table_lists_all_37_old_routes(): void
+    {
+        // 27 Tournament routes (11 pages and match actions, admin index and 15 admin actions) and 10 Draw routes.
+        $zf2Names = array_unique(array_map(
+            fn (string $key) => explode(' ', $key)[0],
+            array_keys(self::zf2RouteTable()),
+        ));
+
+        $this->assertCount(37, $zf2Names);
+    }
+
     #[Test]
     public function write_routes_are_post_only_and_a_get_redirects_to_the_match(): void
     {
