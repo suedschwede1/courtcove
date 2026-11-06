@@ -139,6 +139,8 @@ return [
         'status_ausstehend' => 'Ausstehend',
         'status_bezahlt' => 'Bezahlt',
         'status_ueberfaellig' => 'Überfällig',
+        'outstanding' => 'Offen',
+        'outstanding_total' => 'Offen gesamt',
         'teilbetrag' => 'Teilbetrag',
         'kommentar' => 'Kommentar',
         'fiscal_year' => 'Fiskaljahr',

@@ -51,6 +51,9 @@ class MemberDueController
             };
         }
 
+        $outstandingTotal = (clone $duesQuery)->get(['member_dues.*'])
+            ->sum(fn (MemberDue $due): float => (float) $due->outstandingAmount());
+
         $dues = $duesQuery->orderBy('member_id')->paginate(25)->withQueryString();
 
         $generateFiscalYears = $fiscalYears->filter(
@@ -63,6 +66,7 @@ class MemberDueController
             'defaultFiscalYearId' => $defaultFiscalYearId,
             'generateFiscalYears' => $generateFiscalYears,
             'dues' => $dues,
+            'outstandingTotal' => $outstandingTotal,
             'filters' => array_filter(
                 $request->only('search', 'status'),
                 fn ($value) => $value !== null && $value !== '',

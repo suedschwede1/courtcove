@@ -139,6 +139,8 @@ return [
         'status_ausstehend' => 'Pending',
         'status_bezahlt' => 'Paid',
         'status_ueberfaellig' => 'Overdue',
+        'outstanding' => 'Outstanding',
+        'outstanding_total' => 'Total outstanding',
         'teilbetrag' => 'Partial amount',
         'kommentar' => 'Comment',
         'fiscal_year' => 'Fiscal year',

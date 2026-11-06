@@ -109,6 +109,16 @@ class MemberDue extends Model
         });
     }
 
+    /** Offener Rest: Betrag minus Teilbetrag, nie negativ; 0 bei Status "bezahlt". */
+    public function outstandingAmount(): string
+    {
+        if ($this->status === 'bezahlt') {
+            return '0.00';
+        }
+
+        return number_format(max(0.0, (float) $this->amount - (float) ($this->teilbetrag ?? 0)), 2, '.', '');
+    }
+
     /** Der angezeigte Status: "ausstehend" mit verstrichenem Fälligkeitsdatum gilt automatisch als "überfällig". */
     public function displayStatus(): string
     {
