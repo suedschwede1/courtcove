@@ -12,6 +12,12 @@ return [
         'target_played' => ':phase R:round/:slot ist bereits gespielt; geänderter Vorgänger wurde nicht überschrieben.',
         'done' => ':resolved Rasterlinien aufgelöst, :filled Erstrundenpartien gefüllt, :advanced Aufstiege übertragen.',
     ],
+    'service' => [
+        'lot_required' => 'Losentscheidung in Gruppe :group für Platz :place erforderlich.',
+        'lot_required_order' => 'Losentscheidung erforderlich; die vorläufige Setzplatzreihenfolge darf nicht verwendet werden.',
+        'seats_open' => ':filled von :size Plätzen besetzt, :open Partie(n) noch offen',
+        'internal' => 'interner Fehler, Details stehen im Fehlerprotokoll',
+    ],
     'apply' => [
         'invalid' => 'Auslosung fehlt, ist noch nicht abgeschlossen, wurde nicht gezogen, ist verworfen oder gehört zu einem anderen Turnier.',
         'already' => 'Diese Auslosung wurde bereits angewendet.',

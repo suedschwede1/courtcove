@@ -14,6 +14,7 @@ use App\Modules\TournamentBase\Support\ModuleFlash;
 use Exception;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 /**
  * "Aus Format erzeugen" and "KO-Raster aktualisieren" (old AdminController generate/refreshBracket).
@@ -28,7 +29,9 @@ final class BracketAdminController extends Controller
         try {
             $result = $generation->generate((int) $this->tournament($request, $access)->tid);
         } catch (Exception $e) {
-            ModuleFlash::error((string) __('tournament::admin.generate.failed', ['message' => $e->getMessage()]));
+            // The raw message may carry SQL or an internal English text: logged, a generic text is shown.
+            Log::error('Generating the championship failed', ['exception' => $e]);
+            ModuleFlash::error((string) __('tournament::admin.generate.failed', ['message' => __('tournament::admin.service.internal')]));
 
             return redirect()->route('tournament.admin');
         }

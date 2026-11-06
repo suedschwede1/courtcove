@@ -36,12 +36,24 @@ use Tests\TestCase;
  * Task 35: the test tools of the championship admin (old AdminController simulate, simulateResults,
  * randomScore and reset). Every destructive test runs with a second tournament present, whose rows must
  * stay byte-identical.
+ *
+ * The reset flashes show affected-row counts, as in ZF2. SQLite reports MATCHED rows ("9 Partien ohne
+ * Ergebnis" even for rows that were already empty); MySQL reports CHANGED rows, so the same action shows
+ * smaller numbers there. The exact counts below are therefore pinned for SQLite only: setUp refuses any
+ * other driver, so moving this class into the MySQL group fails loudly instead of asserting wrong numbers.
  */
 class TestToolsTest extends TestCase
 {
     use BuildsChampionship;
     use LazilyRefreshDatabase;
     use SeedsRandomizer;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->assertSame('sqlite', DB::connection()->getDriverName(), 'the reset counts are SQLite matched-row counts');
+    }
 
     private Tournament $other;
 

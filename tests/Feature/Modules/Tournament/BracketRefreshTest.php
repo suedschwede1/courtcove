@@ -403,7 +403,7 @@ class BracketRefreshTest extends TestCase
 
         $this->assertSame([
             ['type' => 'success', 'text' => 'Erzeugt: 0 Gruppenköpfe, 3 Gruppenpartien, 8 Rasterlinien, 7 KO-Partien.'],
-            ['type' => 'info', 'text' => 'Gruppe B: 1 von 3 Plaetzen besetzt, 3 Partie(n) noch offen - Partien folgen nach der Auslosung'],
+            ['type' => 'info', 'text' => 'Gruppe B: 1 von 3 Plätzen besetzt, 3 Partie(n) noch offen - Partien folgen nach der Auslosung'],
         ], session(ModuleFlash::KEY));
         $this->assertSame(3, TournamentMatch::query()->where('tid', $t->tid)->where('phase', 'group')->count());
 
@@ -423,7 +423,7 @@ class BracketRefreshTest extends TestCase
         $this->actingAs($admin)->withSession([TestModeSession::KEY => ['tid' => (int) $broken->tid, 'mode' => null, 'tpid' => null]])
             ->post(route('tournament.admin.generate'))->assertRedirect(route('tournament.admin'));
 
-        $this->assertSame([['type' => 'error', 'text' => 'Erzeugung fehlgeschlagen, es wurde nichts gespeichert: format defines no phases']], session(ModuleFlash::KEY));
+        $this->assertSame([['type' => 'error', 'text' => 'Erzeugung fehlgeschlagen, es wurde nichts gespeichert: interner Fehler, Details stehen im Fehlerprotokoll']], session(ModuleFlash::KEY));
         $this->assertSame($before, TournamentMatch::query()->count());
     }
 

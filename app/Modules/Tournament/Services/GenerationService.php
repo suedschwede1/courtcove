@@ -7,6 +7,7 @@ namespace App\Modules\Tournament\Services;
 use App\Modules\Tournament\Models\TournamentLine;
 use App\Modules\Tournament\Models\TournamentMatch;
 use App\Modules\Tournament\Models\TournamentPlayer;
+use App\Modules\Tournament\Support\ServiceMessages;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -91,7 +92,7 @@ final class GenerationService
                 $created['matches']++;
             }
             foreach ($result['skipped'] as $groupKey => $reason) {
-                $skipped[] = __('tournament::admin.generate.skipped', ['group' => $groupKey, 'reason' => $reason]);
+                $skipped[] = __('tournament::admin.generate.skipped', ['group' => $groupKey, 'reason' => ServiceMessages::skippedReason((string) $reason)]);
             }
         }
 

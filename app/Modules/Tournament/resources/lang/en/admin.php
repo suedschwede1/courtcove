@@ -12,6 +12,12 @@ return [
         'target_played' => ':phase R:round/:slot is already played; the changed predecessor was not overwritten.',
         'done' => ':resolved bracket lines resolved, :filled first-round matches filled, :advanced winners moved on.',
     ],
+    'service' => [
+        'lot_required' => 'A lot decision is required in group :group for place :place.',
+        'lot_required_order' => 'A lot decision is required; the provisional seed order must not be used.',
+        'seats_open' => ':filled of :size places filled, :open match(es) still open',
+        'internal' => 'internal error, details are in the error log',
+    ],
     'apply' => [
         'invalid' => 'The draw is missing, not finished, not executed, discarded or belongs to another tournament.',
         'already' => 'This draw has already been applied.',

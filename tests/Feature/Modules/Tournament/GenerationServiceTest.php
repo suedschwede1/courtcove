@@ -67,7 +67,7 @@ class GenerationServiceTest extends TestCase
         $this->assertSame(['heads' => 0, 'matches' => 0, 'lines' => 24, 'bracketMatches' => 22], $result['created']);
         $this->assertSame(['lines' => 24, 'matches' => 22], $this->counts());
         $this->assertCount(7, $result['skipped']);
-        $this->assertSame('Gruppe A: 1 von 3 Plaetzen besetzt, 3 Partie(n) noch offen - Partien folgen nach der Auslosung', $result['skipped'][0]);
+        $this->assertSame('Gruppe A: 1 von 3 Plätzen besetzt, 3 Partie(n) noch offen - Partien folgen nach der Auslosung', $result['skipped'][0]);
     }
 
     #[Test]

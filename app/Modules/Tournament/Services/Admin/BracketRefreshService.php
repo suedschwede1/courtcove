@@ -10,6 +10,7 @@ use App\Modules\Tournament\Models\TournamentMatch;
 use App\Modules\Tournament\Services\GeneratorService;
 use App\Modules\Tournament\Services\ResolverService;
 use App\Modules\Tournament\Services\TournamentManager;
+use App\Modules\Tournament\Support\ServiceMessages;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
@@ -136,7 +137,7 @@ final class BracketRefreshService
                     }
                 }
             } catch (RuntimeException $e) {
-                $notes[] = sprintf('%s: %s', $phaseKey, $e->getMessage());
+                $notes[] = sprintf('%s: %s', $phaseKey, ServiceMessages::resolver($e->getMessage()));
 
                 continue;
             }
