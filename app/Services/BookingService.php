@@ -708,7 +708,7 @@ final class BookingService
         Carbon $dateEnd,
         ?int $excludeBookingId = null,
     ): void {
-        $result = $this->validator->validate($square, $user, $quantity, $dateStart, $dateEnd);
+        $result = $this->validator->validate($square, $user, $quantity, $dateStart, $dateEnd, $excludeBookingId);
 
         if (! $result->isValid()) {
             throw new BookingValidationException($result->getError());

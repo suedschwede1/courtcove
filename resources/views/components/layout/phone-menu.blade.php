@@ -26,11 +26,11 @@
     </nav>
 
     <div class="ds-phone-menu__rows">
-        @can('admin.booking')
+        @if(auth()->user()?->hasAnyPrivilege())
             <div class="ds-phone-menu__row">
                 <x-layout.admin-mode-switch variant="menu" />
             </div>
-        @endcan
+        @endif
         <div class="ds-phone-menu__row">
             <span class="ds-phone-menu__row-label">{{ __('booking.nav.language') }}</span>
             <x-layout.locale-switch variant="menu" />

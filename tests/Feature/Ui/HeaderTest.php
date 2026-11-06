@@ -146,13 +146,13 @@ class HeaderTest extends TestCase
         $this->assertStringNotContainsString('role="switch"', $html);
 
         $admin = User::factory()->create(['status' => 'admin']);
-        $html = $this->actingAs($admin)->get('/calendar')->assertOk()
+        $html = $this->actingAsWithoutAdminMode($admin)->get('/calendar')->assertOk()
             ->assertSee(route('admin-mode.set', ['state' => 'on']), false)->getContent();
-        $this->assertSame(2, $this->xpath($html)->query('//a[@role="switch"][@aria-checked="false"]')->length); // bar + phone menu
+        $this->assertSame(2, $this->xpath($html)->query('//button[@role="switch"][@aria-checked="false"]')->length); // bar + phone menu
 
-        $html = $this->actingAs($admin)->withUnencryptedCookie('admin_mode', '1')->get('/calendar')->assertOk()
+        $html = $this->actingAsAdminMode($admin)->get('/calendar')->assertOk()
             ->assertSee(route('admin-mode.set', ['state' => 'off']), false)->getContent();
-        $this->assertSame(2, $this->xpath($html)->query('//a[@role="switch"][@aria-checked="true"]')->length);
+        $this->assertSame(2, $this->xpath($html)->query('//button[@role="switch"][@aria-checked="true"]')->length);
     }
 
     #[Test]

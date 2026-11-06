@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Support\AdminMode;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -42,6 +43,34 @@ class User extends Authenticatable
 
     /** All assignable privileges (ported from ZF2 User::$privileges). */
     public const PRIVILEGES = [
+        'admin.user', 'admin.booking', 'admin.event', 'admin.config', 'admin.see-menu', 'admin.members', 'admin.api-tokens',
+        'calendar.see-past', 'calendar.see-data',
+        'calendar.create-single-bookings', 'calendar.cancel-single-bookings', 'calendar.delete-single-bookings',
+        'calendar.create-subscription-bookings', 'calendar.cancel-subscription-bookings', 'calendar.delete-subscription-bookings',
+        'admin.tournament', 'admin.mixed', 'admin.pyramid', 'admin.draw',
+    ];
+
+    /**
+     * Privileges that count WITHOUT admin mode (base member rights). Every other privilege in
+     * PRIVILEGES, and every other ability an admin holds through the role (policy abilities via
+     * Gate::before), is privileged and only counts while admin mode is active (see can()).
+     *
+     * Audit 2026-11-06: none of PRIVILEGES is a base right. Members hold no privilege at all
+     * (can() is false for the member role), so every entry is privileged:
+     *   admin.user, admin.booking, admin.event, admin.config, admin.see-menu, admin.members,
+     *   admin.api-tokens, admin.tournament, admin.mixed, admin.pyramid, admin.draw (administration),
+     *   calendar.see-past, calendar.see-data (see/book the past, see other people's booking data),
+     *   calendar.create-*, calendar.cancel-*, calendar.delete-* (bookings beyond the member limits,
+     *   cancelling/deleting other people's bookings).
+     * Member rights that do not come from this list (own bookings, per-ladder/per-event grants of the
+     * tournament modules, tournament participation) are not privileges and never depend on admin mode.
+     *
+     * @var list<string>
+     */
+    public const BASE_PRIVILEGES = [];
+
+    /** Privileges that only count while admin mode is active (PRIVILEGES minus BASE_PRIVILEGES). */
+    public const PRIVILEGED_PRIVILEGES = [
         'admin.user', 'admin.booking', 'admin.event', 'admin.config', 'admin.see-menu', 'admin.members', 'admin.api-tokens',
         'calendar.see-past', 'calendar.see-data',
         'calendar.create-single-bookings', 'calendar.cancel-single-bookings', 'calendar.delete-single-bookings',
@@ -214,13 +243,50 @@ class User extends Authenticatable
     }
 
     /**
-     * Whether the user holds the given privilege(s).
+     * Whether the user holds the given privilege(s) right now, i.e. the EFFECTIVE right.
+     *
+     * Same syntax and meaning as hasPrivilege(), but privileged rights only count while admin
+     * mode is active (App\Support\AdminMode); without it the account is a normal member and only
+     * BASE_PRIVILEGES are evaluated. The Gate (Gate::before), policies and @can go through here.
+     */
+    public function can($privileges, $arguments = []): bool
+    {
+        if (AdminMode::active($this)) {
+            return $this->hasPrivilege($privileges);
+        }
+
+        if (! is_string($privileges)) {
+            return false;
+        }
+
+        $baseOnly = [];
+        foreach (explode(',', $privileges) as $orPrivilege) {
+            $andPrivileges = array_map('trim', explode('+', $orPrivilege));
+            if (array_diff($andPrivileges, self::BASE_PRIVILEGES) === []) {
+                $baseOnly[] = implode('+', $andPrivileges);
+            }
+        }
+
+        return $baseOnly !== [] && $this->hasPrivilege(implode(',', $baseOnly));
+    }
+
+    /** Whether the account holds at least one raw privilege (role admin, or assist with any allow.* flag). */
+    public function hasAnyPrivilege(): bool
+    {
+        return $this->hasPrivilege(implode(',', self::PRIVILEGES));
+    }
+
+    /**
+     * Whether the user holds the given privilege(s) as stored, regardless of admin mode (the RAW right).
+     * Use it only where the stored right itself matters: the admin mode switch and its gate page,
+     * menu entries that lead there, and pages that show an account's rights. Everything that grants
+     * access goes through can() / the Gate.
      *
      * Admins hold everything. For assist users, privilege flags are stored in
      * bs_users_meta as key 'allow.<privilege>' = 'true'. The privilege string
      * supports OR (comma) and AND (plus): "a, b+c" means a OR (b AND c).
      */
-    public function can($privileges, $arguments = []): bool
+    public function hasPrivilege(mixed $privileges): bool
     {
         $role = $this->effectiveRole();
 

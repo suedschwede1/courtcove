@@ -31,7 +31,7 @@ Route::prefix('draw/tokens')->name('draw.tokens')
 // authentication (a plain 'auth' would run first and drop the module message); the gate runs after it,
 // before any posted id is resolved. A GET on a POST-only action redirects to the overview (ZF2).
 Route::prefix('draw')->name('draw.')
-    ->middleware(['tournament-base.login:draw::common.login_required', 'can:admin.draw'])
+    ->middleware(['tournament-base.login:draw::common.login_required', 'admin.mode', 'can:admin.draw'])
     ->group(function (): void {
         Route::get('', [DrawAdminController::class, 'index'])->name('index');
         Route::post('commit', [DrawAdminController::class, 'commit'])->name('commit');

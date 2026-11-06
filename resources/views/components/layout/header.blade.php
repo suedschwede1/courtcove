@@ -41,9 +41,9 @@
         </nav>
 
         <div class="ds-header__tools">
-            @can('admin.booking')
+            @if(auth()->user()?->hasAnyPrivilege())
                 <x-layout.admin-mode-switch />
-            @endcan
+            @endif
             <x-layout.locale-switch />
             @auth
                 <x-ui.avatar :name="auth()->user()->alias" :href="route('account.edit')" :label="__('booking.nav.account_of', ['name' => auth()->user()->alias])" />

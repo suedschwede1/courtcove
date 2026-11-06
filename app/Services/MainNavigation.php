@@ -7,7 +7,6 @@ namespace App\Services;
 use App\Models\User;
 use App\Support\Ui\NavItem;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 
 /**
  * Builds the main navigation once for the header bar and the phone menu.
@@ -46,11 +45,12 @@ final class MainNavigation
             $add('account', __('booking.nav.my_account'), route('account.edit'), 'user', $request->routeIs('account.edit'), false);
 
             // Members (club membership records) and Admin (booking system) are separate areas with their own gates.
-            $gate = Gate::forUser($user);
-            if ($gate->allows('admin.members')) {
+            // RAW privilege on purpose: the entries stay visible while admin mode is off and lead to the
+            // "Switch on admin mode" page there (middleware admin.mode).
+            if ($user->hasPrivilege('admin.members')) {
                 $add('members', __('booking.nav.members'), route('members.dashboard'), 'members', $request->routeIs('members.*'));
             }
-            if ($gate->allows('admin.see-menu')) {
+            if ($user->hasPrivilege('admin.see-menu')) {
                 $add('admin', __('booking.nav.admin'), route('admin.dashboard'), 'settings', $request->routeIs('admin.*'));
             }
         }

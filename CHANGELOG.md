@@ -9,6 +9,10 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-06
+- The admin mode switch is a POST form and sets a browser-session cookie (no 30-day/1-year lifetime, HttpOnly, SameSite=Lax, Secure and path like the session cookie); switching off, logging in and logging out delete it.
+- Administration, Mitglieder, Pyramide-, Mixed-, Turnier- and Auslosungs-Verwaltung show a page "Admin-Modus einschalten" with a button (returns to the requested page) instead of an error when a privileged account opens them without admin mode; AJAX calls get a clear 403 JSON. The menu entries stay visible; ladder and event grants keep working without admin mode.
+- Booking limits (Zeitblock max. buchbar per day, Vorlauf, Mindestvorlauf, gesperrte/schreibgeschützte Plätze, Buchen in der Vergangenheit) are only lifted for privileged accounts while admin mode is on; changing the partner of an own booking no longer counts that booking twice against the daily and active-booking limits.
+- Admin mode is now the switch for all privileges: an administrator or assistant only has administrator rights while "Admin-Modus" is on; without it the account behaves like a normal member in every check (booking rules, calendar, admin pages). API/MCP requests with an API token keep their rights.
 - Members overview: members whose linked booking account is a placeholder are left out of every figure (Mitglieder, davon Jugend, ruhend, Aktiv, age structure, categories) and count as "Ohne Benutzerkonto"; the member list, dues, Rundmail and export are unchanged.
 - Admin "Texte": a rejected mail address or name in the tournament and Reply-To cards is reported with the field label ("Antwortadresse für Buchungsmails") instead of the raw input name.
 - Admin "Texte": new card "Antwortadresse für System-/Buchungsmails" with one Reply-To address for booking mails and one for password/account mails; a filled field wins over the .env value, an emptied field removes it again.

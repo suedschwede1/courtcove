@@ -15,6 +15,11 @@ use Carbon\Carbon;
 /**
  * Validates whether a user may create a booking on a given court at a given time.
  * Mirrors the legacy SquareValidator rules from ep3-bs.
+ *
+ * Privilege bypasses (canCreateAnyBooking(), calendar.see-past) use User::can(), the EFFECTIVE right:
+ * they only apply while admin mode is on (App\Support\AdminMode); without it a privileged account is
+ * bound by every limit like a member. The square meta `short-booking-window` lifts min_range_book,
+ * range_book, max_active_bookings and the daily limit for EVERY account on purpose (club "Short Bookings").
  */
 final class SquareValidator
 {
@@ -28,6 +33,7 @@ final class SquareValidator
         int $quantity,
         Carbon $dateStart,
         Carbon $dateEnd,
+        ?int $excludeBookingId = null,
     ): ValidationResult {
         if (! $dateEnd->greaterThan($dateStart)) {
             return ValidationResult::fail('Booking end time must be after start time');
@@ -97,18 +103,19 @@ final class SquareValidator
                     $count = $this->getPeakActiveFutureBookingCount(
                         $user,
                         $this->peakLimitService->windows(),
+                        $excludeBookingId,
                     );
                     if ($count >= $maxActiveBookings) {
                         return ValidationResult::fail(__('booking.messages.peak_limit_reached'));
                     }
                 }
-            } elseif ($this->getActiveFutureBookingCount($user) >= $maxActiveBookings) {
+            } elseif ($this->getActiveFutureBookingCount($user, $excludeBookingId) >= $maxActiveBookings) {
                 return ValidationResult::fail(__('booking.messages.max_active_bookings_reached'));
             }
         }
 
         if ((int) $square->time_block_bookable_max > 0) {
-            $dailyUsed = $this->getDailyUsedSeconds($user, $dateStart);
+            $dailyUsed = $this->getDailyUsedSeconds($user, $dateStart, $excludeBookingId);
 
             if ($dailyUsed + $durationSeconds > (int) $square->time_block_bookable_max
                 && ! $shortTermOverrideActive
@@ -143,8 +150,11 @@ final class SquareValidator
         return Carbon::now()->diffInSeconds($dateStart, absolute: false) <= $windowSeconds;
     }
 
-    /** Total booked seconds for this user on the given calendar day across all squares. */
-    private function getDailyUsedSeconds(User $user, Carbon $date): int
+    /**
+     * Total booked seconds for this user on the given calendar day across all squares (public, active
+     * bookings incl. series occurrences on that day). The booking being re-validated (edit) is left out.
+     */
+    private function getDailyUsedSeconds(User $user, Carbon $date, ?int $excludeBookingId = null): int
     {
         $reservations = Reservation::query()
             ->join('bs_bookings', 'bs_bookings.bid', '=', 'bs_reservations.bid')
@@ -152,6 +162,7 @@ final class SquareValidator
             ->where('bs_bookings.visibility', 'public')
             ->whereIn('bs_bookings.status', Booking::ACTIVE_STATUSES)
             ->where('bs_reservations.date', $date->toDateString())
+            ->when($excludeBookingId !== null, fn ($query) => $query->where('bs_bookings.bid', '!=', $excludeBookingId))
             ->get(['bs_reservations.time_start', 'bs_reservations.time_end']);
 
         $seconds = 0;
@@ -162,24 +173,26 @@ final class SquareValidator
         return $seconds;
     }
 
-    private function getActiveFutureBookingCount(User $user): int
+    private function getActiveFutureBookingCount(User $user, ?int $excludeBookingId = null): int
     {
         return Reservation::query()
             ->join('bs_bookings', 'bs_bookings.bid', '=', 'bs_reservations.bid')
             ->where('bs_bookings.uid', $user->uid)
             ->whereIn('bs_bookings.status', Booking::ACTIVE_STATUSES)
             ->where('bs_reservations.date', '>=', Carbon::today()->toDateString())
+            ->when($excludeBookingId !== null, fn ($query) => $query->where('bs_bookings.bid', '!=', $excludeBookingId))
             ->count();
     }
 
     /** @param list<array{start: string, end: string}> $windows */
-    private function getPeakActiveFutureBookingCount(User $user, array $windows): int
+    private function getPeakActiveFutureBookingCount(User $user, array $windows, ?int $excludeBookingId = null): int
     {
         return Reservation::query()
             ->join('bs_bookings', 'bs_bookings.bid', '=', 'bs_reservations.bid')
             ->where('bs_bookings.uid', $user->uid)
             ->whereIn('bs_bookings.status', Booking::ACTIVE_STATUSES)
             ->where('bs_reservations.date', '>=', Carbon::today()->toDateString())
+            ->when($excludeBookingId !== null, fn ($query) => $query->where('bs_bookings.bid', '!=', $excludeBookingId))
             ->where(function ($query) use ($windows): void {
                 foreach ($windows as $window) {
                     $query->orWhere(function ($q) use ($window): void {
