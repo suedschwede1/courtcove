@@ -21,6 +21,11 @@ return [
         static fn (string $code): string => strtoupper(trim($code)),
         explode(',', (string) env('BOOKING_BLOCKED_LOGIN_COUNTRIES', ''))
     ))),
+    // Decision point (see App\Support\AdminMode::tokenRequestsCountAsActive()): requests authenticated
+    // with an API token (REST API, MCP) count as admin mode active; false makes them behave like members.
+    'admin_mode' => [
+        'api_tokens_active' => (bool) env('ADMIN_MODE_API_TOKENS_ACTIVE', true),
+    ],
     'login_verification' => [
         'code_ttl_minutes' => 10,
         'max_attempts' => 5,

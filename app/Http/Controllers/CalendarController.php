@@ -92,9 +92,9 @@ final class CalendarController extends Controller
         $authUser = auth()->user();
         $authUserId = $authUser?->uid;
         $isLoggedIn = $authUser !== null;
-        $isAdmin = $isLoggedIn && $authUser->can('admin.booking') && $request->cookie('admin_mode') === '1';
-        // Like booking admin, event editing in the calendar only appears while admin mode is switched on.
-        $canAdminEvents = $isLoggedIn && $authUser->can('admin.event') && $request->cookie('admin_mode') === '1';
+        // can() is the effective right: privileges only count while admin mode is on (App\Support\AdminMode).
+        $isAdmin = $isLoggedIn && $authUser->can('admin.booking');
+        $canAdminEvents = $isLoggedIn && $authUser->can('admin.event');
 
         $events = Event::with(['meta' => fn ($query) => $query->whereIn('key', ['name', 'kind'])])
             ->where('status', 'enabled')

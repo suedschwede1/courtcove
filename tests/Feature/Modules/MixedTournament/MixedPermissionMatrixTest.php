@@ -194,7 +194,8 @@ class MixedPermissionMatrixTest extends TestCase
             $this->actingAs($world['user']);
         }
 
-        $response = $this->call($method, $uri, $body);
+        // call() sends no default cookies: pass the admin mode cookie (global rights only count in admin mode).
+        $response = $this->call($method, $uri, $body, ['admin_mode' => '1']);
         $label = $method.' '.$uri.' as '.$role;
 
         if ($role === 'guest') {
