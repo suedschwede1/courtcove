@@ -93,7 +93,7 @@ class PlayerPagesTest extends TestCase
     }
 
     #[Test]
-    public function event_page_shows_participants_and_tabs(): void
+    public function event_page_shows_participants_and_the_event_entries(): void
     {
         $event = MixedEvent::factory()->create(['title' => 'Herbst-Beispiel', 'event_date' => '2026-11-07']);
         MixedParticipant::factory()->create(['event_id' => $event->id, 'label' => 'Beispiel Anna', 'gender' => 'f', 'itn' => '4.10']);
@@ -109,7 +109,8 @@ class PlayerPagesTest extends TestCase
             ->assertSee('Beispiel Anna')
             ->assertSee('pausiert')
             ->assertSee('(1 aktiv / 2 gesamt)')
-            ->assertSeeInOrder(['Teilnehmer', 'Runde 1', 'Durchmischung', 'Wertung'])
+            // Sidebar: the Wertung shortcut, then the event's pages (formerly the event tabs).
+            ->assertSeeInOrder(['Wertung', 'Herbst-Beispiel', 'Teilnehmer', 'Runde 1', 'Durchmischung'])
             ->assertSee(route('mixed.round', ['round' => $round->id]))
             ->assertSee(route('mixed.admin.index'))
             ->assertDontSee('Konfiguration')
@@ -131,7 +132,7 @@ class PlayerPagesTest extends TestCase
     }
 
     #[Test]
-    public function completed_round_tab_carries_a_check_icon_not_a_character(): void
+    public function completed_round_entry_carries_a_check_icon_not_a_character(): void
     {
         $event = MixedEvent::factory()->create();
         MixedRound::factory()->create(['event_id' => $event->id, 'round_no' => 1, 'status' => 'completed']);
@@ -140,13 +141,13 @@ class PlayerPagesTest extends TestCase
         $html = $this->actingAs($this->member())->get('/mixed-tournament/event/'.$event->id)->assertOk()->getContent();
 
         $this->assertStringNotContainsString('✓', $html);
-        $this->assertMatchesRegularExpression('#Runde 1<svg[^>]*class="ds-icon"[^>]*>\s*<path d="M5 12l5 5 9-10"/>#', $html);
-        $this->assertDoesNotMatchRegularExpression('#Runde 2<svg#', $html);
+        $this->assertMatchesRegularExpression('#Runde 1<span class="ds-admin-sidebar__badge"><svg[^>]*class="ds-icon"[^>]*>\s*<path d="M5 12l5 5 9-10"/>#', $html);
+        $this->assertDoesNotMatchRegularExpression('#Runde 2<span class="ds-admin-sidebar__badge">#', $html);
         $this->assertStringContainsString('(abgeschlossen)', $html);
     }
 
     #[Test]
-    public function mexicano_event_has_one_rounds_tab_to_the_open_round(): void
+    public function mexicano_event_has_one_rounds_entry_to_the_open_round(): void
     {
         $event = MixedEvent::factory()->create(['mode' => 'mexicano']);
         MixedRound::factory()->create(['event_id' => $event->id, 'round_no' => 1, 'status' => 'completed']);
@@ -154,8 +155,8 @@ class PlayerPagesTest extends TestCase
 
         $html = $this->actingAs($this->member())->get('/mixed-tournament/event/'.$event->id)->assertOk()->getContent();
 
-        $this->assertSame(1, preg_match('#<nav class="ds-tabs[^"]*"[^>]*>(.*?)</nav>#s', $html, $nav));
-        $this->assertStringContainsString('href="'.route('mixed.round', ['round' => $open->id]).'" class="ds-tabs__tab">Runden</a>', $nav[1]);
+        $this->assertSame(1, preg_match('#<nav class="ds-admin-sidebar__nav"[^>]*>(.*?)</nav>#s', $html, $nav));
+        $this->assertStringContainsString('href="'.route('mixed.round', ['round' => $open->id]).'" class="ds-admin-sidebar__link">Runden</a>', $nav[1]);
         $this->assertStringNotContainsString('Runde 1', $nav[1]);
         $this->assertStringNotContainsString('Runde 2', $nav[1]);
     }
@@ -242,13 +243,13 @@ class PlayerPagesTest extends TestCase
     }
 
     #[Test]
-    public function the_active_tab_carries_aria_current(): void
+    public function the_active_entry_carries_aria_current(): void
     {
         $event = MixedEvent::factory()->create();
 
         $this->actingAs($this->member())->get('/mixed-tournament/event/'.$event->id.'/standings')
             ->assertOk()
-            ->assertSee('class="ds-tabs__tab" aria-current="page">Wertung</a>', false)
+            ->assertSee('class="ds-admin-sidebar__link" aria-current="page">Wertung</a>', false)
             ->assertDontSee('aria-current="page">Teilnehmer', false);
     }
 

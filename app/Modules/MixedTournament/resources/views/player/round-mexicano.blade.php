@@ -24,7 +24,6 @@
     @endslot
 @endcomponent
 
-@include('mixed::partials.tabs', ['event' => $event, 'active' => 'round:'.$round->id, 'canAdmin' => $canAdmin])
 
 <nav aria-label="{{ __('mixed::common.rounds_title') }}" class="relative flex gap-2 overflow-x-auto pb-1" x-data x-init="const a = $el.querySelector('[aria-current]'); if (a) { $el.scrollLeft = a.offsetLeft - 16 }">
     @foreach ($rounds as $item)

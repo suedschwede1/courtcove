@@ -163,28 +163,12 @@ class ModulePlumbingTest extends TestCase
     }
 
     #[Test]
-    public function tabs_mark_the_active_item(): void
+    public function the_module_tab_and_info_partials_are_gone(): void
     {
-        $html = view('tournament-base::partials.module-tabs', [
-            'label' => 'Sections',
-            'items' => [
-                ['label' => 'One', 'href' => '/one', 'active' => true],
-                ['label' => 'Two', 'href' => '/two', 'active' => false],
-            ],
-        ])->render();
-
-        $this->assertSame(1, substr_count($html, 'aria-current="page"'));
-        $this->assertStringContainsString('href="/two"', $html);
-    }
-
-    #[Test]
-    public function info_notice_renders_only_when_flashed(): void
-    {
-        $this->assertStringNotContainsString('ds-notice', view('tournament-base::partials.info-notice')->render());
-
-        session()->flash('info', 'Saved');
-
-        $this->assertStringContainsString('Saved', view('tournament-base::partials.info-notice')->render());
+        // The tournament sidebar is the module navigation and the area shell shows the info flash
+        // (TournamentSidebarTest pins both).
+        $this->assertFalse(view()->exists('tournament-base::partials.module-tabs'));
+        $this->assertFalse(view()->exists('tournament-base::partials.info-notice'));
     }
 
     #[Test]

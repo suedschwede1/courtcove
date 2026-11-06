@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-06
+- Mixed-/Fun-Turnier: the event tabs became the Turniere sidebar (Aktuelle Runde, Wertung, the event with its pages, Info, Verwaltung, Mitglieder importieren); the print views stay without the shell.
 - Vereinsmeisterschaft and draws: the module tabs became the Turniere sidebar group (Übersicht, Gruppen, KO-Raster, Spielplan, Meine Spiele, Teilnehmer, Modus, Leitung, Losprotokoll(e), Auslosung, Auslosungen verwalten); the draw record and the token page sit in the same shell.
 - Forderungspyramide: the ranking/challenges/rules tabs are gone; every Pyramid page (also detail and admin pages) uses the common Turniere sidebar with Rangliste, Forderungen, Regeln, Mein Profil and Verwaltung.
 - Tournaments only for logged-in users: every tournament page, also the Pyramid ranking, rules and challenges and the draw record with its JSON, sends guests to the login (JSON: 401); TOURNAMENT_REQUIRE_LOGIN=false makes exactly those pages public again.

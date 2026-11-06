@@ -6,6 +6,7 @@ namespace App\Modules\TournamentBase\Support;
 
 use App\Models\User;
 use App\Modules\Draw\Support\DrawNavigation;
+use App\Modules\MixedTournament\Support\MixedNavigation;
 use App\Modules\Pyramid\Support\PyramidNavigation;
 use App\Modules\Tournament\Support\ChampionshipNavigation;
 use App\Support\Navigation\AreaNavBuilder;
@@ -27,6 +28,7 @@ final class TournamentAreaNavigation implements AreaNavigation
         PyramidNavigation::class,
         ChampionshipNavigation::class,
         DrawNavigation::class,
+        MixedNavigation::class,
     ];
 
     /** @var list<TournamentModuleNavigation>|null */

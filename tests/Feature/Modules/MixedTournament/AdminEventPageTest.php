@@ -366,14 +366,15 @@ class AdminEventPageTest extends TestCase
     }
 
     #[Test]
-    public function admin_pages_mark_the_mixed_nav_entry_active_for_global_admins(): void
+    public function admin_pages_mark_their_event_entry_active_for_global_admins(): void
     {
         $event = MixedEvent::factory()->create();
 
-        foreach (['', '/config'] as $suffix) {
+        foreach (['' => 'mixed.admin.event', '/config' => 'mixed.admin.config'] as $suffix => $entry) {
             $this->actingAs($this->admin())->get($this->url($event, $suffix))
                 ->assertOk()
-                ->assertSee('href="'.route('mixed.admin.index').'" class="ds-admin-sidebar__link" aria-current="page"', false);
+                ->assertSee('href="'.route($entry, ['event' => $event->id]).'" class="ds-admin-sidebar__link" aria-current="page"', false)
+                ->assertSee('href="'.route('mixed.admin.index').'" class="ds-admin-sidebar__link">', false);
         }
     }
 

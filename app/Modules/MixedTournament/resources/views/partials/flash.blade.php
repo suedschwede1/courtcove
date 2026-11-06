@@ -1,8 +1,7 @@
 {{--
-    Module notices above the page content. Success and error flashes are shown by the layout (feedback
-    dialog); this adds the info notice (tournament base) and a warning, e.g. a rule hint after a redirect.
+    Module notice above the page content: a warning, e.g. a rule hint after a redirect. Success, error and info
+    flashes are shown by the area shell (layouts.admin).
 --}}
-@include('tournament-base::partials.info-notice')
 @if (session('warning'))
 <x-ui.notice tone="attention">{{ session('warning') }}</x-ui.notice>
 @endif

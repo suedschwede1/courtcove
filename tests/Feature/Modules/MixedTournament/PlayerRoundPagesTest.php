@@ -405,7 +405,8 @@ class PlayerRoundPagesTest extends TestCase
 
         $this->actingAs($this->member())->get('/mixed-tournament/round/'.$round->id)
             ->assertOk()
-            ->assertSee('aria-current="page">Runde 2</a>', false)
+            // The open round is the sidebar's "Aktuelle Runde"; an older round is marked as its own entry.
+            ->assertSee('aria-current="page">Aktuelle Runde</a>', false)
             ->assertDontSee('data-scroll-restore', false)
             ->assertDontSee('mixed-scroll:', false)
             ->assertDontSee('data-scroll-save', false);

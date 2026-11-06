@@ -23,7 +23,6 @@
     @include('mixed::partials.event-head', ['event' => $event])
 @endif
 
-@include('mixed::partials.tabs', ['event' => $event, 'active' => 'durchmischung', 'canAdmin' => $canAdmin, 'adminView' => ! empty($adminView)])
 
 <x-ui.card :title="__('mixed::common.mixing_title')" class="w-full max-w-4xl">
     <div class="flex flex-col gap-3">

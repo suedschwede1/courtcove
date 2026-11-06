@@ -19,8 +19,8 @@ use Tests\TestCase;
 
 /**
  * The shared module shell as used by the championship (Plan D Task 12). Plans B/C already built the login
- * middleware (`tournament-base.login`), the 419 redirect (CsrfExpiredRedirect) and the tab partial
- * (`module-tabs`); this pins them for the `tournament.*` routes and adds the flash list and the banners.
+ * middleware (`tournament-base.login`) and the 419 redirect (CsrfExpiredRedirect); this pins them for the
+ * `tournament.*` routes and adds the flash list and the banners. The module tabs became the tournament sidebar.
  */
 class ModuleShellTest extends TestCase
 {
@@ -140,19 +140,6 @@ class ModuleShellTest extends TestCase
         $this->assertSame('tournament::common.login_required', $e->key);
         $this->assertSame(['x' => 1], $e->replace);
         $this->assertSame('tournament::common.login_required', $e->getMessage());
-    }
-
-    #[Test]
-    public function tabs_mark_the_active_item(): void
-    {
-        $html = view('tournament-base::partials.module-tabs', ['items' => [
-            ['label' => 'Übersicht', 'href' => '/tournament', 'active' => false],
-            ['label' => 'Gruppen', 'href' => '/tournament/groups', 'active' => true],
-            ['label' => 'Spielplan', 'href' => '/tournament/schedule'],
-        ]])->render();
-
-        $this->assertSame(1, substr_count($html, 'aria-current="page"'));
-        $this->assertMatchesRegularExpression('#href="/tournament/groups"[^>]*aria-current="page"#', $html);
     }
 
     #[Test]

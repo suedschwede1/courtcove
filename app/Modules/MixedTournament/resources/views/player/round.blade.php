@@ -37,7 +37,6 @@
     @endslot
 @endcomponent
 
-@include('mixed::partials.tabs', ['event' => $event, 'active' => 'round:'.$round->id, 'canAdmin' => $canAdmin])
 
 @if ($byGroup === [])
     <x-ui.notice tone="neutral">{{ __('mixed::common.no_proposal') }}</x-ui.notice>
