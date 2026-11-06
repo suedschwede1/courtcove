@@ -32,8 +32,8 @@
             <div class="grid gap-4 md:grid-cols-2">
                 @foreach($fiscalYears as $fiscalYear)
                     @php($oldRate = old('rates.'.$fiscalYear->id))
-                    <x-ui.field :label="$fiscalYear->name.' · '.__('members::admin.fee_categories.amount')" for="fc-rate-{{ $fiscalYear->id }}" :error="$errors->first('rates.'.$fiscalYear->id)">
-                        <x-ui.input type="number" step="0.01" min="0" max="999999.99" inputmode="decimal" name="rates[{{ $fiscalYear->id }}]" id="fc-rate-{{ $fiscalYear->id }}" :value="is_scalar($oldRate) ? $oldRate : ($rates[$fiscalYear->id]->amount ?? null)" :placeholder="isset($rates[$fiscalYear->id]) ? null : __('members::admin.fee_categories.no_rate')" />
+                    <x-ui.field :label="$fiscalYear->labelWithState().' · '.__('members::admin.fee_categories.amount')" for="fc-rate-{{ $fiscalYear->id }}" :error="$errors->first('rates.'.$fiscalYear->id)">
+                        <x-ui.input type="number" step="0.01" min="0" max="999999.99" inputmode="decimal" name="rates[{{ $fiscalYear->id }}]" id="fc-rate-{{ $fiscalYear->id }}" :value="is_scalar($oldRate) ? $oldRate : ($rates[$fiscalYear->id]->amount ?? null)" :placeholder="isset($rates[$fiscalYear->id]) ? null : __('members::admin.fee_categories.no_rate')" :disabled="$fiscalYear->isClosed()" />
                     </x-ui.field>
                 @endforeach
             </div>

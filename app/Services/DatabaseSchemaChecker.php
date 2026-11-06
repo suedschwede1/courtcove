@@ -438,6 +438,8 @@ final class DatabaseSchemaChecker
                 'starts_on' => fn (Blueprint $t) => $t->date('starts_on'),
                 'ends_on' => fn (Blueprint $t) => $t->date('ends_on'),
                 'faellig_am' => fn (Blueprint $t) => $t->date('faellig_am')->nullable(),
+                'abgeschlossen_am' => fn (Blueprint $t) => $t->timestamp('abgeschlossen_am')->nullable(),
+                'abgeschlossen_von' => fn (Blueprint $t) => $t->unsignedInteger('abgeschlossen_von')->nullable(),
                 'created_at' => fn (Blueprint $t) => $t->timestamp('created_at')->nullable(),
                 'updated_at' => fn (Blueprint $t) => $t->timestamp('updated_at')->nullable(),
             ],

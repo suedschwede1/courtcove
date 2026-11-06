@@ -26,6 +26,8 @@ Route::middleware(['auth', 'can:admin.members'])
         Route::post('members/fiscal-years', [FiscalYearController::class, 'store'])->name('members.fiscal-years.store');
         Route::get('members/fiscal-years/{fiscalYear}/edit', [FiscalYearController::class, 'edit'])->name('members.fiscal-years.edit');
         Route::put('members/fiscal-years/{fiscalYear}', [FiscalYearController::class, 'update'])->name('members.fiscal-years.update');
+        Route::post('members/fiscal-years/{fiscalYear}/close', [FiscalYearController::class, 'close'])->name('members.fiscal-years.close');
+        Route::post('members/fiscal-years/{fiscalYear}/reopen', [FiscalYearController::class, 'reopen'])->name('members.fiscal-years.reopen');
 
         Route::get('members/fee-categories', [FeeCategoryController::class, 'index'])->name('members.fee-categories.index');
         Route::post('members/fee-categories', [FeeCategoryController::class, 'store'])->name('members.fee-categories.store');

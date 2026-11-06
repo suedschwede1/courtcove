@@ -21,6 +21,7 @@
     $composeOpen = $errors->hasAny(['member_id', 'fee_category_id', 'amount', 'teilbetrag', 'kommentar']);
     $generateFiscalYear = $generateFiscalYears->firstWhere('id', $generateFiscalYearId);
     $selectedFY = $fiscalYears->firstWhere('id', $selectedFiscalYearId);
+    $yearClosed = (bool) $selectedFiscalYear?->isClosed();
     $bulkPaidThroughYears = $fiscalYears->filter(fn ($fy) => $selectedFY === null || $fy->starts_on->gte($selectedFY->starts_on));
 @endphp
 <x-members::page-header :title="__('members::admin.dues.title')" />
@@ -31,7 +32,7 @@
 <x-ui.card class="mbr-dues-tools" as="div" x-data="{ composing: {{ $composeOpen ? 'true' : 'false' }} }">
     <form method="GET" action="{{ route('members.dues.index') }}" class="mbr-filters">
         <x-ui.field class="mbr-filters__field" :label="__('members::admin.dues.fiscal_year')" for="due-fiscal-year" :error="''">
-            <x-ui.select name="fiscal_year_id" :options="$fiscalYears->pluck('name', 'id')->all()" :selected="(string) $selectedFiscalYearId" onchange="this.form.submit()" />
+            <x-ui.select name="fiscal_year_id" :options="$fiscalYears->mapWithKeys(fn ($fy) => [$fy->id => $fy->labelWithState()])->all()" :selected="(string) $selectedFiscalYearId" onchange="this.form.submit()" />
         </x-ui.field>
         <x-ui.field class="mbr-filters__search" :label="__('members::admin.members.search')" for="due-search">
             <x-ui.input name="search" :value="$filters['search'] ?? ''" />
@@ -41,6 +42,13 @@
         </x-ui.field>
         <x-ui.button type="submit" variant="secondary" :block="false" class="mbr-filters__submit">{{ __('members::admin.common.filter') }}</x-ui.button>
     </form>
+
+    @if($yearClosed)
+        <div class="flex flex-wrap items-center gap-2" data-testid="dues-year-closed">
+            <x-ui.badge tone="neutral">{{ __('members::admin.fiscal_years.closed') }}</x-ui.badge>
+            <span class="text-body-s text-ink-2">{{ __('members::admin.fiscal_years.closed_help') }}</span>
+        </div>
+    @endif
 
     <form method="POST" action="{{ route('members.dues.generate') }}" class="mbr-filters mbr-dues-tools__row"
         x-data="{
@@ -54,9 +62,12 @@
             <x-ui.select name="fiscal_year_id" :options="$generateFiscalYears->pluck('name', 'id')->all()" :selected="(string) $generateFiscalYearId" x-model="fiscalYearId" />
         </x-ui.field>
         <x-ui.button type="submit" :block="false" x-text="label">{{ __('members::admin.dues.generate_for', ['year' => $generateFiscalYear->name ?? '']) }}</x-ui.button>
-        <x-ui.button variant="secondary" :block="false" icon="plus" class="mbr-dues-tools__toggle" aria-controls="due-compose" x-bind:aria-expanded="composing.toString()" x-on:click="composing = !composing">{{ __('members::admin.dues.new') }}</x-ui.button>
+        @unless($yearClosed)
+            <x-ui.button variant="secondary" :block="false" icon="plus" class="mbr-dues-tools__toggle" aria-controls="due-compose" x-bind:aria-expanded="composing.toString()" x-on:click="composing = !composing">{{ __('members::admin.dues.new') }}</x-ui.button>
+        @endunless
     </form>
 
+    @unless($yearClosed)
     <form id="due-compose" x-show="composing" @unless($composeOpen) x-cloak @endunless method="POST" action="{{ route('members.dues.store') }}" class="mbr-filters mbr-compose"
         x-data="{
             memberName: '',
@@ -101,6 +112,7 @@
         </x-ui.field>
         <x-ui.button type="submit" :block="false">{{ __('members::admin.common.save') }}</x-ui.button>
     </form>
+    @endunless
 </x-ui.card>
 
 <form method="POST" action="{{ route('members.dues.bulk-mark-paid') }}"
@@ -113,6 +125,7 @@
     @csrf
     <input type="hidden" name="fiscal_year_id" value="{{ $selectedFiscalYearId }}">
     <x-ui.card class="mbr-table-card" padding="none" as="div">
+        @unless($yearClosed)
         <div class="mbr-filters mbr-bulk-bar">
             <span class="mbr-selected" x-show="selected.length > 0" x-cloak x-text="@js(__('members::admin.dues.selected_count', ['count' => '__COUNT__'])).replace('__COUNT__', selected.length)"></span>
             <x-ui.field class="mbr-filters__field" :label="__('members::admin.dues.paid_through')" for="due-bulk-paid-through" :error="$errors->first('bezahlt_bis_fiscal_year_id') ?: $errors->first('due_ids')">
@@ -123,6 +136,7 @@
             </x-ui.field>
             <x-ui.button id="dues-bulk-mark-paid" type="submit" :block="false" x-bind:disabled="selected.length === 0">{{ __('members::admin.dues.bulk_mark_paid') }}</x-ui.button>
         </div>
+        @endunless
         <p class="text-ink-2 px-4 py-2" data-testid="dues-outstanding-total">{{ __('members::admin.dues.outstanding_total') }}: <strong class="tabular-nums">{{ MembersFormat::money($outstandingTotal) }}</strong></p>
         <x-ui.table :caption="__('members::admin.dues.title')">
             <x-slot:head>
@@ -141,6 +155,9 @@
                 </tr>
             </x-slot:head>
             @forelse($dues as $due)
+                @if($due->fiscalYear->isClosed())
+                    @include('members::dues._locked-row', ['due' => $due, 'context' => 'list'])
+                @else
                 @php
                     $teilbetragDisplay = MembersFormat::optionalMoney($due->teilbetrag);
                 @endphp
@@ -256,6 +273,7 @@
                         </div>
                     </td>
                 </tr>
+                @endif
             @empty
                 <tr><td colspan="11" class="text-ink-2">
                     @if(! $yearHasDues && $selectedFiscalYear)

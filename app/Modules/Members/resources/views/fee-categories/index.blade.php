@@ -7,6 +7,7 @@
     the matrix card explains that one is needed first and links to creating it.
 --}}
 @php($money = fn ($amount) => \App\Modules\Members\Support\MembersFormat::money($amount))
+@php($selectedYearClosed = (bool) $fiscalYears->firstWhere('id', $selectedFiscalYearId)?->isClosed())
 <x-members::page-header :title="__('members::admin.fee_categories.title')" />
 
 @if($categories->isEmpty())
@@ -66,7 +67,7 @@
     @else
         <form method="GET" action="{{ route('members.fee-categories.index') }}" class="mbr-inline-form">
             <x-ui.field class="mbr-inline-form__field" :label="__('members::admin.fee_categories.rates_for')" for="fc-fiscal-year">
-                <x-ui.select name="fiscal_year_id" id="fc-fiscal-year" :options="$fiscalYears->pluck('name', 'id')->all()" :selected="$selectedFiscalYearId" onchange="this.form.submit()" />
+                <x-ui.select name="fiscal_year_id" id="fc-fiscal-year" :options="$fiscalYears->mapWithKeys(fn ($fy) => [$fy->id => $fy->labelWithState()])->all()" :selected="$selectedFiscalYearId" onchange="this.form.submit()" />
             </x-ui.field>
         </form>
 
@@ -85,12 +86,16 @@
                         <tr>
                             <td class="ds-cell--title" data-label="{{ __('members::admin.fee_categories.name') }}">{{ $category->name }}</td>
                             <td data-label="{{ __('members::admin.fee_categories.amount') }}">
-                                <x-ui.input type="number" step="0.01" min="0" max="999999.99" name="rates[{{ $category->id }}]" id="fc-rate-{{ $category->id }}" :value="$rates[$category->id]->amount ?? null" aria-label="{{ $category->name }}" />
+                                <x-ui.input type="number" step="0.01" min="0" max="999999.99" name="rates[{{ $category->id }}]" id="fc-rate-{{ $category->id }}" :value="$rates[$category->id]->amount ?? null" aria-label="{{ $category->name }}" :disabled="$selectedYearClosed" />
                             </td>
                         </tr>
                     @endforeach
                 </x-ui.table>
-                <div><x-ui.button type="submit" :block="false">{{ __('members::admin.common.save') }}</x-ui.button></div>
+                @if($selectedYearClosed)
+                    <p class="m-0 text-body-s text-ink-2">{{ __('members::admin.fiscal_years.closed_help') }}</p>
+                @else
+                    <div><x-ui.button type="submit" :block="false">{{ __('members::admin.common.save') }}</x-ui.button></div>
+                @endif
             </form>
         @endif
     @endif

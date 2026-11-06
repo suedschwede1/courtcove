@@ -42,7 +42,7 @@
         </x-ui.field>
         <x-ui.field class="mbr-filters__field" :label="__('members::admin.dues.fiscal_year')" for="md-fiscal-year" :error="$errors->first('fiscal_year_id') ?: $errors->first('member_id')">
             {{-- Preselect the current business year (old() wins after a validation error) instead of the oldest one. --}}
-            <x-ui.select name="fiscal_year_id" :options="$fiscalYears->pluck('name', 'id')->all()" :selected="\App\Support\Ui\FormValue::string(old('fiscal_year_id',\App\Modules\Members\Models\FiscalYear::defaultFor($fiscalYears)?->id))" />
+            <x-ui.select name="fiscal_year_id" :options="$fiscalYears->reject->isClosed()->pluck('name', 'id')->all()" :selected="\App\Support\Ui\FormValue::string(old('fiscal_year_id',\App\Modules\Members\Models\FiscalYear::defaultFor($fiscalYears)?->id))" />
         </x-ui.field>
         <x-ui.field class="mbr-filters__field" :label="__('members::admin.dues.teilbetrag')" for="md-teilbetrag" :error="$errors->first('teilbetrag')">
             <x-ui.input type="number" name="teilbetrag" step="0.01" min="0" />
@@ -66,6 +66,9 @@
             </tr>
         </x-slot:head>
         @forelse($dues as $due)
+            @if($due->fiscalYear->isClosed())
+                @include('members::dues._locked-row', ['due' => $due, 'context' => 'member'])
+            @else
             @php
                 $teilbetragDisplay = MembersFormat::optionalMoney($due->teilbetrag);
             @endphp
@@ -155,6 +158,7 @@
                     </div>
                 </td>
             </tr>
+            @endif
         @empty
             <tr><td colspan="8" class="text-ink-2">–</td></tr>
         @endforelse

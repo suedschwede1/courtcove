@@ -99,7 +99,7 @@ class MemberDueController
         $dues = $duesQuery->orderBy('member_id')->paginate(25)->withQueryString();
 
         $generateFiscalYears = $fiscalYears->filter(
-            fn (FiscalYear $fiscalYear) => $fiscalYear->ends_on->toDateString() >= now()->toDateString(),
+            fn (FiscalYear $fiscalYear) => $fiscalYear->ends_on->toDateString() >= now()->toDateString() && ! $fiscalYear->isClosed(),
         )->values();
         // The generate select follows the listed year when dues can still be generated for it.
         $generateFiscalYearId = $generateFiscalYears->contains('id', $selectedFiscalYearId)
@@ -137,7 +137,7 @@ class MemberDueController
                 Rule::unique('member_dues', 'member_id')
                     ->where('fiscal_year_id', (int) $request->input('fiscal_year_id')),
             ],
-            'fiscal_year_id' => ['required', 'exists:fiscal_years,id'],
+            'fiscal_year_id' => ['required', 'exists:fiscal_years,id', $this->openYearRule()],
             'fee_category_id' => ['required', 'exists:fee_categories,id'],
             'amount' => ['nullable', 'numeric', 'decimal:0,2', 'min:0', 'max:999999.99'],
             'teilbetrag' => ['nullable', 'numeric', 'decimal:0,2', 'min:0', 'max:999999.99'],
@@ -173,7 +173,7 @@ class MemberDueController
     public function generate(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'fiscal_year_id' => ['required', 'exists:fiscal_years,id'],
+            'fiscal_year_id' => ['required', 'exists:fiscal_years,id', $this->openYearRule()],
         ]);
         $fiscalYearId = (int) $validated['fiscal_year_id'];
         $newFiscalYear = FiscalYear::findOrFail($fiscalYearId);
@@ -240,6 +240,21 @@ class MemberDueController
         $dues = MemberDue::with('fiscalYear')->whereIn('id', $validated['due_ids'])->get();
         $count = 0;
 
+        // A closed year refuses the whole batch (nothing is half-applied).
+        $closedDue = $dues->first(fn (MemberDue $due) => $due->fiscalYear->isClosed());
+        if ($closedDue !== null) {
+            throw ValidationException::withMessages(['due_ids' => $closedDue->fiscalYear->lockedMessage()]);
+        }
+        if ($targetFiscalYearId !== null) {
+            $target = FiscalYear::findOrFail($targetFiscalYearId);
+            foreach ($dues as $due) {
+                $closedYear = $this->closedYearUpTo($due, $target);
+                if ($closedYear !== null) {
+                    throw ValidationException::withMessages(['bezahlt_bis_fiscal_year_id' => $closedYear->lockedMessage()]);
+                }
+            }
+        }
+
         DB::transaction(function () use ($dues, $targetFiscalYearId, $paidOn, &$count): void {
             foreach ($dues as $due) {
                 if ($targetFiscalYearId === null) {
@@ -272,6 +287,10 @@ class MemberDueController
     /** Speichert genau ein Feld eines Beitrags — für die direkt editierbaren Zellen der Liste. */
     public function updateField(Request $request, MemberDue $due): JsonResponse
     {
+        if ($due->fiscalYear->isClosed()) {
+            return response()->json(['message' => $due->fiscalYear->lockedMessage()], 422);
+        }
+
         $fieldRules = [
             'status' => ['required', 'string', Rule::in(MemberDue::STATUSES)],
             'teilbetrag' => ['nullable', 'numeric', 'decimal:0,2', 'min:0', 'max:999999.99'],
@@ -333,6 +352,10 @@ class MemberDueController
     /** Markiert eine Beitragszeile als im Voraus bezahlt bis zu einem späteren Fiskaljahr und legt/aktualisiert dazwischenliegende Zeilen entsprechend. */
     public function markPaidThrough(Request $request, MemberDue $due): JsonResponse
     {
+        if ($due->fiscalYear->isClosed()) {
+            return response()->json(['message' => $due->fiscalYear->lockedMessage()], 422);
+        }
+
         $validated = $request->validate([
             'fiscal_year_id' => [
                 'required',
@@ -348,9 +371,40 @@ class MemberDueController
 
         $targetFiscalYearId = (int) $validated['fiscal_year_id'];
 
+        $closedYear = $this->closedYearUpTo($due, FiscalYear::findOrFail($targetFiscalYearId));
+        if ($closedYear !== null) {
+            return response()->json(['message' => $closedYear->lockedMessage()], 422);
+        }
+
         DB::transaction(fn () => $this->applyPaidThrough($due, $targetFiscalYearId, now()->toDateString()));
 
         return response()->json(['status' => 'bezahlt']);
+    }
+
+    /** The first closed year among the due's own year and the years up to $target ("Bezahlt bis"), if any. */
+    private function closedYearUpTo(MemberDue $due, FiscalYear $target): ?FiscalYear
+    {
+        if ($due->fiscalYear->isClosed()) {
+            return $due->fiscalYear;
+        }
+
+        return FiscalYear::query()
+            ->where('starts_on', '>', $due->fiscalYear->starts_on)
+            ->where('starts_on', '<=', $target->starts_on)
+            ->whereNotNull('abgeschlossen_am')
+            ->orderBy('starts_on')
+            ->first();
+    }
+
+    /** Validation rule: the given fiscal year must not be closed. */
+    private function openYearRule(): \Closure
+    {
+        return function (string $attribute, mixed $value, \Closure $fail): void {
+            $year = is_scalar($value) && ctype_digit((string) $value) ? FiscalYear::find((int) $value) : null;
+            if ($year !== null && $year->isClosed()) {
+                $fail($year->lockedMessage());
+            }
+        };
     }
 
     /** Markiert eine Beitragszeile und alle dazwischenliegenden Fiskaljahre bis zum Zieljahr als bezahlt. Muss innerhalb einer Transaktion aufgerufen werden. */

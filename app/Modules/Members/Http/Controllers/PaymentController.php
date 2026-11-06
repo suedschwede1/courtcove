@@ -18,8 +18,10 @@ class PaymentController
 {
     public function create(Member $member): View
     {
+        // Dues of a closed business year can no longer be paid, so they are not offered.
         $openDues = $member->dues()
             ->open()
+            ->whereHas('fiscalYear', fn ($q) => $q->whereNull('abgeschlossen_am'))
             ->with(['fiscalYear', 'feeCategory'])
             ->get();
 
@@ -44,6 +46,17 @@ class PaymentController
 
                     if ($isAlreadyPaid) {
                         $fail(__('members::admin.payments.due_already_paid'));
+
+                        return;
+                    }
+
+                    $inClosedYear = MemberDue::query()
+                        ->whereKey($value)
+                        ->whereHas('fiscalYear', fn ($q) => $q->whereNotNull('abgeschlossen_am'))
+                        ->exists();
+
+                    if ($inClosedYear) {
+                        $fail(__('members::admin.payments.due_in_closed_year'));
                     }
                 },
             ],

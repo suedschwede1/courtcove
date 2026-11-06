@@ -15,16 +15,51 @@ use Illuminate\Support\Carbon;
  * @property Carbon $starts_on
  * @property Carbon $ends_on
  * @property Carbon|null $faellig_am
+ * @property Carbon|null $abgeschlossen_am
+ * @property int|null $abgeschlossen_von
  */
 class FiscalYear extends Model
 {
+    // abgeschlossen_am/abgeschlossen_von are set only by close()/reopen(), never mass-assigned.
     protected $fillable = ['name', 'starts_on', 'ends_on', 'faellig_am'];
 
     protected $casts = [
         'starts_on' => 'date',
         'ends_on' => 'date',
         'faellig_am' => 'date',
+        'abgeschlossen_am' => 'datetime',
+        'abgeschlossen_von' => 'integer',
     ];
+
+    /** A closed year is read-only: no change to the year, its rates, dues or payments. */
+    public function isClosed(): bool
+    {
+        return $this->abgeschlossen_am !== null;
+    }
+
+    public function close(int $userId): void
+    {
+        $this->forceFill(['abgeschlossen_am' => now(), 'abgeschlossen_von' => $userId])->save();
+    }
+
+    public function reopen(): void
+    {
+        $this->forceFill(['abgeschlossen_am' => null, 'abgeschlossen_von' => null])->save();
+    }
+
+    /** Name for selects: "2025 (abgeschlossen)" for a closed year. */
+    public function labelWithState(): string
+    {
+        return $this->isClosed()
+            ? __('members::admin.fiscal_years.closed_option', ['year' => $this->name])
+            : $this->name;
+    }
+
+    /** The "locked" message for this year, shown wherever a change is refused. */
+    public function lockedMessage(): string
+    {
+        return __('members::admin.fiscal_years.locked', ['year' => $this->name]);
+    }
 
     /** @return HasMany<FeeCategoryRate, $this> */
     public function feeCategoryRates(): HasMany

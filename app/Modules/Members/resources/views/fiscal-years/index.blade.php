@@ -15,6 +15,7 @@
                 <th scope="col">{{ __('members::admin.fiscal_years.starts_on') }}</th>
                 <th scope="col">{{ __('members::admin.fiscal_years.ends_on') }}</th>
                 <th scope="col">{{ __('members::admin.fiscal_years.due_date') }}</th>
+                <th scope="col">{{ __('members::admin.fiscal_years.state') }}</th>
                 <th scope="col" class="mbr-cell-actions">{{ __('members::admin.common.actions') }}</th>
             </tr>
         </x-slot:head>
@@ -24,6 +25,13 @@
                 <td data-label="{{ __('members::admin.fiscal_years.starts_on') }}">{{ $fiscalYear->starts_on->format('d.m.Y') }}</td>
                 <td data-label="{{ __('members::admin.fiscal_years.ends_on') }}">{{ $fiscalYear->ends_on->format('d.m.Y') }}</td>
                 <td data-label="{{ __('members::admin.fiscal_years.due_date') }}">{{ optional($fiscalYear->faellig_am)->format('d.m.Y') ?? '–' }}</td>
+                <td data-label="{{ __('members::admin.fiscal_years.state') }}">
+                    @if($fiscalYear->isClosed())
+                        <x-ui.badge tone="neutral">{{ __('members::admin.fiscal_years.closed') }}</x-ui.badge>
+                    @else
+                        <span class="text-ink-2">{{ __('members::admin.fiscal_years.open_state') }}</span>
+                    @endif
+                </td>
                 <td class="mbr-cell-actions" data-label="{{ __('members::admin.common.actions') }}">
                     <x-ui.button variant="secondary" :block="false" :href="route('members.fiscal-years.edit', $fiscalYear)">{{ __('members::admin.common.edit') }}</x-ui.button>
                 </td>

@@ -12,6 +12,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Beitragskategorien: list of all categories with their rates per fiscal year, the rate matrix for one
@@ -69,6 +70,15 @@ class FeeCategoryController
 
         $fiscalYearId = (int) $validated['fiscal_year_id'];
 
+        $fiscalYear = FiscalYear::query()->findOrFail($fiscalYearId);
+        if ($fiscalYear->isClosed()) {
+            foreach ($validated['rates'] as $categoryId => $amount) {
+                if ($this->changesRate((int) $categoryId, $fiscalYearId, $amount)) {
+                    throw ValidationException::withMessages(['fiscal_year_id' => $fiscalYear->lockedMessage()]);
+                }
+            }
+        }
+
         DB::transaction(function () use ($validated, $fiscalYearId): void {
             foreach ($validated['rates'] as $categoryId => $amount) {
                 $this->saveRate((int) $categoryId, $fiscalYearId, $amount);
@@ -99,6 +109,19 @@ class FeeCategoryController
             'rates.*' => ['nullable', 'numeric', 'min:0', 'max:'.self::MAX_AMOUNT],
         ]);
 
+        // Rates of a closed business year are locked; sending back the unchanged stored value is fine.
+        $closedYears = FiscalYear::query()->whereNotNull('abgeschlossen_am')->get()->keyBy('id');
+        $lockErrors = [];
+        foreach ($validated['rates'] ?? [] as $fiscalYearId => $amount) {
+            $year = $closedYears->get((int) $fiscalYearId);
+            if ($year !== null && $this->changesRate($category->id, (int) $fiscalYearId, $amount)) {
+                $lockErrors['rates.'.$fiscalYearId] = $year->lockedMessage();
+            }
+        }
+        if ($lockErrors !== []) {
+            throw ValidationException::withMessages($lockErrors);
+        }
+
         DB::transaction(function () use ($category, $validated): void {
             $category->update(['name' => $validated['name']]);
 
@@ -109,6 +132,21 @@ class FeeCategoryController
 
         return redirect()->route('members.fee-categories.index')
             ->with('status', __('members::admin.fee_categories.saved'));
+    }
+
+    /** Whether saving $amount would create or change the stored rate (an empty amount never does). */
+    private function changesRate(int $categoryId, int $fiscalYearId, mixed $amount): bool
+    {
+        if ($amount === null || $amount === '') {
+            return false;
+        }
+
+        $stored = FeeCategoryRate::query()
+            ->where('fee_category_id', $categoryId)
+            ->where('fiscal_year_id', $fiscalYearId)
+            ->value('amount');
+
+        return $stored === null || (int) round((float) $stored * 100) !== (int) round((float) $amount * 100);
     }
 
     /** Creates or changes one rate; an empty amount leaves the stored rate as it is. */
