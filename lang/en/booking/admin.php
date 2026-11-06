@@ -294,7 +294,7 @@ return [
         'statistics' => [
             'title' => 'Statistics',
             'search' => 'Search name',
-            'member' => 'Member',
+            'member' => 'User',
             'total' => 'Bookings',
             'single' => 'Single',
             'double' => 'Double',
@@ -305,8 +305,8 @@ return [
             'summary_total' => 'Total bookings',
             'summary_last_month' => 'Last month',
             'summary_this_year' => 'Bookings this year',
-            'summary_members_this_year' => 'Members with a booking (year)',
-            'summary_members_this_month' => 'Members with a booking (month)',
+            'summary_members_this_year' => 'Users with bookings (year)',
+            'summary_members_this_month' => 'Users with bookings (month)',
             'summary_cancellation_rate' => 'Overall cancellation rate',
         ],
         'users' => [

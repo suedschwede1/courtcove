@@ -255,4 +255,25 @@ class StatisticsControllerTest extends TestCase
         $this->assertSame($few, $many);
         $this->assertSame(1, $many);
     }
+
+    #[Test]
+    public function labels_speak_of_booking_users_not_club_members(): void
+    {
+        User::factory()->create(['alias' => 'Demo Konto', 'status' => 'enabled']);
+
+        $de = $this->actingAs($this->admin())->get('/admin/statistics?searched=1')->assertOk();
+        $de->assertSee('Benutzer mit Buchung (Jahr)')
+            ->assertSee('Benutzer mit Buchung (Monat)')
+            ->assertSee('<th scope="col" data-sort="text" class="ds-admin-sortable">Benutzer</th>', false)
+            ->assertSee('data-label="Benutzer"', false)
+            ->assertDontSee('Mitglieder mit Buchung')
+            ->assertDontSee('>Mitglied<', false);
+
+        $en = $this->withUnencryptedCookie('locale', 'en')->get('/admin/statistics?searched=1')->assertOk();
+        $en->assertSee('Users with bookings (year)')
+            ->assertSee('Users with bookings (month)')
+            ->assertSee('data-label="User"', false)
+            ->assertDontSee('Members with a booking')
+            ->assertDontSee('>Member<', false);
+    }
 }
