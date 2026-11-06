@@ -190,7 +190,9 @@ class ImportMembersCommand extends Command
             );
 
             // A closed business year is locked: no new dues or payments, not even from the import.
-            if ($fiscalYear->isClosed()) {
+            // Checked with the year row locked (the import runs in one transaction), so a close
+            // running meanwhile is seen or waits for the import.
+            if (FiscalYear::lockForWrite($fiscalYear->id) !== null) {
                 $this->closedYearSkips++;
 
                 continue;

@@ -147,25 +147,30 @@ class MemberDueController
 
         $fiscalYear = FiscalYear::findOrFail($validated['fiscal_year_id']);
 
-        if (($validated['amount'] ?? null) === null) {
-            $rate = FeeCategoryRate::where('fee_category_id', $validated['fee_category_id'])
-                ->where('fiscal_year_id', $validated['fiscal_year_id'])
-                ->first();
+        DB::transaction(function () use ($validated, $fiscalYear): void {
+            // Again with the year row locked (year first): a close since validation still wins.
+            FiscalYear::lockOpenOrFail($fiscalYear->id, 'fiscal_year_id');
 
-            if (! $rate) {
-                throw ValidationException::withMessages([
-                    'amount' => __('members::admin.dues.no_rate_for_category_year'),
-                ]);
+            if (($validated['amount'] ?? null) === null) {
+                $rate = FeeCategoryRate::where('fee_category_id', $validated['fee_category_id'])
+                    ->where('fiscal_year_id', $validated['fiscal_year_id'])
+                    ->first();
+
+                if (! $rate) {
+                    throw ValidationException::withMessages([
+                        'amount' => __('members::admin.dues.no_rate_for_category_year'),
+                    ]);
+                }
+
+                $validated['amount'] = $rate->amount;
             }
 
-            $validated['amount'] = $rate->amount;
-        }
-
-        MemberDue::create([
-            ...$validated,
-            'status' => 'ausstehend',
-            'faellig_am' => $fiscalYear->faellig_am ?? $fiscalYear->starts_on,
-        ]);
+            MemberDue::create([
+                ...$validated,
+                'status' => 'ausstehend',
+                'faellig_am' => $fiscalYear->faellig_am ?? $fiscalYear->starts_on,
+            ]);
+        });
 
         return redirect()->back(fallback: route('members.dues.index', ['fiscal_year_id' => $validated['fiscal_year_id']]))
             ->with('status', __('members::admin.dues.created'));
@@ -179,10 +184,34 @@ class MemberDueController
         $fiscalYearId = (int) $validated['fiscal_year_id'];
         $newFiscalYear = FiscalYear::findOrFail($fiscalYearId);
 
-        $existingMemberIds = MemberDue::where('fiscal_year_id', $fiscalYearId)->pluck('member_id');
-
         $created = 0;
         $skippedDeactivated = 0;
+
+        // One transaction with the year row locked first: a close since validation refuses the
+        // whole run, and a close requested meanwhile waits until the generated dues are committed.
+        DB::transaction(function () use ($fiscalYearId, $newFiscalYear, &$created, &$skippedDeactivated): void {
+            FiscalYear::lockOpenOrFail($fiscalYearId, 'fiscal_year_id');
+
+            $this->generateDues($fiscalYearId, $newFiscalYear, $created, $skippedDeactivated);
+        });
+
+        $message = __('members::admin.dues.generated', ['count' => $created]);
+        // Generation silently skips categories without a rate; with no rate at all, say why nothing happened.
+        if ($created === 0 && ! FeeCategoryRate::where('fiscal_year_id', $fiscalYearId)->exists()) {
+            $message .= ' '.__('members::admin.dues.no_rates_for_year', ['year' => $newFiscalYear->name]);
+        }
+        if ($skippedDeactivated > 0) {
+            $message .= ' '.__('members::admin.dues.generate_skipped_deactivated', ['count' => $skippedDeactivated]);
+        }
+
+        return redirect()->route('members.dues.index', ['fiscal_year_id' => $fiscalYearId])
+            ->with('status', $message);
+    }
+
+    /** Creates the missing dues of the year from each active member's last category; counts what it did. */
+    private function generateDues(int $fiscalYearId, FiscalYear $newFiscalYear, int &$created, int &$skippedDeactivated): void
+    {
+        $existingMemberIds = MemberDue::where('fiscal_year_id', $fiscalYearId)->pluck('member_id');
         $deactivatedIds = FeeCategory::query()->whereNotNull('deactivated_at')->pluck('id')->map(fn ($id) => (int) $id)->all();
 
         Member::query()
@@ -223,18 +252,6 @@ class MemberDueController
 
                 $created++;
             });
-
-        $message = __('members::admin.dues.generated', ['count' => $created]);
-        // Generation silently skips categories without a rate; with no rate at all, say why nothing happened.
-        if ($created === 0 && ! FeeCategoryRate::where('fiscal_year_id', $fiscalYearId)->exists()) {
-            $message .= ' '.__('members::admin.dues.no_rates_for_year', ['year' => $newFiscalYear->name]);
-        }
-        if ($skippedDeactivated > 0) {
-            $message .= ' '.__('members::admin.dues.generate_skipped_deactivated', ['count' => $skippedDeactivated]);
-        }
-
-        return redirect()->route('members.dues.index', ['fiscal_year_id' => $fiscalYearId])
-            ->with('status', $message);
     }
 
     /** Markiert alle ausgewählten Beitragszeilen in einem Schritt als bezahlt, optional bis zu einem gewählten Fiskaljahr im Voraus. */
@@ -269,6 +286,27 @@ class MemberDueController
         }
 
         DB::transaction(function () use ($dues, $targetFiscalYearId, $paidOn, &$count): void {
+            // Both checks again with every touched year row locked (years first), so a year
+            // closed since validation refuses the whole batch.
+            $ownYearIds = $dues->pluck('fiscal_year_id')->map(fn ($id): int => (int) $id)->unique()->values()->all();
+            $rangeYearIds = [];
+            if ($targetFiscalYearId !== null) {
+                $target = FiscalYear::findOrFail($targetFiscalYearId);
+                foreach ($dues as $due) {
+                    $rangeYearIds = [...$rangeYearIds, ...$this->yearIdsUpTo($due, $target)];
+                }
+            }
+            FiscalYear::lockForWrite([...$ownYearIds, ...$rangeYearIds]);
+            $closed = FiscalYear::query()->whereKey([...$ownYearIds, ...$rangeYearIds])->whereNotNull('abgeschlossen_am')
+                ->orderBy('starts_on')->get();
+            $closedOwn = $closed->first(fn (FiscalYear $year): bool => in_array($year->id, $ownYearIds, true));
+            if ($closedOwn !== null) {
+                throw ValidationException::withMessages(['due_ids' => $closedOwn->lockedMessage()]);
+            }
+            if ($closed->isNotEmpty()) {
+                throw ValidationException::withMessages(['bezahlt_bis_fiscal_year_id' => $closed->first()->lockedMessage()]);
+            }
+
             foreach ($dues as $due) {
                 if ($targetFiscalYearId === null) {
                     $due->update(['status' => 'bezahlt', 'bezahlt_am' => $due->bezahlt_am ?? $paidOn]);
@@ -337,12 +375,22 @@ class MemberDueController
                 : null;
         }
 
+        $closed = null;
         try {
-            $due->update($changes);
+            // Again with the year row locked (year first): a close since the check above wins.
+            DB::transaction(function () use ($due, $changes, &$closed): void {
+                $closed = FiscalYear::lockForWrite($due->fiscal_year_id);
+                if ($closed === null) {
+                    $due->update($changes);
+                }
+            });
         } catch (\Throwable $e) {
             report($e);
 
             return response()->json(['message' => __('members::admin.dues.field_update_failed')], 500);
+        }
+        if ($closed !== null) {
+            return response()->json(['message' => $closed->lockedMessage()], 422);
         }
 
         $response = [
@@ -389,9 +437,37 @@ class MemberDueController
             return response()->json(['message' => $closedYear->lockedMessage()], 422);
         }
 
-        DB::transaction(fn () => $this->applyPaidThrough($due, $targetFiscalYearId, now()->toDateString()));
+        // Again with the due's year and every year up to the target locked (years first).
+        $closedYear = DB::transaction(function () use ($due, $targetFiscalYearId): ?FiscalYear {
+            $ids = [$due->fiscal_year_id, ...$this->yearIdsUpTo($due, FiscalYear::findOrFail($targetFiscalYearId))];
+            FiscalYear::lockForWrite($ids);
+            $closed = FiscalYear::query()->whereKey($ids)->whereNotNull('abgeschlossen_am')->orderBy('starts_on')->first();
+            if ($closed === null) {
+                $this->applyPaidThrough($due, $targetFiscalYearId, now()->toDateString());
+            }
+
+            return $closed;
+        });
+        if ($closedYear !== null) {
+            return response()->json(['message' => $closedYear->lockedMessage()], 422);
+        }
 
         return response()->json(['status' => 'bezahlt']);
+    }
+
+    /**
+     * Ids of the years after the due's own year up to and including $target ("Bezahlt bis").
+     *
+     * @return list<int>
+     */
+    private function yearIdsUpTo(MemberDue $due, FiscalYear $target): array
+    {
+        return FiscalYear::query()
+            ->where('starts_on', '>', $due->fiscalYear->starts_on)
+            ->where('starts_on', '<=', $target->starts_on)
+            ->pluck('id')
+            ->map(fn ($id): int => (int) $id)
+            ->all();
     }
 
     /** The first closed year among the due's own year and the years up to $target ("Bezahlt bis"), if any. */

@@ -10,7 +10,9 @@ use App\Modules\Members\Models\MemberDue;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class FiscalYearController
 {
@@ -53,7 +55,11 @@ class FiscalYearController
 
         $validated = $this->validateYear($request, $fiscalYear);
 
-        $fiscalYear->update($validated);
+        // Checked again with the year row locked: a close between validation and saving wins.
+        DB::transaction(function () use ($fiscalYear, $validated): void {
+            FiscalYear::lockOpenOrFail($fiscalYear->id, 'fiscal_year');
+            $fiscalYear->update($validated);
+        });
 
         return redirect()->route('members.fiscal-years.index');
     }
@@ -76,7 +82,20 @@ class FiscalYearController
             return back()->withErrors(['confirm_open_dues' => __('members::admin.fiscal_years.close_confirm_required', ['count' => $openDues])]);
         }
 
-        $year->close((int) $request->user()?->getAuthIdentifier());
+        // Both checks again with the year row locked, so a concurrent close or a due written
+        // meanwhile is seen; writers lock the same row first, so they wait for this close.
+        DB::transaction(function () use ($request, $year): void {
+            if (FiscalYear::lockForWrite($year->id) !== null) {
+                throw ValidationException::withMessages(['fiscal_year' => __('members::admin.fiscal_years.already_closed', ['year' => $year->name])]);
+            }
+
+            $openDues = MemberDue::query()->open()->where('fiscal_year_id', $year->id)->count();
+            if ($openDues > 0 && $request->input('confirm_open_dues') !== '1') {
+                throw ValidationException::withMessages(['confirm_open_dues' => __('members::admin.fiscal_years.close_confirm_required', ['count' => $openDues])]);
+            }
+
+            $year->close((int) $request->user()?->getAuthIdentifier());
+        });
 
         return redirect()->route('members.fiscal-years.edit', $year)
             ->with('status', __('members::admin.fiscal_years.closed_success', ['year' => $year->name]));
@@ -93,7 +112,13 @@ class FiscalYearController
             return back()->withErrors(['fiscal_year' => __('members::admin.fiscal_years.not_closed', ['year' => $year->name])]);
         }
 
-        $year->reopen();
+        DB::transaction(function () use ($year): void {
+            if (FiscalYear::lockForWrite($year->id) === null) {
+                throw ValidationException::withMessages(['fiscal_year' => __('members::admin.fiscal_years.not_closed', ['year' => $year->name])]);
+            }
+
+            $year->reopen();
+        });
 
         return redirect()->route('members.fiscal-years.edit', $year)
             ->with('status', __('members::admin.fiscal_years.reopened_success', ['year' => $year->name]));
