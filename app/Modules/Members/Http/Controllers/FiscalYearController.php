@@ -10,6 +10,7 @@ use App\Modules\Members\Models\MemberDue;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class FiscalYearController
 {
@@ -27,12 +28,7 @@ class FiscalYearController
 
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:32'],
-            'starts_on' => ['required', 'date'],
-            'ends_on' => ['required', 'date', 'after:starts_on'],
-            'faellig_am' => ['nullable', 'date'],
-        ]);
+        $validated = $this->validateYear($request, null);
 
         FiscalYear::create($validated);
 
@@ -55,12 +51,7 @@ class FiscalYearController
             return back()->withErrors(['fiscal_year' => $fiscalYear->lockedMessage()]);
         }
 
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:32'],
-            'starts_on' => ['required', 'date'],
-            'ends_on' => ['required', 'date', 'after:starts_on'],
-            'faellig_am' => ['nullable', 'date'],
-        ]);
+        $validated = $this->validateYear($request, $fiscalYear);
 
         $fiscalYear->update($validated);
 
@@ -106,6 +97,51 @@ class FiscalYearController
 
         return redirect()->route('members.fiscal-years.edit', $year)
             ->with('status', __('members::admin.fiscal_years.reopened_success', ['year' => $year->name]));
+    }
+
+    /**
+     * Year form rules. Dates are plain Y-m-d strings (the date inputs), so array or malformed
+     * input is a validation error and never reaches a date comparison. The end may equal the
+     * start but not lie before it, and the range must not overlap any other year (closed years
+     * included); the edited year itself is ignored.
+     *
+     * @return array{name: string, starts_on: string, ends_on: string, faellig_am?: string|null}
+     */
+    private function validateYear(Request $request, ?FiscalYear $current): array
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => ['required', 'string', 'max:32'],
+            'starts_on' => ['bail', 'required', 'string', 'date_format:Y-m-d'],
+            'ends_on' => ['bail', 'required', 'string', 'date_format:Y-m-d'],
+            'faellig_am' => ['nullable', 'date'],
+        ]);
+
+        $validator->after(function (\Illuminate\Validation\Validator $validator) use ($current): void {
+            if ($validator->errors()->hasAny(['starts_on', 'ends_on'])) {
+                return;
+            }
+
+            $start = (string) $validator->getValue('starts_on');
+            $end = (string) $validator->getValue('ends_on');
+
+            if ($end < $start) {
+                $validator->errors()->add('ends_on', __('members::admin.fiscal_years.ends_before_start'));
+
+                return;
+            }
+
+            $other = FiscalYear::firstOverlapping($start, $end, $current?->id);
+            if ($other !== null) {
+                $validator->errors()->add('starts_on', __('members::admin.fiscal_years.overlap', [
+                    'year' => $other->name,
+                    'starts_on' => $other->starts_on->isoFormat('L'),
+                    'ends_on' => $other->ends_on->isoFormat('L'),
+                ]));
+            }
+        });
+
+        /** @var array{name: string, starts_on: string, ends_on: string, faellig_am?: string|null} */
+        return $validator->validate();
     }
 
     private function findYear(string $id): FiscalYear

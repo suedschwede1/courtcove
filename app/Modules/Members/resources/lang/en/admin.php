@@ -150,6 +150,8 @@ return [
         'already_closed' => 'Fiscal year :year is already closed.',
         'not_closed' => 'Fiscal year :year is not closed.',
         'locked' => 'Fiscal year :year is closed. Changes are no longer possible.',
+        'overlap' => 'The date range overlaps fiscal year :year (:starts_on – :ends_on).',
+        'ends_before_start' => 'The end must not be before the start.',
     ],
     'fee_categories' => [
         'title' => 'Fee categories',

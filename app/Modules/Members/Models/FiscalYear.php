@@ -82,6 +82,20 @@ class FiscalYear extends Model
     }
 
     /**
+     * The earliest other year whose range shares at least one day with starts..ends (both Y-m-d,
+     * both days included). Adjacent years (end = the day before the next start) do not overlap.
+     */
+    public static function firstOverlapping(string $startsOn, string $endsOn, ?int $exceptId = null): ?self
+    {
+        return self::query()
+            ->whereDate('starts_on', '<=', $endsOn)
+            ->whereDate('ends_on', '>=', $startsOn)
+            ->when($exceptId !== null, fn ($query) => $query->whereKeyNot($exceptId))
+            ->orderBy('starts_on')
+            ->first();
+    }
+
+    /**
      * The business year shown when none is chosen: the year containing today (the most recent
      * one if several overlap); otherwise the latest year that has dues; otherwise the latest year.
      *

@@ -150,6 +150,8 @@ return [
         'already_closed' => 'Geschäftsjahr :year ist bereits abgeschlossen.',
         'not_closed' => 'Geschäftsjahr :year ist nicht abgeschlossen.',
         'locked' => 'Geschäftsjahr :year ist abgeschlossen. Änderungen sind nicht mehr möglich.',
+        'overlap' => 'Der Zeitraum überschneidet sich mit Geschäftsjahr :year (:starts_on – :ends_on).',
+        'ends_before_start' => 'Das Ende darf nicht vor dem Beginn liegen.',
     ],
     'fee_categories' => [
         'title' => 'Beitragskategorien',
