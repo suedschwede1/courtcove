@@ -10,42 +10,64 @@
         'ausstehend' => __('members::admin.dues.status_ausstehend'),
         'ueberfaellig' => __('members::admin.dues.status_ueberfaellig'),
     ];
+    // "Offen" is the default (no status parameter); "Alle" is an explicit choice that stays in the URL.
+    $statusFilterOptions = [
+        'offen' => __('members::admin.dues.status_filter_offen'),
+        'alle' => __('members::admin.dues.status_filter_alle'),
+        'ausstehend' => __('members::admin.dues.status_filter_ausstehend'),
+        'ueberfaellig' => __('members::admin.dues.status_filter_ueberfaellig'),
+        'bezahlt' => __('members::admin.dues.status_filter_bezahlt'),
+    ];
     $composeOpen = $errors->hasAny(['member_id', 'fee_category_id', 'amount', 'teilbetrag', 'kommentar']);
-    $defaultFiscalYear = $generateFiscalYears->firstWhere('id', $defaultFiscalYearId);
+    $generateFiscalYear = $generateFiscalYears->firstWhere('id', $generateFiscalYearId);
     $selectedFY = $fiscalYears->firstWhere('id', $selectedFiscalYearId);
+    $yearClosed = (bool) $selectedFiscalYear?->isClosed();
     $bulkPaidThroughYears = $fiscalYears->filter(fn ($fy) => $selectedFY === null || $fy->starts_on->gte($selectedFY->starts_on));
 @endphp
 <x-members::page-header :title="__('members::admin.dues.title')" />
+@if($yearNotice)
+    <x-ui.notice tone="attention">{{ $yearNotice }}</x-ui.notice>
+@endif
 
 <x-ui.card class="mbr-dues-tools" as="div" x-data="{ composing: {{ $composeOpen ? 'true' : 'false' }} }">
     <form method="GET" action="{{ route('members.dues.index') }}" class="mbr-filters">
         <x-ui.field class="mbr-filters__field" :label="__('members::admin.dues.fiscal_year')" for="due-fiscal-year" :error="''">
-            <x-ui.select name="fiscal_year_id" :options="$fiscalYears->pluck('name', 'id')->all()" :selected="(string) $selectedFiscalYearId" onchange="this.form.submit()" />
+            <x-ui.select name="fiscal_year_id" :options="$fiscalYears->mapWithKeys(fn ($fy) => [$fy->id => $fy->labelWithState()])->all()" :selected="(string) $selectedFiscalYearId" onchange="this.form.submit()" />
         </x-ui.field>
         <x-ui.field class="mbr-filters__search" :label="__('members::admin.members.search')" for="due-search">
             <x-ui.input name="search" :value="$filters['search'] ?? ''" />
         </x-ui.field>
         <x-ui.field class="mbr-filters__field" :label="__('members::admin.dues.status')" for="due-status">
-            <x-ui.select name="status" :options="$dueLabels" :selected="$filters['status'] ?? ''" :placeholder="__('members::admin.common.all')" />
+            <x-ui.select name="status" :options="$statusFilterOptions" :selected="$filters['status']" />
         </x-ui.field>
         <x-ui.button type="submit" variant="secondary" :block="false" class="mbr-filters__submit">{{ __('members::admin.common.filter') }}</x-ui.button>
     </form>
 
+    @if($yearClosed)
+        <div class="flex flex-wrap items-center gap-2" data-testid="dues-year-closed">
+            <x-ui.badge tone="neutral">{{ __('members::admin.fiscal_years.closed') }}</x-ui.badge>
+            <span class="text-body-s text-ink-2">{{ __('members::admin.fiscal_years.closed_help') }}</span>
+        </div>
+    @endif
+
     <form method="POST" action="{{ route('members.dues.generate') }}" class="mbr-filters mbr-dues-tools__row"
         x-data="{
-            fiscalYearId: '{{ $defaultFiscalYearId }}',
+            fiscalYearId: '{{ $generateFiscalYearId }}',
             names: @js($generateFiscalYears->mapWithKeys(fn ($fy) => [(string) $fy->id => $fy->name])),
             template: @js(__('members::admin.dues.generate_for', ['year' => '__YEAR__'])),
             get label() { return this.template.replace('__YEAR__', this.names[this.fiscalYearId] ?? ''); }
         }">
         @csrf
         <x-ui.field class="mbr-filters__field" :label="__('members::admin.dues.generate_year')" for="due-generate-year" :error="$errors->first('fiscal_year_id')">
-            <x-ui.select name="fiscal_year_id" :options="$generateFiscalYears->pluck('name', 'id')->all()" :selected="(string) $defaultFiscalYearId" x-model="fiscalYearId" />
+            <x-ui.select name="fiscal_year_id" :options="$generateFiscalYears->pluck('name', 'id')->all()" :selected="(string) $generateFiscalYearId" x-model="fiscalYearId" />
         </x-ui.field>
-        <x-ui.button type="submit" :block="false" x-text="label">{{ __('members::admin.dues.generate_for', ['year' => $defaultFiscalYear->name ?? '']) }}</x-ui.button>
-        <x-ui.button variant="secondary" :block="false" icon="plus" class="mbr-dues-tools__toggle" aria-controls="due-compose" x-bind:aria-expanded="composing.toString()" x-on:click="composing = !composing">{{ __('members::admin.dues.new') }}</x-ui.button>
+        <x-ui.button type="submit" :block="false" x-text="label">{{ __('members::admin.dues.generate_for', ['year' => $generateFiscalYear->name ?? '']) }}</x-ui.button>
+        @unless($yearClosed)
+            <x-ui.button variant="secondary" :block="false" icon="plus" class="mbr-dues-tools__toggle" aria-controls="due-compose" x-bind:aria-expanded="composing.toString()" x-on:click="composing = !composing">{{ __('members::admin.dues.new') }}</x-ui.button>
+        @endunless
     </form>
 
+    @unless($yearClosed)
     <form id="due-compose" x-show="composing" @unless($composeOpen) x-cloak @endunless method="POST" action="{{ route('members.dues.store') }}" class="mbr-filters mbr-compose"
         x-data="{
             memberName: '',
@@ -90,6 +112,7 @@
         </x-ui.field>
         <x-ui.button type="submit" :block="false">{{ __('members::admin.common.save') }}</x-ui.button>
     </form>
+    @endunless
 </x-ui.card>
 
 <form method="POST" action="{{ route('members.dues.bulk-mark-paid') }}"
@@ -102,13 +125,18 @@
     @csrf
     <input type="hidden" name="fiscal_year_id" value="{{ $selectedFiscalYearId }}">
     <x-ui.card class="mbr-table-card" padding="none" as="div">
+        @unless($yearClosed)
         <div class="mbr-filters mbr-bulk-bar">
             <span class="mbr-selected" x-show="selected.length > 0" x-cloak x-text="@js(__('members::admin.dues.selected_count', ['count' => '__COUNT__'])).replace('__COUNT__', selected.length)"></span>
             <x-ui.field class="mbr-filters__field" :label="__('members::admin.dues.paid_through')" for="due-bulk-paid-through" :error="$errors->first('bezahlt_bis_fiscal_year_id') ?: $errors->first('due_ids')">
                 <x-ui.select name="bezahlt_bis_fiscal_year_id" :options="$bulkPaidThroughYears->pluck('name', 'id')->all()" :placeholder="__('members::admin.common.no')" />
             </x-ui.field>
+            <x-ui.field class="mbr-filters__field" :label="__('members::admin.dues.bezahlt_am')" for="due-bulk-paid-on" :error="$errors->first('bezahlt_am')">
+                <x-ui.input type="date" name="bezahlt_am" :value="old('bezahlt_am', now()->toDateString())" :max="now()->toDateString()" :min="\App\Modules\Members\Models\MemberDue::PAID_ON_MIN" />
+            </x-ui.field>
             <x-ui.button id="dues-bulk-mark-paid" type="submit" :block="false" x-bind:disabled="selected.length === 0">{{ __('members::admin.dues.bulk_mark_paid') }}</x-ui.button>
         </div>
+        @endunless
         <p class="text-ink-2 px-4 py-2" data-testid="dues-outstanding-total">{{ __('members::admin.dues.outstanding_total') }}: <strong class="tabular-nums">{{ MembersFormat::money($outstandingTotal) }}</strong></p>
         <x-ui.table :caption="__('members::admin.dues.title')">
             <x-slot:head>
@@ -120,12 +148,16 @@
                     <th scope="col">{{ __('members::admin.dues.amount') }}</th>
                     <th scope="col">{{ __('members::admin.dues.outstanding') }}</th>
                     <th scope="col">{{ __('members::admin.dues.status') }}</th>
+                    <th scope="col">{{ __('members::admin.dues.bezahlt_am') }}</th>
                     <th scope="col">{{ __('members::admin.dues.paid_through') }}</th>
                     <th scope="col">{{ __('members::admin.dues.teilbetrag') }}</th>
                     <th scope="col">{{ __('members::admin.dues.kommentar') }}</th>
                 </tr>
             </x-slot:head>
             @forelse($dues as $due)
+                @if($due->fiscalYear->isClosed())
+                    @include('members::dues._locked-row', ['due' => $due, 'context' => 'list'])
+                @else
                 @php
                     $teilbetragDisplay = MembersFormat::optionalMoney($due->teilbetrag);
                 @endphp
@@ -134,8 +166,8 @@
                     <td class="ds-cell--title" data-label="{{ __('members::admin.members.name') }}">{{ $due->member->fullName() }}</td>
                     <td class="mbr-phone-hidden text-ink-2" data-label="{{ __('members::admin.dues.fiscal_year') }}">{{ $due->fiscalYear->name }}</td>
                     <td class="mbr-phone-hidden text-ink-2" data-label="{{ __('members::admin.members.fee_category') }}">{{ $due->feeCategory->name }}</td>
-                    <td class="tabular-nums" data-label="{{ __('members::admin.dues.amount') }}">{{ MembersFormat::money($due->amount) }}</td>
-                    <td class="tabular-nums" data-label="{{ __('members::admin.dues.outstanding') }}">{{ $due->outstandingAmount() === '0.00' ? '–' : MembersFormat::money($due->outstandingAmount()) }}</td>
+                    <td class="tabular-nums whitespace-nowrap" data-label="{{ __('members::admin.dues.amount') }}">{{ MembersFormat::money($due->amount) }}</td>
+                    <td class="tabular-nums whitespace-nowrap" data-label="{{ __('members::admin.dues.outstanding') }}">{{ $due->outstandingAmount() === '0.00' ? '–' : MembersFormat::money($due->outstandingAmount()) }}</td>
                     <td class="cursor-pointer"
                         data-field="status"
                         data-label="{{ __('members::admin.dues.status') }}"
@@ -155,6 +187,7 @@
                                     // on the next page load; right after a manual edit we show the raw value
                                     // the admin just chose, matching what was actually stored.
                                     this.displayValue = result.value;
+                                    window.announceDuePaidOn({{ $due->id }}, result.data);
                                     this.justSaved = true;
                                     setTimeout(() => this.justSaved = false, 1500);
                                 } else {
@@ -174,6 +207,7 @@
                             <p class="ds-field__error" x-show="error" x-text="error"></p>
                         </div>
                     </td>
+                    @include('members::dues._paid-on-cell', ['due' => $due])
                     <td data-label="{{ __('members::admin.dues.paid_through') }}">
                         <select class="ds-select" aria-label="{{ __('members::admin.dues.paid_through') }}" onchange="window.saveDuePaidThrough({{ $due->id }}, this.value)">
                             <option value="">–</option>
@@ -239,8 +273,16 @@
                         </div>
                     </td>
                 </tr>
+                @endif
             @empty
-                <tr><td colspan="9" class="text-ink-2">–</td></tr>
+                <tr><td colspan="11" class="text-ink-2">
+                    @if(! $yearHasDues && $selectedFiscalYear)
+                        <p class="m-0">{{ __('members::admin.dues.none_generated', ['year' => $selectedFiscalYear->name]) }}</p>
+                        <p class="m-0 text-body-s">{{ __('members::admin.dues.none_generated_hint', ['year' => $selectedFiscalYear->name]) }}</p>
+                    @else
+                        {{ __('members::admin.dues.none_for_filters') }}
+                    @endif
+                </td></tr>
             @endforelse
         </x-ui.table>
         @if($dues->hasPages())

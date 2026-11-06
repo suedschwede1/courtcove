@@ -21,6 +21,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $kommentar
  * @property int|null $bezahlt_bis_fiscal_year_id
  * @property Carbon|null $faellig_am
+ * @property Carbon|null $bezahlt_am
  * @property-read FiscalYear $fiscalYear
  */
 class MemberDue extends Model
@@ -29,14 +30,53 @@ class MemberDue extends Model
 
     protected $fillable = [
         'member_id', 'fiscal_year_id', 'fee_category_id', 'amount',
-        'status', 'teilbetrag', 'kommentar', 'bezahlt_bis_fiscal_year_id', 'faellig_am',
+        'status', 'teilbetrag', 'kommentar', 'bezahlt_bis_fiscal_year_id', 'faellig_am', 'bezahlt_am',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
         'teilbetrag' => 'decimal:2',
         'faellig_am' => 'date',
+        'bezahlt_am' => 'date',
     ];
+
+    /** Earliest accepted "Bezahlt am"; anything older is a typo. */
+    public const PAID_ON_MIN = '2000-01-01';
+
+    /**
+     * Validation rules for a "Bezahlt am" date: a real Y-m-d date, not before 2000 and not after
+     * today (a due cannot have been paid in the future). Array input fails the 'string' rule.
+     *
+     * @return list<string>
+     */
+    public static function paidOnRules(): array
+    {
+        return ['string', 'date_format:Y-m-d', 'after_or_equal:'.self::PAID_ON_MIN, 'before_or_equal:'.now()->toDateString()];
+    }
+
+    /**
+     * One clear message for every way a "Bezahlt am" date can be wrong.
+     *
+     * @return array<string, string>
+     */
+    public static function paidOnMessages(string $attribute): array
+    {
+        $message = __('members::admin.dues.bezahlt_am_invalid');
+
+        return [
+            $attribute.'.required' => $message,
+            $attribute.'.string' => $message,
+            $attribute.'.date_format' => $message,
+            $attribute.'.after_or_equal' => $message,
+            $attribute.'.before_or_equal' => $message,
+        ];
+    }
+
+    /** "Bezahlt am" for display: "02.03.2026", or a dash when not set. */
+    public function paidOnDisplay(): string
+    {
+        return $this->bezahlt_am?->format('d.m.Y') ?? '–';
+    }
 
     /** @return BelongsTo<Member, $this> */
     public function member(): BelongsTo
@@ -109,10 +149,12 @@ class MemberDue extends Model
         });
     }
 
-    /** Offener Rest: Betrag minus Teilbetrag, nie negativ; 0 bei Status "bezahlt". */
+    /** Offener Rest: Betrag minus Teilbetrag, nie negativ; 0 bei Status "bezahlt" oder mit verknüpfter Zahlung. */
     public function outstandingAmount(): string
     {
-        if ($this->status === 'bezahlt') {
+        // A linked payment always covers the whole due (PaymentController checks the sum).
+        $hasPayment = $this->relationLoaded('payments') ? $this->payments->isNotEmpty() : $this->payments()->exists();
+        if ($this->status === 'bezahlt' || $hasPayment) {
             return '0.00';
         }
 

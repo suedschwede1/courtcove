@@ -7,7 +7,15 @@ namespace App\Modules\Members\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property int $member_id
+ * @property string $amount
+ * @property Carbon $paid_at
+ * @property string|null $note
+ */
 class Payment extends Model
 {
     protected $fillable = ['member_id', 'amount', 'paid_at', 'note'];

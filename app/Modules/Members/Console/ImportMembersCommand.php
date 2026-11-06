@@ -22,6 +22,9 @@ class ImportMembersCommand extends Command
 
     protected $description = 'Importiert Mitglieder aus einem Vereinsverwaltungs-CSV-Export inkl. Mitgliedsart und bezahlt-Status';
 
+    /** Dues not created because their business year is closed. */
+    private int $closedYearSkips = 0;
+
     /** Mitgliedsarten aus der Vereinsverwaltung → Beitragskategorien in dieser App. */
     private const CATEGORY_ALIASES = [
         'Vollmitglied' => 'Vollzahler',
@@ -119,6 +122,9 @@ class ImportMembersCommand extends Command
         });
 
         $this->info("Import abgeschlossen: {$created} Mitglieder angelegt, {$skipped} übersprungen (bereits vorhanden), {$updated} aktualisiert, {$duesCreated} Vorschreibungen erstellt.");
+        if ($this->closedYearSkips > 0) {
+            $this->line("Vorschreibungen in abgeschlossenen Geschäftsjahren übersprungen: {$this->closedYearSkips}.");
+        }
         $this->line('Nicht importiert (kein Feld im Datenmodell): Alter, Reservierungssystem, Bemerkung.');
 
         return self::SUCCESS;
@@ -150,6 +156,13 @@ class ImportMembersCommand extends Command
                 ['name' => (string) $year],
                 ['starts_on' => "{$year}-01-01", 'ends_on' => "{$year}-12-31"],
             );
+
+            // A closed business year is locked: no new dues or payments, not even from the import.
+            if ($fiscalYear->isClosed()) {
+                $this->closedYearSkips++;
+
+                continue;
+            }
 
             $amount = FeeCategoryRate::query()
                 ->where('fee_category_id', $category->id)

@@ -19,10 +19,8 @@ class DashboardController
         $activeCount = Member::query()->countsAsActiveMember()->count();
         $current = fn () => Member::query()->countsAsCurrentMember();
 
-        $fiscalYears = FiscalYear::query()->orderBy('starts_on')->get();
-        $currentFiscalYear = $fiscalYears->first(
-            fn (FiscalYear $fiscalYear) => now()->between($fiscalYear->starts_on, $fiscalYear->ends_on),
-        ) ?? $fiscalYears->last();
+        // Same default as the dues list (year containing today, else latest with dues, else latest).
+        $currentFiscalYear = FiscalYear::defaultFor(FiscalYear::query()->orderBy('starts_on')->get());
 
         $openDuesQuery = MemberDue::query()->open();
         $paidDuesQuery = MemberDue::query()->paid();

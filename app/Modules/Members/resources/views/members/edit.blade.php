@@ -41,7 +41,8 @@
             <x-ui.input name="md-fee-category" :value="$member->feeCategory->name ?? '—'" disabled />
         </x-ui.field>
         <x-ui.field class="mbr-filters__field" :label="__('members::admin.dues.fiscal_year')" for="md-fiscal-year" :error="$errors->first('fiscal_year_id') ?: $errors->first('member_id')">
-            <x-ui.select name="fiscal_year_id" :options="$fiscalYears->pluck('name', 'id')->all()" />
+            {{-- Preselect the current business year (old() wins after a validation error) instead of the oldest one. --}}
+            <x-ui.select name="fiscal_year_id" :options="$fiscalYears->reject->isClosed()->pluck('name', 'id')->all()" :selected="\App\Support\Ui\FormValue::string(old('fiscal_year_id',\App\Modules\Members\Models\FiscalYear::defaultFor($fiscalYears)?->id))" />
         </x-ui.field>
         <x-ui.field class="mbr-filters__field" :label="__('members::admin.dues.teilbetrag')" for="md-teilbetrag" :error="$errors->first('teilbetrag')">
             <x-ui.input type="number" name="teilbetrag" step="0.01" min="0" />
@@ -58,19 +59,23 @@
                 <th scope="col">{{ __('members::admin.members.fee_category') }}</th>
                 <th scope="col">{{ __('members::admin.dues.amount') }}</th>
                 <th scope="col">{{ __('members::admin.dues.status') }}</th>
+                <th scope="col">{{ __('members::admin.dues.bezahlt_am') }}</th>
                 <th scope="col">{{ __('members::admin.dues.paid_through') }}</th>
                 <th scope="col">{{ __('members::admin.dues.teilbetrag') }}</th>
                 <th scope="col">{{ __('members::admin.dues.kommentar') }}</th>
             </tr>
         </x-slot:head>
         @forelse($dues as $due)
+            @if($due->fiscalYear->isClosed())
+                @include('members::dues._locked-row', ['due' => $due, 'context' => 'member'])
+            @else
             @php
                 $teilbetragDisplay = MembersFormat::optionalMoney($due->teilbetrag);
             @endphp
             <tr>
                 <td class="ds-cell--title" data-label="{{ __('members::admin.dues.fiscal_year') }}">{{ $due->fiscalYear->name }}</td>
                 <td class="text-ink-2" data-label="{{ __('members::admin.members.fee_category') }}">{{ $due->feeCategory->name }}</td>
-                <td class="tabular-nums" data-label="{{ __('members::admin.dues.amount') }}">{{ MembersFormat::money($due->amount) }}</td>
+                <td class="tabular-nums whitespace-nowrap" data-label="{{ __('members::admin.dues.amount') }}">{{ MembersFormat::money($due->amount) }}</td>
                 <td class="cursor-pointer"
                     data-field="status"
                     data-label="{{ __('members::admin.dues.status') }}"
@@ -83,7 +88,7 @@
                         async save() {
                             this.error = null;
                             const result = await window.saveDueField({{ $due->id }}, 'status', this.value);
-                            if (result.ok) { this.editing = false; this.value = result.value; this.displayValue = result.value; this.justSaved = true; setTimeout(() => this.justSaved = false, 1500); }
+                            if (result.ok) { this.editing = false; this.value = result.value; this.displayValue = result.value; window.announceDuePaidOn({{ $due->id }}, result.data); this.justSaved = true; setTimeout(() => this.justSaved = false, 1500); }
                             else { this.error = result.message; }
                         }
                     }"
@@ -99,6 +104,7 @@
                         <p class="ds-field__error" x-show="error" x-text="error"></p>
                     </div>
                 </td>
+                @include('members::dues._paid-on-cell', ['due' => $due])
                 <td data-label="{{ __('members::admin.dues.paid_through') }}">
                     <select class="ds-select" aria-label="{{ __('members::admin.dues.paid_through') }}" onchange="window.saveDuePaidThrough({{ $due->id }}, this.value)">
                         <option value="">–</option>
@@ -152,8 +158,9 @@
                     </div>
                 </td>
             </tr>
+            @endif
         @empty
-            <tr><td colspan="7" class="text-ink-2">–</td></tr>
+            <tr><td colspan="8" class="text-ink-2">–</td></tr>
         @endforelse
     </x-ui.table>
 </x-ui.card>

@@ -26,12 +26,16 @@ Route::middleware(['auth', 'can:admin.members'])
         Route::post('members/fiscal-years', [FiscalYearController::class, 'store'])->name('members.fiscal-years.store');
         Route::get('members/fiscal-years/{fiscalYear}/edit', [FiscalYearController::class, 'edit'])->name('members.fiscal-years.edit');
         Route::put('members/fiscal-years/{fiscalYear}', [FiscalYearController::class, 'update'])->name('members.fiscal-years.update');
+        Route::post('members/fiscal-years/{fiscalYear}/close', [FiscalYearController::class, 'close'])->name('members.fiscal-years.close');
+        Route::post('members/fiscal-years/{fiscalYear}/reopen', [FiscalYearController::class, 'reopen'])->name('members.fiscal-years.reopen');
 
         Route::get('members/fee-categories', [FeeCategoryController::class, 'index'])->name('members.fee-categories.index');
         Route::post('members/fee-categories', [FeeCategoryController::class, 'store'])->name('members.fee-categories.store');
         Route::post('members/fee-categories/rates', [FeeCategoryController::class, 'storeRates'])->name('members.fee-categories.rates.store');
         Route::get('members/fee-categories/{feeCategory}/edit', [FeeCategoryController::class, 'edit'])->whereNumber('feeCategory')->name('members.fee-categories.edit');
         Route::put('members/fee-categories/{feeCategory}', [FeeCategoryController::class, 'update'])->whereNumber('feeCategory')->name('members.fee-categories.update');
+        Route::post('members/fee-categories/{feeCategory}/deactivate', [FeeCategoryController::class, 'deactivate'])->whereNumber('feeCategory')->name('members.fee-categories.deactivate');
+        Route::post('members/fee-categories/{feeCategory}/reactivate', [FeeCategoryController::class, 'reactivate'])->whereNumber('feeCategory')->name('members.fee-categories.reactivate');
 
         Route::get('members/dues', [MemberDueController::class, 'index'])->name('members.dues.index');
         Route::post('members/dues', [MemberDueController::class, 'store'])->name('members.dues.store');
