@@ -47,8 +47,10 @@ final class BookingController extends Controller
             'time_start' => ['required', 'integer', 'min:0', 'max:86399'],
             'time_end' => ['required', 'integer', 'min:1', 'max:86400'],
             'quantity' => ['required', 'integer', 'in:2,4'],
-            'mitspieler' => ['required', 'string', 'max:255'],
+            'search_players' => ['nullable', 'integer', 'min:1'],
+            'mitspieler' => ['required_without:search_players', 'nullable', 'string', 'max:255'],
         ]);
+        $searchPlayers = (int) ($data['search_players'] ?? 0);
 
         $square = Square::findOrFail((int) $data['sid']);
         $dateStart = Carbon::parse($data['date'])->startOfDay()
@@ -68,6 +70,7 @@ final class BookingController extends Controller
                 $dateStart,
                 $dateEnd,
                 meta: $meta,
+                searchPlayers: $searchPlayers,
             );
         } catch (BookingValidationException $e) {
             if ($request->ajax()) {
@@ -119,6 +122,7 @@ final class BookingController extends Controller
             return response()->json([
                 'redirect' => route('calendar.index', ['date' => Carbon::parse($data['date'])->format('Y-m-d')]),
                 'quote' => $quote,
+                'search' => $searchPlayers > 0,
             ]);
         }
 
@@ -127,7 +131,9 @@ final class BookingController extends Controller
         }
 
         return redirect()->route('calendar.index', ['date' => Carbon::parse($data['date'])->format('Y-m-d')])
-            ->with('success', __('booking.messages.booking_created_public'));
+            ->with('success', $searchPlayers > 0
+                ? __('booking.messages.booking_created_with_search')
+                : __('booking.messages.booking_created_public'));
     }
 
     public function players(Request $request): JsonResponse

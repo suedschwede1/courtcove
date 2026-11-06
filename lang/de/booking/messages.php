@@ -5,6 +5,7 @@ declare(strict_types=1);
 return [
     'messages' => [
         'booking_created_public' => 'Ihre Buchung wurde erfolgreich abgeschlossen!',
+        'booking_created_with_search' => 'Deine Buchung ist gespeichert. Wir suchen jetzt Mitspieler für dich.',
         'booking_created' => 'Buchung angelegt.',
         'booking_updated' => 'Buchung aktualisiert.',
         'booking_cancelled' => 'Buchung storniert.',

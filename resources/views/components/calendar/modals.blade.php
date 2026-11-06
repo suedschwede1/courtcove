@@ -167,6 +167,9 @@
         timeEndFormatted: '',
         quantity: '2',
         mitspieler: '',
+        search: false,
+        searchCount: '1',
+        searched: false,
         acResults: [],
         acOpen: false,
         error: null,
@@ -185,6 +188,24 @@
         },
         get placeholder() {
             return this.quantity === '2' ? @js(__('booking.modal.player_search_placeholder')) : @js(__('booking.admin.bookings.teammates_examples'));
+        },
+        get canSearch() {
+            if (!this.date || this.timeStart === null) return false;
+            const [y, m, d] = String(this.date).split('-').map(Number);
+            const start = new Date(y, m - 1, d, 0, 0, Number(this.timeStart));
+            return start.getTime() > Date.now() + 3600000;
+        },
+        get maxSearch() {
+            return Math.max(0, Number(this.quantity) - 1 - (this.mitspieler.trim() !== '' ? 1 : 0));
+        },
+        get searchOptions() {
+            return Array.from({ length: this.maxSearch }, (_, i) => String(i + 1));
+        },
+        init() {
+            this.$watch('maxSearch', (max) => {
+                if (max < 1) this.search = false;
+                else if (Number(this.searchCount) > max) this.searchCount = String(max);
+            });
         },
         close() {
             if (this.state === 'success' && this.redirect) {
@@ -212,6 +233,9 @@
             this.state = 'form';
             this.quantity = '2';
             this.mitspieler = '';
+            this.search = false;
+            this.searchCount = '1';
+            this.searched = false;
             this.acResults = [];
             this.acOpen = false;
             this.error = null;
@@ -234,6 +258,7 @@
                 if (res.ok && json.redirect) {
                     this.redirect = json.redirect;
                     this.quote = json.quote ?? null;
+                    this.searched = json.search === true;
                     this.state = 'success';
                     this.$nextTick(() => document.querySelector('#booking-dialog [data-modal-initial]')?.focus());
                 } else {
@@ -273,13 +298,22 @@
             </x-ui.option-group>
 
             <x-ui.field for="booking-mitspieler" :label="__('booking.admin.bookings.teammates')" :help="__('booking.modal.player_help')" x-on:click.outside="acOpen = false">
-                <x-ui.input name="mitspieler" required maxlength="255" autocomplete="off" x-model="mitspieler" x-on:input.debounce.300ms="fetchAc($event.target.value)" x-on:focus="fetchAc(mitspieler)" x-bind:placeholder="placeholder" />
+                <x-ui.input name="mitspieler" required x-bind:required="!search" maxlength="255" autocomplete="off" x-model="mitspieler" x-on:input.debounce.300ms="fetchAc($event.target.value)" x-on:focus="fetchAc(mitspieler)" x-bind:placeholder="placeholder" />
                 <ul class="ds-suggest" x-show="acOpen">
                     <template x-for="r in acResults" :key="r">
                         <li><button type="button" class="ds-suggest__item" x-text="r" @mousedown.prevent @click="mitspieler = r; acResults = []; acOpen = false"></button></li>
                     </template>
                 </ul>
             </x-ui.field>
+
+            <div class="ds-modal__form" x-show="canSearch && maxSearch > 0">
+                <x-ui.option-tile type="checkbox" name="search" value="1" :label="__('booking.modal.search_players')" x-model="search" />
+                <x-ui.field for="booking-search-players" :label="__('booking.modal.search_count')" :help="__('booking.modal.search_help')" x-show="search">
+                    <select name="search_players" id="booking-search-players" class="ds-select" x-model="searchCount" x-bind:disabled="!search">
+                        <template x-for="n in searchOptions" :key="n"><option :value="n" x-text="n"></option></template>
+                    </select>
+                </x-ui.field>
+            </div>
 
             <x-ui.notice tone="problem" x-show="error"><span x-text="error"></span></x-ui.notice>
         </form>
@@ -288,6 +322,7 @@
             <span class="ds-success__icon"><x-ui.icon name="check" :size="32" /></span>
             <p class="ds-success__title">{{ __('booking.modal.success_title') }}</p>
             <p class="ds-success__text" x-text="dateLabel + ' · ' + timeRange + ' · ' + courtLabel"></p>
+            <p class="ds-success__text" x-show="searched">{{ __('booking.modal.search_success') }}</p>
             <p class="ds-modal__quote" x-show="quote" x-text="quote"></p>
         </div>
 
