@@ -760,7 +760,7 @@ final class BookingService
 
     private function normalizeBookableEnd(Square $square, Carbon $dateStart, Carbon $dateEnd): Carbon
     {
-        $minimumSeconds = (int) $square->time_block_bookable;
+        $minimumSeconds = app(BookingRules::class)->minimumSeconds($square);
         if ($minimumSeconds <= 0) {
             return $dateEnd;
         }
