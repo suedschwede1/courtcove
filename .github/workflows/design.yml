@@ -1,0 +1,115 @@
+name: Design checks
+
+on:
+  pull_request:
+  push:
+    branches: [master, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  design:
+    name: Design contract
+    runs-on: ubuntu-24.04
+    env:
+      APP_ENV: testing
+      DB_CONNECTION: sqlite
+      DB_DATABASE: ':memory:'
+      CACHE_STORE: array
+      SESSION_DRIVER: array
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_sqlite, mbstring, gd
+          coverage: none
+          tools: composer:v2
+      - run: cp .env.example .env
+      - run: composer install --no-interaction --prefer-dist
+      - run: php artisan key:generate
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Fresh asset build
+        # Start from an empty directory so the result is exactly what a clean build emits.
+        run: |
+          rm -rf public/build
+          npm run build
+      - name: Committed build equals the fresh build
+        # Stage everything under public/build so added (new hashes), deleted (stale)
+        # and modified files all count; a plain `git diff` misses untracked files.
+        run: |
+          git add -A public/build
+          git status --short -- public/build
+          git diff --cached --exit-code -- public/build
+      - run: composer check:design
+      - run: php artisan view:cache
+
+  visual:
+    name: Visual references
+    # Manual until reviewed references of the restyled UI are committed under
+    # tests/Browser/baselines (CI fails on missing references by design).
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    env:
+      APP_ENV: dusk.local
+      APP_URL: http://127.0.0.1:8088
+      APP_LOCALE: de
+      APP_FALLBACK_LOCALE: de
+      DB_CONNECTION: sqlite
+      DB_DATABASE: ${{ github.workspace }}/database/dusk.sqlite
+      SESSION_DRIVER: cookie
+      CACHE_STORE: array
+      QUEUE_CONNECTION: sync
+      MAIL_MAILER: array
+      DUSK_DRIVER_URL: http://127.0.0.1:9515
+      DUSK_SKIP_CHROMEDRIVER: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_sqlite, mbstring, gd
+          coverage: none
+          tools: composer:v2
+      - run: cp .env.example .env && touch database/dusk.sqlite
+      - run: composer install --no-interaction --prefer-dist
+      - run: php artisan key:generate
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci && npm run build
+      - name: Discover browser and matching driver
+        run: |
+          chrome=$(command -v google-chrome || command -v chromium)
+          echo "DUSK_CHROME_BINARY=$chrome" >> "$GITHUB_ENV"
+          "$chrome" --version | tee tests/Browser/browser-version.txt
+          php artisan dusk:chrome-driver --detect
+      - name: Compare reviewed references
+        run: |
+          vendor/laravel/dusk/bin/chromedriver-linux --port=9515 > /tmp/design-driver.log 2>&1 &
+          driver_pid=$!
+          php artisan serve --host=127.0.0.1 --port=8088 --no-reload > /tmp/design-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$driver_pid" "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 20); do
+            if curl --fail --silent http://127.0.0.1:8088/up > /dev/null; then break; fi
+            sleep 1
+          done
+          php vendor/bin/phpunit -c phpunit.dusk.xml --filter=VisualRegressionTest
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: design-visual-results
+          path: |
+            tests/Browser/screenshots/
+            tests/Browser/console/
+            tests/Browser/browser-version.txt
+            /tmp/design-driver.log
+            /tmp/design-server.log

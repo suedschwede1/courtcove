@@ -517,7 +517,7 @@ class CalendarControllerTest extends TestCase
         $admin = User::factory()->create(['status' => 'admin']);
         $square = Square::factory()->create();
 
-        $this->actingAs($admin)->get('/calendar?date='.Carbon::tomorrow()->format('Y-m-d'))
+        $this->actingAsWithoutAdminMode($admin)->get('/calendar?date='.Carbon::tomorrow()->format('Y-m-d'))
             ->assertOk()
             ->assertDontSee('data-action="admin-book"', false)
             ->assertDontSee(route('admin.bookings.create'), false);
@@ -553,7 +553,7 @@ class CalendarControllerTest extends TestCase
         $admin = User::factory()->create(['status' => 'admin']);
         $member = User::factory()->create(['status' => 'enabled']);
 
-        $this->actingAs($admin)->get('/calendar')
+        $this->actingAsWithoutAdminMode($admin)->get('/calendar')
             ->assertOk()
             ->assertSee(route('admin-mode.set', ['state' => 'on']), false);
 

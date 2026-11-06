@@ -47,9 +47,11 @@ Route::post('/password/reset', [ResetPasswordController::class, 'reset'])
 Route::get('/_ui', UiGalleryController::class)->name('ui.gallery');
 Route::get('/lang/{locale}', [LocaleController::class, 'switch'])->name('lang.switch');
 
-Route::get('/admin-mode/{state}', [AdminModeController::class, 'set'])
+// Admin mode switch (header switch and the "Switch on admin mode" gate page). POST with CSRF; the
+// controller checks the RAW privilege, because without admin mode no privilege is in effect.
+Route::post('/admin-mode/{state}', [AdminModeController::class, 'set'])
     ->whereIn('state', ['on', 'off'])
-    ->middleware(['auth', 'can:admin.booking'])
+    ->middleware('auth')
     ->name('admin-mode.set');
 
 Route::get('/', static fn () => redirect()->route('calendar.index'));
@@ -82,7 +84,8 @@ Route::middleware('auth')->group(function (): void {
     Route::put('/my-account/password', [AccountController::class, 'password'])->name('account.password');
 });
 
-Route::middleware('auth')->prefix('admin')->name('admin.')->group(function (): void {
+// admin.mode: without admin mode a privileged account gets the "Switch on admin mode" page instead of the 403.
+Route::middleware(['auth', 'admin.mode'])->prefix('admin')->name('admin.')->group(function (): void {
     Route::middleware('can:admin.see-menu')
         ->get('/', [DashboardController::class, 'index'])
         ->name('dashboard');

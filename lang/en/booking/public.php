@@ -270,4 +270,13 @@ return [
             'label' => 'Pages',
         ],
     ],
+    'admin_mode' => [
+        'required_title' => 'Switch on admin mode',
+        'required_eyebrow' => 'Administration',
+        'required_intro' => 'This page belongs to the administration. Your administrator rights only apply while admin mode is switched on; without it you use the system like a normal member.',
+        'required_hint' => 'Admin mode stays on until you log out or close the browser. You can switch it off at any time with the “Admin Mode” switch at the top.',
+        'switch_on' => 'Switch on admin mode',
+        'back_to_calendar' => 'Back to calendar',
+        'required_json' => 'Admin mode is off. Switch on admin mode to perform this action.',
+    ],
 ];

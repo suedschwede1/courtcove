@@ -202,7 +202,8 @@ class SquareValidatorTest extends TestCase
     {
         Carbon::setTestNow(Carbon::parse('2026-07-10 10:00:00'));
 
-        $square = Square::factory()->create(['status' => 'enabled', 'max_active_bookings' => 1]);
+        $square = Square::factory()->create(['status' => 'enabled']);
+        Option::updateOrCreate(['key' => 'booking.max_active_bookings', 'locale' => null], ['value' => '1']);
         $square->setMeta('short-booking-window', (string) (3600));
         $user = User::factory()->create();
 
@@ -424,7 +425,8 @@ class SquareValidatorTest extends TestCase
     #[Test]
     public function max_active_bookings_limit_blocks_new_booking(): void
     {
-        $square = Square::factory()->create(['status' => 'enabled', 'max_active_bookings' => 2]);
+        $square = Square::factory()->create(['status' => 'enabled']);
+        Option::updateOrCreate(['key' => 'booking.max_active_bookings', 'locale' => null], ['value' => '2']);
         $user = User::factory()->create();
 
         for ($i = 1; $i <= 2; $i++) {
@@ -451,7 +453,7 @@ class SquareValidatorTest extends TestCase
     public function max_active_bookings_zero_means_unlimited(): void
     {
         $square = Square::factory()->create([
-            'status' => 'enabled', 'max_active_bookings' => 0,
+            'status' => 'enabled',
             'time_block_bookable_max' => 0, 'range_book' => 0,
         ]);
         $user = User::factory()->create();
@@ -482,7 +484,8 @@ class SquareValidatorTest extends TestCase
     {
         Option::create(['key' => 'peak_limit.enabled', 'value' => '1', 'locale' => null]);
 
-        $square = Square::factory()->create(['max_active_bookings' => 1, 'time_block_bookable_max' => 0, 'range_book' => 0]);
+        $square = Square::factory()->create(['time_block_bookable_max' => 0, 'range_book' => 0]);
+        Option::updateOrCreate(['key' => 'booking.max_active_bookings', 'locale' => null], ['value' => '1']);
         $square->setMeta('peak_limit_enabled', '1');
 
         $user = User::factory()->create(['status' => 'enabled']);
@@ -510,7 +513,8 @@ class SquareValidatorTest extends TestCase
     {
         Option::create(['key' => 'peak_limit.enabled', 'value' => '1', 'locale' => null]);
 
-        $square = Square::factory()->create(['max_active_bookings' => 1, 'time_block_bookable_max' => 0, 'range_book' => 0]);
+        $square = Square::factory()->create(['time_block_bookable_max' => 0, 'range_book' => 0]);
+        Option::updateOrCreate(['key' => 'booking.max_active_bookings', 'locale' => null], ['value' => '1']);
         $square->setMeta('peak_limit_enabled', '1');
 
         $user = User::factory()->create(['status' => 'enabled']);
@@ -537,7 +541,8 @@ class SquareValidatorTest extends TestCase
     {
         Option::create(['key' => 'peak_limit.enabled', 'value' => '1', 'locale' => null]);
 
-        $square = Square::factory()->create(['max_active_bookings' => 1, 'time_block_bookable_max' => 0, 'range_book' => 0]);
+        $square = Square::factory()->create(['time_block_bookable_max' => 0, 'range_book' => 0]);
+        Option::updateOrCreate(['key' => 'booking.max_active_bookings', 'locale' => null], ['value' => '1']);
         // peak_limit_enabled NOT set
 
         $user = User::factory()->create(['status' => 'enabled']);

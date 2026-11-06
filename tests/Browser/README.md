@@ -1,7 +1,10 @@
 # Browser tests (Laravel Dusk)
 
 `CalendarTest`, `LoginTest` and `AdminTest` exercise real flows in headless Chromium.
-`VisualRegressionTest` additionally compares screenshots with committed baselines.
+`VisualRegressionTest` (calendar, booking modal, login, account, admin) and
+`DesignVisualRegressionTest` (shared controls in the `/_ui` gallery: token colours, 52px
+phone targets, no horizontal overflow, dialog Escape/focus return) compare screenshots
+with committed, reviewed baselines.
 
 ## Environment
 
@@ -11,6 +14,8 @@
   (`chromium.chromedriver --port=9515`) before running the tests. With the snap build,
   point `TMPDIR` at `~/snap/chromium/common/tmp` if the session cannot be created.
 - `DUSK_CHROME_BINARY` (see `phpunit.dusk.xml`) must point at the Chromium binary.
+- For an externally managed driver set `DUSK_DRIVER_URL` and `DUSK_SKIP_CHROMEDRIVER=1`
+  so Dusk does not start the bundled driver.
 - The PHP **`gd` extension** (`php -m | grep gd`) — only needed for the pixel comparison
   in `VisualRegressionTest`. Without it those tests are skipped, not failed.
 - A SQLite file for the Dusk database (`database/dusk.sqlite`, git-ignored) and the app
@@ -32,10 +37,11 @@ wsl php vendor/bin/phpunit -c phpunit.dusk.xml --filter CalendarTest # one class
 
 ## Visual baselines
 
-Baselines live in `tests/Browser/baselines/` (`calendar-desktop.png`, `calendar-mobile.png`,
-`booking-modal.png`); fresh actual screenshots are written to `tests/Browser/screenshots/`.
-They are **not** generated automatically. While a baseline is missing (or `gd` is not
-available) the corresponding visual test is **skipped** with a message.
+Baselines live in `tests/Browser/baselines/` (list in `baselines/README.md`); fresh actual
+screenshots are written to `tests/Browser/screenshots/`. They are **not** generated
+automatically. While a baseline is missing (or `gd` is not available) the corresponding
+visual test is **skipped** locally with a message; in CI (`CI=true`) it **fails**, and CI
+never replaces references. The comparison waits for web fonts and images first.
 
 Create or intentionally refresh baselines (needs a stable, reviewed UI state):
 

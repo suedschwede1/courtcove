@@ -30,10 +30,7 @@ class CalendarEventEditAdminModeTest extends TestCase
         EventMeta::create(['eid' => $event->eid, 'key' => 'name', 'value' => 'Example Training']);
 
         $admin = User::factory()->create(['status' => 'admin']);
-        $request = $this->actingAs($admin);
-        if ($adminMode) {
-            $request = $request->withUnencryptedCookie('admin_mode', '1');
-        }
+        $request = $adminMode ? $this->actingAsAdminMode($admin) : $this->actingAsWithoutAdminMode($admin);
 
         return $request->get('/calendar?d=2026-11-04')->assertOk()->getContent();
     }

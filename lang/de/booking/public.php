@@ -270,4 +270,13 @@ return [
             'label' => 'Seiten',
         ],
     ],
+    'admin_mode' => [
+        'required_title' => 'Admin-Modus einschalten',
+        'required_eyebrow' => 'Administration',
+        'required_intro' => 'Diese Seite gehört zur Verwaltung. Deine Administrationsrechte gelten nur, solange der Admin-Modus eingeschaltet ist; ohne ihn nutzt du das System wie ein normales Mitglied.',
+        'required_hint' => 'Der Admin-Modus bleibt bis zum Abmelden oder Schließen des Browsers eingeschaltet. Du kannst ihn jederzeit oben über den Schalter „Admin-Modus“ wieder ausschalten.',
+        'switch_on' => 'Admin-Modus einschalten',
+        'back_to_calendar' => 'Zum Kalender',
+        'required_json' => 'Der Admin-Modus ist ausgeschaltet. Schalte den Admin-Modus ein, um diese Aktion auszuführen.',
+    ],
 ];

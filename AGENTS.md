@@ -53,8 +53,12 @@ composer check                 # lint + composer audit + test
 vendor/bin/pint                # auto-fix code style
 ```
 
-- Views use `x-ui.*` components and token classes; run `php artisan lint:ui --summary`
-  and keep the count falling.
+- Views use `x-ui.*` components and token classes; `composer lint` runs
+  `php artisan lint:ui`, which fails on any blocking finding. For UI/CSS changes run
+  `composer check:design` as well. Legacy findings are inventoried in
+  `ui-design-baseline.json`; never regenerate that inventory to hide new violations,
+  prune fixed debt (`lint:ui --prune-baseline`) and inspect desktop/phone screenshots
+  against `docs/DESIGN.md`. See `docs/DESIGN-ASSURANCE.md` for the review checklist.
 
 Run `composer lint` (or at least `vendor/bin/pint` + `php artisan test`) before
 considering a change done. New/changed `.blade.php` files should also be sanity-checked

@@ -67,6 +67,6 @@ final class SquareFormViewTest extends TestCase
             $this->assertInstanceOf(DOMElement::class, $input);
             $this->assertSame(1, $this->nodes('//label[@for="'.$input->getAttribute('id').'"]')->length, $input->getAttribute('name').' has a label');
         }
-        $this->assertSame(9, $this->nodes('//main//input[@type="number"]')->length);
+        $this->assertSame(8, $this->nodes('//main//input[@type="number"]')->length);
     }
 }
