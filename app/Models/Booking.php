@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * A court booking - parent entity owning reservations (and legacy bills, written only by the old system).
@@ -80,6 +81,12 @@ class Booking extends Model
     public function bills(): HasMany
     {
         return $this->hasMany(BookingBill::class, 'bid', 'bid');
+    }
+
+    /** @return HasOne<PlayerSearch, $this> */
+    public function playerSearch(): HasOne
+    {
+        return $this->hasOne(PlayerSearch::class, 'bid', 'bid');
     }
 
     /** @return HasMany<BookingMeta, $this> */
