@@ -170,6 +170,11 @@ final class SquareController extends Controller
             'peak_limit_enabled' => $request->boolean('peak_limit_enabled') ? '1' : '0',
         ];
 
+        // While the peak limit is globally off the court switch is shown disabled and not sent: keep the stored value.
+        if (Option::getValue('peak_limit.enabled', '0') !== '1') {
+            unset($meta['peak_limit_enabled']);
+        }
+
         return ['columns' => $columns, 'meta' => $meta];
     }
 
