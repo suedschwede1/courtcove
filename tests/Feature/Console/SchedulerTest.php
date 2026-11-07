@@ -36,7 +36,7 @@ class SchedulerTest extends TestCase
     #[Test]
     public function the_schedule_has_the_housekeeping_tasks_with_names_and_no_overlapping(): void
     {
-        $this->assertSame(['scheduler-heartbeat', 'scheduler-prune-runs', 'sanctum-prune-expired', 'auth-clear-resets'], $this->names());
+        $this->assertSame(['scheduler-heartbeat', 'scheduler-prune-runs', 'sanctum-prune-expired', 'auth-clear-resets', 'player-exchange-expire'], $this->names());
 
         foreach (ScheduleDefinition::events() as $event) {
             $this->assertTrue($event->withoutOverlapping, $event->description.' without overlapping');
@@ -46,6 +46,16 @@ class SchedulerTest extends TestCase
         foreach (['members:', 'users:split-role', 'booking:adopt-booking-rules', 'phase2:', 'import'] as $business) {
             $this->assertStringNotContainsString($business, $commands, 'business commands are never scheduled');
         }
+    }
+
+    #[Test]
+    public function the_player_search_expiry_runs_every_five_minutes(): void
+    {
+        $expire = ScheduleDefinition::find('player-exchange-expire');
+
+        $this->assertNotNull($expire);
+        $this->assertStringContainsString('player-exchange:expire', (string) $expire->command);
+        $this->assertSame('*/5 * * * *', $expire->getExpression());
     }
 
     #[Test]

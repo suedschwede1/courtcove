@@ -15,7 +15,6 @@ use App\Models\User;
 use App\Services\BookingService;
 use App\Services\PlayerExchangeService;
 use Carbon\Carbon;
-use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
@@ -194,19 +193,6 @@ class ExpireSearchTest extends TestCase
         // A second run (or an overlapping one) sends nothing more.
         $this->artisan('player-exchange:expire')->assertSuccessful();
         Mail::assertQueued(PlayerSearchExpired::class, 1);
-    }
-
-    #[Test]
-    public function the_command_is_scheduled_every_five_minutes_without_overlapping(): void
-    {
-        $events = collect(app(Schedule::class)->events())
-            ->filter(fn ($event): bool => str_contains((string) $event->command, 'player-exchange:expire'))
-            ->values();
-
-        $this->assertCount(1, $events);
-        $this->assertSame('*/5 * * * *', $events[0]->expression);
-        $this->assertTrue($events[0]->withoutOverlapping);
-        $this->assertSame('player-exchange:expire', $events[0]->description);
     }
 
     #[Test]

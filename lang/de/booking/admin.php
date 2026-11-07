@@ -231,6 +231,10 @@ return [
                     'title' => 'Abgelaufene Passwort-Links löschen',
                     'description' => 'Entfernt abgelaufene Links zum Zurücksetzen des Passworts.',
                 ],
+                'player-exchange-expire' => [
+                    'title' => 'Mitspielersuchen ablaufen lassen',
+                    'description' => 'Beendet eine Stunde vor Spielbeginn jede offene Mitspielersuche; hat sich niemand gemeldet, wird die Buchung storniert und der Platz ist wieder frei.',
+                ],
                 'queue-work' => [
                     'title' => 'Warteschlange abarbeiten',
                     'description' => 'Arbeitet wartende Hintergrundaufgaben ab (höchstens 50 Sekunden pro Minute).',
