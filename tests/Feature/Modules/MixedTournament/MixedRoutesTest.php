@@ -31,6 +31,7 @@ class MixedRoutesTest extends TestCase
     {
         $rows = [
             ['GET', '', 'mixed.index'],
+            ['GET', '/events', 'mixed.events'],
             ['GET', '/info', 'mixed.info'],
             ['GET', '/event/12', 'mixed.event'],
             ['GET', '/round/12', 'mixed.round'],

@@ -3,8 +3,8 @@
     "date · n Teilnehmer · n Runden · mode", optional subtitle and actions.
     Use with @component('mixed::partials.event-head', ['event' => $event, 'subtitle' => ...]) and an
     optional @slot('actions').
-    The back link goes to the admin event list, which every logged-in user may open (as in ZF2): the
-    player list would redirect straight back to the default event.
+    The back link goes to the member event list (mixed.events, read-only, works without admin mode and while a
+    default event exists); on admin pages to the admin event list.
 --}}
 @php
     use App\Modules\MixedTournament\Support\MixedFormat;
@@ -18,9 +18,10 @@
         MixedFormat::mode((string) $event->mode),
     ]);
     $hasActions = isset($actions) && trim((string) $actions) !== '';
+    $backUrl = request()->routeIs('mixed.admin.*') ? route('mixed.admin.index') : route('mixed.events');
 @endphp
 <div class="flex flex-col gap-2">
-    <a href="{{ route('mixed.admin.index') }}" class="inline-flex min-h-touch-min items-center gap-1 self-start text-body-s font-semibold text-ink-2 no-underline hover:text-clay-hover">
+    <a href="{{ $backUrl }}" class="inline-flex min-h-touch-min items-center gap-1 self-start text-body-s font-semibold text-ink-2 no-underline hover:text-clay-hover">
         <x-ui.icon name="chevron-left" :size="16" />{{ __('mixed::common.back_to_list') }}
     </a>
     <div class="flex flex-wrap items-center justify-between gap-3">

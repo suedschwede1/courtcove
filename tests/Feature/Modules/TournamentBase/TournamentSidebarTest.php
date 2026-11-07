@@ -49,6 +49,7 @@ class TournamentSidebarTest extends TestCase
         'draw.index' => 'Auslosungen verwalten',
         // The demo has a default event: /mixed-tournament opens it, its "Teilnehmer" page is current.
         'mixed.index' => 'Teilnehmer',
+        'mixed.events' => 'Veranstaltungen',
         'mixed.info' => 'Info',
         'mixed.admin.index' => 'Verwaltung',
         'mixed.admin.import-members' => 'Mitglieder importieren',
@@ -182,7 +183,7 @@ class TournamentSidebarTest extends TestCase
         $groups = $this->sidebar((string) $admin->get(route('mixed.admin.index'))->getContent());
         $this->assertSame(['Mixed-/Fun-Turnier'], array_keys($groups));
         $this->assertContains('Wertung', $groups['Mixed-/Fun-Turnier']);
-        $this->assertNotContains('Veranstaltungen', $groups['Mixed-/Fun-Turnier']); // a default event exists
+        $this->assertContains('Veranstaltungen', $groups['Mixed-/Fun-Turnier']); // the member list stays reachable with a default event (MX-01)
         $this->assertContains('Mitglieder importieren', $groups['Mixed-/Fun-Turnier']);
     }
 

@@ -8,6 +8,9 @@ reference point is `mobile-view-stable` (see [README.md](README.md#layout-refere
 When adding an entry: describe the *why*/user-facing effect in one line, not the diff —
 `git log` already has that. Add new entries at the top, under today's date.
 
+## 2026-11-07
+- Mixed-/Fun-Turnier: members have a read-only event list (/mixed-tournament/events, sidebar "Veranstaltungen") that stays reachable while a default event is set (the module start still opens the default event); "Zur Liste" on member event, round and standings pages and on the info page leads there instead of the admin list, which showed the "Admin-Modus einschalten" page.
+
 ## 2026-11-06
 - Tournaments are standalone: a page of the Forderungspyramide, the Vereinsmeisterschaft (with its draws) or the Mixed-/Fun-Turnier shows only that tournament's own sidebar (its name as heading and eyebrow) instead of one common sidebar with all three; the admin sidebar group "Turniere" is the way between them.
 - Multi-hour calendar events and court closures now stay joined on phones, with one label and an outline around the whole event instead of repeated hourly tiles.

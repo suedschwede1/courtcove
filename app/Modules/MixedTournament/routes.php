@@ -26,6 +26,8 @@ Route::prefix('mixed-tournament')->name('mixed.')->middleware('tournament-base.l
 
     // Players (read access per event, checked in the controller).
     Route::get('', [PlayerController::class, 'index'])->name('index');
+    // Read-only member event list; reachable also while a default event exists (/mixed-tournament opens that one).
+    Route::get('events', [PlayerController::class, 'events'])->name('events');
     Route::get('info', [PlayerController::class, 'info'])->name('info');
     $event(Route::get('event/{event}', [PlayerController::class, 'event']))->name('event');
     $round(Route::get('round/{round}', [PlayerController::class, 'round']))->name('round');
