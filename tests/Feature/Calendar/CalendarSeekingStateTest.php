@@ -141,12 +141,15 @@ final class CalendarSeekingStateTest extends TestCase
         $search = $this->search($this->booking($owner, 16), 16);
         PlayerSignup::create(['search_id' => $search->id, 'uid' => $this->member()->uid, 'slot' => 2]);
 
-        $xp = $this->xpath($this->calendar($this->member(true)));
+        // The same for a member in the player exchange and for one outside it.
+        foreach (['opted in' => $this->member(true), 'not opted in' => $this->member()] as $viewerLabel => $viewer) {
+            $xp = $this->xpath($this->calendar($viewer));
 
-        foreach ([15, 16] as $hour) {
-            $cell = $this->cell($xp, $hour);
-            $this->assertSame('single_future', $cell->getAttribute('data-state'), 'hour '.$hour);
-            $this->assertStringNotContainsString('Sucht noch', $this->norm($cell->textContent), 'hour '.$hour);
+            foreach ([15, 16] as $hour) {
+                $cell = $this->cell($xp, $hour);
+                $this->assertSame('single_future', $cell->getAttribute('data-state'), $viewerLabel.', hour '.$hour);
+                $this->assertStringNotContainsString('Sucht noch', $this->norm($cell->textContent), $viewerLabel.', hour '.$hour);
+            }
         }
     }
 

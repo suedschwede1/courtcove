@@ -43,15 +43,16 @@
 
     // Detail line: the players without the owner (the owner is the name line already).
     // An open search replaces it with the "still looking" line, so the cell keeps two lines.
-    $secondaryLabel = null;
-    if ($isLoggedIn && $reservation?->booking && ! $hasOpenSearch) {
+    // The same list goes into the join dialog (joined members are written into the player names).
+    $otherPlayers = [];
+    if ($isLoggedIn && $reservation?->booking) {
         $ownerKey = mb_strtolower(trim($reservation->booking->owner_label));
-        $others = array_values(array_filter(
+        $otherPlayers = array_values(array_filter(
             $reservation->booking->player_names,
             fn (string $player) => mb_strtolower(trim($player)) !== $ownerKey,
         ));
-        $secondaryLabel = $others !== [] ? implode(', ', $others) : null;
     }
+    $secondaryLabel = ! $hasOpenSearch && $otherPlayers !== [] ? implode(', ', $otherPlayers) : null;
     if ($secondaryLabel === null && $isSeriesBooking) {
         $secondaryLabel = __('booking.calendar.series_hint');
     }
@@ -132,7 +133,8 @@
         ? __('booking.calendar.seeking_cell', ['court' => $squareLabel, 'time' => $timeLabel, 'remaining' => $seekingLine])
         : null;
     $adminCreateUrl = route('admin.bookings.create') . '?sid=' . $sid . '&date=' . $dateKey . '&time_start=' . ($h * 3600) . '&time_end=' . (($h + 1) * 3600);
-    $loginUrl = route('login', ['redirect_to' => route('calendar.index', ['date' => $date->format('Y-m-d')])]);
+    $dayUrl = route('calendar.index', ['date' => $date->format('Y-m-d')]);
+    $loginUrl = route('login', ['redirect_to' => $dayUrl]);
 @endphp
 
 @if($action === 'book')
@@ -187,6 +189,7 @@
     <a href="#"
        class="calendar-cell {{ $cellClass }}{{ $seriesClass }}{{ $slotClass }}"
        data-state="{{ $state }}"
+       @if($seekingCellLabel) aria-label="{{ $seekingCellLabel }}" @endif
        title="{{ $cellTitle }}"
        @click.prevent="$dispatch('open-cancel', {
            bid: @js((string) $reservation->booking->bid),
@@ -201,7 +204,7 @@
         @endforeach
     </a>
 @elseif($action === 'join')
-    <a href="#"
+    <a href="{{ $dayUrl }}"
        class="calendar-cell {{ $cellClass }}{{ $slotClass }}"
        data-state="{{ $state }}"
        aria-label="{{ $seekingCellLabel }}"
@@ -214,7 +217,8 @@
            owner: @js($primaryLabel),
            remaining: {{ $searchRemaining }},
            joined: @js($hasJoined),
-           optedIn: @js((bool) $playerExchangeOptedIn)
+           optedIn: @js((bool) $playerExchangeOptedIn),
+           players: @js($otherPlayers)
        })">
         @foreach($labels as $labelClass => $labelText)
             <span class="{{ $labelClass }}">{{ $labelText }}</span>
