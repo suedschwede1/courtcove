@@ -36,9 +36,7 @@ final class TaskRunner
                 return $this->log->skipped($event, __('booking.admin.scheduler.run.already_running'));
             }
 
-            if (function_exists('set_time_limit')) {
-                @set_time_limit(self::TIME_LIMIT);
-            }
+            $restoreLimit = $this->raiseTimeLimit();
 
             event(new ScheduledTaskStarting($event));
             $start = microtime(true);
@@ -48,6 +46,10 @@ final class TaskRunner
                 event(new ScheduledTaskFinished($event, microtime(true) - $start));
             } catch (Throwable $e) {
                 event(new ScheduledTaskFailed($event, $e));
+            } finally {
+                if ($restoreLimit !== null) {
+                    @set_time_limit($restoreLimit);
+                }
             }
 
             return ScheduledTaskRun::query()
@@ -56,5 +58,20 @@ final class TaskRunner
                 ->latest('id')
                 ->firstOrFail();
         });
+    }
+
+    /**
+     * Raises a shorter PHP time limit (web request, e.g. 30 s) to TIME_LIMIT for the run and returns the previous
+     * limit to restore afterwards. An unlimited (0, CLI and test runs) or longer limit is left alone (null): a fixed
+     * set_time_limit(120) used to kill a whole `php artisan test` run 120 seconds after the scheduler tests.
+     */
+    private function raiseTimeLimit(): ?int
+    {
+        $current = (int) ini_get('max_execution_time');
+        if ($current === 0 || $current >= self::TIME_LIMIT || ! function_exists('set_time_limit')) {
+            return null;
+        }
+
+        return @set_time_limit(self::TIME_LIMIT) ? $current : null;
     }
 }

@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-07
+- "Jetzt ausführen" on Geplante Aufgaben only raises a shorter PHP time limit for the run and restores it afterwards; it no longer sets a fixed 120-second limit that ended a plain `php artisan test` run two minutes after the scheduler tests.
 - Security update within the current versions: symfony/http-foundation, http-kernel, routing (8.1.11) and mime (8.1.10), guzzlehttp/guzzle 7.16.1 (with psr7 2.13.2, promises 2.6.0), league/commonmark 2.10.7, league/flysystem 3.36.0; `composer audit` reports no advisories any more. New tests prove that script tags, event handlers and javascript:/data: links in a Rundmail body stay inert in the preview and in the sent mail.
 - Admin mode now counts only for calendar and bookings (calendar view, booking, booking limits, foreign bookings, events in the calendar: /calendar, /bookings*, /admin/bookings*, /admin/events*, API bookings and events). Members, all tournament modules with their admin pages and the sidebar group Einstellungen, and the administration under /admin (users, courts, options, scheduler, database, statistics ...) check the stored right and open for an authorised account without the admin mode cookie; the middleware admin.mode stays only on the booking and event admin routes. Ladder and event grants are unchanged.
 - German validation messages for the two rules Laravel 13.40 added (array_keys, base64), so every rule has a German text.
