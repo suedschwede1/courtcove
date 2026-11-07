@@ -127,6 +127,23 @@ class BookingFormSearchTest extends TestCase
     }
 
     #[Test]
+    public function the_booking_dialog_error_is_scrolled_into_view_and_cleared_on_a_new_play_type(): void
+    {
+        $user = User::factory()->create(['status' => 'enabled']);
+        Square::factory()->create();
+
+        $html = html_entity_decode((string) $this->actingAs($user)->get('/calendar')->assertOk()->getContent(), ENT_QUOTES);
+        $start = strpos($html, '@open-booking.window');
+        $block = substr($html, (int) strrpos(substr($html, 0, $start), '<div x-data'), 20000);
+
+        // The notice can take focus and is brought into view when it appears (phones: under the footer).
+        $this->assertMatchesRegularExpression('/<div[^>]*data-booking-error[^>]*tabindex="-1"|<div[^>]*tabindex="-1"[^>]*data-booking-error/', $block);
+        $this->assertStringContainsString("scrollIntoView({ block: 'nearest' })", $block);
+        // A new play type (Einzel/Doppel) or search choice clears the old server message.
+        $this->assertMatchesRegularExpression("/\\\$watch\('quantity', \(\) => \{ this\.error = null; \}\)/", $block);
+    }
+
+    #[Test]
     public function store_without_javascript_redirects_with_the_search_success_message(): void
     {
         $user = User::factory()->create(['status' => 'enabled']);

@@ -45,6 +45,10 @@
         && $search->ends_at->isFuture()
         && $search->signups->contains('uid', $authUserId);
     $joinedNotSeeking = $hasJoined && ! $hasOpenSearch;
+    // Own booking: members signed up to its live search get a mail when it is cancelled (cancel dialog text).
+    $ownLiveSignups = $isOwn && $search !== null && in_array($search->status, \App\Services\PlayerExchangeService::LIVE_STATUSES, true)
+        ? $search->signups->count()
+        : 0;
 
     $state = \App\Support\Calendar\CellState::for((bool) $reservation, $isPast, $isOwn, $isSeriesBooking, $isTournament, $isSeeking)->value;
 
@@ -224,7 +228,8 @@
            quantity: @js((string) $reservation->booking->quantity),
            mitspieler: @js($reservation->booking->player_names[0] ?? ''),
            searchOpen: @js($hasOpenSearch),
-           searchRemaining: {{ $searchRemaining }}
+           searchRemaining: {{ $searchRemaining }},
+           searchSignups: {{ $ownLiveSignups }}
        })">
         @foreach($labels as $labelClass => $labelText)
             <span class="{{ $labelClass }}">{{ $labelText }}</span>

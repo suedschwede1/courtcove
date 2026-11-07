@@ -216,4 +216,30 @@ final class EndSearchButtonTest extends TestCase
         app()->setLocale('de');
         $this->assertSame('Suche beenden', __('booking.calendar.end.button'));
     }
+
+    #[Test]
+    public function the_cancel_dialog_says_what_cancelling_does_to_the_search_and_the_joined_players(): void
+    {
+        $owner = $this->member();
+        // Open search; a filled one with a joined player; a booking without search.
+        $this->search($this->booking($owner, 15), 2);
+        $filled = $this->search($this->booking($owner, 17, 2), 1, PlayerSearch::FILLED);
+        PlayerSignup::create(['search_id' => $filled->id, 'uid' => $this->member()->uid, 'slot' => 2]);
+        $this->booking($owner, 19);
+
+        $html = $this->calendar($owner);
+        $clicks = $this->clicks($html, 'own');
+
+        $this->assertCount(3, $clicks);
+        $this->assertStringContainsString('searchSignups: 0', $clicks[0]);
+        $this->assertStringContainsString('searchSignups: 1', $clicks[1]);
+        $this->assertStringContainsString('searchSignups: 0', $clicks[2]);
+
+        $dialog = $this->dialog($html);
+        $this->assertMatchesRegularExpression(
+            '/x-show="searchOpen \|\| searchSignups > 0"[^>]*>'.preg_quote(__('booking.calendar.end.cancel_effect'), '/').'/',
+            $dialog,
+        );
+        $this->assertNotSame(__('booking.calendar.end.cancel_effect', [], 'de'), __('booking.calendar.end.cancel_effect', [], 'en'));
+    }
 }

@@ -225,6 +225,7 @@ return [
             'ending' => 'Suche wird beendet …',
             'hint' => 'Du suchst noch :count Mitspieler. Wenn du die Suche beendest, bleibt deine Buchung bestehen, und wer sich schon angemeldet hat, bleibt dabei.|Du suchst noch :count Mitspieler. Wenn du die Suche beendest, bleibt deine Buchung bestehen, und wer sich schon angemeldet hat, bleibt dabei.',
             'done_title' => 'Suche beendet',
+            'cancel_effect' => 'Wenn du stornierst, endet auch deine Mitspielersuche, und wer sich schon angemeldet hat, bekommt eine E-Mail.',
             'failed' => 'Das hat nicht geklappt. Bitte lade den Kalender neu und versuch es nochmal.',
         ],
     ],

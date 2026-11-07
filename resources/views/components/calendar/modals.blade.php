@@ -16,6 +16,7 @@
         mitspieler: '',
         searchOpen: false,
         searchRemaining: 0,
+        searchSignups: 0,
         get hintText() {
             const text = this.searchRemaining === 1 ? @js(trans_choice('booking.calendar.end.hint', 1, ['count' => '__N__'])) : @js(trans_choice('booking.calendar.end.hint', 2, ['count' => '__N__']));
             return text.replace('__N__', this.searchRemaining);
@@ -31,6 +32,7 @@
             this.mitspieler = detail.mitspieler || '';
             this.searchOpen = detail.searchOpen === true;
             this.searchRemaining = Number(detail.searchRemaining) || 0;
+            this.searchSignups = Number(detail.searchSignups) || 0;
             this.state = 'form';
             this.changed = false;
             this.closeAfterRequest = false;
@@ -99,6 +101,7 @@
             ]" />
 
             <p class="ds-modal__message">{{ __('booking.modal.cancel_message') }}</p>
+            <p class="ds-modal__message" x-show="searchOpen || searchSignups > 0">{{ __('booking.calendar.end.cancel_effect') }}</p>
             <p class="ds-modal__message" x-show="searchOpen" x-text="hintText"></p>
 
             <x-ui.notice tone="problem" x-show="error"><span x-text="error"></span></x-ui.notice>
@@ -291,6 +294,18 @@
                 if (max < 1) this.search = false;
                 else if (Number(this.searchCount) > max) this.searchCount = String(max);
             });
+            // A server message about the old choice no longer applies.
+            this.$watch('quantity', () => { this.error = null; });
+            this.$watch('search', () => { this.error = null; });
+        },
+        showError(message) {
+            this.error = message;
+            // At phone width the notice sits under the sticky footer: bring it into view and announce it.
+            this.$nextTick(() => {
+                const notice = document.querySelector('#booking-dialog [data-booking-error]');
+                notice?.scrollIntoView({ block: 'nearest' });
+                notice?.focus({ preventScroll: true });
+            });
         },
         close() {
             if (this.state === 'success' && this.redirect) {
@@ -347,10 +362,10 @@
                     this.state = 'success';
                     this.$nextTick(() => document.querySelector('#booking-dialog [data-modal-initial]')?.focus());
                 } else {
-                    this.error = json.error ?? @js(__('booking.messages.booking_failed'));
+                    this.showError(json.error ?? @js(__('booking.messages.booking_failed')));
                 }
             } catch {
-                this.error = @js(__('booking.messages.booking_failed'));
+                this.showError(@js(__('booking.messages.booking_failed')));
             } finally {
                 this.loading = false;
             }
@@ -401,7 +416,7 @@
                 </x-ui.field>
             </div>
 
-            <x-ui.notice tone="problem" x-show="error"><span x-text="error"></span></x-ui.notice>
+            <x-ui.notice tone="problem" x-show="error" data-booking-error tabindex="-1"><span x-text="error"></span></x-ui.notice>
         </form>
 
         <div class="ds-success" role="status" x-show="state === 'success'">

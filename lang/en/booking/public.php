@@ -225,6 +225,7 @@ return [
             'ending' => 'Ending search …',
             'hint' => 'You are still looking for :count player. If you end the search, your booking stays and anyone who has already signed up stays in.|You are still looking for :count players. If you end the search, your booking stays and anyone who has already signed up stays in.',
             'done_title' => 'Search ended',
+            'cancel_effect' => 'If you cancel, your player search ends too, and everyone who has already joined gets an e-mail.',
             'failed' => 'That did not work. Please reload the calendar and try again.',
         ],
     ],
