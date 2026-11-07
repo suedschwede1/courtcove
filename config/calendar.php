@@ -25,6 +25,12 @@ $colors = [
         'bg' => env('CAL_COLOR_SERIES_BG', 'var(--color-cell-series)'),
         'label' => env('CAL_COLOR_SERIES_LABEL', 'var(--color-cell-series-ink)'),
     ],
+    // Player search: pale violet with a violet ring and violet text (plus its own text line).
+    'seeking' => [
+        'bg' => env('CAL_COLOR_SEEKING_BG', 'var(--color-cell-seek)'),
+        'line' => env('CAL_COLOR_SEEKING_LINE', 'var(--color-cell-seek-line)'),
+        'label' => env('CAL_COLOR_SEEKING_LABEL', 'var(--color-cell-seek-ink)'),
+    ],
     'past' => [
         'bg' => env('CAL_COLOR_PAST_BG', 'var(--color-cell-past-a)'),
         'bg_alt' => env('CAL_COLOR_PAST_BG_ALT', 'var(--color-cell-past-b)'),

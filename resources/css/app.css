@@ -64,6 +64,9 @@
     --color-cell-booked: #ECE6DC;
     --color-cell-series: #ECE3F3;
     --color-cell-series-ink: #4A2A6B;
+    --color-cell-seek: #F6EEFB;
+    --color-cell-seek-line: #7B4FB0;
+    --color-cell-seek-ink: #4A2A6B;
     --color-cell-event: #DCEEE3;
     --color-cell-event-ink: #1F5A44;
     --color-cell-event-line: #3F8F6B;
@@ -168,6 +171,9 @@
     --color-cell-booked: #34302B;
     --color-cell-series: #2C2238;
     --color-cell-series-ink: #D7C6EA;
+    --color-cell-seek: #2A2036;
+    --color-cell-seek-line: #B48FE0;
+    --color-cell-seek-ink: #E2D3F3;
     --color-cell-event: #1E3329;
     --color-cell-event-ink: #8FD0AE;
     --color-cell-event-line: #5FAE87;

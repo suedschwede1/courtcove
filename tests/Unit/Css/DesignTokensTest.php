@@ -34,6 +34,8 @@ final class DesignTokensTest extends TestCase
             'cell-event-line' => ['cell-event-line', '#3F8F6B', '#5FAE87'],
             'cell-match' => ['cell-match', '#F6E7CC', '#3A2E12'], 'cell-match-line' => ['cell-match-line', '#B07A1E', '#D9A54A'],
             'cell-match-ink' => ['cell-match-ink', '#6B4400', '#F0C46B'],
+            'cell-seek' => ['cell-seek', '#F6EEFB', '#2A2036'], 'cell-seek-line' => ['cell-seek-line', '#7B4FB0', '#B48FE0'],
+            'cell-seek-ink' => ['cell-seek-ink', '#4A2A6B', '#E2D3F3'],
             'cell-blocked-a' => ['cell-blocked-a', '#E9E5DE', '#2A2622'], 'cell-blocked-b' => ['cell-blocked-b', '#F2EFEA', '#221F1C'],
             'cell-past-a' => ['cell-past-a', '#EDE8DF', '#1F1C19'], 'cell-past-b' => ['cell-past-b', '#F7F4EE', '#252220'],
         ];

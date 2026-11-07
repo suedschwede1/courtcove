@@ -29,6 +29,11 @@ return [
     //     'bg' => 'var(--color-cell-series)',
     //     'label' => 'var(--color-cell-series-ink)',
     // ],
+    // 'seeking' => [
+    //     'bg' => 'var(--color-cell-seek)',
+    //     'line' => 'var(--color-cell-seek-line)',
+    //     'label' => 'var(--color-cell-seek-ink)',
+    // ],
     // 'past' => [
     //     'bg' => 'var(--color-cell-past-a)',
     //     'bg_alt' => 'var(--color-cell-past-b)',

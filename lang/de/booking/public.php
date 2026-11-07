@@ -158,6 +158,7 @@ return [
             'free' => 'Frei – zum Buchen tippen',
             'own' => 'Meine Buchung',
             'single_future' => 'Belegt',
+            'seeking' => 'Sucht Mitspieler',
             'event' => 'Veranstaltung',
             'blocked' => 'Platzsperre',
             'tournament' => 'Turnierspiel',
@@ -192,6 +193,15 @@ return [
         'series_hint' => 'Abo',
         'event_range' => ':from – :to Uhr',
         'own_short' => 'Meine',
+        'seeking_short' => 'Sucht noch :count|Sucht noch :count',
+        'seeking_line' => 'Sucht noch :count Mitspieler|Sucht noch :count Mitspieler',
+        'seeking_tiny' => 'Sucht :count|Sucht :count',
+        'seeking_cell' => ':court, :time Uhr – :remaining',
+        'seeking_info' => [
+            'title' => 'Mitspieler gesucht',
+            'message' => 'Diese Buchung sucht noch Mitspieler. Wenn du mitspielen willst, melde dich in deinem Konto bei der Spielerbörse an. Danach kannst du dich hier mit einem Klick eintragen.',
+            'account' => 'Zu meinem Konto',
+        ],
     ],
     'modal' => [
         'confirm_cancel' => 'Möchten Sie diese Buchung stornieren?',

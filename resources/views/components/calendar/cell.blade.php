@@ -10,6 +10,7 @@
     'isAdmin',
     'authUserId',
     'date',
+    'playerExchangeOptedIn' => false,
 ])
 
 @php
@@ -29,11 +30,21 @@
     $canManageBooking = $reservation && $isAdmin;
     $isSeriesBooking = $reservation?->booking?->isSubscription() ?? false;
     $isTournament = $reservation?->booking?->isChampionshipMatch() ?? false;
-    $state = \App\Support\Calendar\CellState::for((bool) $reservation, $isPast, $isOwn, $isSeriesBooking, $isTournament)->value;
+
+    // Player search: signups are eager-loaded by the controller, so remaining() and
+    // the joined check read loaded data (no query per cell).
+    $search = $reservation?->booking?->playerSearch;
+    $hasOpenSearch = $search !== null && ! $isPast && ! $isTournament && $search->isSeeking();
+    $searchRemaining = $hasOpenSearch ? $search->remaining() : 0;
+    $isSeeking = $hasOpenSearch && ! $isOwn;
+    $hasJoined = $hasOpenSearch && $isLoggedIn && $search->signups->contains('uid', $authUserId);
+
+    $state = \App\Support\Calendar\CellState::for((bool) $reservation, $isPast, $isOwn, $isSeriesBooking, $isTournament, $isSeeking)->value;
 
     // Detail line: the players without the owner (the owner is the name line already).
+    // An open search replaces it with the "still looking" line, so the cell keeps two lines.
     $secondaryLabel = null;
-    if ($isLoggedIn && $reservation?->booking) {
+    if ($isLoggedIn && $reservation?->booking && ! $hasOpenSearch) {
         $ownerKey = mb_strtolower(trim($reservation->booking->owner_label));
         $others = array_values(array_filter(
             $reservation->booking->player_names,
@@ -44,6 +55,10 @@
     if ($secondaryLabel === null && $isSeriesBooking) {
         $secondaryLabel = __('booking.calendar.series_hint');
     }
+
+    $seekingShort = $hasOpenSearch ? trans_choice('booking.calendar.seeking_short', $searchRemaining) : null;
+    $seekingLine = $hasOpenSearch ? trans_choice('booking.calendar.seeking_line', $searchRemaining) : null;
+    $seekingTiny = $hasOpenSearch ? trans_choice('booking.calendar.seeking_tiny', $searchRemaining) : null;
 
     $cellClass = 'cc-over';
     $slotClass = $isPast ? ' slot-cell--past' : '';
@@ -62,12 +77,22 @@
             ? __('booking.calendar.book_title', ['court' => $squareLabel, 'time' => $timeLabel])
             : __('booking.calendar.login_to_book');
     } elseif ($isOwn || ($canManageBooking && !$isPast)) {
-        $cellClass = $isOwn ? 'cc-own' : 'cc-single-future';
+        $cellClass = $isOwn ? 'cc-own' : ($isSeeking ? 'cc-seeking' : 'cc-single-future');
         $action = 'cancel';
         $primaryLabel = $reservation->booking->owner_label;
         $cellTitle = $isOwn
             ? __('booking.calendar.cancel_title', ['court' => $squareLabel])
             : __('booking.calendar.edit_title', ['court' => $squareLabel]);
+        if ($hasOpenSearch) {
+            $cellTitle .= ' – ' . $seekingLine;
+        }
+    } elseif ($isSeeking) {
+        $cellClass = 'cc-seeking';
+        $primaryLabel = $isLoggedIn
+            ? ($reservation->booking?->owner_label ?? __('booking.calendar.occupied'))
+            : __('booking.calendar.occupied');
+        $action = ! $isLoggedIn ? 'seeking-login' : (($playerExchangeOptedIn || $hasJoined) ? 'join' : 'join-info');
+        $cellTitle = $squareLabel . ' – ' . $seekingLine;
     } else {
         $cellClass = 'cc-single-future';
         $primaryLabel = $isLoggedIn
@@ -89,14 +114,25 @@
 
     // Text lines of a booked slot: name, detail (players or the subscription hint)
     // and, on own bookings, the short label that replaces the detail on phones.
+    // An open search adds its text line (state never by colour alone) in up to three
+    // lengths; CSS shows the one that fits the cell width (container query), so the
+    // number is never cut off: the long line on own bookings (in place of "Mine"),
+    // "still looking for N", and the shortest form for very narrow cells.
     $labels = array_filter([
         'cc-label-primary' => $primaryLabel,
         'cc-label-secondary' => $reservation ? $secondaryLabel : null,
-        'cc-label-own' => $isOwn ? __('booking.calendar.own_short') : null,
+        'cc-label-own' => $isOwn && ! $hasOpenSearch ? __('booking.calendar.own_short') : null,
+        'cc-label-seeking cc-label-seeking--long' => $hasOpenSearch && $isOwn ? $seekingLine : null,
+        'cc-label-seeking cc-label-seeking--short' => $seekingShort,
+        'cc-label-seeking cc-label-seeking--tiny' => $seekingTiny,
     ], fn ($text) => $text !== null && $text !== '');
 
     $bookLabel = __('booking.calendar.book_cell', ['court' => $squareLabel, 'time' => $timeLabel]);
+    $seekingCellLabel = $hasOpenSearch
+        ? __('booking.calendar.seeking_cell', ['court' => $squareLabel, 'time' => $timeLabel, 'remaining' => $seekingLine])
+        : null;
     $adminCreateUrl = route('admin.bookings.create') . '?sid=' . $sid . '&date=' . $dateKey . '&time_start=' . ($h * 3600) . '&time_end=' . (($h + 1) * 3600);
+    $loginUrl = route('login', ['redirect_to' => route('calendar.index', ['date' => $date->format('Y-m-d')])]);
 @endphp
 
 @if($action === 'book')
@@ -164,8 +200,54 @@
             <span class="{{ $labelClass }}">{{ $labelText }}</span>
         @endforeach
     </a>
+@elseif($action === 'join')
+    <a href="#"
+       class="calendar-cell {{ $cellClass }}{{ $slotClass }}"
+       data-state="{{ $state }}"
+       aria-label="{{ $seekingCellLabel }}"
+       title="{{ $cellTitle }}"
+       @click.prevent="$dispatch('open-join', {
+           bid: @js((string) $reservation->booking->bid),
+           squareName: @js($squareFullLabel),
+           dateLabel: @js($dateLabel),
+           timeLabel: @js($timeRangeLabel),
+           owner: @js($primaryLabel),
+           remaining: {{ $searchRemaining }},
+           joined: @js($hasJoined),
+           optedIn: @js((bool) $playerExchangeOptedIn)
+       })">
+        @foreach($labels as $labelClass => $labelText)
+            <span class="{{ $labelClass }}">{{ $labelText }}</span>
+        @endforeach
+    </a>
+@elseif($action === 'join-info')
+    <a href="{{ route('account.edit') }}"
+       class="calendar-cell {{ $cellClass }}{{ $slotClass }}"
+       data-state="{{ $state }}"
+       aria-label="{{ $seekingCellLabel }}"
+       title="{{ $cellTitle }}"
+       @click.prevent="$dispatch('open-join-info', {
+           squareName: @js($squareFullLabel),
+           dateLabel: @js($dateLabel),
+           timeLabel: @js($timeRangeLabel),
+           remaining: {{ $searchRemaining }}
+       })">
+        @foreach($labels as $labelClass => $labelText)
+            <span class="{{ $labelClass }}">{{ $labelText }}</span>
+        @endforeach
+    </a>
+@elseif($action === 'seeking-login')
+    <a href="{{ $loginUrl }}"
+       class="calendar-cell {{ $cellClass }}{{ $slotClass }} guest-login-cell"
+       data-state="{{ $state }}"
+       aria-label="{{ $seekingCellLabel }}"
+       title="{{ $cellTitle }}">
+        @foreach($labels as $labelClass => $labelText)
+            <span class="{{ $labelClass }}">{{ $labelText }}</span>
+        @endforeach
+    </a>
 @elseif($action === 'login')
-    <a href="{{ route('login', ['redirect_to' => route('calendar.index', ['date' => $date->format('Y-m-d')])]) }}"
+    <a href="{{ $loginUrl }}"
        class="calendar-cell {{ $cellClass }}{{ $slotClass }} guest-login-cell"
        data-state="{{ $state }}"
        aria-label="{{ __('booking.calendar.login_cell', ['court' => $squareLabel, 'time' => $timeLabel]) }}"

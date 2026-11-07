@@ -55,9 +55,17 @@ class PlayerSearch extends Model
         return $this->hasMany(PlayerSignup::class, 'search_id');
     }
 
-    /** Places still free (never negative). */
+    /** Places still free (never negative). Uses the loaded signups when present (no query per row in lists). */
     public function remaining(): int
     {
-        return max(0, $this->needed - $this->signups()->count());
+        $taken = $this->relationLoaded('signups') ? $this->signups->count() : $this->signups()->count();
+
+        return max(0, $this->needed - $taken);
+    }
+
+    /** Open, places left and the deadline not reached yet (also before the lapse job ran). */
+    public function isSeeking(): bool
+    {
+        return $this->status === self::OPEN && $this->ends_at->isFuture() && $this->remaining() > 0;
     }
 }

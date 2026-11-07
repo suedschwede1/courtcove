@@ -89,6 +89,9 @@ final class CalendarController extends Controller
         $squareIds = $squares->pluck('sid')->values()->all();
 
         $calendarReservations = $this->reservations->getCalendarReservations($squareIds, $rangeStart, $rangeEnd);
+        // Player searches with their signups in two queries, so cells read remaining places
+        // and "already joined" from loaded data instead of one count per booking.
+        $calendarReservations->loadMissing(['booking.playerSearch.signups:id,search_id,uid']);
 
         $reservationsByDate = [];
         $reservationsBySlot = [];
@@ -121,6 +124,7 @@ final class CalendarController extends Controller
         // can() is the effective right: privileges only count while admin mode is on (App\Support\AdminMode).
         $isAdmin = $isLoggedIn && $authUser->can('admin.booking');
         $canAdminEvents = $isLoggedIn && $authUser->can('admin.event');
+        $playerExchangeOptedIn = $isLoggedIn && app(PlayerExchangeService::class)->isOptedIn($authUser);
 
         $events = Event::with(['meta' => fn ($query) => $query->whereIn('key', ['name', 'kind'])])
             ->where('status', 'enabled')
@@ -290,6 +294,7 @@ final class CalendarController extends Controller
             'isLoggedIn' => $isLoggedIn,
             'isAdmin' => $isAdmin,
             'canAdminEvents' => $canAdminEvents,
+            'playerExchangeOptedIn' => $playerExchangeOptedIn,
             'now' => $now,
             'today' => $now->format('Y-m-d'),
             'dateLabels' => $dateLabels,

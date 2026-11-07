@@ -12,16 +12,19 @@ enum CellState: string
     case Own = 'own';
     case SingleFuture = 'single_future';
     case Series = 'series';
+    case Seeking = 'seeking';
     case Event = 'event';
     case Blocked = 'blocked';
     case Tournament = 'tournament';
     case Past = 'past';
 
     /**
-     * Precedence: tournament > past > own > series > single future.
-     * Event and Blocked are never returned here; they belong to event parts (EventKind).
+     * Precedence: tournament > past > seeking > own > series > single future.
+     * Seeking only applies to someone else's booking; an own booking with an open
+     * search stays Own. Event and Blocked are never returned here; they belong to
+     * event parts (EventKind).
      */
-    public static function for(bool $hasReservation, bool $isPast, bool $isOwn, bool $isSeries, bool $isTournament): self
+    public static function for(bool $hasReservation, bool $isPast, bool $isOwn, bool $isSeries, bool $isTournament, bool $isSeeking): self
     {
         if (! $hasReservation) {
             return $isPast ? self::Past : self::Free;
@@ -30,6 +33,7 @@ enum CellState: string
         return match (true) {
             $isTournament => self::Tournament,
             $isPast => self::Past,
+            $isSeeking && ! $isOwn => self::Seeking,
             $isOwn => self::Own,
             $isSeries => self::Series,
             default => self::SingleFuture,
@@ -39,7 +43,7 @@ enum CellState: string
     /** @return list<self> */
     public static function legend(bool $loggedIn): array
     {
-        $states = [self::Free, self::Own, self::SingleFuture, self::Event, self::Blocked, self::Tournament, self::Past];
+        $states = [self::Free, self::Own, self::SingleFuture, self::Seeking, self::Event, self::Blocked, self::Tournament, self::Past];
 
         return array_values(array_filter($states, fn (self $s) => $loggedIn || $s !== self::Own));
     }

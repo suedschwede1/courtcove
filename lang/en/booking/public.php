@@ -158,6 +158,7 @@ return [
             'free' => 'Free – tap to book',
             'own' => 'My booking',
             'single_future' => 'Booked',
+            'seeking' => 'Looking for players',
             'event' => 'Event',
             'blocked' => 'Court closure',
             'tournament' => 'Tournament match',
@@ -192,6 +193,15 @@ return [
         'series_hint' => 'Subscription',
         'event_range' => ':from – :to',
         'own_short' => 'Mine',
+        'seeking_short' => 'Needs :count more|Needs :count more',
+        'seeking_line' => 'Looking for :count more player|Looking for :count more players',
+        'seeking_tiny' => 'Needs :count|Needs :count',
+        'seeking_cell' => ':court, :time – :remaining',
+        'seeking_info' => [
+            'title' => 'Players wanted',
+            'message' => 'This booking is still looking for players. If you want to play, join the player exchange in your account. Then you can sign up here with one click.',
+            'account' => 'Go to my account',
+        ],
     ],
     'modal' => [
         'confirm_cancel' => 'Do you want to cancel this booking?',

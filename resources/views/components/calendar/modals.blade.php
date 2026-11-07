@@ -437,3 +437,39 @@
     </x-ui.modal>
 </div>
 @endauth
+
+{{-- Player search, viewer not in the player exchange: explain how to take part. --}}
+@auth
+<div x-data="{
+        open: false,
+        squareName: '',
+        dateLabel: '',
+        timeLabel: '',
+        openInfo(detail) {
+            this.squareName = detail.squareName;
+            this.dateLabel  = detail.dateLabel;
+            this.timeLabel  = detail.timeLabel;
+            this.open = true;
+        }
+     }"
+     @open-join-info.window="openInfo($event.detail)">
+    <x-ui.modal id="join-info-dialog" show="open" close="open = false">
+        <x-slot:title>
+            {{ __('booking.calendar.seeking_info.title') }}
+        </x-slot:title>
+
+        <x-ui.summary-tiles :items="[
+            ['label' => __('booking.calendar.date'), 'bind' => 'dateLabel'],
+            ['label' => __('booking.calendar.time'), 'bind' => 'timeLabel'],
+            ['label' => __('booking.calendar.court'), 'bind' => 'squareName'],
+        ]" />
+
+        <p class="ds-modal__message">{{ __('booking.calendar.seeking_info.message') }}</p>
+
+        <div class="ds-modal__actions">
+            <x-ui.button :href="route('account.edit')" data-modal-initial>{{ __('booking.calendar.seeking_info.account') }}</x-ui.button>
+            <x-ui.button variant="secondary" class="ds-modal__dismiss" x-on:click="open = false">{{ __('booking.modal.close') }}</x-ui.button>
+        </div>
+    </x-ui.modal>
+</div>
+@endauth
