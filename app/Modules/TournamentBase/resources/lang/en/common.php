@@ -10,6 +10,7 @@ return [
     ],
     'login_required' => 'Please log in to see the tournaments.',
     'nav' => [
+        'settings' => 'Settings',
         'area' => 'Tournaments',
         'pyramid' => 'Challenge pyramid',
         'championship' => 'Club championship',

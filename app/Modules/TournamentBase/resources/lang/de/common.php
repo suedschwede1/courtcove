@@ -10,6 +10,7 @@ return [
     ],
     'login_required' => 'Für die Turniere musst du angemeldet sein.',
     'nav' => [
+        'settings' => 'Einstellungen',
         'area' => 'Turniere',
         'pyramid' => 'Forderungspyramide',
         'championship' => 'Vereinsmeisterschaft',

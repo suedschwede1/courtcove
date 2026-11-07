@@ -168,22 +168,25 @@ class TournamentSidebarTest extends TestCase
         $admin = $this->actingAs($this->admin());
 
         $groups = $this->sidebar((string) $admin->get(route('pyramide.index'))->getContent());
-        $this->assertSame(['Forderungspyramide' => ['Rangliste', 'Forderungen', 'Regeln', 'Verwaltung']], $groups);
+        $this->assertSame([
+            'Forderungspyramide' => ['Rangliste', 'Forderungen', 'Regeln'],
+            'Einstellungen' => ['Verwaltung'],
+        ], $groups);
 
         $groups = $this->sidebar((string) $admin->get(route('tournament.index'))->getContent());
-        $this->assertSame(['Vereinsmeisterschaft'], array_keys($groups));
-        $this->assertSame(['Übersicht', 'Gruppen', 'KO-Raster', 'Spielplan', 'Meine Spiele', 'Teilnehmer', 'Modus', 'Leitung'],
-            array_slice($groups['Vereinsmeisterschaft'], 0, 8));
-        $this->assertSame('Auslosungen verwalten', end($groups['Vereinsmeisterschaft']));
+        $this->assertSame(['Vereinsmeisterschaft', 'Einstellungen'], array_keys($groups));
+        $this->assertSame(['Übersicht', 'Gruppen', 'KO-Raster', 'Spielplan', 'Meine Spiele', 'Teilnehmer', 'Modus'],
+            array_slice($groups['Vereinsmeisterschaft'], 0, 7));
+        $this->assertSame(['Leitung', 'Auslosungen verwalten'], $groups['Einstellungen']);
 
         // The draw admin belongs to the championship.
-        $this->assertSame(['Vereinsmeisterschaft'], array_keys($this->sidebar((string) $admin->get(route('draw.index'))->getContent())));
+        $this->assertSame(['Vereinsmeisterschaft', 'Einstellungen'], array_keys($this->sidebar((string) $admin->get(route('draw.index'))->getContent())));
 
         $groups = $this->sidebar((string) $admin->get(route('mixed.admin.index'))->getContent());
-        $this->assertSame(['Mixed-/Fun-Turnier'], array_keys($groups));
+        $this->assertSame(['Mixed-/Fun-Turnier', 'Einstellungen'], array_keys($groups));
         $this->assertContains('Wertung', $groups['Mixed-/Fun-Turnier']);
         $this->assertNotContains('Veranstaltungen', $groups['Mixed-/Fun-Turnier']); // a default event exists
-        $this->assertContains('Mitglieder importieren', $groups['Mixed-/Fun-Turnier']);
+        $this->assertSame(['Verwaltung', 'Mitglieder importieren'], $groups['Einstellungen']);
     }
 
     #[Test]
@@ -233,8 +236,9 @@ class TournamentSidebarTest extends TestCase
         $html = (string) $this->actingAs($this->admin())->get(route('mixed.event', ['event' => $event->id]))->assertOk()->getContent();
         $xp = $this->xpath($html);
 
-        $this->assertSame(['Aktuelle Runde', 'Wertung', 'Veranstaltungen', 'Beispiel-Mixed', 'Info', 'Verwaltung', 'Mitglieder importieren'],
-            $this->sidebar($html)['Mixed-/Fun-Turnier']);
+        $groups = $this->sidebar($html);
+        $this->assertSame(['Aktuelle Runde', 'Wertung', 'Veranstaltungen', 'Beispiel-Mixed', 'Info'], $groups['Mixed-/Fun-Turnier']);
+        $this->assertSame(['Verwaltung', 'Mitglieder importieren'], $groups['Einstellungen']);
         $this->assertSame(route('mixed.round', ['round' => $open->id]), $xp->query('//aside//a[normalize-space()="Aktuelle Runde"]')->item(0)?->getAttribute('href'));
         $parent = $xp->query('//aside//li[a[normalize-space()="Beispiel-Mixed"]]')->item(0);
         $this->assertSame('true', $xp->query('./a', $parent)->item(0)->getAttribute('aria-current'));
