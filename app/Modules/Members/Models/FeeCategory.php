@@ -14,6 +14,7 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property string $name
  * @property string $billing_unit
+ * @property string|null $connection_role
  * @property Carbon|null $deactivated_at
  */
 class FeeCategory extends Model
@@ -22,7 +23,10 @@ class FeeCategory extends Model
     public const BILLING_UNITS = ['member', 'household'];
 
     // deactivated_at is set only by deactivate()/reactivate(), never mass-assigned.
-    protected $fillable = ['name', 'billing_unit'];
+    /** Roles for the Anschlussmitglied rule: a Vollzahler category may have an Anschlussmitglied with the Anschluss category. */
+    public const CONNECTION_ROLES = ['vollzahler', 'anschluss'];
+
+    protected $fillable = ['name', 'billing_unit', 'connection_role'];
 
     protected $casts = [
         'deactivated_at' => 'datetime',
@@ -32,6 +36,16 @@ class FeeCategory extends Model
     public function rates(): HasMany
     {
         return $this->hasMany(FeeCategoryRate::class);
+    }
+
+    public function isVollzahler(): bool
+    {
+        return $this->connection_role === 'vollzahler';
+    }
+
+    public function isAnschluss(): bool
+    {
+        return $this->connection_role === 'anschluss';
     }
 
     /** Whether this category bills households (one flat due per household) instead of members. */

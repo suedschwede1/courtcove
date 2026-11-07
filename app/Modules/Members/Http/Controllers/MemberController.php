@@ -14,6 +14,7 @@ use App\Modules\Members\Models\MemberChange;
 use App\Modules\Members\Models\MemberHousehold;
 use App\Modules\Members\Support\HouseholdService;
 use App\Modules\Members\Support\MemberChangeLogger;
+use App\Modules\Members\Support\MemberConnectionService;
 use App\Modules\Members\Support\MemberListFilter;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
@@ -282,6 +283,7 @@ class MemberController
         DB::transaction(function () use ($member, $before) {
             // Household link and payer go in the same transaction, so the 'anonymized' snapshot records them.
             app(HouseholdService::class)->detachForAnonymisation($member);
+            app(MemberConnectionService::class)->detachForAnonymisation($member);
             $member->update([
                 'firstname' => 'Ehemaliges',
                 'lastname' => "Mitglied #{$member->member_number}",

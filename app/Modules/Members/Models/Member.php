@@ -31,6 +31,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $city
  * @property int|null $fee_category_id
  * @property int|null $household_id
+ * @property int|null $connected_to_member_id
+ * @property-read Member|null $connectedTo
  * @property-read MemberHousehold|null $household
  * @property \Illuminate\Support\Carbon|null $joined_at
  * @property \Illuminate\Support\Carbon|null $left_at
@@ -118,6 +120,27 @@ class Member extends Model
 
         return $this->dues()->where('fiscal_year_id', $fiscalYearId)->first()
             ?? $this->coveringHouseholdDues()->wherePivot('fiscal_year_id', $fiscalYearId)->first();
+    }
+
+    /**
+     * Anschlussmitglied: the Vollzahler this member is connected to. connected_to_member_id is deliberately not
+     * fillable: it is written only by MemberConnectionService.
+     *
+     * @return BelongsTo<Member, $this>
+     */
+    public function connectedTo(): BelongsTo
+    {
+        return $this->belongsTo(Member::class, 'connected_to_member_id');
+    }
+
+    /**
+     * Members connected to this member as Anschlussmitglied (at most one by the service rules).
+     *
+     * @return HasMany<Member, $this>
+     */
+    public function anschlussMembers(): HasMany
+    {
+        return $this->hasMany(Member::class, 'connected_to_member_id');
     }
 
     /** @return BelongsTo<User, $this> */

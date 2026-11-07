@@ -60,6 +60,12 @@ final class HouseholdService
     public function updateDetails(MemberHousehold $household, ?string $name, ?int $feeCategoryId): void
     {
         $this->assertTariff($feeCategoryId, $household->fee_category_id);
+        if ($feeCategoryId !== null) {
+            $connected = $household->members()->get()->first(fn (Member $m) => MemberConnectionService::isConnected($m));
+            if ($connected !== null) {
+                throw new HouseholdRuleException(__('members::admin.households.error_connected_member', ['name' => $connected->fullName()]));
+            }
+        }
 
         $household->update(['name' => self::cleanName($name), 'fee_category_id' => $feeCategoryId]);
     }
@@ -91,6 +97,10 @@ final class HouseholdService
             }
             if ($household->feeCategory !== null && ! $household->feeCategory->isPerHousehold()) {
                 throw new HouseholdRuleException(__('members::admin.households.errors.category_not_per_household'));
+            }
+            // Anschlussmitglied and Familientarif exclude each other (nobody pays twice).
+            if ($household->feeCategory !== null && MemberConnectionService::isConnected($locked)) {
+                throw new HouseholdRuleException(__('members::admin.households.error_connected_member', ['name' => $locked->fullName()]));
             }
 
             $before = MemberChangeLogger::snapshot($locked);

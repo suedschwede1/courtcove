@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-07
+- Members: Anschlussmitglied rules in one service: a member with the Anschluss category is connected to exactly one Vollzahler (no self link, no chains, at most one Anschlussmitglied, not together with a Familientarif household), logged on both members; invalid states produce warnings and are never changed silently; anonymisation removes the link.
 - Members (Anschlussmitglied groundwork): additive columns members.connected_to_member_id and fee_categories.connection_role (Vollzahler / Anschluss); the categories "Vollzahler" and "Ehepartner/in, Lebensgefährte/in" are marked once, nothing else changes.
 - Mixed-/Fun-Turnier: members have a read-only event list (/mixed-tournament/events, sidebar "Veranstaltungen") that stays reachable while a default event is set (the module start still opens the default event); "Zur Liste" on member event, round and standings pages and on the info page leads there instead of the admin list, which showed the "Admin-Modus einschalten" page.
 
