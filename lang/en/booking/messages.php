@@ -64,6 +64,8 @@ return [
             'edit_too_many' => 'There are not enough places for that: players who joined via the player exchange keep their place. Choose doubles or enter fewer partners.',
             'edit_signed_up' => 'Joined via the player exchange: :names. They keep their place and only they can leave.',
             'booking_busy' => 'You already play at that time: you joined another booking as a player via the player exchange.',
+            'admin_edit_locked' => 'This booking has a running player search or players who joined via the player exchange. So you cannot change its date, time, repeat or booker; you can change the court, own partners and singles/doubles.',
+            'admin_edit_joined' => 'You cannot remove or rename players who joined via the player exchange here: :names. Only they can leave.',
         ],
     ],
 ];

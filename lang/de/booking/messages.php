@@ -64,6 +64,8 @@ return [
             'edit_too_many' => 'Dafür reichen die Plätze nicht: Wer sich über die Spielerbörse angemeldet hat, behält seinen Platz. Wähle Doppel oder trag weniger Mitspieler ein.',
             'edit_signed_up' => 'Über die Spielerbörse angemeldet: :names. Sie behalten ihren Platz und können sich nur selbst austragen.',
             'booking_busy' => 'Zu dieser Zeit spielst du schon: Du bist über die Spielerbörse bei einer anderen Buchung als Mitspieler angemeldet.',
+            'admin_edit_locked' => 'Für diese Buchung läuft eine Mitspielersuche oder es sind Mitspieler über die Spielerbörse angemeldet. Datum, Zeit, Wiederholung und Bucher kannst du deshalb nicht ändern; Platz, eigene Mitspieler und Einzel/Doppel schon.',
+            'admin_edit_joined' => 'Über die Spielerbörse angemeldete Mitspieler kannst du hier nicht entfernen oder umbenennen: :names. Sie können sich nur selbst austragen.',
         ],
     ],
 ];

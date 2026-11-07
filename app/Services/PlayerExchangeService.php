@@ -335,6 +335,75 @@ final class PlayerExchangeService
     }
 
     /**
+     * The search that binds an admin edit of the booking: open or filled (the deadline and the
+     * mails depend on the time), or ended with joined members (they agreed to that time and
+     * hold places). An ended search without signups binds nothing. Plain read: the caller holds
+     * the booking row lock.
+     */
+    public function searchBindingAdminEdit(Booking $locked): ?PlayerSearch
+    {
+        $search = $this->liveSearch($locked);
+        if ($search === null) {
+            return null;
+        }
+
+        return $search->status !== PlayerSearch::ENDED || $search->signups()->exists() ? $search : null;
+    }
+
+    /**
+     * The admin edit (BookingService::updateSeries, inside its transaction, after the booking
+     * row lock) of a booking with a binding search. Date, time, repeat and booker must stay as
+     * they are, the court may change (done by the caller). The admin form lists the stored names
+     * by position, so joined members are matched by name, not by field: each joined member's
+     * name must still be among the submitted names (he can only leave himself), every other
+     * name is the booker's own partner. Names, quantity and the search then follow the owner
+     * edit rules (applyOwnerEdit): joined members keep their slot, capacity is checked.
+     *
+     * @param  list<array{0: string, 1: string, 2: string}>  $slots  new date, start, end of each occurrence
+     * @param  array<int, string|null>  $playerNames  slot => name as submitted
+     *
+     * @throws PlayerExchangeException
+     */
+    public function applyAdminEdit(Booking $locked, PlayerSearch $search, int $uid, array $slots, int $quantity, array $playerNames): void
+    {
+        $current = $locked->reservations
+            ->map(fn (Reservation $r): array => [
+                Carbon::parse($r->date)->format('Y-m-d'),
+                Carbon::parse((string) $r->time_start)->format('H:i:s'),
+                Carbon::parse((string) $r->time_end)->format('H:i:s'),
+            ])
+            ->sort()->values()->all();
+        if ($uid !== (int) $locked->uid || $slots !== $current) {
+            throw $this->refused('admin_edit_locked');
+        }
+
+        ksort($playerNames);
+        $typed = array_values(array_filter(
+            array_map(fn ($name): string => trim((string) $name), $playerNames),
+            fn (string $name): bool => $name !== '',
+        ));
+
+        $names = $this->playerNamesBySlot($locked);
+        $missing = [];
+        foreach ($search->signups()->with('user')->orderBy('slot')->get() as $signup) {
+            $name = $names[(int) $signup->slot] ?? (string) $signup->user?->name;
+            $index = array_search($name, $typed, true);
+            if ($index === false) {
+                $missing[] = $name;
+
+                continue;
+            }
+            unset($typed[$index]);
+        }
+
+        if ($missing !== []) {
+            throw new PlayerExchangeException(__('booking.messages.player_exchange.admin_edit_joined', ['names' => implode(', ', $missing)]));
+        }
+
+        $this->applyOwnerEdit($locked, $search, $quantity, array_values($typed));
+    }
+
+    /**
      * @param  list<int>  $taken
      * @return list<int> slots 2..$maxSlot not in $taken, ascending
      */

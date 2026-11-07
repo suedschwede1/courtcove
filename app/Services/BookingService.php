@@ -335,6 +335,11 @@ final class BookingService
         string $scope,
     ): Booking {
         return DB::transaction(function () use ($booking, $data, $owner, $occurrenceStarts, $durationSeconds, $occurrenceDate, $scope): Booking {
+            // Booking row lock first, the mutex of join, leave, lapse and the owner edit; then
+            // the current state (a lapse or cancel may have won the lock since the form loaded).
+            Booking::query()->whereKey($booking->bid)->lockForUpdate()->first();
+            $booking->refresh();
+
             $targetBooking = $this->splitForScope($booking, $occurrenceDate, $scope);
 
             // A cancelled booking stays cancelled (only the cancel action sets that) and holds no slot to check.
@@ -347,6 +352,32 @@ final class BookingService
                 if ($conflictError !== null) {
                     throw new BookingValidationException($conflictError);
                 }
+            }
+
+            $exchange = app(PlayerExchangeService::class);
+            $search = $isCancelled ? null : $exchange->searchBindingAdminEdit($targetBooking);
+            if ($search !== null) {
+                // A player search binds the booking: time, repeat and booker stay, joined members
+                // keep their places; court, own partners and quantity may change.
+                $slots = array_map(fn (Carbon $s): array => [
+                    $s->format('Y-m-d'), $s->format('H:i:s'), $s->copy()->addSeconds($durationSeconds)->format('H:i:s'),
+                ], $occurrenceStarts);
+                sort($slots);
+
+                try {
+                    $exchange->applyAdminEdit(
+                        $targetBooking->load(['reservations', 'meta']), $search, (int) $owner['uid'], $slots,
+                        (int) $data['quantity'], $data['player_names'] ?? [2 => $data['mitspieler'] ?? null],
+                    );
+                } catch (PlayerExchangeException $e) {
+                    throw new BookingValidationException($e->getMessage());
+                }
+
+                $targetBooking->update(['sid' => (int) $data['sid']]);
+                $this->syncBookingMeta($targetBooking, 'owner-name', $owner['ownerName']);
+                $this->syncBookingMeta($targetBooking, 'admin-note', $data['admin_note'] ?? null);
+
+                return $targetBooking->fresh(['reservations', 'meta']);
             }
 
             $effectiveStatus = $isCancelled
