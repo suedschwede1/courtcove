@@ -246,6 +246,7 @@ return [
             'household_deactivated' => ':count Haushalte mit deaktiviertem Tarif (nicht erzeugt)',
             'own_due_replaceable' => ':count Haushaltsmitglieder mit eigenem offenem Beitrag (ersetzen möglich)',
             'own_due_paid' => ':count Haushaltsmitglieder mit bezahltem oder teilbezahltem eigenem Beitrag (manuell prüfen)',
+            'connection_warning' => ':count Hinweise zu Anschlussmitgliedern (Beiträge aus der eigenen Kategorie erzeugt, bitte prüfen)',
         ],
         'covered_by_household' => 'Das Mitglied ist :year über den Haushalt :household abgedeckt und bekommt keinen eigenen Beitrag.',
         'household_due_exists' => 'Für :year gibt es schon einen Haushaltsbeitrag.',

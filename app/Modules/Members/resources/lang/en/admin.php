@@ -246,6 +246,7 @@ return [
             'household_deactivated' => ':count households with a deactivated tariff (not created)',
             'own_due_replaceable' => ':count household members with an own open fee (can be replaced)',
             'own_due_paid' => ':count household members with a paid or partly paid own fee (check by hand)',
+            'connection_warning' => ':count notes on Anschlussmitglieder (fees created from the own category, please check)',
         ],
         'covered_by_household' => 'The member is covered :year by household :household and gets no own fee.',
         'household_due_exists' => 'There is already a household fee for :year.',

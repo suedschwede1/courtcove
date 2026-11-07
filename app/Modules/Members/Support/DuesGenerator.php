@@ -49,6 +49,14 @@ final class DuesGenerator
             [$createdHouseholds, $ownedMemberIds] = $this->households($year, $rates->all(), $ownDueMemberIds->all(), $dueDate);
             [$createdMembers, $fromMemberCategory] = $this->individuals($year, $rates->all(), $ownDueMemberIds->all(), $ownedMemberIds, $dueDate);
 
+            // Anschlussmitglied problems are only reported; the dues above came from each member's own category.
+            foreach (MemberConnectionWarnings::all() as $memberId => $warnings) {
+                $member = Member::query()->find($memberId);
+                if ($member !== null) {
+                    $this->skipped['connection_warning'][] = ['label' => $member->fullName().': '.implode(' ', $warnings), 'url' => route('members.edit', $member)];
+                }
+            }
+
             return new DuesGenerationReport($year->name, $createdMembers, $createdHouseholds, $fromMemberCategory, $this->skipped);
         });
     }

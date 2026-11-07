@@ -11,13 +11,13 @@ class MemberExportController
 {
     public function export(): StreamedResponse
     {
-        $members = Member::query()->with('household.members')->orderBy('lastname')->orderBy('firstname')->get();
+        $members = Member::query()->with('household.members', 'connectedTo')->orderBy('lastname')->orderBy('firstname')->get();
 
         return response()->streamDownload(function () use ($members) {
             $handle = fopen('php://output', 'w');
             fwrite($handle, "\xEF\xBB\xBF");
             // Header literals follow the existing hard-coded German CSV header (consumed by the club's spreadsheets).
-            fputcsv($handle, ['Vorname', 'Nachname', 'E-Mail', 'Eingetreten', 'Ausgetreten', 'Haushalt', 'Zahlende Person']);
+            fputcsv($handle, ['Vorname', 'Nachname', 'E-Mail', 'Eingetreten', 'Ausgetreten', 'Haushalt', 'Zahlende Person', 'Verbunden mit']);
 
             foreach ($members as $member) {
                 $household = $member->household;
@@ -29,6 +29,7 @@ class MemberExportController
                     optional($member->left_at)->format('Y-m-d'),
                     $household?->label() ?? '',
                     $household !== null && $household->payer_member_id === $member->id ? 'ja' : '',
+                    $member->connectedTo?->fullName() ?? '',
                 ]);
             }
 

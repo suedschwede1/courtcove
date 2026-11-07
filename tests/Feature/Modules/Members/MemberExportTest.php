@@ -51,10 +51,10 @@ class MemberExportTest extends TestCase
         $csv = $this->actingAs($this->admin())->get('/members/export')->streamedContent();
         $lines = array_map('str_getcsv', explode("\n", trim(ltrim($csv, "\xEF\xBB\xBF"))));
 
-        $this->assertSame(['Vorname', 'Nachname', 'E-Mail', 'Eingetreten', 'Ausgetreten', 'Haushalt', 'Zahlende Person'], $lines[0]);
+        $this->assertSame(['Vorname', 'Nachname', 'E-Mail', 'Eingetreten', 'Ausgetreten', 'Haushalt', 'Zahlende Person', 'Verbunden mit'], $lines[0]);
         $byName = collect($lines)->keyBy(fn ($line) => $line[0]);
-        $this->assertSame(['Familie Muster', 'ja'], array_slice($byName['Anna'], 5));
-        $this->assertSame(['Familie Muster', ''], array_slice($byName['Ben'], 5));
-        $this->assertSame(['', ''], array_slice($byName['Dora'], 5));
+        $this->assertSame(['Familie Muster', 'ja'], array_slice($byName['Anna'], 5, 2));
+        $this->assertSame(['Familie Muster', ''], array_slice($byName['Ben'], 5, 2));
+        $this->assertSame(['', ''], array_slice($byName['Dora'], 5, 2));
     }
 }
