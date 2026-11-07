@@ -5,15 +5,18 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Exceptions\PlayerExchangeException;
+use App\Mail\PlayerSearchJoined;
 use App\Models\Booking;
 use App\Models\PlayerSearch;
 use App\Models\PlayerSignup;
 use App\Models\Reservation;
 use App\Models\User;
 use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
 
 final class PlayerExchangeService
@@ -260,10 +263,27 @@ final class PlayerExchangeService
             ->exists();
     }
 
-    /** Filled in when the booker gets an e-mail about a new signup. */
+    /**
+     * Mail the booker about the new signup. Called after the join transaction has
+     * committed; the mail goes out after the response, so a slow or broken mail server
+     * never holds a lock or fails the join.
+     */
     private function notifyOwnerJoined(PlayerSearch $search, User $joiner): void
     {
-        // Intentionally empty for now.
+        $email = (string) $search->booking()->with('user')->first()?->user?->email;
+        if ($email === '' || ! app(BookingService::class)->isMailConfigured()) {
+            return;
+        }
+
+        $remaining = $search->remaining();
+        dispatch(function () use ($email, $search, $joiner, $remaining): void {
+            try {
+                Mail::to($email)->send(new PlayerSearchJoined($search, $joiner, $remaining));
+            } catch (\Throwable $e) {
+                // Mail errors must not affect the join already done
+                report($e);
+            }
+        })->afterResponse();
     }
 
     /**
@@ -354,13 +374,21 @@ final class PlayerExchangeService
      */
     public function recipients(?User $exclude = null): Collection
     {
+        return $this->recipientsQuery($exclude)->orderBy('uid')->get();
+    }
+
+    /**
+     * Query of the recipients, for sending in chunks (chunkById) without loading every member.
+     *
+     * @return Builder<User>
+     */
+    public function recipientsQuery(?User $exclude = null): Builder
+    {
         return User::query()
             ->active()
             ->whereNotNull('email')
             ->where('email', '!=', '')
             ->whereHas('meta', fn ($q) => $q->where('key', self::META_KEY)->where('value', '1'))
-            ->when($exclude, fn ($q) => $q->where('uid', '!=', $exclude->uid))
-            ->orderBy('uid')
-            ->get();
+            ->when($exclude, fn ($q) => $q->where('uid', '!=', $exclude->uid));
     }
 }

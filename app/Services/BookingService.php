@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Exceptions\BookingValidationException;
 use App\Exceptions\PlayerExchangeException;
+use App\Jobs\SendPlayerSearchMails;
 use App\Mail\BookingCancelled;
 use App\Mail\BookingConfirmed;
 use App\Models\Booking;
@@ -424,7 +425,8 @@ final class BookingService
         $dateEnd = $this->normalizeBookableEnd($square, $dateStart, $dateEnd);
         $this->assertSingleBookingIsValid($user, $square, $quantity, $dateStart, $dateEnd);
 
-        $booking = DB::transaction(function () use ($user, $square, $quantity, $dateStart, $dateEnd, $meta, $searchPlayers): Booking {
+        $searchId = null;
+        $booking = DB::transaction(function () use ($user, $square, $quantity, $dateStart, $dateEnd, $meta, $searchPlayers, &$searchId): Booking {
             // Serialize concurrent bookings on this square (row lock as mutex),
             // then re-check the slot so two parallel requests cannot both book it.
             Square::query()->whereKey($square->sid)->lockForUpdate()->get();
@@ -455,7 +457,7 @@ final class BookingService
 
             if ($searchPlayers > 0) {
                 try {
-                    app(PlayerExchangeService::class)->openSearch($booking, $searchPlayers);
+                    $searchId = app(PlayerExchangeService::class)->openSearch($booking, $searchPlayers)->id;
                 } catch (PlayerExchangeException $e) {
                     throw new BookingValidationException($e->getMessage());
                 }
@@ -473,6 +475,11 @@ final class BookingService
                     // Mail errors must not affect the response already sent
                 }
             })->afterResponse();
+        }
+
+        // The exchange mails go out after the response, outside the booking transaction.
+        if ($searchId !== null && $this->isMailConfigured()) {
+            dispatch(new SendPlayerSearchMails($searchId))->afterResponse();
         }
 
         return $booking;
@@ -785,7 +792,8 @@ final class BookingService
         return $dateStart->copy()->addSeconds($minimumSeconds);
     }
 
-    private function isMailConfigured(): bool
+    /** Whether a real SMTP mailer is configured; without it no booking or exchange mail is sent. */
+    public function isMailConfigured(): bool
     {
         $mailer = config('mail.default', 'log');
         if ($mailer === 'log' || $mailer === 'array') {
