@@ -6,7 +6,7 @@
   @if($date)
   <tr>
     <td>{{ __('booking.mail.date') }}</td>
-    <td>{{ \Carbon\Carbon::parse($date)->isoFormat('dddd, D. MMMM Y') }}</td>
+    <td>{{ $dateLabel }}</td>
   </tr>
   <tr>
     <td>{{ __('booking.mail.time') }}</td>

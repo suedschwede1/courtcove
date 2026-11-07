@@ -63,6 +63,9 @@ return [
             'cancelled_subheading' => 'Das Spiel findet nicht statt.',
             'cancelled_body' => 'die Buchung, bei der du dich als Mitspieler angemeldet hast, wurde storniert. Du bist dort nicht mehr eingetragen.',
             'auto_footer' => 'Diese E-Mail wurde automatisch erstellt.',
+            // ISO date formats (Carbon isoFormat) of the slot table and the subject.
+            'date_format' => 'dddd, D. MMMM Y',
+            'subject_date_format' => 'D. MMMM Y',
         ],
     ],
 ];

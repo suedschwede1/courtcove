@@ -57,7 +57,7 @@ trait DescribesPlayerSearch
 
         $parts = array_filter([
             $details['court'],
-            $details['date'] !== null ? Carbon::parse($details['date'])->isoFormat('D. MMMM Y') : null,
+            $details['date'] !== null ? static::localDate($details['date'], 'subject_date_format') : null,
             $time,
         ]);
 
@@ -65,16 +65,29 @@ trait DescribesPlayerSearch
     }
 
     /**
+     * The date in the language the mail is rendered in. Members have no language of their
+     * own, so this is the app locale at render time (the request's with a sync queue, the
+     * configured default in a queue worker or the scheduler).
+     *
+     * @param  'date_format'|'subject_date_format'  $format  key under booking.mail.player_search
+     */
+    protected static function localDate(string $date, string $format): string
+    {
+        return Carbon::parse($date)->locale(app()->getLocale())->isoFormat(__('booking.mail.player_search.'.$format));
+    }
+
+    /**
      * View data shared by all player search mails (the slot partial reads only the plain values).
      *
      * @param  SlotDetails  $details
-     * @return array{court: string|null, date: string|null, timeStart: string|null, timeEnd: string|null, calendarUrl: string}
+     * @return array{court: string|null, date: string|null, dateLabel: string|null, timeStart: string|null, timeEnd: string|null, calendarUrl: string}
      */
     protected function slot(array $details): array
     {
         return [
             'court' => $details['court'],
             'date' => $details['date'],
+            'dateLabel' => $details['date'] !== null ? static::localDate($details['date'], 'date_format') : null,
             'timeStart' => $details['timeStart'],
             'timeEnd' => $details['timeEnd'],
             'calendarUrl' => $details['date'] !== null

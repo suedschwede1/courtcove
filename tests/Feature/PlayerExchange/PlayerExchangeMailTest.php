@@ -18,8 +18,10 @@ use App\Services\PlayerExchangeService;
 use App\Support\Mail\SystemMailSender;
 use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -141,8 +143,17 @@ class PlayerExchangeMailTest extends TestCase
         }
 
         $this->searchingBooking($owner);
+        $chunkQueries = 0;
+        DB::listen(function (QueryExecuted $q) use (&$chunkQueries): void {
+            if (str_contains($q->sql, 'bs_users') && str_contains($q->sql, 'limit '.SendPlayerSearchMails::CHUNK_SIZE)) {
+                $chunkQueries++;
+            }
+        });
         $this->runDeferredJobs();
 
+        // 53 recipients in chunks of 50: two member queries, never all members at once.
+        $this->assertSame(50, SendPlayerSearchMails::CHUNK_SIZE);
+        $this->assertSame(2, $chunkQueries);
         Mail::assertQueued(PlayerSearchOpened::class, 53);
         Mail::assertQueued(PlayerSearchOpened::class, fn (PlayerSearchOpened $m) => $m->hasTo('member1@example.com'));
         Mail::assertQueued(PlayerSearchOpened::class, fn (PlayerSearchOpened $m) => $m->hasTo('member53@example.com'));
@@ -174,7 +185,7 @@ class PlayerExchangeMailTest extends TestCase
         $booking = $this->searchingBooking($owner, 4, 3, $square);
         $search = PlayerSearch::where('bid', $booking->bid)->sole();
 
-        $mail = new PlayerSearchOpened($search, $anna);
+        $mail = new PlayerSearchOpened($search, $anna, 3);
         $this->assertInstanceOf(ShouldQueue::class, $mail);
 
         $subject = $mail->envelope()->subject;
@@ -191,8 +202,71 @@ class PlayerExchangeMailTest extends TestCase
         $this->assertStringContainsString(e($this->exchange()->unsubscribeUrl($anna)), $html);
         $this->assertStringContainsString(e(__('booking.mail.player_search.greeting', ['name' => 'Anna'])), $html);
         $this->assertStringNotContainsString('player_search.', $html, 'no untranslated keys');
+        $this->assertStringNotContainsString('booking.mail.', $html, 'no untranslated keys');
 
         $this->assertEquals(app(SystemMailSender::class)->replyTo(SystemMailSender::SCOPE_BOOKING), $mail->envelope()->replyTo);
+    }
+
+    #[Test]
+    public function the_job_counts_the_open_places_once_and_the_mails_render_without_asking_again(): void
+    {
+        $this->configureMail();
+        $owner = $this->member('owner@example.com', 'Olga Owner');
+        foreach (['anna', 'bert', 'carl'] as $name) {
+            $this->member($name.'@example.com', ucfirst($name));
+        }
+        $search = PlayerSearch::where('bid', $this->searchingBooking($owner, 4, 3)->bid)->sole();
+
+        $signupQueries = 0;
+        DB::listen(function (QueryExecuted $q) use (&$signupQueries): void {
+            if (str_contains($q->sql, 'player_exchange_signups')) {
+                $signupQueries++;
+            }
+        });
+        $this->runJob($search->id);
+        Mail::assertQueued(PlayerSearchOpened::class, 3);
+        Mail::queued(PlayerSearchOpened::class)->each(function (PlayerSearchOpened $m): void {
+            $this->assertSame(3, $m->remaining);
+            $m->render();
+        });
+
+        $this->assertSame(1, $signupQueries, 'one count for the whole job, none per recipient');
+    }
+
+    #[Test]
+    public function mail_dates_follow_the_app_locale(): void
+    {
+        $owner = $this->member('owner@example.com', 'Olga Owner');
+        $anna = $this->member('anna@example.com', 'Anna');
+        $search = PlayerSearch::where('bid', $this->searchingBooking($owner)->bid)->sole();
+
+        App::setLocale('en');
+        $mail = new PlayerSearchOpened($search, $anna, 2);
+        $this->assertStringContainsString('November 8, 2026', $mail->envelope()->subject);
+        $html = $mail->render();
+        $this->assertStringContainsString('Sunday, November 8, 2026', $html);
+        $this->assertStringNotContainsString('8. November', $html);
+
+        App::setLocale('de');
+        $mail = new PlayerSearchOpened($search, $anna, 2);
+        $this->assertStringContainsString('8. November 2026', $mail->envelope()->subject);
+        $this->assertStringContainsString('Sonntag, 8. November 2026', $mail->render());
+    }
+
+    #[Test]
+    public function a_blocked_owner_gets_no_joined_mail(): void
+    {
+        $this->configureMail();
+        $owner = $this->member('owner@example.com', 'Olga Owner');
+        $booking = $this->searchingBooking($owner, 4, 2);
+        $this->runDeferredJobs();
+        // Spec rule 1: mails only go to active accounts; a blocked account drops out.
+        $owner->update(['status' => 'blocked']);
+
+        $this->exchange()->join($this->member('max@example.com', 'Max Muster'), $booking);
+        $this->runDeferredJobs();
+
+        Mail::assertNotQueued(PlayerSearchJoined::class);
     }
 
     #[Test]
@@ -203,7 +277,7 @@ class PlayerExchangeMailTest extends TestCase
         $booking = $this->searchingBooking($owner);
         $search = PlayerSearch::where('bid', $booking->bid)->sole();
 
-        $html = (new PlayerSearchOpened($search, $anna))->render();
+        $html = (new PlayerSearchOpened($search, $anna, $search->remaining()))->render();
         $this->assertSame(1, preg_match('#href="([^"]*/player-exchange/unsubscribe/[^"]*)"#', $html, $m));
 
         $this->get(html_entity_decode($m[1]))->assertOk();
@@ -303,6 +377,7 @@ class PlayerExchangeMailTest extends TestCase
             $this->assertStringContainsString(e(__('booking.mail.player_search.greeting', ['name' => 'Olga Owner'])), $html);
             $this->assertStringContainsString('10:00', $html);
             $this->assertStringNotContainsString('player_search.', $html);
+            $this->assertStringNotContainsString('booking.mail.', $html);
 
             $cancelled = new PlayerSearchBookingCancelled($search, $max);
             $this->assertInstanceOf(ShouldQueue::class, $cancelled);
@@ -313,6 +388,7 @@ class PlayerExchangeMailTest extends TestCase
             $this->assertStringContainsString(e(__('booking.mail.player_search.greeting', ['name' => 'Max Muster'])), $html);
             $this->assertStringContainsString('10:00', $html);
             $this->assertStringNotContainsString('player_search.', $html);
+            $this->assertStringNotContainsString('booking.mail.', $html);
         }
     }
 }

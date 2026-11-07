@@ -63,6 +63,9 @@ return [
             'cancelled_subheading' => 'The match will not take place.',
             'cancelled_body' => 'the booking you signed up for as a player was cancelled. You are no longer listed there.',
             'auto_footer' => 'This e-mail was created automatically.',
+            // ISO date formats (Carbon isoFormat) of the slot table and the subject.
+            'date_format' => 'dddd, MMMM D, Y',
+            'subject_date_format' => 'MMMM D, Y',
         ],
     ],
 ];

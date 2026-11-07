@@ -587,11 +587,13 @@ final class PlayerExchangeService
     /**
      * Mail the booker about the new signup. Called after the join transaction has
      * committed; the mail goes out after the response, so a slow or broken mail server
-     * never holds a lock or fails the join.
+     * never holds a lock or fails the join. A blocked or deactivated booker gets no mail
+     * (spec rule 1: exchange mails only go to active accounts).
      */
     private function notifyOwnerJoined(PlayerSearch $search, User $joiner): void
     {
-        $email = (string) $search->booking()->with('user')->first()?->user?->email;
+        $owner = $search->booking()->with('user')->first()?->user;
+        $email = $owner?->isEnabled() ? (string) $owner->email : '';
         if ($email === '' || ! app(BookingService::class)->isMailConfigured()) {
             return;
         }

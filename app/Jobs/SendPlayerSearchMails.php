@@ -40,11 +40,15 @@ final class SendPlayerSearchMails implements ShouldQueue
             return;
         }
 
+        // Counted once for every recipient; booking, court and reservations are shared too.
+        $remaining = $search->remaining();
+        $search->booking->loadMissing(['reservations', 'square']);
+
         $exchange->recipientsQuery(exclude: $search->booking->user)
-            ->chunkById(self::CHUNK_SIZE, function (Collection $recipients) use ($search): void {
+            ->chunkById(self::CHUNK_SIZE, function (Collection $recipients) use ($search, $remaining): void {
                 foreach ($recipients as $recipient) {
                     try {
-                        Mail::to($recipient->email)->send(new PlayerSearchOpened($search, $recipient));
+                        Mail::to($recipient->email)->send(new PlayerSearchOpened($search, $recipient, $remaining));
                     } catch (\Throwable $e) {
                         // One broken address must not stop the mails to the others.
                         report($e);

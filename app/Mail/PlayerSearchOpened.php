@@ -20,9 +20,14 @@ class PlayerSearchOpened extends Mailable implements ShouldQueue
 {
     use DescribesPlayerSearch, Queueable, SerializesModels;
 
+    /**
+     * @param  int  $remaining  places still searched, counted once by the sending job for all
+     *                          recipients (no query per mail)
+     */
     public function __construct(
         public readonly PlayerSearch $search,
         public readonly User $recipient,
+        public readonly int $remaining,
     ) {}
 
     public function envelope(): Envelope
@@ -40,7 +45,7 @@ class PlayerSearchOpened extends Mailable implements ShouldQueue
             with: [
                 ...$this->slot(static::snapshotSlot($this->search)),
                 'recipient' => $this->recipient,
-                'remaining' => $this->search->remaining(),
+                'remaining' => $this->remaining,
                 'unsubscribeUrl' => app(PlayerExchangeService::class)->unsubscribeUrl($this->recipient),
             ],
         );
