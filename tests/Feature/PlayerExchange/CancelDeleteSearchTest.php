@@ -226,6 +226,39 @@ class CancelDeleteSearchTest extends TestCase
     }
 
     #[Test]
+    public function an_admin_cancelling_a_lapsed_booking_is_told_it_is_already_cancelled(): void
+    {
+        $booking = $this->searchingBooking(2, 1);
+        Carbon::setTestNow(Carbon::parse('2026-11-08 09:00:00'));
+        $this->assertSame(1, $this->exchange()->lapseExpired());
+
+        $this->actingAs($this->admin())
+            ->post(route('admin.bookings.cancel', $booking))
+            ->assertRedirect(route('admin.bookings.index'))
+            ->assertSessionHas('error', __('booking.messages.booking_already_cancelled'))
+            ->assertSessionMissing('success');
+
+        $this->app->terminate();
+        Mail::assertQueued(PlayerSearchExpired::class, 1);
+        Mail::assertNotQueued(BookingCancelled::class);
+    }
+
+    #[Test]
+    public function the_lapse_after_a_cancel_lifts_nothing_and_mails_no_expiry(): void
+    {
+        $booking = $this->searchingBooking(2, 1);
+        $this->assertTrue($this->service()->cancelSingle($booking->fresh()));
+
+        Carbon::setTestNow(Carbon::parse('2026-11-08 09:00:00'));
+        $this->assertSame(0, $this->exchange()->lapseExpired());
+        $this->app->terminate();
+
+        $this->assertSame(PlayerSearch::CANCELLED, PlayerSearch::query()->sole()->status);
+        Mail::assertNotQueued(PlayerSearchExpired::class);
+        Mail::assertQueued(BookingCancelled::class, 1);
+    }
+
+    #[Test]
     public function a_cancelled_booking_whose_search_was_missed_still_tells_the_joined_players_once(): void
     {
         // Legacy state: the booking was cancelled without the exchange noticing.

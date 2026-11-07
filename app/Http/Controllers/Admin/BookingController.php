@@ -238,18 +238,26 @@ final class BookingController extends Controller
     public function cancel(Request $request, Booking $booking): RedirectResponse|Response
     {
         [$occurrenceDate, $scope] = $this->resolveOccurrenceScope($request);
-        $this->bookingService->cancelSingle($booking, $occurrenceDate, $scope);
+        // False: the booking was already cancelled (e.g. lapsed by its player search meanwhile).
+        [$flashKey, $flashText] = $this->bookingService->cancelSingle($booking, $occurrenceDate, $scope)
+            ? ['success', __('booking.messages.booking_cancelled')]
+            : ['error', __('booking.messages.booking_already_cancelled')];
 
         if ($request->boolean('popup')) {
+            if ($flashKey === 'error') {
+                // The reloaded page shows it.
+                $request->session()->flash($flashKey, $flashText);
+            }
+
             return response('<script>window.parent.location.reload();</script>')->header('Content-Type', 'text/html');
         }
 
         $redirectTo = $request->string('redirect_to')->trim()->value();
         if ($redirectTo !== '') {
-            return redirect()->to($redirectTo)->with('success', __('booking.messages.booking_cancelled'));
+            return redirect()->to($redirectTo)->with($flashKey, $flashText);
         }
 
-        return redirect()->route('admin.bookings.index')->with('success', __('booking.messages.booking_cancelled'));
+        return redirect()->route('admin.bookings.index')->with($flashKey, $flashText);
     }
 
     public function destroy(Request $request, Booking $booking): RedirectResponse|Response
