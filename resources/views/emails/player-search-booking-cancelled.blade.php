@@ -9,7 +9,7 @@
   <h1>{{ __('booking.mail.player_search.cancelled_heading') }}</h1>
   <p class="sub">{{ __('booking.mail.player_search.cancelled_subheading') }}</p>
 
-  <p>{{ __('booking.mail.player_search.greeting', ['name' => $player->alias]) }}<br>
+  <p>{{ __('booking.mail.player_search.greeting', ['name' => $greetingName]) }}<br>
   {{ __('booking.mail.player_search.cancelled_body') }}</p>
 
   @include('emails.partials.player-search-slot')

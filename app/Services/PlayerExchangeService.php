@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Exceptions\PlayerExchangeException;
+use App\Mail\PlayerSearchBookingCancelled;
+use App\Mail\PlayerSearchExpired;
 use App\Mail\PlayerSearchJoined;
 use App\Models\Booking;
 use App\Models\PlayerSearch;
@@ -14,6 +16,7 @@ use App\Models\User;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Mail\Mailable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -225,6 +228,130 @@ final class PlayerExchangeService
 
             $search->update(['status' => PlayerSearch::ENDED]);
         }, self::TRANSACTION_ATTEMPTS);
+    }
+
+    /**
+     * Verfall: every open search whose deadline (one hour before the start) has passed.
+     * Without signups the booking is cancelled on the normal cancel path (no cancel mail to
+     * the booker, he gets the "search expired" mail instead) and the search is lapsed; with
+     * signups only the search ends, the booking stays and nobody is mailed.
+     *
+     * Each booking is handled in its own transaction under its row lock, the same mutex as
+     * join/leave/cancel, and the search status is checked again under that lock: running it
+     * twice or in parallel with a join changes nothing more and never mails twice. A failure
+     * on one booking is reported and does not stop the others.
+     *
+     * @return int number of bookings that lapsed (were cancelled)
+     */
+    public function lapseExpired(?int $onlyBid = null): int
+    {
+        $bids = PlayerSearch::query()
+            ->where('status', PlayerSearch::OPEN)
+            ->where('ends_at', '<=', Carbon::now())
+            ->when($onlyBid !== null, fn ($q) => $q->where('bid', $onlyBid))
+            ->orderBy('ends_at')
+            ->pluck('bid');
+
+        $lapsed = 0;
+        foreach ($bids as $bid) {
+            try {
+                if ($this->lapseOne((int) $bid)) {
+                    $lapsed++;
+                }
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
+
+        return $lapsed;
+    }
+
+    /**
+     * The booker cancelled the booking (called by BookingService::cancelSingle inside its
+     * transaction, after the booking row is locked): a live search is cancelled and every
+     * joined player is told, also one who has left the exchange since. Lapsed or already
+     * cancelled searches are left alone, so no mail goes out twice.
+     */
+    public function onBookingCancelled(Booking $booking): void
+    {
+        $search = PlayerSearch::query()->where('bid', $booking->bid)->first();
+        if ($search === null || ! in_array($search->status, [PlayerSearch::OPEN, PlayerSearch::FILLED, PlayerSearch::ENDED], true)) {
+            return;
+        }
+
+        $signups = $search->signups()->with('user')->get();
+        $search->update(['status' => PlayerSearch::CANCELLED]);
+        $search->setRelation('booking', $booking);
+
+        foreach ($signups as $signup) {
+            if ($signup->user !== null) {
+                $this->mailAfterCommit((string) $signup->user->email, new PlayerSearchBookingCancelled($search, $signup->user));
+            }
+        }
+    }
+
+    /** One booking of lapseExpired; true when the booking was cancelled. */
+    private function lapseOne(int $bid): bool
+    {
+        return DB::transaction(function () use ($bid): bool {
+            // Locking read first: the plain reads below then see every committed join, leave or cancel.
+            $locked = Booking::query()->whereKey($bid)->lockForUpdate()->first();
+            $search = PlayerSearch::query()->where('bid', $bid)->first();
+
+            if ($search === null || $search->status !== PlayerSearch::OPEN || Carbon::now()->lessThan($search->ends_at)) {
+                return false;
+            }
+            if ($locked === null || ! in_array($locked->status, Booking::ACTIVE_STATUSES, true)) {
+                // The booking is gone or was cancelled without the exchange noticing: close the search quietly.
+                $search->update(['status' => PlayerSearch::CANCELLED]);
+
+                return false;
+            }
+            if ($search->signups()->exists()) {
+                $search->update(['status' => PlayerSearch::ENDED]);
+
+                return false;
+            }
+
+            $search->update(['status' => PlayerSearch::LAPSED]);
+            app(BookingService::class)->cancelSingle($locked, notifyOwner: false);
+
+            $locked->loadMissing('user');
+            $search->setRelation('booking', $locked);
+            $this->mailAfterCommit((string) $locked->user?->email, new PlayerSearchExpired($search));
+
+            return true;
+        }, self::TRANSACTION_ATTEMPTS);
+    }
+
+    /**
+     * Send the mail once the surrounding transaction has committed (nothing is sent for a
+     * rolled back attempt). In a web request it goes out after the response; in the
+     * console (scheduler) right away. The mail carries plain values only, so it renders
+     * even if a worker picks it up after its rows are gone. Mail errors are reported and
+     * never undo the change.
+     */
+    private function mailAfterCommit(string $email, Mailable $mail): void
+    {
+        if ($email === '' || ! app(BookingService::class)->isMailConfigured()) {
+            return;
+        }
+
+        DB::afterCommit(function () use ($email, $mail): void {
+            $send = static function () use ($email, $mail): void {
+                try {
+                    Mail::to($email)->send($mail);
+                } catch (\Throwable $e) {
+                    report($e);
+                }
+            };
+
+            if (app()->runningInConsole()) {
+                $send();
+            } else {
+                dispatch($send)->afterResponse();
+            }
+        });
     }
 
     /**

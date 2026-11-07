@@ -563,17 +563,31 @@ final class BookingService
         });
     }
 
-    public function cancelSingle(Booking $booking, ?string $occurrenceDate = null, string $scope = 'single_occurrence'): void
+    /**
+     * Cancel the booking (or one occurrence of a subscription). A player search of the booking
+     * is cancelled with it and its joined players are mailed. $notifyOwner false skips the
+     * cancel confirmation to the booker (the lapse of a player search mails him itself).
+     */
+    public function cancelSingle(Booking $booking, ?string $occurrenceDate = null, string $scope = 'single_occurrence', bool $notifyOwner = true): void
     {
         $target = DB::transaction(function () use ($booking, $occurrenceDate, $scope): Booking {
+            // Booking row lock first: the same mutex as joins and the lapse of its player search.
+            Booking::query()->whereKey($booking->bid)->lockForUpdate()->first();
+
             $target = $this->splitForScope($booking, $occurrenceDate, $scope);
             $target->update([
                 'status' => 'cancelled',
                 'status_billing' => 'cancelled',
             ]);
 
+            app(PlayerExchangeService::class)->onBookingCancelled($target);
+
             return $target;
         });
+
+        if (! $notifyOwner) {
+            return;
+        }
 
         $target->loadMissing('user');
 

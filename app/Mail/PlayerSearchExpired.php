@@ -11,34 +11,46 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
-use Illuminate\Queue\SerializesModels;
 
-/** Mail to the booker: nobody joined in time, the booking was lifted and the court is free again. */
+/**
+ * Mail to the booker: nobody joined in time, the booking was lifted and the court is free again.
+ *
+ * Holds only plain values taken when the search lapsed, so a queue worker can render it even
+ * after the search, booking or member rows are gone (no model is restored on unserialize).
+ */
 class PlayerSearchExpired extends Mailable implements ShouldQueue
 {
-    use DescribesPlayerSearch, Queueable, SerializesModels;
+    use DescribesPlayerSearch, Queueable;
 
-    public function __construct(
-        public readonly PlayerSearch $search,
-    ) {}
+    public readonly int $searchId;
+
+    /** @var array{bid: int, court: string|null, date: string|null, timeStart: string|null, timeEnd: string|null} */
+    public readonly array $details;
+
+    public readonly ?string $greetingName;
+
+    public function __construct(PlayerSearch $search)
+    {
+        $this->searchId = (int) $search->id;
+        $this->details = static::snapshotSlot($search);
+        $this->greetingName = $search->booking?->user?->alias;
+    }
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: __('booking.mail.player_search.expired_subject', ['title' => $this->slotTitle()]),
+            subject: __('booking.mail.player_search.expired_subject', ['title' => $this->slotTitle($this->details)]),
             replyTo: $this->bookingReplyTo(),
         );
     }
 
     public function content(): Content
     {
-        $slot = $this->slot();
-
         return new Content(
             view: 'emails.player-search-expired',
             with: [
-                ...$slot,
-                'user' => $slot['booking']?->user,
+                ...$this->slot($this->details),
+                'greetingName' => $this->greetingName,
             ],
         );
     }

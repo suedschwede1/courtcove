@@ -8,10 +8,12 @@ use App\Models\Event;
 use App\Models\Reservation;
 use App\Models\Square;
 use App\Models\User;
+use App\Services\PlayerExchangeService;
 use App\Services\ReservationService;
 use App\Support\Calendar\EventKind;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 /**
@@ -29,6 +31,23 @@ final class CalendarController extends Controller
     ) {}
 
     /**
+     * Lazy Verfall check, so an expired search is never shown as joinable even when the
+     * scheduler did not run; at most once a minute across all requests. Never breaks the calendar.
+     */
+    private function lapseExpiredSearches(): void
+    {
+        if (! Cache::add('player-exchange.lapse', 1, 60)) {
+            return;
+        }
+
+        try {
+            app(PlayerExchangeService::class)->lapseExpired();
+        } catch (\Throwable $e) {
+            report($e);
+        }
+    }
+
+    /**
      * Render the responsive calendar data window for all courts.
      *
      * @param  Request  $request  Accepts optional ?date=YYYY-MM-DD query parameter; defaults to today
@@ -37,6 +56,8 @@ final class CalendarController extends Controller
     public function index(Request $request): View
     {
         Carbon::setLocale(app()->getLocale());
+
+        $this->lapseExpiredSearches();
 
         $dateInput = (string) $request->input('date');
         $date = Carbon::today();

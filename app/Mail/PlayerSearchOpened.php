@@ -28,7 +28,7 @@ class PlayerSearchOpened extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: __('booking.mail.player_search.opened_subject', ['title' => $this->slotTitle()]),
+            subject: __('booking.mail.player_search.opened_subject', ['title' => $this->slotTitle(static::snapshotSlot($this->search))]),
             replyTo: $this->bookingReplyTo(),
         );
     }
@@ -38,7 +38,7 @@ class PlayerSearchOpened extends Mailable implements ShouldQueue
         return new Content(
             view: 'emails.player-search-opened',
             with: [
-                ...$this->slot(),
+                ...$this->slot(static::snapshotSlot($this->search)),
                 'recipient' => $this->recipient,
                 'remaining' => $this->search->remaining(),
                 'unsubscribeUrl' => app(PlayerExchangeService::class)->unsubscribeUrl($this->recipient),

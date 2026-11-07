@@ -32,7 +32,7 @@ class PlayerSearchJoined extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: __('booking.mail.player_search.joined_subject', ['title' => $this->slotTitle()]),
+            subject: __('booking.mail.player_search.joined_subject', ['title' => $this->slotTitle(static::snapshotSlot($this->search))]),
             replyTo: $this->bookingReplyTo(),
         );
     }
@@ -42,7 +42,8 @@ class PlayerSearchJoined extends Mailable implements ShouldQueue
         return new Content(
             view: 'emails.player-search-joined',
             with: [
-                ...$this->slot(),
+                ...$this->slot(static::snapshotSlot($this->search)),
+                'booking' => $this->search->booking?->loadMissing('user'),
                 'joiner' => $this->joiner,
                 'remaining' => $this->remaining,
             ],

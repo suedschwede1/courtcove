@@ -9,8 +9,8 @@
   <h1>{{ __('booking.mail.player_search.expired_heading') }}</h1>
   <p class="sub">{{ __('booking.mail.player_search.expired_subheading') }}</p>
 
-  @if($user)
-  <p>{{ __('booking.mail.player_search.greeting', ['name' => $user->alias]) }}<br>
+  @if($greetingName)
+  <p>{{ __('booking.mail.player_search.greeting', ['name' => $greetingName]) }}<br>
   {{ __('booking.mail.player_search.expired_body') }}</p>
   @endif
 
