@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-07
+- Tests: the calendar query-count test sets the once-a-minute player search lapse as done before counting, so it again compares only the queries per booking (no production change).
 - Player exchange Verfall runs from the one scheduler task list: "Geplante Aufgaben" now lists "Mitspielersuchen ablaufen lassen" (every 5 minutes, de/en title and description) with next run, last result and "Jetzt ausführen"; the separate schedule entry in routes/console.php is gone.
 - Mixed-/Fun-Turnier: members have a read-only event list (/mixed-tournament/events, sidebar "Veranstaltungen") that stays reachable while a default event is set (the module start still opens the default event); "Zur Liste" on member event, round and standings pages and on the info page leads there instead of the admin list, which showed the "Admin-Modus einschalten" page.
 
