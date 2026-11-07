@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Exceptions\BookingValidationException;
+use App\Exceptions\PlayerExchangeException;
+use App\Jobs\SendPlayerSearchMails;
 use App\Mail\BookingCancelled;
 use App\Mail\BookingConfirmed;
 use App\Models\Booking;
@@ -333,6 +335,11 @@ final class BookingService
         string $scope,
     ): Booking {
         return DB::transaction(function () use ($booking, $data, $owner, $occurrenceStarts, $durationSeconds, $occurrenceDate, $scope): Booking {
+            // Booking row lock first, the mutex of join, leave, lapse and the owner edit; then
+            // the current state (a lapse or cancel may have won the lock since the form loaded).
+            Booking::query()->whereKey($booking->bid)->lockForUpdate()->first();
+            $booking->refresh();
+
             $targetBooking = $this->splitForScope($booking, $occurrenceDate, $scope);
 
             // A cancelled booking stays cancelled (only the cancel action sets that) and holds no slot to check.
@@ -345,6 +352,32 @@ final class BookingService
                 if ($conflictError !== null) {
                     throw new BookingValidationException($conflictError);
                 }
+            }
+
+            $exchange = app(PlayerExchangeService::class);
+            $search = $isCancelled ? null : $exchange->searchBindingAdminEdit($targetBooking);
+            if ($search !== null) {
+                // A player search binds the booking: time, repeat and booker stay, joined members
+                // keep their places; court, own partners and quantity may change.
+                $slots = array_map(fn (Carbon $s): array => [
+                    $s->format('Y-m-d'), $s->format('H:i:s'), $s->copy()->addSeconds($durationSeconds)->format('H:i:s'),
+                ], $occurrenceStarts);
+                sort($slots);
+
+                try {
+                    $exchange->applyAdminEdit(
+                        $targetBooking->load(['reservations', 'meta']), $search, (int) $owner['uid'], $slots,
+                        (int) $data['quantity'], $data['player_names'] ?? [2 => $data['mitspieler'] ?? null],
+                    );
+                } catch (PlayerExchangeException $e) {
+                    throw new BookingValidationException($e->getMessage());
+                }
+
+                $targetBooking->update(['sid' => (int) $data['sid']]);
+                $this->syncBookingMeta($targetBooking, 'owner-name', $owner['ownerName']);
+                $this->syncBookingMeta($targetBooking, 'admin-note', $data['admin_note'] ?? null);
+
+                return $targetBooking->fresh(['reservations', 'meta']);
             }
 
             $effectiveStatus = $isCancelled
@@ -411,6 +444,9 @@ final class BookingService
         $booking->meta()->create(['key' => $key, 'value' => $normalized]);
     }
 
+    /** Deadlocks and lock wait timeouts of an owner edit are retried this often. */
+    private const TRANSACTION_ATTEMPTS = 3;
+
     public function createSingle(
         User $user,
         Square $square,
@@ -418,15 +454,27 @@ final class BookingService
         Carbon $dateStart,
         Carbon $dateEnd,
         array $meta = [],
+        int $searchPlayers = 0,
     ): Booking {
         $dateEnd = $this->normalizeBookableEnd($square, $dateStart, $dateEnd);
         $this->assertSingleBookingIsValid($user, $square, $quantity, $dateStart, $dateEnd);
 
-        $booking = DB::transaction(function () use ($user, $square, $quantity, $dateStart, $dateEnd, $meta): Booking {
+        $searchId = null;
+        $booking = DB::transaction(function () use ($user, $square, $quantity, $dateStart, $dateEnd, $meta, $searchPlayers, &$searchId): Booking {
             // Serialize concurrent bookings on this square (row lock as mutex),
             // then re-check the slot so two parallel requests cannot both book it.
+            // The member row next (same mutex as a join of this member, lock order court/booking
+            // row, then member row), before any plain read: the check below then sees a join
+            // that committed while this booking waited.
             Square::query()->whereKey($square->sid)->lockForUpdate()->get();
+            $availability = app(MemberAvailability::class);
+            $availability->lockMember($user);
             $this->assertSingleBookingIsValid($user, $square, $quantity, $dateStart, $dateEnd);
+
+            // A member who joined a player search at that time already plays (PX-02).
+            if ($availability->joinedAt($user, $dateStart, $dateEnd)) {
+                throw new BookingValidationException(__('booking.messages.player_exchange.booking_busy'));
+            }
 
             $booking = Booking::create([
                 'uid' => $user->uid,
@@ -449,7 +497,17 @@ final class BookingService
                 $booking->meta()->create($entry);
             }
 
-            return $booking->load('reservations', 'meta');
+            $booking->load('reservations', 'meta');
+
+            if ($searchPlayers > 0) {
+                try {
+                    $searchId = app(PlayerExchangeService::class)->openSearch($booking, $searchPlayers)->id;
+                } catch (PlayerExchangeException $e) {
+                    throw new BookingValidationException($e->getMessage());
+                }
+            }
+
+            return $booking;
         });
 
         if (! empty($user->email) && $this->isMailConfigured()) {
@@ -461,6 +519,11 @@ final class BookingService
                     // Mail errors must not affect the response already sent
                 }
             })->afterResponse();
+        }
+
+        // The exchange mails go out after the response, outside the booking transaction.
+        if ($searchId !== null && $this->isMailConfigured()) {
+            dispatch(new SendPlayerSearchMails($searchId))->afterResponse();
         }
 
         return $booking;
@@ -519,7 +582,20 @@ final class BookingService
         $booking->meta()->create($meta[0]);
     }
 
-    /** @param array<int, string|null> $playerNames */
+    /**
+     * The booker changes Einzel/Doppel and his partner names. Runs under the booking row lock,
+     * the same mutex as join, leave, ending and the lapse of a player search. Without a live
+     * search the names are replaced as they always were. With one, members who joined via the
+     * exchange keep their place and name, the typed names go to the free slots, and a quantity
+     * too small for typed partners plus joined members is refused (BookingValidationException),
+     * and so is an edit of a booking that was cancelled or lapsed before the lock was taken.
+     *
+     * The member form has one partner field (slot 2). Partners in slots 3/4 only come from the
+     * admin form; without a search they are replaced as before, with a search they are the
+     * booker's own names and the single field replaces them too (joined members stay).
+     *
+     * @param  array<int, string|null>  $playerNames
+     */
     public function updateSinglePlayers(Booking $booking, User $user, int $quantity, array $playerNames): void
     {
         $booking->loadMissing(['square', 'reservations']);
@@ -539,22 +615,97 @@ final class BookingService
         $this->assertSingleBookingIsValid($user, $square, $quantity, $dateStart, $dateEnd, (int) $booking->bid);
 
         DB::transaction(function () use ($booking, $quantity, $playerNames): void {
-            $booking->update(['quantity' => $quantity]);
-            $this->syncPlayerMeta($booking, $playerNames);
-        });
+            // Booking row lock first, before any plain read: the checks below then see every
+            // join or leave that committed while this edit waited for the lock.
+            $locked = Booking::query()->whereKey($booking->bid)->lockForUpdate()->first();
+
+            // The caller checked a snapshot: the lapse or a cancel may have won the lock since.
+            if ($locked === null || ! in_array($locked->status, Booking::ACTIVE_STATUSES, true)) {
+                throw new BookingValidationException(__('booking.messages.booking_not_editable'));
+            }
+
+            $exchange = app(PlayerExchangeService::class);
+            $search = $exchange->liveSearch($locked);
+
+            // Writes go to the row loaded in this attempt: after a retried deadlock the
+            // caller's model would believe the quantity is saved and write nothing.
+            if ($search === null) {
+                $locked->update(['quantity' => $quantity]);
+                $this->syncPlayerMeta($locked, $playerNames);
+
+                return;
+            }
+
+            ksort($playerNames);
+            $ownNames = array_values(array_filter(
+                array_map(fn ($name): string => trim((string) $name), $playerNames),
+                fn (string $name): bool => $name !== '',
+            ));
+
+            try {
+                $exchange->applyOwnerEdit($locked->load('meta'), $search, $quantity, $ownNames);
+            } catch (PlayerExchangeException $e) {
+                throw new BookingValidationException($e->getMessage());
+            }
+
+        }, self::TRANSACTION_ATTEMPTS);
+
+        $booking->setAttribute('quantity', $quantity)->syncOriginalAttribute('quantity');
     }
 
-    public function cancelSingle(Booking $booking, ?string $occurrenceDate = null, string $scope = 'single_occurrence'): void
+    /**
+     * Cancel the booking (or one occurrence of a subscription). A player search of the booking
+     * is cancelled with it and its joined players are mailed. $notifyOwner false skips the
+     * cancel confirmation to the booker (the lapse of a player search mails him itself).
+     *
+     * Decided on the locked booking row, not on the copy the caller loaded before the lock: a
+     * booking that is gone or already cancelled (by the lapse of its search or a parallel
+     * cancel) stays as it is and nobody gets a cancel mail again.
+     *
+     * @return bool true when this call cancelled the booking (or the occurrence)
+     */
+    public function cancelSingle(Booking $booking, ?string $occurrenceDate = null, string $scope = 'single_occurrence', bool $notifyOwner = true): bool
     {
-        $target = DB::transaction(function () use ($booking, $occurrenceDate, $scope): Booking {
-            $target = $this->splitForScope($booking, $occurrenceDate, $scope);
+        $target = DB::transaction(function () use ($booking, $occurrenceDate, $scope): ?Booking {
+            // Booking row lock first: the same mutex as joins and the lapse of its player search.
+            $locked = Booking::query()->whereKey($booking->bid)->lockForUpdate()->first();
+            if ($locked === null) {
+                return null;
+            }
+
+            $exchange = app(PlayerExchangeService::class);
+            if (! in_array($locked->status, Booking::ACTIVE_STATUSES, true)) {
+                // Already cancelled. A live search the exchange missed is still closed and its
+                // players are told (once: a closed search is left alone).
+                $exchange->onBookingCancelled($locked);
+
+                return null;
+            }
+
+            $target = $this->splitForScope($locked, $occurrenceDate, $scope);
             $target->update([
                 'status' => 'cancelled',
                 'status_billing' => 'cancelled',
             ]);
 
+            // A subscription never carries a search (openSearch refuses it), so the split-off
+            // occurrence is the booking to look at; the rest of the series keeps running.
+            $exchange->onBookingCancelled($target);
+
             return $target;
         });
+
+        if ($target === null) {
+            return false;
+        }
+        if ((int) $target->bid === (int) $booking->bid) {
+            // The caller's copy shows the cancel, as before.
+            $booking->setRawAttributes($target->getAttributes(), true);
+        }
+
+        if (! $notifyOwner) {
+            return true;
+        }
 
         $target->loadMissing('user');
 
@@ -568,6 +719,8 @@ final class BookingService
                 }
             })->afterResponse();
         }
+
+        return true;
     }
 
     public function canUserCancelSingle(User $user, Booking $booking): bool
@@ -598,10 +751,22 @@ final class BookingService
         return $reservationStart->greaterThan(Carbon::now()->addSeconds($cancelRange));
     }
 
+    /**
+     * Delete the booking (or one occurrence of a subscription) for good. Its player search goes
+     * with it in the same transaction: a live search tells its joined players like a cancel
+     * does, then the search and signup rows are removed, so nothing is left behind.
+     */
     public function deleteSingle(Booking $booking, ?string $occurrenceDate = null, string $scope = 'single_occurrence'): void
     {
         DB::transaction(function () use ($booking, $occurrenceDate, $scope): void {
-            $target = $this->splitForScope($booking, $occurrenceDate, $scope);
+            // Booking row lock first: the same mutex as joins, cancels and the lapse of its search.
+            $locked = Booking::query()->whereKey($booking->bid)->lockForUpdate()->first();
+            if ($locked === null) {
+                return;
+            }
+
+            $target = $this->splitForScope($locked, $occurrenceDate, $scope);
+            app(PlayerExchangeService::class)->onBookingDeleted($target);
             $target->loadMissing(['meta', 'bills', 'reservations.meta']);
 
             foreach ($target->reservations as $reservation) {
@@ -773,7 +938,8 @@ final class BookingService
         return $dateStart->copy()->addSeconds($minimumSeconds);
     }
 
-    private function isMailConfigured(): bool
+    /** Whether a real SMTP mailer is configured; without it no booking or exchange mail is sent. */
+    public function isMailConfigured(): bool
     {
         $mailer = config('mail.default', 'log');
         if ($mailer === 'log' || $mailer === 'array') {

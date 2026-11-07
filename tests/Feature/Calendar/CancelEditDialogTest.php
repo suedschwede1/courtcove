@@ -61,7 +61,7 @@ class CancelEditDialogTest extends TestCase
         $this->assertStringContainsString(__('booking.modal.cancel_message'), $dialog->textContent);
 
         $buttons = $x->query('//div[@id="cancel-dialog"]//div[contains(@class,"ds-modal__actions")]//button');
-        $this->assertSame(3, $buttons->length);
+        $this->assertSame(4, $buttons->length);
 
         $edit = $buttons->item(0);
         $this->assertStringContainsString('ds-btn--secondary', $edit->getAttribute('class'));
@@ -73,9 +73,9 @@ class CancelEditDialogTest extends TestCase
         $this->assertSame('DELETE', $this->node($x, '//div[@id="cancel-dialog"]//form//input[@name="_method"]')->getAttribute('value'));
         $danger = $this->node($x, '//div[@id="cancel-dialog"]//form//button[@type="submit"][contains(@class,"ds-btn--danger")]');
         $this->assertSame(__('booking.modal.cancel_booking'), trim($danger->textContent));
-        $this->assertTrue($danger->isSameNode($buttons->item(1)));
+        $this->assertTrue($danger->isSameNode($buttons->item(2)));
 
-        $dismiss = $buttons->item(2);
+        $dismiss = $buttons->item(3);
         $this->assertStringContainsString('ds-modal__dismiss', $dismiss->getAttribute('class'));
         $this->assertSame(__('booking.modal.cancel'), trim($dismiss->textContent));
     }

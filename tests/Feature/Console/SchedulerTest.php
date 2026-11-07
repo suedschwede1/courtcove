@@ -36,7 +36,7 @@ class SchedulerTest extends TestCase
     #[Test]
     public function the_schedule_has_the_housekeeping_tasks_with_names_and_no_overlapping(): void
     {
-        $this->assertSame(['scheduler-heartbeat', 'scheduler-prune-runs', 'sanctum-prune-expired', 'auth-clear-resets'], $this->names());
+        $this->assertSame(['scheduler-heartbeat', 'scheduler-prune-runs', 'sanctum-prune-expired', 'auth-clear-resets', 'player-exchange-expire'], $this->names());
 
         foreach (ScheduleDefinition::events() as $event) {
             $this->assertTrue($event->withoutOverlapping, $event->description.' without overlapping');
@@ -46,6 +46,16 @@ class SchedulerTest extends TestCase
         foreach (['members:', 'users:split-role', 'booking:adopt-booking-rules', 'phase2:', 'import'] as $business) {
             $this->assertStringNotContainsString($business, $commands, 'business commands are never scheduled');
         }
+    }
+
+    #[Test]
+    public function the_player_search_expiry_runs_every_five_minutes(): void
+    {
+        $expire = ScheduleDefinition::find('player-exchange-expire');
+
+        $this->assertNotNull($expire);
+        $this->assertStringContainsString('player-exchange:expire', (string) $expire->command);
+        $this->assertSame('*/5 * * * *', $expire->getExpression());
     }
 
     #[Test]
@@ -122,15 +132,16 @@ class SchedulerTest extends TestCase
     #[Test]
     public function schedule_run_records_the_heartbeat_but_does_not_log_it(): void
     {
-        $this->travelTo(CarbonImmutable::parse('2026-11-07 10:00:05', 'Europe/Vienna'));
+        // Minute 1, not 0: other tasks (every five minutes) would fire at :00 and be logged.
+        $this->travelTo(CarbonImmutable::parse('2026-11-07 10:01:05', 'Europe/Vienna'));
 
         $this->artisan('schedule:run')->assertSuccessful();
 
-        $this->assertSame('2026-11-07 10:00:05', app(Heartbeat::class)->lastTick()?->format('Y-m-d H:i:s'));
+        $this->assertSame('2026-11-07 10:01:05', app(Heartbeat::class)->lastTick()?->format('Y-m-d H:i:s'));
         $this->assertSame(0, ScheduledTaskRun::query()->count(), 'a successful heartbeat is not logged');
         $this->assertSame(1, Option::query()->where('key', Heartbeat::OPTION)->count());
 
-        $this->travelTo(CarbonImmutable::parse('2026-11-07 10:01:05', 'Europe/Vienna'));
+        $this->travelTo(CarbonImmutable::parse('2026-11-07 10:02:05', 'Europe/Vienna'));
         $this->artisan('schedule:run')->assertSuccessful();
         $this->assertSame(1, Option::query()->where('key', Heartbeat::OPTION)->count(), 'one row, updated in place');
     }

@@ -55,6 +55,7 @@ Every color comes from a token. Light values are the default; dark values are de
 | `cell-free-line` | `#CFC5B5` | `#4A443D` | Dashed border of free calendar cells |
 | `cell-booked` | `#E6DFD3` | `#34302B` | Booked cells (other members, subscriptions) |
 | `cell-past-a` / `cell-past-b` | `#EDE8DF` / `#F7F4EE` | `#1F1C19` / `#252220` | Hatching of past cells |
+| `cell-seek` / `cell-seek-line` / `cell-seek-ink` | `#F6EEFB` / `#7B4FB0` / `#4A2A6B` | `#2A2036` / `#B48FE0` / `#E2D3F3` | Player search cells (fill, ring, text) |
 
 The PatternFly blue (`#0066cc`, `#2596be`) and the old green `#8BB243` are retired.
 
@@ -174,6 +175,7 @@ Tournament modules and admin sub-areas use tabs below the page title: `padding: 
 | Free | `surface`, `1px dashed cell-free-line` | none | `<a href>` with `aria-label` "Court A, 17:00 Uhr buchen" |
 | My booking (`cc-own`) | `clay` | `on-clay` | link to own booking / cancel dialog |
 | Booked / subscription (`cc-single-future`) | `cell-booked` | `ink` | span (link for admins) |
+| Player search (`cc-seeking`, someone else's booking) | `cell-seek` + `box-shadow: inset 0 0 0 1px cell-seek-line` | `cell-seek-ink`, extra line "Sucht noch N" | link: join dialog (in the player exchange), info dialog (other members), login (guests). An own booking with an open search stays `cc-own` and shows "Sucht noch N Mitspieler" |
 | Event | `court`, joined across hours | `on-court` | first hour 40px with `margin-bottom: -4px`, following hours plain `court` |
 | Tournament match (`cc-turnier`) | `court-soft` + `box-shadow: inset 0 0 0 1px court` | `court-ink` | span |
 | Past (`slot-cell--past`) | `repeating-linear-gradient(135deg, cell-past-a 0 4px, cell-past-b 4px 8px)` | none | span |
@@ -285,7 +287,7 @@ Forderungspyramide, Vereinsmeisterschaft, Mixed-/Fun-Turnier and Auslosung use t
 Replace the `--color-accent-*` scale, the Red Hat font tokens and the `--ui-*` block with the tokens above in the `@theme` block (`--color-clay`, `--color-court`, `--font-display`, `--font-body`, …). Replace the Red Hat `<link>` in `layouts/app.blade.php` with the Barlow link. Prefer token classes (`bg-clay`, `text-ink-2`) over arbitrary values like `bg-[#bf4316]`.
 
 ### Calendar colors (`config/calendar.php`)
-Map `free`, `own`, `single_future`, `series`, `past` and `event` to the cell tokens above; the CSS variables in `layouts/app.blade.php` (`--cal-*`) keep their names.
+Map `free`, `own`, `single_future`, `series`, `seeking`, `past` and `event` to the cell tokens above; the CSS variables in `layouts/app.blade.php` (`--cal-*`) keep their names.
 
 ### Blade component reference
 

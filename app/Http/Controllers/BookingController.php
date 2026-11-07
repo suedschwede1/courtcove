@@ -10,6 +10,7 @@ use App\Models\Option;
 use App\Models\Square;
 use App\Models\User;
 use App\Services\BookingService;
+use App\Services\PlayerExchangeService;
 use App\Services\QuoteGroups;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
@@ -47,8 +48,10 @@ final class BookingController extends Controller
             'time_start' => ['required', 'integer', 'min:0', 'max:86399'],
             'time_end' => ['required', 'integer', 'min:1', 'max:86400'],
             'quantity' => ['required', 'integer', 'in:2,4'],
-            'mitspieler' => ['required', 'string', 'max:255'],
+            'search_players' => ['nullable', 'integer', 'min:1'],
+            'mitspieler' => ['required_without:search_players', 'nullable', 'string', 'max:255'],
         ]);
+        $searchPlayers = (int) ($data['search_players'] ?? 0);
 
         $square = Square::findOrFail((int) $data['sid']);
         $dateStart = Carbon::parse($data['date'])->startOfDay()
@@ -68,6 +71,7 @@ final class BookingController extends Controller
                 $dateStart,
                 $dateEnd,
                 meta: $meta,
+                searchPlayers: $searchPlayers,
             );
         } catch (BookingValidationException $e) {
             if ($request->ajax()) {
@@ -119,6 +123,7 @@ final class BookingController extends Controller
             return response()->json([
                 'redirect' => route('calendar.index', ['date' => Carbon::parse($data['date'])->format('Y-m-d')]),
                 'quote' => $quote,
+                'search' => $searchPlayers > 0,
             ]);
         }
 
@@ -127,7 +132,9 @@ final class BookingController extends Controller
         }
 
         return redirect()->route('calendar.index', ['date' => Carbon::parse($data['date'])->format('Y-m-d')])
-            ->with('success', __('booking.messages.booking_created_public'));
+            ->with('success', $searchPlayers > 0
+                ? __('booking.messages.booking_created_with_search')
+                : __('booking.messages.booking_created_public'));
     }
 
     public function players(Request $request): JsonResponse
@@ -197,13 +204,24 @@ final class BookingController extends Controller
         }
 
         $names = $booking->player_names;
+        $joinedNames = [];
+
+        // With a live player search the field holds only the booker's own typed partner;
+        // the joined members are listed, not editable.
+        $exchange = app(PlayerExchangeService::class);
+        if ($exchange->liveSearch($booking) !== null) {
+            $split = $exchange->namesForOwnerEdit($booking);
+            $names = array_values($split['own']);
+            $joinedNames = array_values($split['joined']);
+        }
+
         $playerNames = [
             2 => $names[0] ?? '',
             3 => $names[1] ?? '',
             4 => $names[2] ?? '',
         ];
 
-        return view('bookings.edit', compact('booking', 'reservation', 'playerNames'));
+        return view('bookings.edit', compact('booking', 'reservation', 'playerNames', 'joinedNames'));
     }
 
     public function update(Request $request, Booking $booking): RedirectResponse|JsonResponse
@@ -223,9 +241,12 @@ final class BookingController extends Controller
             return back()->withErrors(['booking' => $msg])->with('error', $msg);
         }
 
+        // With an open search or joined members the booker may clear his own partner: the joined
+        // (or still sought) members play. An ended search without signups does not count.
+        $hasSearch = app(PlayerExchangeService::class)->searchReplacesPartner($booking);
         $data = $request->validate([
             'quantity' => ['required', 'integer', 'in:2,4'],
-            'mitspieler' => ['required', 'string', 'max:255'],
+            'mitspieler' => [$hasSearch ? 'nullable' : 'required', 'string', 'max:255'],
         ]);
 
         try {
@@ -284,7 +305,11 @@ final class BookingController extends Controller
             return back()->withErrors(['booking' => __('booking.messages.booking_not_cancellable')])->with('error', __('booking.messages.booking_not_cancellable'));
         }
 
-        $this->bookingService->cancelSingle($booking);
+        // The check above ran on the booking as loaded; the cancel decides on the locked row. A
+        // booking the lapse of its player search lifted meanwhile is not cancelled again.
+        if (! $this->bookingService->cancelSingle($booking)) {
+            return back()->withErrors(['booking' => __('booking.messages.booking_already_cancelled')])->with('error', __('booking.messages.booking_already_cancelled'));
+        }
 
         return redirect()->route('calendar.index')
             ->with('success', __('booking.messages.booking_cancelled'));

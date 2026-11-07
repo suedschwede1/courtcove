@@ -15,6 +15,7 @@ use App\Models\SquareMeta;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Testing\TestResponse;
@@ -242,6 +243,9 @@ class CalendarControllerTest extends TestCase
     {
         $viewer = User::factory()->create();
         $date = Carbon::today()->format('Y-m-d');
+        // The lazy player search lapse runs at most once a minute; mark it done so both counted
+        // requests run in the same cache state and only the per-booking queries are compared.
+        Cache::put('player-exchange.lapse', 1, 60);
         $countQueries = function () use ($viewer, $date): int {
             DB::flushQueryLog();
             DB::enableQueryLog();

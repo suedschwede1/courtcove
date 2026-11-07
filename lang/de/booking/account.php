@@ -48,5 +48,10 @@ return [
         'date' => 'Datum',
         'time' => 'Zeit',
         'status' => 'Status',
+        'player_exchange' => 'Spielerbörse',
+        'player_exchange_label' => 'Ich möchte per E-Mail informiert werden, wenn jemand einen Mitspieler sucht',
+        'player_exchange_help' => 'Mitglieder können über die Spielerbörse Mitspieler suchen. Wenn du mitmachst, bekommst du dazu eine E-Mail und kannst dich mit einem Klick melden. Jede E-Mail enthält einen Link zum Abmelden.',
+        'player_exchange_unsubscribed' => 'Du bist von der Spielerbörse abgemeldet und bekommst keine E-Mails dazu mehr.',
+        'player_exchange_unsubscribed_hint' => 'Du kannst dich jederzeit in deinem Konto wieder anmelden.',
     ],
 ];

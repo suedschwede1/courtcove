@@ -147,6 +147,7 @@
             :auth-user-id="$authUserId"
             :can-admin-events="$canAdminEvents"
             :date="$date"
+            :player-exchange-opted-in="$playerExchangeOptedIn ?? false"
         />
     </div>
 </div>

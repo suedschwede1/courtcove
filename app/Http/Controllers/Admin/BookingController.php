@@ -12,6 +12,7 @@ use App\Models\Reservation;
 use App\Models\Square;
 use App\Models\User;
 use App\Services\BookingService;
+use App\Services\PlayerExchangeService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -181,7 +182,14 @@ final class BookingController extends Controller
             $repeatEndDate = $occurrenceReservation->date;
         }
 
+        // A running search or joined members lock date, time, repeat and booker (admin_edit_locked);
+        // the form says so up front and lets the searched places stay empty.
+        $exchange = app(PlayerExchangeService::class);
+        $exchangeLocked = $exchange->searchBindingAdminEdit($booking) !== null;
+
         return view('admin.bookings.edit', [
+            'exchangeLocked' => $exchangeLocked,
+            'exchangeJoined' => $exchangeLocked ? array_values($exchange->namesForOwnerEdit($booking)['joined']) : [],
             'booking' => $booking,
             'users' => User::where('status', '!=', 'deleted')->orderBy('alias')->get(['uid', 'alias']),
             'squares' => Square::orderBy('priority')->orderBy('sid')->get(),
@@ -214,7 +222,10 @@ final class BookingController extends Controller
 
         try {
             [$occurrenceDate, $scope] = $this->resolveOccurrenceScope($request);
-            $data = $this->validateBookingData($request, $this->bookingService->legacyRepeatTypesOf($booking, $occurrenceDate));
+            // A running search (or joined members): the searched places may stay empty. Only for
+            // validation; updateSeries decides again under the booking row lock.
+            $searchBinding = app(PlayerExchangeService::class)->searchBindingAdminEdit($booking) !== null;
+            $data = $this->validateBookingData($request, $this->bookingService->legacyRepeatTypesOf($booking, $occurrenceDate), $searchBinding);
             $owner = $this->bookingService->resolveOwner($data['booked_for']);
             [, , $occurrenceStarts, $durationSeconds] = $this->bookingService->buildOccurrenceTimeline($data);
 
@@ -238,18 +249,26 @@ final class BookingController extends Controller
     public function cancel(Request $request, Booking $booking): RedirectResponse|Response
     {
         [$occurrenceDate, $scope] = $this->resolveOccurrenceScope($request);
-        $this->bookingService->cancelSingle($booking, $occurrenceDate, $scope);
+        // False: the booking was already cancelled (e.g. lapsed by its player search meanwhile).
+        [$flashKey, $flashText] = $this->bookingService->cancelSingle($booking, $occurrenceDate, $scope)
+            ? ['success', __('booking.messages.booking_cancelled')]
+            : ['error', __('booking.messages.booking_already_cancelled')];
 
         if ($request->boolean('popup')) {
+            if ($flashKey === 'error') {
+                // The reloaded page shows it.
+                $request->session()->flash($flashKey, $flashText);
+            }
+
             return response('<script>window.parent.location.reload();</script>')->header('Content-Type', 'text/html');
         }
 
         $redirectTo = $request->string('redirect_to')->trim()->value();
         if ($redirectTo !== '') {
-            return redirect()->to($redirectTo)->with('success', __('booking.messages.booking_cancelled'));
+            return redirect()->to($redirectTo)->with($flashKey, $flashText);
         }
 
-        return redirect()->route('admin.bookings.index')->with('success', __('booking.messages.booking_cancelled'));
+        return redirect()->route('admin.bookings.index')->with($flashKey, $flashText);
     }
 
     public function destroy(Request $request, Booking $booking): RedirectResponse|Response
@@ -281,9 +300,16 @@ final class BookingController extends Controller
         ];
     }
 
-    /** @param list<string> $allowedLegacyRepeat */
-    private function validateBookingData(Request $request, array $allowedLegacyRepeat = []): array
+    /**
+     * @param  list<string>  $allowedLegacyRepeat
+     * @param  bool  $searchBinding  the booking has a running search or joined members: the
+     *                               edit form's player names may all be empty
+     */
+    private function validateBookingData(Request $request, array $allowedLegacyRepeat = [], bool $searchBinding = false): array
     {
+        $playerRule = $searchBinding ? 'nullable' : 'required_without:player_name_2';
+        $player2Rule = $searchBinding ? 'nullable' : 'required_without:mitspieler';
+
         $data = $request->validate([
             'booked_for' => ['required', 'string', 'max:120'],
             'sid' => ['required', 'integer', 'exists:bs_squares,sid'],
@@ -295,14 +321,14 @@ final class BookingController extends Controller
             'quantity' => ['required', 'integer', 'in:2,4'],
             // The create/popup form sends one free-text `mitspieler` field; the full-page
             // edit form sends the players separately as player_name_2..4.
-            'mitspieler' => ['required_without:player_name_2', 'nullable', 'string', 'max:255'],
-            'player_name_2' => ['required_without:mitspieler', 'nullable', 'string', 'max:120'],
+            'mitspieler' => [$playerRule, 'nullable', 'string', 'max:255'],
+            'player_name_2' => [$player2Rule, 'nullable', 'string', 'max:120'],
             'player_name_3' => ['nullable', 'string', 'max:120'],
             'player_name_4' => ['nullable', 'string', 'max:120'],
             'admin_note' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        if (isset($data['player_name_2'])) {
+        if (isset($data['player_name_2']) || ($searchBinding && $request->has('player_name_2'))) {
             $data['player_names'] = [
                 2 => $data['player_name_2'],
                 3 => $data['player_name_3'] ?? null,

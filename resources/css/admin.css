@@ -882,7 +882,9 @@
     }
 
     .ds-input.is-disabled,
-    .ds-input[readonly] {
+    .ds-input[readonly],
+    .ds-admin-main .ds-select:disabled,
+    .ds-popup .ds-select:disabled {
         background: var(--color-surface-sunk);
         color: var(--color-ink-3);
     }

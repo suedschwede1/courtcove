@@ -11,6 +11,7 @@
     'authUserId',
     'canAdminEvents',
     'date',
+    'playerExchangeOptedIn' => false,
 ])
 
 @php
@@ -118,6 +119,7 @@
                                 :is-admin="$isAdmin"
                                 :auth-user-id="$authUserId"
                                 :date="$date"
+                                :player-exchange-opted-in="$playerExchangeOptedIn"
                             />
                         @endif
                     @endforeach

@@ -24,6 +24,7 @@ use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\LocaleController;
+use App\Http\Controllers\PlayerExchangeController;
 use App\Http\Controllers\UiGalleryController;
 use Illuminate\Support\Facades\Route;
 
@@ -71,6 +72,11 @@ Route::get('/user/activation/{any?}', static fn () => redirect()->route('login')
 Route::get('/square/{any?}', static fn () => redirect()->route('calendar.index'))->where('any', '.*');
 Route::get('/backend/{any?}', static fn () => redirect()->route('admin.dashboard'))->where('any', '.*');
 
+// Signed one-click unsubscribe link from player exchange e-mails: no login, no expiry.
+Route::get('/player-exchange/unsubscribe/{user}', [PlayerExchangeController::class, 'unsubscribe'])
+    ->middleware('signed')
+    ->name('player-exchange.unsubscribe');
+
 Route::middleware('auth')->group(function (): void {
     Route::get('/bookings/create', [BookingController::class, 'create'])->name('bookings.create');
     Route::get('/bookings/players', [BookingController::class, 'players'])->name('bookings.players');
@@ -78,6 +84,10 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/bookings/{booking}/edit', [BookingController::class, 'edit'])->name('bookings.edit');
     Route::put('/bookings/{booking}', [BookingController::class, 'update'])->name('bookings.update');
     Route::delete('/bookings/{booking}', [BookingController::class, 'destroy'])->name('bookings.destroy');
+
+    Route::post('/bookings/{booking}/join', [PlayerExchangeController::class, 'join'])->name('player-exchange.join');
+    Route::delete('/bookings/{booking}/join', [PlayerExchangeController::class, 'leave'])->name('player-exchange.leave');
+    Route::post('/bookings/{booking}/search/end', [PlayerExchangeController::class, 'end'])->name('player-exchange.end');
 
     Route::get('/my-bookings', [AccountController::class, 'bookings'])->name('account.bookings');
     Route::get('/my-account', [AccountController::class, 'edit'])->name('account.edit');

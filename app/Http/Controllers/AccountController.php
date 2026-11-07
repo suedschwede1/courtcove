@@ -8,6 +8,7 @@ use App\Models\Booking;
 use App\Models\Square;
 use App\Models\User;
 use App\Services\BookingService;
+use App\Services\PlayerExchangeService;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -117,7 +118,7 @@ final class AccountController extends Controller
     }
 
     /** Show the profile + password forms for the authenticated user. */
-    public function edit(): View
+    public function edit(PlayerExchangeService $exchange): View
     {
         /** @var User $user */
         $user = auth()->user();
@@ -128,11 +129,13 @@ final class AccountController extends Controller
             $profile[$field] = $user->getMeta($field);
         }
 
-        return view('account.edit', compact('user', 'profile'));
+        $playerExchange = $exchange->isOptedIn($user);
+
+        return view('account.edit', compact('user', 'profile', 'playerExchange'));
     }
 
     /** Update alias, email and profile meta for the authenticated user. */
-    public function update(Request $request): RedirectResponse
+    public function update(Request $request, PlayerExchangeService $exchange): RedirectResponse
     {
         /** @var User $user */
         $user = auth()->user();
@@ -157,6 +160,12 @@ final class AccountController extends Controller
         foreach (self::PROFILE_FIELDS as $field) {
             $value = $data[$field] ?? null;
             $user->setMeta($field, $value === '' ? null : $value);
+        }
+
+        if ($request->boolean('player_exchange')) {
+            $exchange->optIn($user);
+        } else {
+            $exchange->optOut($user);
         }
 
         return redirect()->route('account.edit')->with('success', __('booking.messages.profile_saved'));

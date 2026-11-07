@@ -9,10 +9,12 @@ use App\Models\Reservation;
 use App\Models\Square;
 use App\Models\User;
 use App\Services\CalendarHours;
+use App\Services\PlayerExchangeService;
 use App\Services\ReservationService;
 use App\Support\Calendar\EventKind;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 /**
@@ -30,6 +32,23 @@ final class CalendarController extends Controller
     ) {}
 
     /**
+     * Lazy Verfall check, so an expired search is never shown as joinable even when the
+     * scheduler did not run; at most once a minute across all requests. Never breaks the calendar.
+     */
+    private function lapseExpiredSearches(): void
+    {
+        if (! Cache::add('player-exchange.lapse', 1, 60)) {
+            return;
+        }
+
+        try {
+            app(PlayerExchangeService::class)->lapseExpired(attempts: PlayerExchangeService::LAZY_LAPSE_ATTEMPTS);
+        } catch (\Throwable $e) {
+            report($e);
+        }
+    }
+
+    /**
      * Render the responsive calendar data window for all courts.
      *
      * @param  Request  $request  Accepts optional ?date=YYYY-MM-DD query parameter; defaults to today
@@ -38,6 +57,8 @@ final class CalendarController extends Controller
     public function index(Request $request): View
     {
         Carbon::setLocale(app()->getLocale());
+
+        $this->lapseExpiredSearches();
 
         $dateInput = (string) $request->input('date');
         $date = Carbon::today();
@@ -68,6 +89,9 @@ final class CalendarController extends Controller
         $squareIds = $squares->pluck('sid')->values()->all();
 
         $calendarReservations = $this->reservations->getCalendarReservations($squareIds, $rangeStart, $rangeEnd);
+        // Player searches with their signups in two queries, so cells read remaining places
+        // and "already joined" from loaded data instead of one count per booking.
+        $calendarReservations->loadMissing(['booking.playerSearch.signups:id,search_id,uid']);
 
         $reservationsByDate = [];
         $reservationsBySlot = [];
@@ -100,6 +124,7 @@ final class CalendarController extends Controller
         // can() is the effective right: privileges only count while admin mode is on (App\Support\AdminMode).
         $isAdmin = $isLoggedIn && $authUser->can('admin.booking');
         $canAdminEvents = $isLoggedIn && $authUser->can('admin.event');
+        $playerExchangeOptedIn = $isLoggedIn && app(PlayerExchangeService::class)->isOptedIn($authUser);
 
         $events = Event::with(['meta' => fn ($query) => $query->whereIn('key', ['name', 'kind'])])
             ->where('status', 'enabled')
@@ -269,6 +294,7 @@ final class CalendarController extends Controller
             'isLoggedIn' => $isLoggedIn,
             'isAdmin' => $isAdmin,
             'canAdminEvents' => $canAdminEvents,
+            'playerExchangeOptedIn' => $playerExchangeOptedIn,
             'now' => $now,
             'today' => $now->format('Y-m-d'),
             'dateLabels' => $dateLabels,

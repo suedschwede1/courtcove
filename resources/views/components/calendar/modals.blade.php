@@ -3,45 +3,133 @@
 @auth
 <div x-data="{
         open: false,
+        state: 'form',
+        loading: false,
+        changed: false,
+        closeAfterRequest: false,
+        error: null,
         bid: null,
         squareName: '',
         dateLabel: '',
         timeLabel: '',
         quantity: '2',
         mitspieler: '',
+        searchOpen: false,
+        searchRemaining: 0,
+        searchSignups: 0,
+        get hintText() {
+            const text = this.searchRemaining === 1 ? @js(trans_choice('booking.calendar.end.hint', 1, ['count' => '__N__'])) : @js(trans_choice('booking.calendar.end.hint', 2, ['count' => '__N__']));
+            return text.replace('__N__', this.searchRemaining);
+        },
         openCancel(detail) {
+            // A request from a dialog closed mid-way is still running; its reload follows.
+            if (this.loading) return;
             this.bid        = detail.bid;
             this.squareName = detail.squareName;
             this.dateLabel  = detail.dateLabel;
             this.timeLabel  = detail.timeLabel;
             this.quantity   = detail.quantity   || '2';
             this.mitspieler = detail.mitspieler || '';
+            this.searchOpen = detail.searchOpen === true;
+            this.searchRemaining = Number(detail.searchRemaining) || 0;
+            this.searchSignups = Number(detail.searchSignups) || 0;
+            this.state = 'form';
+            this.changed = false;
+            this.closeAfterRequest = false;
+            this.error = null;
             this.open = true;
+        },
+        close() {
+            // Closed while the request runs: hide now, reload once the answer is in (finally), so the
+            // calendar shows the result and the request is not cut off by the reload.
+            if (this.loading) {
+                this.closeAfterRequest = true;
+                this.open = false;
+                return;
+            }
+            // Something may have changed (also on a refusal, e.g. the search just lapsed): show the current calendar.
+            if (this.changed) {
+                window.location.reload();
+            } else {
+                this.open = false;
+            }
+        },
+        async endSearch() {
+            if (this.loading) return;
+            this.loading = true;
+            this.error = null;
+            try {
+                const res = await fetch(@js(route('player-exchange.end', ['booking' => '__BID__'])).replace('__BID__', encodeURIComponent(this.bid)), {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': @js(csrf_token()),
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    },
+                });
+                let json = {};
+                try { json = await res.json(); } catch { json = {}; }
+                this.changed = true;
+                if (res.ok && json.ok) {
+                    this.searchOpen = false;
+                    this.state = 'success';
+                    this.$nextTick(() => document.querySelector('#cancel-dialog [data-end-done]')?.focus());
+                } else {
+                    this.error = json.error ?? @js(__('booking.calendar.end.failed'));
+                }
+            } catch {
+                this.error = @js(__('booking.calendar.end.failed'));
+            } finally {
+                this.loading = false;
+                if (this.closeAfterRequest) {
+                    window.location.reload();
+                }
+            }
         }
      }"
      @open-cancel.window="openCancel($event.detail)">
-    <x-ui.modal id="cancel-dialog" show="open" close="open = false">
+    <x-ui.modal id="cancel-dialog" show="open" close="close()" x-bind:data-state="state">
         <x-slot:title>
             {{ __('booking.modal.cancel_heading') }}
         </x-slot:title>
 
-        <x-ui.summary-tiles :items="[
-            ['label' => __('booking.calendar.date'), 'bind' => 'dateLabel'],
-            ['label' => __('booking.calendar.time'), 'bind' => 'timeLabel'],
-            ['label' => __('booking.calendar.court'), 'bind' => 'squareName'],
-        ]" />
+        <div class="ds-modal__form" x-show="state === 'form'">
+            <x-ui.summary-tiles :items="[
+                ['label' => __('booking.calendar.date'), 'bind' => 'dateLabel'],
+                ['label' => __('booking.calendar.time'), 'bind' => 'timeLabel'],
+                ['label' => __('booking.calendar.court'), 'bind' => 'squareName'],
+            ]" />
 
-        <p class="ds-modal__message">{{ __('booking.modal.cancel_message') }}</p>
+            <p class="ds-modal__message">{{ __('booking.modal.cancel_message') }}</p>
+            <p class="ds-modal__message" x-show="searchOpen || searchSignups > 0">{{ __('booking.calendar.end.cancel_effect') }}</p>
+            <p class="ds-modal__message" x-show="searchOpen" x-text="hintText"></p>
 
-        <div class="ds-modal__actions">
-            <x-ui.button variant="secondary" data-modal-initial x-on:click="open = false; $dispatch('open-edit-booking', {bid, squareName, dateLabel, timeLabel, quantity, mitspieler})">{{ __('booking.modal.edit_booking') }}</x-ui.button>
-            <form method="POST" x-bind:action="@js(url('/bookings')) + '/' + bid">
-                @csrf
-                @method('DELETE')
-                <x-ui.button type="submit" variant="danger">{{ __('booking.modal.cancel_booking') }}</x-ui.button>
-            </form>
-            <x-ui.button variant="secondary" class="ds-modal__dismiss" x-on:click="open = false">{{ __('booking.modal.cancel') }}</x-ui.button>
+            <x-ui.notice tone="problem" x-show="error"><span x-text="error"></span></x-ui.notice>
+
+            <div class="ds-modal__actions">
+                <x-ui.button variant="secondary" data-modal-initial x-bind:disabled="loading" x-on:click="open = false; $dispatch('open-edit-booking', {bid, squareName, dateLabel, timeLabel, quantity, mitspieler})">{{ __('booking.modal.edit_booking') }}</x-ui.button>
+                <x-ui.button variant="secondary" data-end-search x-show="searchOpen" x-bind:disabled="loading" x-on:click="endSearch()"><span x-text="loading ? @js(__('booking.calendar.end.ending')) : @js(__('booking.calendar.end.button'))"></span></x-ui.button>
+                <form method="POST" x-bind:action="@js(url('/bookings')) + '/' + bid">
+                    @csrf
+                    @method('DELETE')
+                    <x-ui.button type="submit" variant="danger" x-bind:disabled="loading">{{ __('booking.modal.cancel_booking') }}</x-ui.button>
+                </form>
+                <x-ui.button variant="secondary" class="ds-modal__dismiss" x-on:click="close()">{{ __('booking.modal.cancel') }}</x-ui.button>
+            </div>
         </div>
+
+        <div class="ds-success" role="status" x-show="state === 'success'">
+            <span class="ds-success__icon"><x-ui.icon name="check" :size="32" /></span>
+            <p class="ds-success__title">{{ __('booking.calendar.end.done_title') }}</p>
+            <p class="ds-success__text">{{ __('booking.messages.player_exchange.ended') }}</p>
+            <p class="ds-success__text" x-text="dateLabel + ' · ' + timeLabel + ' · ' + squareName"></p>
+        </div>
+
+        <x-slot:footer>
+            <div class="ds-modal__footer-part ds-modal__footer-part--stack ds-modal__footer-part--success-only" x-show="state === 'success'">
+                <x-ui.button variant="dark" data-end-done x-on:click="close()">{{ __('booking.modal.to_calendar') }}</x-ui.button>
+            </div>
+        </x-slot:footer>
     </x-ui.modal>
 </div>
 @endauth
@@ -167,6 +255,9 @@
         timeEndFormatted: '',
         quantity: '2',
         mitspieler: '',
+        search: false,
+        searchCount: '1',
+        searched: false,
         acResults: [],
         acOpen: false,
         error: null,
@@ -185,6 +276,37 @@
         },
         get placeholder() {
             return this.quantity === '2' ? @js(__('booking.modal.player_search_placeholder')) : @js(__('booking.admin.bookings.teammates_examples'));
+        },
+        get canSearch() {
+            if (!this.date || this.timeStart === null) return false;
+            const [y, m, d] = String(this.date).split('-').map(Number);
+            const start = new Date(y, m - 1, d, 0, 0, Number(this.timeStart));
+            return start.getTime() > Date.now() + 3600000;
+        },
+        get maxSearch() {
+            return Math.max(0, Number(this.quantity) - 1 - (this.mitspieler.trim() !== '' ? 1 : 0));
+        },
+        get searchOptions() {
+            return Array.from({ length: this.maxSearch }, (_, i) => String(i + 1));
+        },
+        init() {
+            this.$watch('maxSearch', (max) => {
+                if (max < 1) this.search = false;
+                else if (Number(this.searchCount) > max) this.searchCount = String(max);
+            });
+            // A server message about the old choice no longer applies.
+            this.$watch('quantity', () => { this.error = null; });
+            this.$watch('search', () => { this.error = null; });
+        },
+        showError(message) {
+            this.error = message;
+            // At phone width the notice sits under the sticky footer: bring it into view and announce it.
+            // After the next paint: only then is the notice shown (x-show) and can be scrolled to and focused.
+            this.$nextTick(() => requestAnimationFrame(() => {
+                const notice = document.querySelector('#booking-dialog [data-booking-error]');
+                notice?.scrollIntoView({ block: 'nearest' });
+                notice?.focus({ preventScroll: true });
+            }));
         },
         close() {
             if (this.state === 'success' && this.redirect) {
@@ -212,6 +334,9 @@
             this.state = 'form';
             this.quantity = '2';
             this.mitspieler = '';
+            this.search = false;
+            this.searchCount = '1';
+            this.searched = false;
             this.acResults = [];
             this.acOpen = false;
             this.error = null;
@@ -234,13 +359,14 @@
                 if (res.ok && json.redirect) {
                     this.redirect = json.redirect;
                     this.quote = json.quote ?? null;
+                    this.searched = json.search === true;
                     this.state = 'success';
                     this.$nextTick(() => document.querySelector('#booking-dialog [data-modal-initial]')?.focus());
                 } else {
-                    this.error = json.error ?? @js(__('booking.messages.booking_failed'));
+                    this.showError(json.error ?? @js(__('booking.messages.booking_failed')));
                 }
             } catch {
-                this.error = @js(__('booking.messages.booking_failed'));
+                this.showError(@js(__('booking.messages.booking_failed')));
             } finally {
                 this.loading = false;
             }
@@ -273,7 +399,7 @@
             </x-ui.option-group>
 
             <x-ui.field for="booking-mitspieler" :label="__('booking.admin.bookings.teammates')" :help="__('booking.modal.player_help')" x-on:click.outside="acOpen = false">
-                <x-ui.input name="mitspieler" required maxlength="255" autocomplete="off" x-model="mitspieler" x-on:input.debounce.300ms="fetchAc($event.target.value)" x-on:focus="fetchAc(mitspieler)" x-bind:placeholder="placeholder" />
+                <x-ui.input name="mitspieler" required x-bind:required="!search" maxlength="255" autocomplete="off" x-model="mitspieler" x-on:input.debounce.300ms="fetchAc($event.target.value)" x-on:focus="fetchAc(mitspieler)" x-bind:placeholder="placeholder" />
                 <ul class="ds-suggest" x-show="acOpen">
                     <template x-for="r in acResults" :key="r">
                         <li><button type="button" class="ds-suggest__item" x-text="r" @mousedown.prevent @click="mitspieler = r; acResults = []; acOpen = false"></button></li>
@@ -281,13 +407,24 @@
                 </ul>
             </x-ui.field>
 
-            <x-ui.notice tone="problem" x-show="error"><span x-text="error"></span></x-ui.notice>
+            <div class="ds-modal__form" x-show="canSearch && maxSearch > 0">
+                {{-- No name: the server reads only search_players (sent while the box is ticked). --}}
+                <x-ui.option-tile type="checkbox" value="1" :label="__('booking.modal.search_players')" x-model="search" />
+                <x-ui.field for="booking-search-players" :label="__('booking.modal.search_count')" :help="__('booking.modal.search_help')" x-show="search">
+                    <select name="search_players" id="booking-search-players" class="ds-select" aria-describedby="booking-search-players-help" x-model="searchCount" x-bind:disabled="!search">
+                        <template x-for="n in searchOptions" :key="n"><option :value="n" x-text="n"></option></template>
+                    </select>
+                </x-ui.field>
+            </div>
+
+            <x-ui.notice tone="problem" x-show="error" data-booking-error tabindex="-1"><span x-text="error"></span></x-ui.notice>
         </form>
 
         <div class="ds-success" role="status" x-show="state === 'success'">
             <span class="ds-success__icon"><x-ui.icon name="check" :size="32" /></span>
             <p class="ds-success__title">{{ __('booking.modal.success_title') }}</p>
             <p class="ds-success__text" x-text="dateLabel + ' · ' + timeRange + ' · ' + courtLabel"></p>
+            <p class="ds-success__text" x-show="searched">{{ __('booking.modal.search_success') }}</p>
             <p class="ds-modal__quote" x-show="quote" x-text="quote"></p>
         </div>
 
@@ -399,6 +536,190 @@
      @message.window="if ($event.origin === window.location.origin && $event.data && $event.data.type === 'popup-close') { open = false; src = 'about:blank' }">
     <x-ui.modal id="admin-booking-modal" show="open" close="open = false; src = 'about:blank'" size="frame" :label="__('booking.modal.admin_form')">
         <iframe id="abm-iframe" class="ds-modal__frame" x-bind:src="src" title="{{ __('booking.modal.admin_form') }}"></iframe>
+    </x-ui.modal>
+</div>
+@endauth
+
+{{-- Player search, viewer in the player exchange (or already signed up): join or leave. --}}
+@auth
+<div x-data="{
+        open: false,
+        state: 'form',
+        result: null,
+        changed: false,
+        closeAfterRequest: false,
+        loading: false,
+        error: null,
+        bid: null,
+        squareName: '',
+        dateLabel: '',
+        timeLabel: '',
+        owner: '',
+        remaining: 0,
+        joined: false,
+        optedIn: false,
+        players: [],
+        get ownerText() {
+            return @js(__('booking.calendar.join.owner')).replace(':owner', this.owner);
+        },
+        get remainingText() {
+            const text = this.remaining === 1 ? @js(trans_choice('booking.calendar.join.remaining', 1, ['count' => '__N__'])) : @js(trans_choice('booking.calendar.join.remaining', 2, ['count' => '__N__']));
+            return text.replace('__N__', this.remaining);
+        },
+        get playersText() {
+            return @js(__('booking.calendar.join.players')).replace(':players', this.players.join(', '));
+        },
+        get canJoin() {
+            return this.optedIn && !this.joined;
+        },
+        openJoin(detail) {
+            // A request from a dialog closed mid-way is still running; its reload follows.
+            if (this.loading) return;
+            this.bid       = detail.bid;
+            this.squareName = detail.squareName;
+            this.dateLabel  = detail.dateLabel;
+            this.timeLabel  = detail.timeLabel;
+            this.owner      = detail.owner || '';
+            this.remaining  = Number(detail.remaining) || 0;
+            this.joined     = detail.joined === true;
+            this.optedIn    = detail.optedIn === true;
+            this.players    = Array.isArray(detail.players) ? detail.players : [];
+            this.state = 'form';
+            this.result = null;
+            this.changed = false;
+            this.closeAfterRequest = false;
+            this.loading = false;
+            this.error = null;
+            this.open = true;
+        },
+        close() {
+            // Closed while the request runs: hide now, reload once the answer is in (finally), so the
+            // calendar shows the result and the request is not cut off by the reload.
+            if (this.loading) {
+                this.closeAfterRequest = true;
+                this.open = false;
+                return;
+            }
+            // Something may have changed (also on a refusal, e.g. the last place just went): show the current calendar.
+            if (this.changed) {
+                window.location.reload();
+            } else {
+                this.open = false;
+            }
+        },
+        async send(method) {
+            this.loading = true;
+            this.error = null;
+            try {
+                const res = await fetch(@js(route('player-exchange.join', ['booking' => '__BID__'])).replace('__BID__', encodeURIComponent(this.bid)), {
+                    method: method,
+                    headers: {
+                        'X-CSRF-TOKEN': @js(csrf_token()),
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    },
+                });
+                let json = {};
+                try { json = await res.json(); } catch { json = {}; }
+                this.changed = true;
+                if (res.ok && json.ok) {
+                    this.result = method === 'POST' ? 'joined' : 'left';
+                    this.state = 'success';
+                    this.$nextTick(() => document.querySelector('#join-dialog [data-join-done]')?.focus());
+                } else {
+                    this.error = json.error ?? @js(__('booking.calendar.join.failed'));
+                }
+            } catch {
+                this.error = @js(__('booking.calendar.join.failed'));
+            } finally {
+                this.loading = false;
+                if (this.closeAfterRequest) {
+                    window.location.reload();
+                }
+            }
+        }
+     }"
+     @open-join.window="openJoin($event.detail)">
+    <x-ui.modal id="join-dialog" show="open" close="close()" :eyebrow="__('booking.calendar.join.eyebrow')" x-bind:data-state="state">
+        <x-slot:title>
+            {{ __('booking.calendar.join.title') }}
+        </x-slot:title>
+
+        <div class="ds-modal__form" x-show="state === 'form'">
+            <x-ui.summary-tiles :items="[
+                ['label' => __('booking.calendar.date'), 'bind' => 'dateLabel'],
+                ['label' => __('booking.calendar.time'), 'bind' => 'timeLabel'],
+                ['label' => __('booking.calendar.court'), 'bind' => 'squareName'],
+            ]" />
+
+            <p class="ds-modal__message">
+                <span x-show="owner" x-text="ownerText"></span><br x-show="owner && remaining > 0">
+                {{-- A filled or ended search (member signed up, may still leave) seeks nobody. --}}
+                <strong x-show="remaining > 0" x-text="remainingText"></strong>
+            </p>
+            <p class="ds-modal__message" x-show="players.length > 0" x-text="playersText"></p>
+
+            <x-ui.notice tone="neutral" x-show="joined">{{ __('booking.calendar.join.joined_hint') }}</x-ui.notice>
+            {{-- Fallback only: cells send members outside the exchange to the hint dialog (open-join-info),
+                 except one already signed up, who opens this dialog as joined to leave. --}}
+            <x-ui.notice tone="attention" x-show="!optedIn && !joined">{{ __('booking.calendar.join.not_opted_in') }}</x-ui.notice>
+            <x-ui.notice tone="problem" x-show="error"><span x-text="error"></span></x-ui.notice>
+        </div>
+
+        <div class="ds-success" role="status" x-show="state === 'success'">
+            <span class="ds-success__icon"><x-ui.icon name="check" :size="32" /></span>
+            <p class="ds-success__title" x-text="result === 'joined' ? @js(__('booking.calendar.join.joined_title')) : @js(__('booking.calendar.join.left_title'))"></p>
+            <p class="ds-success__text" x-text="result === 'joined' ? @js(__('booking.messages.player_exchange.joined')) : @js(__('booking.messages.player_exchange.left'))"></p>
+            <p class="ds-success__text" x-text="dateLabel + ' · ' + timeLabel + ' · ' + squareName"></p>
+        </div>
+
+        <x-slot:footer>
+            <div class="ds-modal__footer-part" x-show="state === 'form'">
+                <x-ui.button variant="secondary" :block="false" class="ds-modal__dismiss" x-on:click="close()">{{ __('booking.modal.cancel') }}</x-ui.button>
+                <x-ui.button :block="false" x-show="canJoin" data-modal-initial x-bind:disabled="loading" x-on:click="send('POST')"><span x-text="loading ? @js(__('booking.calendar.join.joining')) : @js(__('booking.calendar.join.join'))"></span></x-ui.button>
+                <x-ui.button variant="danger" :block="false" x-show="joined" data-modal-initial x-bind:disabled="loading" x-on:click="send('DELETE')"><span x-text="loading ? @js(__('booking.calendar.join.leaving')) : @js(__('booking.calendar.join.leave'))"></span></x-ui.button>
+                <x-ui.button :block="false" :href="route('account.edit')" x-show="!optedIn && !joined" data-modal-initial>{{ __('booking.calendar.join.account') }}</x-ui.button>
+            </div>
+            <div class="ds-modal__footer-part ds-modal__footer-part--stack" x-show="state === 'success'">
+                <x-ui.button variant="dark" data-join-done x-on:click="close()">{{ __('booking.modal.to_calendar') }}</x-ui.button>
+            </div>
+        </x-slot:footer>
+    </x-ui.modal>
+</div>
+@endauth
+
+{{-- Player search, viewer not in the player exchange: explain how to take part. --}}
+@auth
+<div x-data="{
+        open: false,
+        squareName: '',
+        dateLabel: '',
+        timeLabel: '',
+        openInfo(detail) {
+            this.squareName = detail.squareName;
+            this.dateLabel  = detail.dateLabel;
+            this.timeLabel  = detail.timeLabel;
+            this.open = true;
+        }
+     }"
+     @open-join-info.window="openInfo($event.detail)">
+    <x-ui.modal id="join-info-dialog" show="open" close="open = false">
+        <x-slot:title>
+            {{ __('booking.calendar.seeking_info.title') }}
+        </x-slot:title>
+
+        <x-ui.summary-tiles :items="[
+            ['label' => __('booking.calendar.date'), 'bind' => 'dateLabel'],
+            ['label' => __('booking.calendar.time'), 'bind' => 'timeLabel'],
+            ['label' => __('booking.calendar.court'), 'bind' => 'squareName'],
+        ]" />
+
+        <p class="ds-modal__message">{{ __('booking.calendar.seeking_info.message') }}</p>
+
+        <div class="ds-modal__actions">
+            <x-ui.button :href="route('account.edit')" data-modal-initial>{{ __('booking.calendar.seeking_info.account') }}</x-ui.button>
+            <x-ui.button variant="secondary" class="ds-modal__dismiss" x-on:click="open = false">{{ __('booking.modal.close') }}</x-ui.button>
+        </div>
     </x-ui.modal>
 </div>
 @endauth

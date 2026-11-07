@@ -54,6 +54,14 @@
                     </x-ui.field>
                 </div>
 
+                <div class="ds-admin-choice">
+                    {{-- After a validation error of this form (alias is always sent) an unticked box stays unticked. --}}
+                    <x-ui.option-group :legend="__('booking.account.player_exchange')" :columns="2" class="ds-admin-flags ds-admin-flags--single" aria-describedby="player-exchange-help">
+                        <x-ui.option-tile type="checkbox" name="player_exchange" value="1" :label="__('booking.account.player_exchange_label')" :checked="old('alias') !== null ? (bool) old('player_exchange') : $playerExchange" />
+                    </x-ui.option-group>
+                    <p class="ds-field__help" id="player-exchange-help">{{ __('booking.account.player_exchange_help') }}</p>
+                </div>
+
                 <div class="flex justify-end">
                     <x-ui.button type="submit" variant="dark" :block="false">{{ __('booking.admin.save') }}</x-ui.button>
                 </div>

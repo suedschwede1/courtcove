@@ -9,6 +9,10 @@ document.addEventListener('DOMContentLoaded', function () {
     // The x-ui.field wrapper carries no id of its own (its id is the control id).
     var player3Field = player3Input ? player3Input.closest('.ds-field') : null;
     var player4Field = player4Input ? player4Input.closest('.ds-field') : null;
+    // Player exchange: with a running search or joined members the searched places may stay empty
+    // and date/time stay locked (the server refuses changes, admin_edit_locked).
+    var updateForm = document.getElementById('admin-booking-update');
+    var exchangeLocked = updateForm ? updateForm.getAttribute('data-exchange-locked') === '1' : false;
 
     function syncAdminBookingFields() {
         var quantity = document.querySelector('input[name="quantity"]:checked');
@@ -16,8 +20,8 @@ document.addEventListener('DOMContentLoaded', function () {
             var isDouble = quantity.value === '4';
             if (player3Field) { player3Field.style.display = isDouble ? '' : 'none'; }
             if (player4Field) { player4Field.style.display = isDouble ? '' : 'none'; }
-            if (player3Input) { player3Input.required = isDouble; if (!isDouble) { player3Input.value = ''; } }
-            if (player4Input) { player4Input.required = isDouble; if (!isDouble) { player4Input.value = ''; } }
+            if (player3Input) { player3Input.required = isDouble && !exchangeLocked; if (!isDouble) { player3Input.value = ''; } }
+            if (player4Input) { player4Input.required = isDouble && !exchangeLocked; if (!isDouble) { player4Input.value = ''; } }
         }
 
         var timeStart = document.getElementById('time_start');
@@ -28,8 +32,8 @@ document.addEventListener('DOMContentLoaded', function () {
             var dateFields = [dateStart, timeStart, timeEnd];
             dateFields.forEach(function (f) {
                 if (!f) { return; }
-                f.readOnly = isOnce;
-                f.classList.toggle('is-disabled', isOnce);
+                f.readOnly = isOnce || exchangeLocked;
+                f.classList.toggle('is-disabled', isOnce || exchangeLocked);
             });
             dateEnd.disabled = isOnce;
             dateEnd.classList.toggle('is-disabled', isOnce);

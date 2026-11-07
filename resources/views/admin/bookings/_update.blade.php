@@ -13,6 +13,10 @@
         'cancelled' => ['cancelled', __('booking.admin.bookings.status_cancelled')],
     ][$booking->status] ?? null;
     $currentQuantity = (int) old('quantity', $booking->quantity);
+    // Player exchange: a running search or joined members lock date, time, repeat and booker.
+    $exchangeLocked = (bool) ($exchangeLocked ?? false);
+    $exchangeJoined = $exchangeJoined ?? [];
+    $lockedAttrs = $exchangeLocked ? ' readonly aria-describedby="admin-booking-exchange-notice"' : '';
 @endphp
 <div class="ds-admin-stack ds-admin-booking">
     <x-admin.page-header :title="$headTitle !== '' ? $headTitle : __('booking.admin.bookings.edit_title')" :back-url="route('admin.bookings.index')" :back-label="__('booking.admin.bookings.title')">
@@ -34,7 +38,16 @@
         </x-ui.notice>
     @endif
 
-    <form method="POST" action="{{ route('admin.bookings.update', $booking) }}" id="admin-booking-update" class="ds-admin-stack ds-admin-booking__form">
+    @if ($exchangeLocked)
+        <x-ui.notice tone="neutral" id="admin-booking-exchange-notice">
+            {{ __('booking.admin.bookings.exchange_notice') }}
+            @if ($exchangeJoined !== [])
+                <br>{{ __('booking.admin.bookings.exchange_joined', ['names' => implode(', ', $exchangeJoined)]) }}
+            @endif
+        </x-ui.notice>
+    @endif
+
+    <form method="POST" action="{{ route('admin.bookings.update', $booking) }}" id="admin-booking-update" class="ds-admin-stack ds-admin-booking__form" data-exchange-locked="{{ $exchangeLocked ? '1' : '0' }}">
         @csrf
         @method('PUT')
         @if (request('popup'))
@@ -48,7 +61,7 @@
                 <x-ui.card :title="__('booking.admin.bookings.section_who')" padding="lg" class="ds-admin-form-card">
                     <div class="ds-admin-form-grid">
                         <x-ui.field :label="__('booking.admin.bookings.booked_for')" for="booked_for">
-                            <input type="text" id="booked_for" name="booked_for" value="{{ old('booked_for', $bookedFor) }}" list="admin-player-suggestions" maxlength="120" required class="ds-input">
+                            <input type="text" id="booked_for" name="booked_for" value="{{ old('booked_for', $bookedFor) }}" list="admin-player-suggestions" maxlength="120" required class="ds-input{{ $exchangeLocked ? ' is-disabled' : '' }}"{!! $lockedAttrs !!}>
                             @if ($isMemberOwner && Route::has('admin.users.edit') && auth()->user()->can('admin.user'))
                                 <a href="{{ route('admin.users.edit', $bookingUser) }}" class="ds-admin-link ds-admin-field-link">{{ __('booking.admin.bookings.edit_user') }}</a>
                             @endif
@@ -65,7 +78,7 @@
                             <x-ui.option-tile name="quantity" value="4" :label="__('booking.modal.double_option')" :checked="$currentQuantity === 4" id="admin-booking-quantity-4" />
                         </x-ui.option-group>
                         <x-ui.field :label="__('booking.admin.bookings.teammates')" for="admin-player2">
-                            <input type="text" id="admin-player2" name="player_name_2" value="{{ old('player_name_2', $playerNames[2]) }}" list="admin-player-suggestions" maxlength="120" required class="ds-input">
+                            <input type="text" id="admin-player2" name="player_name_2" value="{{ old('player_name_2', $playerNames[2]) }}" list="admin-player-suggestions" maxlength="120"{{ $exchangeLocked ? '' : ' required' }} class="ds-input">
                         </x-ui.field>
                         <x-ui.field :label="__('booking.admin.bookings.player_name_3')" for="admin-player3">
                             <input type="text" id="admin-player3" name="player_name_3" value="{{ old('player_name_3', $playerNames[3]) }}" list="admin-player-suggestions" maxlength="120" class="ds-input">
@@ -84,24 +97,28 @@
                 <x-ui.card :title="__('booking.admin.bookings.section_when')" padding="lg" class="ds-admin-form-card">
                     <div class="ds-admin-form-grid">
                         <x-ui.field :label="__('booking.admin.bookings.date_start')" for="date">
-                            <input type="date" id="date" name="date" value="{{ old('date', $reservation?->date) }}" class="ds-input">
+                            <input type="date" id="date" name="date" value="{{ old('date', $reservation?->date) }}" class="ds-input"{!! $lockedAttrs !!}>
                         </x-ui.field>
                         <div class="ds-admin-form-grid__pair">
                             <x-ui.field :label="__('booking.admin.bookings.time_start')" for="time_start">
-                                <input type="time" id="time_start" name="time_start" value="{{ old('time_start', $reservation ? substr((string) $reservation->time_start, 0, 5) : '') }}" class="ds-input">
+                                <input type="time" id="time_start" name="time_start" value="{{ old('time_start', $reservation ? substr((string) $reservation->time_start, 0, 5) : '') }}" class="ds-input"{!! $lockedAttrs !!}>
                             </x-ui.field>
                             <x-ui.field :label="__('booking.admin.bookings.time_end')" for="time_end">
-                                <input type="time" id="time_end" name="time_end" value="{{ old('time_end', $reservation ? substr((string) $reservation->time_end, 0, 5) : '') }}" class="ds-input">
+                                <input type="time" id="time_end" name="time_end" value="{{ old('time_end', $reservation ? substr((string) $reservation->time_end, 0, 5) : '') }}" class="ds-input"{!! $lockedAttrs !!}>
                             </x-ui.field>
                         </div>
                     </div>
                     <div class="ds-admin-form-grid ds-admin-form-grid--2">
                         <x-ui.field :label="__('booking.admin.bookings.repeat')" for="admin-booking-repeat">
-                            <select name="repeat_type" id="admin-booking-repeat" class="ds-select">
+                            {{-- Locked by a player search: a disabled select is not sent, so its value goes along hidden. --}}
+                            <select name="repeat_type" id="admin-booking-repeat" class="ds-select"@if ($exchangeLocked) disabled aria-describedby="admin-booking-exchange-notice"@endif>
                                 @foreach ($repeatOptions as $repeatValue => $repeatLabel)
                                     <option value="{{ $repeatValue }}" @selected(old('repeat_type', $repeatType) === $repeatValue)>{{ $repeatLabel }}</option>
                                 @endforeach
                             </select>
+                            @if ($exchangeLocked)
+                                <input type="hidden" name="repeat_type" value="{{ $repeatType }}">
+                            @endif
                         </x-ui.field>
                         <x-ui.field :label="__('booking.admin.bookings.date_end')" for="admin-booking-date-end">
                             <input type="date" id="admin-booking-date-end" name="date_end" value="{{ old('date_end', $repeatEndDate) }}" class="ds-input">

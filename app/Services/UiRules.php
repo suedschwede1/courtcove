@@ -16,7 +16,7 @@ class UiRules
         '#d9a54a', '#d9e6f7', '#dceee3', '#e07a4f', '#e3dcd0', '#e3f0e8', '#e7e0d5', '#e9e5de',
         '#ece3f3', '#ece6dc', '#ede8df', '#efe9df', '#f08a72', '#f0936c', '#f0c46b', '#f1ece3',
         '#f2efea', '#f3eee6', '#f5f1ea', '#f6e7cc', '#f7f4ee', '#f8e1dc', '#faf8f4', '#fbefd5',
-        '#fbf1eb', '#fff', '#000', '#ffffff',
+        '#fbf1eb', '#f6eefb', '#7b4fb0', '#2a2036', '#b48fe0', '#e2d3f3', '#fff', '#000', '#ffffff',
     ];
 
     /** #rgb, #rgba, #rrggbb and #rrggbbaa. */

@@ -1487,6 +1487,11 @@
         border-top: 0;
     }
 
+    /* A footer that only carries the success button stays out of the way in the form state. */
+    .ds-modal:not([data-state="success"]) .ds-modal__footer:has(> .ds-modal__footer-part--success-only) {
+        display: none;
+    }
+
     .ds-success {
         display: flex;
         flex-direction: column;

@@ -231,6 +231,10 @@ return [
                     'title' => 'Delete expired password links',
                     'description' => 'Removes expired password reset links.',
                 ],
+                'player-exchange-expire' => [
+                    'title' => 'Let player searches expire',
+                    'description' => 'Ends every open player search one hour before the start; if nobody has joined, the booking is cancelled and the court is free again.',
+                ],
                 'queue-work' => [
                     'title' => 'Process the queue',
                     'description' => 'Processes waiting background jobs (at most 50 seconds per minute).',
@@ -400,6 +404,8 @@ return [
             'additional_player' => 'Additional Player',
             'player_name_3' => '3rd player name',
             'player_name_4' => '4th player name',
+            'exchange_notice' => 'This booking has a running player search or players who joined through the player exchange. Date, time, repeat and “Booked for” are therefore locked; you can change the court, own players and singles/doubles. Searched places may stay empty.',
+            'exchange_joined' => 'Joined: :names',
             'type_booking' => 'Booking',
             'type_event' => 'Event',
             'admin_note' => 'Notes',

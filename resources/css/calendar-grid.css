@@ -209,6 +209,7 @@
 
 .cal-row > .cc-own,
 .cal-row > .cc-single-future,
+.cal-row > .cc-seeking,
 .cal-row > .cc-turnier,
 .cal-row > .event-cell {
     display: flex;
@@ -226,6 +227,7 @@
 .cal-row .cc-label-primary,
 .cal-row .cc-label-secondary,
 .cal-row .cc-label-own,
+.cal-row .cc-label-seeking,
 .cal-row .event-label,
 .cal-row .event-range {
     display: block;
@@ -253,6 +255,47 @@
 /* "Mine" replaces the detail line on phones only. */
 .cal-row .cc-label-own {
     display: none;
+}
+
+/* Player search line: the text marker of an open search (bold, so it reads apart from the players). */
+.cal-row .cc-label-seeking {
+    font-size: 11px;
+    font-weight: 700;
+}
+
+/*
+ * The search line comes in up to three lengths; the cell is a size container and
+ * shows the longest one that fits, so the number is never cut off (phones, many courts):
+ * own bookings the long line, other bookings the short one, very narrow cells the shortest.
+ */
+.cal-row > .calendar-cell:has(.cc-label-seeking) {
+    container-type: inline-size;
+}
+
+/* Same specificity everywhere, so the container rules below win by order. */
+.cal-row .cc-own .cc-label-seeking--short,
+.cal-row .calendar-cell .cc-label-seeking--tiny {
+    display: none;
+}
+
+@container (width < 8.5rem) {
+    .cal-row .calendar-cell .cc-label-seeking--long {
+        display: none;
+    }
+
+    .cal-row .calendar-cell .cc-label-seeking--short {
+        display: block;
+    }
+}
+
+@container (width < 4.25rem) {
+    .cal-row .calendar-cell .cc-label-seeking--short {
+        display: none;
+    }
+
+    .cal-row .calendar-cell .cc-label-seeking--tiny {
+        display: block;
+    }
 }
 
 /* Free: white with a dashed line; it has no text, so the border shifts nothing. */
@@ -303,6 +346,18 @@
 .cal-row > a.cc-single-future:not(.slot-cell--past):hover,
 .cal-row > a.cc-single-future:not(.slot-cell--past):focus-visible {
     box-shadow: inset 0 0 0 2px var(--color-ink-3);
+}
+
+/* Player search on someone else's booking: pale violet fill with a violet ring; the text line says it. */
+.cal-row > .cc-seeking {
+    background: var(--cal-seeking-bg);
+    box-shadow: inset 0 0 0 1px var(--cal-seeking-line);
+    color: var(--cal-seeking-label);
+}
+
+.cal-row > a.cc-seeking:not(.slot-cell--past):hover,
+.cal-row > a.cc-seeking:not(.slot-cell--past):focus-visible {
+    box-shadow: inset 0 0 0 2px var(--cal-seeking-line);
 }
 
 /*
@@ -515,6 +570,7 @@
 
     .cal-row > .cc-own,
     .cal-row > .cc-single-future,
+    .cal-row > .cc-seeking,
     .cal-row > .cc-turnier,
     .cal-row > .event-cell {
         gap: 0;
