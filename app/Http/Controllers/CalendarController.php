@@ -8,6 +8,7 @@ use App\Models\Event;
 use App\Models\Reservation;
 use App\Models\Square;
 use App\Models\User;
+use App\Services\CalendarHours;
 use App\Services\PlayerExchangeService;
 use App\Services\ReservationService;
 use App\Support\Calendar\EventKind;
@@ -68,6 +69,10 @@ final class CalendarController extends Controller
                 break;
             }
         }
+
+        $hours = app(CalendarHours::class);
+        $gridFirst = $hours->firstHour();
+        $gridLast = $hours->lastHour();
 
         $dates = [$date->copy()->subDay()];
         for ($offset = 0; $offset <= self::MAX_DAYS - 2; $offset++) {
@@ -172,7 +177,7 @@ final class CalendarController extends Controller
 
                 $firstHour = null;
                 $rows = 0;
-                for ($h = 8; $h <= 21; $h++) {
+                for ($h = $gridFirst; $h <= $gridLast; $h++) {
                     $slotStart = Carbon::parse($dateKey.' '.sprintf('%02d:00:00', $h));
                     $slotEnd = $slotStart->copy()->addHour();
 
@@ -213,7 +218,7 @@ final class CalendarController extends Controller
 
         foreach ($dates as $d) {
             $dateKey = $d->format('Y-m-d');
-            for ($h = 8; $h <= 21; $h++) {
+            for ($h = $gridFirst; $h <= $gridLast; $h++) {
                 for ($index = 0, $count = count($squareIds); $index < $count; $index++) {
                     $sid = $squareIds[$index];
                     $block = $eventBlocks[$dateKey][$sid][$h] ?? null;

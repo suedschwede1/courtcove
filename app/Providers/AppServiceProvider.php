@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Console\Scheduling\RunLog;
 use App\Models\Option;
 use App\Models\User;
 use App\Services\TournamentLinks;
@@ -17,6 +18,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(TournamentLinks::class);
+        $this->app->singleton(RunLog::class);
     }
 
     public function boot(): void

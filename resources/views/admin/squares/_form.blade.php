@@ -41,6 +41,7 @@
             <x-ui.input id="sf-time-end" name="time_end" type="time" :value="old('time_end', $form['time_end'])" />
         </x-ui.field>
     </div>
+    <p class="ds-field__help">{{ __('booking.admin.squares.opening_hint') }}</p>
     <p class="ds-field__help">{{ __('booking.admin.squares.rules_moved_hint') }} <a href="{{ route('admin.config.behavior.edit') }}" class="ds-admin-link">{{ __('booking.admin.squares.peak_limit_global_off_link') }}</a></p>
 </x-ui.card>
 

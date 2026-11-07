@@ -80,6 +80,12 @@ final class DrawNavigation implements TournamentModuleNavigation
                 ? [$nav->item('records', __('tournament-base::common.nav.records'), $records[0]->url ?? '', false, children: $records)]
                 : $records),
             ...$tokenItems,
+        ];
+    }
+
+    public function settingsEntries(AreaNavBuilder $nav): array
+    {
+        return [
             $nav->item('admin', __('tournament-base::common.nav.draw_admin'), route('draw.index'), ['draw.index'], 'admin.draw'),
         ];
     }

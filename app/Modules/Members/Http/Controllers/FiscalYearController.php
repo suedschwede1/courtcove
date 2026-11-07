@@ -6,6 +6,7 @@ namespace App\Modules\Members\Http\Controllers;
 
 use App\Models\User;
 use App\Modules\Members\Models\FiscalYear;
+use App\Modules\Members\Models\HouseholdDue;
 use App\Modules\Members\Models\MemberDue;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -37,11 +38,18 @@ class FiscalYearController
         return redirect()->route('members.fiscal-years.index');
     }
 
+    /** Open dues of the year that the close confirmation counts: member dues plus each household due once. */
+    private static function openDuesCount(int $fiscalYearId): int
+    {
+        return MemberDue::query()->open()->where('fiscal_year_id', $fiscalYearId)->count()
+            + HouseholdDue::query()->open()->where('fiscal_year_id', $fiscalYearId)->count();
+    }
+
     public function edit(Request $request, FiscalYear $fiscalYear): View
     {
         return view('members::fiscal-years.edit', [
             'fiscalYear' => $fiscalYear,
-            'openDuesCount' => MemberDue::query()->open()->where('fiscal_year_id', $fiscalYear->id)->count(),
+            'openDuesCount' => self::openDuesCount($fiscalYear->id),
             'canReopen' => $this->isAdmin($request),
             'closedBy' => $fiscalYear->abgeschlossen_von !== null ? User::query()->find($fiscalYear->abgeschlossen_von) : null,
         ]);
@@ -77,7 +85,7 @@ class FiscalYearController
             return back()->withErrors(['fiscal_year' => __('members::admin.fiscal_years.already_closed', ['year' => $year->name])]);
         }
 
-        $openDues = MemberDue::query()->open()->where('fiscal_year_id', $year->id)->count();
+        $openDues = self::openDuesCount($year->id);
         if ($openDues > 0 && $request->input('confirm_open_dues') !== '1') {
             return back()->withErrors(['confirm_open_dues' => __('members::admin.fiscal_years.close_confirm_required', ['count' => $openDues])]);
         }
@@ -89,7 +97,7 @@ class FiscalYearController
                 throw ValidationException::withMessages(['fiscal_year' => __('members::admin.fiscal_years.already_closed', ['year' => $year->name])]);
             }
 
-            $openDues = MemberDue::query()->open()->where('fiscal_year_id', $year->id)->count();
+            $openDues = self::openDuesCount($year->id);
             if ($openDues > 0 && $request->input('confirm_open_dues') !== '1') {
                 throw ValidationException::withMessages(['confirm_open_dues' => __('members::admin.fiscal_years.close_confirm_required', ['count' => $openDues])]);
             }

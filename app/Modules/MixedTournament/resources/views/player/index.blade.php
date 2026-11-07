@@ -1,4 +1,5 @@
-{{-- List of all events (only shown while no default event is set). No own mockup: Turnier-Mixed header + list cards. --}}
+{{-- Member event list (mixed.events, and mixed.index while no default event is set): read-only, the default event first.
+     No own mockup: Turnier-Mixed header + list cards. --}}
 @extends('mixed::layout')
 
 @section('title', __('mixed::common.list_title'))

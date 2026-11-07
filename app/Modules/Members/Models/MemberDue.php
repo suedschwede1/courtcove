@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Members\Models;
 
-use Illuminate\Database\Eloquent\Builder;
+use App\Modules\Members\Models\Concerns\HasDueStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -26,6 +26,8 @@ use Illuminate\Support\Carbon;
  */
 class MemberDue extends Model
 {
+    use HasDueStatus;
+
     public const STATUSES = ['ausstehend', 'bezahlt', 'ueberfaellig'];
 
     protected $fillable = [
@@ -108,66 +110,14 @@ class MemberDue extends Model
         return $this->belongsToMany(Payment::class, 'payment_dues');
     }
 
-    public function isPaid(): bool
-    {
-        return $this->status === 'bezahlt' || $this->payments()->exists();
-    }
-
     /**
-     * @param  Builder<MemberDue>  $query
-     * @return Builder<MemberDue>
+     * Whether "Durch Haushaltsbeitrag ersetzen" may delete this own due: not marked paid, no linked
+     * payment and no partial amount. Paid or partly paid dues are never touched.
      */
-    public function scopePaid(Builder $query): Builder
+    public function isReplaceable(): bool
     {
-        return $query->where(function (Builder $query): void {
-            $query->where('status', 'bezahlt')->orWhereHas('payments');
-        });
-    }
-
-    /**
-     * @param  Builder<MemberDue>  $query
-     * @return Builder<MemberDue>
-     */
-    public function scopeOpen(Builder $query): Builder
-    {
-        return $query->where('status', '!=', 'bezahlt')->whereDoesntHave('payments');
-    }
-
-    /**
-     * @param  Builder<MemberDue>  $query
-     * @return Builder<MemberDue>
-     */
-    public function scopeOverdue(Builder $query): Builder
-    {
-        return $query->where(function (Builder $query): void {
-            $query->where('status', 'ueberfaellig')
-                ->orWhere(function (Builder $query): void {
-                    $query->where('status', 'ausstehend')
-                        ->whereNotNull('faellig_am')
-                        ->where('faellig_am', '<', now()->toDateString());
-                });
-        });
-    }
-
-    /** Offener Rest: Betrag minus Teilbetrag, nie negativ; 0 bei Status "bezahlt" oder mit verknüpfter Zahlung. */
-    public function outstandingAmount(): string
-    {
-        // A linked payment always covers the whole due (PaymentController checks the sum).
-        $hasPayment = $this->relationLoaded('payments') ? $this->payments->isNotEmpty() : $this->payments()->exists();
-        if ($this->status === 'bezahlt' || $hasPayment) {
-            return '0.00';
-        }
-
-        return number_format(max(0.0, (float) $this->amount - (float) ($this->teilbetrag ?? 0)), 2, '.', '');
-    }
-
-    /** Der angezeigte Status: "ausstehend" mit verstrichenem Fälligkeitsdatum gilt automatisch als "überfällig". */
-    public function displayStatus(): string
-    {
-        if ($this->status === 'ausstehend' && $this->faellig_am !== null && $this->faellig_am->endOfDay()->isPast()) {
-            return 'ueberfaellig';
-        }
-
-        return $this->status;
+        return $this->status !== 'bezahlt'
+            && ! $this->payments()->exists()
+            && (float) ($this->teilbetrag ?? 0) === 0.0;
     }
 }

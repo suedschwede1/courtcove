@@ -40,6 +40,22 @@ class PlayerController extends Controller
         ]);
     }
 
+    /**
+     * Member event list (read-only): every event the user may view, also while a default event is set. Admin
+     * actions stay on the admin pages; the admin entry is only offered to global administrators.
+     */
+    public function events(Request $request): View
+    {
+        $user = $this->user($request);
+
+        return view('mixed::player.index', [
+            'events' => MixedEvent::query()->withCount(['participants', 'rounds'])->orderByDesc('is_default')->orderBy('id')->get()
+                ->filter(fn (MixedEvent $event): bool => $user !== null && Gate::forUser($user)->allows('view', $event))
+                ->values(),
+            'isGlobalAdmin' => MixedEventPolicy::isGlobalAdmin($user),
+        ]);
+    }
+
     /** Static help page; the avoid-pair section and the admin link only for global administrators (as in ZF2). */
     public function info(Request $request): View
     {

@@ -64,10 +64,20 @@ final class MixedNavigation implements TournamentModuleNavigation
 
         return [
             ...$this->eventShortcuts($nav, $event),
-            // The event list exists only without a default event: otherwise /mixed-tournament opens the default event.
-            $default !== null ? null : $nav->item('events', __('tournament-base::common.nav.events'), route('mixed.index'), ['mixed.index']),
+            // Always reachable (MX-01): the member event list; the default event stays a shortcut above.
+            $nav->item('events', __('tournament-base::common.nav.events'), route('mixed.events'), ['mixed.events', 'mixed.index']),
             $event === null ? null : $this->eventEntry($nav, $event),
             $nav->item('info', __('tournament-base::common.nav.info'), route('mixed.info'), ['mixed.info']),
+        ];
+    }
+
+    public function settingsEntries(AreaNavBuilder $nav): array
+    {
+        if ($nav->user === null) {
+            return [];
+        }
+
+        return [
             $nav->item('admin', __('tournament-base::common.nav.admin'), route('mixed.admin.index'), ['mixed.admin.index'],
                 static fn (?User $user): bool => $user !== null && ($user->can('admin.mixed')
                     || MixedEventGrant::query()->where('uid', (int) $user->uid)->whereIn('role', ['admin', 'score'])->exists())),

@@ -30,6 +30,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $zip
  * @property string|null $city
  * @property int|null $fee_category_id
+ * @property int|null $household_id
+ * @property-read MemberHousehold|null $household
  * @property \Illuminate\Support\Carbon|null $joined_at
  * @property \Illuminate\Support\Carbon|null $left_at
  * @property string $status
@@ -81,6 +83,41 @@ class Member extends Model
     public function feeCategory(): BelongsTo
     {
         return $this->belongsTo(FeeCategory::class);
+    }
+
+    /**
+     * The household this member belongs to (at most one). household_id is deliberately not fillable:
+     * it is written only by the household service.
+     *
+     * @return BelongsTo<MemberHousehold, $this>
+     */
+    public function household(): BelongsTo
+    {
+        return $this->belongsTo(MemberHousehold::class, 'household_id');
+    }
+
+    /**
+     * Household dues covering this member (at most one per fiscal year, unique in the database).
+     *
+     * @return BelongsToMany<HouseholdDue, $this>
+     */
+    public function coveringHouseholdDues(): BelongsToMany
+    {
+        return $this->belongsToMany(HouseholdDue::class, 'household_due_member', 'member_id', 'household_due_id')
+            ->withPivot('fiscal_year_id')
+            ->withTimestamps();
+    }
+
+    /**
+     * The due that applies to this member in a fiscal year: the own member due first, else the
+     * household due covering the member in that year, else null.
+     */
+    public function effectiveDueFor(FiscalYear|int $fiscalYear): MemberDue|HouseholdDue|null
+    {
+        $fiscalYearId = $fiscalYear instanceof FiscalYear ? $fiscalYear->id : $fiscalYear;
+
+        return $this->dues()->where('fiscal_year_id', $fiscalYearId)->first()
+            ?? $this->coveringHouseholdDues()->wherePivot('fiscal_year_id', $fiscalYearId)->first();
     }
 
     /** @return BelongsTo<User, $this> */
@@ -140,7 +177,9 @@ class Member extends Model
      */
     public function scopeWithOpenDues(Builder $query): Builder
     {
-        return $query->whereHas('dues', fn (Builder $dues) => $dues->scopes(['open']));
+        // Own open dues or an open household due covering the member (family fee).
+        return $query->where(fn (Builder $q) => $q->whereHas('dues', fn (Builder $dues) => $dues->scopes(['open']))
+            ->orWhereHas('coveringHouseholdDues', fn (Builder $dues) => $dues->scopes(['open'])));
     }
 
     /**
@@ -203,14 +242,19 @@ class Member extends Model
         return (int) (static::query()->max('member_number') ?? 0) + 1;
     }
 
+    /** End of the last fiscal year that is paid: by an own due or by a paid household due covering the member. */
     public function paidUntil(): ?Carbon
     {
-        return $this->dues()
+        $own = $this->dues()
             ->get()
             ->filter(fn (MemberDue $due) => $due->isPaid())
-            ->map(fn (MemberDue $due) => $due->fiscalYear->ends_on)
-            ->sort()
-            ->last();
+            ->map(fn (MemberDue $due) => $due->fiscalYear->ends_on);
+        $household = $this->coveringHouseholdDues()
+            ->get()
+            ->filter(fn (HouseholdDue $due) => $due->isPaid())
+            ->map(fn (HouseholdDue $due) => $due->fiscalYear->ends_on);
+
+        return $own->concat($household)->sort()->last();
     }
 
     /** Setzt das Austrittsdatum und leitet daraus automatisch den Status ab: gesetzt = ausgetreten, geleert = aktiv. */

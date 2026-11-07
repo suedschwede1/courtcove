@@ -6,6 +6,8 @@ namespace App\Modules\Members\Http\Controllers;
 
 use App\Mail\MemberBulkMail;
 use App\Models\Option;
+use App\Modules\Members\Models\FiscalYear;
+use App\Modules\Members\Models\HouseholdDue;
 use App\Modules\Members\Models\MailCategory;
 use App\Modules\Members\Models\MailSend;
 use App\Modules\Members\Models\MailTemplate;
@@ -35,6 +37,7 @@ class MailController
                     'count' => $addresses->count(),
                     'addresses' => $addresses->implode(', '),
                     'countLabel' => __('members::admin.mail.recipients_count', ['count' => $addresses->count()]),
+                    'note' => isset($definition['note']) ? ($definition['note'])() : null,
                 ];
             })
             ->values();
@@ -243,7 +246,11 @@ class MailController
         return redirect()->route('members.mail.config');
     }
 
-    /** @return array<string, array{label: string, apply: callable(Builder<Member>): Builder<Member>}> */
+    /**
+     * Audiences: either 'apply' (a member query filter) or 'addresses' (the list itself) plus an optional 'note'.
+     *
+     * @return array<string, array{label: string, apply?: callable(Builder<Member>): Builder<Member>, addresses?: callable(): Collection<int, string>, note?: callable(): ?string}>
+     */
     private function audienceDefinitions(): array
     {
         $definitions = [
@@ -262,6 +269,22 @@ class MailController
                 'apply' => fn (Builder $query): Builder => $query->where('status', 'ruhend'),
             ],
         ];
+
+        // "Beitrag {Jahr} offen" (decision 4): own open dues of active members, and for a household due only
+        // the paying person; households without a paying person get no mail and are counted in the note.
+        $year = FiscalYear::defaultFor(FiscalYear::query()->orderBy('starts_on')->get());
+        if ($year !== null) {
+            $definitions['open_dues'] = [
+                'label' => __('members::admin.mail.to_open_dues', ['year' => $year->name]),
+                'addresses' => fn (): Collection => self::openDuesAddresses($year),
+                'note' => function () use ($year): ?string {
+                    $withoutPayer = HouseholdDue::query()->open()->where('fiscal_year_id', $year->id)
+                        ->whereHas('household', fn (Builder $h): Builder => $h->whereNull('payer_member_id'))->count();
+
+                    return $withoutPayer > 0 ? __('members::admin.mail.households_without_payer', ['count' => $withoutPayer]) : null;
+                },
+            ];
+        }
 
         if (Schema::hasTable('mail_categories')) {
             MailCategory::query()->orderBy('name')->get()->each(function (MailCategory $category) use (&$definitions): void {
@@ -284,9 +307,28 @@ class MailController
         return array_keys($this->audienceDefinitions());
     }
 
+    /** @return Collection<int, string> */
+    private static function openDuesAddresses(FiscalYear $year): Collection
+    {
+        $own = Member::query()->scopes(['active'])->whereNotNull('email')->where('email', '!=', '')
+            ->whereHas('dues', fn (Builder $d): Builder => $d->scopes(['open'])->where('fiscal_year_id', $year->id))
+            ->pluck('email');
+        $payerIds = HouseholdDue::query()->open()->where('fiscal_year_id', $year->id)
+            ->with('household')->get()
+            ->map(fn (HouseholdDue $due): ?int => $due->household->payer_member_id)
+            ->filter()->unique()->values()->all();
+        $payers = Member::query()->whereNull('anonymized_at')->whereNotNull('email')->where('email', '!=', '')
+            ->whereKey($payerIds)->pluck('email');
+
+        return $own->concat($payers)->map(fn ($email): string => (string) $email)->unique()->values();
+    }
+
     private function recipientAddresses(string $audience): Collection
     {
         $definition = $this->audienceDefinitions()[$audience] ?? $this->audienceDefinitions()['all'];
+        if (isset($definition['addresses'])) {
+            return ($definition['addresses'])();
+        }
         $query = Member::query()->whereNotNull('email')->where('email', '!=', '');
         $query = $definition['apply']($query);
 

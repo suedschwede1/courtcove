@@ -56,7 +56,7 @@ final class AdminNavigationTest extends TestCase
                 ['dashboard', 'bookings', 'events', 'statistics'],
                 ['users', 'login_history'],
                 ['pyramid', 'championship', 'draws', 'mixed'],
-                ['squares', 'texts', 'behavior', 'database', 'api_tokens', 'testmail'],
+                ['squares', 'texts', 'behavior', 'database', 'scheduler', 'api_tokens', 'testmail'],
             ],
             array_map(fn ($g) => array_map(fn ($i) => $i->key, $g->items), $groups),
         );

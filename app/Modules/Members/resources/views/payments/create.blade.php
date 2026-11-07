@@ -37,6 +37,15 @@
                     <td class="tabular-nums" data-label="{{ __('members::admin.payments.amount') }}">{{ \App\Modules\Members\Support\MembersFormat::money($due->amount) }}</td>
                 </tr>
             @endforeach
+            {{-- Open household dues covering this member or of the member's household (paid once for everybody). --}}
+            @foreach($openHouseholdDues as $hdue)
+                <tr>
+                    <td><input type="checkbox" name="household_due_ids[]" value="{{ $hdue->id }}" aria-label="{{ __('members::admin.common.select_row', ['name' => $hdue->household->label()]) }}"></td>
+                    <td class="ds-cell--title" data-label="{{ __('members::admin.fiscal_years.title') }}">{{ $hdue->fiscalYear->name }}</td>
+                    <td class="text-ink-2" data-label="{{ __('members::admin.fee_categories.title') }}">{{ __('members::admin.payments.household_due_label', ['household' => $hdue->household->label(), 'year' => $hdue->fiscalYear->name, 'amount' => \App\Modules\Members\Support\MembersFormat::money($hdue->amount)]) }}</td>
+                    <td class="tabular-nums" data-label="{{ __('members::admin.payments.amount') }}">{{ \App\Modules\Members\Support\MembersFormat::money($hdue->amount) }}</td>
+                </tr>
+            @endforeach
         </x-ui.table>
     </x-ui.card>
     <div class="flex gap-2 justify-end">

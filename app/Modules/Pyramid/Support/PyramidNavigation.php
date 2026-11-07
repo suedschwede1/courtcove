@@ -57,7 +57,6 @@ final class PyramidNavigation implements TournamentModuleNavigation
         $ownId = $own !== null ? (int) $own->id : null;
         $isOwnProfile = static fn (Request $r): bool => $ownId !== null
             && $r->routeIs('pyramide.player') && (int) $r->route('playerId') === $ownId;
-        $adminUrl = $this->adminUrl($nav->user);
         $rankingUrl = $nav->request->routeIs('pyramide.ladder')
             ? PyramidLinks::ladder((int) $nav->request->route('ladderId'))
             : route('pyramide.index');
@@ -70,6 +69,14 @@ final class PyramidNavigation implements TournamentModuleNavigation
             $nav->item('rules', __('pyramid::ui.tab_rules'), PyramidLinks::rules(), ['pyramide.rules']),
             $ownId === null ? null : $nav->item('profile', __('tournament-base::common.nav.my_profile'), PyramidLinks::player($ownId), $isOwnProfile,
                 static fn (?User $user): bool => $user !== null),
+        ];
+    }
+
+    public function settingsEntries(AreaNavBuilder $nav): array
+    {
+        $adminUrl = $this->adminUrl($nav->user);
+
+        return [
             $nav->item('admin', __('pyramid::ui.tab_admin'), $adminUrl ?? PyramidLinks::adminIndex(), ['pyramide.admin.*'],
                 static fn (?User $user): bool => $adminUrl !== null),
         ];

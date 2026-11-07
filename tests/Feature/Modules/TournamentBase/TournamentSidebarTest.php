@@ -23,7 +23,8 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
- * The common tournament sidebar (area shell) on every page of Pyramid, championship, draws and Mixed: groups and
+ * The tournament sidebar (area shell) on every page of Pyramid, championship, draws and Mixed. Each tournament is
+ * standalone: a page lists only its own module's group (the draws sit in the championship's). Groups and
  * entries by permission (admin, member, guest with the login requirement off), exactly one active entry per GET
  * route, the phone slide-in markup, no module tab rows left, print views without the shell.
  */
@@ -48,6 +49,7 @@ class TournamentSidebarTest extends TestCase
         'draw.index' => 'Auslosungen verwalten',
         // The demo has a default event: /mixed-tournament opens it, its "Teilnehmer" page is current.
         'mixed.index' => 'Teilnehmer',
+        'mixed.events' => 'Veranstaltungen',
         'mixed.info' => 'Info',
         'mixed.admin.index' => 'Verwaltung',
         'mixed.admin.import-members' => 'Mitglieder importieren',
@@ -161,20 +163,31 @@ class TournamentSidebarTest extends TestCase
     }
 
     #[Test]
-    public function an_admin_sees_one_common_sidebar_with_a_group_per_module(): void
+    public function an_admin_sees_only_the_sidebar_of_the_current_tournament(): void
     {
         $this->seedModules();
+        $admin = $this->actingAs($this->admin());
 
-        $groups = $this->sidebar((string) $this->actingAs($this->admin())->get(route('pyramide.index'))->getContent());
+        $groups = $this->sidebar((string) $admin->get(route('pyramide.index'))->getContent());
+        $this->assertSame([
+            'Forderungspyramide' => ['Rangliste', 'Forderungen', 'Regeln'],
+            'Einstellungen' => ['Verwaltung'],
+        ], $groups);
 
-        $this->assertSame(['Forderungspyramide', 'Vereinsmeisterschaft', 'Mixed-/Fun-Turnier'], array_keys($groups));
-        $this->assertSame(['Rangliste', 'Forderungen', 'Regeln', 'Verwaltung'], $groups['Forderungspyramide']);
-        $this->assertSame(['Übersicht', 'Gruppen', 'KO-Raster', 'Spielplan', 'Meine Spiele', 'Teilnehmer', 'Modus', 'Leitung'],
-            array_slice($groups['Vereinsmeisterschaft'], 0, 8));
-        $this->assertSame('Auslosungen verwalten', end($groups['Vereinsmeisterschaft']));
+        $groups = $this->sidebar((string) $admin->get(route('tournament.index'))->getContent());
+        $this->assertSame(['Vereinsmeisterschaft', 'Einstellungen'], array_keys($groups));
+        $this->assertSame(['Übersicht', 'Gruppen', 'KO-Raster', 'Spielplan', 'Meine Spiele', 'Teilnehmer', 'Modus'],
+            array_slice($groups['Vereinsmeisterschaft'], 0, 7));
+        $this->assertSame(['Leitung', 'Auslosungen verwalten'], $groups['Einstellungen']);
+
+        // The draw admin belongs to the championship.
+        $this->assertSame(['Vereinsmeisterschaft', 'Einstellungen'], array_keys($this->sidebar((string) $admin->get(route('draw.index'))->getContent())));
+
+        $groups = $this->sidebar((string) $admin->get(route('mixed.admin.index'))->getContent());
+        $this->assertSame(['Mixed-/Fun-Turnier', 'Einstellungen'], array_keys($groups));
         $this->assertContains('Wertung', $groups['Mixed-/Fun-Turnier']);
-        $this->assertNotContains('Veranstaltungen', $groups['Mixed-/Fun-Turnier']); // a default event exists
-        $this->assertContains('Mitglieder importieren', $groups['Mixed-/Fun-Turnier']);
+        $this->assertContains('Veranstaltungen', $groups['Mixed-/Fun-Turnier']); // the member list stays reachable with a default event (MX-01)
+        $this->assertSame(['Verwaltung', 'Mitglieder importieren'], $groups['Einstellungen']);
     }
 
     #[Test]
@@ -190,8 +203,8 @@ class TournamentSidebarTest extends TestCase
             foreach (['pyramide.admin.index', 'tournament.admin', 'draw.index', 'mixed.admin.index', 'mixed.admin.import-members'] as $admin) {
                 $this->assertStringNotContainsString('href="'.route($admin).'"', $nav, $name.' / '.$admin);
             }
-            $this->assertStringContainsString('>Rangliste</a>', $nav, $name);
-            $this->assertStringContainsString('>Übersicht</a>', $nav, $name);
+            $own = ['pyramide.index' => 'Rangliste', 'tournament.index' => 'Übersicht', 'mixed.index' => 'Teilnehmer'][$name];
+            $this->assertStringContainsString('>'.$own.'</a>', $nav, $name);
         }
     }
 
@@ -207,8 +220,7 @@ class TournamentSidebarTest extends TestCase
         // On a record page the guest gets that record only (slugs are not listed to guests).
         $html = (string) $this->get(route('draw.record', ['slug' => 'demo-direct']))->assertOk()->getContent();
         $groups = $this->sidebar($html);
-        $this->assertSame(['Rangliste', 'Forderungen', 'Regeln'], $groups['Forderungspyramide']);
-        $this->assertSame(['Losprotokoll'], $groups['Vereinsmeisterschaft']);
+        $this->assertSame(['Vereinsmeisterschaft' => ['Losprotokoll']], $groups);
         $this->assertStringNotContainsString('demo-committed', $html);
         $this->assertStringContainsString('aria-current="page">Losprotokoll</a>', $html);
         // The guest's sidebar foot and phone bar offer the login.
@@ -225,8 +237,9 @@ class TournamentSidebarTest extends TestCase
         $html = (string) $this->actingAs($this->admin())->get(route('mixed.event', ['event' => $event->id]))->assertOk()->getContent();
         $xp = $this->xpath($html);
 
-        $this->assertSame(['Aktuelle Runde', 'Wertung', 'Veranstaltungen', 'Beispiel-Mixed', 'Info', 'Verwaltung', 'Mitglieder importieren'],
-            $this->sidebar($html)['Mixed-/Fun-Turnier']);
+        $groups = $this->sidebar($html);
+        $this->assertSame(['Aktuelle Runde', 'Wertung', 'Veranstaltungen', 'Beispiel-Mixed', 'Info'], $groups['Mixed-/Fun-Turnier']);
+        $this->assertSame(['Verwaltung', 'Mitglieder importieren'], $groups['Einstellungen']);
         $this->assertSame(route('mixed.round', ['round' => $open->id]), $xp->query('//aside//a[normalize-space()="Aktuelle Runde"]')->item(0)?->getAttribute('href'));
         $parent = $xp->query('//aside//li[a[normalize-space()="Beispiel-Mixed"]]')->item(0);
         $this->assertSame('true', $xp->query('./a', $parent)->item(0)->getAttribute('aria-current'));

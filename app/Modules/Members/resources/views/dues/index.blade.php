@@ -28,6 +28,9 @@
 @if($yearNotice)
     <x-ui.notice tone="attention">{{ $yearNotice }}</x-ui.notice>
 @endif
+@if($duesReport)
+    @include('members::dues._generation-report', ['report' => $duesReport])
+@endif
 
 <x-ui.card class="mbr-dues-tools" as="div" x-data="{ composing: {{ $composeOpen ? 'true' : 'false' }} }">
     <form method="GET" action="{{ route('members.dues.index') }}" class="mbr-filters">
@@ -115,15 +118,21 @@
     @endunless
 </x-ui.card>
 
-<form method="POST" action="{{ route('members.dues.bulk-mark-paid') }}"
+<form method="POST" action="{{ route('members.dues.bulk-mark-paid') }}" class="flex flex-col gap-3"
     x-data="{
         selected: [],
         allIds: @js($dues->pluck('id')),
-        get selectAll() { return this.allIds.length > 0 && this.selected.length === this.allIds.length; },
-        set selectAll(value) { this.selected = value ? [...this.allIds] : []; }
+        {{-- Household rows add 'h<id>' entries (their checkboxes post household_due_ids[] themselves). --}}
+        households() { return this.selected.filter(id => String(id).startsWith('h')); },
+        toggleHousehold(key, on) { this.selected = on ? [...this.selected, key] : this.selected.filter(id => id !== key); },
+        get selectAll() { return this.allIds.length > 0 && this.selected.length - this.households().length === this.allIds.length; },
+        set selectAll(value) { this.selected = [...(value ? this.allIds : []), ...this.households()]; }
     }">
     @csrf
     <input type="hidden" name="fiscal_year_id" value="{{ $selectedFiscalYearId }}">
+    @if($householdDues->isNotEmpty())
+        @include('members::dues._household-dues')
+    @endif
     <x-ui.card class="mbr-table-card" padding="none" as="div">
         @unless($yearClosed)
         <div class="mbr-filters mbr-bulk-bar">

@@ -15,6 +15,17 @@
                 <x-ui.input name="name" id="fc-name" maxlength="64" required :value="is_string(old('name')) ? old('name') : $category->name" />
             </x-ui.field>
         </div>
+        @php($unit = \App\Support\Ui\FormValue::string(old('billing_unit', $category->billing_unit)))
+        <div class="mt-3 flex flex-col gap-3">
+            <x-ui.option-group :legend="__('members::admin.fee_categories.billing_unit')">
+                <x-ui.option-tile name="billing_unit" value="member" :label="__('members::admin.fee_categories.unit_member')" :checked="$unit !== 'household'" />
+                <x-ui.option-tile name="billing_unit" value="household" :label="__('members::admin.fee_categories.unit_household')" :checked="$unit === 'household'" />
+            </x-ui.option-group>
+            <p class="m-0 text-body-s text-ink-2">{{ __('members::admin.fee_categories.per_household_help') }}</p>
+            @if($errors->has('billing_unit'))
+                <p class="ds-field__error">{{ $errors->first('billing_unit') }}</p>
+            @endif
+        </div>
     </x-ui.card>
 
     <x-ui.card :title="__('members::admin.fee_categories.rates_for')">

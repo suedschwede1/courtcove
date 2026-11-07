@@ -392,7 +392,7 @@
     border-radius: 0 0 var(--radius-sm) var(--radius-sm);
 }
 
-/* Only the first hour carries the visible label on desktop. */
+/* Only the first hour carries the visible label at every viewport width. */
 .cal-row > .event-cell--middle .event-label,
 .cal-row > .event-cell--end .event-label {
     visibility: hidden;
@@ -545,27 +545,22 @@
         display: none;
     }
 
-    /* Events: every hour is its own block with the label repeated. */
-    .cal-row > .event-cell--single,
-    .cal-row > .event-cell--start,
-    .cal-row > .event-cell--middle,
-    .cal-row > .event-cell--end {
-        height: 100%;
-        margin-bottom: 0;
-        padding: 4px 6px;
+    /* Keep multi-hour events joined, with mobile radii only at the outer corners. */
+    .cal-row > .event-cell--single {
         border-radius: var(--radius-md);
     }
 
-    .cal-row > .event-cell--single:not(.event-cell--blocked),
-    .cal-row > .event-cell--start:not(.event-cell--blocked),
-    .cal-row > .event-cell--middle:not(.event-cell--blocked),
-    .cal-row > .event-cell--end:not(.event-cell--blocked) {
-        box-shadow: inset 0 0 0 1px var(--cal-event-line);
+    .cal-row > .event-cell--start {
+        padding: 4px 6px;
+        border-radius: var(--radius-md) var(--radius-md) 0 0;
     }
 
-    .cal-row > .event-cell--middle .event-label,
-    .cal-row > .event-cell--end .event-label {
-        visibility: visible;
+    .cal-row > .event-cell--middle {
+        border-radius: 0;
+    }
+
+    .cal-row > .event-cell--end {
+        border-radius: 0 0 var(--radius-md) var(--radius-md);
     }
 
     .cal-row .event-range {

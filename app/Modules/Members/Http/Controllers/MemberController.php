@@ -8,13 +8,18 @@ use App\Models\User;
 use App\Modules\Members\Models\ClubRole;
 use App\Modules\Members\Models\FeeCategory;
 use App\Modules\Members\Models\FiscalYear;
+use App\Modules\Members\Models\HouseholdDue;
 use App\Modules\Members\Models\Member;
 use App\Modules\Members\Models\MemberChange;
+use App\Modules\Members\Models\MemberHousehold;
+use App\Modules\Members\Support\HouseholdService;
+use App\Modules\Members\Support\MemberChangeLogger;
 use App\Modules\Members\Support\MemberListFilter;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -37,6 +42,9 @@ class MemberController
         $query = Member::query()->with([
             'feeCategory',
             'dues' => fn ($dues) => $dues->where('fiscal_year_id', $currentFiscalYear->id ?? 0)->withExists('payments'),
+            // Family fee: the household (chip) and the household due covering the member in that year (read-only status).
+            'household.members',
+            'coveringHouseholdDues' => fn ($dues) => $dues->wherePivot('fiscal_year_id', $currentFiscalYear->id ?? 0)->withExists('payments')->with('household.members'),
         ]);
         $filter->apply($query);
 
@@ -47,7 +55,7 @@ class MemberController
         return view('members::members.index', [
             'members' => $members,
             'filter' => $filter,
-            'feeCategories' => FeeCategory::query()->orderBy('name')->get(),
+            'feeCategories' => FeeCategory::query()->perMember()->orderBy('name')->get(),
             'fiscalYears' => $fiscalYears,
             'currentFiscalYear' => $currentFiscalYear,
         ]);
@@ -57,7 +65,7 @@ class MemberController
     {
         return view('members::members.create', [
             'nextNumber' => Member::nextNumber(),
-            'feeCategories' => FeeCategory::query()->orderBy('name')->get(),
+            'feeCategories' => FeeCategory::query()->perMember()->orderBy('name')->get(),
             'clubRoles' => ClubRole::query()->orderByDesc('is_board')->orderBy('name')->get(),
             'users' => User::query()->orderBy('alias')->get(),
         ]);
@@ -95,13 +103,40 @@ class MemberController
     {
         return view('members::members.edit', [
             'member' => $member,
-            'feeCategories' => FeeCategory::query()->orderBy('name')->get(),
+            'feeCategories' => FeeCategory::query()->perMember()->orderBy('name')->get(),
             'clubRoles' => ClubRole::query()->orderByDesc('is_board')->orderBy('name')->get(),
             'fiscalYears' => FiscalYear::query()->orderBy('starts_on')->get(),
             'dues' => $member->dues()->with('fiscalYear', 'feeCategory')->get()->sortByDesc(fn ($due) => $due->fiscalYear->starts_on),
+            // Household dues covering the member: read-only rows with a "Haushalt" chip in the dues card.
+            'coveringDues' => $member->coveringHouseholdDues()->with('fiscalYear', 'household.members')->withExists('payments')->get()
+                ->sortByDesc(fn (HouseholdDue $due) => $due->fiscalYear->starts_on->toDateString())->values(),
             'changes' => MemberChange::where('member_id', $member->id)->with('adminUser')->latest()->get(),
             'users' => User::query()->orderBy('alias')->get(),
+            ...$this->householdCardData($member),
         ]);
+    }
+
+    /**
+     * Data of the card "Haushalt · optional": current households for the select (when the member has none),
+     * the member's household and the household due covering the member in the current fiscal year.
+     *
+     * @return array{households: Collection<int, MemberHousehold>, household: MemberHousehold|null, householdDue: HouseholdDue|null, householdYear: FiscalYear|null}
+     */
+    private function householdCardData(Member $member): array
+    {
+        $year = app(HouseholdService::class)->currentFiscalYear();
+        $household = $member->household()->with('members')->first();
+
+        return [
+            'household' => $household,
+            'households' => $household === null
+                ? MemberHousehold::query()->current()->with('members')->get()->sortBy(fn (MemberHousehold $h) => mb_strtolower($h->label()))->values()
+                : collect(),
+            'householdDue' => $year !== null
+                ? $member->coveringHouseholdDues()->wherePivot('fiscal_year_id', $year->id)->withExists('payments')->with('household.members')->first()
+                : null,
+            'householdYear' => $year,
+        ];
     }
 
     public function update(Request $request, Member $member): RedirectResponse
@@ -136,6 +171,9 @@ class MemberController
             $member->clubRoles()->sync($request->input('club_roles', []));
             $member->setLeftAt($leftAt);
             $this->logChange($member, $departs ? 'departed' : 'updated', $before);
+            if ($departs) {
+                app(HouseholdService::class)->memberDeparted($member);
+            }
         });
 
         return redirect()->route('members.index');
@@ -185,6 +223,9 @@ class MemberController
                     default => $member->update([$validated['field'] => $validated['value']]),
                 };
                 $this->logChange($member, $departs ? 'departed' : 'updated', $before);
+                if ($departs) {
+                    app(HouseholdService::class)->memberDeparted($member);
+                }
             });
         } catch (\Throwable $e) {
             report($e);
@@ -239,6 +280,8 @@ class MemberController
         $before = $member->toArray();
 
         DB::transaction(function () use ($member, $before) {
+            // Household link and payer go in the same transaction, so the 'anonymized' snapshot records them.
+            app(HouseholdService::class)->detachForAnonymisation($member);
             $member->update([
                 'firstname' => 'Ehemaliges',
                 'lastname' => "Mitglied #{$member->member_number}",
@@ -258,14 +301,9 @@ class MemberController
             ->with('success', __('members::admin.members.anonymize_success'));
     }
 
+    /** @param  array<string, mixed>|null  $before */
     private function logChange(Member $member, string $action, ?array $before): void
     {
-        MemberChange::create([
-            'member_id' => $member->id,
-            'admin_user_id' => auth()->id(),
-            'action' => $action,
-            'before' => $before,
-            'after' => $member->fresh()->toArray(),
-        ]);
+        MemberChangeLogger::log($member, $action, $before);
     }
 }
