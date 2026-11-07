@@ -60,14 +60,18 @@ final class HouseholdService
     public function updateDetails(MemberHousehold $household, ?string $name, ?int $feeCategoryId): void
     {
         $this->assertTariff($feeCategoryId, $household->fee_category_id);
-        if ($feeCategoryId !== null) {
-            $connected = $household->members()->get()->first(fn (Member $m) => MemberConnectionService::isConnected($m));
-            if ($connected !== null) {
-                throw new HouseholdRuleException(__('members::admin.households.error_connected_member', ['name' => $connected->fullName()]));
+        DB::transaction(function () use ($household, $name, $feeCategoryId): void {
+            // A new per-household tariff must not cover a connected member (nobody pays twice); a rename is always allowed.
+            if ($feeCategoryId !== null && $feeCategoryId !== $household->fee_category_id) {
+                $connected = $household->members()->orderBy('id')->lockForUpdate()->get()
+                    ->first(fn (Member $m) => MemberConnectionService::isConnected($m));
+                if ($connected !== null) {
+                    throw new HouseholdRuleException(__('members::admin.households.error_connected_member', ['name' => $connected->fullName()]));
+                }
             }
-        }
 
-        $household->update(['name' => self::cleanName($name), 'fee_category_id' => $feeCategoryId]);
+            $household->update(['name' => self::cleanName($name), 'fee_category_id' => $feeCategoryId]);
+        });
     }
 
     /** @throws HouseholdRuleException */

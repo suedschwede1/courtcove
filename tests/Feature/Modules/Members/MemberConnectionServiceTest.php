@@ -174,6 +174,11 @@ class MemberConnectionServiceTest extends TestCase
         $change = MemberChange::where('member_id', $helga->id)->latest('id')->first();
         $this->assertSame('anonymized', $change?->action);
         $this->assertSame($heinz->id, $change?->before['connected_to_member_id']);
+        // The Vollzahler's protocol records that it lost its Anschlussmitglied.
+        $vollzahlerChange = MemberChange::where('member_id', $heinz->id)->where('action', 'connection')->latest('id')->first();
+        $this->assertNotNull($vollzahlerChange);
+        $this->assertSame($helga->id, $vollzahlerChange->before['anschluss_member']);
+        $this->assertNull($vollzahlerChange->after['anschluss_member']);
     }
 
     #[Test]
@@ -186,8 +191,40 @@ class MemberConnectionServiceTest extends TestCase
             ->post("/members/{$heinz->id}/anonymize", ['confirmation' => 'ANONYMISIEREN'])->assertRedirect();
 
         $this->assertNull($helga->fresh()?->connected_to_member_id);
-        $this->assertNull(MemberChange::where('member_id', $helga->id)->latest('id')->first()?->after['connected_to_member_id'] ?? null);
+        $change = MemberChange::where('member_id', $helga->id)->latest('id')->first();
+        $this->assertNotNull($change);
+        $this->assertSame($heinz->id, $change->before['connected_to_member_id']);
+        $this->assertArrayHasKey('connected_to_member_id', $change->after);
+        $this->assertNull($change->after['connected_to_member_id']);
         $this->assertSame(1, MemberChange::where('member_id', $helga->id)->count());
+    }
+
+    #[Test]
+    public function a_departed_anschluss_member_is_reported_on_the_vollzahler_and_in_the_run(): void
+    {
+        [$heinz, $helga] = [$this->heinz(), $this->helga()];
+        $this->service->connect($helga, $heinz);
+
+        $helga->fresh()?->setLeftAt('2026-06-30');
+
+        $this->assertContains(__('members::admin.connection.warnings.anschluss_departed', ['name' => 'Helga Beispiel']), MemberConnectionWarnings::forMember($heinz->fresh() ?? $heinz));
+        $this->assertArrayHasKey($heinz->id, MemberConnectionWarnings::all());
+    }
+
+    #[Test]
+    public function a_familientarif_household_can_be_renamed_despite_an_old_link_but_not_given_a_tariff_change(): void
+    {
+        $family = FeeCategory::create(['name' => 'Familie', 'billing_unit' => 'household']);
+        $other = FeeCategory::create(['name' => 'Familie 2', 'billing_unit' => 'household']);
+        $households = app(HouseholdService::class);
+        [$heinz, $helga] = [$this->heinz(), $this->helga()];
+        $household = $households->create([$heinz->id], $family->id, null);
+        $helga->forceFill(['connected_to_member_id' => $heinz->id])->save(); // old, invalid data
+
+        $households->updateDetails($household->fresh() ?? $household, 'Familie Muster', $family->id);
+        $this->assertSame('Familie Muster', $household->fresh()?->name);
+
+        $this->assertThrows(fn () => $households->updateDetails($household->fresh() ?? $household, 'Familie Muster', $other->id), HouseholdRuleException::class);
     }
 
     #[Test]

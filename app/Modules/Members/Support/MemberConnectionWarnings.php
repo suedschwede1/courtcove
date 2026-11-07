@@ -15,7 +15,7 @@ final class MemberConnectionWarnings
     /** @return list<string> */
     public static function forMember(Member $member): array
     {
-        $member->loadMissing(['feeCategory', 'connectedTo.feeCategory', 'anschlussMembers']);
+        $member->loadMissing(['feeCategory', 'connectedTo.feeCategory', 'anschlussMembers', 'household.feeCategory']);
         $warnings = [];
 
         if ($member->feeCategory?->isAnschluss() && $member->connected_to_member_id === null && $member->anschlussMembers->isEmpty()) {
@@ -42,13 +42,19 @@ final class MemberConnectionWarnings
             if (! $member->feeCategory?->isVollzahler()) {
                 $warnings[] = __('members::admin.connection.warnings.not_vollzahler_with_anschluss');
             }
-            if ($member->anschlussMembers->count() > 1) {
-                $names = $member->anschlussMembers->map(fn (Member $m) => $m->fullName())->sort()->values()->implode(', ');
+            // A departed or anonymised Anschlussmitglied still blocks a new partner: say so.
+            $current = $member->anschlussMembers->filter(fn (Member $m) => in_array($m->status, ['aktiv', 'ruhend'], true) && $m->anonymized_at === null);
+            foreach ($member->anschlussMembers->diff($current) as $gone) {
+                $warnings[] = __('members::admin.connection.warnings.anschluss_departed', ['name' => $gone->fullName()]);
+            }
+            if ($current->count() > 1) {
+                $names = $current->map(fn (Member $m) => $m->fullName())->sort()->values()->implode(', ');
                 $warnings[] = __('members::admin.connection.warnings.too_many_anschluss', ['names' => $names]);
             }
         }
 
-        if (($member->connected_to_member_id !== null || $member->anschlussMembers->isNotEmpty()) && MemberConnectionService::inFamilyTariff($member)) {
+        $inFamilyTariff = $member->household !== null && $member->household->feeCategory?->isPerHousehold();
+        if (($member->connected_to_member_id !== null || $member->anschlussMembers->isNotEmpty()) && $inFamilyTariff) {
             $warnings[] = __('members::admin.connection.warnings.family_tariff');
         }
 
@@ -56,9 +62,10 @@ final class MemberConnectionWarnings
     }
 
     /**
-     * Warnings of every current member that has any (for the dues run report), keyed by member id.
+     * Warnings of every current member that has any (for the dues run report), keyed by member id, together with the
+     * member itself (all relations the checks need are eager-loaded: no query per member).
      *
-     * @return array<int, list<string>>
+     * @return array<int, array{member: Member, warnings: list<string>}>
      */
     public static function all(): array
     {
@@ -68,7 +75,7 @@ final class MemberConnectionWarnings
             ->where(fn ($q) => $q->whereNotNull('connected_to_member_id')
                 ->orWhereHas('anschlussMembers')
                 ->orWhereHas('feeCategory', fn ($c) => $c->where('connection_role', 'anschluss')))
-            ->with(['feeCategory', 'connectedTo.feeCategory', 'anschlussMembers'])
+            ->with(['feeCategory', 'connectedTo.feeCategory', 'anschlussMembers', 'household.feeCategory'])
             ->orderBy('lastname')->orderBy('firstname')
             ->get();
 
@@ -76,7 +83,7 @@ final class MemberConnectionWarnings
         foreach ($members as $member) {
             $warnings = self::forMember($member);
             if ($warnings !== []) {
-                $all[$member->id] = $warnings;
+                $all[$member->id] = ['member' => $member, 'warnings' => $warnings];
             }
         }
 

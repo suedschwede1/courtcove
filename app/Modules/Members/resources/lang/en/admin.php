@@ -557,6 +557,7 @@ return [
             'partner_connected' => ':name is connected as Anschlussmitglied. Please check.',
             'not_vollzahler_with_anschluss' => 'Has an Anschlussmitglied but no Vollzahler category.',
             'too_many_anschluss' => 'More than one Anschlussmitglied: :names. Exactly one is allowed.',
+            'anschluss_departed' => ':name (Anschlussmitglied) has left or is anonymised. Please remove or check the connection.',
             'family_tariff' => 'Connected and also in a household with a family tariff. Please remove one of them.',
         ],
     ],

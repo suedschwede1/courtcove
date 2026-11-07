@@ -557,6 +557,7 @@ return [
             'partner_connected' => ':name ist selbst als Anschlussmitglied verbunden. Bitte prüfen.',
             'not_vollzahler_with_anschluss' => 'Hat ein Anschlussmitglied, aber keine Vollzahler-Kategorie.',
             'too_many_anschluss' => 'Mehr als ein Anschlussmitglied: :names. Erlaubt ist genau eines.',
+            'anschluss_departed' => ':name (Anschlussmitglied) ist ausgetreten oder anonymisiert. Bitte Verbindung lösen oder prüfen.',
             'family_tariff' => 'Verbunden und zugleich in einem Haushalt mit Familientarif. Bitte eines davon lösen.',
         ],
     ],

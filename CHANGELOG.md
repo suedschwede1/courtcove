@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-07
+- Members: Anschlussmitglied review fixes: a departed Anschlussmitglied is reported on its Vollzahler, anonymising an Anschlussmitglied is also logged on the Vollzahler, a Familientarif household can still be renamed (only a tariff change is checked), category rows are locked while connecting.
 - Members: the dues run bills Anschlussmitglied and Vollzahler from their own categories as before and lists every Anschlussmitglied problem in its report (nothing is changed); the export gets the column "Verbunden mit".
 - Members: member page card "Anschlussmitglied · optional" ("Verbunden mit: …" on the Anschlussmitglied, "Anschlussmitglied: …" on the Vollzahler, warnings, connect to a Vollzahler, remove the link); the category page sets the role Vollzahler/Anschluss (badge in the list, locked while connections use it).
 - Members: Anschlussmitglied rules in one service: a member with the Anschluss category is connected to exactly one Vollzahler (no self link, no chains, at most one Anschlussmitglied, not together with a Familientarif household), logged on both members; invalid states produce warnings and are never changed silently; anonymisation removes the link.

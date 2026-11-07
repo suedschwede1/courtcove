@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Members\Support;
 
+use App\Modules\Members\Models\FeeCategory;
 use App\Modules\Members\Models\Member;
 use App\Modules\Members\Models\MemberHousehold;
 use Illuminate\Support\Facades\DB;
@@ -34,6 +35,11 @@ final class MemberConnectionService
             $anschluss = $locked[$anschluss->id];
             /** @var Member $vollzahler */
             $vollzahler = $locked[$vollzahler->id];
+
+            // Category rows after the member rows: a role change on the category page waits for this check.
+            FeeCategory::query()->whereKey(array_filter([$anschluss->fee_category_id, $vollzahler->fee_category_id]))->orderBy('id')->lockForUpdate()->get();
+            $anschluss->load('feeCategory');
+            $vollzahler->load('feeCategory');
 
             $this->assertCurrent($anschluss);
             $this->assertCurrent($vollzahler);
@@ -85,8 +91,17 @@ final class MemberConnectionService
     public function detachForAnonymisation(Member $member): void
     {
         DB::transaction(function () use ($member): void {
-            if ($member->connected_to_member_id !== null) {
-                $member->forceFill(['connected_to_member_id' => null])->save();
+            $locked = Member::query()->lockForUpdate()->findOrFail($member->id);
+            $oldVollzahlerId = $locked->connected_to_member_id;
+            if ($oldVollzahlerId !== null) {
+                $locked->forceFill(['connected_to_member_id' => null])->save();
+                $member->connected_to_member_id = null;
+                $vollzahler = Member::query()->find($oldVollzahlerId);
+                if ($vollzahler !== null) {
+                    MemberChangeLogger::log($vollzahler, 'connection',
+                        [...MemberChangeLogger::snapshot($vollzahler), 'anschluss_member' => $locked->id],
+                        ['anschluss_member' => null]);
+                }
             }
             foreach (Member::query()->where('connected_to_member_id', $member->id)->lockForUpdate()->get() as $partner) {
                 $before = MemberChangeLogger::snapshot($partner);
