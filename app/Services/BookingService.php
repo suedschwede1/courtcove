@@ -413,6 +413,9 @@ final class BookingService
         $booking->meta()->create(['key' => $key, 'value' => $normalized]);
     }
 
+    /** Deadlocks and lock wait timeouts of an owner edit are retried this often. */
+    private const TRANSACTION_ATTEMPTS = 3;
+
     public function createSingle(
         User $user,
         Square $square,
@@ -538,7 +541,15 @@ final class BookingService
         $booking->meta()->create($meta[0]);
     }
 
-    /** @param array<int, string|null> $playerNames */
+    /**
+     * The booker changes Einzel/Doppel and his partner names. Runs under the booking row lock,
+     * the same mutex as join, leave, ending and the lapse of a player search. Without a live
+     * search the names are replaced as they always were. With one, members who joined via the
+     * exchange keep their place and name, the typed names go to the free slots, and a quantity
+     * too small for typed partners plus joined members is refused (BookingValidationException).
+     *
+     * @param  array<int, string|null>  $playerNames
+     */
     public function updateSinglePlayers(Booking $booking, User $user, int $quantity, array $playerNames): void
     {
         $booking->loadMissing(['square', 'reservations']);
@@ -558,9 +569,33 @@ final class BookingService
         $this->assertSingleBookingIsValid($user, $square, $quantity, $dateStart, $dateEnd, (int) $booking->bid);
 
         DB::transaction(function () use ($booking, $quantity, $playerNames): void {
-            $booking->update(['quantity' => $quantity]);
-            $this->syncPlayerMeta($booking, $playerNames);
-        });
+            // Booking row lock first, before any plain read: the checks below then see every
+            // join or leave that committed while this edit waited for the lock.
+            $locked = Booking::query()->whereKey($booking->bid)->lockForUpdate()->first();
+            $exchange = app(PlayerExchangeService::class);
+            $search = $locked !== null ? $exchange->liveSearch($locked) : null;
+
+            if ($locked === null || $search === null) {
+                $booking->update(['quantity' => $quantity]);
+                $this->syncPlayerMeta($booking, $playerNames);
+
+                return;
+            }
+
+            ksort($playerNames);
+            $ownNames = array_values(array_filter(
+                array_map(fn ($name): string => trim((string) $name), $playerNames),
+                fn (string $name): bool => $name !== '',
+            ));
+
+            try {
+                $exchange->applyOwnerEdit($locked->load('meta'), $search, $quantity, $ownNames);
+            } catch (PlayerExchangeException $e) {
+                throw new BookingValidationException($e->getMessage());
+            }
+
+            $booking->setAttribute('quantity', $quantity)->syncOriginalAttribute('quantity');
+        }, self::TRANSACTION_ATTEMPTS);
     }
 
     /**

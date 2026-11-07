@@ -22,6 +22,10 @@
                 <x-ui.notice tone="problem">{{ $errors->first('booking') }}</x-ui.notice>
             @endif
 
+            @if(! empty($joinedNames))
+                <x-ui.notice tone="neutral">{{ __('booking.messages.player_exchange.edit_signed_up', ['names' => implode(', ', $joinedNames)]) }}</x-ui.notice>
+            @endif
+
             <form method="POST" action="{{ route('bookings.update', $booking) }}" class="ds-modal__form" id="booking-edit-form">
                 @csrf
                 @method('PUT')

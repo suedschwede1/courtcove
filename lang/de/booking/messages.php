@@ -60,6 +60,8 @@ return [
             'left' => 'Du hast dich als Mitspieler ausgetragen.',
             'ended' => 'Die Mitspielersuche ist beendet. Deine Buchung bleibt bestehen.',
             'retry' => 'Gerade ändern mehrere gleichzeitig diese Buchung. Bitte versuch es nochmal.',
+            'edit_too_many' => 'Dafür reichen die Plätze nicht: Wer sich über die Spielerbörse angemeldet hat, behält seinen Platz. Wähle Doppel oder trag weniger Mitspieler ein.',
+            'edit_signed_up' => 'Über die Spielerbörse angemeldet: :names. Sie behalten ihren Platz und können sich nur selbst austragen.',
         ],
     ],
 ];

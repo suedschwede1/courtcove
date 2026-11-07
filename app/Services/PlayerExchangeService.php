@@ -178,7 +178,9 @@ final class PlayerExchangeService
 
     /**
      * Remove the member's signup and name; possible until the search deadline.
-     * A filled search opens again, an ended one stays ended.
+     * A filled search opens again, an ended one stays ended. Only the slot of his own
+     * signup is cleared (never matched by name), so typed partners and other joined
+     * members with the same name stay, and the booker is not part of these slots.
      *
      * @throws PlayerExchangeException
      */
@@ -230,6 +232,117 @@ final class PlayerExchangeService
         }, self::TRANSACTION_ATTEMPTS);
     }
 
+    /** Statuses in which the members who joined still hold their place in the booking. */
+    public const LIVE_STATUSES = [PlayerSearch::OPEN, PlayerSearch::FILLED, PlayerSearch::ENDED];
+
+    /** The search of the booking whose joined members still hold places (open, filled or ended). */
+    public function liveSearch(Booking $booking): ?PlayerSearch
+    {
+        return PlayerSearch::query()
+            ->where('bid', $booking->bid)
+            ->whereIn('status', self::LIVE_STATUSES)
+            ->first();
+    }
+
+    /**
+     * The player names of the booking split for the booker's edit form: "own" are the partners
+     * he typed himself (he may change them), "joined" the members of the live search (only they
+     * can leave). Both slot => name.
+     *
+     * @return array{own: array<int, string>, joined: array<int, string>}
+     */
+    public function namesForOwnerEdit(Booking $booking): array
+    {
+        $booking->loadMissing('meta');
+        $names = $this->playerNamesBySlot($booking);
+        $search = $this->liveSearch($booking);
+
+        $joined = [];
+        foreach ($search?->signups()->with('user')->orderBy('slot')->get() ?? [] as $signup) {
+            $joined[(int) $signup->slot] = $names[(int) $signup->slot] ?? (string) $signup->user?->name;
+        }
+
+        return ['own' => array_diff_key($names, $joined), 'joined' => $joined];
+    }
+
+    /**
+     * The booker's edit of a booking with a live search (BookingService::updateSinglePlayers,
+     * inside its transaction, after the booking row lock). Owner-editable are only the slots
+     * 2..quantity that no joined member holds: a joined member keeps slot and name, and only
+     * when Einzel leaves his slot outside the court does he move to the free slot (signup and
+     * name together). The typed names fill the other free slots in order. Refused when typed
+     * partners plus joined members need more places than the new quantity has.
+     *
+     * An edit never raises the searched number (spec: no change of the number after signups):
+     * the places still searched are the old remaining ones, cut to the free slots that are
+     * left. Nothing left to search: an open search becomes filled, or ended without signups
+     * (the booker found his partners himself, so the booking must not lapse). Filled and ended
+     * stay as they are.
+     *
+     * @param  list<string>  $ownNames  the partners the booker typed, in slot order
+     *
+     * @throws PlayerExchangeException
+     */
+    public function applyOwnerEdit(Booking $locked, PlayerSearch $search, int $quantity, array $ownNames): void
+    {
+        $signups = $search->signups()->with('user')->orderBy('slot')->get();
+        $maxSlot = min(4, $quantity);
+        $places = max(0, $maxSlot - 1);
+
+        if (count($ownNames) + $signups->count() > $places) {
+            throw $this->refused('edit_too_many');
+        }
+
+        $names = $this->playerNamesBySlot($locked);
+        $taken = $signups->map(fn (PlayerSignup $s): int => (int) $s->slot)
+            ->filter(fn (int $slot): bool => $slot <= $maxSlot)->values()->all();
+
+        $merged = [];
+        foreach ($signups as $signup) {
+            $slot = (int) $signup->slot;
+            $name = $names[$slot] ?? (string) $signup->user?->name;
+            if ($slot > $maxSlot) {
+                $slot = (int) $this->freeSlots($maxSlot, $taken)[0];
+                $signup->update(['slot' => $slot]);
+                $taken[] = $slot;
+            }
+            $merged[$slot] = $name;
+        }
+
+        $free = $this->freeSlots($maxSlot, $taken);
+        foreach ($ownNames as $index => $name) {
+            $merged[$free[$index]] = $name;
+        }
+        ksort($merged);
+
+        $locked->update(['quantity' => $quantity]);
+        app(BookingService::class)->syncPlayerMeta($locked, $merged);
+
+        $remaining = min(max(0, $search->needed - $signups->count()), count($free) - count($ownNames));
+        if ($remaining === 0 && $signups->isEmpty()) {
+            if ($search->status === PlayerSearch::OPEN) {
+                $search->update(['status' => PlayerSearch::ENDED]);
+            }
+
+            return;
+        }
+
+        $changes = ['needed' => $signups->count() + $remaining];
+        if ($remaining === 0 && $search->status === PlayerSearch::OPEN) {
+            $changes['status'] = PlayerSearch::FILLED;
+        }
+        $search->update($changes);
+    }
+
+    /**
+     * @param  list<int>  $taken
+     * @return list<int> slots 2..$maxSlot not in $taken, ascending
+     */
+    private function freeSlots(int $maxSlot, array $taken): array
+    {
+        return array_values(array_diff(range(2, max(2, $maxSlot)), $taken));
+    }
+
     /**
      * Verfall: every open search whose deadline (one hour before the start) has passed.
      * Without signups the booking is cancelled on the normal cancel path (no cancel mail to
@@ -275,7 +388,7 @@ final class PlayerExchangeService
     public function onBookingCancelled(Booking $booking): void
     {
         $search = PlayerSearch::query()->where('bid', $booking->bid)->first();
-        if ($search === null || ! in_array($search->status, [PlayerSearch::OPEN, PlayerSearch::FILLED, PlayerSearch::ENDED], true)) {
+        if ($search === null || ! in_array($search->status, self::LIVE_STATUSES, true)) {
             return;
         }
 

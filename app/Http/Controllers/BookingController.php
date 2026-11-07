@@ -10,6 +10,7 @@ use App\Models\Option;
 use App\Models\Square;
 use App\Models\User;
 use App\Services\BookingService;
+use App\Services\PlayerExchangeService;
 use App\Services\QuoteGroups;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
@@ -203,13 +204,24 @@ final class BookingController extends Controller
         }
 
         $names = $booking->player_names;
+        $joinedNames = [];
+
+        // With a live player search the field holds only the booker's own typed partner;
+        // the joined members are listed, not editable.
+        $exchange = app(PlayerExchangeService::class);
+        if ($exchange->liveSearch($booking) !== null) {
+            $split = $exchange->namesForOwnerEdit($booking);
+            $names = array_values($split['own']);
+            $joinedNames = array_values($split['joined']);
+        }
+
         $playerNames = [
             2 => $names[0] ?? '',
             3 => $names[1] ?? '',
             4 => $names[2] ?? '',
         ];
 
-        return view('bookings.edit', compact('booking', 'reservation', 'playerNames'));
+        return view('bookings.edit', compact('booking', 'reservation', 'playerNames', 'joinedNames'));
     }
 
     public function update(Request $request, Booking $booking): RedirectResponse|JsonResponse
@@ -229,9 +241,11 @@ final class BookingController extends Controller
             return back()->withErrors(['booking' => $msg])->with('error', $msg);
         }
 
+        // With a live player search the booker may clear his own partner: the joined members play.
+        $hasSearch = app(PlayerExchangeService::class)->liveSearch($booking) !== null;
         $data = $request->validate([
             'quantity' => ['required', 'integer', 'in:2,4'],
-            'mitspieler' => ['required', 'string', 'max:255'],
+            'mitspieler' => [$hasSearch ? 'nullable' : 'required', 'string', 'max:255'],
         ]);
 
         try {

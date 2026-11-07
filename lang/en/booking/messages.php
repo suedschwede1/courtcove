@@ -60,6 +60,8 @@ return [
             'left' => 'You have left as a player.',
             'ended' => 'The player search has ended. Your booking stays.',
             'retry' => 'Several people are changing this booking at the same time. Please try again.',
+            'edit_too_many' => 'There are not enough places for that: players who joined via the player exchange keep their place. Choose doubles or enter fewer partners.',
+            'edit_signed_up' => 'Joined via the player exchange: :names. They keep their place and only they can leave.',
         ],
     ],
 ];
