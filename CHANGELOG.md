@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-07
+- German validation messages for the two rules Laravel 13.40 added (array_keys, base64), so every rule has a German text.
 - Maintenance: Laravel framework 13.17 -> 13.40, Sanctum 4.3.3, Pint 1.32.1, Dusk 8.7.2, PAO 1.1.5 and Laravel Prompts 0.3.26 (bug fixes within the same major versions; no other package moved).
 - Mixed-/Fun-Turnier: members have a read-only event list (/mixed-tournament/events, sidebar "Veranstaltungen") that stays reachable while a default event is set (the module start still opens the default event); "Zur Liste" on member event, round and standings pages and on the info page leads there instead of the admin list, which showed the "Admin-Modus einschalten" page.
 
