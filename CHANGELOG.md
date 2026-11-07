@@ -8,6 +8,9 @@ reference point is `mobile-view-stable` (see [README.md](README.md#layout-refere
 When adding an entry: describe the *why*/user-facing effect in one line, not the diff —
 `git log` already has that. Add new entries at the top, under today's date.
 
+## 2026-11-08
+- Members detail page, card Beiträge: the status of the covering household dues (Haushalt rows) can now be changed there too, like the member's own dues, so a paid due can be set back to Ausstehend on the member page (closed years stay locked, "Bezahlt am" is cleared). A due linked to a payment from "Zahlung erfassen" shows that payment in its row; setting it back to not paid keeps the payment and says that the due still counts as paid while the payment exists.
+
 ## 2026-11-07
 - Rebuilt the compiled assets after merging the player exchange with the household and connection work, so the committed build matches the sources again.
 - "Jetzt ausführen" on Geplante Aufgaben only raises a shorter PHP time limit for the run and restores it afterwards; it no longer sets a fixed 120-second limit that ended a plain `php artisan test` run two minutes after the scheduler tests.

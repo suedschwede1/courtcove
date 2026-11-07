@@ -14,7 +14,7 @@ use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-/** The member's dues card shows the covering household dues read-only (chip to the household) and paid-until counts them. */
+/** The member's dues card shows the covering household dues (chip to the household, editable status) and paid-until counts them. */
 class MemberHouseholdDuesCardTest extends TestCase
 {
     use LazilyRefreshDatabase;
@@ -38,14 +38,15 @@ class MemberHouseholdDuesCardTest extends TestCase
     }
 
     #[Test]
-    public function the_dues_card_shows_the_covering_household_due_read_only(): void
+    public function the_dues_card_shows_the_covering_household_due_with_an_editable_status(): void
     {
         $this->actingAs(User::factory()->create(['status' => 'admin']))->get("/members/{$this->anna->id}/edit")
             ->assertOk()
             ->assertSeeText(__('members::admin.households.chip'))
             ->assertSeeText('235,00 €')
             ->assertSee('data-household-due="'.$this->due->id.'"', false)
-            ->assertDontSee('saveHouseholdDueField('.$this->due->id, false);
+            // Since 2026-11-08 the status can be reset/changed here too (same endpoint and rules as the household page).
+            ->assertSee('saveHouseholdDueField('.$this->due->id.", 'status'", false);
     }
 
     #[Test]

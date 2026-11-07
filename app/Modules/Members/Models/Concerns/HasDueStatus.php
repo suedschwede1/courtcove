@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Members\Models\Concerns;
 
 use App\Modules\Members\Models\Payment;
+use App\Modules\Members\Support\MembersFormat;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
@@ -70,6 +71,24 @@ trait HasDueStatus
         }
 
         return number_format(max(0.0, (float) $this->amount - (float) ($this->teilbetrag ?? 0)), 2, '.', '');
+    }
+
+    /**
+     * Text about the payment linked to this due ("Zahlung vom 01.03.2026 über 120,00 €"), null without one.
+     * $key is the lang key: members::admin.dues.linked_payment (row hint) or .reset_payment_hint (after a reset).
+     */
+    public function linkedPaymentText(string $key = 'members::admin.dues.linked_payment'): ?string
+    {
+        $payments = $this->relationLoaded('payments') ? $this->payments : $this->payments()->get();
+        $payment = $payments->sortBy('paid_at')->first();
+        if ($payment === null) {
+            return null;
+        }
+
+        return __($key, [
+            'date' => $payment->paid_at->format('d.m.Y'),
+            'amount' => MembersFormat::money($payment->amount),
+        ]);
     }
 
     /** Der angezeigte Status: "ausstehend" mit verstrichenem Fälligkeitsdatum gilt automatisch als "überfällig". */

@@ -228,6 +228,8 @@ return [
         'none_for_filters' => 'No dues match these filters.',
         'year_not_found' => 'The selected fiscal year does not exist. Showing :year.',
         'no_rates_for_year' => 'No fee rates are set for fiscal year :year, please add them under Fee categories first.',
+        'linked_payment' => 'Payment of :date for :amount linked',
+        'reset_payment_hint' => 'The payment of :date for :amount stays recorded and linked to this due; as long as it exists, the due still counts as paid in totals, open amounts and filters.',
         'bezahlt_am_requires_paid' => '"Paid on" only applies to paid dues. Set the status to "Paid" first.',
         'year_short' => 'Year',
         'category_short' => 'Category',

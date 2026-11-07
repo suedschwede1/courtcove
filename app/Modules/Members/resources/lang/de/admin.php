@@ -228,6 +228,8 @@ return [
         'none_for_filters' => 'Keine Beiträge für diese Filter.',
         'year_not_found' => 'Das gewählte Geschäftsjahr gibt es nicht. Angezeigt wird :year.',
         'no_rates_for_year' => 'Für Geschäftsjahr :year sind keine Beitragssätze hinterlegt, bitte zuerst unter Beitragskategorien eintragen.',
+        'linked_payment' => 'Zahlung vom :date über :amount verknüpft',
+        'reset_payment_hint' => 'Die Zahlung vom :date über :amount bleibt erfasst und mit diesem Beitrag verknüpft; solange sie besteht, zählt der Beitrag in Summen, offenen Beträgen und Filtern weiterhin als bezahlt.',
         'bezahlt_am_requires_paid' => '„Bezahlt am“ gibt es nur bei bezahlten Beiträgen. Bitte zuerst den Status auf „Bezahlt“ setzen.',
         'year_short' => 'Jahr',
         'category_short' => 'Kategorie',
