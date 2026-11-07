@@ -301,11 +301,12 @@
         showError(message) {
             this.error = message;
             // At phone width the notice sits under the sticky footer: bring it into view and announce it.
-            this.$nextTick(() => {
+            // After the next paint: only then is the notice shown (x-show) and can be scrolled to and focused.
+            this.$nextTick(() => requestAnimationFrame(() => {
                 const notice = document.querySelector('#booking-dialog [data-booking-error]');
                 notice?.scrollIntoView({ block: 'nearest' });
                 notice?.focus({ preventScroll: true });
-            });
+            }));
         },
         close() {
             if (this.state === 'success' && this.redirect) {
