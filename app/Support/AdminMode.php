@@ -6,15 +6,19 @@ namespace App\Support;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\PersonalAccessToken;
 use Symfony\Component\HttpFoundation\Cookie;
 
 /**
  * The one place that decides whether an account's privileges are in effect ("admin mode").
  *
- * Privileges (role admin/assist and the allow.* list) only count while admin mode is active;
- * without it the account is treated as a normal member in every check (User::can(), the Gate,
- * policies, the booking limits). The raw privileges stay readable via User::hasPrivilege().
+ * Admin mode only counts for calendar and bookings (see MODE_ROUTES: the calendar, booking, foreign bookings,
+ * booking limits and events in the calendar). There privileges (role admin/assist and the allow.* list) only
+ * count while admin mode is active; without it the account is treated as a normal member in every check
+ * (User::can(), the Gate, policies, the booking limits). On every other route (members, the tournament modules,
+ * the administration under /admin) the stored rights are always in effect, with or without the cookie.
+ * The raw privileges stay readable via User::hasPrivilege().
  *
  * Active means:
  *  - HTTP request of the authenticated user: the request carries the cookie `admin_mode=1`
@@ -36,6 +40,13 @@ final class AdminMode
     public const HTTP_MARKER = 'admin_mode.http_request';
 
     private const MEMO_PREFIX = 'admin_mode.active.';
+
+    /**
+     * Route names (Str::is patterns) the admin mode applies to: calendar, own/foreign bookings (booking
+     * form, admin booking actions) and the events of the calendar. Any other named route ignores the mode.
+     * A request without a named route keeps the mode (the safe side: privileges only count with it).
+     */
+    public const MODE_ROUTES = ['calendar.*', 'bookings.*', 'admin.bookings.*', 'admin.events.*', 'api.bookings.*', 'api.events.*'];
 
     /**
      * DECISION POINT: a request authenticated with an API token (REST API, MCP server) counts as
@@ -61,6 +72,10 @@ final class AdminMode
             return true;
         }
 
+        if (! self::appliesTo($request)) {
+            return true;
+        }
+
         $memoKey = self::MEMO_PREFIX.$user->getKey();
         if ($request->attributes->has($memoKey)) {
             return (bool) $request->attributes->get($memoKey);
@@ -70,6 +85,14 @@ final class AdminMode
         $request->attributes->set($memoKey, $active);
 
         return $active;
+    }
+
+    /** Whether admin mode decides on this request: the route is a calendar/booking route (MODE_ROUTES) or unnamed. */
+    public static function appliesTo(Request $request): bool
+    {
+        $name = $request->route()?->getName();
+
+        return $name === null || $name === '' || Str::is(self::MODE_ROUTES, $name);
     }
 
     /** Whether the request asks for admin mode (cookie only, no privilege check; for the switch display). */

@@ -11,7 +11,9 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Route middleware `admin.mode[:privilege,...]` for the administration areas.
+ * Route middleware `admin.mode[:privilege,...]` for the booking and event administration (admin.bookings.*,
+ * admin.events.*; admin mode counts only for calendar and bookings, see AdminMode::MODE_ROUTES). All other areas
+ * check the stored right and do not use it.
  *
  * Runs the request and only steps in when the answer is 403 for a signed-in account that holds the
  * area's privilege as stored (raw) while admin mode is off: then the friendly "Switch on admin mode"

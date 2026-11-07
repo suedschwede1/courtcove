@@ -55,8 +55,8 @@ Route::middleware('tournament-base.login:pyramid::ui.login_to_play')->group(func
 });
 
 // Administration: guests are sent to the login with the admin flash; the right itself is checked in the controllers.
-// admin.mode:admin.pyramid only replaces a 403 for holders of the global right; ladder grants work without admin mode.
-Route::middleware(['tournament-base.login:pyramid::admin.login_required', 'admin.mode:admin.pyramid'])->prefix('pyramide/admin')->group(function (): void {
+// The admin pages ignore the admin mode (global right or ladder grant, as stored).
+Route::middleware(['tournament-base.login:pyramid::admin.login_required'])->prefix('pyramide/admin')->group(function (): void {
     Route::get('/', [LadderAdminController::class, 'index'])->name('pyramide.admin.index');
     Route::match(['get', 'post'], 'create', [LadderAdminController::class, 'create'])->name('pyramide.admin.create');
     Route::get('ladder/{ladderId}', [LadderAdminController::class, 'show'])->whereNumber('ladderId')->name('pyramide.admin.ladder');

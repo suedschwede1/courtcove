@@ -46,13 +46,16 @@ class HouseholdPagesTest extends TestCase
     }
 
     #[Test]
-    public function an_admin_without_admin_mode_does_not_reach_the_list(): void
+    public function a_member_does_not_reach_the_list_but_an_admin_does_without_admin_mode(): void
     {
         $this->withoutAdminMode();
 
-        $this->actingAs($this->admin())->get('/members/households')->assertForbidden();
-        $this->actingAs($this->admin())->post('/members/households', ['name' => 'Familie Muster'])->assertForbidden();
+        $member = User::factory()->create(['status' => 'enabled']);
+        $this->actingAs($member)->get('/members/households')->assertForbidden();
+        $this->actingAs($member)->post('/members/households', ['name' => 'Familie Muster'])->assertForbidden();
         $this->assertSame(0, MemberHousehold::count());
+
+        $this->actingAs($this->admin())->get('/members/households')->assertOk();
     }
 
     #[Test]

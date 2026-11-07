@@ -85,8 +85,10 @@ Route::middleware('auth')->group(function (): void {
     Route::put('/my-account/password', [AccountController::class, 'password'])->name('account.password');
 });
 
-// admin.mode: without admin mode a privileged account gets the "Switch on admin mode" page instead of the 403.
-Route::middleware(['auth', 'admin.mode'])->prefix('admin')->name('admin.')->group(function (): void {
+// The administration checks the stored right; only the booking and event admin routes depend on the admin mode
+// (App\Support\AdminMode::MODE_ROUTES): there a privileged account without it gets the "Switch on admin mode"
+// page instead of the 403.
+Route::middleware('auth')->prefix('admin')->name('admin.')->group(function (): void {
     Route::middleware('can:admin.see-menu')
         ->get('/', [DashboardController::class, 'index'])
         ->name('dashboard');
@@ -99,12 +101,13 @@ Route::middleware(['auth', 'admin.mode'])->prefix('admin')->name('admin.')->grou
         Route::post('users/{user}/password', [UserController::class, 'password'])->name('users.password');
     });
 
-    Route::middleware('can:admin.event')->group(function (): void {
+    Route::middleware(['admin.mode', 'can:admin.event'])->group(function (): void {
         Route::resource('events', EventController::class)->except(['show']);
     });
 
-    Route::middleware('can:admin.booking')->group(function (): void {
-        Route::get('statistics', [StatisticsController::class, 'index'])->name('statistics.index');
+    Route::middleware('can:admin.booking')->get('statistics', [StatisticsController::class, 'index'])->name('statistics.index');
+
+    Route::middleware(['admin.mode', 'can:admin.booking'])->group(function (): void {
         Route::post('bookings/{booking}/cancel', [App\Http\Controllers\Admin\BookingController::class, 'cancel'])->name('bookings.cancel');
         Route::resource('bookings', App\Http\Controllers\Admin\BookingController::class)->only(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy']);
     });

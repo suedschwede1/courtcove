@@ -36,10 +36,10 @@ Route::prefix('mixed-tournament')->name('mixed.')->middleware('tournament-base.l
     $event(Route::get('event/{event}/durchmischung', [PlayerController::class, 'durchmischung']))->name('durchmischung');
     $event(Route::get('event/{event}/standings', [PlayerController::class, 'standings']))->name('standings');
 
-    // admin.mode:admin.mixed only replaces a 403 for holders of the global right; event grants work without admin mode.
-    Route::prefix('admin')->name('admin.')->middleware('admin.mode:admin.mixed')->group(function () use ($event, $round, $participant): void {
-        // The overview answers everyone; holders of the global right see the admin mode gate page first while it is off.
-        Route::get('', [EventAdminController::class, 'index'])->middleware('admin.mode:strict,admin.mixed')->name('index');
+    // The admin pages ignore the admin mode (global right or event grant, as stored).
+    Route::prefix('admin')->name('admin.')->group(function () use ($event, $round, $participant): void {
+        // The overview answers everyone.
+        Route::get('', [EventAdminController::class, 'index'])->name('index');
 
         // Global administrator only.
         Route::middleware('can:admin.mixed')->group(function () use ($event): void {
