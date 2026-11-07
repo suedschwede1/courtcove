@@ -14,6 +14,7 @@ use App\Services\BookingService;
 use App\Services\PlayerExchangeService;
 use Carbon\Carbon;
 use Illuminate\Database\Connection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use PHPUnit\Framework\Attributes\Group;
@@ -192,5 +193,45 @@ class ExpireSearchMysqlTest extends MysqlTestCase
         $this->assertSame(PlayerSearch::LAPSED, $this->search->fresh()->status);
         Mail::assertQueued(PlayerSearchExpired::class, 1);
         Mail::assertQueued(PlayerSearchExpired::class, fn (PlayerSearchExpired $m): bool => $m->hasTo('owner@example.com'));
+    }
+
+    /** Count our booking row lock statements (each one is an attempt that waits for the lock). */
+    private function countBookingLocks(): \stdClass
+    {
+        $counter = new \stdClass;
+        $counter->locks = 0;
+        DB::connection()->beforeExecuting(function (string $sql) use ($counter): void {
+            if (str_contains($sql, 'from `bs_bookings`') && str_ends_with($sql, 'for update')) {
+                $counter->locks++;
+            }
+        });
+
+        return $counter;
+    }
+
+    #[Test]
+    public function lazy_lapses_in_web_requests_wait_for_a_held_booking_lock_only_once(): void
+    {
+        $this->secondHoldsJoin();
+        SecondConnection::waitAtMost(1);
+        $counter = $this->countBookingLocks();
+
+        // Calendar load: one lock wait (about one innodb_lock_wait_timeout), then the page renders.
+        Cache::forget('player-exchange.lapse');
+        $this->actingAs($this->member)->get('/calendar?date=2026-11-08')->assertOk();
+        $this->assertSame(1, $counter->locks, 'calendar lapse: a single attempt');
+
+        // Join: one lock wait for the lazy lapse, then the join itself retries (3 attempts) and answers "try again".
+        $counter->locks = 0;
+        $this->actingAs($this->member)->postJson(route('player-exchange.join', $this->booking))->assertStatus(422);
+        $this->assertSame(1 + 3, $counter->locks, 'join pre-lapse: a single attempt');
+
+        // The scheduler command keeps its retries.
+        $counter->locks = 0;
+        $this->artisan('player-exchange:expire')->assertSuccessful();
+        $this->assertSame(3, $counter->locks, 'command: three attempts');
+
+        $this->assertSame('single', $this->booking->fresh()->status);
+        Mail::assertNotQueued(PlayerSearchExpired::class);
     }
 }

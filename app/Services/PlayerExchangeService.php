@@ -44,7 +44,17 @@ final class PlayerExchangeService
     /** Deadlocks and lock wait timeouts are retried this often before the error reaches the caller. */
     private const TRANSACTION_ATTEMPTS = 3;
 
-    /** Minutes before the first reservation start at which a search ends. */
+    /**
+     * Attempts of the lazy lapse in a web request (calendar load, before a join): a held booking
+     * lock then costs one lock wait timeout, not three; the scheduler command keeps the retries.
+     */
+    public const LAZY_LAPSE_ATTEMPTS = 1;
+
+    /**
+     * Minutes before the first reservation start at which a search ends. The texts say "one
+     * hour" (booking.messages.player_exchange.too_late, booking.modal.search_help, the expired
+     * mail, the scheduler task description): change them together with this value.
+     */
     public const DEADLINE_MINUTES = 60;
 
     /** A search is only offered when the start is more than the deadline lead away. */
@@ -440,9 +450,10 @@ final class PlayerExchangeService
      * twice or in parallel with a join changes nothing more and never mails twice. A failure
      * on one booking is reported and does not stop the others.
      *
+     * @param  int  $attempts  per booking; web requests pass LAZY_LAPSE_ATTEMPTS
      * @return int number of bookings that lapsed (were cancelled)
      */
-    public function lapseExpired(?int $onlyBid = null): int
+    public function lapseExpired(?int $onlyBid = null, int $attempts = self::TRANSACTION_ATTEMPTS): int
     {
         $bids = PlayerSearch::query()
             ->where('status', PlayerSearch::OPEN)
@@ -454,7 +465,7 @@ final class PlayerExchangeService
         $lapsed = 0;
         foreach ($bids as $bid) {
             try {
-                if ($this->lapseOne((int) $bid)) {
+                if ($this->lapseOne((int) $bid, $attempts)) {
                     $lapsed++;
                 }
             } catch (\Throwable $e) {
@@ -511,7 +522,7 @@ final class PlayerExchangeService
     }
 
     /** One booking of lapseExpired; true when the booking was cancelled. */
-    private function lapseOne(int $bid): bool
+    private function lapseOne(int $bid, int $attempts): bool
     {
         return DB::transaction(function () use ($bid): bool {
             // Locking read first: the plain reads below then see every committed join, leave or cancel.
@@ -541,7 +552,7 @@ final class PlayerExchangeService
             $this->mailAfterCommit((string) $locked->user?->email, new PlayerSearchExpired($search));
 
             return true;
-        }, self::TRANSACTION_ATTEMPTS);
+        }, max(1, $attempts));
     }
 
     /**

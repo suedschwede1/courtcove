@@ -42,7 +42,7 @@ final class CalendarController extends Controller
         }
 
         try {
-            app(PlayerExchangeService::class)->lapseExpired();
+            app(PlayerExchangeService::class)->lapseExpired(attempts: PlayerExchangeService::LAZY_LAPSE_ATTEMPTS);
         } catch (\Throwable $e) {
             report($e);
         }

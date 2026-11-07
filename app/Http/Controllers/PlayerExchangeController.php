@@ -35,7 +35,7 @@ final class PlayerExchangeController extends Controller
     public function join(Request $request, Booking $booking, PlayerExchangeService $exchange): JsonResponse|RedirectResponse
     {
         // Lazy Verfall: a search past its deadline lapses first, the join then finds it closed.
-        $exchange->lapseExpired((int) $booking->bid);
+        $exchange->lapseExpired((int) $booking->bid, PlayerExchangeService::LAZY_LAPSE_ATTEMPTS);
 
         return $this->respond($request, $booking, fn () => $exchange->join($this->member($request), $booking), 'joined');
     }
