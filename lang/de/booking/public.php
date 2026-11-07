@@ -219,6 +219,13 @@ return [
             'left_title' => 'Ausgetragen',
             'failed' => 'Das hat nicht geklappt. Bitte lade den Kalender neu und versuch es nochmal.',
         ],
+        'end' => [
+            'button' => 'Suche beenden',
+            'ending' => 'Suche wird beendet …',
+            'hint' => 'Du suchst noch :count Mitspieler. Wenn du die Suche beendest, bleibt deine Buchung bestehen, und wer sich schon angemeldet hat, bleibt dabei.|Du suchst noch :count Mitspieler. Wenn du die Suche beendest, bleibt deine Buchung bestehen, und wer sich schon angemeldet hat, bleibt dabei.',
+            'done_title' => 'Suche beendet',
+            'failed' => 'Das hat nicht geklappt. Bitte lade den Kalender neu und versuch es nochmal.',
+        ],
     ],
     'modal' => [
         'confirm_cancel' => 'Möchten Sie diese Buchung stornieren?',

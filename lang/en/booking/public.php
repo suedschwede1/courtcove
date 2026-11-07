@@ -219,6 +219,13 @@ return [
             'left_title' => 'You left the game',
             'failed' => 'That did not work. Please reload the calendar and try again.',
         ],
+        'end' => [
+            'button' => 'End search',
+            'ending' => 'Ending search …',
+            'hint' => 'You are still looking for :count player. If you end the search, your booking stays and anyone who has already signed up stays in.|You are still looking for :count players. If you end the search, your booking stays and anyone who has already signed up stays in.',
+            'done_title' => 'Search ended',
+            'failed' => 'That did not work. Please reload the calendar and try again.',
+        ],
     ],
     'modal' => [
         'confirm_cancel' => 'Do you want to cancel this booking?',

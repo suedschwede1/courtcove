@@ -202,7 +202,9 @@
            dateLabel: @js($dateLabel),
            timeLabel: @js($timeRangeLabel),
            quantity: @js((string) $reservation->booking->quantity),
-           mitspieler: @js($reservation->booking->player_names[0] ?? '')
+           mitspieler: @js($reservation->booking->player_names[0] ?? ''),
+           searchOpen: @js($hasOpenSearch),
+           searchRemaining: {{ $searchRemaining }}
        })">
         @foreach($labels as $labelClass => $labelText)
             <span class="{{ $labelClass }}">{{ $labelText }}</span>
