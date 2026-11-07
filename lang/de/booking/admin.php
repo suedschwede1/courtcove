@@ -404,6 +404,8 @@ return [
             'additional_player' => 'Zusätzlicher Spieler',
             'player_name_3' => '3. Spielername',
             'player_name_4' => '4. Spielername',
+            'exchange_notice' => 'Für diese Buchung läuft eine Mitspielersuche oder es sind Mitspieler über die Spielerbörse angemeldet. Datum, Zeit, Wiederholung und „Gebucht für“ sind deshalb gesperrt; Platz, eigene Mitspieler und Einzel/Doppel kannst du ändern. Gesuchte Plätze darfst du leer lassen.',
+            'exchange_joined' => 'Angemeldet: :names',
             'type_booking' => 'Buchung',
             'type_event' => 'Veranstaltung',
             'admin_note' => 'Notizen',

@@ -295,4 +295,62 @@ class AdminEditSearchTest extends TestCase
         $this->assertSame([2 => 'Max Muster'], $this->namesBySlot($booking));
         $this->assertSame(2, $this->search($booking)->remaining());
     }
+
+    #[Test]
+    public function admin_can_save_a_search_booking_and_leave_the_searched_places_empty(): void
+    {
+        $single = $this->searchingBooking(2, 1);
+        $this->adminEdits($single, ['player_name_2' => '', 'admin_note' => 'Notiz'])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('admin.bookings.index'));
+        $this->assertSame(PlayerSearch::OPEN, $this->search($single)->status);
+        $this->assertSame(1, $this->search($single)->needed);
+        // Free the slot for the doubles case.
+        app(BookingService::class)->deleteSingle($single->fresh());
+
+        $double = $this->searchingBooking(4, 3);
+        $this->exchange()->join($this->member('Max Muster'), $double);
+        $this->adminEdits($double, ['player_name_2' => 'Max Muster', 'player_name_3' => '', 'player_name_4' => ''])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('admin.bookings.index'));
+        $this->assertSame([2 => 'Max Muster'], $this->namesBySlot($double));
+        $this->assertSame(2, PlayerSearch::query()->where('bid', $double->bid)->sole()->remaining());
+    }
+
+    #[Test]
+    public function the_edit_form_explains_the_search_and_locks_date_time_repeat_and_booker(): void
+    {
+        $booking = $this->searchingBooking(4, 2);
+        $this->exchange()->join($this->member('Max Muster'), $booking);
+
+        $html = (string) $this->actingAs($this->admin)->get("/admin/bookings/{$booking->bid}/edit")->assertOk()->getContent();
+
+        $this->assertStringContainsString(e(__('booking.admin.bookings.exchange_notice')), $html);
+        $this->assertStringContainsString(e(__('booking.admin.bookings.exchange_joined', ['names' => 'Max Muster'])), $html);
+        $this->assertStringContainsString('data-exchange-locked="1"', $html);
+        foreach (['booked_for', 'date', 'time_start', 'time_end'] as $id) {
+            $this->assertMatchesRegularExpression('/<input[^>]*id="'.$id.'"[^>]*\sreadonly[^>]*>/', $html, $id);
+            $this->assertMatchesRegularExpression('/<input[^>]*id="'.$id.'"[^>]*aria-describedby="admin-booking-exchange-notice"/', $html, $id);
+        }
+        $this->assertMatchesRegularExpression('/<select[^>]*id="admin-booking-repeat"[^>]*\sdisabled/', $html);
+        $this->assertMatchesRegularExpression('/<input type="hidden" name="repeat_type" value="once">/', $html);
+        // The searched places may stay empty: no browser "required" on the player names.
+        $this->assertDoesNotMatchRegularExpression('/<input[^>]*id="admin-player2"[^>]*\srequired/', $html);
+    }
+
+    #[Test]
+    public function the_edit_form_of_a_booking_without_search_is_unchanged(): void
+    {
+        $booking = app(BookingService::class)->createSingle(
+            $this->owner, $this->square, 2, $this->start, $this->start->copy()->addHour(), app(BookingService::class)->buildPlayerMeta([2 => 'Pia Partner']),
+        );
+
+        $html = (string) $this->actingAs($this->admin)->get("/admin/bookings/{$booking->bid}/edit")->assertOk()->getContent();
+
+        $this->assertStringNotContainsString(e(__('booking.admin.bookings.exchange_notice')), $html);
+        $this->assertStringContainsString('data-exchange-locked="0"', $html);
+        $this->assertDoesNotMatchRegularExpression('/<input[^>]*id="booked_for"[^>]*\sreadonly/', $html);
+        $this->assertDoesNotMatchRegularExpression('/<select[^>]*id="admin-booking-repeat"[^>]*\sdisabled/', $html);
+        $this->assertMatchesRegularExpression('/<input[^>]*id="admin-player2"[^>]*\srequired/', $html);
+    }
 }
