@@ -15,6 +15,7 @@ use App\Modules\Members\Models\MemberHousehold;
 use App\Modules\Members\Support\HouseholdService;
 use App\Modules\Members\Support\MemberChangeLogger;
 use App\Modules\Members\Support\MemberConnectionService;
+use App\Modules\Members\Support\MemberConnectionWarnings;
 use App\Modules\Members\Support\MemberListFilter;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
@@ -114,6 +115,14 @@ class MemberController
             'changes' => MemberChange::where('member_id', $member->id)->with('adminUser')->latest()->get(),
             'users' => User::query()->orderBy('alias')->get(),
             ...$this->householdCardData($member),
+            'connectionWarnings' => MemberConnectionWarnings::forMember($member),
+            // Possible Vollzahler for an Anschlussmitglied: current, Vollzahler category, not connected, no partner yet.
+            'connectionCandidates' => Member::query()
+                ->whereKeyNot($member->id)
+                ->whereIn('status', ['aktiv', 'ruhend'])->whereNull('anonymized_at')
+                ->whereNull('connected_to_member_id')->whereDoesntHave('anschlussMembers')
+                ->whereHas('feeCategory', fn ($q) => $q->where('connection_role', 'vollzahler'))
+                ->orderBy('lastname')->orderBy('firstname')->get(),
         ]);
     }
 

@@ -29,6 +29,9 @@
                 <tr>
                     <td class="ds-cell--title" data-label="{{ __('members::admin.fee_categories.name') }}">
                         {{ $category->name }}
+                        @if($category->connection_role !== null)
+                            <x-ui.badge tone="neutral">{{ __('members::admin.connection.role_badge_'.$category->connection_role) }}</x-ui.badge>
+                        @endif
                         @if($category->isPerHousehold())
                             <x-ui.badge tone="neutral">{{ __('members::admin.fee_categories.per_household') }}</x-ui.badge>
                         @endif

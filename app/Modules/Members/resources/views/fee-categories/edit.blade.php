@@ -26,6 +26,11 @@
                 <p class="ds-field__error">{{ $errors->first('billing_unit') }}</p>
             @endif
         </div>
+        <div class="mt-3 grid gap-4 md:grid-cols-2">
+            <x-ui.field :label="__('members::admin.connection.role')" for="connection_role" :help="__('members::admin.connection.role_help')" :error="$errors->first('connection_role')">
+                <x-ui.select :options="['vollzahler' => __('members::admin.connection.role_vollzahler'), 'anschluss' => __('members::admin.connection.role_anschluss')]" :selected="\App\Support\Ui\FormValue::string(old('connection_role', $category->connection_role))" :placeholder="__('members::admin.connection.role_none')" />
+            </x-ui.field>
+        </div>
     </x-ui.card>
 
     <x-ui.card :title="__('members::admin.fee_categories.rates_for')">

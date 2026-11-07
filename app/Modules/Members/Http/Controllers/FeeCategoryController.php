@@ -7,6 +7,7 @@ namespace App\Modules\Members\Http\Controllers;
 use App\Modules\Members\Models\FeeCategory;
 use App\Modules\Members\Models\FeeCategoryRate;
 use App\Modules\Members\Models\FiscalYear;
+use App\Modules\Members\Models\Member;
 use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -60,6 +61,14 @@ class FeeCategoryController
         FeeCategory::create(['name' => $validated['name'], 'billing_unit' => $validated['billing_unit'] ?? 'member']);
 
         return redirect()->route('members.fee-categories.index');
+    }
+
+    /** True while a member with this category is connected (as Anschlussmitglied or as Vollzahler of one). */
+    private static function usedByConnection(FeeCategory $category): bool
+    {
+        return Member::query()->where('fee_category_id', $category->id)
+            ->where(fn ($q) => $q->whereNotNull('connected_to_member_id')->orWhereHas('anschlussMembers'))
+            ->exists();
     }
 
     public function storeRates(Request $request): RedirectResponse
@@ -119,6 +128,7 @@ class FeeCategoryController
             'name' => ['required', 'string', 'max:64'],
             // Missing = keep the current unit (older forms and tests post only name and rates).
             'billing_unit' => ['nullable', 'string', Rule::in(FeeCategory::BILLING_UNITS)],
+            'connection_role' => ['nullable', 'string', Rule::in(FeeCategory::CONNECTION_ROLES)],
             'rates' => ['nullable', 'array', $this->keysExistIn('fiscal_years')],
             'rates.*' => ['nullable', 'numeric', 'min:0', 'max:'.self::MAX_AMOUNT],
         ]);
@@ -126,8 +136,10 @@ class FeeCategoryController
         $rates = $validated['rates'] ?? [];
         $this->refuseClosedYearRates($category, $rates);
         $unit = $validated['billing_unit'] ?? $category->billing_unit;
+        // Missing field = keep the role; an empty value removes it.
+        $role = $request->exists('connection_role') ? ($validated['connection_role'] ?? null) : $category->connection_role;
 
-        DB::transaction(function () use ($category, $validated, $rates, $unit): void {
+        DB::transaction(function () use ($category, $validated, $rates, $unit, $role): void {
             // Again with the year rows locked (years first): a close since validation still wins.
             FiscalYear::lockForWrite(array_keys($rates));
             $this->refuseClosedYearRates($category, $rates);
@@ -137,7 +149,11 @@ class FeeCategoryController
                 throw ValidationException::withMessages(['billing_unit' => __('members::admin.fee_categories.billing_unit_locked')]);
             }
 
-            $category->update(['name' => $validated['name'], 'billing_unit' => $unit]);
+            if ($role !== $category->connection_role && self::usedByConnection($category)) {
+                throw ValidationException::withMessages(['connection_role' => __('members::admin.connection.role_locked')]);
+            }
+
+            $category->update(['name' => $validated['name'], 'billing_unit' => $unit, 'connection_role' => $role]);
 
             foreach ($validated['rates'] ?? [] as $fiscalYearId => $amount) {
                 $this->saveRate($category->id, (int) $fiscalYearId, $amount);
