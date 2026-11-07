@@ -112,12 +112,30 @@ class BookingFormSearchTest extends TestCase
         @$dom->loadHTML('<?xml encoding="utf-8" ?>'.$html);
         $x = new DOMXPath($dom);
 
-        $this->assertSame(1, $x->query('//div[@id="booking-dialog"]//input[@type="checkbox"][@name="search"]')->length);
-        $this->assertSame(1, $x->query('//div[@id="booking-dialog"]//label[contains(@class,"ds-option")][normalize-space()="'.__('booking.modal.search_players').'"]')->length);
+        // The checkbox only drives the dialog (the server reads search_players), so it submits nothing.
+        $checkbox = $x->query('//div[@id="booking-dialog"]//label[contains(@class,"ds-option")][normalize-space()="'.__('booking.modal.search_players').'"]/input[@type="checkbox"]');
+        $this->assertSame(1, $checkbox->length);
+        $this->assertFalse($checkbox->item(0)->hasAttribute('name'), 'no dead form field');
 
         $select = $x->query('//div[@id="booking-dialog"]//select[@name="search_players"]');
         $this->assertSame(1, $select->length);
         $id = $select->item(0)->getAttribute('id');
         $this->assertSame(1, $x->query('//div[@id="booking-dialog"]//label[@for="'.$id.'"][normalize-space()="'.__('booking.modal.search_count').'"]')->length);
+        // The help text (search ends one hour before the start) is read with the select.
+        $this->assertSame($id.'-help', $select->item(0)->getAttribute('aria-describedby'));
+        $this->assertSame(1, $x->query('//*[@id="'.$id.'-help"][normalize-space()="'.__('booking.modal.search_help').'"]')->length);
+    }
+
+    #[Test]
+    public function store_without_javascript_redirects_with_the_search_success_message(): void
+    {
+        $user = User::factory()->create(['status' => 'enabled']);
+        $square = Square::factory()->create();
+
+        $this->actingAs($user)->post(route('bookings.store'), $this->payload($square, ['search_players' => 1]))
+            ->assertRedirect(route('calendar.index', ['date' => '2026-07-10']))
+            ->assertSessionHas('success', __('booking.messages.booking_created_with_search'));
+
+        $this->assertSame(1, PlayerSearch::count());
     }
 }

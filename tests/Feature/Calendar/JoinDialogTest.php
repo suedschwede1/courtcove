@@ -205,6 +205,54 @@ final class JoinDialogTest extends TestCase
     }
 
     #[Test]
+    public function seeking_cell_label_names_the_booker_for_members_but_not_for_guests(): void
+    {
+        $owner = User::factory()->create(['alias' => 'Anna Bucher']);
+        $this->search($this->booking($owner, 15), 15);
+
+        // Guest first (actingAs stays for the rest of the test).
+        $guestLabel = $this->cell($this->xpath($this->calendar()), 15)->getAttribute('aria-label');
+        $this->assertStringNotContainsString('Anna Bucher', $guestLabel);
+        $this->assertStringContainsString('Court A', $guestLabel);
+
+        // Opted-in member (join dialog) and member outside the exchange (hint dialog).
+        foreach ([true, false] as $optedIn) {
+            $label = $this->cell($this->xpath($this->calendar($this->member($optedIn))), 15)->getAttribute('aria-label');
+            $this->assertStringStartsWith('Anna Bucher – ', $label);
+            $this->assertStringContainsString('Court A', $label);
+        }
+    }
+
+    #[Test]
+    public function a_member_already_signed_up_opens_the_dialog_as_joined(): void
+    {
+        $booking = $this->booking(User::factory()->create(), 15, 4);
+        $search = $this->search($booking, 15, 2);
+        $joined = $this->member(true, ['alias' => 'Ben Mitspieler']);
+        PlayerSignup::create(['search_id' => $search->id, 'uid' => $joined->uid, 'slot' => 2]);
+        // Opted out since: he still opens the join dialog to leave, not the hint dialog.
+        app(PlayerExchangeService::class)->optOut($joined);
+
+        $click = $this->click($this->calendar($joined), 'seeking');
+
+        $this->assertStringContainsString("\$dispatch('open-join'", $click);
+        $this->assertStringContainsString('joined: true', $click);
+        $this->assertStringContainsString('optedIn: false', $click);
+    }
+
+    #[Test]
+    public function the_dialog_shows_the_refusal_text_of_the_server_or_a_generic_failure(): void
+    {
+        $dialog = $this->dialog($this->calendar($this->member(true)));
+
+        // 422 (refusal or "try again" after a lock conflict) carries {error}; anything else
+        // (401 after a logout, 500, network) falls back to the generic text.
+        $this->assertStringContainsString('if (res.ok && json.ok)', $dialog);
+        $this->assertMatchesRegularExpression('/this\.error = json\.error \?\? \'[^\']*'.preg_quote(__('booking.calendar.join.failed'), '/').'/', $dialog);
+        $this->assertSame(2, substr_count($dialog, __('booking.calendar.join.failed')), 'refusal fallback and network error');
+    }
+
+    #[Test]
     public function dialog_texts_exist_in_english(): void
     {
         $this->assertSame('Join the game', __('booking.calendar.join.join', [], 'en'));

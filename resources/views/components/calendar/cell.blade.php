@@ -138,7 +138,12 @@
     $ownSeekingLabel = $isOwn && $hasOpenSearch
         ? implode(' – ', array_filter([$primaryLabel, __('booking.calendar.own_short'), $seekingCellLabel]))
         : null;
-    $dayUrl =route('calendar.index', ['date' => $date->format('Y-m-d')]);
+    // Someone else's search, seen by a member: the booker's name first, like the visible name line
+    // (guests see "Belegt" only, so their label stays without a name).
+    $seekingNamedLabel = $isSeeking && $isLoggedIn
+        ? implode(' – ', array_filter([$primaryLabel, $seekingCellLabel]))
+        : $seekingCellLabel;
+    $dayUrl = route('calendar.index', ['date' => $date->format('Y-m-d')]);
     $loginUrl = route('login', ['redirect_to' => $dayUrl]);
 @endphp
 
@@ -214,7 +219,7 @@
     <a href="{{ $dayUrl }}"
        class="calendar-cell {{ $cellClass }}{{ $slotClass }}"
        data-state="{{ $state }}"
-       aria-label="{{ $seekingCellLabel }}"
+       aria-label="{{ $seekingNamedLabel }}"
        title="{{ $cellTitle }}"
        @click.prevent="$dispatch('open-join', {
            bid: @js((string) $reservation->booking->bid),
@@ -235,7 +240,7 @@
     <a href="{{ route('account.edit') }}"
        class="calendar-cell {{ $cellClass }}{{ $slotClass }}"
        data-state="{{ $state }}"
-       aria-label="{{ $seekingCellLabel }}"
+       aria-label="{{ $seekingNamedLabel }}"
        title="{{ $cellTitle }}"
        @click.prevent="$dispatch('open-join-info', {
            squareName: @js($squareFullLabel),

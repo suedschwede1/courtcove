@@ -392,9 +392,10 @@
             </x-ui.field>
 
             <div class="ds-modal__form" x-show="canSearch && maxSearch > 0">
-                <x-ui.option-tile type="checkbox" name="search" value="1" :label="__('booking.modal.search_players')" x-model="search" />
+                {{-- No name: the server reads only search_players (sent while the box is ticked). --}}
+                <x-ui.option-tile type="checkbox" value="1" :label="__('booking.modal.search_players')" x-model="search" />
                 <x-ui.field for="booking-search-players" :label="__('booking.modal.search_count')" :help="__('booking.modal.search_help')" x-show="search">
-                    <select name="search_players" id="booking-search-players" class="ds-select" x-model="searchCount" x-bind:disabled="!search">
+                    <select name="search_players" id="booking-search-players" class="ds-select" aria-describedby="booking-search-players-help" x-model="searchCount" x-bind:disabled="!search">
                         <template x-for="n in searchOptions" :key="n"><option :value="n" x-text="n"></option></template>
                     </select>
                 </x-ui.field>
@@ -642,6 +643,8 @@
             <p class="ds-modal__message" x-show="players.length > 0" x-text="playersText"></p>
 
             <x-ui.notice tone="neutral" x-show="joined">{{ __('booking.calendar.join.joined_hint') }}</x-ui.notice>
+            {{-- Fallback only: cells send members outside the exchange to the hint dialog (open-join-info),
+                 except one already signed up, who opens this dialog as joined to leave. --}}
             <x-ui.notice tone="attention" x-show="!optedIn && !joined">{{ __('booking.calendar.join.not_opted_in') }}</x-ui.notice>
             <x-ui.notice tone="problem" x-show="error"><span x-text="error"></span></x-ui.notice>
         </div>

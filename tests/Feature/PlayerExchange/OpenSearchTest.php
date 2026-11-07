@@ -89,6 +89,36 @@ class OpenSearchTest extends TestCase
     }
 
     #[Test]
+    public function a_start_exactly_sixty_minutes_away_is_too_late_and_sixty_one_minutes_is_fine(): void
+    {
+        $square = Square::factory()->create();
+        $user = User::factory()->create();
+        // No minimum booking lead: only the search lead time may refuse these slots.
+        $square->update(['min_range_book' => 0]);
+        $this->travelTo(Carbon::parse('2026-07-01 08:59:00'));
+        $start = Carbon::parse('2026-07-01 10:00:00');
+
+        // 61 minutes ahead: offered, deadline exactly one hour before the start.
+        $booking = $this->service()->createSingle($user, $square, 2, $start, $start->copy()->addHour(), [], 1);
+        $this->assertTrue(PlayerSearch::where('bid', $booking->bid)->sole()->ends_at->equalTo(Carbon::parse('2026-07-01 09:00:00')));
+
+        // Exactly 60 minutes ahead: refused, no booking.
+        $this->travelTo(Carbon::parse('2026-07-01 10:00:00'));
+        $later = Carbon::parse('2026-07-01 11:00:00');
+        try {
+            $this->service()->createSingle($user, $square, 2, $later, $later->copy()->addHour(), [], 1);
+            $this->fail('Expected BookingValidationException');
+        } catch (BookingValidationException $e) {
+            $this->assertSame(__('booking.messages.player_exchange.too_late'), $e->getMessage());
+        }
+        $this->assertSame(1, Booking::count());
+        $this->assertSame(1, PlayerSearch::count());
+        // Without a search the same slot can still be booked: only the search lead time refused it.
+        $this->service()->createSingle($user, $square, 2, $later, $later->copy()->addHour());
+        $this->assertSame(2, Booking::count());
+    }
+
+    #[Test]
     public function zero_search_players_creates_no_search_row(): void
     {
         $square = Square::factory()->create();
