@@ -189,6 +189,9 @@ class OwnerEditMysqlTest extends MysqlTestCase
     public function a_join_waits_for_the_edit_holding_the_booking_row_and_is_refused_after_it(): void
     {
         // The owner edit wins the lock: Einzel with the typed partner, so no searched place is left.
+        // The second connection writes the outcome of that edit by SQL; this proves that the join
+        // waits for the booking row and then sees the reduction, not the edit code itself (the
+        // edit code is covered by the other tests here and by OwnerEditTest).
         $second = $this->second();
         $second->beginTransaction();
         $second->select(self::LOCK_SQL, [$this->booking->bid]);

@@ -14,7 +14,7 @@ use Illuminate\Support\Carbon;
  *
  * @property int $id
  * @property int $bid
- * @property int $needed Originally searched places
+ * @property int $needed Searched places (joined + still free); an owner edit may lower it, never raise it
  * @property Carbon $ends_at
  * @property string $status open|filled|ended|lapsed|cancelled
  */

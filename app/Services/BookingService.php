@@ -546,7 +546,12 @@ final class BookingService
      * the same mutex as join, leave, ending and the lapse of a player search. Without a live
      * search the names are replaced as they always were. With one, members who joined via the
      * exchange keep their place and name, the typed names go to the free slots, and a quantity
-     * too small for typed partners plus joined members is refused (BookingValidationException).
+     * too small for typed partners plus joined members is refused (BookingValidationException),
+     * and so is an edit of a booking that was cancelled or lapsed before the lock was taken.
+     *
+     * The member form has one partner field (slot 2). Partners in slots 3/4 only come from the
+     * admin form; without a search they are replaced as before, with a search they are the
+     * booker's own names and the single field replaces them too (joined members stay).
      *
      * @param  array<int, string|null>  $playerNames
      */
@@ -572,12 +577,20 @@ final class BookingService
             // Booking row lock first, before any plain read: the checks below then see every
             // join or leave that committed while this edit waited for the lock.
             $locked = Booking::query()->whereKey($booking->bid)->lockForUpdate()->first();
-            $exchange = app(PlayerExchangeService::class);
-            $search = $locked !== null ? $exchange->liveSearch($locked) : null;
 
-            if ($locked === null || $search === null) {
-                $booking->update(['quantity' => $quantity]);
-                $this->syncPlayerMeta($booking, $playerNames);
+            // The caller checked a snapshot: the lapse or a cancel may have won the lock since.
+            if ($locked === null || ! in_array($locked->status, Booking::ACTIVE_STATUSES, true)) {
+                throw new BookingValidationException(__('booking.messages.booking_not_editable'));
+            }
+
+            $exchange = app(PlayerExchangeService::class);
+            $search = $exchange->liveSearch($locked);
+
+            // Writes go to the row loaded in this attempt: after a retried deadlock the
+            // caller's model would believe the quantity is saved and write nothing.
+            if ($search === null) {
+                $locked->update(['quantity' => $quantity]);
+                $this->syncPlayerMeta($locked, $playerNames);
 
                 return;
             }
@@ -594,8 +607,9 @@ final class BookingService
                 throw new BookingValidationException($e->getMessage());
             }
 
-            $booking->setAttribute('quantity', $quantity)->syncOriginalAttribute('quantity');
         }, self::TRANSACTION_ATTEMPTS);
+
+        $booking->setAttribute('quantity', $quantity)->syncOriginalAttribute('quantity');
     }
 
     /**

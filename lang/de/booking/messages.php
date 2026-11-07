@@ -12,6 +12,7 @@ return [
         'booking_deleted' => 'Buchung gelöscht.',
         'booking_failed' => 'Die Buchung konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.',
         'booking_not_cancellable' => 'Diese Buchung kann online nicht mehr storniert werden.',
+        'booking_not_editable' => 'Diese Buchung kann nicht mehr geändert werden, sie ist storniert oder abgelaufen.',
         'booking_reservation_missing' => 'Zu dieser Buchung wurde keine Reservierung gefunden.',
         'repeat_booking_conflict' => 'Mindestens ein Wiederholungstermin kollidiert mit einer anderen Buchung.',
         'repeat_event_conflict' => 'Mindestens ein Wiederholungstermin kollidiert mit einer Veranstaltung.',

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\PlayerExchange;
 
+use App\Exceptions\BookingValidationException;
 use App\Models\Booking;
 use App\Models\PlayerSearch;
 use App\Models\PlayerSignup;
@@ -290,6 +291,30 @@ class OwnerEditTest extends TestCase
 
         $this->exchange()->leave($second, $booking);
         $this->assertSame([2 => 'Max Muster'], $this->namesBySlot($booking), 'the typed partner with the same name stays');
+    }
+
+    #[Test]
+    public function an_edit_that_arrives_after_the_lapse_cancelled_the_booking_changes_nothing(): void
+    {
+        $booking = $this->searchingBooking(4, 2, [2 => 'Paula Partner']);
+        // The request loaded the booking (single, live search), then the lapse cancelled it
+        // before the edit took the booking row lock.
+        $stale = Booking::query()->with(['square', 'reservations', 'meta'])->findOrFail($booking->bid);
+        $this->travelTo(Carbon::parse('2026-11-08 09:00:00'));
+        $this->assertSame(1, $this->exchange()->lapseExpired());
+        $this->travelTo(Carbon::parse('2026-11-06 08:00:00'));
+
+        try {
+            app(BookingService::class)->updateSinglePlayers($stale, $this->owner, 2, [2 => null]);
+            $this->fail('a cancelled booking must not be edited');
+        } catch (BookingValidationException $e) {
+            $this->assertSame(__('booking.messages.booking_not_editable'), $e->getMessage());
+        }
+
+        $fresh = $booking->fresh();
+        $this->assertSame('cancelled', $fresh->status);
+        $this->assertSame(4, (int) $fresh->quantity, 'quantity untouched');
+        $this->assertSame([2 => 'Paula Partner'], $this->namesBySlot($booking), 'names untouched');
     }
 
     #[Test]
