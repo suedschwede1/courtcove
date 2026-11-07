@@ -637,8 +637,9 @@
             ]" />
 
             <p class="ds-modal__message">
-                <span x-show="owner" x-text="ownerText"></span><br x-show="owner">
-                <strong x-text="remainingText"></strong>
+                <span x-show="owner" x-text="ownerText"></span><br x-show="owner && remaining > 0">
+                {{-- A filled or ended search (member signed up, may still leave) seeks nobody. --}}
+                <strong x-show="remaining > 0" x-text="remainingText"></strong>
             </p>
             <p class="ds-modal__message" x-show="players.length > 0" x-text="playersText"></p>
 

@@ -197,6 +197,7 @@ return [
         'seeking_line' => 'Looking for :count more player|Looking for :count more players',
         'seeking_tiny' => 'Needs :count|Needs :count',
         'seeking_cell' => ':court, :time – :remaining',
+        'joined_cell' => ':court, :time – You are playing',
         'seeking_info' => [
             'title' => 'Players wanted',
             'message' => 'This booking is still looking for players. If you want to play, join the player exchange in your account. Then you can sign up here with one click.',

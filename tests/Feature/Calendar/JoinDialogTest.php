@@ -241,6 +241,45 @@ final class JoinDialogTest extends TestCase
     }
 
     #[Test]
+    public function a_member_signed_up_to_a_filled_or_ended_search_can_still_open_the_dialog_and_leave(): void
+    {
+        foreach ([PlayerSearch::FILLED, PlayerSearch::ENDED] as $i => $status) {
+            $hour = 15 + $i;
+            $booking = $this->booking(User::factory()->create(['alias' => 'Anna Bucher']), $hour);
+            $search = $this->search($booking, $hour, 1);
+            $joined = $this->member(true, ['alias' => 'Ben Mitspieler '.$i]);
+            PlayerSignup::create(['search_id' => $search->id, 'uid' => $joined->uid, 'slot' => 2]);
+            $search->update(['status' => $status]);
+
+            // Others see a normal booking without any action.
+            $other = $this->calendar($this->member(true));
+            $otherCell = $this->cell($this->xpath($other), $hour);
+            $this->assertSame('single_future', $otherCell->getAttribute('data-state'), $status);
+            $this->assertSame('span', $otherCell->tagName, 'no link, no dialog: '.$status);
+
+            // The joined member keeps a normal booking cell, but it opens the dialog to leave.
+            $html = $this->calendar($joined);
+            $cell = $this->cell($this->xpath($html), $hour);
+            $this->assertSame('single_future', $cell->getAttribute('data-state'), $status);
+            $click = $this->click($html, 'single_future');
+            $this->assertStringContainsString("\$dispatch('open-join'", $click);
+            $this->assertStringContainsString('joined: true', $click);
+            $this->assertStringContainsString('remaining: 0', $click);
+            $this->assertStringStartsWith('Anna Bucher – ', $cell->getAttribute('aria-label'));
+            $this->assertStringContainsString(__('booking.calendar.join.joined_title'), $cell->getAttribute('aria-label'));
+
+            $this->actingAs($joined)->deleteJson(route('player-exchange.leave', $booking))->assertOk()->assertJson(['ok' => true]);
+            $this->assertSame(0, $search->signups()->count(), $status);
+        }
+    }
+
+    #[Test]
+    public function the_dialog_hides_the_places_line_when_nothing_is_searched_any_more(): void
+    {
+        $this->assertStringContainsString('x-show="remaining > 0" x-text="remainingText"', $this->dialog($this->calendar($this->member(true))));
+    }
+
+    #[Test]
     public function the_dialog_shows_the_refusal_text_of_the_server_or_a_generic_failure(): void
     {
         $dialog = $this->dialog($this->calendar($this->member(true)));

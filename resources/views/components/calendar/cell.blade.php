@@ -37,7 +37,14 @@
     $hasOpenSearch = $search !== null && ! $isPast && ! $isTournament && $search->isSeeking();
     $searchRemaining = $hasOpenSearch ? $search->remaining() : 0;
     $isSeeking = $hasOpenSearch && ! $isOwn;
-    $hasJoined = $hasOpenSearch && $isLoggedIn && $search->signups->contains('uid', $authUserId);
+    // Signed up to a live search (open, filled or ended) before its deadline: the member may still
+    // leave (PlayerExchangeService::leave), so his cell opens the join dialog also when nobody is
+    // sought any more. The cell itself then looks like any other booking.
+    $hasJoined = $search !== null && ! $isPast && ! $isTournament && $isLoggedIn && ! $isOwn
+        && in_array($search->status, \App\Services\PlayerExchangeService::LIVE_STATUSES, true)
+        && $search->ends_at->isFuture()
+        && $search->signups->contains('uid', $authUserId);
+    $joinedNotSeeking = $hasJoined && ! $hasOpenSearch;
 
     $state = \App\Support\Calendar\CellState::for((bool) $reservation, $isPast, $isOwn, $isSeriesBooking, $isTournament, $isSeeking)->value;
 
@@ -94,6 +101,11 @@
             : __('booking.calendar.occupied');
         $action = ! $isLoggedIn ? 'seeking-login' : (($playerExchangeOptedIn || $hasJoined) ? 'join' : 'join-info');
         $cellTitle = $squareLabel . ' – ' . $seekingLine;
+    } elseif ($joinedNotSeeking) {
+        $cellClass = 'cc-single-future';
+        $primaryLabel = $reservation->booking?->owner_label ?? __('booking.calendar.occupied');
+        $action = 'join';
+        $cellTitle = $squareLabel . ' – ' . __('booking.calendar.join.joined_title');
     } else {
         $cellClass = 'cc-single-future';
         $primaryLabel = $isLoggedIn
@@ -143,6 +155,9 @@
     $seekingNamedLabel = $isSeeking && $isLoggedIn
         ? implode(' – ', array_filter([$primaryLabel, $seekingCellLabel]))
         : $seekingCellLabel;
+    if ($joinedNotSeeking) {
+        $seekingNamedLabel = $primaryLabel . ' – ' . __('booking.calendar.joined_cell', ['court' => $squareLabel, 'time' => $timeLabel]);
+    }
     $dayUrl = route('calendar.index', ['date' => $date->format('Y-m-d')]);
     $loginUrl = route('login', ['redirect_to' => $dayUrl]);
 @endphp

@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-07
+- A member signed up to a player search that is full or was ended by the booker can leave again until one hour before the start: his cell (shown as a normal booking) opens the join dialog with "Austragen" and says "Du spielst mit" to screen readers; other members still see a plain booking. The dialog hides "Noch N Mitspieler gesucht" when nobody is sought. de/en text.
 - "Mein Konto": after a validation error (e.g. an invalid e-mail) the "Spielerbörse" box shows what was submitted; an unticked box no longer comes back ticked for a member in the exchange.
 - Player exchange dialogs and cells: the screen-reader name of someone else's search cell starts with the booker's name for members (guests still hear "Belegt" only); the search count select in the booking dialog is linked to its help text (aria-describedby); the "Mitspieler suchen" checkbox no longer submits a dead form field. Tests cover the booking without JavaScript (success flash with search), the 60/61-minute boundary of the search lead time, the join payload of a member already signed up and the refusal text in the join dialog.
 - Admin cancel of a booking that was already cancelled (e.g. lifted by its player search meanwhile) now says "Diese Buchung ist schon storniert oder abgelaufen" instead of "Buchung storniert". A test proves the lapse after a cancel lifts nothing and sends no expiry mail.
