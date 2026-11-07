@@ -469,38 +469,12 @@ final class PlayerExchangeService
 
     /**
      * Whether the member is already playing at that time: an own active booking on any
-     * court, or a signup in a search (open, filled or ended) of an active booking.
+     * court, or a signup in a search (open, filled or ended) of an active booking. The same
+     * check as an own booking uses (MemberAvailability).
      */
     public function userBusy(User $user, CarbonInterface $start, CarbonInterface $end, ?int $exceptBid = null): bool
     {
-        $overlaps = static function ($query) use ($start, $end): void {
-            $query->where('bs_reservations.date', $start->format('Y-m-d'))
-                ->where('bs_reservations.time_start', '<', $end->format('H:i:s'))
-                ->where('bs_reservations.time_end', '>', $start->format('H:i:s'));
-        };
-
-        $ownBooking = Booking::query()
-            ->join('bs_reservations', 'bs_reservations.bid', '=', 'bs_bookings.bid')
-            ->where('bs_bookings.uid', $user->uid)
-            ->whereIn('bs_bookings.status', Booking::ACTIVE_STATUSES)
-            ->where($overlaps)
-            ->when($exceptBid !== null, fn ($q) => $q->where('bs_bookings.bid', '!=', $exceptBid))
-            ->exists();
-
-        if ($ownBooking) {
-            return true;
-        }
-
-        return PlayerSignup::query()
-            ->join('player_exchange_searches', 'player_exchange_searches.id', '=', 'player_exchange_signups.search_id')
-            ->join('bs_bookings', 'bs_bookings.bid', '=', 'player_exchange_searches.bid')
-            ->join('bs_reservations', 'bs_reservations.bid', '=', 'bs_bookings.bid')
-            ->where('player_exchange_signups.uid', $user->uid)
-            ->whereIn('player_exchange_searches.status', [PlayerSearch::OPEN, PlayerSearch::FILLED, PlayerSearch::ENDED])
-            ->whereIn('bs_bookings.status', Booking::ACTIVE_STATUSES)
-            ->where($overlaps)
-            ->when($exceptBid !== null, fn ($q) => $q->where('bs_bookings.bid', '!=', $exceptBid))
-            ->exists();
+        return app(MemberAvailability::class)->busyAt($user, $start, $end, $exceptBid);
     }
 
     /**
@@ -538,7 +512,7 @@ final class PlayerExchangeService
     {
         $locked = Booking::query()->whereKey($booking->bid)->lockForUpdate()->first();
         if ($member !== null) {
-            User::query()->whereKey($member->uid)->lockForUpdate()->get();
+            app(MemberAvailability::class)->lockMember($member);
         }
         if ($locked === null || ! in_array($locked->status, Booking::ACTIVE_STATUSES, true)) {
             throw $this->refused('not_open');

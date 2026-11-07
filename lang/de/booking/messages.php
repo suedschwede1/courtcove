@@ -63,6 +63,7 @@ return [
             'retry' => 'Gerade ändern mehrere gleichzeitig diese Buchung. Bitte versuch es nochmal.',
             'edit_too_many' => 'Dafür reichen die Plätze nicht: Wer sich über die Spielerbörse angemeldet hat, behält seinen Platz. Wähle Doppel oder trag weniger Mitspieler ein.',
             'edit_signed_up' => 'Über die Spielerbörse angemeldet: :names. Sie behalten ihren Platz und können sich nur selbst austragen.',
+            'booking_busy' => 'Zu dieser Zeit spielst du schon: Du bist über die Spielerbörse bei einer anderen Buchung als Mitspieler angemeldet.',
         ],
     ],
 ];

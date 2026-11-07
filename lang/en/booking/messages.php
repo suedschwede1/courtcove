@@ -63,6 +63,7 @@ return [
             'retry' => 'Several people are changing this booking at the same time. Please try again.',
             'edit_too_many' => 'There are not enough places for that: players who joined via the player exchange keep their place. Choose doubles or enter fewer partners.',
             'edit_signed_up' => 'Joined via the player exchange: :names. They keep their place and only they can leave.',
+            'booking_busy' => 'You already play at that time: you joined another booking as a player via the player exchange.',
         ],
     ],
 ];

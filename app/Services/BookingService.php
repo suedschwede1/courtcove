@@ -432,8 +432,18 @@ final class BookingService
         $booking = DB::transaction(function () use ($user, $square, $quantity, $dateStart, $dateEnd, $meta, $searchPlayers, &$searchId): Booking {
             // Serialize concurrent bookings on this square (row lock as mutex),
             // then re-check the slot so two parallel requests cannot both book it.
+            // The member row next (same mutex as a join of this member, lock order court/booking
+            // row, then member row), before any plain read: the check below then sees a join
+            // that committed while this booking waited.
             Square::query()->whereKey($square->sid)->lockForUpdate()->get();
+            $availability = app(MemberAvailability::class);
+            $availability->lockMember($user);
             $this->assertSingleBookingIsValid($user, $square, $quantity, $dateStart, $dateEnd);
+
+            // A member who joined a player search at that time already plays (PX-02).
+            if ($availability->joinedAt($user, $dateStart, $dateEnd)) {
+                throw new BookingValidationException(__('booking.messages.player_exchange.booking_busy'));
+            }
 
             $booking = Booking::create([
                 'uid' => $user->uid,
