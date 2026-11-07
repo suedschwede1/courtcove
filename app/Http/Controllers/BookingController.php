@@ -241,8 +241,9 @@ final class BookingController extends Controller
             return back()->withErrors(['booking' => $msg])->with('error', $msg);
         }
 
-        // With a live player search the booker may clear his own partner: the joined members play.
-        $hasSearch = app(PlayerExchangeService::class)->liveSearch($booking) !== null;
+        // With an open search or joined members the booker may clear his own partner: the joined
+        // (or still sought) members play. An ended search without signups does not count.
+        $hasSearch = app(PlayerExchangeService::class)->searchReplacesPartner($booking);
         $data = $request->validate([
             'quantity' => ['required', 'integer', 'in:2,4'],
             'mitspieler' => [$hasSearch ? 'nullable' : 'required', 'string', 'max:255'],

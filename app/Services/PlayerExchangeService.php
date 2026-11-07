@@ -259,6 +259,18 @@ final class PlayerExchangeService
     }
 
     /**
+     * Whether the search stands in for the booker's partner: it is open (players are still
+     * sought) or members are signed up (filled or ended). An ended search without signups does
+     * not: the booking then needs a typed partner again like any other.
+     */
+    public function searchReplacesPartner(Booking $booking): bool
+    {
+        $search = $this->liveSearch($booking);
+
+        return $search !== null && ($search->status === PlayerSearch::OPEN || $search->signups()->exists());
+    }
+
+    /**
      * The player names of the booking split for the booker's edit form: "own" are the partners
      * he typed himself (he may change them), "joined" the members of the live search (only they
      * can leave). Both slot => name.

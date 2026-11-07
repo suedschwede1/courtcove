@@ -354,4 +354,37 @@ class JoinSearchTest extends TestCase
         $this->expectException(QueryException::class);
         $this->actingAs($member)->postJson(route('player-exchange.join', $booking));
     }
+
+    #[Test]
+    public function a_blocked_or_inactive_member_in_the_exchange_cannot_join(): void
+    {
+        $booking = $this->searchingBooking(4, 3);
+
+        foreach (['blocked', 'disabled'] as $status) {
+            $member = $this->member('Max '.$status);
+            $member->update(['status' => $status]);
+            $this->assertRefused(fn () => $this->exchange()->join($member->fresh(), $booking), 'inactive');
+        }
+
+        $this->assertSame(0, PlayerSignup::query()->count());
+        $this->assertSame(PlayerSearch::OPEN, PlayerSearch::query()->where('bid', $booking->bid)->value('status'));
+    }
+
+    #[Test]
+    public function a_member_who_did_not_book_cannot_end_the_search_over_http(): void
+    {
+        $booking = $this->searchingBooking(4, 3);
+        $stranger = $this->member('Erika Fremd');
+
+        $this->actingAs($stranger)
+            ->postJson(route('player-exchange.end', $booking))
+            ->assertStatus(422)
+            ->assertExactJson(['error' => __('booking.messages.player_exchange.not_owner')]);
+        $this->actingAs($stranger)
+            ->post(route('player-exchange.end', $booking))
+            ->assertSessionHas('error', __('booking.messages.player_exchange.not_owner'));
+
+        $this->assertSame(PlayerSearch::OPEN, PlayerSearch::query()->where('bid', $booking->bid)->value('status'));
+        $this->assertSame(3, PlayerSearch::query()->where('bid', $booking->bid)->sole()->remaining());
+    }
 }

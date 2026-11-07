@@ -150,6 +150,30 @@ class OwnerEditTest extends TestCase
     }
 
     #[Test]
+    public function after_ending_a_search_without_signups_the_partner_is_required_again(): void
+    {
+        $booking = $this->searchingBooking(2, 1);
+        $this->exchange()->endSearch($this->owner, $booking);
+
+        // Nobody plays instead of the partner: no partner and no search is not a booking.
+        $this->ownerEdits($booking, ['quantity' => 2, 'mitspieler' => ''])->assertSessionHasErrors('mitspieler');
+
+        $this->ownerEdits($booking, ['quantity' => 2, 'mitspieler' => 'Paula Partner'])->assertSessionHasNoErrors();
+        $this->assertSame([2 => 'Paula Partner'], $this->namesBySlot($booking));
+    }
+
+    #[Test]
+    public function an_ended_search_with_a_joined_member_still_lets_the_owner_clear_his_partner(): void
+    {
+        $booking = $this->searchingBooking(4, 2, [2 => 'Paula Partner']);
+        $this->exchange()->join($this->member('Max Muster'), $booking);
+        $this->exchange()->endSearch($this->owner, $booking);
+
+        $this->ownerEdits($booking, ['quantity' => 4, 'mitspieler' => ''])->assertSessionHasNoErrors();
+        $this->assertSame([3 => 'Max Muster'], $this->namesBySlot($booking));
+    }
+
+    #[Test]
     public function reducing_to_single_below_the_occupied_places_is_refused_and_nothing_changes(): void
     {
         $booking = $this->searchingBooking(4, 3);
