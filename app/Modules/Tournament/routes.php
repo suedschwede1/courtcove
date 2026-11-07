@@ -45,7 +45,7 @@ Route::prefix('tournament')->name('tournament.')
 // Championship admin "Turnierleitung" (old AdminController, privilege admin.tournament). The gate runs after
 // the module login and before any posted or route id is resolved (403 before 404).
 Route::prefix('tournament/admin')->name('tournament.admin')
-    ->middleware(['tournament-base.login:tournament::common.login_required', 'admin.mode', 'can:admin.tournament'])
+    ->middleware(['tournament-base.login:tournament::common.login_required', 'can:admin.tournament'])
     ->group(function (): void {
         Route::get('', [AdminOverviewController::class, 'index'])->name('');
 

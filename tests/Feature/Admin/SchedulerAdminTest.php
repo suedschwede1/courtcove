@@ -58,12 +58,14 @@ class SchedulerAdminTest extends TestCase
     }
 
     #[Test]
-    public function without_admin_mode_the_page_shows_the_admin_mode_notice(): void
+    public function the_page_ignores_the_admin_mode_but_needs_the_stored_right(): void
     {
         $this->actingAsWithoutAdminMode($this->admin())->get('/admin/scheduler')
-            ->assertForbidden()->assertSee('data-admin-mode-required', false);
-        $this->actingAsWithoutAdminMode($this->admin())->post('/admin/scheduler/scheduler-heartbeat/run')
-            ->assertForbidden();
+            ->assertOk()->assertDontSee('data-admin-mode-required', false);
+
+        $member = User::factory()->create(['status' => 'enabled']);
+        $this->actingAsAdminMode($member)->get('/admin/scheduler')->assertForbidden();
+        $this->actingAsAdminMode($member)->post('/admin/scheduler/scheduler-heartbeat/run')->assertForbidden();
         $this->assertSame(0, ScheduledTaskRun::query()->count());
     }
 

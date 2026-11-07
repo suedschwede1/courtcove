@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-07
+- Admin mode now counts only for calendar and bookings (calendar view, booking, booking limits, foreign bookings, events in the calendar: /calendar, /bookings*, /admin/bookings*, /admin/events*, API bookings and events). Members, all tournament modules with their admin pages and the sidebar group Einstellungen, and the administration under /admin (users, courts, options, scheduler, database, statistics ...) check the stored right and open for an authorised account without the admin mode cookie; the middleware admin.mode stays only on the booking and event admin routes. Ladder and event grants are unchanged.
 - Mixed-/Fun-Turnier: members have a read-only event list (/mixed-tournament/events, sidebar "Veranstaltungen") that stays reachable while a default event is set (the module start still opens the default event); "Zur Liste" on member event, round and standings pages and on the info page leads there instead of the admin list, which showed the "Admin-Modus einschalten" page.
 
 ## 2026-11-06

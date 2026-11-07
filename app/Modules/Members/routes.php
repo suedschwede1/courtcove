@@ -18,7 +18,7 @@ use App\Modules\Members\Http\Controllers\MemberExportController;
 use App\Modules\Members\Http\Controllers\PaymentController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'admin.mode', 'can:admin.members'])
+Route::middleware(['auth', 'can:admin.members'])
     ->group(function (): void {
         Route::get('members/dashboard', [DashboardController::class, 'index'])->name('members.dashboard');
         Route::get('members/export', [MemberExportController::class, 'export'])->name('members.export');

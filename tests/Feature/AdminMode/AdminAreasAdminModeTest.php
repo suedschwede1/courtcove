@@ -15,10 +15,13 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
- * Administration areas: without admin mode a privileged account gets the "Switch on admin mode" page
- * (403 with the switch form) instead of the plain 403; with admin mode the page opens. Accounts without
- * the area's privilege keep the plain 403, also with the cookie. Per-ladder / per-event grants are member
- * rights and keep working without admin mode.
+ * Admin mode only counts for calendar and bookings (own and foreign bookings, booking limits, events in the
+ * calendar: /calendar, /bookings*, /admin/bookings*, /admin/events*). Members, all tournament modules (with their
+ * admin pages) and the administration under /admin (users, courts, options, scheduler ...) check the stored
+ * right and open for a privileged account without the cookie. On the mode-bound routes a privileged account
+ * without the mode gets the "Switch on admin mode" page (403 with the switch form) instead of the plain 403.
+ * Accounts without the area's privilege keep the plain 403, also with the cookie. Per-ladder / per-event grants
+ * are member rights.
  */
 class AdminAreasAdminModeTest extends TestCase
 {
@@ -30,7 +33,6 @@ class AdminAreasAdminModeTest extends TestCase
         return [
             'admin dashboard' => ['/admin'],
             'admin users' => ['/admin/users'],
-            'admin bookings' => ['/admin/bookings'],
             'admin config' => ['/admin/config'],
             'members dashboard' => ['/members/dashboard'],
             'members list' => ['/members'],
@@ -38,6 +40,15 @@ class AdminAreasAdminModeTest extends TestCase
             'mixed admin' => ['/mixed-tournament/admin'],
             'tournament admin' => ['/tournament/admin'],
             'draw admin' => ['/draw'],
+        ];
+    }
+
+    /** @return array<string, array{string}> routes that still depend on the admin mode */
+    public static function modeBoundAreas(): array
+    {
+        return [
+            'admin bookings' => ['/admin/bookings'],
+            'admin events' => ['/admin/events'],
         ];
     }
 
@@ -57,8 +68,8 @@ class AdminAreasAdminModeTest extends TestCase
     }
 
     #[Test]
-    #[DataProvider('areas')]
-    public function without_admin_mode_an_admin_gets_the_switch_page(string $url): void
+    #[DataProvider('modeBoundAreas')]
+    public function without_admin_mode_an_admin_gets_the_switch_page_on_booking_routes(string $url): void
     {
         $admin = $this->admin();
 
@@ -70,6 +81,17 @@ class AdminAreasAdminModeTest extends TestCase
             ->assertSee('action="'.route('admin-mode.set', ['state' => 'on']).'"', false)
             ->assertSee('name="redirect" value="'.$url.'?tab=x"', false)
             ->assertDontSee('<aside id="admin-nav"', false);
+
+        $this->actingAsAdminMode($admin)->get($url)->assertOk();
+    }
+
+    #[Test]
+    #[DataProvider('areas')]
+    public function the_other_areas_open_without_admin_mode(string $url): void
+    {
+        $response = $this->actingAsWithoutAdminMode($this->admin())->get($url);
+
+        $response->assertOk()->assertDontSee('data-admin-mode-required', false);
     }
 
     #[Test]
@@ -81,12 +103,13 @@ class AdminAreasAdminModeTest extends TestCase
 
     #[Test]
     #[DataProvider('roleStorages')]
-    public function both_role_storages_follow_the_mode(bool $split): void
+    public function both_role_storages_ignore_the_mode_outside_bookings(bool $split): void
     {
         $admin = $this->admin($split);
 
-        $this->actingAsWithoutAdminMode($admin)->get('/admin/users')->assertForbidden()->assertSee('data-admin-mode-required', false);
-        $this->actingAsAdminMode($admin)->get('/admin/users')->assertOk();
+        $this->actingAsWithoutAdminMode($admin)->get('/admin/users')->assertOk();
+        $this->actingAsWithoutAdminMode($admin)->get('/admin/bookings')->assertForbidden()->assertSee('data-admin-mode-required', false);
+        $this->actingAsAdminMode($admin)->get('/admin/bookings')->assertOk();
     }
 
     #[Test]
@@ -107,13 +130,13 @@ class AdminAreasAdminModeTest extends TestCase
     }
 
     #[Test]
-    public function an_assist_only_gets_the_switch_page_for_areas_of_its_privileges(): void
+    public function an_assist_only_opens_the_areas_of_its_privileges(): void
     {
         config(['users.split_role' => false]);
         $assist = User::factory()->create(['status' => 'assist']);
         $assist->syncPrivileges(['admin.members']);
 
-        $this->actingAsWithoutAdminMode($assist)->get('/members/dashboard')->assertForbidden()->assertSee('data-admin-mode-required', false);
+        $this->actingAsWithoutAdminMode($assist)->get('/members/dashboard')->assertOk();
         $this->actingAsWithoutAdminMode($assist)->get('/admin/users')->assertForbidden()->assertDontSee('data-admin-mode-required', false);
         $this->actingAsWithoutAdminMode($assist)->get('/pyramide/admin')->assertForbidden()->assertDontSee('data-admin-mode-required', false);
 
@@ -127,12 +150,12 @@ class AdminAreasAdminModeTest extends TestCase
         $admin = $this->admin();
 
         $this->actingAsWithoutAdminMode($admin)
-            ->post('/admin-mode/on', ['redirect' => '/admin/users?status=enabled'])
-            ->assertRedirect('/admin/users?status=enabled')
+            ->post('/admin-mode/on', ['redirect' => '/admin/bookings?status=enabled'])
+            ->assertRedirect('/admin/bookings?status=enabled')
             ->assertPlainCookie('admin_mode', '1');
 
         // The browser now sends the session cookie.
-        $this->actingAsAdminMode($admin)->get('/admin/users?status=enabled')->assertOk();
+        $this->actingAsAdminMode($admin)->get('/admin/bookings?status=enabled')->assertOk();
     }
 
     #[Test]
@@ -140,10 +163,10 @@ class AdminAreasAdminModeTest extends TestCase
     {
         $admin = $this->admin();
 
-        $this->actingAsWithoutAdminMode($admin)->from(url('/admin/users'))->post('/admin/users/bulk', [])
-            ->assertForbidden()->assertSee('name="redirect" value="/admin/users"', false);
+        $this->actingAsWithoutAdminMode($admin)->from(url('/admin/events'))->post('/admin/events', [])
+            ->assertForbidden()->assertSee('name="redirect" value="/admin/events"', false);
 
-        $this->actingAsWithoutAdminMode($admin)->from('https://evil.example/phish')->post('/admin/users/bulk', [])
+        $this->actingAsWithoutAdminMode($admin)->from('https://evil.example/phish')->post('/admin/events', [])
             ->assertForbidden()->assertSee('name="redirect" value="/calendar"', false);
     }
 
@@ -152,15 +175,15 @@ class AdminAreasAdminModeTest extends TestCase
     {
         $admin = $this->admin();
 
-        $this->actingAsWithoutAdminMode($admin)->getJson('/members/dashboard')
+        $this->actingAsWithoutAdminMode($admin)->getJson('/admin/bookings')
             ->assertForbidden()
             ->assertExactJson(['message' => __('booking.admin_mode.required_json'), 'admin_mode_required' => true]);
 
-        $this->actingAsWithoutAdminMode($admin)->postJson('/admin/users/bulk', [])
+        $this->actingAsWithoutAdminMode($admin)->postJson('/admin/events', [])
             ->assertForbidden()->assertJsonPath('admin_mode_required', true);
 
         // fetch() with X-Requested-With and its default Accept */* (dialogs, iframes loading via AJAX).
-        $this->actingAsWithoutAdminMode($admin)->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'Accept' => '*/*'])->get('/admin/users')
+        $this->actingAsWithoutAdminMode($admin)->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'Accept' => '*/*'])->get('/admin/bookings')
             ->assertForbidden()->assertJsonPath('admin_mode_required', true);
 
         $member = User::factory()->create(['status' => 'enabled']);
@@ -183,10 +206,9 @@ class AdminAreasAdminModeTest extends TestCase
         PyramidGrant::query()->create(['ladder_id' => $ladder->id, 'uid' => $admin->uid, 'role' => 'admin', 'created' => '2026-01-01 00:00:00']);
         $this->actingAsWithoutAdminMode($admin)->get('/pyramide/admin/ladder/'.$ladder->id)->assertOk();
 
-        // Without the grant the global right needs admin mode.
+        // The global right opens every ladder without admin mode too.
         $other = PyramidLadder::factory()->create();
-        $this->actingAsWithoutAdminMode($admin)->get('/pyramide/admin/ladder/'.$other->id)->assertForbidden()->assertSee('data-admin-mode-required', false);
-        $this->actingAsAdminMode($admin)->get('/pyramide/admin/ladder/'.$other->id)->assertOk();
+        $this->actingAsWithoutAdminMode($admin)->get('/pyramide/admin/ladder/'.$other->id)->assertOk();
     }
 
     #[Test]
@@ -199,9 +221,7 @@ class AdminAreasAdminModeTest extends TestCase
         $this->actingAsWithoutAdminMode($holder)->get('/mixed-tournament/admin/event/'.$event->id)->assertOk();
 
         $admin = $this->admin();
-        $this->actingAsWithoutAdminMode($admin)->get('/mixed-tournament/admin/event/'.$event->id)
-            ->assertForbidden()->assertSee('data-admin-mode-required', false);
-        $this->actingAsAdminMode($admin)->get('/mixed-tournament/admin/event/'.$event->id)->assertOk();
+        $this->actingAsWithoutAdminMode($admin)->get('/mixed-tournament/admin/event/'.$event->id)->assertOk();
     }
 
     #[Test]
@@ -216,7 +236,7 @@ class AdminAreasAdminModeTest extends TestCase
     // --- header and menu -----------------------------------------------------------------------------
 
     #[Test]
-    public function the_menu_entries_stay_visible_without_admin_mode_and_lead_to_the_switch_page(): void
+    public function the_menu_entries_are_visible_and_open_without_admin_mode(): void
     {
         $admin = $this->admin();
 
@@ -225,7 +245,7 @@ class AdminAreasAdminModeTest extends TestCase
         $this->assertStringContainsString('href="'.route('members.dashboard').'"', $html);
         $this->assertStringContainsString('action="'.route('admin-mode.set', ['state' => 'on']).'"', $html);
 
-        $this->actingAsWithoutAdminMode($admin)->get(route('admin.dashboard'))->assertSee('data-admin-mode-required', false);
+        $this->actingAsWithoutAdminMode($admin)->get(route('admin.dashboard'))->assertOk()->assertDontSee('data-admin-mode-required', false);
     }
 
     #[Test]

@@ -89,9 +89,9 @@ class AdminModeMechanismTest extends TestCase
     {
         $admin = User::factory()->create(['status' => 'admin']);
 
-        $this->actingAsAdminMode($admin)->get('/admin/users')->assertOk();
-        $this->actingAsWithoutAdminMode($admin)->get('/admin/users')->assertForbidden();
-        $this->actingAsAdminMode($admin)->get('/admin/users')->assertOk();
+        $this->actingAsAdminMode($admin)->get('/admin/bookings')->assertOk();
+        $this->actingAsWithoutAdminMode($admin)->get('/admin/bookings')->assertForbidden();
+        $this->actingAsAdminMode($admin)->get('/admin/bookings')->assertOk();
     }
 
     #[Test]
