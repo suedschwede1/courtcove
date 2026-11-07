@@ -12,6 +12,7 @@ return [
         'booking_deleted' => 'Booking deleted.',
         'booking_failed' => 'The booking could not be saved. Please try again.',
         'booking_not_cancellable' => 'This booking can no longer be canceled online.',
+        'booking_already_cancelled' => 'This booking was already canceled or has lapsed.',
         'booking_not_editable' => 'This booking can no longer be changed: it was canceled or has lapsed.',
         'booking_reservation_missing' => 'No reservation was found for this booking.',
         'repeat_booking_conflict' => 'At least one repeated date conflicts with another booking.',

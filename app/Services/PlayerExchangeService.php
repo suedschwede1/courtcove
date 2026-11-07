@@ -77,12 +77,16 @@ final class PlayerExchangeService
     }
 
     /**
-     * Open a search for the booking (call inside the booking transaction).
+     * Open a search for the booking (call inside the booking transaction). Single bookings
+     * only (spec): cancel and delete of one occurrence of a series rely on it.
      *
      * @throws PlayerExchangeException
      */
     public function openSearch(Booking $booking, int $needed): PlayerSearch
     {
+        if ($booking->status !== 'single') {
+            throw new \LogicException('A player search is only possible for a single booking.');
+        }
         $booking->loadMissing('reservations', 'meta');
         $first = $booking->reservations->sortBy(fn ($r) => $r->date.' '.$r->time_start)->first();
         $start = $first ? Carbon::parse($first->date.' '.$first->time_start) : null;
@@ -449,10 +453,11 @@ final class PlayerExchangeService
     }
 
     /**
-     * The booker cancelled the booking (called by BookingService::cancelSingle inside its
-     * transaction, after the booking row is locked): a live search is cancelled and every
-     * joined player is told, also one who has left the exchange since. Lapsed or already
-     * cancelled searches are left alone, so no mail goes out twice.
+     * The booking was cancelled (called by BookingService::cancelSingle and deleteSingle inside
+     * their transaction, after the booking row is locked): a live search is cancelled and every
+     * joined player is told, also one who has left the exchange since (the opt-out only stops
+     * the advertising mails). Lapsed or already cancelled searches are left alone, so no mail
+     * goes out twice, however often this runs.
      */
     public function onBookingCancelled(Booking $booking): void
     {
@@ -470,6 +475,26 @@ final class PlayerExchangeService
                 $this->mailAfterCommit((string) $signup->user->email, new PlayerSearchBookingCancelled($search, $signup->user));
             }
         }
+    }
+
+    /**
+     * The booking is deleted for good (BookingService::deleteSingle, inside its transaction,
+     * after the booking row lock): a live search is cancelled with the same mails as a cancel
+     * (taken as plain values now, so they still render once the rows are gone), then the search
+     * and its signups are removed in the same transaction. No foreign key does this: the legacy
+     * bs_* tables carry none, and an explicit cleanup keeps the mails and the lock in one place.
+     */
+    public function onBookingDeleted(Booking $booking): void
+    {
+        $this->onBookingCancelled($booking);
+
+        $searchIds = PlayerSearch::query()->where('bid', $booking->bid)->pluck('id');
+        if ($searchIds->isEmpty()) {
+            return;
+        }
+
+        PlayerSignup::query()->whereIn('search_id', $searchIds)->delete();
+        PlayerSearch::query()->whereKey($searchIds)->delete();
     }
 
     /** One booking of lapseExpired; true when the booking was cancelled. */

@@ -304,7 +304,11 @@ final class BookingController extends Controller
             return back()->withErrors(['booking' => __('booking.messages.booking_not_cancellable')])->with('error', __('booking.messages.booking_not_cancellable'));
         }
 
-        $this->bookingService->cancelSingle($booking);
+        // The check above ran on the booking as loaded; the cancel decides on the locked row. A
+        // booking the lapse of its player search lifted meanwhile is not cancelled again.
+        if (! $this->bookingService->cancelSingle($booking)) {
+            return back()->withErrors(['booking' => __('booking.messages.booking_already_cancelled')])->with('error', __('booking.messages.booking_already_cancelled'));
+        }
 
         return redirect()->route('calendar.index')
             ->with('success', __('booking.messages.booking_cancelled'));

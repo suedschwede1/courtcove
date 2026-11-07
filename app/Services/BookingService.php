@@ -657,26 +657,54 @@ final class BookingService
      * Cancel the booking (or one occurrence of a subscription). A player search of the booking
      * is cancelled with it and its joined players are mailed. $notifyOwner false skips the
      * cancel confirmation to the booker (the lapse of a player search mails him itself).
+     *
+     * Decided on the locked booking row, not on the copy the caller loaded before the lock: a
+     * booking that is gone or already cancelled (by the lapse of its search or a parallel
+     * cancel) stays as it is and nobody gets a cancel mail again.
+     *
+     * @return bool true when this call cancelled the booking (or the occurrence)
      */
-    public function cancelSingle(Booking $booking, ?string $occurrenceDate = null, string $scope = 'single_occurrence', bool $notifyOwner = true): void
+    public function cancelSingle(Booking $booking, ?string $occurrenceDate = null, string $scope = 'single_occurrence', bool $notifyOwner = true): bool
     {
-        $target = DB::transaction(function () use ($booking, $occurrenceDate, $scope): Booking {
+        $target = DB::transaction(function () use ($booking, $occurrenceDate, $scope): ?Booking {
             // Booking row lock first: the same mutex as joins and the lapse of its player search.
-            Booking::query()->whereKey($booking->bid)->lockForUpdate()->first();
+            $locked = Booking::query()->whereKey($booking->bid)->lockForUpdate()->first();
+            if ($locked === null) {
+                return null;
+            }
 
-            $target = $this->splitForScope($booking, $occurrenceDate, $scope);
+            $exchange = app(PlayerExchangeService::class);
+            if (! in_array($locked->status, Booking::ACTIVE_STATUSES, true)) {
+                // Already cancelled. A live search the exchange missed is still closed and its
+                // players are told (once: a closed search is left alone).
+                $exchange->onBookingCancelled($locked);
+
+                return null;
+            }
+
+            $target = $this->splitForScope($locked, $occurrenceDate, $scope);
             $target->update([
                 'status' => 'cancelled',
                 'status_billing' => 'cancelled',
             ]);
 
-            app(PlayerExchangeService::class)->onBookingCancelled($target);
+            // A subscription never carries a search (openSearch refuses it), so the split-off
+            // occurrence is the booking to look at; the rest of the series keeps running.
+            $exchange->onBookingCancelled($target);
 
             return $target;
         });
 
+        if ($target === null) {
+            return false;
+        }
+        if ((int) $target->bid === (int) $booking->bid) {
+            // The caller's copy shows the cancel, as before.
+            $booking->setRawAttributes($target->getAttributes(), true);
+        }
+
         if (! $notifyOwner) {
-            return;
+            return true;
         }
 
         $target->loadMissing('user');
@@ -691,6 +719,8 @@ final class BookingService
                 }
             })->afterResponse();
         }
+
+        return true;
     }
 
     public function canUserCancelSingle(User $user, Booking $booking): bool
@@ -721,10 +751,22 @@ final class BookingService
         return $reservationStart->greaterThan(Carbon::now()->addSeconds($cancelRange));
     }
 
+    /**
+     * Delete the booking (or one occurrence of a subscription) for good. Its player search goes
+     * with it in the same transaction: a live search tells its joined players like a cancel
+     * does, then the search and signup rows are removed, so nothing is left behind.
+     */
     public function deleteSingle(Booking $booking, ?string $occurrenceDate = null, string $scope = 'single_occurrence'): void
     {
         DB::transaction(function () use ($booking, $occurrenceDate, $scope): void {
-            $target = $this->splitForScope($booking, $occurrenceDate, $scope);
+            // Booking row lock first: the same mutex as joins, cancels and the lapse of its search.
+            $locked = Booking::query()->whereKey($booking->bid)->lockForUpdate()->first();
+            if ($locked === null) {
+                return;
+            }
+
+            $target = $this->splitForScope($locked, $occurrenceDate, $scope);
+            app(PlayerExchangeService::class)->onBookingDeleted($target);
             $target->loadMissing(['meta', 'bills', 'reservations.meta']);
 
             foreach ($target->reservations as $reservation) {
