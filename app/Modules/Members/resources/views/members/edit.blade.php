@@ -224,6 +224,8 @@
 
     @include('members::members._household-card')
 
+    @include('members::members._connection-card')
+
     @include('members::members._history', ['changes' => $changes, 'member' => $member])
 
     {{-- DSGVO: the anonymise action only appears once the retention period has really passed (the server re-checks). --}}

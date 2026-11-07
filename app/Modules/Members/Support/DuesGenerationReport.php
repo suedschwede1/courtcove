@@ -15,6 +15,7 @@ final class DuesGenerationReport
         'no_category', 'no_rate', 'deactivated_category',
         'household_too_small', 'household_no_rate', 'household_deactivated',
         'own_due_replaceable', 'own_due_paid',
+        'connection_warning',
     ];
 
     /**

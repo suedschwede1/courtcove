@@ -12,6 +12,7 @@ use App\Modules\Members\Http\Controllers\HouseholdController;
 use App\Modules\Members\Http\Controllers\HouseholdDueController;
 use App\Modules\Members\Http\Controllers\HouseholdSuggestionController;
 use App\Modules\Members\Http\Controllers\MailController;
+use App\Modules\Members\Http\Controllers\MemberConnectionController;
 use App\Modules\Members\Http\Controllers\MemberController;
 use App\Modules\Members\Http\Controllers\MemberDueController;
 use App\Modules\Members\Http\Controllers\MemberExportController;
@@ -95,6 +96,10 @@ Route::middleware(['auth', 'can:admin.members'])
         Route::patch('members/household-dues/{householdDue}/field', [HouseholdDueController::class, 'updateField'])->whereNumber('householdDue')->name('members.household-dues.update-field');
         Route::patch('members/household-dues/{householdDue}/paid-through', [HouseholdDueController::class, 'markPaidThrough'])->whereNumber('householdDue')->name('members.household-dues.mark-paid-through');
         Route::post('members/{member}/household', [HouseholdController::class, 'storeFromMember'])->whereNumber('member')->name('members.household.store-from-member');
+
+        // Anschlussmitglied: link this member to a Vollzahler (before the members resource).
+        Route::post('members/{member}/connection', [MemberConnectionController::class, 'store'])->whereNumber('member')->name('members.connection.store');
+        Route::delete('members/{member}/connection', [MemberConnectionController::class, 'destroy'])->whereNumber('member')->name('members.connection.destroy');
 
         Route::resource('members', MemberController::class)->except(['show', 'destroy']);
     });

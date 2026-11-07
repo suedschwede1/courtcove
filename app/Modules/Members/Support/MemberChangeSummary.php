@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Members\Support;
 
+use App\Modules\Members\Models\Member;
 use App\Modules\Members\Models\MemberChange;
 use App\Modules\Members\Models\MemberHousehold;
 use Illuminate\Support\Carbon;
@@ -45,6 +46,7 @@ final class MemberChangeSummary
         'notiz' => 'members::admin.members.notiz',
         'user_id' => 'members::admin.members.user_account',
         'household_id' => 'members::admin.members.household',
+        'connected_to_member_id' => 'members::admin.connection.connected_to',
     ];
 
     /**
@@ -62,6 +64,9 @@ final class MemberChangeSummary
         if ($change->action === 'household_payer') {
             return [self::payerLine($change, $revealPersonal)];
         }
+        if ($change->action === 'connection') {
+            return [self::connectionLine($change, $revealPersonal)];
+        }
 
         $lines = [];
         foreach ($change->changedFields() as ['field' => $field, 'old' => $old, 'new' => $new]) {
@@ -72,7 +77,7 @@ final class MemberChangeSummary
             $label = isset(self::LABELS[$field]) ? (string) __(self::LABELS[$field]) : $field;
 
             // Household labels are built from last names: personal data like the name fields.
-            if ((in_array($field, self::PERSONAL, true) || $field === 'household_id') && ! $revealPersonal) {
+            if ((in_array($field, self::PERSONAL, true) || in_array($field, ['household_id', 'connected_to_member_id'], true)) && ! $revealPersonal) {
                 $lines[] = (string) __('members::admin.history.changed', ['field' => $label]);
 
                 continue;
@@ -101,6 +106,29 @@ final class MemberChangeSummary
         return $new !== null
             ? (string) __('members::admin.history.household_payer_set', ['household' => self::householdLabel($new)])
             : (string) __('members::admin.history.household_payer_cleared', ['household' => self::householdLabel($old)]);
+    }
+
+    /** "Anschlussmitglied: Helga Beispiel" / "Kein Anschlussmitglied mehr: …" on the Vollzahler; without names when hidden. */
+    private static function connectionLine(MemberChange $change, bool $revealPersonal): string
+    {
+        if (! $revealPersonal) {
+            return (string) __('members::admin.connection.history_changed');
+        }
+        $new = $change->after['anschluss_member'] ?? null;
+        $old = $change->before['anschluss_member'] ?? null;
+
+        return $new !== null
+            ? (string) __('members::admin.connection.history_set', ['name' => self::memberName($new)])
+            : (string) __('members::admin.connection.history_cleared', ['name' => self::memberName($old)]);
+    }
+
+    private static function memberName(mixed $id): string
+    {
+        if (! is_int($id) && ! (is_string($id) && ctype_digit($id))) {
+            return '—';
+        }
+
+        return Member::query()->find((int) $id)?->fullName() ?? '#'.$id;
     }
 
     private static function householdLabel(mixed $id): string
@@ -135,6 +163,7 @@ final class MemberChangeSummary
             }),
             'fee_category_id' => $categoryNames[$value] ?? (string) $value,
             'household_id' => self::householdLabel($value),
+            'connected_to_member_id' => self::memberName($value),
             default => is_scalar($value) ? (string) $value : (string) json_encode($value),
         };
     }

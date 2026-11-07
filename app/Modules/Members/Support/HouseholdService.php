@@ -60,8 +60,18 @@ final class HouseholdService
     public function updateDetails(MemberHousehold $household, ?string $name, ?int $feeCategoryId): void
     {
         $this->assertTariff($feeCategoryId, $household->fee_category_id);
+        DB::transaction(function () use ($household, $name, $feeCategoryId): void {
+            // A new per-household tariff must not cover a connected member (nobody pays twice); a rename is always allowed.
+            if ($feeCategoryId !== null && $feeCategoryId !== $household->fee_category_id) {
+                $connected = $household->members()->orderBy('id')->lockForUpdate()->get()
+                    ->first(fn (Member $m) => MemberConnectionService::isConnected($m));
+                if ($connected !== null) {
+                    throw new HouseholdRuleException(__('members::admin.households.error_connected_member', ['name' => $connected->fullName()]));
+                }
+            }
 
-        $household->update(['name' => self::cleanName($name), 'fee_category_id' => $feeCategoryId]);
+            $household->update(['name' => self::cleanName($name), 'fee_category_id' => $feeCategoryId]);
+        });
     }
 
     /** @throws HouseholdRuleException */
@@ -91,6 +101,10 @@ final class HouseholdService
             }
             if ($household->feeCategory !== null && ! $household->feeCategory->isPerHousehold()) {
                 throw new HouseholdRuleException(__('members::admin.households.errors.category_not_per_household'));
+            }
+            // Anschlussmitglied and Familientarif exclude each other (nobody pays twice).
+            if ($household->feeCategory !== null && MemberConnectionService::isConnected($locked)) {
+                throw new HouseholdRuleException(__('members::admin.households.error_connected_member', ['name' => $locked->fullName()]));
             }
 
             $before = MemberChangeLogger::snapshot($locked);
