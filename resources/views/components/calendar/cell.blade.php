@@ -133,7 +133,12 @@
         ? __('booking.calendar.seeking_cell', ['court' => $squareLabel, 'time' => $timeLabel, 'remaining' => $seekingLine])
         : null;
     $adminCreateUrl = route('admin.bookings.create') . '?sid=' . $sid . '&date=' . $dateKey . '&time_start=' . ($h * 3600) . '&time_end=' . (($h + 1) * 3600);
-    $dayUrl = route('calendar.index', ['date' => $date->format('Y-m-d')]);
+    // Own booking with an open search: keep the usual name (owner, "Mine") and append the search
+    // (the three visual lengths of the search line would otherwise all be read out).
+    $ownSeekingLabel = $isOwn && $hasOpenSearch
+        ? implode(' – ', array_filter([$primaryLabel, __('booking.calendar.own_short'), $seekingCellLabel]))
+        : null;
+    $dayUrl =route('calendar.index', ['date' => $date->format('Y-m-d')]);
     $loginUrl = route('login', ['redirect_to' => $dayUrl]);
 @endphp
 
@@ -189,7 +194,7 @@
     <a href="#"
        class="calendar-cell {{ $cellClass }}{{ $seriesClass }}{{ $slotClass }}"
        data-state="{{ $state }}"
-       @if($seekingCellLabel) aria-label="{{ $seekingCellLabel }}" @endif
+       @if($ownSeekingLabel) aria-label="{{ $ownSeekingLabel }}" @endif
        title="{{ $cellTitle }}"
        @click.prevent="$dispatch('open-cancel', {
            bid: @js((string) $reservation->booking->bid),

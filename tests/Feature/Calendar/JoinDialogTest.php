@@ -126,6 +126,11 @@ final class JoinDialogTest extends TestCase
         $this->assertStringContainsString('X-CSRF-TOKEN', $dialog);
         $this->assertStringContainsString('application/json', $dialog);
         $this->assertStringContainsString('window.location.reload()', $dialog);
+        // Closed while the request runs (Escape, backdrop, X): reload once the answer is in.
+        $this->assertMatchesRegularExpression('/close\(\) \{.*?if \(this\.loading\) \{\s*this\.closeAfterRequest = true;/s', $dialog);
+        $this->assertMatchesRegularExpression('/finally \{.*?if \(this\.closeAfterRequest\) \{\s*window\.location\.reload\(\);/s', $dialog);
+        // Each visible primary action (Mitspielen / Austragen / Zu meinem Konto) can take the first focus.
+        $this->assertSame(3, preg_match_all('/\sdata-modal-initial\b/', $dialog), 'join, leave, account');
 
         // Buttons and texts: join, leave, the hint for members outside the exchange, the result.
         $this->assertStringContainsString('Mitspielen', $dialog);
@@ -186,14 +191,17 @@ final class JoinDialogTest extends TestCase
     #[Test]
     public function own_cell_with_open_search_names_the_search_in_its_label(): void
     {
-        $owner = $this->member();
+        $owner = $this->member(false, ['alias' => 'Olga Eigen']);
         $this->search($this->booking($owner, 15, 4), 15, 2);
 
         $cell = $this->cell($this->xpath($this->calendar($owner)), 15);
+        $label = $cell->getAttribute('aria-label');
 
         $this->assertSame('own', $cell->getAttribute('data-state'));
-        $this->assertStringContainsString('Court A', $cell->getAttribute('aria-label'));
-        $this->assertStringContainsString('Sucht noch 2 Mitspieler', $cell->getAttribute('aria-label'));
+        // The usual name (owner, "Meine") stays, the search is appended.
+        $this->assertStringStartsWith('Olga Eigen – Meine – ', $label);
+        $this->assertStringContainsString('Court A', $label);
+        $this->assertStringContainsString('Sucht noch 2 Mitspieler', $label);
     }
 
     #[Test]

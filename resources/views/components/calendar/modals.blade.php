@@ -445,6 +445,7 @@
         state: 'form',
         result: null,
         changed: false,
+        closeAfterRequest: false,
         loading: false,
         error: null,
         bid: null,
@@ -470,7 +471,9 @@
             return this.optedIn && !this.joined;
         },
         openJoin(detail) {
-            this.bid        = detail.bid;
+            // A request from a dialog closed mid-way is still running; its reload follows.
+            if (this.loading) return;
+            this.bid       = detail.bid;
             this.squareName = detail.squareName;
             this.dateLabel  = detail.dateLabel;
             this.timeLabel  = detail.timeLabel;
@@ -482,11 +485,19 @@
             this.state = 'form';
             this.result = null;
             this.changed = false;
+            this.closeAfterRequest = false;
             this.loading = false;
             this.error = null;
             this.open = true;
         },
         close() {
+            // Closed while the request runs: hide now, reload once the answer is in (finally), so the
+            // calendar shows the result and the request is not cut off by the reload.
+            if (this.loading) {
+                this.closeAfterRequest = true;
+                this.open = false;
+                return;
+            }
             // Something may have changed (also on a refusal, e.g. the last place just went): show the current calendar.
             if (this.changed) {
                 window.location.reload();
@@ -520,6 +531,9 @@
                 this.error = @js(__('booking.calendar.join.failed'));
             } finally {
                 this.loading = false;
+                if (this.closeAfterRequest) {
+                    window.location.reload();
+                }
             }
         }
      }"
@@ -558,8 +572,8 @@
             <div class="ds-modal__footer-part" x-show="state === 'form'">
                 <x-ui.button variant="secondary" :block="false" class="ds-modal__dismiss" x-on:click="close()">{{ __('booking.modal.cancel') }}</x-ui.button>
                 <x-ui.button :block="false" x-show="canJoin" data-modal-initial x-bind:disabled="loading" x-on:click="send('POST')"><span x-text="loading ? @js(__('booking.calendar.join.joining')) : @js(__('booking.calendar.join.join'))"></span></x-ui.button>
-                <x-ui.button variant="danger" :block="false" x-show="joined" x-bind:disabled="loading" x-on:click="send('DELETE')"><span x-text="loading ? @js(__('booking.calendar.join.leaving')) : @js(__('booking.calendar.join.leave'))"></span></x-ui.button>
-                <x-ui.button :block="false" :href="route('account.edit')" x-show="!optedIn && !joined">{{ __('booking.calendar.join.account') }}</x-ui.button>
+                <x-ui.button variant="danger" :block="false" x-show="joined" data-modal-initial x-bind:disabled="loading" x-on:click="send('DELETE')"><span x-text="loading ? @js(__('booking.calendar.join.leaving')) : @js(__('booking.calendar.join.leave'))"></span></x-ui.button>
+                <x-ui.button :block="false" :href="route('account.edit')" x-show="!optedIn && !joined" data-modal-initial>{{ __('booking.calendar.join.account') }}</x-ui.button>
             </div>
             <div class="ds-modal__footer-part ds-modal__footer-part--stack" x-show="state === 'success'">
                 <x-ui.button variant="dark" data-join-done x-on:click="close()">{{ __('booking.modal.to_calendar') }}</x-ui.button>
