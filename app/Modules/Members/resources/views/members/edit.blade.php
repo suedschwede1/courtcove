@@ -77,7 +77,8 @@
             @endphp
             <tr class="mbr-due-line">
                 <td class="mbr-due-year ds-cell--title" data-label="{{ __('members::admin.dues.year_short') }}">{{ $due->fiscalYear->name }}</td>
-                <td class="mbr-due-info" data-label="{{ __('members::admin.dues.category_short') }}">{{ $due->feeCategory->name }}@if($due->status !== 'bezahlt' && $due->faellig_am !== null) · {{ __('members::admin.dues.due_on', ['date' => $due->faellig_am->isoFormat('L')]) }}@endif</td>
+                <td class="mbr-due-info" data-label="{{ __('members::admin.dues.category_short') }}">{{ $due->feeCategory->name }}@if($due->status !== 'bezahlt' && $due->faellig_am !== null) · {{ __('members::admin.dues.due_on', ['date' => $due->faellig_am->isoFormat('L')]) }}@endif
+                    @if($paymentText = $due->linkedPaymentText())<span class="mbr-due-info__extra" data-payment-hint="{{ $due->id }}" x-data="{ text: @js($paymentText) }" x-text="text" x-on:due-payment-warning.window="if ($event.detail.id === {{ $due->id }} && $event.detail.kind === 'member') text = $event.detail.text ?? @js($paymentText)">{{ $paymentText }}</span>@endif</td>
                 <td class="mbr-due-amount tabular-nums whitespace-nowrap" data-label="{{ __('members::admin.dues.amount') }}" data-amount>{{ MembersFormat::money($due->amount) }}</td>
                 <td class="mbr-due-status cursor-pointer"
                     data-field="status"
@@ -91,7 +92,7 @@
                         async save() {
                             this.error = null;
                             const result = await window.saveDueField({{ $due->id }}, 'status', this.value);
-                            if (result.ok) { this.editing = false; this.value = result.value; this.displayValue = result.value; window.announceDuePaidOn({{ $due->id }}, result.data); this.justSaved = true; setTimeout(() => this.justSaved = false, 1500); }
+                            if (result.ok) { this.editing = false; this.value = result.value; this.displayValue = result.value; window.dispatchEvent(new CustomEvent('due-payment-warning', { detail: { id: {{ $due->id }}, kind: 'member', text: result.data.warning ?? null } })); window.announceDuePaidOn({{ $due->id }}, result.data); this.justSaved = true; setTimeout(() => this.justSaved = false, 1500); }
                             else { this.error = result.message; }
                         }
                     }"
@@ -178,15 +179,49 @@
                 <tr><td colspan="6" class="text-ink-2">–</td></tr>
             @endif
         @endforelse
-        {{-- Household dues covering this member: read-only here (edited on the household or Beiträge page). --}}
+        {{-- Household dues covering this member: the status is editable like on the household and Beiträge pages
+             (same endpoint and rules); closed years stay read-only. The other fields are edited there. --}}
         @foreach($coveringDues as $hdue)
             @php $hStatus = $hdue->payments_exists ? 'bezahlt' : $hdue->displayStatus(); @endphp
             <tr class="mbr-due-line" data-household-due="{{ $hdue->id }}">
                 <td class="mbr-due-year ds-cell--title" data-label="{{ __('members::admin.dues.year_short') }}">{{ $hdue->fiscalYear->labelWithState() }}</td>
-                <td class="mbr-due-info" data-label="{{ __('members::admin.dues.category_short') }}"><x-ui.chip :href="route('members.households.show', $hdue->household_id)" :title="$hdue->household->label()">{{ __('members::admin.households.chip') }}</x-ui.chip> {{ $hdue->household->label() }}</td>
+                <td class="mbr-due-info" data-label="{{ __('members::admin.dues.category_short') }}"><x-ui.chip :href="route('members.households.show', $hdue->household_id)" :title="$hdue->household->label()">{{ __('members::admin.households.chip') }}</x-ui.chip> {{ $hdue->household->label() }}
+                    @if($paymentText = $hdue->linkedPaymentText())<span class="mbr-due-info__extra" data-payment-hint="household-{{ $hdue->id }}" x-data="{ text: @js($paymentText) }" x-text="text" x-on:due-payment-warning.window="if ($event.detail.id === {{ $hdue->id }} && $event.detail.kind === 'household') text = $event.detail.text ?? @js($paymentText)">{{ $paymentText }}</span>@endif</td>
                 <td class="mbr-due-amount tabular-nums whitespace-nowrap" data-label="{{ __('members::admin.dues.amount') }}">{{ MembersFormat::money($hdue->amount) }}</td>
-                <td class="mbr-due-status" data-label="{{ __('members::admin.dues.status') }}"><x-ui.badge :tone="StatusTone::due($hStatus)">{{ $dueLabels[$hStatus] ?? $hStatus }}</x-ui.badge></td>
-                <td class="tabular-nums" data-label="{{ __('members::admin.dues.bezahlt_am') }}">{{ $hdue->paidOnDisplay() }}</td>
+                @if($hdue->fiscalYear->isClosed())
+                    <td class="mbr-due-status" data-label="{{ __('members::admin.dues.status') }}"><x-ui.badge :tone="StatusTone::due($hStatus)">{{ $dueLabels[$hStatus] ?? $hStatus }}</x-ui.badge></td>
+                    <td class="tabular-nums" data-label="{{ __('members::admin.dues.bezahlt_am') }}">{{ $hdue->paidOnDisplay() }}</td>
+                @else
+                    <td class="mbr-due-status cursor-pointer"
+                        data-field="status"
+                        data-label="{{ __('members::admin.dues.status') }}"
+                        x-data="{
+                            editing: false, error: null, justSaved: false,
+                            value: @js($hdue->status),
+                            displayValue: @js($hdue->displayStatus()),
+                            labels: { ausstehend: @js(__('members::admin.dues.status_ausstehend')), bezahlt: @js(__('members::admin.dues.status_bezahlt')), ueberfaellig: @js(__('members::admin.dues.status_ueberfaellig')) },
+                            classes: @js(StatusTone::badgeClasses(StatusTone::DUE)),
+                            async save() {
+                                this.error = null;
+                                const result = await window.saveHouseholdDueField({{ $hdue->id }}, 'status', this.value);
+                                if (result.ok) { this.editing = false; this.value = result.value; this.displayValue = result.value; window.dispatchEvent(new CustomEvent('due-payment-warning', { detail: { id: {{ $hdue->id }}, kind: 'household', text: result.data.warning ?? null } })); window.announceDuePaidOn({{ $hdue->id }}, result.data, 'household'); this.justSaved = true; setTimeout(() => this.justSaved = false, 1500); }
+                                else { this.error = result.message; }
+                            }
+                        }"
+                        @click="if (!editing) editing = true"
+                        @click.outside="if (!error) editing = false">
+                        <span x-show="!editing" x-text="labels[displayValue]" class="ds-badge" :class="classes[displayValue] + (justSaved ? ' mbr-saved' : '')">{{ $dueLabels[$hdue->displayStatus()] ?? $hdue->displayStatus() }}</span>
+                        <div x-show="editing" @click.stop>
+                            <select x-model="value" @change="save()" class="ds-select" aria-label="{{ __('members::admin.dues.status') }}">
+                                <option value="ausstehend" x-text="labels.ausstehend"></option>
+                                <option value="bezahlt" x-text="labels.bezahlt"></option>
+                                <option value="ueberfaellig" x-text="labels.ueberfaellig"></option>
+                            </select>
+                            <p class="ds-field__error" x-show="error" x-text="error"></p>
+                        </div>
+                    </td>
+                    @include('members::dues._paid-on-cell', ['due' => $hdue, 'kind' => 'household', 'cellClass' => 'mbr-due-paid'])
+                @endif
                 <td></td>
             </tr>
         @endforeach

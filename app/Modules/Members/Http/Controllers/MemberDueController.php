@@ -429,6 +429,14 @@ class MemberDueController
             $response['bezahlt_am_display'] = $due->paidOnDisplay();
         }
 
+        // A linked payment is never touched by a status change: say so when a payment-linked due is set to not paid.
+        if ($validated['field'] === 'status' && $validated['value'] !== 'bezahlt') {
+            $hint = $due->linkedPaymentText('members::admin.dues.reset_payment_hint');
+            if ($hint !== null) {
+                $response['warning'] = $hint;
+            }
+        }
+
         return response()->json($response);
     }
 
