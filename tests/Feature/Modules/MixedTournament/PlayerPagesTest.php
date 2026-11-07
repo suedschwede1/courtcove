@@ -112,7 +112,7 @@ class PlayerPagesTest extends TestCase
             // Sidebar: the Wertung shortcut, then the event's pages (formerly the event tabs).
             ->assertSeeInOrder(['Wertung', 'Herbst-Beispiel', 'Teilnehmer', 'Runde 1', 'Durchmischung'])
             ->assertSee(route('mixed.round', ['round' => $round->id]))
-            ->assertSee(route('mixed.admin.index'))
+            ->assertSee('href="'.route('mixed.events').'"', false) // back link and sidebar: the member list (MX-01)
             ->assertDontSee('Konfiguration')
             ->assertDontSee('+ Neue Runde')
             ->assertDontSee('Zur Verwaltung dieses Events');

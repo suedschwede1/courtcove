@@ -44,6 +44,7 @@ class MixedPermissionMatrixTest extends TestCase
     /** @var array<string, string> route name => level */
     private const GATES = [
         'mixed.index' => 'auth',
+        'mixed.events' => 'auth',
         'mixed.info' => 'auth',
         'mixed.event' => 'view',
         'mixed.round' => 'view',

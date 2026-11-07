@@ -25,7 +25,7 @@
     }
 @endphp
 <div class="flex flex-col gap-2">
-    <a href="{{ route('mixed.index') }}" class="inline-flex min-h-touch-min items-center gap-1 self-start text-body-s font-semibold text-ink-2 no-underline hover:text-clay-hover">
+    <a href="{{ route('mixed.events') }}" class="inline-flex min-h-touch-min items-center gap-1 self-start text-body-s font-semibold text-ink-2 no-underline hover:text-clay-hover">
         <x-ui.icon name="chevron-left" :size="16" />{{ __('mixed::common.back_to_list') }}
     </a>
     <div class="flex flex-wrap items-center justify-between gap-3">
