@@ -35,4 +35,12 @@ interface TournamentModuleNavigation
      * @return list<AreaNavItem|null>
      */
     public function entries(AreaNavBuilder $nav): array;
+
+    /**
+     * The module's administration entries (Verwaltung, Leitung, import ...) for the group "Einstellungen" below
+     * the entries; every entry passes exactly one visibility rule, so the group is left out for a viewer without any.
+     *
+     * @return list<AreaNavItem|null>
+     */
+    public function settingsEntries(AreaNavBuilder $nav): array;
 }

@@ -72,6 +72,16 @@ final class ChampionshipNavigation implements TournamentModuleNavigation
             $nav->item('mine', __('tournament::common.tabs.mine'), route('tournament.mine'), ['tournament.mine'], $loggedIn),
             $nav->item('players', __('tournament::common.tabs.players'), route('tournament.players'), ['tournament.players'], $loggedIn),
             $nav->item('mode', __('tournament::common.tabs.mode'), route('tournament.mode'), ['tournament.mode'], $loggedIn),
+        ];
+    }
+
+    public function settingsEntries(AreaNavBuilder $nav): array
+    {
+        if ($nav->user === null) {
+            return [];
+        }
+
+        return [
             $nav->item('admin', __('tournament::common.tabs.admin'), route('tournament.admin'), ['tournament.admin*'],
                 fn (?User $viewer): bool => $viewer !== null && $viewer->can('admin.tournament') && $this->testMode->simulation($viewer) === null),
         ];
