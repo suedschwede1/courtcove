@@ -260,4 +260,39 @@ class AdminEditSearchTest extends TestCase
         $this->assertSame(['2026-11-09', '15:00:00', '16:00:00'], $this->slotOf($plain));
         $this->assertSame([2 => 'Peter Partner'], $this->namesBySlot($plain));
     }
+
+    #[Test]
+    public function a_joined_slot_without_a_stored_name_does_not_block_the_admin_edit(): void
+    {
+        // Legacy booking: the joined member holds slot 2, but the player names in the booking
+        // meta lack him, so the admin form never shows his name.
+        $booking = $this->searchingBooking(4, 3);
+        $max = $this->member('Max Muster');
+        $this->exchange()->join($max, $booking);
+        app(BookingService::class)->syncPlayerMeta($booking->fresh(), []);
+        $this->assertSame([], $this->namesBySlot($booking));
+
+        $this->adminEdits($booking, ['player_name_2' => 'Paula Partner'])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('admin.bookings.index'));
+
+        // The joined member is written back into his slot, the typed partner takes the next one.
+        $this->assertSame([2 => 'Max Muster', 3 => 'Paula Partner'], $this->namesBySlot($booking));
+        $this->assertSame([(int) $max->uid => 2], $this->signupSlots());
+        $this->assertSame(1, $this->search($booking)->remaining());
+    }
+
+    #[Test]
+    public function a_joined_slot_without_a_stored_name_is_not_doubled_when_the_admin_types_his_name(): void
+    {
+        $booking = $this->searchingBooking(4, 3);
+        $max = $this->member('Max Muster');
+        $this->exchange()->join($max, $booking);
+        app(BookingService::class)->syncPlayerMeta($booking->fresh(), []);
+
+        $this->adminEdits($booking, ['player_name_2' => 'Max Muster'])->assertSessionHasNoErrors();
+
+        $this->assertSame([2 => 'Max Muster'], $this->namesBySlot($booking));
+        $this->assertSame(2, $this->search($booking)->remaining());
+    }
 }

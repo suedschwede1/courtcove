@@ -359,7 +359,8 @@ final class PlayerExchangeService
      * row lock) of a booking with a binding search. Date, time, repeat and booker must stay as
      * they are, the court may change (done by the caller). The admin form lists the stored names
      * by position, so joined members are matched by name, not by field: each joined member's
-     * name must still be among the submitted names (he can only leave himself), every other
+     * stored name must still be among the submitted names (he can only leave himself; a joined
+     * slot without a stored name is not shown and so is not checked), every other
      * name is the booker's own partner. Names, quantity and the search then follow the owner
      * edit rules (applyOwnerEdit): joined members keep their slot, capacity is checked.
      *
@@ -390,7 +391,19 @@ final class PlayerExchangeService
         $names = $this->playerNamesBySlot($locked);
         $missing = [];
         foreach ($search->signups()->with('user')->orderBy('slot')->get() as $signup) {
-            $name = $names[(int) $signup->slot] ?? (string) $signup->user?->name;
+            if (! isset($names[(int) $signup->slot])) {
+                // No name stored for his slot (legacy booking): the form cannot show him, so he
+                // counts as present and applyOwnerEdit writes his name back. A typed profile
+                // name is taken as him, not as a second player.
+                $index = array_search((string) $signup->user?->name, $typed, true);
+                if ($index !== false) {
+                    unset($typed[$index]);
+                }
+
+                continue;
+            }
+
+            $name = $names[(int) $signup->slot];
             $index = array_search($name, $typed, true);
             if ($index === false) {
                 $missing[] = $name;
