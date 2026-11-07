@@ -27,6 +27,9 @@ final readonly class MemberListFilter
 
     public const DEFAULT = 'alle';
 
+    /** Household filter values of "more filters" (family fee): with or without a household. */
+    public const HOUSEHOLD_FILTERS = ['mit', 'ohne'];
+
     /** Due status filter values of "more filters". */
     public const DUE_STATUSES = ['bezahlt', 'ausstehend', 'ueberfaellig'];
 
@@ -40,6 +43,7 @@ final readonly class MemberListFilter
         public string $search = '',
         public ?int $feeCategory = null,
         public ?string $dueStatus = null,
+        public ?string $household = null,
     ) {}
 
     public static function fromRequest(Request $request): self
@@ -51,12 +55,14 @@ final readonly class MemberListFilter
 
         $feeCategory = self::scalar($request, 'fee_category');
         $dueStatus = self::scalar($request, 'zahlung');
+        $household = self::scalar($request, 'haushalt');
 
         return new self(
             chip: in_array($chip, self::FILTERS, true) ? $chip : self::DEFAULT,
             search: mb_substr(trim(self::scalar($request, 'search')), 0, self::SEARCH_MAX),
             feeCategory: ctype_digit($feeCategory) && (int) $feeCategory > 0 ? (int) $feeCategory : null,
             dueStatus: in_array($dueStatus, self::DUE_STATUSES, true) ? $dueStatus : null,
+            household: in_array($household, self::HOUSEHOLD_FILTERS, true) ? $household : null,
         );
     }
 
@@ -91,15 +97,21 @@ final readonly class MemberListFilter
             $query->where('fee_category_id', $this->feeCategory);
         }
 
+        if ($this->household !== null) {
+            $this->household === 'mit' ? $query->whereNotNull('household_id') : $query->whereNull('household_id');
+        }
+
         if ($this->dueStatus !== null) {
-            $query->whereHas('dues', function (Builder $dues): void {
+            // Own dues or a household due covering the member (family fee), with the same status logic.
+            $byStatus = function (Builder $dues): void {
                 match ($this->dueStatus) {
                     'bezahlt' => $dues->where('status', 'bezahlt'),
                     'ausstehend' => $dues->where('status', 'ausstehend')
                         ->where(fn (Builder $q) => $q->whereNull('faellig_am')->orWhere('faellig_am', '>=', now()->toDateString())),
                     default => $dues->scopes(['overdue']),
                 };
-            });
+            };
+            $query->where(fn (Builder $q) => $q->whereHas('dues', $byStatus)->orWhereHas('coveringHouseholdDues', $byStatus));
         }
 
         return $query;
@@ -108,7 +120,7 @@ final readonly class MemberListFilter
     /** True when one of the "more filters" (fee category, due status) is set. */
     public function hasMoreFilters(): bool
     {
-        return $this->feeCategory !== null || $this->dueStatus !== null;
+        return $this->feeCategory !== null || $this->dueStatus !== null || $this->household !== null;
     }
 
     /**
@@ -124,6 +136,7 @@ final readonly class MemberListFilter
             'search' => $this->search,
             'fee_category' => $this->feeCategory,
             'zahlung' => $this->dueStatus,
+            'haushalt' => $this->household,
         ], $overrides);
 
         if (($params['filter'] ?? null) === self::DEFAULT) {

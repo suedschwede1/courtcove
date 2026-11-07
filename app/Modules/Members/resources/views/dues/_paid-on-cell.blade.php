@@ -1,8 +1,10 @@
 {{--
     "Bezahlt am" cell of a due row (dues list and member dues card). Editable inline only while the
     due is paid; the status cell of the same row announces changes via the 'due-paid-on' event.
-    Optional $cellClass adds a class to the cell (layout hook of the member dues card).
+    Optional $cellClass adds a class to the cell (layout hook of the member dues card). Optional
+    $kind = 'household' saves through the household-due endpoint and listens only to household events.
 --}}
+@php($paidOnKind = ($kind ?? 'member') === 'household' ? 'household' : 'member')
 <td class="tabular-nums {{ $cellClass ?? '' }}"
     data-field="bezahlt_am"
     data-label="{{ __('members::admin.dues.bezahlt_am') }}"
@@ -13,13 +15,13 @@
         display: @js($due->paidOnDisplay()),
         async save() {
             this.error = null;
-            const result = await window.saveDueField({{ $due->id }}, 'bezahlt_am', this.value || null);
+            const result = await window.{{ $paidOnKind === 'household' ? 'saveHouseholdDueField' : 'saveDueField' }}({{ $due->id }}, 'bezahlt_am', this.value || null);
             if (result.ok) { this.editing = false; this.display = result.value; this.justSaved = true; setTimeout(() => this.justSaved = false, 1500); }
             else { this.error = result.message; }
         }
     }"
     x-bind:class="{ 'cursor-pointer': paid }"
-    x-on:due-paid-on.window="if ($event.detail.id === {{ $due->id }}) { paid = $event.detail.value !== null; value = $event.detail.value ?? ''; display = $event.detail.display; editing = false; error = null; }"
+    x-on:due-paid-on.window="if ($event.detail.id === {{ $due->id }} && ($event.detail.kind ?? 'member') === '{{ $paidOnKind }}') { paid = $event.detail.value !== null; value = $event.detail.value ?? ''; display = $event.detail.display; editing = false; error = null; }"
     @click="if (paid && !editing) editing = true"
     @click.outside="if (!error) editing = false">
     <span x-show="!editing" x-text="display" :class="{ 'mbr-saved': justSaved }">{{ $due->paidOnDisplay() }}</span>

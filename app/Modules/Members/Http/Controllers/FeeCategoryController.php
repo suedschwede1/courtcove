@@ -12,6 +12,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -53,9 +54,10 @@ class FeeCategoryController
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:64'],
+            'billing_unit' => ['nullable', 'string', Rule::in(FeeCategory::BILLING_UNITS)],
         ]);
 
-        FeeCategory::create($validated);
+        FeeCategory::create(['name' => $validated['name'], 'billing_unit' => $validated['billing_unit'] ?? 'member']);
 
         return redirect()->route('members.fee-categories.index');
     }
@@ -115,19 +117,27 @@ class FeeCategoryController
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:64'],
+            // Missing = keep the current unit (older forms and tests post only name and rates).
+            'billing_unit' => ['nullable', 'string', Rule::in(FeeCategory::BILLING_UNITS)],
             'rates' => ['nullable', 'array', $this->keysExistIn('fiscal_years')],
             'rates.*' => ['nullable', 'numeric', 'min:0', 'max:'.self::MAX_AMOUNT],
         ]);
 
         $rates = $validated['rates'] ?? [];
         $this->refuseClosedYearRates($category, $rates);
+        $unit = $validated['billing_unit'] ?? $category->billing_unit;
 
-        DB::transaction(function () use ($category, $validated, $rates): void {
+        DB::transaction(function () use ($category, $validated, $rates, $unit): void {
             // Again with the year rows locked (years first): a close since validation still wins.
             FiscalYear::lockForWrite(array_keys($rates));
             $this->refuseClosedYearRates($category, $rates);
 
-            $category->update(['name' => $validated['name']]);
+            $category = FeeCategory::query()->lockForUpdate()->findOrFail($category->id);
+            if ($category->billingUnitLockedFor($unit)) {
+                throw ValidationException::withMessages(['billing_unit' => __('members::admin.fee_categories.billing_unit_locked')]);
+            }
+
+            $category->update(['name' => $validated['name'], 'billing_unit' => $unit]);
 
             foreach ($validated['rates'] ?? [] as $fiscalYearId => $amount) {
                 $this->saveRate($category->id, (int) $fiscalYearId, $amount);

@@ -8,7 +8,7 @@ use App\Modules\Members\Models\FeeCategory;
 use App\Modules\Members\Models\FiscalYear;
 use App\Modules\Members\Models\Member;
 use App\Modules\Members\Models\MemberChange;
-use App\Modules\Members\Models\MemberDue;
+use App\Modules\Members\Support\DuesSummary;
 use Illuminate\Contracts\View\View;
 
 class DashboardController
@@ -22,14 +22,8 @@ class DashboardController
         // Same default as the dues list (year containing today, else latest with dues, else latest).
         $currentFiscalYear = FiscalYear::defaultFor(FiscalYear::query()->orderBy('starts_on')->get());
 
-        $openDuesQuery = MemberDue::query()->open();
-        $paidDuesQuery = MemberDue::query()->paid();
-        if ($currentFiscalYear) {
-            $openDuesQuery->where('fiscal_year_id', $currentFiscalYear->id);
-            $paidDuesQuery->where('fiscal_year_id', $currentFiscalYear->id);
-        }
-        $openDues = $openDuesQuery->with(['member', 'feeCategory'])->get();
-        $paidDues = $paidDuesQuery->get();
+        // Member dues plus each household due once (never once per covered member).
+        $dues = DuesSummary::forFiscalYear($currentFiscalYear);
 
         return view('members::dashboard', [
             'memberCount' => $current()->count(),
@@ -37,14 +31,15 @@ class DashboardController
             'dormantCount' => Member::query()->where('status', 'ruhend')->withoutPlaceholderAccount()->count(),
             // Informational only: the link to a booking-system account is optional; a placeholder is no real account.
             'withoutAccountCount' => Member::query()->current()->withoutRealAccount()->count(),
-            'openDuesTop' => $openDues->sortBy(fn (MemberDue $due) => [$due->member->lastname ?? '', $due->member->firstname ?? ''])->take(5)->values(),
+            'openDuesTop' => $dues->openRows(5),
             'recentChanges' => MemberChange::query()->with(['member', 'adminUser'])->orderByDesc('created_at')->orderByDesc('id')->limit(5)->get(),
             'categoryNames' => FeeCategory::query()->pluck('name', 'id')->all(),
             'activeCount' => $activeCount,
-            'openDuesCount' => $openDues->count(),
-            'openDuesSum' => $openDues->sum('amount'),
-            'paidDuesCount' => $paidDues->count(),
-            'paidDuesSum' => $paidDues->sum('amount'),
+            'openDuesCount' => $dues->openCount(),
+            'openDuesSum' => $dues->openSum(),
+            'openHouseholdDuesCount' => $dues->openHouseholdCount(),
+            'paidDuesCount' => $dues->paidCount(),
+            'paidDuesSum' => $dues->paidSum(),
             'currentFiscalYear' => $currentFiscalYear,
             'ageStructure' => $this->ageStructure(),
             'categoryBreakdown' => $this->categoryBreakdown(),

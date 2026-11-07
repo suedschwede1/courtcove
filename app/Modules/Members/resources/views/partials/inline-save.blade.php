@@ -32,19 +32,24 @@
         window.saveDueField = async (dueId, field, value) =>
             saveField(`{{ url('/members') }}/dues/${dueId}/field`, field, value);
 
+        // Household dues (family fee) use the same contract on their own endpoints.
+        window.saveHouseholdDueField = async (dueId, field, value) =>
+            saveField(`{{ url('/members') }}/household-dues/${dueId}/field`, field, value);
+
         // A status change sets or clears "Bezahlt am" on the server; tell the row's date cell.
-        window.announceDuePaidOn = (dueId, data) => {
+        // kind tells member and household dues apart (their ids are separate number ranges).
+        window.announceDuePaidOn = (dueId, data, kind = 'member') => {
             if (!data || !('bezahlt_am' in data)) return;
             window.dispatchEvent(new CustomEvent('due-paid-on', {
-                detail: { id: dueId, value: data.bezahlt_am ?? null, display: data.bezahlt_am_display ?? '–' },
+                detail: { id: dueId, kind, value: data.bezahlt_am ?? null, display: data.bezahlt_am_display ?? '–' },
             }));
         };
 
-        window.saveDuePaidThrough =async (dueId, fiscalYearId) => {
+        const paidThrough = async (url, fiscalYearId) => {
             if (!fiscalYearId) return;
 
             try {
-                const response = await patch(`{{ url('/members') }}/dues/${dueId}/paid-through`, { fiscal_year_id: fiscalYearId });
+                const response = await patch(url, { fiscal_year_id: fiscalYearId });
 
                 if (response.ok) {
                     window.location.reload();
@@ -59,5 +64,11 @@
                 window.location.reload();
             }
         };
+
+        window.saveDuePaidThrough = async (dueId, fiscalYearId) =>
+            paidThrough(`{{ url('/members') }}/dues/${dueId}/paid-through`, fiscalYearId);
+
+        window.saveHouseholdDuePaidThrough = async (dueId, fiscalYearId) =>
+            paidThrough(`{{ url('/members') }}/household-dues/${dueId}/paid-through`, fiscalYearId);
     })();
 </script>

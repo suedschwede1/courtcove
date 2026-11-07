@@ -174,8 +174,22 @@
             </tr>
             @endif
         @empty
-            <tr><td colspan="6" class="text-ink-2">–</td></tr>
+            @if($coveringDues->isEmpty())
+                <tr><td colspan="6" class="text-ink-2">–</td></tr>
+            @endif
         @endforelse
+        {{-- Household dues covering this member: read-only here (edited on the household or Beiträge page). --}}
+        @foreach($coveringDues as $hdue)
+            @php $hStatus = $hdue->payments_exists ? 'bezahlt' : $hdue->displayStatus(); @endphp
+            <tr class="mbr-due-line" data-household-due="{{ $hdue->id }}">
+                <td class="mbr-due-year ds-cell--title" data-label="{{ __('members::admin.dues.year_short') }}">{{ $hdue->fiscalYear->labelWithState() }}</td>
+                <td class="mbr-due-info" data-label="{{ __('members::admin.dues.category_short') }}"><x-ui.chip :href="route('members.households.show', $hdue->household_id)" :title="$hdue->household->label()">{{ __('members::admin.households.chip') }}</x-ui.chip> {{ $hdue->household->label() }}</td>
+                <td class="mbr-due-amount tabular-nums whitespace-nowrap" data-label="{{ __('members::admin.dues.amount') }}">{{ MembersFormat::money($hdue->amount) }}</td>
+                <td class="mbr-due-status" data-label="{{ __('members::admin.dues.status') }}"><x-ui.badge :tone="StatusTone::due($hStatus)">{{ $dueLabels[$hStatus] ?? $hStatus }}</x-ui.badge></td>
+                <td class="tabular-nums" data-label="{{ __('members::admin.dues.bezahlt_am') }}">{{ $hdue->paidOnDisplay() }}</td>
+                <td></td>
+            </tr>
+        @endforeach
     </x-ui.table>
     <div class="mbr-dues-card__footer">
         <x-ui.button variant="secondary" :block="false" :href="route('members.payments.create', $member)">{{ __('members::admin.payments.new_payment') }}</x-ui.button>
@@ -207,6 +221,8 @@
         </div>
         </div>
     </x-ui.card>
+
+    @include('members::members._household-card')
 
     @include('members::members._history', ['changes' => $changes, 'member' => $member])
 

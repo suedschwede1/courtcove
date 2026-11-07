@@ -16,7 +16,7 @@
 <div class="mbr-kpis">
     <x-ui.kpi :label="__('members::admin.dashboard.members')" :value="$memberCount" :meta="__('members::admin.dashboard.youth', ['count' => $youthCount])" />
     <x-ui.kpi :label="__('members::admin.dashboard.active')" :value="$activeCount" :meta="__('members::admin.dashboard.dormant', ['count' => $dormantCount])" />
-    <x-ui.kpi :label="$currentFiscalYear ? __('members::admin.dashboard.dues_open', ['year' => $currentFiscalYear->name]) : __('members::admin.dashboard.open_dues')" :value="$openDuesCount" :meta="__('members::admin.dashboard.dues_open_sum', ['sum' => $money($openDuesSum)])" />
+    <x-ui.kpi :label="$currentFiscalYear ? __('members::admin.dashboard.dues_open', ['year' => $currentFiscalYear->name]) : __('members::admin.dashboard.open_dues')" :value="$openDuesCount" :meta="__('members::admin.dashboard.dues_open_sum', ['sum' => $money($openDuesSum)]).($openHouseholdDuesCount > 0 ? ' · '.__('members::admin.dashboard.open_dues_meta_households', ['count' => $openHouseholdDuesCount]) : '')" />
     <x-ui.kpi :label="__('members::admin.dashboard.without_account')" :value="$withoutAccountCount" :meta="__('members::admin.dashboard.without_account_meta')" />
 </div>
 
@@ -26,10 +26,11 @@
             <p class="text-body-s text-ink-2">{{ __('members::admin.dashboard.no_open_dues') }}</p>
         @else
             <ul class="mbr-changes">
-                @foreach($openDuesTop as $due)
+                @foreach($openDuesTop as $row)
+                    {{-- Member rows link to the member, household rows (counted once) to the household. --}}
                     <li class="mbr-due-row">
-                        <a href="{{ route('members.edit', $due->member_id) }}" class="mbr-change__name">{{ $due->member->lastname ?? '' }}, {{ $due->member->firstname ?? '' }}</a>
-                        <span class="text-ink-2">{{ $due->feeCategory->name ?? '—' }}</span>
+                        <a href="{{ $row['url'] }}" class="mbr-change__name">{{ $row['label'] }}</a>
+                        <span class="text-ink-2">{{ $row['category'] }}@if($row['household']) · {{ __('members::admin.households.chip') }}@endif</span>
                     </li>
                 @endforeach
             </ul>

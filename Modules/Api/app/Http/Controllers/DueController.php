@@ -6,6 +6,7 @@ namespace Modules\Api\Http\Controllers;
 
 use App\Modules\Members\Models\FeeCategoryRate;
 use App\Modules\Members\Models\FiscalYear;
+use App\Modules\Members\Models\HouseholdDue;
 use App\Modules\Members\Models\MemberDue;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
@@ -24,6 +25,11 @@ class DueController extends ApiController
             $closed = FiscalYear::lockForWrite($fiscalYear->id);
             if ($closed !== null) {
                 return $this->error($closed->lockedMessage(), 422);
+            }
+            // No own due on top of household coverage in the same year.
+            $covering = HouseholdDue::coveringFor((int) $validated['member_id'], $fiscalYear->id);
+            if ($covering !== null) {
+                return $this->error($covering->coveredMessage(), 422);
             }
 
             if (($validated['amount'] ?? null) === null) {

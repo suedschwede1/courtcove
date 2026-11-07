@@ -13,4 +13,11 @@
         <x-ui.button type="submit" :block="false">{{ __('members::admin.dsgvo.save') }}</x-ui.button>
     </div>
 </form>
+
+{{-- Processing purposes (read-only text); the club amends its own privacy notice separately. --}}
+<x-ui.card :title="__('members::admin.dsgvo.purposes_title')">
+    <ul class="m-0 flex flex-col gap-2">
+        <li>{{ __('members::admin.dsgvo.purpose_households') }}</li>
+    </ul>
+</x-ui.card>
 @endsection

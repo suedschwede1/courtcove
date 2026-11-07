@@ -7,6 +7,7 @@ namespace App\Modules\Members\Console;
 use App\Modules\Members\Models\FeeCategory;
 use App\Modules\Members\Models\FeeCategoryRate;
 use App\Modules\Members\Models\FiscalYear;
+use App\Modules\Members\Models\HouseholdDue;
 use App\Modules\Members\Models\Member;
 use App\Modules\Members\Models\MemberDue;
 use App\Modules\Members\Models\Payment;
@@ -195,6 +196,11 @@ class ImportMembersCommand extends Command
             if (FiscalYear::lockForWrite($fiscalYear->id) !== null) {
                 $this->closedYearSkips++;
 
+                continue;
+            }
+
+            // A member covered by a household due in that year gets no own due (no double billing).
+            if (HouseholdDue::coveringFor($member->id, $fiscalYear->id) !== null) {
                 continue;
             }
 
