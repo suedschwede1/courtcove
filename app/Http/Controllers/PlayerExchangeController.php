@@ -37,7 +37,16 @@ final class PlayerExchangeController extends Controller
         // Lazy Verfall: a search past its deadline lapses first, the join then finds it closed.
         $exchange->lapseExpired((int) $booking->bid, PlayerExchangeService::LAZY_LAPSE_ATTEMPTS);
 
-        return $this->respond($request, $booking, fn () => $exchange->join($this->member($request), $booking), 'joined');
+        // "Join the exchange and play" in the join dialog: the member agrees there, no detour via the account.
+        $optIn = $request->boolean('opt_in');
+
+        return $this->respond($request, $booking, function () use ($request, $booking, $exchange, $optIn): void {
+            $member = $this->member($request);
+            if ($optIn) {
+                $exchange->optIn($member, 'join');
+            }
+            $exchange->join($member, $booking);
+        }, 'joined');
     }
 
     public function leave(Request $request, Booking $booking, PlayerExchangeService $exchange): JsonResponse|RedirectResponse

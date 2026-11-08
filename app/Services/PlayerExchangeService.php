@@ -26,14 +26,31 @@ final class PlayerExchangeService
 {
     public const META_KEY = 'player-exchange';
 
-    public function optIn(User $user): void
+    /** Proof of the consent: when, where it was given and which version of the notice was shown. */
+    public const CONSENT_META_KEY = 'player-exchange-consent';
+
+    /** Raise when the wording of the notices that ask for the consent changes materially. */
+    public const CONSENT_TEXT_VERSION = 1;
+
+    /**
+     * Join the exchange. Idempotent: an existing consent keeps its first record.
+     *
+     * @param  string  $source  Where the member agreed: account, join (join dialog) or booking (booking dialog)
+     */
+    public function optIn(User $user, string $source = 'account'): void
     {
+        if ($this->isOptedIn($user)) {
+            return;
+        }
+
         $user->setMeta(self::META_KEY, '1');
+        $user->setMeta(self::CONSENT_META_KEY, now()->toIso8601String().'|'.$source.'|v'.self::CONSENT_TEXT_VERSION);
     }
 
     public function optOut(User $user): void
     {
         $user->setMeta(self::META_KEY, null);
+        $user->setMeta(self::CONSENT_META_KEY, null);
     }
 
     public function isOptedIn(User $user): bool

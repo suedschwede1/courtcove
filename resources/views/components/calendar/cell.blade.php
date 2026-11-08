@@ -105,7 +105,7 @@
         $primaryLabel = $isLoggedIn
             ? ($reservation->booking?->owner_label ?? __('booking.calendar.occupied'))
             : __('booking.calendar.occupied');
-        $action = ! $isLoggedIn ? 'seeking-login' : (($playerExchangeOptedIn || $hasJoined) ? 'join' : 'join-info');
+        $action = ! $isLoggedIn ? 'seeking-login' : 'join';
         $cellTitle = $squareLabel . ' – ' . $seekingLine;
     } elseif ($joinedNotSeeking) {
         $cellClass = 'cc-single-future';
@@ -258,22 +258,6 @@
            joined: @js($hasJoined),
            optedIn: @js((bool) $playerExchangeOptedIn),
            players: @js($otherPlayers)
-       })">
-        @foreach($labels as $labelClass => $labelText)
-            <span class="{{ $labelClass }}">{{ $labelText }}</span>
-        @endforeach
-    </a>
-@elseif($action === 'join-info')
-    <a href="{{ route('account.edit') }}"
-       class="calendar-cell {{ $cellClass }}{{ $slotClass }}"
-       data-state="{{ $state }}"
-       aria-label="{{ $seekingNamedLabel }}"
-       title="{{ $cellTitle }}"
-       @click.prevent="$dispatch('open-join-info', {
-           squareName: @js($squareFullLabel),
-           dateLabel: @js($dateLabel),
-           timeLabel: @js($timeRangeLabel),
-           remaining: {{ $searchRemaining }}
        })">
         @foreach($labels as $labelClass => $labelText)
             <span class="{{ $labelClass }}">{{ $labelText }}</span>

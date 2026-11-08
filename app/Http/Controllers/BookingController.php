@@ -50,6 +50,7 @@ final class BookingController extends Controller
             'time_end' => ['required', 'integer', 'min:1', 'max:86400'],
             'quantity' => ['required', 'integer', 'in:2,4'],
             'search_players' => ['nullable', 'integer', 'min:1'],
+            'player_exchange_opt_in' => ['nullable', 'boolean'],
             'mitspieler' => ['required_without:search_players', 'nullable', 'string', 'max:255'],
         ]);
         $searchPlayers = (int) ($data['search_players'] ?? 0);
@@ -95,6 +96,17 @@ final class BookingController extends Controller
             return back()->withErrors(['booking' => $msg])->with('error', $msg);
         }
 
+        // The notice under "Seek players" says the member joins the exchange with it; only then the flag is sent.
+        $optedIn = false;
+        if ($searchPlayers > 0 && $request->boolean('player_exchange_opt_in')) {
+            $user = auth()->user();
+            $exchange = app(PlayerExchangeService::class);
+            if ($user instanceof User && ! $exchange->isOptedIn($user)) {
+                $exchange->optIn($user, 'booking');
+                $optedIn = true;
+            }
+        }
+
         $quote = null;
 
         if (Option::getValue('service.quotes.enabled', '1') === '1') {
@@ -131,6 +143,7 @@ final class BookingController extends Controller
                 'redirect' => route('calendar.index', ['date' => Carbon::parse($data['date'])->format('Y-m-d')]),
                 'quote' => $quote,
                 'search' => $searchPlayers > 0,
+                'opted_in' => $optedIn,
             ]);
         }
 
