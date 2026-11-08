@@ -22,6 +22,10 @@ abstract class TestCase extends BaseTestCase
         // Requests run in admin mode unless a test calls withoutAdminMode() (see InteractsWithAdminMode).
         $this->withAdminMode();
 
+        // Tests that sign in a privileged account through the real form are about something else than the
+        // trusted-device check; the check is covered by TrustedDeviceTest, which switches it back on.
+        config(['booking.security.trusted_device_scope' => 'off']);
+
         $geoipPath = (string) config('location.maxmind.local.path');
 
         if ($geoipPath !== '' && ! file_exists($geoipPath)) {

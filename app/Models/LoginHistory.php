@@ -60,6 +60,12 @@ class LoginHistory extends Model
             ->delete();
     }
 
+    /** Risk signals of a row: 'new_device' is the device confirmation step, not a risk, and does not count. */
+    private static function riskFlagCount(self $row): int
+    {
+        return count(array_diff(explode(',', (string) $row->risk_flags), ['new_device']));
+    }
+
     /** Display-only: total number of individual risk flags fired in the last 30 days. */
     public static function riskScore(int $userId): int
     {
@@ -68,7 +74,7 @@ class LoginHistory extends Model
             ->where('created_at', '>=', now()->subDays(30))
             ->whereNotNull('risk_flags')
             ->get()
-            ->sum(fn (self $row): int => count(explode(',', (string) $row->risk_flags)));
+            ->sum(fn (self $row): int => self::riskFlagCount($row));
     }
 
     /**
@@ -90,7 +96,7 @@ class LoginHistory extends Model
             ->whereNotNull('risk_flags')
             ->get(['user_id', 'risk_flags'])
             ->groupBy('user_id')
-            ->map(fn ($rows): int => $rows->sum(fn (self $row): int => count(explode(',', (string) $row->risk_flags))))
+            ->map(fn ($rows): int => $rows->sum(fn (self $row): int => self::riskFlagCount($row)))
             ->all();
     }
 }

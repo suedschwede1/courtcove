@@ -72,16 +72,44 @@ class LoginVerificationTest extends TestCase
     }
 
     #[Test]
-    public function five_wrong_codes_clear_the_pending_state(): void
+    public function five_wrong_codes_stop_the_checks_but_a_new_code_always_works(): void
     {
         $this->triggerVerification();
+        $uid = User::where('email', 'test@example.com')->first()->uid;
 
         for ($i = 0; $i < 5; $i++) {
             $this->post('/login/verify', ['code' => '000000']);
         }
 
-        $this->assertNull(session('login.pending_verification'));
+        // Used up: even the right code is not checked any more, but nothing is locked for good.
+        $pending = session('login.pending_verification');
+        $this->assertIsArray($pending);
+        session(['login.pending_verification' => array_merge($pending, ['code_hash' => Hash::make('482913')])]);
+
+        $this->post('/login/verify', ['code' => '482913'])
+            ->assertRedirect(route('login.verify.show'))
+            ->assertSessionHasErrors('code');
         $this->assertGuest();
+
+        // A new code voids the old one and restarts the counter.
+        RateLimiter::clear('login-verify-pause:'.$uid);
+        $this->post('/login/verify/resend')->assertRedirect(route('login.verify.show'));
+        $code = $this->latestCode();
+
+        $this->post('/login/verify', ['code' => $code])->assertRedirect('/calendar');
+        $this->assertAuthenticated();
+    }
+
+    private function latestCode(): string
+    {
+        $code = null;
+        Mail::assertQueued(LoginVerificationCode::class, function (LoginVerificationCode $mail) use (&$code): bool {
+            $code = $mail->code;
+
+            return true;
+        });
+
+        return (string) $code;
     }
 
     #[Test]
@@ -135,7 +163,7 @@ class LoginVerificationTest extends TestCase
     }
 
     #[Test]
-    public function expired_code_is_rejected_and_clears_the_pending_state(): void
+    public function expired_code_is_rejected_and_the_user_can_ask_for_a_new_one(): void
     {
         Mail::fake();
 
@@ -162,11 +190,11 @@ class LoginVerificationTest extends TestCase
         ])]);
 
         $this->post('/login/verify', ['code' => $code])
-            ->assertRedirect('/login')
+            ->assertRedirect(route('login.verify.show'))
             ->assertSessionHasErrors('code');
 
         $this->assertGuest();
-        $this->assertNull(session('login.pending_verification'));
+        $this->assertIsArray(session('login.pending_verification'));
     }
 
     #[Test]
@@ -175,12 +203,15 @@ class LoginVerificationTest extends TestCase
         Mail::fake();
         $this->triggerVerification();
 
-        RateLimiter::clear('login-verify-resend:'.User::where('email', 'test@example.com')->first()->uid);
+        RateLimiter::clear('login-verify-pause:'.User::where('email', 'test@example.com')->first()->uid);
 
         $this->post('/login/verify/resend')->assertRedirect(route('login.verify.show'));
         Mail::assertQueued(LoginVerificationCode::class, 2);
 
-        $this->post('/login/verify/resend')->assertRedirect(route('login.verify.show'));
+        // Only a waiting time, with the seconds named, never a silent refusal or a lock.
+        $this->post('/login/verify/resend')
+            ->assertRedirect(route('login.verify.show'))
+            ->assertSessionHasErrors(['code' => __('booking.auth.verify.resend_wait', ['seconds' => (int) config('booking.login_verification.resend_decay_seconds')])]);
         Mail::assertQueued(LoginVerificationCode::class, 2);
     }
 
@@ -189,7 +220,7 @@ class LoginVerificationTest extends TestCase
     {
         $this->triggerVerification();
 
-        RateLimiter::clear('login-verify-resend:'.User::where('email', 'test@example.com')->first()->uid);
+        RateLimiter::clear('login-verify-pause:'.User::where('email', 'test@example.com')->first()->uid);
 
         Mail::shouldReceive('to->send')->once()->andThrow(new \Exception('SMTP down'));
 

@@ -195,6 +195,17 @@ class User extends Authenticatable
     }
 
     /**
+     * Whether this account has to sign in from a trusted device (see App\Services\TrustedDeviceService): it holds
+     * a RAW admin or assist right (role), or the members right (admin.members, also as a single allow.* flag),
+     * regardless of admin mode. Today every admin.members holder is an admin or assistant already; the explicit
+     * check keeps the rule correct if single rights ever reach other roles.
+     */
+    public function requiresTrustedDevice(): bool
+    {
+        return $this->isPrivileged() || $this->hasPrivilege('admin.members');
+    }
+
+    /**
      * Enabled accounts of every role. Identical in both storages: split rows keep
      * 'enabled', merged (or not yet split) rows use 'admin' / 'assist'.
      *

@@ -6,6 +6,7 @@ namespace Tests\Feature\Auth;
 
 use App\Models\LoginHistory;
 use App\Models\Option;
+use App\Models\TrustedDevice;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -292,13 +293,25 @@ class LoginTest extends TestCase
     #[Test]
     public function privileged_users_do_not_get_a_remember_me_cookie(): void
     {
-        User::factory()->create([
+        $admin = User::factory()->create([
             'email' => 'admin@example.com',
             'pw' => bcrypt('secret123'),
             'status' => 'admin',
         ]);
 
-        $response = $this->post('/login', [
+        config(['booking.security.trusted_device_scope' => 'privileged']);
+
+        // A confirmed device, so the sign-in completes without the code step.
+        $token = bin2hex(random_bytes(32));
+        TrustedDevice::create([
+            'user_id' => $admin->uid,
+            'token_hash' => hash('sha256', $token),
+            'label' => 'Test',
+            'created_at' => now(),
+            'expires_at' => now()->addDays(30),
+        ]);
+
+        $response = $this->withCookies(['trusted_device_'.$admin->uid => $token])->post('/login', [
             'email' => 'admin@example.com',
             'password' => 'secret123',
             'remember' => '1',

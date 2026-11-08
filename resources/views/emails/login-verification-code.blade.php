@@ -14,7 +14,7 @@
 <body>
 <div class="wrap">
   <h1>{{ __('booking.mail.login_verification_heading') }}</h1>
-  <p class="sub">{{ __('booking.mail.login_verification_subheading') }}</p>
+  <p class="sub">{{ $newDevice ? __('booking.mail.login_verification_new_device') : __('booking.mail.login_verification_subheading') }}</p>
 
   <div class="code">{{ $code }}</div>
 

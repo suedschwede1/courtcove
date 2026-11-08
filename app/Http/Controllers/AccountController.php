@@ -6,10 +6,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use App\Models\Square;
+use App\Models\TrustedDevice;
 use App\Models\User;
 use App\Services\BookingService;
 use App\Services\Notifications\AccountCard;
 use App\Services\PlayerExchangeService;
+use App\Services\TrustedDeviceService;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -119,7 +121,7 @@ final class AccountController extends Controller
     }
 
     /** Show the profile + password forms for the authenticated user. */
-    public function edit(PlayerExchangeService $exchange, AccountCard $whatsappCard): View
+    public function edit(PlayerExchangeService $exchange, AccountCard $whatsappCard, TrustedDeviceService $deviceService): View
     {
         /** @var User $user */
         $user = auth()->user();
@@ -132,9 +134,31 @@ final class AccountController extends Controller
 
         $playerExchange = $exchange->isOptedIn($user);
 
+        $devices = TrustedDevice::query()->valid()->where('user_id', $user->getKey())->orderByDesc('last_seen_at')->get();
+        $currentDeviceHash = $deviceService->currentTokenHash(request(), $user);
+        $showDevices = $deviceService->isRequiredFor($user) || $devices->isNotEmpty();
+
         $whatsapp = $whatsappCard->for($user);
 
-        return view('account.edit', compact('user', 'profile', 'playerExchange', 'whatsapp'));
+        return view('account.edit', compact('user', 'profile', 'playerExchange', 'whatsapp', 'devices', 'currentDeviceHash', 'showDevices'));
+    }
+
+    /** Remove one trusted device of the authenticated user (the next sign-in from it needs a new code). */
+    public function destroyDevice(TrustedDevice $device): RedirectResponse
+    {
+        abort_unless($device->user_id === (int) auth()->id(), 404);
+
+        $device->forceFill(['revoked_at' => now()])->save();
+
+        return redirect()->route('account.edit')->with('success', __('booking.devices.removed'));
+    }
+
+    /** Remove all trusted devices of the authenticated user. */
+    public function destroyDevices(TrustedDeviceService $deviceService): RedirectResponse
+    {
+        $deviceService->revokeAll((int) auth()->id());
+
+        return redirect()->route('account.edit')->with('success', __('booking.devices.removed_all'));
     }
 
     /** Update alias, email and profile meta for the authenticated user. */
@@ -155,10 +179,16 @@ final class AccountController extends Controller
             'gender' => ['nullable', 'string', 'max:128'],
         ]);
 
+        $emailBefore = (string) $user->email;
         $user->update([
             'alias' => $data['alias'],
             'email' => $data['email'] ?? null,
         ]);
+
+        // Codes and reset links go to the address: a changed address ends the trust in all devices.
+        if (Str::lower((string) $user->email) !== Str::lower($emailBefore)) {
+            app(TrustedDeviceService::class)->revokeAll($user, true, $request->session()->getId());
+        }
 
         foreach (self::PROFILE_FIELDS as $field) {
             $value = $data[$field] ?? null;
@@ -192,6 +222,7 @@ final class AccountController extends Controller
         }
 
         $user->update(['pw' => Hash::make($data['password'])]);
+        app(TrustedDeviceService::class)->revokeAll($user, true, $request->session()->getId());
 
         return redirect()->route('account.edit')->with('success', __('booking.messages.password_changed'));
     }
