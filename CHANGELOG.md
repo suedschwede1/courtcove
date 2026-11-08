@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-08
+- Staging scrub: phase2:scrub-staging now also runs tagged config scrubs; the WhatsApp one deletes the credential and sender options, sets driver log and the main switch off, and empties the notification tables (output lists names only). New runbook docs/whatsapp-runbook.md with the scrub section.
 - Assets rebuilt over the whole tracked tree after the WhatsApp admin pages (stylesheet hash changed).
 - WhatsApp send log: card without duplicate title, long raw values no longer overflow on phones.
 - Assets: rebuilt `public/build` for the WhatsApp send log mobile fixes.
