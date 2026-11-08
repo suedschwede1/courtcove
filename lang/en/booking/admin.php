@@ -59,6 +59,17 @@ return [
             'test_queued' => 'The test message is queued and will be sent shortly.',
             'test_failed' => 'The test message could not be sent.',
             'test_skipped' => 'The test message was not sent (reason: :reason).',
+            'skip_reasons' => [
+                'subject_gone' => 'Item no longer current',
+                'no_consent' => 'Consent missing',
+                'gate' => 'Requirements not met',
+                'phone_changed' => 'Number changed',
+                'daily_limit' => 'Daily limit reached',
+                'budget' => 'Budget used up',
+                'disabled' => 'Sending switched off',
+                'template_missing' => 'Template missing',
+                'paused' => 'Sending paused',
+            ],
             'test_refused' => [
                 'no_consent' => 'The administrator has not given consent.',
                 'disabled' => 'Sending is switched off.',

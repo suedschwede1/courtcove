@@ -59,6 +59,17 @@ return [
             'test_queued' => 'Testnachricht ist eingereiht und wird in Kürze gesendet.',
             'test_failed' => 'Die Testnachricht konnte nicht gesendet werden.',
             'test_skipped' => 'Die Testnachricht wurde nicht gesendet (Grund: :reason).',
+            'skip_reasons' => [
+                'subject_gone' => 'Vorgang nicht mehr aktuell',
+                'no_consent' => 'Zustimmung fehlt',
+                'gate' => 'Voraussetzungen nicht erfüllt',
+                'phone_changed' => 'Nummer geändert',
+                'daily_limit' => 'Tageslimit erreicht',
+                'budget' => 'Budget aufgebraucht',
+                'disabled' => 'Versand ausgeschaltet',
+                'template_missing' => 'Vorlage fehlt',
+                'paused' => 'Versand pausiert',
+            ],
             'test_refused' => [
                 'no_consent' => 'Zustimmung des Administrators fehlt.',
                 'disabled' => 'Der Versand ist ausgeschaltet.',

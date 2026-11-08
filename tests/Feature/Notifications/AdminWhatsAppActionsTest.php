@@ -238,6 +238,31 @@ class AdminWhatsAppActionsTest extends TestCase
     }
 
     #[Test]
+    public function skipped_test_message_shows_a_translated_reason(): void
+    {
+        $this->readyFake();
+        $this->opt('whatsapp.template.test.de', null);
+        $admin = $this->adminWithConsent();
+
+        $html = $this->as($admin)->followingRedirects()->post('/admin/whatsapp/test')->getContent();
+
+        $this->assertStringContainsString(e(__('booking.admin.whatsapp.skip_reasons.template_missing')), $html);
+        $this->assertStringNotContainsString('template_missing', $html);
+    }
+
+    #[Test]
+    public function budget_bar_carries_a_state_modifier(): void
+    {
+        $this->opt('whatsapp.budget_monthly', '10.00');
+        $this->opt('whatsapp.price_estimate', '0.05');
+        $this->usage(90, 8500000);
+
+        $html = $this->as($this->admin())->get('/admin/whatsapp')->getContent();
+
+        $this->assertMatchesRegularExpression('/<progress class="ds-budget-bar ds-budget-bar--warn"/', $html);
+    }
+
+    #[Test]
     public function test_message_goes_through_fake_transport_once(): void
     {
         $this->readyFake();

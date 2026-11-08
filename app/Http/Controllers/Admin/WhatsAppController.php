@@ -135,7 +135,11 @@ final class WhatsAppController extends Controller
             return $back->with('success', __('booking.admin.whatsapp.test_sent'));
         }
         if ($report->skipped !== []) {
-            return $back->with('error', __('booking.admin.whatsapp.test_skipped', ['reason' => array_key_first($report->skipped)]));
+            $code = (string) array_key_first($report->skipped);
+            $key = 'booking.admin.whatsapp.skip_reasons.'.$code;
+            $reason = trans($key) === $key ? $code : trans($key);
+
+            return $back->with('error', __('booking.admin.whatsapp.test_skipped', ['reason' => $reason]));
         }
         if ($report->failed > 0 || $report->retried > 0) {
             return $back->with('error', __('booking.admin.whatsapp.test_failed'));

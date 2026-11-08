@@ -53,7 +53,7 @@
                 :label="__('booking.admin.whatsapp.budget_used', ['month' => $budget['month']])"
                 :value="$budget['messages'].' '.__('booking.admin.whatsapp.budget_messages').', ≈ '.$budget['percent'].' %'"
                 :meta="__('booking.admin.whatsapp.budget_amount', ['used' => $budget['used'], 'budget' => $budget['budget']]).($budget['previous'] !== null ? ' · '.$budget['previous'] : '')" />
-            <progress max="100" value="{{ min(100, $budget['percent']) }}" aria-label="{{ __('booking.admin.whatsapp.budget_used', ['month' => $budget['month']]) }}">{{ $budget['percent'] }} %</progress>
+            <progress class="ds-budget-bar{{ $notices['state'] === 'stopped' ? ' ds-budget-bar--stop' : ($notices['state'] === 'warn' ? ' ds-budget-bar--warn' : '') }}" max="100" value="{{ min(100, $budget['percent']) }}" aria-label="{{ __('booking.admin.whatsapp.budget_used', ['month' => $budget['month']]) }}">{{ $budget['percent'] }} %</progress>
         </x-ui.card>
     @endif
 
