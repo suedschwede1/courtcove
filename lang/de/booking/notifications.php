@@ -57,6 +57,16 @@ return [
                 6 => 'Sa',
                 7 => 'So',
             ],
+            // Full names for screen readers (aria-label of the short weekday tiles).
+            'weekdays_full' => [
+                1 => 'Montag',
+                2 => 'Dienstag',
+                3 => 'Mittwoch',
+                4 => 'Donnerstag',
+                5 => 'Freitag',
+                6 => 'Samstag',
+                7 => 'Sonntag',
+            ],
             'weekdays_label' => 'Wochentage',
             'time_from' => 'Spielbeginn ab',
             'time_to' => 'Spielbeginn bis',
