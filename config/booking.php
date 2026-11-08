@@ -35,5 +35,15 @@ return [
         'code_ttl_minutes' => 10,
         'max_attempts' => 5,
         'resend_decay_seconds' => 60,
+        // Codes sent per account and hour (first send plus resends), against mail flooding.
+        'max_sends_per_hour' => 5,
+    ],
+    // Trusted devices (see App\Services\TrustedDeviceService): privileged accounts must sign in from a device
+    // that was confirmed once by e-mail code. Fixed validity from issue, no renewal ("once a month").
+    // scope: 'privileged' (admins and assistants, default), 'all' (every account) or 'off' (emergency switch,
+    // e.g. when the mail system is down; see docs/security-runbook.md).
+    'security' => [
+        'trusted_device_days' => (int) env('BOOKING_TRUSTED_DEVICE_DAYS', 30),
+        'trusted_device_scope' => (string) env('BOOKING_TRUSTED_DEVICE_SCOPE', 'privileged'),
     ],
 ];

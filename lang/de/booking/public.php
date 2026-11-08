@@ -78,6 +78,8 @@ return [
             'submit' => 'Bestätigen',
             'resend' => 'Code erneut senden',
             'invalid' => 'Der Code ist ungültig.',
+            'too_many_codes' => 'Du hast in der letzten Stunde zu viele Codes angefordert. Versuch es später noch einmal.',
+            'new_device_intro' => 'Dieses Gerät ist noch nicht bestätigt. Wir haben dir einen 6-stelligen Code per E-Mail geschickt. Gib ihn hier ein; danach musst du dieses Gerät :days Tage lang nicht erneut bestätigen.',
             'expired' => 'Der Code ist abgelaufen oder ungültig. Melde dich bitte erneut an.',
         ],
     ],
@@ -131,6 +133,7 @@ return [
         'reset_password_confirm' => 'Neues Passwort bestätigen',
         'reset_submit' => 'Passwort setzen',
         'reset_invalid' => 'Dieser Link ist ungültig oder abgelaufen. Fordere bitte einen neuen Link an.',
+        'reset_success_signin' => 'Dein Passwort wurde geändert. Melde dich jetzt mit dem neuen Passwort an.',
         'reset_success' => 'Dein Passwort wurde geändert.',
     ],
     'calendar' => [

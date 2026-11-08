@@ -627,6 +627,7 @@ return [
             'login_history_flags_none' => '—',
             'login_history_flag_unusual_country' => 'Ungewöhnliches Land',
             'login_history_flag_recent_failed_attempts' => 'Fehlversuche',
+            'login_history_flag_new_device' => 'Neues Gerät',
             'login_history_flag_impossible_travel' => 'Unmögliche Reise',
             'delete_note' => 'Das Löschen eines Benutzers kann nicht rückgängig gemacht werden.',
             'bulk_block' => 'Sperren',

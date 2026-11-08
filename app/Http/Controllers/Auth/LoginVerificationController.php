@@ -6,9 +6,11 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Mail\LoginVerificationCode;
+use App\Mail\TrustedDeviceAdded;
 use App\Models\LoginHistory;
 use App\Models\User;
 use App\Services\LoginBookkeeping;
+use App\Services\TrustedDeviceService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -29,15 +31,18 @@ final class LoginVerificationController extends Controller
 {
     public function __construct(
         private readonly LoginBookkeeping $bookkeeping,
+        private readonly TrustedDeviceService $devices,
     ) {}
 
     public function show(Request $request): RedirectResponse|View
     {
-        if (! is_array($request->session()->get('login.pending_verification'))) {
+        $pending = $request->session()->get('login.pending_verification');
+
+        if (! is_array($pending)) {
             return redirect('/login');
         }
 
-        return view('auth.login-verify');
+        return view('auth.login-verify', ['newDevice' => ($pending['trust_device'] ?? false) === true]);
     }
 
     public function verify(Request $request): RedirectResponse
@@ -83,6 +88,17 @@ final class LoginVerificationController extends Controller
         $request->session()->regenerate();
         $request->session()->forget('login.pending_verification');
 
+        // The code proved access to the account's mailbox: this browser becomes a trusted device.
+        if (($pending['trust_device'] ?? false) === true) {
+            $device = $this->devices->issue($request, $user, $countryCode);
+
+            try {
+                Mail::to($user->email)->send(new TrustedDeviceAdded($user, $device));
+            } catch (\Throwable $e) {
+                Log::warning('Failed to send trusted device notice', ['user_id' => $user->getKey(), 'exception' => $e->getMessage()]);
+            }
+        }
+
         $this->bookkeeping->syncLegacyLoginTracking($user, true, $ip, 600);
         $this->bookkeeping->logAttempt('succeeded', $request, $user, [
             'email' => (string) $user->email,
@@ -102,8 +118,15 @@ final class LoginVerificationController extends Controller
 
         $key = 'login-verify-resend:'.$pending['user_id'];
 
+        $sendKey = 'login-verify-send:'.$pending['user_id'];
+
+        if (RateLimiter::tooManyAttempts($sendKey, (int) config('booking.login_verification.max_sends_per_hour'))) {
+            return redirect()->route('login.verify.show')->withErrors(['code' => __('booking.auth.verify.too_many_codes')]);
+        }
+
         if (! RateLimiter::tooManyAttempts($key, 1)) {
             RateLimiter::hit($key, (int) config('booking.login_verification.resend_decay_seconds'));
+            RateLimiter::hit($sendKey, 3600);
 
             $code = (string) random_int(100000, 999999);
             $newPending = $pending;
@@ -114,7 +137,7 @@ final class LoginVerificationController extends Controller
             $user = User::findOrFail($pending['user_id']);
 
             try {
-                Mail::to($user->email)->send(new LoginVerificationCode($code));
+                Mail::to($user->email)->send(new LoginVerificationCode($code, (bool) ($pending['trust_device'] ?? false)));
             } catch (\Throwable $e) {
                 Log::error('Failed to resend login verification code', [
                     'user_id' => $user->getKey(),

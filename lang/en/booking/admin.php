@@ -627,6 +627,7 @@ return [
             'login_history_flags_none' => '—',
             'login_history_flag_unusual_country' => 'Unusual country',
             'login_history_flag_recent_failed_attempts' => 'Recent failures',
+            'login_history_flag_new_device' => 'New device',
             'login_history_flag_impossible_travel' => 'Impossible travel',
             'delete_note' => 'Deleting a user cannot be undone.',
             'bulk_block' => 'Block',

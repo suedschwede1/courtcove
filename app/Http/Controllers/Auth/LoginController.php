@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Services\GeoLookup;
 use App\Services\LoginBookkeeping;
 use App\Services\LoginRiskEvaluator;
+use App\Services\TrustedDeviceService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -41,6 +42,7 @@ final class LoginController extends Controller
         private readonly LoginBookkeeping $bookkeeping,
         private readonly GeoLookup $geoLookup,
         private readonly LoginRiskEvaluator $riskEvaluator,
+        private readonly TrustedDeviceService $devices,
     ) {}
 
     /** Render the login form. */
@@ -121,13 +123,25 @@ final class LoginController extends Controller
         $redirectTarget = $this->normalizeRedirectTarget($credentials['redirect_to'] ?? null);
         $riskFlags = $this->riskEvaluator->triggeredFlags($user->getKey(), $countryCode);
 
+        // Trusted device: accounts that need one without a valid device cookie take the code step, which then
+        // trusts this browser. A risk flag on a trusted device still takes the code step (device stays as is).
+        $needsDevice = $this->devices->isRequiredFor($user);
+        $trustedDevice = $needsDevice ? $this->devices->validDevice($request, $user) : null;
+        $confirmNewDevice = $needsDevice && $trustedDevice === null;
+
+        if ($confirmNewDevice) {
+            $riskFlags[] = 'new_device';
+        }
+
         if ($riskFlags !== []) {
             Auth::logout();
             $request->session()->regenerate();
 
-            if (! $this->beginPendingVerification($request, $user, $rememberApplied, $redirectTarget, $ip, $countryCode, $riskFlags)) {
+            $started = $this->beginPendingVerification($request, $user, $rememberApplied, $redirectTarget, $ip, $countryCode, $riskFlags, $confirmNewDevice);
+
+            if ($started !== true) {
                 return redirect()->route('login.verify.show')->withErrors([
-                    'code' => __('booking.auth.verify.send_failed'),
+                    'code' => $started === 'throttled' ? __('booking.auth.verify.too_many_codes') : __('booking.auth.verify.send_failed'),
                 ]);
             }
 
@@ -142,6 +156,10 @@ final class LoginController extends Controller
         }
 
         LoginHistory::record($user->getKey(), $ip, $countryCode, 'success');
+
+        if ($trustedDevice !== null) {
+            $this->devices->touch($trustedDevice);
+        }
 
         $request->session()->regenerate();
 
@@ -168,6 +186,7 @@ final class LoginController extends Controller
 
     /**
      * @param  array<int, string>  $riskFlags
+     * @return bool|string true when the code was sent, false when sending failed, 'throttled' at the hourly cap
      */
     private function beginPendingVerification(
         Request $request,
@@ -177,7 +196,16 @@ final class LoginController extends Controller
         string $ip,
         ?string $countryCode,
         array $riskFlags,
-    ): bool {
+        bool $trustDevice = false,
+    ): bool|string {
+        $sendKey = 'login-verify-send:'.$user->getKey();
+
+        if (RateLimiter::tooManyAttempts($sendKey, (int) config('booking.login_verification.max_sends_per_hour'))) {
+            return 'throttled';
+        }
+
+        RateLimiter::hit($sendKey, 3600);
+
         $code = (string) random_int(100000, 999999);
 
         $request->session()->put('login.pending_verification', [
@@ -190,10 +218,11 @@ final class LoginController extends Controller
             'attempts' => 0,
             'remember' => $remember,
             'redirect_to' => $redirectTo,
+            'trust_device' => $trustDevice,
         ]);
 
         try {
-            Mail::to($user->email)->send(new LoginVerificationCode($code));
+            Mail::to($user->email)->send(new LoginVerificationCode($code, $trustDevice));
         } catch (\Throwable $e) {
             Log::error('Failed to send login verification code', [
                 'user_id' => $user->getKey(),

@@ -78,6 +78,8 @@ return [
             'submit' => 'Confirm',
             'resend' => 'Resend code',
             'invalid' => 'This code is invalid.',
+            'too_many_codes' => 'You requested too many codes in the last hour. Please try again later.',
+            'new_device_intro' => 'This device is not confirmed yet. We sent you a 6-digit code by e-mail. Enter it here; afterwards you will not need to confirm this device again for :days days.',
             'expired' => 'This code has expired or is invalid. Please log in again.',
         ],
     ],
@@ -131,6 +133,7 @@ return [
         'reset_password_confirm' => 'Confirm new password',
         'reset_submit' => 'Set password',
         'reset_invalid' => 'This link is invalid or has expired. Please request a new one.',
+        'reset_success_signin' => 'Your password was changed. Please sign in with the new password.',
         'reset_success' => 'Your password has been changed successfully.',
     ],
     'calendar' => [

@@ -5,7 +5,7 @@
 @endsection
 
 @section('body')
-    <x-layout.auth-shell :title="__('booking.auth.verify.heading')" :intro="__('booking.auth.verify.intro')">
+    <x-layout.auth-shell :title="__('booking.auth.verify.heading')" :intro="($newDevice ?? false) ? __('booking.auth.verify.new_device_intro', ['days' => (int) config('booking.security.trusted_device_days')]) : __('booking.auth.verify.intro')">
         <form method="POST" action="{{ route('login.verify.submit') }}" class="ds-auth__form">
             @csrf
             <x-ui.field :label="__('booking.auth.verify.code_label')" for="code">

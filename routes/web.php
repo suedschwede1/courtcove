@@ -119,6 +119,8 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/my-account', [AccountController::class, 'edit'])->name('account.edit');
     Route::put('/my-account', [AccountController::class, 'update'])->name('account.update');
     Route::put('/my-account/password', [AccountController::class, 'password'])->name('account.password');
+    Route::delete('/my-account/devices', [AccountController::class, 'destroyDevices'])->name('account.devices.destroy-all');
+    Route::delete('/my-account/devices/{device}', [AccountController::class, 'destroyDevice'])->name('account.devices.destroy');
 });
 
 // The administration checks the stored right; only the booking and event admin routes depend on the admin mode

@@ -11,6 +11,7 @@ use App\Models\LoginHistory;
 use App\Models\User;
 use App\Modules\Members\Models\Member;
 use App\Services\QuoteGroups;
+use App\Services\TrustedDeviceService;
 use Closure;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
@@ -310,6 +311,7 @@ final class UserController extends Controller
 
         $role = $data['role'] ?? 'member';
         $wasEnabled = $user->isEnabled();
+        $rightsBefore = [$user->effectiveRole(), $user->accountStatus(), $user->grantedPrivileges()];
         $user->update(['alias' => $data['alias'], 'email' => $data['email'] ?? null, ...self::statusRoleColumns($data['status'], $role)]);
         foreach (['firstname', 'lastname', 'phone'] as $field) {
             $user->setMeta($field, $data[$field] ?? null);
@@ -322,6 +324,16 @@ final class UserController extends Controller
         }
         $user->syncPrivileges($role === 'assist' ? ($data['privileges'] ?? []) : []);
 
+        // A change of role, account state or single rights ends the trust in this account's devices.
+        $user->unsetRelation('meta');
+        $privilegesAfter = $user->grantedPrivileges();
+        sort($privilegesAfter);
+        $privilegesBefore = $rightsBefore[2];
+        sort($privilegesBefore);
+        if ($rightsBefore[0] !== $user->effectiveRole() || $rightsBefore[1] !== $user->accountStatus() || $privilegesBefore !== $privilegesAfter) {
+            app(TrustedDeviceService::class)->revokeAll($user);
+        }
+
         if (! $wasEnabled && $data['status'] === 'enabled' && ! empty($user->email)) {
             Mail::to($user->email)->queue(new UserActivated($user));
         }
@@ -333,6 +345,7 @@ final class UserController extends Controller
     {
         $request->validate(['password' => ['required', 'string', 'min:6']]);
         $user->update(['pw' => Hash::make($request->string('password')->value())]);
+        app(TrustedDeviceService::class)->revokeAll($user);
 
         return back()->with('success', __('booking.messages.user_password_reset'));
     }
@@ -357,12 +370,17 @@ final class UserController extends Controller
             ->when($data['action'] === 'enabled', fn (Builder $query) => $query->whereNot(fn (Builder $sub) => $sub->active()))
             ->update(['status' => $data['action']]);
 
+        foreach ($data['uids'] as $uid) {
+            app(TrustedDeviceService::class)->revokeAll((int) $uid);
+        }
+
         return back()->with('success', count($data['uids']).' Benutzer aktualisiert.');
     }
 
     public function destroy(User $user): RedirectResponse
     {
         $user->update(['status' => 'deleted']);
+        app(TrustedDeviceService::class)->revokeAll($user);
 
         return redirect()->route('admin.users.index')->with('success', __('booking.messages.user_deleted'));
     }
