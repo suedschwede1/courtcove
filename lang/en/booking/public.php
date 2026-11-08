@@ -198,6 +198,11 @@ return [
         'seeking_tiny' => 'Needs :count|Needs :count',
         'seeking_cell' => ':court, :time – :remaining',
         'joined_cell' => ':court, :time – You are playing',
+        'players_dialog' => [
+            'title' => 'Players',
+            'owner' => 'Booked by :owner',
+            'players' => 'Playing: :players',
+        ],
         'seeking_info' => [
             'title' => 'Players wanted',
             'message' => 'This booking is still looking for players. If you want to play, join the player exchange in your account. Then you can sign up here with one click.',
