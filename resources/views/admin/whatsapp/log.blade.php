@@ -37,7 +37,7 @@
     @if($entries->isEmpty())
         <x-ui.card><p class="ds-admin-note">{{ __('booking.admin.whatsapp.log.empty') }}</p></x-ui.card>
     @else
-        <x-ui.card padding="none" class="ds-admin-rows" :title="__('booking.admin.whatsapp.log.title')">
+        <x-ui.card padding="none" class="ds-admin-rows ds-admin-wa-log">
             <x-ui.table :caption="__('booking.admin.whatsapp.log.title')">
                 <x-slot:head>
                     <tr>

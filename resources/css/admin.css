@@ -1392,6 +1392,14 @@
     }
 
     /* WhatsApp send log: long or unknown raw values wrap inside the card instead of widening it. */
+    .ds-admin-wa-log .ds-table--stack tr {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .ds-admin-wa-log .ds-table-wrap {
+        overflow-x: clip;
+    }
+
     .ds-admin-wa-log .ds-table td {
         min-width: 0;
         overflow-wrap: anywhere;
