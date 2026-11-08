@@ -217,6 +217,37 @@ class TransportTest extends TestCase
     }
 
     #[Test]
+    public function probe_skips_service_path_without_messaging_service_sid(): void
+    {
+        config(['whatsapp.messaging_service_sid' => '']);
+        Http::fake(['*' => Http::response([], 200)]);
+
+        $this->assertTrue($this->transport()->probe()->ok);
+
+        Http::assertSentCount(1);
+        Http::assertNotSent(fn (Request $r) => str_contains($r->url(), '/v1/Services/'));
+    }
+
+    #[Test]
+    public function button_suffix_becomes_the_next_variable_and_empty_vars_encode_as_object(): void
+    {
+        Http::fake(['*' => Http::response(['sid' => 'SMtest4'], 201)]);
+        $vars = ['1' => 'a', '2' => 'b', '3' => 'c', '4' => 'd', '5' => 'e'];
+
+        $this->transport()->send(self::TO, $this->template(), $vars, 'suffix-1');
+        $this->transport()->send(self::TO, $this->template(), [], null);
+
+        $sent = [];
+        Http::assertSent(function (Request $r) use (&$sent) {
+            $sent[] = $r->data()['ContentVariables'];
+
+            return true;
+        });
+        $this->assertSame('{"1":"a","2":"b","3":"c","4":"d","5":"e","6":"suffix-1"}', $sent[0]);
+        $this->assertSame('{}', $sent[1]);
+    }
+
+    #[Test]
     public function log_transport_writes_no_number_and_no_text(): void
     {
         Log::spy();

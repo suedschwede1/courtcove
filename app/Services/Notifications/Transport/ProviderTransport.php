@@ -74,7 +74,7 @@ final class ProviderTransport implements WhatsAppTransport
             if ($template->contentId !== null) {
                 $fields['ContentSid'] = $template->contentId;
             }
-            $fields['ContentVariables'] = json_encode($this->variables($vars, $buttonSuffix), JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+            $fields['ContentVariables'] = json_encode((object) $this->variables($vars, $buttonSuffix), JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
         }
 
         try {
@@ -96,7 +96,12 @@ final class ProviderTransport implements WhatsAppTransport
 
     public function probe(): ProbeResult
     {
-        foreach ([$this->settings->apiAccountPath(), $this->settings->apiServicePath()] as $path) {
+        $paths = [$this->settings->apiAccountPath()];
+        if ($this->settings->messagingServiceSid() !== null) {
+            $paths[] = $this->settings->apiServicePath();
+        }
+
+        foreach ($paths as $path) {
             $url = $this->url($path);
             if ($url === null) {
                 return new ProbeResult(false, 'config_missing');

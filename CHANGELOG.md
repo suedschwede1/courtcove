@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-08
+- Notifications: WhatsApp connection check only queries the messaging service when one is configured; the staging check fails closed (unknown database counts as staging); empty template variables are sent as `{}`.
 - Notifications: WhatsApp consent with a gate (main switch, enabled account, linked active member, mobile number, player exchange; the admin test skips the member rules), opt-in that stores only a hash and the last two digits of the number plus the notice version, and revocation: a changed or removed number (account page, admin user form, any phone write), member exit, anonymisation, unlinking or deleting the member and a blocked, deleted or disabled account end the consent at once; dormant members and leaving the player exchange only pause it. Changes are logged with IDs and reason only.
 - Notifications: WhatsApp transports (log, fake, live over the HTTP client) with a connection check and an error table; the live driver is downgraded to log on a `_staging` database unless sandbox mode or WHATSAPP_ALLOW_LIVE_ON_STAGING is set; groundwork, not used anywhere yet, no real sending.
 - Notifications: WhatsApp settings (config/whatsapp.php, WhatsAppSettings, SecretOptions) with .env > admin option > default resolution and encrypted secret options; the provider URL, paths and signature header name have no default and must be configured; groundwork, not used anywhere yet.

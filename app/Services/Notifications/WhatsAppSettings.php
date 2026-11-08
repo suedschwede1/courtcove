@@ -62,7 +62,7 @@ final class WhatsAppSettings
         try {
             return str_ends_with((string) DB::connection()->getDatabaseName(), '_staging');
         } catch (\Throwable) {
-            return false;
+            return true; // fail closed: unknown database counts as staging
         }
     }
 
