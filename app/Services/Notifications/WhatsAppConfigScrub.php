@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Staging scrub for the WhatsApp channel: removes the credential options, forces the log driver and the
+ * Staging scrub for the WhatsApp channel: removes the credential, sandbox, webhook-base and provider-literal options, forces the log driver and the
  * main switch off, and empties the notification tables (a copy of the live database carries real consents
  * and metadata). Only option and table names leave this class, never values.
  */
@@ -24,6 +24,13 @@ final class WhatsAppConfigScrub implements ConfigScrub
         'whatsapp.sandbox_sender',
         'whatsapp.budget_alert_email',
         'whatsapp.paused_reason',
+        'whatsapp.sandbox',
+        'whatsapp.webhook_base_url',
+        'whatsapp.api_base',
+        'whatsapp.api_messages_path',
+        'whatsapp.api_account_path',
+        'whatsapp.api_service_path',
+        'whatsapp.signature_header',
     ];
 
     /** Child tables first. */

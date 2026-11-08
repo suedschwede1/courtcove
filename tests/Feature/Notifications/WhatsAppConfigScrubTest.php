@@ -41,6 +41,13 @@ class WhatsAppConfigScrubTest extends TestCase
             'whatsapp.sandbox_sender' => '+43 660 0000002',
             'whatsapp.budget_alert_email' => 'admin@example.test',
             'whatsapp.paused_reason' => 'budget_exhausted',
+            'whatsapp.sandbox' => '1',
+            'whatsapp.webhook_base_url' => 'https://booking.example.test',
+            'whatsapp.api_base' => 'https://api.example.test',
+            'whatsapp.api_messages_path' => '/m',
+            'whatsapp.api_account_path' => '/a',
+            'whatsapp.api_service_path' => '/s',
+            'whatsapp.signature_header' => 'X-Test-Signature',
             'whatsapp.template.test.de' => 'HXtest-keep',
             'whatsapp.driver' => 'live',
             'whatsapp.enabled' => '1',
@@ -82,7 +89,7 @@ class WhatsAppConfigScrubTest extends TestCase
 
         app(WhatsAppConfigScrub::class)->scrub();
 
-        foreach (['account_sid', 'auth_token', 'messaging_service_sid', 'sender', 'sandbox_sender', 'budget_alert_email', 'paused_reason'] as $field) {
+        foreach (['account_sid', 'auth_token', 'messaging_service_sid', 'sender', 'sandbox_sender', 'budget_alert_email', 'paused_reason', 'sandbox', 'webhook_base_url', 'api_base', 'api_messages_path', 'api_account_path', 'api_service_path', 'signature_header'] as $field) {
             $this->assertFalse(Option::where('key', 'whatsapp.'.$field)->exists(), $field);
         }
         $this->assertSame('log', Option::getValue('whatsapp.driver'));
@@ -90,6 +97,9 @@ class WhatsAppConfigScrubTest extends TestCase
         $settings = app(WhatsAppSettings::class);
         $this->assertSame('log', $settings->driver());
         $this->assertFalse($settings->enabled());
+        $this->assertFalse($settings->sandbox());
+        $this->assertNull($settings->apiBase());
+        $this->assertNull($settings->webhookBaseUrl());
         // Unrelated options and the budget survive.
         $this->assertSame('Keep me', Option::getValue('service.name'));
         $this->assertSame('5.00', Option::getValue('whatsapp.budget_monthly'));

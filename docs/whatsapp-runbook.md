@@ -10,14 +10,14 @@ Im Hosting-Panel muss ein Cron-Eintrag minuetlich `php artisan schedule:run` im 
 
 ### `.env`-Schluessel (nur Namen, keine Werte)
 
-Zugangsdaten und Anbieter-Adressen kommen ausschliesslich per `.env` bzw. Admin-Option, nie in getrackte Dateien.
+Zugangsdaten kommen per `.env` bzw. Admin-Option, nie in getrackte Dateien. Die Anbieter-Literale (Basis-Adresse, Endpunkt-Pfade, Name des Signatur-Headers) und `WHATSAPP_WEBHOOK_BASE_URL` gibt es nur per `.env`: Die Admin-Seite hat dafuer kein Feld, und es gibt keinen getrackten Default.
 
 - `WHATSAPP_DRIVER` (`log`, `fake` oder `live`; ohne Wert gilt `log`)
 - `WHATSAPP_ACCOUNT_SID`, `WHATSAPP_AUTH_TOKEN`, `WHATSAPP_MESSAGING_SERVICE_SID`, `WHATSAPP_SENDER`
 - `WHATSAPP_SANDBOX`, `WHATSAPP_SANDBOX_SENDER`
-- `WHATSAPP_API_BASE`, `WHATSAPP_API_MESSAGES_PATH`, `WHATSAPP_API_ACCOUNT_PATH`, `WHATSAPP_API_SERVICE_PATH` (Basis-Adresse und Endpunkt-Pfade des Anbieters; fehlt ein Wert bei Treiber `live`, meldet das Gate `config_missing`)
-- `WHATSAPP_SIGNATURE_HEADER` (Name des Signatur-Headers; ohne Wert oder ohne Token antwortet der Webhook mit 403)
-- `WHATSAPP_WEBHOOK_BASE_URL`
+- `WHATSAPP_API_BASE`, `WHATSAPP_API_MESSAGES_PATH`, `WHATSAPP_API_ACCOUNT_PATH`, `WHATSAPP_API_SERVICE_PATH` (nur `.env`; Basis-Adresse und Endpunkt-Pfade des Anbieters; fehlt ein Wert bei Treiber `live`, meldet das Gate `config_missing`)
+- `WHATSAPP_SIGNATURE_HEADER` (nur `.env`; Name des Signatur-Headers; ohne Wert oder ohne Token antwortet der Webhook mit 403)
+- `WHATSAPP_WEBHOOK_BASE_URL` (nur `.env`; Basis-Adresse der Webhooks, siehe Webhook-Adressen)
 - `WHATSAPP_ALLOW_LIVE_ON_STAGING` (nur bewusst und nur kurzzeitig; siehe Staging-Ablauf)
 
 Der Hauptschalter und das Budget stehen in den Admin-Optionen (Einstellungen fuer WhatsApp-Benachrichtigungen), nicht in der `.env`.
@@ -52,7 +52,7 @@ Das Monatsbudget begrenzt den Versand; bei 80 % und bei 100 % geht eine E-Mail a
 
 ### Stand der Anbindung
 
-Die Anbindung der Spielerboerse (Versand der Spielersuche, Task 10) und die Konto-Karte mit der Einwilligung (Task 11) folgen nach dem Merge der Spielerboerse. Bis dahin gibt es noch keinen Versand der Spielersuche und keine Einwilligung im Konto; Testnachricht und Admin-Seiten funktionieren bereits. Der Zustimmungstext (`booking.notifications.consent_text_v1`, Version `wa-2026-11-v1`) und der Datenschutz-Satz (`privacy_notice`) liegen bereits in den Sprachdateien.
+Die Anbindung der Spielerboerse (Versand der Spielersuche, Task 10) und die Konto-Karte mit der Einwilligung (Task 11) folgen nach dem Merge der Spielerboerse. Bis dahin gibt es noch keinen Versand der Spielersuche und keine Einwilligung im Konto. Die Admin-Seiten sind benutzbar; die Testnachricht an den eigenen Admin setzt aber eine aktive Zustimmung des Admins voraus, die es bis zur Konto-Karte nur per Tinker-Schritt auf Staging gibt: `app(\App\Services\Notifications\ConsentService::class)->optIn($user, \App\Models\NotificationConsent::PURPOSE_PLAYER_SEARCH, 'de')`. `optIn` nutzt das volle Gate: Der Admin braucht ein aktives, verknuepftes Mitglied, eine Mobilnummer und die eingeschaltete Spielerboerse, sonst wird die Zustimmung verweigert. Der Zustimmungstext (`booking.notifications.consent_text_v1`, Version `wa-2026-11-v1`) und der Datenschutz-Satz (`privacy_notice`) liegen bereits in den Sprachdateien.
 
 ### Aufgaben des Vereins
 
@@ -72,7 +72,9 @@ Vor dem Umschalten auf Treiber `live` und Hauptschalter an:
 - [ ] Datenbank-Version: MySQL 8 oder MariaDB ab 10.6 (wegen `SKIP LOCKED` beim Abholen faelliger Zeilen).
 - [ ] Budget-Drift beachtet: `messages_reserved` kann bei einem Prozessabbruch dauerhaft erhoeht bleiben; zum Monatswechsel und bei Auffaelligkeiten mit dem Versandprotokoll und der Anbieter-Abrechnung abgleichen.
 - [ ] Cron laeuft (`schedule:run` minuetlich).
-- [ ] Testnachricht aus den Admin-Einstellungen kommt an.
+- [ ] Testnachricht aus den Admin-Einstellungen kommt an (Voraussetzung: aktive Zustimmung des Admins, bis zur Konto-Karte per Tinker-Schritt, siehe Stand der Anbindung; der Admin braucht aktives Mitglied, Mobilnummer und eingeschaltete Spielerboerse).
+- [ ] Leitet der Live-Host `/webhooks/*` an Laravel weiter (Bruecke/`.htaccess`), und ist die Webhook-Basis der Booking-Host, nicht der Turnier-Host?
+- [ ] Anbieter-Literale und `WHATSAPP_WEBHOOK_BASE_URL` stehen in der Live-`.env` (nicht in den Admin-Optionen).
 - [ ] Sandbox-Test mit einer eigenen Nummer erfolgreich.
 - [ ] STOP-Test: Antwort mit STOP meldet ab, Bestaetigung kommt, danach kein Versand mehr.
 - [ ] Hauptschalter bewusst gesetzt; zum Abschalten genuegt es, ihn auszuschalten (Rollback ohne Deploy).
@@ -90,7 +92,7 @@ Vor dem Umschalten auf Treiber `live` und Hauptschalter an:
 
 ### Was der WhatsApp-Scrub entfernt oder zuruecksetzt
 
-- Geloescht werden die Optionen `whatsapp.account_sid`, `whatsapp.auth_token`, `whatsapp.messaging_service_sid`, `whatsapp.sender`, `whatsapp.sandbox_sender`, `whatsapp.budget_alert_email` (Admin-Adresse aus dem Abzug) und `whatsapp.paused_reason`.
+- Geloescht werden die Optionen `whatsapp.account_sid`, `whatsapp.auth_token`, `whatsapp.messaging_service_sid`, `whatsapp.sender`, `whatsapp.sandbox_sender`, `whatsapp.sandbox`, `whatsapp.webhook_base_url`, `whatsapp.api_base`, `whatsapp.api_messages_path`, `whatsapp.api_account_path`, `whatsapp.api_service_path`, `whatsapp.signature_header` (sofern als Option gesetzt), `whatsapp.budget_alert_email` (Admin-Adresse aus dem Abzug) und `whatsapp.paused_reason`. Werte aus der `.env` der Staging-Instanz bleiben davon unberuehrt.
 - `whatsapp.driver` wird auf `log` gesetzt, `whatsapp.enabled` auf `0` (Hauptschalter aus).
 - Geleert werden `notification_log`, `notification_usage_monthly`, `notification_subscriptions` und `notification_consents`. Ein Abzug von Live traegt echte Zustimmungen und Versand-Metadaten; ohne Leeren koennten Sandbox-Modus oder `WHATSAPP_ALLOW_LIVE_ON_STAGING` echte Mitglieder erreichen.
 - Budget, Preisschaetzung, Vorlagen-IDs und alle uebrigen Optionen bleiben erhalten.

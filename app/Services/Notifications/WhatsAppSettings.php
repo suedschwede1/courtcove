@@ -257,9 +257,10 @@ final class WhatsAppSettings
             return null;
         }
 
-        $hasSender = $this->messagingServiceSid() !== null
-            || $this->sender() !== null
-            || ($this->sandbox() && $this->sandboxSender() !== null);
+        // Sandbox mode sends only from the sandbox sender; otherwise the messaging service or the sender.
+        $hasSender = $this->sandbox()
+            ? $this->sandboxSender() !== null
+            : ($this->messagingServiceSid() !== null || $this->sender() !== null);
         if ($this->accountSid() === null || $this->authToken() === null || ! $hasSender) {
             return 'credentials_missing';
         }
