@@ -16,7 +16,8 @@
     @endif
 
     <div class="grid gap-5 lg:grid-cols-3">
-        <x-ui.card :title="__('booking.account.profile')" class="lg:col-span-2">
+        <div class="flex flex-col gap-5 lg:col-span-2">
+        <x-ui.card :title="__('booking.account.profile')">
             <form method="POST" action="{{ route('account.update') }}" class="flex flex-col gap-4">
                 @csrf
                 @method('PUT')
@@ -67,6 +68,9 @@
                 </div>
             </form>
         </x-ui.card>
+
+        @include('account.partials.whatsapp-card', ['whatsapp' => $whatsapp])
+        </div>
 
         <x-ui.card :title="__('booking.account.password_change')">
             <form method="POST" action="{{ route('account.password') }}" class="flex flex-col gap-4">

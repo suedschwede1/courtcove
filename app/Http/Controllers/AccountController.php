@@ -8,6 +8,7 @@ use App\Models\Booking;
 use App\Models\Square;
 use App\Models\User;
 use App\Services\BookingService;
+use App\Services\Notifications\AccountCard;
 use App\Services\PlayerExchangeService;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
@@ -118,7 +119,7 @@ final class AccountController extends Controller
     }
 
     /** Show the profile + password forms for the authenticated user. */
-    public function edit(PlayerExchangeService $exchange): View
+    public function edit(PlayerExchangeService $exchange, AccountCard $whatsappCard): View
     {
         /** @var User $user */
         $user = auth()->user();
@@ -131,7 +132,9 @@ final class AccountController extends Controller
 
         $playerExchange = $exchange->isOptedIn($user);
 
-        return view('account.edit', compact('user', 'profile', 'playerExchange'));
+        $whatsapp = $whatsappCard->for($user);
+
+        return view('account.edit', compact('user', 'profile', 'playerExchange', 'whatsapp'));
     }
 
     /** Update alias, email and profile meta for the authenticated user. */
