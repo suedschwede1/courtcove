@@ -7,7 +7,6 @@ namespace App\Services\Notifications;
 use App\Models\NotificationConsent;
 use App\Models\NotificationSubscription;
 use App\Models\User;
-use App\Modules\Members\Models\Member;
 use App\Services\PlayerExchangeService;
 use App\Support\Phone\PhoneNumber;
 use Illuminate\Database\QueryException;
@@ -18,8 +17,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Consent to WhatsApp notifications: the gate that decides whether a member may receive them, opt-in,
- * revocation and the revocation triggers (phone change, member exit, account status). The consent row
+ * Consent to WhatsApp notifications: the gate that decides whether a booking account may receive them,
+ * opt-in, revocation and the revocation triggers (phone change, account status). The consent row
  * holds an HMAC of the number and its last two digits, never the number. Log lines carry IDs and the
  * reason only, never numbers or texts.
  *
@@ -49,8 +48,10 @@ final class ConsentService
     public function __construct(private readonly WhatsAppSettings $settings) {}
 
     /**
-     * Checks in order: main switch, account enabled, linked member, member active and not anonymised,
-     * mobile number, player exchange. The admin test skips the three member rules.
+     * Checks the booking account only, in order: main switch, account enabled (not blocked, disabled or
+     * deleted), mobile number in the account, player exchange switched on. A member record (linked or not,
+     * in whatever state) plays no part. The admin test skips only the player exchange, so an admin account
+     * can test without being in the exchange.
      */
     public function gate(User $user, bool $forAdminTest = false): GateResult
     {
@@ -60,16 +61,6 @@ final class ConsentService
 
         if (! $user->isEnabled()) {
             return GateResult::fail('account_inactive');
-        }
-
-        if (! $forAdminTest) {
-            $member = Member::query()->where('user_id', $user->getKey())->first(['id', 'status', 'anonymized_at']);
-            if ($member === null) {
-                return GateResult::fail('no_member');
-            }
-            if ($member->status !== 'aktiv' || $member->anonymized_at !== null) {
-                return GateResult::fail('member_inactive');
-            }
         }
 
         $phone = PhoneNumber::parse($user->getMeta('phone'), $this->settings->defaultCountry());
@@ -216,12 +207,6 @@ final class ConsentService
         }
 
         $this->tolerant(fn () => $this->revokeUser((int) $user->getKey(), 'user_status'));
-    }
-
-    /** Hook of the member observer: revokes the consents of a user id with the given reason. */
-    public function revokeForUserId(int $userId, string $via): void
-    {
-        $this->tolerant(fn () => $this->revokeUser($userId, $via));
     }
 
     private function revokeUser(int $userId, string $via, ?string $purpose = null): int

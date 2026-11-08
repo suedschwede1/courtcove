@@ -11,14 +11,15 @@ use Illuminate\Support\Carbon;
 
 /**
  * View state of the account card "WhatsApp-Benachrichtigungen": hidden (main switch off), locked (a gate
- * reason keeps the member out), ready (may consent) or active (consent given). Never carries the full number.
+ * reason of the booking account keeps the user out: account not enabled, mobile number, player exchange),
+ * ready (may consent) or active (consent given). No member record is needed. Never carries the full number.
  */
 final class AccountCard
 {
     /** Notification type switched by the "player search" switch of the card. */
     public const SEARCH_TYPE = 'player_search.opened';
 
-    /** Gate reasons that the member fixes in the profile (link to the phone field). */
+    /** Gate reasons that the user fixes in the profile (link to the phone field). */
     private const PHONE_REASONS = ['no_phone', 'phone_invalid', 'phone_not_mobile'];
 
     public function __construct(
@@ -108,7 +109,7 @@ final class AccountCard
         return $prefix.'… '.$last2;
     }
 
-    /** The latest end of a consent that the member did not cause in the account: STOP or a changed number. */
+    /** The latest end of a consent that the user did not cause in the account: STOP or a changed number. */
     private function revocationNotice(User $user): ?array
     {
         $revoked = NotificationConsent::query()

@@ -29,7 +29,7 @@ class AccountWhatsAppCardTest extends TestCase
     /** @return array<string, array{0: string}> */
     public static function lockedReasons(): array
     {
-        $reasons = ['account_inactive', 'no_member', 'member_inactive', 'no_phone', 'phone_invalid', 'phone_not_mobile', 'exchange_off'];
+        $reasons = ['account_inactive', 'no_phone', 'phone_invalid', 'phone_not_mobile', 'exchange_off'];
 
         return array_combine($reasons, array_map(fn (string $r): array => [$r], $reasons));
     }
@@ -38,8 +38,6 @@ class AccountWhatsAppCardTest extends TestCase
     {
         match ($reason) {
             'account_inactive' => $user->forceFill(['status' => 'blocked'])->save(),
-            'no_member' => Member::query()->where('user_id', $user->uid)->delete(),
-            'member_inactive' => Member::query()->where('user_id', $user->uid)->update(['status' => 'passiv']),
             'no_phone' => $user->setMeta('phone', null),
             'phone_invalid' => $user->setMeta('phone', '12'),
             'phone_not_mobile' => $user->setMeta('phone', '+43 1 5880000'),
@@ -160,12 +158,47 @@ class AccountWhatsAppCardTest extends TestCase
     #[Test]
     public function every_gate_reason_and_the_conflict_have_a_member_text_in_both_languages(): void
     {
-        foreach (['account_inactive', 'no_member', 'member_inactive', 'no_phone', 'phone_invalid', 'phone_not_mobile', 'exchange_off', 'disabled', 'conflict'] as $reason) {
+        foreach (['account_inactive', 'no_phone', 'phone_invalid', 'phone_not_mobile', 'exchange_off', 'disabled', 'conflict'] as $reason) {
             foreach (['de', 'en'] as $locale) {
                 $key = 'booking.notifications.refused.'.$reason;
                 $this->assertNotSame($key, trans($key, [], $locale), "$locale $reason");
             }
         }
+
+        // The member rules are gone: no texts left for them, and the same reasons in both languages.
+        foreach (['de', 'en'] as $locale) {
+            $refused = trans('booking.notifications.refused', [], $locale);
+            $this->assertIsArray($refused);
+            $this->assertArrayNotHasKey('no_member', $refused, $locale);
+            $this->assertArrayNotHasKey('member_inactive', $refused, $locale);
+        }
+        $this->assertSame(
+            array_keys(trans('booking.notifications.refused', [], 'de')),
+            array_keys(trans('booking.notifications.refused', [], 'en')),
+        );
+    }
+
+    /** Only the booking account counts: an account without a member record (or with a departed one) may consent. */
+    #[Test]
+    public function an_account_without_a_member_record_can_consent(): void
+    {
+        $user = $this->eligibleUser('+43 660 0000042');
+        $this->assertSame(0, Member::query()->where('user_id', $user->uid)->count());
+
+        $this->assertStringContainsString('data-whatsapp-card="ready"', $this->card($user));
+
+        $this->actingAs($user->fresh())->post(route('account.whatsapp.enable'), ['consent' => '1'])
+            ->assertRedirect(route('account.edit'))
+            ->assertSessionHas('success');
+
+        $this->assertSame(1, $this->activeConsentCount($user));
+        $this->assertStringContainsString('data-whatsapp-card="active"', $this->card($user));
+
+        $departed = $this->eligibleUser('+43 660 0000043');
+        $this->linkMember($departed, ['status' => 'ausgetreten', 'left_at' => '2026-10-31']);
+        $this->actingAs($departed->fresh())->post(route('account.whatsapp.enable'), ['consent' => '1'])
+            ->assertSessionHas('success');
+        $this->assertSame(1, $this->activeConsentCount($departed));
     }
 
     #[Test]

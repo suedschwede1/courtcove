@@ -73,15 +73,17 @@ class PruneCommandTest extends TestCase
     }
 
     #[Test]
-    public function prune_drops_subscriptions_and_log_user_ids_of_deleted_or_anonymised_users(): void
+    public function prune_drops_subscriptions_and_log_user_ids_of_deleted_or_missing_users(): void
     {
         $kept = User::factory()->create(['status' => 'enabled']);
         $deleted = User::factory()->create(['status' => 'deleted']);
-        $anonymised = User::factory()->create(['status' => 'enabled']);
-        Member::factory()->create(['user_id' => $anonymised->uid, 'anonymized_at' => Carbon::now()]);
+        // Only the booking account counts: an anonymised member record still linked to a living account
+        // (possible only through a raw update) does not end the account's WhatsApp data.
+        $anonymisedMember = User::factory()->create(['status' => 'enabled']);
+        Member::factory()->create(['user_id' => $anonymisedMember->uid, 'anonymized_at' => Carbon::now()]);
         $gone = 987654;
 
-        foreach ([$kept, $deleted, $anonymised] as $user) {
+        foreach ([$kept, $deleted, $anonymisedMember] as $user) {
             NotificationSubscription::create(['user_id' => $user->uid, 'type' => 'player_search_opened', 'channel' => 'whatsapp', 'filters' => null]);
             $this->logRow('log-'.$user->uid, '2026-11-01 00:00:00', $user->uid);
         }
@@ -90,11 +92,11 @@ class PruneCommandTest extends TestCase
 
         $this->artisan('notifications:prune')->assertSuccessful();
 
-        $this->assertSame([$kept->uid], NotificationSubscription::query()->pluck('user_id')->all());
+        $this->assertEqualsCanonicalizing([$kept->uid, $anonymisedMember->uid], NotificationSubscription::query()->pluck('user_id')->all());
         $ids = NotificationLogEntry::query()->pluck('user_id', 'dedupe_key')->all();
         $this->assertSame($kept->uid, $ids['log-'.$kept->uid]);
+        $this->assertSame($anonymisedMember->uid, $ids['log-'.$anonymisedMember->uid]);
         $this->assertNull($ids['log-'.$deleted->uid]);
-        $this->assertNull($ids['log-'.$anonymised->uid]);
         $this->assertNull($ids['log-gone']);
     }
 }

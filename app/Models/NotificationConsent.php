@@ -22,7 +22,8 @@ use Illuminate\Support\Carbon;
  * @property string $consent_text_version
  * @property Carbon $consented_at
  * @property Carbon|null $revoked_at
- * @property string|null $revoked_via account|stop|admin|member_exit|anonymized|user_status|phone_changed
+ * @property string|null $revoked_via account|stop|admin|user_status|phone_changed (rows revoked before 2026-11-09 may also
+ *                                    carry member_exit|anonymized from the former member observer; nothing writes them any more)
  * @property int|null $active_marker 1 while active, null once revoked (backs the unique key)
  */
 class NotificationConsent extends Model

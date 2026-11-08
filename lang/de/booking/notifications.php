@@ -14,12 +14,11 @@ return [
         // Privacy sentence; processors are named on the club's external privacy page, not here.
         'privacy_notice' => 'Mit deiner Einwilligung verwenden wir die Handynummer aus deinem Konto, um dir Benachrichtigungen (zuerst: Spielersuchen) per WhatsApp zu senden. Dabei sind der von uns beauftragte Messaging-Dienst und der Betreiber von WhatsApp eingebunden. Du kannst die Einwilligung jederzeit im Konto oder per STOP widerrufen.',
 
-        // Why a member cannot switch WhatsApp notifications on (gate reasons, shown in the account card and after a refused request).
+        // Why an account cannot switch WhatsApp notifications on (gate reasons, shown in the account card and after a refused request).
+        // Only the booking account counts (status, mobile number, player exchange); a member record is not required.
         'refused' => [
             'disabled' => 'WhatsApp-Benachrichtigungen sind derzeit nicht verfügbar.',
             'account_inactive' => 'Dein Konto ist nicht aktiv, deshalb kannst du WhatsApp-Benachrichtigungen nicht einschalten.',
-            'no_member' => 'Dein Konto ist keinem Mitglied zugeordnet. Bitte wende dich an den Verein.',
-            'member_inactive' => 'Deine Mitgliedschaft ist nicht aktiv, deshalb kannst du WhatsApp-Benachrichtigungen nicht einschalten.',
             'no_phone' => 'In deinem Profil ist noch keine Handynummer hinterlegt. Trage sie im Profil ein und speichere.',
             'phone_invalid' => 'Die Handynummer in deinem Profil ist ungültig. Bitte korrigiere sie im Profil.',
             'phone_not_mobile' => 'Die Nummer in deinem Profil ist keine Handynummer. Bitte trage im Profil eine Handynummer ein.',

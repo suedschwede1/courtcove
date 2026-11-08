@@ -12,7 +12,8 @@ use App\Services\Notifications\ConsentService;
 
 /**
  * Fixtures for the consent tests: a user that passes the whole gate (main switch on, enabled account,
- * linked active member, Austrian mobile number, in the player exchange). Numbers are fictitious.
+ * Austrian mobile number, in the player exchange). The gate looks at the booking account only, so the
+ * user has no member record; linkMember() adds one where a test needs it. Numbers are fictitious.
  */
 trait BuildsConsentFixtures
 {
@@ -28,9 +29,17 @@ trait BuildsConsentFixtures
         $user = User::factory()->create(['status' => 'enabled']);
         $user->setMeta('phone', $phone);
         $user->setMeta('player-exchange', '1');
-        Member::factory()->create(['user_id' => $user->uid, 'status' => 'aktiv', 'left_at' => null, 'anonymized_at' => null]);
 
         return $user->fresh();
+    }
+
+    /** @param  array<string, mixed>  $attributes */
+    protected function linkMember(User $user, array $attributes = []): Member
+    {
+        return Member::factory()->create(array_merge(
+            ['user_id' => $user->uid, 'status' => 'aktiv', 'left_at' => null, 'anonymized_at' => null],
+            $attributes,
+        ));
     }
 
     protected function consents(): ConsentService

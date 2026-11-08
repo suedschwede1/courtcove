@@ -22,11 +22,9 @@ class GateTest extends TestCase
     public static function failingCases(): array
     {
         return [
-            'kein Mitglied' => [static fn (User $u) => Member::query()->where('user_id', $u->uid)->delete(), 'no_member'],
-            'ruhend' => [static fn (User $u) => Member::query()->where('user_id', $u->uid)->update(['status' => 'ruhend']), 'member_inactive'],
-            'ausgetreten' => [static fn (User $u) => Member::query()->where('user_id', $u->uid)->update(['status' => 'ausgetreten']), 'member_inactive'],
-            'anonymisiert' => [static fn (User $u) => Member::query()->where('user_id', $u->uid)->update(['anonymized_at' => now()]), 'member_inactive'],
             'gesperrter Benutzer' => [static fn (User $u) => User::query()->whereKey($u->uid)->update(['status' => 'blocked']), 'account_inactive'],
+            'deaktivierter Benutzer' => [static fn (User $u) => User::query()->whereKey($u->uid)->update(['status' => 'disabled']), 'account_inactive'],
+            'geloeschter Benutzer' => [static fn (User $u) => User::query()->whereKey($u->uid)->update(['status' => 'deleted']), 'account_inactive'],
             'keine Nummer' => [static fn (User $u) => $u->meta()->where('key', 'phone')->delete(), 'no_phone'],
             'Festnetz' => [static fn (User $u) => $u->meta()->where('key', 'phone')->update(['value' => '01 0000000']), 'phone_not_mobile'],
             'ungueltig' => [static fn (User $u) => $u->meta()->where('key', 'phone')->update(['value' => 'abc']), 'phone_invalid'],
@@ -49,7 +47,7 @@ class GateTest extends TestCase
     }
 
     #[Test]
-    public function gate_passes_for_an_eligible_member_and_carries_the_number(): void
+    public function gate_passes_for_an_eligible_account_and_carries_the_number(): void
     {
         $user = $this->eligibleUser('0660 0000042');
 
@@ -61,6 +59,32 @@ class GateTest extends TestCase
         $this->assertSame('42', $result->last2);
     }
 
+    /** @return array<string, array{array<string, mixed>|null}> */
+    public static function memberStates(): array
+    {
+        return [
+            'kein Mitglied' => [null],
+            'aktiv' => [['status' => 'aktiv']],
+            'ruhend' => [['status' => 'ruhend']],
+            'ausgetreten' => [['status' => 'ausgetreten', 'left_at' => '2026-10-31']],
+            'anonymisiert, noch verknuepft' => [['status' => 'ausgetreten', 'left_at' => '2020-01-01', 'anonymized_at' => '2026-11-01 10:00:00']],
+        ];
+    }
+
+    /** Only the booking account counts: whether and in which state a member record exists plays no part. */
+    #[Test]
+    #[DataProvider('memberStates')]
+    public function the_member_record_plays_no_part(?array $member): void
+    {
+        $user = $this->eligibleUser();
+        if ($member !== null) {
+            $this->linkMember($user, $member);
+        }
+
+        $this->assertSame($member === null ? 0 : 1, Member::query()->where('user_id', $user->uid)->count());
+        $this->assertTrue($this->consents()->gate($user->fresh())->passed);
+    }
+
     #[Test]
     public function the_main_switch_is_checked_first(): void
     {
@@ -70,16 +94,12 @@ class GateTest extends TestCase
     }
 
     #[Test]
-    public function admin_test_gate_skips_member_rules(): void
+    public function admin_test_gate_skips_only_the_player_exchange(): void
     {
         $user = $this->eligibleUser();
-        Member::query()->where('user_id', $user->uid)->delete();
         $user->meta()->where('key', 'player-exchange')->delete();
 
-        $this->assertSame('no_member', $this->consents()->gate($user)->reason);
-        $this->assertTrue($this->consents()->gate($user, forAdminTest: true)->passed);
-
-        Member::factory()->create(['user_id' => $user->uid, 'status' => 'ruhend']);
+        $this->assertSame('exchange_off', $this->consents()->gate($user)->reason);
         $this->assertTrue($this->consents()->gate($user, forAdminTest: true)->passed);
 
         // Main switch, account status and the mobile number still count.
