@@ -24,11 +24,15 @@ final class PlayerSearchOpenedNotification extends Notification
 {
     public const DEBOUNCE_MINUTES = 2;
 
-    /** @param  MessageContent|null  $content  prebuilt once per search by the listener (not stored) */
+    /**
+     * @param  MessageContent|null  $content  prebuilt once per search by the listener (not stored)
+     * @param  int|null  $bid  booking of the search, passed by the listener so no recipient reads the search again
+     */
     public function __construct(
         public readonly int $searchId,
         public readonly int $delaySeconds = 0,
         private readonly ?MessageContent $content = null,
+        private readonly ?int $bid = null,
     ) {}
 
     /** @return list<class-string> */
@@ -40,8 +44,9 @@ final class PlayerSearchOpenedNotification extends Notification
     public function toWhatsApp(object $notifiable): WhatsAppMessage
     {
         $userId = $notifiable instanceof User ? (int) $notifiable->getKey() : 0;
-        $search = PlayerSearch::query()->find($this->searchId, ['id', 'bid']);
+        $search = $this->content !== null && $this->bid !== null ? null : PlayerSearch::query()->find($this->searchId, ['id', 'bid']);
         $content = $this->content ?? $this->contentFor($search);
+        $bid = $this->bid ?? ($search !== null ? (int) $search->bid : null);
 
         return new WhatsAppMessage(
             type: NotificationType::PlayerSearchOpened,
@@ -51,7 +56,7 @@ final class PlayerSearchOpenedNotification extends Notification
             subjectType: 'player_search',
             subjectId: $this->searchId,
             notBefore: Carbon::now()->addMinutes(self::DEBOUNCE_MINUTES)->addSeconds(max(0, $this->delaySeconds)),
-            subjectPayload: ['search_id' => $this->searchId, 'bid' => $search !== null ? (int) $search->bid : null],
+            subjectPayload: ['search_id' => $this->searchId, 'bid' => $bid],
         );
     }
 

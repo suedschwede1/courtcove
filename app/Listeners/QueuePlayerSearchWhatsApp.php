@@ -44,7 +44,7 @@ final class QueuePlayerSearchWhatsApp
             // Built once for every recipient; the outbox keeps none of it (the dispatcher rebuilds it).
             $content = $this->subject->openedContent($search, app()->getLocale());
             foreach ($this->recipients->forSearch($search)->values() as $position => $user) {
-                $this->channel->send($user, new PlayerSearchOpenedNotification((int) $search->id, $position, $content));
+                $this->channel->send($user, new PlayerSearchOpenedNotification((int) $search->id, $position, $content, (int) $search->bid));
             }
         } catch (Throwable $e) {
             report($e);

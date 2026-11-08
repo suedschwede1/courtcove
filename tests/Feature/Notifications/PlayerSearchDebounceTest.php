@@ -245,14 +245,30 @@ class PlayerSearchDebounceTest extends TestCase
         $this->dispatch();
         $this->assertCount(2, $this->fake()->sent());
 
-        $this->exchange()->join($joiner, $booking);   // filled: follow-ups enqueued
-        $this->assertCount(2, $this->closedRows());
+        $this->exchange()->join($joiner, $booking);   // filled: follow-up for the other member (not the joiner)
+        $this->assertCount(1, $this->closedRows());
         $this->exchange()->leave($joiner, $booking);  // open again within the debounce
         $this->travel(5)->minutes();
         $this->dispatch();
 
         $this->assertCount(2, $this->fake()->sent());
         $this->closedRows()->each(fn (NotificationLogEntry $row) => $this->assertSkippedGone($row));
+    }
+
+    #[Test]
+    public function members_who_joined_the_search_get_no_closed_follow_up(): void
+    {
+        $this->setOption('whatsapp.followup_closed', '1');
+        $watcher = $this->optedInUser('+43 660 0000001');
+        $joiner = $this->optedInUser('+43 660 0000002');
+        $booking = $this->openSearch($this->searcher(), quantity: 2, needed: 1);
+        $this->travel(3)->minutes();
+        $this->dispatch();
+        $this->assertCount(2, $this->fake()->sent());
+
+        $this->exchange()->join($joiner, $booking);   // filled: follow-up for the watcher only
+
+        $this->assertSame([$watcher->uid], $this->closedRows()->pluck('user_id')->all());
     }
 
     private function assertSkippedGone(?NotificationLogEntry $row): void

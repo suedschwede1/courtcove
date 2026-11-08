@@ -80,6 +80,8 @@ Vor dem Umschalten auf Treiber `live` und Hauptschalter an:
 - [ ] Datenbank-Version: MySQL 8 oder MariaDB ab 10.6 (wegen `SKIP LOCKED` beim Abholen faelliger Zeilen).
 - [ ] Budget-Drift beachtet: `messages_reserved` kann bei einem Prozessabbruch dauerhaft erhoeht bleiben; zum Monatswechsel und bei Auffaelligkeiten mit dem Versandprotokoll und der Anbieter-Abrechnung abgleichen.
 - [ ] Cron laeuft (`schedule:run` minuetlich).
+- [ ] Nach jedem Deploy `php artisan event:cache` bzw. `php artisan optimize` neu laufen lassen, falls diese Caches genutzt werden: die Listener der Spielersuche werden per Auto-Discovery gefunden, ein alter Event-Cache kennt sie nicht.
+- [ ] Button-Suffix `join={bid}`: der Kalender wertet `join` noch nicht aus (der Link oeffnet nur den Tag). Vor der Vorlagen-Freigabe entscheiden: im Kalender auswerten oder den Suffix der Vorlage aendern.
 - [ ] Testnachricht aus den Admin-Einstellungen kommt an (Voraussetzung: der Admin hat in seiner Konto-Karte "WhatsApp-Benachrichtigungen" zugestimmt; dafuer braucht er aktives Mitglied, Mobilnummer und eingeschaltete Spielerboerse).
 - [ ] Leitet der Live-Host `/webhooks/*` an Laravel weiter (Bruecke/`.htaccess`), und ist die Webhook-Basis der Booking-Host, nicht der Turnier-Host?
 - [ ] Anbieter-Literale und `WHATSAPP_WEBHOOK_BASE_URL` stehen in der Live-`.env` (nicht in den Admin-Optionen).

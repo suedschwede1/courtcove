@@ -43,6 +43,12 @@ class PlayerSearchTriggerTest extends TestCase
         $this->startClock();
     }
 
+    /** Seam for the web branch of PlayerSearchEvents (the test runner itself always runs in the console). */
+    private function setRunningInConsole(bool $value): void
+    {
+        (fn () => $this->isRunningInConsole = $value)->call($this->app);
+    }
+
     private function configureMail(): void
     {
         config(['mail.default' => 'smtp', 'mail.mailers.smtp.host' => 'smtp.example.com']);
@@ -89,6 +95,26 @@ class PlayerSearchTriggerTest extends TestCase
         Mail::assertQueued(PlayerSearchOpened::class, 2);
         Mail::assertQueued(PlayerSearchOpened::class, fn (PlayerSearchOpened $m) => $m->hasTo('plain@example.test'));
         $this->assertCount(1, $this->openedRows());
+    }
+
+    #[Test]
+    public function in_a_web_request_the_rows_are_written_only_after_the_response(): void
+    {
+        $owner = $this->searcher();
+        $this->optedInUser('+43 660 0000001');
+        $this->optedInUser('+43 660 0000002');
+        $this->setRunningInConsole(false);
+
+        try {
+            $search = $this->searchOf($this->openSearch($owner));
+            $this->assertCount(0, $this->openedRows(), 'nothing during the request');
+
+            $this->app->terminate();
+        } finally {
+            $this->setRunningInConsole(true);
+        }
+
+        $this->assertCount(2, $this->openedRows($search->id));
     }
 
     #[Test]

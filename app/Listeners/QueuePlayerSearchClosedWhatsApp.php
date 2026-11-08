@@ -6,6 +6,7 @@ namespace App\Listeners;
 
 use App\Events\PlayerSearchClosed;
 use App\Models\NotificationLogEntry;
+use App\Models\PlayerSignup;
 use App\Models\User;
 use App\Notifications\Channels\WhatsAppChannel;
 use App\Notifications\PlayerSearchClosedNotification;
@@ -18,7 +19,8 @@ use Throwable;
 /**
  * A search stopped seeking: its opened messages that are still pending are skipped at once (subject_gone).
  * With the option `whatsapp.followup_closed` on, every member whose opened message actually went out gets
- * one "search closed" follow-up (dedupe key per search and member, due in five minutes). Never throws.
+ * one "search closed" follow-up (dedupe key per search and member, due in five minutes), except members
+ * who joined the search themselves. Never throws.
  */
 final class QueuePlayerSearchClosedWhatsApp
 {
@@ -53,6 +55,9 @@ final class QueuePlayerSearchClosedWhatsApp
                 ->distinct()
                 ->pluck('user_id')
                 ->all();
+            // Members who joined this search know how it ended; they get no follow-up.
+            $joined = PlayerSignup::query()->where('search_id', $event->searchId)->pluck('uid')->map(fn ($uid): int => (int) $uid)->all();
+            $userIds = array_values(array_diff(array_map('intval', $userIds), $joined));
             if ($userIds === []) {
                 return;
             }
