@@ -11,7 +11,7 @@ use App\Models\NotificationLogEntry;
 use App\Models\NotificationSubscription;
 use App\Models\PlayerSearch;
 use App\Models\User;
-use App\Notifications\Types\NotificationType;
+use App\Notifications\Types\NotificationTypes;
 use App\Services\BookingService;
 use App\Services\Notifications\ConsentService;
 use App\Services\Notifications\RecipientResolver;
@@ -357,7 +357,7 @@ class PlayerSearchTriggerTest extends TestCase
     public function revoking_the_consent_also_removes_a_closed_subscription(): void
     {
         $user = $this->optedInUser('+43 660 0000001');
-        NotificationSubscription::create(['user_id' => $user->uid, 'type' => NotificationType::PlayerSearchClosed->value, 'channel' => 'whatsapp']);
+        NotificationSubscription::create(['user_id' => $user->uid, 'type' => NotificationTypes::PLAYER_SEARCH_CLOSED, 'channel' => 'whatsapp']);
 
         app(ConsentService::class)->revoke($user, 'account', 'player_search');
 
@@ -370,7 +370,7 @@ class PlayerSearchTriggerTest extends TestCase
         $user = $this->optedInUser('+43 660 0000001');
 
         $this->assertSame(
-            [NotificationType::PlayerSearchOpened->value],
+            [NotificationTypes::PLAYER_SEARCH_OPENED],
             NotificationSubscription::query()->where('user_id', $user->uid)->pluck('type')->all(),
         );
     }

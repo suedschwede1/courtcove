@@ -10,7 +10,8 @@
     // Known keys translate; an unknown value (old or foreign data) is shown as the raw value, never as a language key.
     $tr = fn (string $key, ?string $raw) => \Illuminate\Support\Facades\Lang::has($key) ? __($key) : (string) $raw;
     $statusOptions = collect($statuses)->mapWithKeys(fn ($st) => [$st => $tr('booking.admin.whatsapp.log.status.'.$st, $st)])->all();
-    $typeOptions = collect($types)->mapWithKeys(fn ($t) => [$t['value'] => $tr('booking.admin.whatsapp.log.types.'.$t['key'], $t['value'])])->all();
+    // Registered types with their labels; a type that is no longer registered shows its raw key.
+    $typeOptions = collect($types)->mapWithKeys(fn ($t) => [$t['value'] => $t['label']])->all();
     $de = app()->getLocale() === 'de';
     $money = fn (int $micros) => '≈ '.number_format($micros / 1_000_000, 2, $de ? ',' : '.', $de ? '.' : ',').' EUR';
 @endphp
@@ -51,7 +52,6 @@
                 </x-slot:head>
                 @foreach($entries as $entry)
                     @php
-                        $typeCase = \App\Notifications\Types\NotificationType::tryFrom($entry->type);
                         $alias = $entry->user_id !== null ? ($users[$entry->user_id] ?? null) : null;
                         $reason = $entry->skip_reason !== null
                             ? $tr('booking.admin.whatsapp.skip_reasons.'.$entry->skip_reason, $entry->skip_reason)
@@ -60,7 +60,7 @@
                     @endphp
                     <tr>
                         <td class="ds-cell--title" data-label="{{ __('booking.admin.whatsapp.log.col_time') }}">{{ $entry->created_at?->format('d.m.Y H:i') }}</td>
-                        <td data-label="{{ __('booking.admin.whatsapp.log.col_type') }}">{{ $typeCase !== null ? $tr('booking.admin.whatsapp.log.types.'.$typeCase->templateKey(), $entry->type) : $entry->type }}</td>
+                        <td data-label="{{ __('booking.admin.whatsapp.log.col_type') }}">{{ $typeOptions[$entry->type] ?? $entry->type }}</td>
                         <td data-label="{{ __('booking.admin.whatsapp.log.col_user') }}"><span class="ds-admin-wa-user">
                             @if($alias !== null)
                                 <a href="{{ route('admin.users.edit', $entry->user_id) }}" class="ds-admin-link">{{ $alias }}</a>

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Notifications\Messages;
 
-use App\Notifications\Types\NotificationType;
+use App\Notifications\Registry\NotificationRegistry;
 use Carbon\CarbonInterface;
 
 /**
- * What a notification hands to the WhatsApp outbox channel. Only the keys are stored (type, subject,
- * dedupe key, due time and `subjectPayload` with IDs). `$variables` and `$buttonSuffix` are never
+ * What a notification hands to the WhatsApp outbox channel. Only the keys are stored (type key as
+ * registered in the {@see NotificationRegistry}, subject, dedupe key, due time and `subjectPayload` with IDs). `$variables` and `$buttonSuffix` are never
  * persisted: the subject resolver rebuilds the content at send time, so no name or text lands in the
  * outbox table.
  */
@@ -20,7 +20,7 @@ final readonly class WhatsAppMessage
      * @param  array<string, int|string|null>  $subjectPayload  IDs and keys only, never text, names or numbers
      */
     public function __construct(
-        public NotificationType $type,
+        public string $type,
         public array $variables,
         public ?string $buttonSuffix,
         public string $dedupeKey,

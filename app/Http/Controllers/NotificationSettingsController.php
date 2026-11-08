@@ -7,75 +7,93 @@ namespace App\Http\Controllers;
 use App\Models\NotificationConsent;
 use App\Models\NotificationSubscription;
 use App\Models\User;
+use App\Notifications\Registry\NotificationPurposeDefinition;
+use App\Notifications\Registry\NotificationRegistry;
+use App\Notifications\Registry\SubscriptionFilters;
 use App\Services\Notifications\AccountCard;
 use App\Services\Notifications\ConsentRefused;
 use App\Services\Notifications\ConsentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Lang;
+use Illuminate\Support\Facades\Validator;
 
 /**
- * The account card "WhatsApp-Benachrichtigungen": consent, filters and withdrawal. Every action works on the
- * logged-in user's own consent only (no id in the request).
+ * The account cards "WhatsApp-Benachrichtigungen": consent, type switches with filters and withdrawal, per
+ * consent purpose of the registry (route parameter `{purpose}`; without it the player search purpose, so the
+ * original URLs keep working; an unregistered purpose is a 404). Every action works on the logged-in user's own
+ * consent only (no id in the request).
  */
 final class NotificationSettingsController extends Controller
 {
-    private const KNOWN_REASONS = [
-        'disabled', 'account_inactive', 'no_phone', 'phone_invalid', 'phone_not_mobile', 'exchange_off', 'conflict',
-    ];
+    public function __construct(
+        private readonly ConsentService $consents,
+        private readonly NotificationRegistry $registry,
+        private readonly AccountCard $card,
+    ) {}
 
-    public function __construct(private readonly ConsentService $consents) {}
-
-    /** Give the consent (needs the ticked checkbox and the complete gate). */
-    public function enable(Request $request): RedirectResponse
+    /** Give the consent of the purpose (needs the ticked checkbox and the complete gate of the purpose). */
+    public function enable(Request $request, ?string $purpose = null): RedirectResponse
     {
+        $definition = $this->purpose($purpose);
+        // A purpose without a switched-on subscribable type is not offered, so there is nothing to consent to
+        // (an existing consent is answered by optIn() as before).
+        abort_if(! $this->card->offered($definition->key) && $this->consents->activeConsent($this->user($request), $definition->key) === null, 404);
         $request->validate(
             ['consent' => ['accepted']],
             ['consent.accepted' => __('booking.notifications.account_card.consent_required')],
         );
 
         try {
-            $this->consents->optIn($this->user($request), NotificationConsent::PURPOSE_PLAYER_SEARCH, app()->getLocale());
+            $this->consents->optIn($this->user($request), $definition->key, app()->getLocale());
         } catch (ConsentRefused $e) {
-            $reason = in_array($e->reason, self::KNOWN_REASONS, true) ? $e->reason : 'conflict';
-
-            return $this->back()->with('error', __('booking.notifications.refused.'.$reason));
+            return $this->back()->with('error', __(self::refusedKey($e->reason)));
         }
 
         return $this->back()->with('success', __('booking.notifications.account_card.enabled_flash'));
     }
 
-    /** Switch the player search messages on or off and save their filters; the consent itself stays. */
-    public function update(Request $request): RedirectResponse
+    /**
+     * Switch the purpose's types on or off and save their filters; the consent itself stays. Field names:
+     * `on[<type slug>]` and `filters[<type slug>][...]` (rules derived from the type's filter definition).
+     */
+    public function update(Request $request, ?string $purpose = null): RedirectResponse
     {
+        $definition = $this->purpose($purpose);
         $user = $this->user($request);
-        if ($this->consents->activeConsent($user) === null) {
+        if ($this->consents->activeConsent($user, $definition->key) === null) {
             return $this->back()->with('error', __('booking.notifications.account_card.no_consent_flash'));
         }
 
-        $data = $request->validate([
-            'search' => ['nullable', 'boolean'],
-            'weekdays' => ['nullable', 'array', 'max:7'],
-            'weekdays.*' => ['integer', 'between:1,7'],
-            'time_from' => ['nullable', 'date_format:H:i', 'required_with:time_to', 'before:time_to'],
-            'time_to' => ['nullable', 'date_format:H:i', 'required_with:time_from'],
-            'quantities' => ['nullable', 'array', 'max:2'],
-            'quantities.*' => ['integer', 'in:2,4'],
-        ]);
+        $types = $this->card->switchableTypes($definition->key);
+        $rules = [];
+        $attributes = [];
+        foreach ($types as $type) {
+            $rules['on.'.$type->slug()] = ['nullable', 'boolean'];
+            $rules += SubscriptionFilters::rules($type);
+            $attributes += SubscriptionFilters::attributes($type);
+        }
+        $data = Validator::make($request->all(), $rules, [], $attributes)->validate();
 
-        $query = NotificationSubscription::query()
-            ->where('user_id', $user->getKey())
-            ->where('channel', ConsentService::CHANNEL)
-            ->where('type', AccountCard::SEARCH_TYPE);
+        foreach ($types as $type) {
+            $query = NotificationSubscription::query()
+                ->where('user_id', $user->getKey())
+                ->where('channel', ConsentService::CHANNEL)
+                ->where('type', $type->key);
 
-        if (! $request->boolean('search')) {
-            $query->delete();
-        } else {
+            if (! filter_var($data['on'][$type->slug()] ?? false, FILTER_VALIDATE_BOOLEAN)) {
+                $query->delete();
+
+                continue;
+            }
+
             $existing = $query->first();
-            $filters = $this->filters($data, is_array($existing?->filters) ? $existing->filters : []);
+            $input = (array) ($data['filters'][$type->slug()] ?? []);
+            $filters = SubscriptionFilters::normalise($type, $input, is_array($existing?->filters) ? $existing->filters : []);
             if ($existing === null) {
                 NotificationSubscription::create([
                     'user_id' => $user->getKey(),
-                    'type' => AccountCard::SEARCH_TYPE,
+                    'type' => $type->key,
                     'channel' => ConsentService::CHANNEL,
                     'filters' => $filters,
                 ]);
@@ -87,42 +105,29 @@ final class NotificationSettingsController extends Controller
         return $this->back()->with('success', __('booking.notifications.account_card.saved_flash'));
     }
 
-    /** Withdraw the consent (works even when the main switch is off). */
-    public function revoke(Request $request): RedirectResponse
+    /** Withdraw the consent of the purpose (works even when the main switch is off). */
+    public function revoke(Request $request, ?string $purpose = null): RedirectResponse
     {
-        $this->consents->revoke($this->user($request), 'account', NotificationConsent::PURPOSE_PLAYER_SEARCH);
+        $definition = $this->purpose($purpose);
+        $this->consents->revoke($this->user($request), 'account', $definition->key);
 
         return $this->back()->with('success', __('booking.notifications.account_card.revoked_flash'));
     }
 
-    /**
-     * Normalised filters: weekdays and quantities sorted and unique, times as given; an empty selection leaves
-     * the key out and no filters at all is stored as null (everything). Other keys (courts) are kept.
-     *
-     * @param  array<string, mixed>  $data
-     * @param  array<string, mixed>  $existing
-     * @return array<string, mixed>|null
-     */
-    private function filters(array $data, array $existing): ?array
+    /** Text key of a refusal: the reason's own text, else the generic one. */
+    public static function refusedKey(?string $reason): string
     {
-        $filters = array_diff_key($existing, array_flip(['weekdays', 'time_from', 'time_to', 'quantities']));
+        $key = 'booking.notifications.refused.'.$reason;
 
-        $weekdays = array_values(array_unique(array_map('intval', (array) ($data['weekdays'] ?? []))));
-        sort($weekdays);
-        if ($weekdays !== []) {
-            $filters['weekdays'] = $weekdays;
-        }
-        if (($data['time_from'] ?? null) !== null && ($data['time_to'] ?? null) !== null) {
-            $filters['time_from'] = (string) $data['time_from'];
-            $filters['time_to'] = (string) $data['time_to'];
-        }
-        $quantities = array_values(array_unique(array_map('intval', (array) ($data['quantities'] ?? []))));
-        sort($quantities);
-        if ($quantities !== []) {
-            $filters['quantities'] = $quantities;
-        }
+        return $reason !== null && $reason !== '' && Lang::has($key) ? $key : 'booking.notifications.refused.unavailable';
+    }
 
-        return $filters === [] ? null : $filters;
+    private function purpose(?string $key): NotificationPurposeDefinition
+    {
+        $definition = $this->registry->purpose($key ?? NotificationConsent::PURPOSE_PLAYER_SEARCH);
+        abort_if($definition === null, 404);
+
+        return $definition;
     }
 
     private function user(Request $request): User

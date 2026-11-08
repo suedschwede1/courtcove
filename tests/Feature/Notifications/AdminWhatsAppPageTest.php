@@ -11,6 +11,7 @@ use App\Services\Notifications\SecretOptions;
 use App\Services\Notifications\WhatsAppSettings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Testing\TestResponse;
@@ -27,6 +28,12 @@ class AdminWhatsAppPageTest extends TestCase
     private const ACCOUNT = 'ACtest00000000000000000000000001';
 
     private const SERVICE = 'MGtest00000000000000000000000002';
+
+    /** Form field of the "search closed" follow-up switch: the generic switch of its type block. */
+    private const FOLLOWUP_FIELD = 'type_player_search-closed_enabled';
+
+    /** Marker of the type block: without it a save leaves the switch alone. */
+    private const FOLLOWUP_SHOWN = 'type_player_search-closed_shown';
 
     private function admin(): User
     {
@@ -243,9 +250,9 @@ class AdminWhatsAppPageTest extends TestCase
 
         $this->assertStringNotContainsString('reserve', $html);
         $this->assertStringNotContainsString('verification', $html);
-        foreach (['player_search_opened', 'player_search_closed', 'test'] as $key) {
+        foreach (['player_search-opened', 'player_search-closed', 'whatsapp-test'] as $slug) {
             foreach (['de', 'en'] as $locale) {
-                $this->assertStringContainsString('name="tpl_'.$key.'_'.$locale.'"', $html);
+                $this->assertStringContainsString('name="type_'.$slug.'_tpl_'.$locale.'"', $html);
             }
         }
     }
@@ -253,7 +260,7 @@ class AdminWhatsAppPageTest extends TestCase
     #[Test]
     public function templates_are_stored_per_type_and_locale(): void
     {
-        $this->save(['driver' => 'log', 'tpl_player_search_opened_de' => 'HXtest01', 'tpl_test_en' => 'HXtest02'])->assertSessionHasNoErrors();
+        $this->save(['driver' => 'log', 'type_player_search-opened_tpl_de' => 'HXtest01', 'type_whatsapp-test_tpl_en' => 'HXtest02'])->assertSessionHasNoErrors();
 
         $this->assertSame('HXtest01', $this->settings()->templateId('player_search_opened', 'de'));
         $this->assertSame('HXtest02', $this->settings()->templateId('test', 'en'));
@@ -366,5 +373,64 @@ class AdminWhatsAppPageTest extends TestCase
         Log::shouldHaveReceived('info')->withArgs(
             fn (string $m, array $c = []): bool => $m === 'admin.whatsapp.config_changed' && in_array('enabled', $c['fields'], true) && in_array('driver', $c['fields'], true),
         )->once();
+    }
+
+    #[Test]
+    public function followup_switch_reads_and_writes_the_type_option_only(): void
+    {
+        $typeOption = 'whatsapp.type.player_search.closed.enabled';
+        $checked = fn (string $html): bool => preg_match('/name="'.preg_quote(self::FOLLOWUP_FIELD, '/').'"[^>]*checked/', $html) === 1;
+
+        // The old option is only a read fallback while the type option is unset.
+        Option::create(['key' => 'whatsapp.followup_closed', 'value' => '1', 'locale' => null]);
+        $this->assertTrue($checked($this->page()));
+
+        // The type option wins over the old one.
+        Option::create(['key' => $typeOption, 'value' => '0', 'locale' => null]);
+        $this->assertFalse($checked($this->page()));
+
+        // Saving writes the type option and drops the old one.
+        $this->save([self::FOLLOWUP_SHOWN => '1', self::FOLLOWUP_FIELD => '1'])->assertRedirect();
+        $this->assertSame('1', $this->opt($typeOption));
+        $this->assertNull($this->opt('whatsapp.followup_closed'));
+        $this->assertTrue($this->settings()->typeEnabled('player_search.closed'));
+
+        // A save without the type block (partial form) leaves the switch alone.
+        $this->save([])->assertRedirect();
+        $this->assertSame('1', $this->opt($typeOption));
+
+        $this->save([self::FOLLOWUP_SHOWN => '1'])->assertRedirect();
+        $this->assertSame('0', $this->opt($typeOption));
+        $this->assertFalse($this->settings()->typeEnabled('player_search.closed'));
+    }
+
+    #[Test]
+    public function the_test_type_has_no_price_field_and_a_posted_price_is_ignored(): void
+    {
+        $html = $this->page();
+        preg_match('/<section[^>]*data-wa-type="whatsapp\.test"[^>]*>.*?<\/section>/s', $html, $m);
+
+        $this->assertNotSame('', $m[0] ?? '');
+        $this->assertStringNotContainsString('name="type_whatsapp-test_price"', $m[0]);
+        $this->assertStringContainsString('name="type_player_search-opened_price"', $html);
+
+        $this->save(['type_whatsapp-test_price' => '0.50'])->assertSessionHasNoErrors();
+        $this->assertNull($this->opt('whatsapp.price.whatsapp.test'));
+    }
+
+    #[Test]
+    public function last_sent_time_is_shown_in_vienna_time_in_the_format_of_the_language(): void
+    {
+        NotificationLogEntry::create([
+            'type' => 'player_search.opened', 'channel' => 'whatsapp', 'user_id' => null, 'subject_type' => 'player_search',
+            'subject_id' => 1, 'dedupe_key' => 'stat-time-1', 'status' => NotificationLogEntry::SENT, 'priority' => 20,
+            'attempts' => 0, 'not_before' => now(), 'sent_at' => Carbon::parse('2026-11-05 13:07:00', 'Europe/Vienna'),
+        ]);
+        $admin = $this->admin();
+
+        $this->assertStringContainsString('05.11.2026 13:07', $this->page($admin));
+
+        $admin->setMeta('locale', 'en');
+        $this->assertStringContainsString('5 Nov 2026, 13:07', $this->page($admin->fresh()));
     }
 }

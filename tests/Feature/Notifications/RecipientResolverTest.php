@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Notifications;
 
 use App\Events\PlayerSearchStarted;
+use App\Models\NotificationConsent;
 use App\Models\NotificationLogEntry;
 use App\Models\NotificationSubscription;
 use App\Models\PlayerSearch;
@@ -12,8 +13,11 @@ use App\Models\PlayerSignup;
 use App\Models\User;
 use App\Models\UserMeta;
 use App\Modules\Members\Models\Member;
-use App\Notifications\Types\NotificationType;
+use App\Notifications\Registry\NotificationRegistry;
+use App\Notifications\Registry\NotificationTypeDefinition;
+use App\Notifications\Types\NotificationTypes;
 use App\Services\Notifications\RecipientResolver;
+use App\Services\Notifications\Resolvers\AdminTestResolver;
 use App\Services\PlayerExchangeService;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -199,7 +203,18 @@ class RecipientResolverTest extends TestCase
         $this->sentRows($middle, 1);
         $this->sentRows($quiet, 2, Carbon::parse('2026-10-30 12:00:00'));          // last month: does not count
         $this->sentRows($fresh, 2, null, NotificationLogEntry::SKIPPED);            // not sent: does not count
-        $this->sentRows($fresh, 5, null, NotificationLogEntry::SENT, NotificationType::AdminTest); // admin test: does not count
+        $this->sentRows($fresh, 5, null, NotificationLogEntry::SENT, NotificationTypes::ADMIN_TEST); // admin test: does not count
+        // Any other registered test type does not count either.
+        app(NotificationRegistry::class)->register(new NotificationTypeDefinition(
+            key: 'extra.test',
+            labelKey: 'booking.notifications.types.test.label',
+            descriptionKey: 'booking.notifications.types.test.description',
+            templateKey: 'extra_test',
+            resolver: AdminTestResolver::class,
+            purpose: NotificationConsent::PURPOSE_PLAYER_SEARCH,
+            testType: true,
+        ));
+        $this->sentRows($fresh, 5, null, NotificationLogEntry::SENT, 'extra.test');
 
         $this->assertSame([$quiet->uid, $fresh->uid, $middle->uid, $busy->uid], $this->uids($this->search()));
     }
@@ -215,19 +230,19 @@ class RecipientResolverTest extends TestCase
         $this->assertEqualsCanonicalizing($expected, $this->uids($this->search()));
     }
 
-    private function sentRows(User $user, int $count, ?Carbon $at = null, string $status = NotificationLogEntry::SENT, NotificationType $type = NotificationType::PlayerSearchOpened): void
+    private function sentRows(User $user, int $count, ?Carbon $at = null, string $status = NotificationLogEntry::SENT, string $type = NotificationTypes::PLAYER_SEARCH_OPENED): void
     {
         $at ??= Carbon::parse('2026-11-05 12:00:00');
         for ($i = 0; $i < $count; $i++) {
             NotificationLogEntry::create([
-                'type' => $type->value,
+                'type' => $type,
                 'channel' => 'whatsapp',
                 'user_id' => $user->uid,
                 'subject_type' => 'player_search',
                 'subject_id' => 0,
                 'dedupe_key' => 'test:'.Str::uuid()->toString(),
                 'status' => $status,
-                'priority' => $type->priority(),
+                'priority' => (int) app(NotificationRegistry::class)->type($type)?->priority,
                 'attempts' => 0,
                 'not_before' => $at,
                 'sent_at' => $status === NotificationLogEntry::SENT ? $at : null,

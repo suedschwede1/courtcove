@@ -7,7 +7,7 @@ namespace App\Notifications;
 use App\Models\User;
 use App\Notifications\Channels\WhatsAppChannel;
 use App\Notifications\Messages\WhatsAppMessage;
-use App\Notifications\Types\NotificationType;
+use App\Notifications\Types\NotificationTypes;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Carbon;
 
@@ -32,10 +32,10 @@ final class PlayerSearchClosedNotification extends Notification
         $userId = $notifiable instanceof User ? (int) $notifiable->getKey() : 0;
 
         return new WhatsAppMessage(
-            type: NotificationType::PlayerSearchClosed,
+            type: NotificationTypes::PLAYER_SEARCH_CLOSED,
             variables: [],
             buttonSuffix: null,
-            dedupeKey: NotificationType::PlayerSearchClosed->value.':'.$this->searchId.':'.$userId.':whatsapp',
+            dedupeKey: NotificationTypes::PLAYER_SEARCH_CLOSED.':'.$this->searchId.':'.$userId.':whatsapp',
             subjectType: 'player_search',
             subjectId: $this->searchId,
             notBefore: Carbon::now()->addMinutes(self::DEBOUNCE_MINUTES),

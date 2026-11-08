@@ -10,7 +10,8 @@ use App\Models\NotificationSubscription;
 use App\Models\PlayerSearch;
 use App\Models\Reservation;
 use App\Models\User;
-use App\Notifications\Types\NotificationType;
+use App\Notifications\Registry\NotificationRegistry;
+use App\Notifications\Types\NotificationTypes;
 use App\Services\PlayerExchangeService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
@@ -35,6 +36,7 @@ final class RecipientResolver
     public function __construct(
         private readonly PlayerExchangeService $exchange,
         private readonly ConsentService $consents,
+        private readonly NotificationRegistry $registry,
     ) {}
 
     /**
@@ -143,7 +145,7 @@ final class RecipientResolver
                 ->selectRaw('user_id, count(*) as aggregate')
                 ->whereIn('user_id', $chunk)
                 ->whereIn('status', [NotificationLogEntry::SENT, NotificationLogEntry::DELIVERED, NotificationLogEntry::READ])
-                ->where('type', '!=', NotificationType::AdminTest->value)
+                ->whereNotIn('type', $this->registry->testTypeKeys())
                 ->where('sent_at', '>=', $start)
                 ->groupBy('user_id')
                 ->toBase()
@@ -160,7 +162,7 @@ final class RecipientResolver
     private function subscriptions(): Builder
     {
         return NotificationSubscription::query()
-            ->where('type', NotificationType::PlayerSearchOpened->value)
+            ->where('type', NotificationTypes::PLAYER_SEARCH_OPENED)
             ->where('channel', ConsentService::CHANNEL);
     }
 }

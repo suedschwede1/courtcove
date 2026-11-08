@@ -10,7 +10,7 @@ use App\Models\PlayerSignup;
 use App\Models\User;
 use App\Notifications\Channels\WhatsAppChannel;
 use App\Notifications\PlayerSearchClosedNotification;
-use App\Notifications\Types\NotificationType;
+use App\Notifications\Types\NotificationTypes;
 use App\Services\Notifications\WhatsAppSettings;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
@@ -18,9 +18,9 @@ use Throwable;
 
 /**
  * A search stopped seeking: its opened messages that are still pending are skipped at once (subject_gone).
- * With the option `whatsapp.followup_closed` on, every member whose opened message actually went out gets
- * one "search closed" follow-up (dedupe key per search and member, due in five minutes), except members
- * who joined the search themselves. Never throws.
+ * With the follow-up type switched on (its type option, else `whatsapp.followup_closed`), every member
+ * whose opened message actually went out gets one "search closed" follow-up (dedupe key per search and
+ * member, due in five minutes), except members who joined the search themselves. Never throws.
  */
 final class QueuePlayerSearchClosedWhatsApp
 {
@@ -35,7 +35,7 @@ final class QueuePlayerSearchClosedWhatsApp
     {
         try {
             $opened = fn () => NotificationLogEntry::query()
-                ->where('type', NotificationType::PlayerSearchOpened->value)
+                ->where('type', NotificationTypes::PLAYER_SEARCH_OPENED)
                 ->where('subject_type', 'player_search')
                 ->where('subject_id', $event->searchId);
 
@@ -45,7 +45,7 @@ final class QueuePlayerSearchClosedWhatsApp
                 'updated_at' => Carbon::now(),
             ]);
 
-            if (! $this->settings->enabled() || ! $this->settings->followupClosed()) {
+            if (! $this->settings->enabled() || ! $this->settings->typeEnabled(NotificationTypes::PLAYER_SEARCH_CLOSED)) {
                 return;
             }
 

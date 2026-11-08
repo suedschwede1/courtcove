@@ -10,7 +10,7 @@ use App\Models\NotificationSubscription;
 use App\Models\NotificationUsageMonthly;
 use App\Models\Option;
 use App\Models\User;
-use App\Notifications\Types\NotificationType;
+use App\Notifications\Types\NotificationTypes;
 use App\Services\Notifications\NotificationDispatcher;
 use App\Services\Notifications\SecretOptions;
 use App\Services\Notifications\WhatsAppConfigScrub;
@@ -66,7 +66,7 @@ class WhatsAppConfigScrubTest extends TestCase
         NotificationSubscription::create(['user_id' => $user->uid, 'type' => 'player_search_opened', 'channel' => 'whatsapp']);
         NotificationUsageMonthly::create(['month' => '2026-11', 'channel' => 'whatsapp', 'messages_sent' => 3]);
         NotificationLogEntry::create([
-            'type' => NotificationType::PlayerSearchOpened->value,
+            'type' => NotificationTypes::PLAYER_SEARCH_OPENED,
             'channel' => 'whatsapp',
             'user_id' => $user->uid,
             'subject_type' => 'player_search',
@@ -132,7 +132,7 @@ class WhatsAppConfigScrubTest extends TestCase
         $this->assertNotNull(app(WhatsAppSettings::class)->readyToSend());
 
         NotificationLogEntry::create([
-            'type' => NotificationType::PlayerSearchOpened->value,
+            'type' => NotificationTypes::PLAYER_SEARCH_OPENED,
             'channel' => 'whatsapp',
             'user_id' => $user->uid,
             'subject_type' => 'player_search',

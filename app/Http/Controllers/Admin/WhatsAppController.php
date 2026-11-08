@@ -9,10 +9,13 @@ use App\Models\NotificationLogEntry;
 use App\Models\Option;
 use App\Notifications\AdminTestNotification;
 use App\Notifications\Channels\WhatsAppChannel;
-use App\Notifications\Types\NotificationType;
+use App\Notifications\Registry\NotificationRegistry;
+use App\Notifications\Registry\NotificationTypeDefinition;
+use App\Notifications\Types\NotificationTypes;
 use App\Services\Notifications\BudgetService;
 use App\Services\Notifications\ConsentService;
 use App\Services\Notifications\NotificationDispatcher;
+use App\Services\Notifications\NotificationStatistics;
 use App\Services\Notifications\SecretOptions;
 use App\Services\Notifications\Transport\TransportFactory;
 use App\Services\Notifications\WhatsAppAdminStatus;
@@ -26,7 +29,8 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\View\View;
 
 /**
- * Admin page "WhatsApp": access data, switches, budget fields and templates. Secrets are write-only (never
+ * Admin page "WhatsApp": access data, switches, budget fields and one block per registered notification type
+ * (switch, template IDs per locale, variables, optional price, figures). Secrets are write-only (never
  * rendered, never flashed), a value from .env locks its field, enabling needs WhatsAppSettings::readyToSend().
  */
 final class WhatsAppController extends Controller
@@ -61,7 +65,6 @@ final class WhatsAppController extends Controller
     private const SWITCHES = [
         'enabled' => 'whatsapp.enabled',
         'sandbox' => 'whatsapp.sandbox',
-        'followup_closed' => 'whatsapp.followup_closed',
     ];
 
     private const LOCALES = ['de', 'en'];
@@ -71,6 +74,8 @@ final class WhatsAppController extends Controller
         private readonly SecretOptions $secrets,
         private readonly WhatsAppAdminStatus $status,
         private readonly BudgetService $budget,
+        private readonly NotificationRegistry $registry,
+        private readonly NotificationStatistics $statistics,
     ) {}
 
     /** Connection check: reads account and service, sends nothing, shows ok or an error code only. */
@@ -111,12 +116,14 @@ final class WhatsAppController extends Controller
         if ($admin === null) {
             abort(403);
         }
-        $gate = $consents->gate($admin, forAdminTest: true);
+        // The consent the admin test needs is the purpose of its type definition (player search today).
+        $purpose = $this->registry->type(NotificationTypes::ADMIN_TEST)?->purpose;
+        $gate = $consents->gate($admin, true, $purpose);
         if (! $gate->passed) {
             return $refuse((string) $gate->reason);
         }
-        $consent = $consents->activeConsent($admin);
-        if ($consent === null || ! $consents->matchesCurrentPhone($consent, $admin)) {
+        $consent = $purpose === null ? null : $consents->activeConsent($admin, $purpose);
+        if ($purpose !== null && ($consent === null || ! $consents->matchesCurrentPhone($consent, $admin))) {
             // The flash text cannot hold a link; the page shows one next to the test button.
             return $refuse('no_consent')->with('whatsapp_account_link', true);
         }
@@ -194,11 +201,6 @@ final class WhatsAppController extends Controller
                 : (string) Option::getValue($key, '');
         }
 
-        $templates = [];
-        foreach ($this->templateFields() as $field => [$key]) {
-            $templates[$field] = (string) Option::getValue($key, '');
-        }
-
         $secretStates = [];
         foreach (array_keys(self::SECRETS) as $field) {
             $secretStates[$field] = $this->secretState($field);
@@ -212,8 +214,7 @@ final class WhatsAppController extends Controller
 
         return view('admin.whatsapp.edit', [
             'values' => $values,
-            'templates' => $templates,
-            'templateFields' => $this->templateFields(),
+            'types' => $this->typeBlocks(),
             'secretStates' => $secretStates,
             'envLocked' => $envLocked,
             'driver' => $this->settings->driver(),
@@ -273,19 +274,10 @@ final class WhatsAppController extends Controller
                 $changed[] = $field;
             }
         }
-        foreach ($this->templateFields() as $field => [$key]) {
-            if (array_key_exists($field, $data) && $this->store($key, $data[$field] ?? null)) {
-                $changed[] = $field;
-            }
-        }
+        $changed = [...$changed, ...$this->storeTypes($request, $data)];
 
-        foreach (['sandbox', 'followup_closed'] as $field) {
-            if ($field === 'sandbox' && in_array($field, $locked, true)) {
-                continue;
-            }
-            if ($this->store(self::SWITCHES[$field], $request->boolean($field) ? '1' : null)) {
-                $changed[] = $field;
-            }
+        if (! in_array('sandbox', $locked, true) && $this->store(self::SWITCHES['sandbox'], $request->boolean('sandbox') ? '1' : null)) {
+            $changed[] = 'sandbox';
         }
 
         foreach (self::SECRETS as $field => $logText) {
@@ -335,18 +327,106 @@ final class WhatsAppController extends Controller
     }
 
     /**
-     * @return array<string, array{0: string, 1: string, 2: string}> field => [option key, type template key, locale]
+     * Form field names of a type, derived from its key: `type_<slug>_shown` (marker that the block was in the
+     * form, so a partial update never flips a switch), `_enabled`, `_price` and `_tpl_<locale>`.
+     *
+     * @return array{shown: string, enabled: string, price: string, templates: array<string, string>}
      */
-    private function templateFields(): array
+    private function typeFieldNames(NotificationTypeDefinition $type): array
     {
-        $fields = [];
-        foreach (NotificationType::cases() as $type) {
-            foreach (self::LOCALES as $locale) {
-                $fields['tpl_'.$type->templateKey().'_'.$locale] = ['whatsapp.template.'.$type->templateKey().'.'.$locale, $type->templateKey(), $locale];
+        $base = 'type_'.$type->slug();
+        $templates = [];
+        foreach (self::LOCALES as $locale) {
+            $templates[$locale] = $base.'_tpl_'.$locale;
+        }
+
+        return ['shown' => $base.'_shown', 'enabled' => $base.'_enabled', 'price' => $base.'_price', 'templates' => $templates];
+    }
+
+    /**
+     * Stores switch, price and template IDs of every registered type present in the request.
+     *
+     * @param  array<string, mixed>  $data  validated input
+     * @return list<string> changed fields for the change log (names only)
+     */
+    private function storeTypes(Request $request, array $data): array
+    {
+        $changed = [];
+        foreach ($this->registry->types() as $type) {
+            $fields = $this->typeFieldNames($type);
+
+            if ($request->has($fields['shown'])) {
+                // Only the type option is written; an older option of the type is dropped (it is a read fallback).
+                $before = $this->settings->typeEnabled($type->key);
+                $this->store(WhatsAppSettings::typeEnabledOption($type->key), $request->boolean($fields['enabled']) ? '1' : '0');
+                if ($type->legacyEnabledOption !== null) {
+                    $this->store($type->legacyEnabledOption, null);
+                }
+                if ($before !== $this->settings->typeEnabled($type->key)) {
+                    $changed[] = $fields['enabled'];
+                }
+            }
+
+            if (! $type->testType && array_key_exists($fields['price'], $data)) {
+                $price = $data[$fields['price']] ?? null;
+                if ($this->store(WhatsAppSettings::typePriceOption($type->key), $price === null ? null : str_replace(',', '.', (string) $price))) {
+                    $changed[] = $fields['price'];
+                }
+            }
+
+            foreach ($fields['templates'] as $locale => $field) {
+                if (array_key_exists($field, $data) && $this->store('whatsapp.template.'.$type->templateKey.'.'.$locale, $data[$field] ?? null)) {
+                    $changed[] = $field;
+                }
             }
         }
 
-        return $fields;
+        return $changed;
+    }
+
+    /**
+     * View data of the section "notification types": one block per registered type.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function typeBlocks(): array
+    {
+        $stats = $this->statistics->forTypes();
+        $blocks = [];
+        foreach ($this->registry->types() as $type) {
+            $fields = $this->typeFieldNames($type);
+            $enabled = $this->settings->typeEnabled($type->key);
+
+            $templates = [];
+            foreach ($fields['templates'] as $locale => $field) {
+                $templates[$locale] = [
+                    'field' => $field,
+                    'value' => (string) Option::getValue('whatsapp.template.'.$type->templateKey.'.'.$locale, ''),
+                    // Same lookup as the dispatcher (own locale, then the default locale).
+                    'missing' => $this->settings->templateId($type->templateKey, $locale) === null,
+                ];
+            }
+
+            $variables = $type->variablesKey === null ? [] : trans($type->variablesKey);
+            $parent = $type->followupOf === null ? null : $this->registry->type($type->followupOf);
+
+            $blocks[] = [
+                'key' => $type->key,
+                'slug' => $type->slug(),
+                'label' => (string) __($type->labelKey),
+                'description' => (string) __($type->descriptionKey),
+                'followupOf' => $parent === null ? null : (string) __($parent->labelKey),
+                'testType' => $type->testType,
+                'fields' => $fields,
+                'enabled' => $enabled,
+                'price' => (string) Option::getValue(WhatsAppSettings::typePriceOption($type->key), ''),
+                'templates' => $templates,
+                'variables' => is_array($variables) ? array_values(array_map('strval', $variables)) : [],
+                'stats' => $stats[$type->key],
+            ];
+        }
+
+        return $blocks;
     }
 
     /** @return array<string, list<string>> */
@@ -368,8 +448,12 @@ final class WhatsAppController extends Controller
         foreach (array_keys(self::SECRETS) as $field) {
             $rules[$field] = ['nullable', 'string', 'max:255', 'not_regex:/\s/'];
         }
-        foreach (array_keys($this->templateFields()) as $field) {
-            $rules[$field] = ['nullable', 'string', 'max:64', 'regex:/^[A-Za-z0-9_-]+$/'];
+        foreach ($this->registry->types() as $type) {
+            $fields = $this->typeFieldNames($type);
+            foreach ($fields['templates'] as $field) {
+                $rules[$field] = ['nullable', 'string', 'max:64', 'regex:/^[A-Za-z0-9_-]+$/'];
+            }
+            $rules[$fields['price']] = $rules['price_estimate'];
         }
 
         return $rules;
@@ -382,11 +466,12 @@ final class WhatsAppController extends Controller
         foreach (['driver', 'sender', 'sandbox_sender', 'sender_label', 'default_locale', 'default_country', 'budget_monthly', 'price_estimate', 'daily_limit_per_user', 'budget_alert_email', 'account_sid', 'auth_token', 'messaging_service_sid'] as $field) {
             $names[$field] = __('booking.admin.whatsapp.'.$field);
         }
-        foreach ($this->templateFields() as $field => [, $type, $locale]) {
-            $names[$field] = __('booking.admin.whatsapp.template_id', [
-                'type' => __('booking.admin.whatsapp.templates.'.$type),
-                'locale' => strtoupper($locale),
-            ]);
+        foreach ($this->registry->types() as $type) {
+            $fields = $this->typeFieldNames($type);
+            foreach ($fields['templates'] as $locale => $field) {
+                $names[$field] = __('booking.admin.whatsapp.template_id', ['type' => __($type->labelKey), 'locale' => strtoupper($locale)]);
+            }
+            $names[$fields['price']] = __('booking.admin.whatsapp.type_price_of', ['type' => __($type->labelKey)]);
         }
 
         return $names;

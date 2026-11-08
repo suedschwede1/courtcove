@@ -6,13 +6,13 @@ namespace Tests\Feature\Notifications;
 
 use App\Events\PlayerSearchClosed;
 use App\Models\NotificationLogEntry;
-use App\Notifications\Types\NotificationType;
+use App\Notifications\Registry\NotificationRegistry;
+use App\Notifications\Types\NotificationTypes;
 use App\Services\BookingService;
 use App\Services\Notifications\NotificationDispatcher;
 use App\Services\Notifications\Resolvers\PlayerSearchClosedSubjectCheck;
 use App\Services\Notifications\Resolvers\PlayerSearchSubjectCheck;
 use App\Services\Notifications\SubjectDeadline;
-use App\Services\Notifications\SubjectResolverRegistry;
 use App\Services\Notifications\Transport\FakeTransport;
 use App\Services\PlayerExchangeService;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
@@ -54,11 +54,11 @@ class PlayerSearchDebounceTest extends TestCase
     #[Test]
     public function both_search_types_have_a_registered_resolver_with_a_deadline(): void
     {
-        $registry = app(SubjectResolverRegistry::class);
+        $registry = app(NotificationRegistry::class);
 
-        $this->assertInstanceOf(PlayerSearchSubjectCheck::class, $registry->for(NotificationType::PlayerSearchOpened));
-        $this->assertInstanceOf(PlayerSearchClosedSubjectCheck::class, $registry->for(NotificationType::PlayerSearchClosed));
-        $this->assertInstanceOf(SubjectDeadline::class, $registry->for(NotificationType::PlayerSearchOpened));
+        $this->assertInstanceOf(PlayerSearchSubjectCheck::class, $registry->resolver(NotificationTypes::PLAYER_SEARCH_OPENED));
+        $this->assertInstanceOf(PlayerSearchClosedSubjectCheck::class, $registry->resolver(NotificationTypes::PLAYER_SEARCH_CLOSED));
+        $this->assertInstanceOf(SubjectDeadline::class, $registry->resolver(NotificationTypes::PLAYER_SEARCH_OPENED));
     }
 
     #[Test]

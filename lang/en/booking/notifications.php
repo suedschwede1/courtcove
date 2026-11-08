@@ -11,6 +11,43 @@ return [
         // own number only, withdrawal at any time (account or STOP), and that the searching person's name is in the message.
         'consent_text_v1' => 'I want to be notified by WhatsApp when someone is looking for players (player search). The message goes to the mobile number stored in my account; I only enter my own number. The message contains the name of the person looking for players. I can withdraw my consent at any time in my account or by replying STOP to a message.',
 
+        // Names and descriptions of the notification types (NotificationRegistry; keyed by template key).
+        'types' => [
+            'player_search_opened' => [
+                'label' => 'New player search',
+                'description' => 'A message when someone looks for players in the player exchange.',
+                'variables' => [
+                    1 => 'Date (for example "Sat, 14.11.")',
+                    2 => 'Start time',
+                    3 => 'Court',
+                    4 => 'Places searched',
+                    5 => 'First and last name of the searching person',
+                    6 => 'Ending of the button link (calendar with date)',
+                ],
+            ],
+            'player_search_closed' => [
+                'label' => 'Search closed',
+                'description' => 'Follow-up when a search you were told about has found its players or ended.',
+                'variables' => [
+                    1 => 'Date',
+                    2 => 'Start time',
+                    3 => 'Court',
+                ],
+            ],
+            'test' => [
+                'label' => 'Test message',
+                'description' => 'Test message of the admin page to the admin\'s own number.',
+            ],
+        ],
+
+        // Consent purposes (NotificationRegistry): one consent per purpose, with its own text and version.
+        'purposes' => [
+            'player_search' => [
+                'label' => 'Player exchange',
+                'description' => 'Get a WhatsApp message when someone looks for players in the player exchange.',
+            ],
+        ],
+
         // Privacy sentence; processors are named on the club's external privacy page, not here.
         'privacy_notice' => 'With your consent we use the mobile number from your account to send you notifications (first: player searches) by WhatsApp. The messaging service we engage and the operator of WhatsApp are involved. You can withdraw your consent at any time in your account or by replying STOP.',
 
@@ -24,12 +61,14 @@ return [
             'phone_not_mobile' => 'The number in your profile is not a mobile number. Please enter a mobile number in your profile.',
             'exchange_off' => 'The player exchange is switched off for you. First switch on the player exchange in your profile and save, then you can switch on WhatsApp.',
             'conflict' => 'Your consent could not be saved just now. Please try again.',
+            // Any other reason (the gate condition of a further purpose without a text of its own).
+            'unavailable' => 'You do not meet the requirements for these notifications at the moment.',
         ],
 
         // Account card "Benachrichtigungen" (consent, filters, withdrawal).
         'account_card' => [
             'title' => 'WhatsApp notifications',
-            'intro' => 'Get a WhatsApp message when someone looks for players in the player exchange.',
+            'title_purpose' => 'WhatsApp notifications: :purpose',
             'number_label' => 'Number from your profile: :number',
             'own_number_hint' => 'The message contains the first and last name of the person looking for players. It goes to the mobile number in your profile, and that number must be your own.',
             'profile_link' => 'Go to profile',
@@ -42,11 +81,10 @@ return [
             'revoked_flash' => 'You are unsubscribed from WhatsApp notifications.',
             'badge_active' => 'Active',
             'consented_at' => 'Consent given on :date',
-            'search_switch' => 'Notify me about player searches',
-            'search_help' => 'Switching this off only pauses the player search messages, your consent stays. "Unsubscribe from WhatsApp" withdraws it.',
+            'type_help' => 'Switching this off only pauses these messages, your consent stays. "Unsubscribe from WhatsApp" withdraws it.',
             'paused' => 'No messages are being sent to you at the moment. :reason',
             'filters' => 'Filters',
-            'filters_help' => 'Without a selection you are notified about every player search.',
+            'filters_help' => 'Without a selection you are notified about every one of these messages.',
             'weekdays' => [
                 1 => 'Mon',
                 2 => 'Tue',

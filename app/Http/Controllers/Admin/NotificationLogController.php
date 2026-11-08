@@ -7,7 +7,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\NotificationLogEntry;
 use App\Models\User;
-use App\Notifications\Types\NotificationType;
+use App\Notifications\Registry\NotificationRegistry;
+use App\Notifications\Registry\NotificationTypeDefinition;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -34,6 +35,8 @@ final class NotificationLogController extends Controller
         NotificationLogEntry::UNDELIVERED,
         NotificationLogEntry::SKIPPED,
     ];
+
+    public function __construct(private readonly NotificationRegistry $registry) {}
 
     public function index(Request $request): View
     {
@@ -73,7 +76,10 @@ final class NotificationLogController extends Controller
             'users' => $users,
             'filters' => ['status' => $status, 'type' => $type, 'month' => $month],
             'statuses' => self::STATUSES,
-            'types' => array_map(static fn (NotificationType $t): array => ['value' => $t->value, 'key' => $t->templateKey()], NotificationType::cases()),
+            'types' => array_values(array_map(
+                static fn (NotificationTypeDefinition $t): array => ['value' => $t->key, 'label' => (string) __($t->labelKey)],
+                $this->registry->types(),
+            )),
             'months' => $months,
         ]);
     }
@@ -89,7 +95,7 @@ final class NotificationLogController extends Controller
     {
         $value = $request->query('type');
 
-        return is_string($value) && NotificationType::tryFrom($value) !== null ? $value : null;
+        return is_string($value) && $this->registry->has($value) ? $value : null;
     }
 
     private function month(Request $request): ?string

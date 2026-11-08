@@ -7,7 +7,7 @@ namespace App\Services\Notifications;
 use App\Models\NotificationConsent;
 use App\Models\NotificationLogEntry;
 use App\Models\User;
-use App\Notifications\Types\NotificationType;
+use App\Notifications\Registry\NotificationRegistry;
 use App\Services\Notifications\Transport\TemplateRef;
 use App\Services\Notifications\Transport\TransportFactory;
 use App\Services\Notifications\Transport\TransportResult;
@@ -22,9 +22,9 @@ use Throwable;
  * Sends the due rows of the WhatsApp outbox, one provider call at a time.
  *
  * Per row: (1) claim in a short transaction (pending and due, ordered by priority, slot, id; locked rows
- * of a parallel worker are skipped) and set `sending`; (2) re-check main switch/readiness, pause, subject,
- * consent, gate, number hash and the daily limit (Vienna day); (3) reserve the budget; (4) resolve the
- * template; (5) send, outside every transaction; (6) settle and store the SID. Retryable errors back off
+ * of a parallel worker are skipped) and set `sending`; (2) re-check main switch/readiness, pause, type
+ * (registered and switched on), subject, consent of the type's purpose, gate, number hash and the daily
+ * limit (Vienna day); (3) reserve the type's price; (4) resolve the template; (5) send, outside every transaction; (6) settle and store the SID. Retryable errors back off
  * 1, 5 and 15 minutes (never up to the subject deadline), permanent errors fail, an authentication error
  * pauses the channel and ends the run. `sending` rows older than five minutes are never sent again: their
  * outcome is unknown, so they fail as `stale`. Content is rebuilt from the subject at send time.
@@ -45,7 +45,7 @@ final class NotificationDispatcher
         private readonly ConsentService $consents,
         private readonly BudgetService $budget,
         private readonly TransportFactory $transports,
-        private readonly SubjectResolverRegistry $resolvers,
+        private readonly NotificationRegistry $registry,
     ) {}
 
     /** Works through at most `$max` rows (default: `max_per_run`) and stops after `$seconds`. */
@@ -144,20 +144,24 @@ final class NotificationDispatcher
                 return true;
             }
 
-            $type = NotificationType::tryFrom($row->type);
-            $resolver = $type === null ? null : $this->resolvers->for($type);
+            // An unknown type key (no longer registered) has nobody to resolve its subject.
+            $type = $this->registry->type($row->type);
+            if ($type !== null && ! $this->settings->typeEnabled($type->key)) {
+                return $this->skip($row, NotificationLogEntry::TYPE_DISABLED, $report);
+            }
+            $resolver = $type === null ? null : $this->registry->resolver($type->key);
             $user = $row->user_id === null ? null : User::query()->find($row->user_id);
             if ($type === null || $resolver === null || $user === null || ! $resolver->stillRelevant($row)) {
                 return $this->skip($row, NotificationLogEntry::SUBJECT_GONE, $report);
             }
 
-            $purpose = $type->purpose();
+            $purpose = $type->purpose;
             $consent = $purpose === null ? null : $this->consents->activeConsent($user, $purpose);
             if ($purpose !== null && $consent === null) {
                 return $this->skip($row, NotificationLogEntry::NO_CONSENT, $report);
             }
 
-            $gate = $this->consents->gate($user, $type->isAdminTest());
+            $gate = $this->consents->gate($user, $type->testType, $purpose);
             if (! $gate->passed || $gate->e164 === null) {
                 return $this->skip($row, NotificationLogEntry::GATE, $report);
             }
@@ -169,11 +173,11 @@ final class NotificationDispatcher
                 return $this->skip($row, NotificationLogEntry::PHONE_CHANGED, $report);
             }
 
-            if (! $type->isAdminTest() && $this->sentToday($user, $row) >= $this->settings->dailyLimitPerUser()) {
+            if (! $type->testType && $this->sentToday($user, $row) >= $this->settings->dailyLimitPerUser()) {
                 return $this->skip($row, NotificationLogEntry::DAILY_LIMIT, $report);
             }
 
-            $price = $this->settings->priceEstimateMicros();
+            $price = $this->settings->priceEstimateMicros($type->key);
             $reservation = $this->budget->reserve($price);
             if ($reservation === null) {
                 $this->sendBudgetAlerts();
@@ -183,11 +187,11 @@ final class NotificationDispatcher
             $row->forceFill(['cost_estimate_micros' => $price, 'phone_last2' => $gate->last2])->save();
 
             $locale = $this->locale($consent);
-            $contentId = $this->settings->templateId($type->templateKey(), $locale);
+            $contentId = $this->settings->templateId($type->templateKey, $locale);
             if ($contentId === null && ! $this->settings->sandbox()) {
                 $this->release($reservation);
                 $reservation = null;
-                Log::warning('whatsapp template missing', ['type' => $type->templateKey(), 'locale' => $locale]);
+                Log::warning('whatsapp template missing', ['type' => $type->templateKey, 'locale' => $locale]);
 
                 return $this->skip($row, NotificationLogEntry::TEMPLATE_MISSING, $report, ['cost_estimate_micros' => null]);
             }
@@ -195,7 +199,7 @@ final class NotificationDispatcher
             $content = $resolver->build($row, $user, $locale);
             $result = $transport->send(
                 $gate->e164,
-                new TemplateRef($contentId, $type->templateKey(), $locale, $content->freeText),
+                new TemplateRef($contentId, $type->templateKey, $locale, $content->freeText),
                 $content->variables,
                 $content->buttonSuffix,
             );
@@ -363,7 +367,7 @@ final class NotificationDispatcher
         return NotificationLogEntry::query()
             ->where('user_id', $user->getKey())
             ->whereKeyNot($current->getKey())
-            ->where('type', '!=', NotificationType::AdminTest->value)
+            ->whereNotIn('type', $this->registry->testTypeKeys())
             ->where(function (Builder $query) use ($start, $end): void {
                 $query->where(function (Builder $q) use ($start, $end): void {
                     $q->whereIn('status', [NotificationLogEntry::SENT, NotificationLogEntry::DELIVERED, NotificationLogEntry::READ])

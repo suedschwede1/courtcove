@@ -7,12 +7,9 @@ namespace App\Providers;
 use App\Console\Scheduling\RunLog;
 use App\Models\Option;
 use App\Models\User;
-use App\Notifications\Types\NotificationType;
+use App\Notifications\Registry\BuiltInNotifications;
+use App\Notifications\Registry\NotificationRegistry;
 use App\Services\Mail\StagingMailGuard;
-use App\Services\Notifications\Resolvers\AdminTestResolver;
-use App\Services\Notifications\Resolvers\PlayerSearchClosedSubjectCheck;
-use App\Services\Notifications\Resolvers\PlayerSearchSubjectCheck;
-use App\Services\Notifications\SubjectResolverRegistry;
 use App\Services\Notifications\Transport\FakeTransport;
 use App\Services\Notifications\WhatsAppConfigScrub;
 use App\Services\TournamentLinks;
@@ -30,12 +27,14 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(TournamentLinks::class);
         $this->app->singleton(RunLog::class);
         $this->app->singleton(FakeTransport::class);
-        // One subject resolver per WhatsApp notification type; a type without one is skipped as subject_gone.
-        $this->app->singleton(SubjectResolverRegistry::class, fn (): SubjectResolverRegistry => new SubjectResolverRegistry([
-            NotificationType::AdminTest->value => AdminTestResolver::class,
-            NotificationType::PlayerSearchOpened->value => PlayerSearchSubjectCheck::class,
-            NotificationType::PlayerSearchClosed->value => PlayerSearchClosedSubjectCheck::class,
-        ]));
+        // Central registry of the WhatsApp notification types and consent purposes; a row whose type is not
+        // registered is skipped as subject_gone.
+        $this->app->singleton(NotificationRegistry::class, static function (): NotificationRegistry {
+            $registry = new NotificationRegistry;
+            BuiltInNotifications::register($registry);
+
+            return $registry;
+        });
         // Staging scrub hook: phase2:scrub-staging runs every tagged ConfigScrub after the module scrubs.
         $this->app->tag([WhatsAppConfigScrub::class], 'phase2.config-scrub');
     }

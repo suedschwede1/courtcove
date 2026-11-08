@@ -121,10 +121,11 @@ Route::middleware('auth')->group(function (): void {
     Route::put('/my-account', [AccountController::class, 'update'])->name('account.update');
     Route::put('/my-account/password', [AccountController::class, 'password'])->name('account.password');
 
-    // WhatsApp card on the account page: consent, switch and filters, withdrawal.
-    Route::post('/my-account/whatsapp', [NotificationSettingsController::class, 'enable'])->middleware('throttle:10,1')->name('account.whatsapp.enable');
-    Route::put('/my-account/whatsapp', [NotificationSettingsController::class, 'update'])->middleware('throttle:10,1')->name('account.whatsapp.update');
-    Route::delete('/my-account/whatsapp', [NotificationSettingsController::class, 'revoke'])->middleware('throttle:10,1')->name('account.whatsapp.revoke');
+    // WhatsApp cards on the account page, per consent purpose: consent, switches and filters, withdrawal.
+    // Without {purpose} the player search purpose (original URLs); an unregistered purpose is a 404.
+    Route::post('/my-account/whatsapp/{purpose?}', [NotificationSettingsController::class, 'enable'])->where('purpose', '[a-z0-9_]+')->middleware('throttle:10,1')->name('account.whatsapp.enable');
+    Route::put('/my-account/whatsapp/{purpose?}', [NotificationSettingsController::class, 'update'])->where('purpose', '[a-z0-9_]+')->middleware('throttle:10,1')->name('account.whatsapp.update');
+    Route::delete('/my-account/whatsapp/{purpose?}', [NotificationSettingsController::class, 'revoke'])->where('purpose', '[a-z0-9_]+')->middleware('throttle:10,1')->name('account.whatsapp.revoke');
     Route::delete('/my-account/devices', [AccountController::class, 'destroyDevices'])->name('account.devices.destroy-all');
     Route::delete('/my-account/devices/{device}', [AccountController::class, 'destroyDevice'])->name('account.devices.destroy');
 });

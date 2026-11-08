@@ -222,7 +222,7 @@ class WhatsAppSettingsTest extends TestCase
         $s = $this->settings();
         $this->assertSame(3, $s->dailyLimitPerUser());
         $this->assertSame(30, $s->maxPerRun());
-        $this->assertFalse($s->followupClosed());
+        $this->assertFalse($s->typeEnabled('player_search.closed'));
         $this->assertSame('de', $s->defaultLocale());
         $this->assertSame('43', $s->defaultCountry());
         $this->assertNull($s->budgetAlertEmail());
@@ -233,7 +233,7 @@ class WhatsAppSettingsTest extends TestCase
         $this->opt('whatsapp.budget_alert_email', 'club@example.test');
         $this->assertSame(5, $s->dailyLimitPerUser());
         $this->assertSame(10, $s->maxPerRun());
-        $this->assertTrue($s->followupClosed());
+        $this->assertTrue($s->typeEnabled('player_search.closed'));
         $this->assertSame('club@example.test', $s->budgetAlertEmail());
     }
 

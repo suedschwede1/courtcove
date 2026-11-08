@@ -7,7 +7,7 @@ namespace App\Services\Notifications;
 use App\Models\NotificationConsent;
 use App\Models\NotificationSubscription;
 use App\Models\User;
-use App\Services\PlayerExchangeService;
+use App\Notifications\Registry\NotificationRegistry;
 use App\Support\Phone\PhoneNumber;
 use Illuminate\Database\QueryException;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -15,6 +15,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use InvalidArgumentException;
 
 /**
  * Consent to WhatsApp notifications: the gate that decides whether a booking account may receive them,
@@ -32,28 +33,20 @@ final class ConsentService
     /** Account states that end every consent (merged storage keeps them as plain status values). */
     private const REVOKING_STATUSES = ['blocked', 'deleted', 'disabled'];
 
-    /** Notification types of a purpose: their subscriptions go when the consent of the purpose is revoked. */
-    private const PURPOSE_TYPES = [
-        NotificationConsent::PURPOSE_PLAYER_SEARCH => ['player_search.opened', 'player_search.closed'],
-    ];
-
-    /**
-     * Notification types switched on together with the consent of a purpose. The closed follow-up has no
-     * switch of its own: it only follows an opened message that went out (option whatsapp.followup_closed).
-     */
-    private const OPT_IN_TYPES = [
-        NotificationConsent::PURPOSE_PLAYER_SEARCH => ['player_search.opened'],
-    ];
-
-    public function __construct(private readonly WhatsAppSettings $settings) {}
+    public function __construct(
+        private readonly WhatsAppSettings $settings,
+        private readonly NotificationRegistry $registry,
+    ) {}
 
     /**
      * Checks the booking account only, in order: main switch, account enabled (not blocked, disabled or
-     * deleted), mobile number in the account, player exchange switched on. A member record (linked or not,
-     * in whatever state) plays no part. The admin test skips only the player exchange, so an admin account
-     * can test without being in the exchange.
+     * deleted), mobile number in the account, then the purpose's own prerequisite (player search: player
+     * exchange switched on; none for a purpose without condition or when `$purpose` is null; an unregistered
+     * purpose fails as `unknown_purpose`, a broken condition as `condition_invalid`). A member record
+     * (linked or not, in whatever state) plays no part. The admin test skips only the purpose prerequisite,
+     * so an admin account can test without being in the exchange.
      */
-    public function gate(User $user, bool $forAdminTest = false): GateResult
+    public function gate(User $user, bool $forAdminTest = false, ?string $purpose = NotificationConsent::PURPOSE_PLAYER_SEARCH): GateResult
     {
         if (! $this->settings->enabled()) {
             return GateResult::fail('disabled');
@@ -72,8 +65,16 @@ final class ConsentService
             }, $phone->e164, $phone->last2());
         }
 
-        if (! $forAdminTest && $user->getMeta(PlayerExchangeService::META_KEY) !== '1') {
-            return GateResult::fail('exchange_off', $phone->e164, $phone->last2());
+        // Fails closed: a purpose that is not registered (any more) lets nobody through.
+        $definition = $purpose === null ? null : $this->registry->purpose($purpose);
+        $failure = match (true) {
+            $purpose === null => null,
+            $definition === null => 'unknown_purpose',
+            $forAdminTest => null,
+            default => $definition->gateFailure($user),
+        };
+        if ($failure !== null) {
+            return GateResult::fail($failure, $phone->e164, $phone->last2());
         }
 
         return GateResult::pass($phone->e164, $phone->last2());
@@ -91,14 +92,17 @@ final class ConsentService
     }
 
     /**
-     * Records the consent and switches on the purpose's notification types (subscription without
-     * filters). Idempotent: an active consent for the current number is returned as is.
+     * Records the consent with the text version of the purpose and switches on the purpose's opt-in types
+     * (subscription without filters). Idempotent: an active consent for the current number is returned as is.
      *
-     * @throws ConsentRefused when the full gate (including the player exchange) fails
+     * @throws ConsentRefused when the full gate (including the purpose's prerequisite) fails
+     * @throws InvalidArgumentException for a purpose that is not registered
      */
     public function optIn(User $user, string $purpose, string $locale): NotificationConsent
     {
-        $gate = $this->gate($user);
+        $definition = $this->registry->purpose($purpose) ?? throw new InvalidArgumentException("Unknown consent purpose [$purpose].");
+
+        $gate = $this->gate($user, false, $purpose);
         if (! $gate->passed || $gate->e164 === null) {
             throw new ConsentRefused((string) $gate->reason);
         }
@@ -106,7 +110,7 @@ final class ConsentService
         $hash = $this->phoneHash($gate->e164);
 
         try {
-            return DB::transaction(function () use ($user, $purpose, $locale, $gate, $hash): NotificationConsent {
+            return DB::transaction(function () use ($user, $purpose, $definition, $locale, $gate, $hash): NotificationConsent {
                 $existing = $this->activeConsent($user, $purpose);
                 if ($existing !== null && hash_equals($existing->phone_hash, $hash)) {
                     $this->subscribe($user, $purpose);
@@ -123,7 +127,7 @@ final class ConsentService
                     'phone_hash' => $hash,
                     'phone_last2' => (string) $gate->last2,
                     'locale' => substr($locale, 0, 5),
-                    'consent_text_version' => (string) trans('booking.notifications.consent_text_version'),
+                    'consent_text_version' => $definition->consentVersion(),
                     'consented_at' => Carbon::now(),
                     'active_marker' => NotificationConsent::ACTIVE_MARKER,
                 ]);
@@ -222,11 +226,7 @@ final class ConsentService
             $count++;
         }
 
-        $subscriptions = NotificationSubscription::query()->where('user_id', $userId)->where('channel', self::CHANNEL);
-        if ($purpose !== null) {
-            $subscriptions->whereIn('type', self::PURPOSE_TYPES[$purpose] ?? []);
-        }
-        $subscriptions->delete();
+        $this->deleteSubscriptions($userId, self::CHANNEL, $purpose);
 
         if ($count > 0) {
             Log::info('whatsapp consent revoked', ['user_id' => $userId, 'via' => $via, 'count' => $count]);
@@ -238,16 +238,26 @@ final class ConsentService
     private function revokeRow(NotificationConsent $consent, string $via): void
     {
         $consent->revoke($via);
-        NotificationSubscription::query()
-            ->where('user_id', $consent->user_id)
-            ->where('channel', $consent->channel)
-            ->whereIn('type', self::PURPOSE_TYPES[$consent->purpose] ?? [])
-            ->delete();
+        $this->deleteSubscriptions((int) $consent->user_id, $consent->channel, $consent->purpose);
+    }
+
+    /**
+     * Deletes the user's subscriptions of a purpose's types (all of them when `$purpose` is null). For a purpose
+     * that is no longer registered its types are unknown, so every subscription of the user goes: a consent
+     * ends, nothing may keep sending on its behalf.
+     */
+    private function deleteSubscriptions(int $userId, string $channel, ?string $purpose): void
+    {
+        $query = NotificationSubscription::query()->where('user_id', $userId)->where('channel', $channel);
+        if ($purpose !== null && $this->registry->purpose($purpose) !== null) {
+            $query->whereIn('type', $this->registry->typesOfPurpose($purpose));
+        }
+        $query->delete();
     }
 
     private function subscribe(User $user, string $purpose): void
     {
-        foreach (self::OPT_IN_TYPES[$purpose] ?? [] as $type) {
+        foreach ($this->registry->optInTypesOfPurpose($purpose) as $type) {
             NotificationSubscription::firstOrCreate(
                 ['user_id' => $user->getKey(), 'type' => $type, 'channel' => self::CHANNEL],
                 ['filters' => null],

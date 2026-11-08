@@ -8,7 +8,8 @@ use App\Models\NotificationLogEntry;
 use App\Notifications\AdminTestNotification;
 use App\Notifications\Channels\WhatsAppChannel;
 use App\Notifications\Messages\WhatsAppMessage;
-use App\Notifications\Types\NotificationType;
+use App\Notifications\Registry\NotificationRegistry;
+use App\Notifications\Types\NotificationTypes;
 use App\Services\Notifications\Transport\FakeTransport;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Notifications\Notification;
@@ -49,7 +50,7 @@ class WhatsAppChannelTest extends TestCase
             public function toWhatsApp(object $notifiable): WhatsAppMessage
             {
                 return new WhatsAppMessage(
-                    type: NotificationType::PlayerSearchOpened,
+                    type: NotificationTypes::PLAYER_SEARCH_OPENED,
                     variables: $this->variables,
                     buttonSuffix: 'search/7',
                     dedupeKey: $this->dedupe,
@@ -76,7 +77,7 @@ class WhatsAppChannelTest extends TestCase
         $this->assertSame((int) $user->uid, $row->user_id);
         $this->assertSame('player_search', $row->subject_type);
         $this->assertSame(7, $row->subject_id);
-        $this->assertSame(NotificationType::PlayerSearchOpened->priority(), $row->priority);
+        $this->assertSame(app(NotificationRegistry::class)->type(NotificationTypes::PLAYER_SEARCH_OPENED)?->priority, $row->priority);
         $this->assertSame('00', $row->phone_last2);
         $this->assertSame(0, $row->attempts);
         $this->assertSame('2026-11-10 12:02:00', $row->not_before->format('Y-m-d H:i:s'));
@@ -136,9 +137,9 @@ class WhatsAppChannelTest extends TestCase
         app(WhatsAppChannel::class)->send($user, new AdminTestNotification);
 
         $row = NotificationLogEntry::sole();
-        $this->assertSame(NotificationType::AdminTest->value, $row->type);
+        $this->assertSame(NotificationTypes::ADMIN_TEST, $row->type);
         $this->assertSame('2026-11-10 12:00:00', $row->not_before->format('Y-m-d H:i:s'));
-        $this->assertLessThan(NotificationType::PlayerSearchOpened->priority(), $row->priority);
-        $this->assertLessThan(NotificationType::PlayerSearchClosed->priority(), NotificationType::PlayerSearchOpened->priority());
+        $this->assertLessThan(app(NotificationRegistry::class)->type(NotificationTypes::PLAYER_SEARCH_OPENED)?->priority, $row->priority);
+        $this->assertLessThan(app(NotificationRegistry::class)->type(NotificationTypes::PLAYER_SEARCH_CLOSED)?->priority, app(NotificationRegistry::class)->type(NotificationTypes::PLAYER_SEARCH_OPENED)?->priority);
     }
 }

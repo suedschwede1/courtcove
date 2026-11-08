@@ -8,7 +8,7 @@ use App\Models\PlayerSearch;
 use App\Models\User;
 use App\Notifications\Channels\WhatsAppChannel;
 use App\Notifications\Messages\WhatsAppMessage;
-use App\Notifications\Types\NotificationType;
+use App\Notifications\Types\NotificationTypes;
 use App\Services\Notifications\MessageContent;
 use App\Services\Notifications\Resolvers\PlayerSearchSubjectCheck;
 use Illuminate\Notifications\Notification;
@@ -49,10 +49,10 @@ final class PlayerSearchOpenedNotification extends Notification
         $bid = $this->bid ?? ($search !== null ? (int) $search->bid : null);
 
         return new WhatsAppMessage(
-            type: NotificationType::PlayerSearchOpened,
+            type: NotificationTypes::PLAYER_SEARCH_OPENED,
             variables: $content->variables ?? [],
             buttonSuffix: $content?->buttonSuffix,
-            dedupeKey: NotificationType::PlayerSearchOpened->value.':'.$this->searchId.':'.$userId.':whatsapp',
+            dedupeKey: NotificationTypes::PLAYER_SEARCH_OPENED.':'.$this->searchId.':'.$userId.':whatsapp',
             subjectType: 'player_search',
             subjectId: $this->searchId,
             notBefore: Carbon::now()->addMinutes(self::DEBOUNCE_MINUTES)->addSeconds(max(0, $this->delaySeconds)),

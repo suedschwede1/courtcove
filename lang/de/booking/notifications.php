@@ -11,6 +11,43 @@ return [
         // own number only, withdrawal at any time (account or STOP), and that the searching person's name is in the message.
         'consent_text_v1' => 'Ich möchte per WhatsApp benachrichtigt werden, wenn jemand Mitspieler sucht (Spielersuche). Die Nachricht geht an die Handynummer, die in meinem Konto hinterlegt ist; ich gebe nur meine eigene Nummer an. In der Nachricht steht der Name der Person, die Mitspieler sucht. Meine Einwilligung kann ich jederzeit im Konto widerrufen oder indem ich auf eine Nachricht mit STOP antworte.',
 
+        // Names and descriptions of the notification types (NotificationRegistry; keyed by template key).
+        'types' => [
+            'player_search_opened' => [
+                'label' => 'Neue Spielersuche',
+                'description' => 'Nachricht, wenn jemand über die Spielerbörse Mitspieler sucht.',
+                'variables' => [
+                    1 => 'Datum (zum Beispiel „Sa, 14.11.“)',
+                    2 => 'Beginn',
+                    3 => 'Platz',
+                    4 => 'gesuchte Plätze',
+                    5 => 'Vor- und Nachname der suchenden Person',
+                    6 => 'Endung des Button-Links (Kalender mit Datum)',
+                ],
+            ],
+            'player_search_closed' => [
+                'label' => 'Suche beendet',
+                'description' => 'Folgenachricht, wenn eine gemeldete Suche voll ist oder beendet wurde.',
+                'variables' => [
+                    1 => 'Datum',
+                    2 => 'Beginn',
+                    3 => 'Platz',
+                ],
+            ],
+            'test' => [
+                'label' => 'Testnachricht',
+                'description' => 'Testnachricht der Admin-Seite an die eigene Nummer des Administrators.',
+            ],
+        ],
+
+        // Consent purposes (NotificationRegistry): one consent per purpose, with its own text and version.
+        'purposes' => [
+            'player_search' => [
+                'label' => 'Spielerbörse',
+                'description' => 'Lass dich per WhatsApp benachrichtigen, wenn jemand über die Spielerbörse Mitspieler sucht.',
+            ],
+        ],
+
         // Privacy sentence; processors are named on the club's external privacy page, not here.
         'privacy_notice' => 'Mit deiner Einwilligung verwenden wir die Handynummer aus deinem Konto, um dir Benachrichtigungen (zuerst: Spielersuchen) per WhatsApp zu senden. Dabei sind der von uns beauftragte Messaging-Dienst und der Betreiber von WhatsApp eingebunden. Du kannst die Einwilligung jederzeit im Konto oder per STOP widerrufen.',
 
@@ -24,12 +61,14 @@ return [
             'phone_not_mobile' => 'Die Nummer in deinem Profil ist keine Handynummer. Bitte trage im Profil eine Handynummer ein.',
             'exchange_off' => 'Die Spielerbörse ist bei dir ausgeschaltet. Aktiviere zuerst die Spielerbörse im Profil und speichere, dann kannst du WhatsApp einschalten.',
             'conflict' => 'Die Einwilligung konnte gerade nicht gespeichert werden. Bitte versuche es noch einmal.',
+            // Any other reason (the gate condition of a further purpose without a text of its own).
+            'unavailable' => 'Die Voraussetzungen für diese Benachrichtigungen sind bei dir derzeit nicht erfüllt.',
         ],
 
         // Account card "Benachrichtigungen" (consent, filters, withdrawal).
         'account_card' => [
             'title' => 'WhatsApp-Benachrichtigungen',
-            'intro' => 'Lass dich per WhatsApp benachrichtigen, wenn jemand über die Spielerbörse Mitspieler sucht.',
+            'title_purpose' => 'WhatsApp-Benachrichtigungen: :purpose',
             'number_label' => 'Nummer aus deinem Profil: :number',
             'own_number_hint' => 'In der Nachricht stehen der Vor- und Nachname der suchenden Person. Die Nachricht geht an die Handynummer aus deinem Profil, und diese muss deine eigene sein.',
             'profile_link' => 'Zum Profil',
@@ -42,11 +81,10 @@ return [
             'revoked_flash' => 'Du bist von den WhatsApp-Benachrichtigungen abgemeldet.',
             'badge_active' => 'Aktiv',
             'consented_at' => 'Eingewilligt am :date',
-            'search_switch' => 'Bei Spielersuchen benachrichtigen',
-            'search_help' => 'Ausschalten pausiert nur die Spielersuche-Nachrichten, deine Einwilligung bleibt bestehen. Mit „WhatsApp abmelden“ widerrufst du sie.',
+            'type_help' => 'Ausschalten pausiert nur diese Nachrichten, deine Einwilligung bleibt bestehen. Mit „WhatsApp abmelden“ widerrufst du sie.',
             'paused' => 'Zurzeit werden dir keine Nachrichten geschickt. :reason',
             'filters' => 'Filter',
-            'filters_help' => 'Ohne Auswahl wirst du bei jeder Spielersuche benachrichtigt.',
+            'filters_help' => 'Ohne Auswahl wirst du bei jeder dieser Nachrichten benachrichtigt.',
             'weekdays' => [
                 1 => 'Mo',
                 2 => 'Di',
