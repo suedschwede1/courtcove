@@ -26,5 +26,12 @@ return [
         'whatsapp' => [
             'test' => 'Test message from the booking system: WhatsApp sending works.',
         ],
+
+        // Answers to inbound messages (returned in the webhook response, sent as free text inside the 24-hour window).
+        'webhook' => [
+            'stop_confirmed' => 'Unsubscribed: you will no longer get WhatsApp notifications from the booking system. You can subscribe again at any time in your account under Notifications: :url',
+            'start' => 'There is no automatic subscription by reply. You can switch WhatsApp notifications on in your account under Notifications: :url',
+            'help' => 'This number does not read messages. Manage your notifications in your account: :url Reply STOP to unsubscribe.',
+        ],
     ],
 ];

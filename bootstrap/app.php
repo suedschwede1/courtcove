@@ -23,6 +23,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->prepend(TrackAdminModeRequest::class);
         $middleware->alias(['admin.mode' => EnsureAdminMode::class]);
         $middleware->web(append: [SetLocale::class, StripFourByteCharacters::class]);
+        // Provider webhooks authenticate by signature (VerifyWebhookSignature), not by session.
+        $middleware->validateCsrfTokens(except: ['webhooks/whatsapp/*']);
         $middleware->api(append: [StripFourByteCharacters::class]);
     })
     // Scheduled tasks: see App\Console\Scheduling\ScheduleDefinition (server cron runs `php artisan schedule:run` every minute).

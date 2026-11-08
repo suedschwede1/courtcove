@@ -26,5 +26,12 @@ return [
         'whatsapp' => [
             'test' => 'Testnachricht aus dem Buchungssystem: der WhatsApp-Versand funktioniert.',
         ],
+
+        // Answers to inbound messages (returned in the webhook response, sent as free text inside the 24-hour window).
+        'webhook' => [
+            'stop_confirmed' => 'Abmeldung bestätigt: Du bekommst keine WhatsApp-Benachrichtigungen mehr vom Buchungssystem. Wieder anmelden kannst du dich jederzeit im Konto unter Benachrichtigungen: :url',
+            'start' => 'Eine automatische Anmeldung per Antwort gibt es nicht. Du kannst WhatsApp-Benachrichtigungen im Konto unter Benachrichtigungen einschalten: :url',
+            'help' => 'Diese Nummer nimmt keine Nachrichten entgegen. Benachrichtigungen verwaltest du im Konto: :url Mit STOP meldest du dich ab.',
+        ],
     ],
 ];
