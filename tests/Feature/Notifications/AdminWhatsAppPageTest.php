@@ -28,8 +28,11 @@ class AdminWhatsAppPageTest extends TestCase
 
     private const SERVICE = 'MGtest00000000000000000000000002';
 
-    /** Form field of the "search closed" follow-up switch. */
-    private const FOLLOWUP_FIELD = 'followup_closed';
+    /** Form field of the "search closed" follow-up switch: the generic switch of its type block. */
+    private const FOLLOWUP_FIELD = 'type_player_search-closed_enabled';
+
+    /** Marker of the type block: without it a save leaves the switch alone. */
+    private const FOLLOWUP_SHOWN = 'type_player_search-closed_shown';
 
     private function admin(): User
     {
@@ -246,9 +249,9 @@ class AdminWhatsAppPageTest extends TestCase
 
         $this->assertStringNotContainsString('reserve', $html);
         $this->assertStringNotContainsString('verification', $html);
-        foreach (['player_search_opened', 'player_search_closed', 'test'] as $key) {
+        foreach (['player_search-opened', 'player_search-closed', 'whatsapp-test'] as $slug) {
             foreach (['de', 'en'] as $locale) {
-                $this->assertStringContainsString('name="tpl_'.$key.'_'.$locale.'"', $html);
+                $this->assertStringContainsString('name="type_'.$slug.'_tpl_'.$locale.'"', $html);
             }
         }
     }
@@ -256,7 +259,7 @@ class AdminWhatsAppPageTest extends TestCase
     #[Test]
     public function templates_are_stored_per_type_and_locale(): void
     {
-        $this->save(['driver' => 'log', 'tpl_player_search_opened_de' => 'HXtest01', 'tpl_test_en' => 'HXtest02'])->assertSessionHasNoErrors();
+        $this->save(['driver' => 'log', 'type_player_search-opened_tpl_de' => 'HXtest01', 'type_whatsapp-test_tpl_en' => 'HXtest02'])->assertSessionHasNoErrors();
 
         $this->assertSame('HXtest01', $this->settings()->templateId('player_search_opened', 'de'));
         $this->assertSame('HXtest02', $this->settings()->templateId('test', 'en'));
@@ -386,12 +389,16 @@ class AdminWhatsAppPageTest extends TestCase
         $this->assertFalse($checked($this->page()));
 
         // Saving writes the type option and drops the old one.
-        $this->save([self::FOLLOWUP_FIELD => '1'])->assertRedirect();
+        $this->save([self::FOLLOWUP_SHOWN => '1', self::FOLLOWUP_FIELD => '1'])->assertRedirect();
         $this->assertSame('1', $this->opt($typeOption));
         $this->assertNull($this->opt('whatsapp.followup_closed'));
         $this->assertTrue($this->settings()->followupClosed());
 
+        // A save without the type block (partial form) leaves the switch alone.
         $this->save([])->assertRedirect();
+        $this->assertSame('1', $this->opt($typeOption));
+
+        $this->save([self::FOLLOWUP_SHOWN => '1'])->assertRedirect();
         $this->assertSame('0', $this->opt($typeOption));
         $this->assertFalse($this->settings()->followupClosed());
     }

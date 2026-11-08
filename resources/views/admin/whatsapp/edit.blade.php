@@ -116,11 +116,6 @@
                     <p class="ds-field__help" id="wa-sandbox-help">{{ __('booking.admin.whatsapp.from_env') }}</p>
                 @endif
             </div>
-            <div class="ds-admin-choice">
-                <x-ui.option-group :columns="2" class="ds-admin-flags ds-admin-flags--single">
-                    <x-ui.option-tile type="checkbox" name="followup_closed" value="1" :label="__('booking.admin.whatsapp.followup_closed')" :checked="$flag('followup_closed')" />
-                </x-ui.option-group>
-            </div>
             <div class="ds-admin-form-grid ds-admin-form-grid--2">
                 <x-ui.field :label="__('booking.admin.whatsapp.sandbox_sender')" for="wa-sandbox-sender" :help="$help('sandbox_sender')">
                     <x-ui.input id="wa-sandbox-sender" name="sandbox_sender" :value="$val('sandbox_sender')" :disabled="$envLocked['sandbox_sender']" />
@@ -159,16 +154,71 @@
             </div>
         </x-ui.card>
 
-        <x-ui.card :title="__('booking.admin.whatsapp.section_templates')" padding="lg" class="ds-admin-form-card">
+        {{-- One block per registered notification type (NotificationRegistry); nothing here is type specific. --}}
+        <x-ui.card :title="__('booking.admin.whatsapp.section_types')" padding="lg" class="ds-admin-form-card">
+            <p class="ds-field__help">{{ __('booking.admin.whatsapp.types_intro') }}</p>
             <p class="ds-field__help">{{ __('booking.admin.whatsapp.templates_intro') }}</p>
-            <div class="ds-admin-form-grid ds-admin-form-grid--2">
-                @foreach($templateFields as $field => [, $type, $locale])
-                    <x-ui.field :label="__('booking.admin.whatsapp.template_id', ['type' => __('booking.admin.whatsapp.templates.'.$type), 'locale' => strtoupper($locale)])" :for="'wa-'.$field">
-                        <x-ui.input :id="'wa-'.$field" :name="$field" :value="old($field, $templates[$field])" />
-                    </x-ui.field>
-                @endforeach
-            </div>
         </x-ui.card>
+        @foreach($types as $type)
+            @php
+                $f = $type['fields'];
+                $typeOn = session()->hasOldInput() ? old($f['enabled']) === '1' : $type['enabled'];
+                $stats = $type['stats'];
+            @endphp
+            <x-ui.card :title="__('booking.admin.whatsapp.type_card', ['type' => $type['label']])" padding="lg" class="ds-admin-form-card" data-wa-type="{{ $type['key'] }}">
+                <p class="ds-field__help">{{ $type['description'] }}</p>
+                @if($type['followupOf'] !== null)
+                    <p class="ds-field__help">{{ __('booking.admin.whatsapp.type_followup', ['type' => $type['followupOf']]) }}</p>
+                @endif
+                <input type="hidden" name="{{ $f['shown'] }}" value="1">
+                <div class="ds-admin-choice">
+                    <x-ui.option-group :columns="2" class="ds-admin-flags ds-admin-flags--single">
+                        <x-ui.option-tile type="checkbox" :name="$f['enabled']" value="1" :label="__('booking.admin.whatsapp.type_enabled')" :checked="$typeOn" />
+                    </x-ui.option-group>
+                </div>
+                @if($type['enabled'])
+                    @foreach($type['templates'] as $locale => $tpl)
+                        @if($tpl['missing'])
+                            <x-ui.notice tone="attention" data-wa-template-missing="{{ $type['key'] }}.{{ $locale }}">{{ __('booking.admin.whatsapp.template_missing_hint', ['locale' => strtoupper($locale)]) }}</x-ui.notice>
+                        @endif
+                    @endforeach
+                @endif
+                <div class="ds-admin-form-grid ds-admin-form-grid--2">
+                    @foreach($type['templates'] as $locale => $tpl)
+                        <x-ui.field :label="__('booking.admin.whatsapp.template_id', ['type' => $type['label'], 'locale' => strtoupper($locale)])" :for="'wa-'.$tpl['field']">
+                            <x-ui.input :id="'wa-'.$tpl['field']" :name="$tpl['field']" :value="old($tpl['field'], $tpl['value'])" />
+                        </x-ui.field>
+                    @endforeach
+                    @if(! $type['testType'])
+                        <x-ui.field :label="__('booking.admin.whatsapp.type_price')" :for="'wa-'.$f['price']" :help="__('booking.admin.whatsapp.type_price_hint')">
+                            <x-ui.input :id="'wa-'.$f['price']" :name="$f['price']" inputmode="decimal" :value="old($f['price'], $type['price'])" />
+                        </x-ui.field>
+                    @endif
+                </div>
+                @if($type['testType'])
+                    <p class="ds-field__help">{{ __('booking.admin.whatsapp.type_test_price') }}</p>
+                @endif
+                <p class="ds-field__help" data-wa-variables="{{ $type['key'] }}">
+                    <strong>{{ __('booking.admin.whatsapp.type_variables') }}:</strong>
+                    @forelse($type['variables'] as $i => $variable)
+                        {{ __('booking.admin.whatsapp.type_variable', ['number' => $i + 1, 'text' => $variable]) }}@if(! $loop->last); @endif
+                    @empty
+                        {{ __('booking.admin.whatsapp.type_no_variables') }}
+                    @endforelse
+                </p>
+                <p class="ds-field__help" data-wa-stats="{{ $type['key'] }}">
+                    {{ __('booking.admin.whatsapp.type_stats', [
+                        'month' => $stats['month']['total'],
+                        'delivered' => $stats['month']['delivered'] + $stats['month']['read'],
+                        'read' => $stats['month']['read'],
+                        'last30' => $stats['last30']['total'],
+                    ]) }}
+                    {{ $stats['last_sent_at'] !== null
+                        ? __('booking.admin.whatsapp.type_last_sent', ['date' => $stats['last_sent_at']->format('d.m.Y H:i')])
+                        : __('booking.admin.whatsapp.type_never_sent') }}
+                </p>
+            </x-ui.card>
+        @endforeach
 
         <div class="ds-admin-actions ds-admin-actions--sticky">
             <div class="ds-admin-actions__group ds-admin-actions__group--main">

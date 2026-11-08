@@ -171,6 +171,35 @@ class NotificationRegistryTest extends TestCase
     }
 
     #[Test]
+    public function filter_definitions_are_validated(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        new NotificationTypeDefinition(
+            key: 'reg.filtered',
+            labelKey: 'booking.notifications.types.player_search_opened.label',
+            descriptionKey: 'booking.notifications.types.player_search_opened.description',
+            templateKey: 'reg_filtered',
+            resolver: AdminTestResolver::class,
+            purpose: null,
+            filters: ['window' => ['kind' => 'time_range', 'from' => 'start']], // "to" missing
+        );
+    }
+
+    #[Test]
+    public function built_in_types_name_their_template_variables_in_both_languages(): void
+    {
+        $opened = $this->registry()->type(NotificationTypes::PLAYER_SEARCH_OPENED);
+        $this->assertNotNull($opened?->variablesKey);
+        foreach (['de', 'en'] as $locale) {
+            $this->assertCount(6, (array) trans((string) $opened->variablesKey, [], $locale));
+            $this->assertCount(3, (array) trans((string) $this->registry()->type(NotificationTypes::PLAYER_SEARCH_CLOSED)?->variablesKey, [], $locale));
+        }
+        // The admin test has no variables (the admin page shows "none").
+        $this->assertNull($this->registry()->type(NotificationTypes::ADMIN_TEST)?->variablesKey);
+    }
+
+    #[Test]
     public function a_followup_names_a_registered_type(): void
     {
         $this->registry()->register($this->type('reg.base', 'reg_purpose'), $this->purpose('reg_purpose'));

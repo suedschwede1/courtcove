@@ -16,14 +16,17 @@ use InvalidArgumentException;
  * - `templateKey`: admin option `whatsapp.template.<templateKey>.<locale>` holds the template ID.
  * - `purpose`: consent purpose that must be active at send time (null: no consent needed).
  * - `defaultEnabled`: switch of the type while option `whatsapp.type.<key>.enabled` is not set.
- * - `filters`: filters a subscriber may set for this type, as data for the account card, e.g.
- *   `['weekdays' => ['kind' => 'weekdays'], 'quantities' => ['kind' => 'choice', 'options' => [2, 4]]]`.
+ * - `filters`: filters a subscriber may set for this type in the account card (validation and storage follow
+ *   from them, see {@see SubscriptionFilters}): `['weekdays' => ['kind' => 'weekdays'], 'time_window' =>
+ *   ['kind' => 'time_range', 'from' => 'time_from', 'to' => 'time_to'], 'quantities' => ['kind' => 'choice',
+ *   'options' => [2, 4], 'labelKey' => ..., 'optionsKey' => ...]]`; empty = the card shows the switch only.
  * - `priority`: lower goes first in the outbox.
  * - `followupOf`: key of the type this one follows up (sent only after that one went out); a follow-up
  *   has no subscription of its own and is switched on or off by its type option alone.
  * - `optIn`: a subscription without filters is created together with the consent of the purpose.
  * - `testType`: the admin test (skips the purpose prerequisite and the daily limit, books the global price).
  * - `legacyEnabledOption`: older option that still switches the type while the per-type option is unset.
+ * - `variablesKey`: lang key of the list of template variables (1..n) shown on the admin page.
  */
 final readonly class NotificationTypeDefinition
 {
@@ -49,6 +52,7 @@ final readonly class NotificationTypeDefinition
         public bool $optIn = false,
         public bool $testType = false,
         public ?string $legacyEnabledOption = null,
+        public ?string $variablesKey = null,
     ) {
         if (strlen($key) > 48 || preg_match(self::KEY_PATTERN, $key) !== 1) {
             throw new InvalidArgumentException("Invalid notification type key [$key].");
@@ -59,10 +63,23 @@ final readonly class NotificationTypeDefinition
         if ($followupOf === $key) {
             throw new InvalidArgumentException("Notification type [$key] cannot follow up itself.");
         }
+        SubscriptionFilters::assertValid($key, $filters);
     }
 
     public function isFollowup(): bool
     {
         return $this->followupOf !== null;
+    }
+
+    /** Whether a subscriber switches this type in the account card (not for the admin test or a follow-up). */
+    public function isSubscribable(): bool
+    {
+        return ! $this->testType && $this->followupOf === null;
+    }
+
+    /** The key without dots, for form field names and HTML ids. */
+    public function slug(): string
+    {
+        return str_replace('.', '-', $this->key);
     }
 }

@@ -45,6 +45,28 @@ class AccountWhatsAppCardTest extends TestCase
         };
     }
 
+    /**
+     * The update form in the generic field names: `search` becomes the switch `on[<slug>]`, the filter fields
+     * move under `filters[<slug>]` (player search type).
+     *
+     * @param  array<string, mixed>  $flat
+     * @return array<string, mixed>
+     */
+    private function form(array $flat): array
+    {
+        $slug = 'player_search-opened';
+        $data = [];
+        foreach ($flat as $key => $value) {
+            match ($key) {
+                'search' => $data['on'][$slug] = $value,
+                'weekdays', 'time_from', 'time_to', 'quantities' => $data['filters'][$slug][$key] = $value,
+                default => $data[$key] = $value,
+            };
+        }
+
+        return $data;
+    }
+
     private function card(User $user, string $locale = 'de'): string
     {
         $user->setMeta('locale', $locale);
@@ -213,10 +235,10 @@ class AccountWhatsAppCardTest extends TestCase
         $this->assertStringContainsString('Aktiv', $card);
         $this->assertStringContainsString('08.11.2026', $card);
         $this->assertStringContainsString('+43 … 42', $card);
-        $this->assertStringContainsString('name="search"', $card);
-        $this->assertStringContainsString('name="weekdays[]"', $card);
-        $this->assertStringContainsString('name="time_from"', $card);
-        $this->assertStringContainsString('name="quantities[]"', $card);
+        $this->assertStringContainsString('name="on[player_search-opened]"', $card);
+        $this->assertStringContainsString('name="filters[player_search-opened][weekdays][]"', $card);
+        $this->assertStringContainsString('name="filters[player_search-opened][time_from]"', $card);
+        $this->assertStringContainsString('name="filters[player_search-opened][quantities][]"', $card);
         $this->assertStringContainsString(route('account.whatsapp.revoke'), $card);
         $this->assertStringContainsString('WhatsApp abmelden', $card);
     }
@@ -266,29 +288,29 @@ class AccountWhatsAppCardTest extends TestCase
         $url = route('account.whatsapp.update');
         $this->actingAs($user);
 
-        $this->put($url, ['search' => '1', 'weekdays' => ['8']])->assertSessionHasErrors('weekdays.0');
-        $this->put($url, ['search' => '1', 'weekdays' => ['0']])->assertSessionHasErrors('weekdays.0');
-        $this->put($url, ['search' => '1', 'quantities' => ['3']])->assertSessionHasErrors('quantities.0');
-        $this->put($url, ['search' => '1', 'time_from' => '25:00', 'time_to' => '21:00'])->assertSessionHasErrors('time_from');
-        $this->put($url, ['search' => '1', 'time_from' => '21:00', 'time_to' => '17:00'])->assertSessionHasErrors('time_from');
-        $this->put($url, ['search' => '1', 'time_from' => '17:00', 'time_to' => '17:00'])->assertSessionHasErrors('time_from');
-        $this->put($url, ['search' => '1', 'time_from' => '17:00'])->assertSessionHasErrors('time_to');
+        $this->put($url, $this->form(['search' => '1', 'weekdays' => ['8']]))->assertSessionHasErrors('filters.player_search-opened.weekdays.0');
+        $this->put($url, $this->form(['search' => '1', 'weekdays' => ['0']]))->assertSessionHasErrors('filters.player_search-opened.weekdays.0');
+        $this->put($url, $this->form(['search' => '1', 'quantities' => ['3']]))->assertSessionHasErrors('filters.player_search-opened.quantities.0');
+        $this->put($url, $this->form(['search' => '1', 'time_from' => '25:00', 'time_to' => '21:00']))->assertSessionHasErrors('filters.player_search-opened.time_from');
+        $this->put($url, $this->form(['search' => '1', 'time_from' => '21:00', 'time_to' => '17:00']))->assertSessionHasErrors('filters.player_search-opened.time_from');
+        $this->put($url, $this->form(['search' => '1', 'time_from' => '17:00', 'time_to' => '17:00']))->assertSessionHasErrors('filters.player_search-opened.time_from');
+        $this->put($url, $this->form(['search' => '1', 'time_from' => '17:00']))->assertSessionHasErrors('filters.player_search-opened.time_to');
         $this->assertNull(NotificationSubscription::query()->where('user_id', $user->uid)->first()->filters);
 
-        $this->put($url, [
+        $this->put($url, $this->form([
             'search' => '1',
             'weekdays' => ['6', '1', '6', '3'],
             'time_from' => '17:00',
             'time_to' => '21:30',
             'quantities' => ['4', '2'],
-        ])->assertSessionHasNoErrors()->assertRedirect(route('account.edit'));
+        ]))->assertSessionHasNoErrors()->assertRedirect(route('account.edit'));
 
         $this->assertSame(
             ['weekdays' => [1, 3, 6], 'time_from' => '17:00', 'time_to' => '21:30', 'quantities' => [2, 4]],
             NotificationSubscription::query()->where('user_id', $user->uid)->first()->filters,
         );
 
-        $this->put($url, ['search' => '1'])->assertSessionHasNoErrors();
+        $this->put($url, $this->form(['search' => '1']))->assertSessionHasNoErrors();
         $this->assertNull(NotificationSubscription::query()->where('user_id', $user->uid)->first()->filters);
         $this->assertSame(1, NotificationSubscription::query()->where('user_id', $user->uid)->count());
     }
@@ -301,11 +323,11 @@ class AccountWhatsAppCardTest extends TestCase
 
         $card = $this->card($user);
 
-        $this->assertMatchesRegularExpression('/name="weekdays\[\]" value="2"[^>]*checked/', $card);
-        $this->assertDoesNotMatchRegularExpression('/name="weekdays\[\]" value="1"[^>]*checked/', $card);
+        $this->assertMatchesRegularExpression('/name="filters\[player_search-opened\]\[weekdays\]\[\]" value="2"[^>]*checked/', $card);
+        $this->assertDoesNotMatchRegularExpression('/name="filters\[player_search-opened\]\[weekdays\]\[\]" value="1"[^>]*checked/', $card);
         $this->assertStringContainsString('value="18:00"', $card);
-        $this->assertMatchesRegularExpression('/name="quantities\[\]" value="4"[^>]*checked/', $card);
-        $this->assertMatchesRegularExpression('/name="search"[^>]*checked/', $card);
+        $this->assertMatchesRegularExpression('/name="filters\[player_search-opened\]\[quantities\]\[\]" value="4"[^>]*checked/', $card);
+        $this->assertMatchesRegularExpression('/name="on\[player_search-opened\]"[^>]*checked/', $card);
     }
 
     #[Test]
@@ -313,15 +335,15 @@ class AccountWhatsAppCardTest extends TestCase
     {
         $user = $this->optedInUser();
 
-        $this->actingAs($user)->put(route('account.whatsapp.update'), ['weekdays' => ['1']])->assertRedirect(route('account.edit'));
+        $this->actingAs($user)->put(route('account.whatsapp.update'), $this->form(['weekdays' => ['1']]))->assertRedirect(route('account.edit'));
 
         $this->assertSame(0, NotificationSubscription::query()->where('user_id', $user->uid)->count());
         $this->assertSame(1, $this->activeConsentCount($user));
 
         $card = $this->card($user);
-        $this->assertDoesNotMatchRegularExpression('/name="search"[^>]*checked/', $card);
+        $this->assertDoesNotMatchRegularExpression('/name="on\[player_search-opened\]"[^>]*checked/', $card);
 
-        $this->put(route('account.whatsapp.update'), ['search' => '1'])->assertRedirect();
+        $this->put(route('account.whatsapp.update'), $this->form(['search' => '1']))->assertRedirect();
         $this->assertSame(1, NotificationSubscription::query()->where('user_id', $user->uid)->count());
     }
 
@@ -330,7 +352,7 @@ class AccountWhatsAppCardTest extends TestCase
     {
         $user = $this->eligibleUser();
 
-        $this->actingAs($user)->put(route('account.whatsapp.update'), ['search' => '1'])
+        $this->actingAs($user)->put(route('account.whatsapp.update'), $this->form(['search' => '1']))
             ->assertRedirect(route('account.edit'))
             ->assertSessionHas('error');
 
@@ -365,9 +387,9 @@ class AccountWhatsAppCardTest extends TestCase
     public function errors_of_every_weekday_and_quantity_element_are_shown(): void
     {
         $user = $this->optedInUser();
-        $this->actingAs($user)->from(route('account.edit'))->put(route('account.whatsapp.update'), [
-            '_whatsapp_form' => '1', 'search' => '1', 'weekdays' => ['1', '9'], 'quantities' => ['2', '3'],
-        ])->assertRedirect(route('account.edit'));
+        $this->actingAs($user)->from(route('account.edit'))->put(route('account.whatsapp.update'), $this->form([
+            '_whatsapp_form' => 'player_search', 'search' => '1', 'weekdays' => ['1', '9'], 'quantities' => ['2', '3'],
+        ]))->assertRedirect(route('account.edit'));
         $bag = session('errors');
         // The session stores the bag as JSON (session serialisation "json"), so it reads back as an array.
         $messages = $bag instanceof ViewErrorBag ? $bag->getBag('default')->toArray() : ($bag['default']['messages'] ?? []);
@@ -377,7 +399,7 @@ class AccountWhatsAppCardTest extends TestCase
         preg_match('/<section[^>]*data-whatsapp-card.*?<\/section>/s', $html, $m);
         $card = $m[0] ?? '';
 
-        foreach (['weekdays.1', 'quantities.1'] as $key) {
+        foreach (['filters.player_search-opened.weekdays.1', 'filters.player_search-opened.quantities.1'] as $key) {
             $this->assertNotEmpty($messages[$key][0] ?? null, $key);
             $this->assertStringContainsString(e($messages[$key][0]), $card, $key);
         }
@@ -401,11 +423,11 @@ class AccountWhatsAppCardTest extends TestCase
     public function weekday_tiles_carry_the_full_weekday_name(): void
     {
         $de = $this->card($this->optedInUser());
-        $this->assertMatchesRegularExpression('/name="weekdays\[\]" value="1"[^>]*aria-label="Montag"/', $de);
-        $this->assertMatchesRegularExpression('/name="weekdays\[\]" value="7"[^>]*aria-label="Sonntag"/', $de);
+        $this->assertMatchesRegularExpression('/name="filters\[player_search-opened\]\[weekdays\]\[\]" value="1"[^>]*aria-label="Montag"/', $de);
+        $this->assertMatchesRegularExpression('/name="filters\[player_search-opened\]\[weekdays\]\[\]" value="7"[^>]*aria-label="Sonntag"/', $de);
 
         $en = $this->card($this->optedInUser('+43 660 0000001'), 'en');
-        $this->assertMatchesRegularExpression('/name="weekdays\[\]" value="1"[^>]*aria-label="Monday"/', $en);
+        $this->assertMatchesRegularExpression('/name="filters\[player_search-opened\]\[weekdays\]\[\]" value="1"[^>]*aria-label="Monday"/', $en);
     }
 
     #[Test]
@@ -497,14 +519,14 @@ class AccountWhatsAppCardTest extends TestCase
             $route = Route::getRoutes()->getByName($name);
             $this->assertNotNull($route, $name);
             $this->assertContains($method, $route->methods());
-            $this->assertSame('my-account/whatsapp', $route->uri());
+            $this->assertSame('my-account/whatsapp/{purpose?}', $route->uri());
             $middleware = $route->gatherMiddleware();
             $this->assertContains('throttle:10,1', $middleware, $name);
             $this->assertContains('auth', $middleware, $name);
         }
 
         $this->post(route('account.whatsapp.enable'), ['consent' => '1'])->assertRedirect('/login');
-        $this->put(route('account.whatsapp.update'), ['search' => '1'])->assertRedirect('/login');
+        $this->put(route('account.whatsapp.update'), $this->form(['search' => '1']))->assertRedirect('/login');
         $this->delete(route('account.whatsapp.revoke'))->assertRedirect('/login');
     }
 }

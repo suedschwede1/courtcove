@@ -16,10 +16,23 @@ return [
             'player_search_opened' => [
                 'label' => 'Neue Spielersuche',
                 'description' => 'Nachricht, wenn jemand über die Spielerbörse Mitspieler sucht.',
+                'variables' => [
+                    1 => 'Datum (zum Beispiel „Sa, 14.11.“)',
+                    2 => 'Beginn',
+                    3 => 'Platz',
+                    4 => 'gesuchte Plätze',
+                    5 => 'Vor- und Nachname der suchenden Person',
+                    6 => 'Endung des Button-Links (Kalender mit Datum)',
+                ],
             ],
             'player_search_closed' => [
                 'label' => 'Suche beendet',
                 'description' => 'Folgenachricht, wenn eine gemeldete Suche voll ist oder beendet wurde.',
+                'variables' => [
+                    1 => 'Datum',
+                    2 => 'Beginn',
+                    3 => 'Platz',
+                ],
             ],
             'test' => [
                 'label' => 'Testnachricht',
@@ -31,7 +44,7 @@ return [
         'purposes' => [
             'player_search' => [
                 'label' => 'Spielerbörse',
-                'description' => 'WhatsApp-Nachrichten zu Spielersuchen der Spielerbörse.',
+                'description' => 'Lass dich per WhatsApp benachrichtigen, wenn jemand über die Spielerbörse Mitspieler sucht.',
             ],
         ],
 
@@ -48,12 +61,14 @@ return [
             'phone_not_mobile' => 'Die Nummer in deinem Profil ist keine Handynummer. Bitte trage im Profil eine Handynummer ein.',
             'exchange_off' => 'Die Spielerbörse ist bei dir ausgeschaltet. Aktiviere zuerst die Spielerbörse im Profil und speichere, dann kannst du WhatsApp einschalten.',
             'conflict' => 'Die Einwilligung konnte gerade nicht gespeichert werden. Bitte versuche es noch einmal.',
+            // Any other reason (the gate condition of a further purpose without a text of its own).
+            'unavailable' => 'Die Voraussetzungen für diese Benachrichtigungen sind bei dir derzeit nicht erfüllt.',
         ],
 
         // Account card "Benachrichtigungen" (consent, filters, withdrawal).
         'account_card' => [
             'title' => 'WhatsApp-Benachrichtigungen',
-            'intro' => 'Lass dich per WhatsApp benachrichtigen, wenn jemand über die Spielerbörse Mitspieler sucht.',
+            'title_purpose' => 'WhatsApp-Benachrichtigungen: :purpose',
             'number_label' => 'Nummer aus deinem Profil: :number',
             'own_number_hint' => 'In der Nachricht stehen der Vor- und Nachname der suchenden Person. Die Nachricht geht an die Handynummer aus deinem Profil, und diese muss deine eigene sein.',
             'profile_link' => 'Zum Profil',
@@ -66,11 +81,10 @@ return [
             'revoked_flash' => 'Du bist von den WhatsApp-Benachrichtigungen abgemeldet.',
             'badge_active' => 'Aktiv',
             'consented_at' => 'Eingewilligt am :date',
-            'search_switch' => 'Bei Spielersuchen benachrichtigen',
-            'search_help' => 'Ausschalten pausiert nur die Spielersuche-Nachrichten, deine Einwilligung bleibt bestehen. Mit „WhatsApp abmelden“ widerrufst du sie.',
+            'type_help' => 'Ausschalten pausiert nur diese Nachrichten, deine Einwilligung bleibt bestehen. Mit „WhatsApp abmelden“ widerrufst du sie.',
             'paused' => 'Zurzeit werden dir keine Nachrichten geschickt. :reason',
             'filters' => 'Filter',
-            'filters_help' => 'Ohne Auswahl wirst du bei jeder Spielersuche benachrichtigt.',
+            'filters_help' => 'Ohne Auswahl wirst du bei jeder dieser Nachrichten benachrichtigt.',
             'weekdays' => [
                 1 => 'Mo',
                 2 => 'Di',

@@ -49,11 +49,17 @@ final class BuiltInNotifications
             purpose: NotificationConsent::PURPOSE_PLAYER_SEARCH,
             priority: 20,
             filters: [
-                'weekdays' => ['kind' => 'weekdays', 'fields' => ['weekdays']],
-                'time_window' => ['kind' => 'time_range', 'fields' => ['time_from', 'time_to']],
-                'quantities' => ['kind' => 'choice', 'fields' => ['quantities'], 'options' => [2, 4]],
+                'weekdays' => ['kind' => 'weekdays'],
+                'time_window' => ['kind' => 'time_range', 'from' => 'time_from', 'to' => 'time_to'],
+                'quantities' => [
+                    'kind' => 'choice',
+                    'options' => [2, 4],
+                    'labelKey' => 'booking.notifications.account_card.quantities_label',
+                    'optionsKey' => 'booking.notifications.account_card.quantities',
+                ],
             ],
             optIn: true,
+            variablesKey: 'booking.notifications.types.player_search_opened.variables',
         ));
 
         // Follow-up "search closed": off unless switched on (old option whatsapp.followup_closed still counts).
@@ -68,6 +74,7 @@ final class BuiltInNotifications
             defaultEnabled: false,
             followupOf: NotificationTypes::PLAYER_SEARCH_OPENED,
             legacyEnabledOption: 'whatsapp.followup_closed',
+            variablesKey: 'booking.notifications.types.player_search_closed.variables',
         ));
     }
 }
