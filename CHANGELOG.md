@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-08
+- Assets rebuilt over the whole tracked tree after the WhatsApp admin pages (stylesheet hash changed).
 - WhatsApp send log: card without duplicate title, long raw values no longer overflow on phones.
 - Assets: rebuilt `public/build` for the WhatsApp send log mobile fixes.
 - WhatsApp admin: send log filters as selects, unknown values shown raw and wrapped on phones, log-driver hint no longer red, usage figure keeps its percent sign.
