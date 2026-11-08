@@ -102,6 +102,7 @@ Route::middleware(['auth', 'can:admin.members'])
         // Anschlussmitglied: link this member to a Vollzahler (before the members resource).
         Route::post('members/{member}/connection', [MemberConnectionController::class, 'store'])->whereNumber('member')->name('members.connection.store');
         Route::delete('members/{member}/connection', [MemberConnectionController::class, 'destroy'])->whereNumber('member')->name('members.connection.destroy');
+        Route::post('members/{member}/connection/swap', [MemberConnectionController::class, 'swap'])->whereNumber('member')->name('members.connection.swap');
 
         Route::resource('members', MemberController::class)->except(['show', 'destroy']);
     });

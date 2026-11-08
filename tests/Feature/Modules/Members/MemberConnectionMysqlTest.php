@@ -112,4 +112,61 @@ class MemberConnectionMysqlTest extends MysqlTestCase
         $this->assertThrows(fn () => app(MemberConnectionService::class)->connect($helga->fresh() ?? $helga, $heinz->fresh() ?? $heinz), MemberConnectionException::class);
         $this->assertSame(1, Member::query()->where('connected_to_member_id', $heinz->id)->count());
     }
+
+    #[Test]
+    public function a_swap_waits_for_a_running_second_connect_and_is_then_refused(): void
+    {
+        $heinz = $this->member('Heinz', $this->full);
+        $helga = $this->member('Helga', $this->partner);
+        $hanna = $this->member('Hanna', $this->partner);
+        app(MemberConnectionService::class)->connect($helga, $heinz);
+        SecondConnection::waitAtMost(1);
+
+        // Another request (old data / manual fix) links Hanna to Heinz too and holds the rows, not committed.
+        $this->second = SecondConnection::make();
+        $this->second->beginTransaction();
+        $this->second->select('SELECT id FROM members WHERE id IN (?, ?) ORDER BY id FOR UPDATE', [$heinz->id, $hanna->id]);
+        $this->second->update('UPDATE members SET connected_to_member_id = ? WHERE id = ?', [$heinz->id, $hanna->id]);
+
+        try {
+            app(MemberConnectionService::class)->swap($heinz->fresh() ?? $heinz);
+            $this->fail('expected a lock wait timeout');
+        } catch (QueryException $e) {
+            $this->assertSame(1205, $e->errorInfo[1]);
+        }
+
+        $this->second->commit();
+        $this->assertThrows(fn () => app(MemberConnectionService::class)->swap($heinz->fresh() ?? $heinz), MemberConnectionException::class);
+        $this->assertNull($heinz->fresh()?->connected_to_member_id, 'no chain: Heinz is not connected to anyone');
+    }
+
+    #[Test]
+    public function the_departure_lock_waits_for_a_running_swap_and_sees_the_swapped_roles(): void
+    {
+        $heinz = $this->member('Heinz', $this->full);
+        $helga = $this->member('Helga', $this->partner);
+        app(MemberConnectionService::class)->connect($helga, $heinz);
+        SecondConnection::waitAtMost(1);
+
+        // A swap in another session holds both rows: Helga becomes the Vollzahler of Heinz, not committed yet.
+        $this->second = SecondConnection::make();
+        $this->second->beginTransaction();
+        $this->second->select('SELECT id FROM members WHERE id IN (?, ?) ORDER BY id FOR UPDATE', [$heinz->id, $helga->id]);
+        $this->second->update('UPDATE members SET connected_to_member_id = NULL WHERE id = ?', [$helga->id]);
+        $this->second->update('UPDATE members SET connected_to_member_id = ? WHERE id = ?', [$helga->id, $heinz->id]);
+
+        try {
+            app(MemberConnectionService::class)->memberDeparted($heinz);
+            $this->fail('expected a lock wait timeout');
+        } catch (QueryException $e) {
+            $this->assertSame(1205, $e->errorInfo[1]);
+        }
+        $this->second->commit();
+
+        // After the swap Heinz is the Anschlussmitglied: his departure ends nothing; Helga (now the Vollzahler) does.
+        app(MemberConnectionService::class)->memberDeparted($heinz->fresh() ?? $heinz);
+        $this->assertSame($helga->id, $heinz->fresh()?->connected_to_member_id);
+        app(MemberConnectionService::class)->memberDeparted($helga->fresh() ?? $helga);
+        $this->assertSame(0, Member::query()->whereNotNull('connected_to_member_id')->count());
+    }
 }

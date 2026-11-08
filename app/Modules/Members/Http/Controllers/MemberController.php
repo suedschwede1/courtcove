@@ -123,12 +123,14 @@ class MemberController
             'users' => User::query()->orderBy('alias')->get(),
             ...$this->householdCardData($member),
             'connectionWarnings' => MemberConnectionWarnings::forMember($member),
-            // Possible Vollzahler for an Anschlussmitglied: current, Vollzahler category, not connected, no partner yet.
+            'connectionEndedNotice' => MemberConnectionWarnings::endedNotice($member),
+            // Possible Vollzahler: any current member that is not connected and has no partner yet (no category check
+            // since the club decision of 2026-11-08); the category is shown next to the name.
             'connectionCandidates' => Member::query()
                 ->whereKeyNot($member->id)
                 ->whereIn('status', ['aktiv', 'ruhend'])->whereNull('anonymized_at')
                 ->whereNull('connected_to_member_id')->whereDoesntHave('anschlussMembers')
-                ->whereHas('feeCategory', fn ($q) => $q->where('connection_role', 'vollzahler'))
+                ->with('feeCategory')
                 ->orderBy('lastname')->orderBy('firstname')->get(),
         ]);
     }
@@ -184,12 +186,17 @@ class MemberController
         $departs = $before['left_at'] === null && $leftAt !== null;
 
         DB::transaction(function () use ($request, $member, $validated, $before, $leftAt, $departs) {
+            if ($departs) {
+                app(MemberConnectionService::class)->lockForDeparture($member);
+            }
             $member->update($validated);
             $member->clubRoles()->sync($request->input('club_roles', []));
             $member->setLeftAt($leftAt);
             $this->logChange($member, $departs ? 'departed' : 'updated', $before);
             if ($departs) {
                 app(HouseholdService::class)->memberDeparted($member);
+                // Club decision: the Vollzahler departing ends its Anschluss links (logged, shown on the partner's page).
+                app(MemberConnectionService::class)->memberDeparted($member);
             }
         });
 
@@ -234,6 +241,9 @@ class MemberController
 
         try {
             DB::transaction(function () use ($member, $validated, $before, $departs) {
+                if ($departs) {
+                    app(MemberConnectionService::class)->lockForDeparture($member);
+                }
                 match ($validated['field']) {
                     'left_at' => $member->setLeftAt($validated['value']),
                     'status' => $member->setStatus($validated['value']),
@@ -242,6 +252,7 @@ class MemberController
                 $this->logChange($member, $departs ? 'departed' : 'updated', $before);
                 if ($departs) {
                     app(HouseholdService::class)->memberDeparted($member);
+                    app(MemberConnectionService::class)->memberDeparted($member);
                 }
             });
         } catch (\Throwable $e) {

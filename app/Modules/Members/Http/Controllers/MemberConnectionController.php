@@ -11,7 +11,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 /**
- * Anschlussmitglied on the member page: connect this member to a Vollzahler, or remove the link. Ids are plain
+ * Anschlussmitglied on the member page: connect this member to a Vollzahler, remove the link, or swap the roles of
+ * the two (from either side, after a confirmation). Ids are plain
  * route parameters looked up after the admin.members gate; every write goes through MemberConnectionService.
  */
 class MemberConnectionController
@@ -42,5 +43,19 @@ class MemberConnectionController
         $this->connections->disconnect($anschluss);
 
         return redirect()->route('members.edit', $anschluss)->with('status', __('members::admin.connection.disconnected'));
+    }
+
+    /** "Rollen tauschen": categories and dues stay; the number of open dues of both is reported, never rewritten. */
+    public function swap(int $member): RedirectResponse
+    {
+        $subject = Member::query()->findOrFail($member);
+
+        try {
+            $open = $this->connections->swap($subject);
+        } catch (MemberConnectionException $e) {
+            return back()->withErrors(['connection' => $e->getMessage()]);
+        }
+
+        return redirect()->route('members.edit', $subject)->with('status', __('members::admin.connection.swapped', ['open' => $open]));
     }
 }

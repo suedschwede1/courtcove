@@ -84,17 +84,6 @@ class MemberConnectionServiceTest extends TestCase
     }
 
     #[Test]
-    public function the_categories_must_match_the_roles(): void
-    {
-        $youngster = Member::factory()->create(['fee_category_id' => $this->youth->id]);
-
-        $this->assertThrows(fn () => $this->service->connect($this->helga(), $youngster), MemberConnectionException::class);
-        $this->assertThrows(fn () => $this->service->connect($youngster, $this->heinz()), MemberConnectionException::class);
-        $this->assertThrows(fn () => $this->service->connect($this->helga(), $this->heinz(['status' => 'ausgetreten', 'left_at' => '2025-12-31'])), MemberConnectionException::class);
-        $this->assertSame(0, Member::whereNotNull('connected_to_member_id')->count());
-    }
-
-    #[Test]
     public function a_connection_and_a_familientarif_household_exclude_each_other(): void
     {
         $family = FeeCategory::create(['name' => 'Familie', 'billing_unit' => 'household']);
@@ -133,18 +122,17 @@ class MemberConnectionServiceTest extends TestCase
         $this->service->connect($helga, $heinz);
         $lonely = $this->helga(['firstname' => 'Lena']);
 
+        // Categories are not checked any more (club decision 2026-11-08): a category change gives no warning.
         $heinz->update(['fee_category_id' => $this->youth->id]);
-        $this->assertContains(__('members::admin.connection.warnings.partner_not_vollzahler', ['name' => 'Heinz Muster']), MemberConnectionWarnings::forMember($helga->fresh() ?? $helga));
-        $this->assertContains(__('members::admin.connection.warnings.not_vollzahler_with_anschluss'), MemberConnectionWarnings::forMember($heinz->fresh() ?? $heinz));
+        $this->assertSame([], MemberConnectionWarnings::forMember($helga->fresh() ?? $helga));
+        $this->assertSame([], MemberConnectionWarnings::forMember($heinz->fresh() ?? $heinz));
 
-        $heinz->update(['fee_category_id' => $this->full->id]);
+        // A departure written past the departure flow (old data) is still reported; the form/inline flow ends the link.
         $heinz->fresh()?->setLeftAt('2026-06-30');
         $this->assertContains(__('members::admin.connection.warnings.partner_departed', ['name' => 'Heinz Muster']), MemberConnectionWarnings::forMember($helga->fresh() ?? $helga));
         $this->assertSame($heinz->id, $helga->fresh()?->connected_to_member_id);
 
         $this->assertContains(__('members::admin.connection.warnings.anschluss_without_connection'), MemberConnectionWarnings::forMember($lonely));
-        $helga->fresh()?->update(['fee_category_id' => $this->youth->id]);
-        $this->assertContains(__('members::admin.connection.warnings.connected_category_not_anschluss'), MemberConnectionWarnings::forMember($helga->fresh() ?? $helga));
     }
 
     #[Test]

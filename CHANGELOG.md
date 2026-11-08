@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-08
+- Members, Anschlussmitglied (club decisions): any current member can be connected to any other (Pensionisten and other full-paying categories too); categories are no longer checked, each member simply pays its own category rate, and only data rules stay (no self link, no chain, one partner, no Familientarif). When the Vollzahler leaves, its Anschluss links end automatically, logged on both and shown on the partner's page (category unchanged). New "Rollen tauschen" on the member page swaps the two after a confirmation; categories and open dues stay unchanged.
 - Assets rebuilt after merging the player exchange switch (stylesheet hash changed).
 - Test housekeeping: the join dialog markup test no longer counts the buttons of the players dialog that follows it.
 - Calendar board on medium widths: the board is now a size container; below the three-day minimum (980px of board width) it shows two days (selected day and the next) instead of scrolling sideways with the third day cut off. Phones (< 48rem) still show one day, wide boards three. Step size, arrows and date picker are unchanged.
