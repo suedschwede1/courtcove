@@ -44,8 +44,8 @@ Route::post('/logout', [LogoutController::class, 'logout'])->name('logout');
 Route::get('/register', [RegisterController::class, 'showForm'])->name('register');
 Route::post('/register', [RegisterController::class, 'register'])->middleware('throttle:5,1');
 Route::get('/login/verify', [LoginVerificationController::class, 'show'])->name('login.verify.show');
-Route::post('/login/verify', [LoginVerificationController::class, 'verify'])->name('login.verify.submit');
-Route::post('/login/verify/resend', [LoginVerificationController::class, 'resend'])->name('login.verify.resend');
+Route::post('/login/verify', [LoginVerificationController::class, 'verify'])->middleware('throttle:30,1')->name('login.verify.submit');
+Route::post('/login/verify/resend', [LoginVerificationController::class, 'resend'])->middleware('throttle:30,1')->name('login.verify.resend');
 
 Route::get('/password/forgot', [ForgotPasswordController::class, 'showForm'])->name('password.forgot');
 Route::post('/password/forgot', [ForgotPasswordController::class, 'sendResetLink'])
@@ -125,6 +125,8 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/my-account/whatsapp', [NotificationSettingsController::class, 'enable'])->middleware('throttle:10,1')->name('account.whatsapp.enable');
     Route::put('/my-account/whatsapp', [NotificationSettingsController::class, 'update'])->middleware('throttle:10,1')->name('account.whatsapp.update');
     Route::delete('/my-account/whatsapp', [NotificationSettingsController::class, 'revoke'])->middleware('throttle:10,1')->name('account.whatsapp.revoke');
+    Route::delete('/my-account/devices', [AccountController::class, 'destroyDevices'])->name('account.devices.destroy-all');
+    Route::delete('/my-account/devices/{device}', [AccountController::class, 'destroyDevice'])->name('account.devices.destroy');
 });
 
 // The administration checks the stored right; only the booking and event admin routes depend on the admin mode

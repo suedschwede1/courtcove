@@ -18,6 +18,7 @@ class LoginVerificationCode extends Mailable implements ShouldQueue
 
     public function __construct(
         public readonly string $code,
+        public readonly bool $newDevice = false,
     ) {}
 
     public function envelope(): Envelope
@@ -32,7 +33,7 @@ class LoginVerificationCode extends Mailable implements ShouldQueue
     {
         return new Content(
             view: 'emails.login-verification-code',
-            with: ['code' => $this->code],
+            with: ['code' => $this->code, 'newDevice' => $this->newDevice],
         );
     }
 }

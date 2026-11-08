@@ -628,6 +628,17 @@ final class DatabaseSchemaChecker
                 'risk_flags' => fn (Blueprint $t) => $t->string('risk_flags', 128)->nullable(),
                 'created_at' => fn (Blueprint $t) => $t->timestamp('created_at')->nullable()->index(),
             ],
+            'trusted_devices' => [
+                'id' => fn (Blueprint $t) => $t->id(),
+                'user_id' => fn (Blueprint $t) => $t->unsignedBigInteger('user_id')->index(),
+                'token_hash' => fn (Blueprint $t) => $t->char('token_hash', 64)->unique(),
+                'label' => fn (Blueprint $t) => $t->string('label', 120),
+                'country_code' => fn (Blueprint $t) => $t->string('country_code', 2)->nullable(),
+                'created_at' => fn (Blueprint $t) => $t->timestamp('created_at')->nullable(),
+                'last_seen_at' => fn (Blueprint $t) => $t->timestamp('last_seen_at')->nullable(),
+                'expires_at' => fn (Blueprint $t) => $t->timestamp('expires_at')->nullable(),
+                'revoked_at' => fn (Blueprint $t) => $t->timestamp('revoked_at')->nullable(),
+            ],
             'player_exchange_searches' => [
                 'id' => fn (Blueprint $t) => $t->id(),
                 'bid' => fn (Blueprint $t) => $t->unsignedInteger('bid')->unique(),

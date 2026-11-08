@@ -93,5 +93,55 @@
             </form>
         </x-ui.card>
     </div>
+
+    @if($showDevices)
+        <x-ui.card :title="__('booking.devices.title')" id="devices">
+            <p class="ds-field__help mb-4">{{ __('booking.devices.intro', ['days' => (int) config('booking.security.trusted_device_days')]) }}</p>
+
+            @if($devices->isEmpty())
+                <p class="ds-admin-note">{{ __('booking.devices.empty') }}</p>
+            @else
+                <x-ui.table :caption="__('booking.devices.title')">
+                    <x-slot:head>
+                        <tr>
+                            <th scope="col">{{ __('booking.devices.device') }}</th>
+                            <th scope="col">{{ __('booking.devices.confirmed_at') }}</th>
+                            <th scope="col">{{ __('booking.devices.last_seen') }}</th>
+                            <th scope="col">{{ __('booking.devices.valid_until') }}</th>
+                            <th scope="col">{{ __('booking.devices.country') }}</th>
+                            <th scope="col"><span class="sr-only">{{ __('booking.devices.remove') }}</span></th>
+                        </tr>
+                    </x-slot:head>
+                    @foreach($devices as $device)
+                        <tr>
+                            <td class="ds-cell--title" data-label="{{ __('booking.devices.device') }}">
+                                {{ $device->label }}
+                                @if($currentDeviceHash !== null && hash_equals($device->token_hash, $currentDeviceHash))
+                                    <x-ui.badge tone="good">{{ __('booking.devices.current') }}</x-ui.badge>
+                                @endif
+                            </td>
+                            <td data-label="{{ __('booking.devices.confirmed_at') }}">{{ $device->created_at?->format('d.m.Y H:i') }}</td>
+                            <td data-label="{{ __('booking.devices.last_seen') }}">{{ $device->last_seen_at?->format('d.m.Y H:i') }}</td>
+                            <td data-label="{{ __('booking.devices.valid_until') }}">{{ $device->expires_at?->format('d.m.Y') }}</td>
+                            <td data-label="{{ __('booking.devices.country') }}">{{ $device->country_code ?? '—' }}</td>
+                            <td>
+                                <form method="POST" action="{{ route('account.devices.destroy', $device) }}" onsubmit="return confirm({{ Js::from(__('booking.devices.confirm_remove')) }})" class="m-0">
+                                    @csrf
+                                    @method('DELETE')
+                                    <x-ui.button type="submit" variant="secondary" :block="false">{{ __('booking.devices.remove') }}</x-ui.button>
+                                </form>
+                            </td>
+                        </tr>
+                    @endforeach
+                </x-ui.table>
+
+                <form method="POST" action="{{ route('account.devices.destroy-all') }}" onsubmit="return confirm({{ Js::from(__('booking.devices.confirm_remove_all')) }})" class="mt-4 flex justify-end">
+                    @csrf
+                    @method('DELETE')
+                    <x-ui.button type="submit" variant="danger" :block="false">{{ __('booking.devices.remove_all') }}</x-ui.button>
+                </form>
+            @endif
+        </x-ui.card>
+    @endif
 </div>
 @endsection
