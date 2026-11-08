@@ -43,6 +43,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Staging mail protection: redirects or stops every outgoing message on a staging database (no effect elsewhere).
+        // Note: Mailer uses until(), so an earlier MessageSending listener returning non-null would skip this guard; keep it first.
         Event::listen(MessageSending::class, [StagingMailGuard::class, 'handle']);
 
         Gate::before(function (User $user, string $ability): ?bool {

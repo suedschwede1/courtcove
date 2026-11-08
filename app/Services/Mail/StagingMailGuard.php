@@ -46,7 +46,9 @@ class StagingMailGuard
             return false;
         }
 
-        $this->redirect($event, $redirect);
+        if ($event->message->getTo() !== [] || $event->message->getCc() !== [] || $event->message->getBcc() !== []) {
+            $this->redirect($event, $redirect);
+        }
 
         return null;
     }

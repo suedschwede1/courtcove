@@ -17,7 +17,7 @@ final class StagingDatabase
 
     public static function isStagingName(string $database): bool
     {
-        return str_ends_with($database, self::SUFFIX);
+        return str_ends_with(strtolower($database), self::SUFFIX);
     }
 
     public static function active(): bool
