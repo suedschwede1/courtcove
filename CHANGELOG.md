@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-08
+- WhatsApp final review fixes: the calendar's lazy notification drain now runs after the response is sent (never blocks the page), and the admin change log line records the real admin id.
 - WhatsApp texts review fixes: version test now checks the stored consent version, privacy sentence test checks provider-free wording, runbook debounce note limited to player-search messages.
 - Staging scrub: the WhatsApp scrub also deletes the budget alert address and the pause reason from a live copy, and sets driver and main switch in one transaction.
 - WhatsApp: consent text v1 (wa-2026-11-v1) and privacy sentence in de/en, and the operations runbook (cron, env keys, staging flow, go-live checklist, items for the club to confirm); no provider is named in tracked files.

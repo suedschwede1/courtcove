@@ -214,7 +214,8 @@ class AdminWhatsAppPageTest extends TestCase
             $this->assertStringContainsString('budget_monthly', $dump);
             $this->assertStringContainsString('Auth-Token geändert', $dump);
             $this->assertSame('whatsapp', $context['area']);
-            $this->assertSame($admin->id, $context['wer']);
+            $this->assertNotNull($admin->getKey());
+            $this->assertSame((int) $admin->getKey(), $context['wer']);
             $this->assertArrayHasKey('wann', $context);
             foreach ([self::TOKEN, self::ACCOUNT, '77'] as $value) {
                 $this->assertStringNotContainsString($value, $dump);
