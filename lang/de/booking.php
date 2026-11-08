@@ -11,6 +11,7 @@ $translations = array_merge(
     require __DIR__.'/booking/mail.php',
     require __DIR__.'/booking/validation.php',
     require __DIR__.'/booking/messages.php',
+    require __DIR__.'/booking/notifications.php',
 );
 
 // Optional, per-installation file (not tracked in git) to override individual

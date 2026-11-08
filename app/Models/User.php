@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Services\Notifications\ConsentService;
 use App\Support\AdminMode;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -105,6 +106,12 @@ class User extends Authenticatable
      * logins do not 500 on an UPDATE of a missing column.
      */
     protected $rememberTokenName = '';
+
+    /** A blocked, deleted or disabled account loses its WhatsApp consents (see ConsentService::userUpdated). */
+    protected static function booted(): void
+    {
+        static::updated(static fn (User $user) => app(ConsentService::class)->userUpdated($user));
+    }
 
     /** Route-model binding for {user} resolves on the primary key `uid`. */
     public function getRouteKeyName(): string
@@ -334,9 +341,16 @@ class User extends Authenticatable
         return $value !== null ? (string) $value : $default;
     }
 
-    /** Upsert a single meta value (bs_users_meta key/value); null deletes the row. */
+    /**
+     * Upsert a single meta value (bs_users_meta key/value); null deletes the row.
+     * Writing 'phone' (also null or '') revokes WhatsApp consents for another number, before the early return.
+     */
     public function setMeta(string $key, ?string $value): void
     {
+        if ($key === 'phone') {
+            app(ConsentService::class)->phoneChanged($this, $value);
+        }
+
         if ($value === null) {
             $this->meta()->where('key', $key)->delete();
 
