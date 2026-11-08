@@ -6,6 +6,7 @@ namespace App\Modules\TournamentBase\Console;
 
 use App\Modules\TournamentBase\Staging\ConfigScrub;
 use App\Modules\TournamentBase\Staging\ModuleScrub;
+use App\Support\StagingDatabase;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
@@ -24,7 +25,7 @@ class Phase2ScrubStagingCommand extends Command
     {
         $db = (string) DB::connection()->getDatabaseName();
 
-        if (! str_ends_with($db, '_staging')) {
+        if (! StagingDatabase::isStagingName($db)) {
             $this->error("Refusing: database '{$db}' does not end in '_staging'.");
 
             return 1;

@@ -8,6 +8,7 @@ use App\Console\Scheduling\RunLog;
 use App\Models\Option;
 use App\Models\User;
 use App\Notifications\Types\NotificationType;
+use App\Services\Mail\StagingMailGuard;
 use App\Services\Notifications\Resolvers\AdminTestResolver;
 use App\Services\Notifications\Resolvers\PlayerSearchClosedSubjectCheck;
 use App\Services\Notifications\Resolvers\PlayerSearchSubjectCheck;
@@ -15,7 +16,9 @@ use App\Services\Notifications\SubjectResolverRegistry;
 use App\Services\Notifications\Transport\FakeTransport;
 use App\Services\Notifications\WhatsAppConfigScrub;
 use App\Services\TournamentLinks;
+use Illuminate\Mail\Events\MessageSending;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -39,6 +42,9 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Staging mail protection: redirects or stops every outgoing message on a staging database (no effect elsewhere).
+        Event::listen(MessageSending::class, [StagingMailGuard::class, 'handle']);
+
         Gate::before(function (User $user, string $ability): ?bool {
             return $user->can($ability) ? true : null;
         });

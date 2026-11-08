@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Services\Notifications;
 
 use App\Models\Option;
+use App\Support\StagingDatabase;
 use BackedEnum;
 use Illuminate\Database\QueryException;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -59,11 +59,7 @@ final class WhatsAppSettings
 
     private function onStagingDatabase(): bool
     {
-        try {
-            return str_ends_with((string) DB::connection()->getDatabaseName(), '_staging');
-        } catch (\Throwable) {
-            return true; // fail closed: unknown database counts as staging
-        }
+        return StagingDatabase::active();
     }
 
     public function accountSid(): ?string
