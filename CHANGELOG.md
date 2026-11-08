@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-08
+- Assets: rebuilt `public/build` for the WhatsApp budget bar style.
 - Notifications: new admin page "WhatsApp send log" (`admin/whatsapp/protokoll`, right `admin.config`, no admin mode, linked from the WhatsApp page header and its warning): time, type, user alias (linked, none for deleted accounts), status badge, reason or error code and estimated cost per message, filter chips for status, type and month, 25 per page, cards on phones. Only the last two phone digits are shown; no texts, full numbers or provider IDs.
 - Notifications: WhatsApp budget bar is styled (court green, amber from 80 percent, red at 100 percent), the skip reason of a refused test message is shown translated, and the file modes of the WhatsApp page files are restored.
 - Notifications: the WhatsApp admin page accepts the "fake" driver only while it is already stored, and switches the main switch on inside a transaction that is rolled back when the readiness check fails, so the dispatcher never sees a half-enabled state.
