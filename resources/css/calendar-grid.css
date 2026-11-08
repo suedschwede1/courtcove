@@ -257,6 +257,18 @@
     display: none;
 }
 
+/* Phones only: the players as first names (the full list is the detail line above 48rem). */
+.cal-row .cc-label-players {
+    display: none;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 11px;
+    font-weight: 400;
+    color: inherit;
+}
+
 /* Player search line: the text marker of an open search (bold, so it reads apart from the players). */
 .cal-row .cc-label-seeking {
     font-size: 11px;
@@ -324,6 +336,7 @@
 }
 
 .cal-row > .cc-own .cc-label-secondary,
+.cal-row > .cc-own .cc-label-players,
 .cal-row > .cc-own .cc-label-own {
     color: var(--cal-own-label-secondary);
 }
@@ -339,7 +352,8 @@
     color: var(--cal-single-future-label);
 }
 
-.cal-row > .cc-single-future .cc-label-secondary {
+.cal-row > .cc-single-future .cc-label-secondary,
+.cal-row > .cc-single-future .cc-label-players {
     color: var(--cal-single-future-label-secondary);
 }
 
@@ -584,13 +598,22 @@
         font-size: var(--text-label);
     }
 
-    /* Own: name plus "Mine"; every other booking: the name on one line. */
+    /* Name plus the players as first names; own bookings without players keep "Mine". */
     .cal-row > .cc-own .cc-label-secondary {
         display: none;
     }
 
+    .cal-row .cc-label-players {
+        display: block;
+    }
+
     .cal-row > .cc-own .cc-label-own {
         display: block;
+    }
+
+    /* The players replace "Mine" (two lines fit the 44px row; the own ring already says it is yours). */
+    .cal-row > .cc-own:has(.cc-label-players) .cc-label-own {
+        display: none;
     }
 
     .cal-row > .calendar-cell:not(.cc-own) .cc-label-primary {

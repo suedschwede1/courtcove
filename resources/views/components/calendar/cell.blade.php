@@ -64,6 +64,14 @@
         ));
     }
     $secondaryLabel = ! $hasOpenSearch && $otherPlayers !== [] ? implode(', ', $otherPlayers) : null;
+    // Phones: the players as first names, at most three, "+N" for the rest (the cell is one narrow column).
+    // Same visibility as the desktop detail line: members only, never during an open search.
+    $playersShort = null;
+    if ($secondaryLabel !== null && $reservation) {
+        $firstNames = array_map(fn (string $player) => strtok(trim($player), ' ') ?: $player, $otherPlayers);
+        $playersShort = implode(', ', array_slice($firstNames, 0, 3))
+            . (count($firstNames) > 3 ? ' +'.(count($firstNames) - 3) : '');
+    }
     if ($secondaryLabel === null && $isSeriesBooking) {
         $secondaryLabel = __('booking.calendar.series_hint');
     }
@@ -138,7 +146,8 @@
     $labels = array_filter([
         'cc-label-primary' => $primaryLabel,
         'cc-label-secondary' => $reservation ? $secondaryLabel : null,
-        'cc-label-own' => $isOwn && ! $hasOpenSearch ? __('booking.calendar.own_short') : null,
+        'cc-label-players' => $playersShort,
+        'cc-label-own' => $isOwn && ! $hasOpenSearch ?__('booking.calendar.own_short') : null,
         'cc-label-seeking cc-label-seeking--long' => $hasOpenSearch && $isOwn ? $seekingLine : null,
         'cc-label-seeking cc-label-seeking--short' => $seekingShort,
         'cc-label-seeking cc-label-seeking--tiny' => $seekingTiny,
@@ -162,6 +171,9 @@
     if ($joinedNotSeeking) {
         $seekingNamedLabel = $primaryLabel . ' – ' . __('booking.calendar.joined_cell', ['court' => $squareLabel, 'time' => $timeLabel]);
     }
+    // Someone else's plain booking, seen by a member: tapping opens the list of all names (phones cut the cell text).
+    $showPlayers = $action === null && $reservation && $isLoggedIn && $otherPlayers !== [] && ! $closed;
+    $playersTitle = $showPlayers ? $reservation->booking->owner_label.', '.implode(', ', $otherPlayers) : null;
     $dayUrl = route('calendar.index', ['date' => $date->format('Y-m-d')]);
     $loginUrl = route('login', ['redirect_to' => $dayUrl]);
 @endphp
@@ -229,7 +241,8 @@
            mitspieler: @js($reservation->booking->player_names[0] ?? ''),
            searchOpen: @js($hasOpenSearch),
            searchRemaining: {{ $searchRemaining }},
-           searchSignups: {{ $ownLiveSignups }}
+           searchSignups: {{ $ownLiveSignups }},
+           players: @js($otherPlayers)
        })">
         @foreach($labels as $labelClass => $labelText)
             <span class="{{ $labelClass }}">{{ $labelText }}</span>
@@ -288,6 +301,23 @@
        data-state="{{ $state }}"
        aria-label="{{ __('booking.calendar.login_cell', ['court' => $squareLabel, 'time' => $timeLabel]) }}"
        title="{{ $cellTitle }}"></a>
+@elseif($showPlayers)
+    <a href="#"
+       class="calendar-cell {{ $cellClass }}{{ $seriesClass }}{{ $slotClass }}"
+       data-state="{{ $state }}"
+       aria-label="{{ $playersTitle }}"
+       title="{{ $cellTitle }}"
+       @click.prevent="$dispatch('open-players', {
+           squareName: @js($squareFullLabel),
+           dateLabel: @js($dateLabel),
+           timeLabel: @js($timeRangeLabel),
+           owner: @js($reservation->booking->owner_label),
+           players: @js($otherPlayers)
+       })">
+        @foreach($labels as $labelClass => $labelText)
+            <span class="{{ $labelClass }}">{{ $labelText }}</span>
+        @endforeach
+    </a>
 @else
     <span class="calendar-cell {{ $cellClass }}{{ $seriesClass }}{{ $slotClass }}" data-state="{{ $state }}" title="{{ $cellTitle }}">
         @foreach($labels as $labelClass => $labelText)

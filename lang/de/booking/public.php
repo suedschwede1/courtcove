@@ -198,6 +198,11 @@ return [
         'seeking_tiny' => 'Sucht :count|Sucht :count',
         'seeking_cell' => ':court, :time Uhr – :remaining',
         'joined_cell' => ':court, :time Uhr – Du spielst mit',
+        'players_dialog' => [
+            'title' => 'Mitspieler',
+            'owner' => 'Gebucht von :owner',
+            'players' => 'Mit dabei: :players',
+        ],
         'seeking_info' => [
             'title' => 'Mitspieler gesucht',
             'message' => 'Diese Buchung sucht noch Mitspieler. Wenn du mitspielen willst, melde dich in deinem Konto bei der Spielerbörse an. Danach kannst du dich hier mit einem Klick eintragen.',

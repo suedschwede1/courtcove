@@ -17,6 +17,10 @@
         searchOpen: false,
         searchRemaining: 0,
         searchSignups: 0,
+        players: [],
+        get playersText() {
+            return @js(__('booking.calendar.players_dialog.players')).replace(':players', this.players.join(', '));
+        },
         get hintText() {
             const text = this.searchRemaining === 1 ? @js(trans_choice('booking.calendar.end.hint', 1, ['count' => '__N__'])) : @js(trans_choice('booking.calendar.end.hint', 2, ['count' => '__N__']));
             return text.replace('__N__', this.searchRemaining);
@@ -33,6 +37,7 @@
             this.searchOpen = detail.searchOpen === true;
             this.searchRemaining = Number(detail.searchRemaining) || 0;
             this.searchSignups = Number(detail.searchSignups) || 0;
+            this.players    = Array.isArray(detail.players) ? detail.players : [];
             this.state = 'form';
             this.changed = false;
             this.closeAfterRequest = false;
@@ -100,6 +105,7 @@
                 ['label' => __('booking.calendar.court'), 'bind' => 'squareName'],
             ]" />
 
+            <p class="ds-modal__message" x-show="players.length > 0" x-text="playersText"></p>
             <p class="ds-modal__message">{{ __('booking.modal.cancel_message') }}</p>
             <p class="ds-modal__message" x-show="searchOpen || searchSignups > 0">{{ __('booking.calendar.end.cancel_effect') }}</p>
             <p class="ds-modal__message" x-show="searchOpen" x-text="hintText"></p>
@@ -719,6 +725,52 @@
         <div class="ds-modal__actions">
             <x-ui.button :href="route('account.edit')" data-modal-initial>{{ __('booking.calendar.seeking_info.account') }}</x-ui.button>
             <x-ui.button variant="secondary" class="ds-modal__dismiss" x-on:click="open = false">{{ __('booking.modal.close') }}</x-ui.button>
+        </div>
+    </x-ui.modal>
+</div>
+@endauth
+
+{{-- Someone else's booking, seen by a member: owner and all players (the phone cell shows first names only). --}}
+@auth
+<div x-data="{
+        open: false,
+        squareName: '',
+        dateLabel: '',
+        timeLabel: '',
+        owner: '',
+        players: [],
+        get ownerText() {
+            return @js(__('booking.calendar.players_dialog.owner')).replace(':owner', this.owner);
+        },
+        get playersText() {
+            return @js(__('booking.calendar.players_dialog.players')).replace(':players', this.players.join(', '));
+        },
+        openPlayers(detail) {
+            this.squareName = detail.squareName;
+            this.dateLabel  = detail.dateLabel;
+            this.timeLabel  = detail.timeLabel;
+            this.owner      = detail.owner || '';
+            this.players    = Array.isArray(detail.players) ? detail.players : [];
+            this.open = true;
+        }
+     }"
+     @open-players.window="openPlayers($event.detail)">
+    <x-ui.modal id="players-dialog" show="open" close="open = false">
+        <x-slot:title>
+            {{ __('booking.calendar.players_dialog.title') }}
+        </x-slot:title>
+
+        <x-ui.summary-tiles :items="[
+            ['label' => __('booking.calendar.date'), 'bind' => 'dateLabel'],
+            ['label' => __('booking.calendar.time'), 'bind' => 'timeLabel'],
+            ['label' => __('booking.calendar.court'), 'bind' => 'squareName'],
+        ]" />
+
+        <p class="ds-modal__message" x-text="ownerText"></p>
+        <p class="ds-modal__message" x-show="players.length > 0" x-text="playersText"></p>
+
+        <div class="ds-modal__actions">
+            <x-ui.button variant="secondary" class="ds-modal__dismiss" data-modal-initial x-on:click="open = false">{{ __('booking.modal.close') }}</x-ui.button>
         </div>
     </x-ui.modal>
 </div>
