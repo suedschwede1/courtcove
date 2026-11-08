@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Modules\TournamentBase;
 
+use App\Models\Option;
 use App\Models\User;
 use App\Modules\Draw\Models\Draw;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
@@ -120,5 +121,40 @@ class Phase2ScrubStagingCommandTest extends TestCase
         $this->assertTrue(DB::table('bs_pyramid_ladders')->where('title', 'Demo Herren')->exists());
         $this->assertTrue(User::query()->whereKey($user->getKey())->where('email', 'keep.me@real-club.invalid')->exists());
         $this->assertTrue(DB::table('migrations')->where('migration', 'survivor-row')->exists());
+    }
+
+    #[Test]
+    public function command_still_refuses_non_staging_database_and_leaves_whatsapp_config_alone(): void
+    {
+        Option::create(['key' => 'whatsapp.enabled', 'value' => '1', 'locale' => null]);
+        Option::create(['key' => 'whatsapp.sender', 'value' => '+43 660 0000001', 'locale' => null]);
+
+        $this->artisan('phase2:scrub-staging', ['--force' => true, '--no-interaction' => true])
+            ->expectsOutput("Refusing: database ':memory:' does not end in '_staging'.")
+            ->assertExitCode(1);
+
+        $this->assertSame('1', Option::getValue('whatsapp.enabled'));
+        $this->assertSame('+43 660 0000001', Option::getValue('whatsapp.sender'));
+    }
+
+    #[Test]
+    public function command_runs_config_scrubs_after_module_scrubs(): void
+    {
+        DB::connection()->setDatabaseName('booking_staging');
+        Option::create(['key' => 'whatsapp.enabled', 'value' => '1', 'locale' => null]);
+        Option::create(['key' => 'whatsapp.driver', 'value' => 'live', 'locale' => null]);
+        Option::create(['key' => 'whatsapp.auth_token', 'value' => 'enc:token-test-secret', 'locale' => null]);
+
+        $this->artisan('phase2:scrub-staging', ['--force' => true, '--no-interaction' => true])
+            ->expectsOutputToContain('Config scrubs: whatsapp')
+            ->expectsOutputToContain('Config scrubbed whatsapp: whatsapp.account_sid, whatsapp.auth_token')
+            ->doesntExpectOutputToContain('token-test-secret')
+            ->assertExitCode(0);
+
+        $this->assertSame('0', Option::getValue('whatsapp.enabled'));
+        $this->assertSame('log', Option::getValue('whatsapp.driver'));
+        $this->assertFalse(Option::where('key', 'whatsapp.auth_token')->exists());
+        // The module scrub ran as well.
+        $this->assertTrue(Draw::query()->where('slug', 'demo-closed')->exists());
     }
 }

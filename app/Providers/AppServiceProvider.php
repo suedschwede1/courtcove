@@ -11,6 +11,7 @@ use App\Notifications\Types\NotificationType;
 use App\Services\Notifications\Resolvers\AdminTestResolver;
 use App\Services\Notifications\SubjectResolverRegistry;
 use App\Services\Notifications\Transport\FakeTransport;
+use App\Services\Notifications\WhatsAppConfigScrub;
 use App\Services\TournamentLinks;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
@@ -28,6 +29,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(SubjectResolverRegistry::class, fn (): SubjectResolverRegistry => new SubjectResolverRegistry([
             NotificationType::AdminTest->value => AdminTestResolver::class,
         ]));
+        // Staging scrub hook: phase2:scrub-staging runs every tagged ConfigScrub after the module scrubs.
+        $this->app->tag([WhatsAppConfigScrub::class], 'phase2.config-scrub');
     }
 
     public function boot(): void

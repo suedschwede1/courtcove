@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\TournamentBase\Console;
 
+use App\Modules\TournamentBase\Staging\ConfigScrub;
 use App\Modules\TournamentBase\Staging\ModuleScrub;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -52,10 +53,17 @@ class Phase2ScrubStagingCommand extends Command
         /** @var list<ModuleScrub> $scrubs */
         $scrubs = iterator_to_array($this->laravel->tagged('phase2.scrub'), false);
 
+        /** @var list<ConfigScrub> $configScrubs */
+        $configScrubs = iterator_to_array($this->laravel->tagged('phase2.config-scrub'), false);
+
         $tables = array_merge(...array_map(fn (ModuleScrub $scrub): array => $scrub->tables(), $scrubs) ?: [[]]);
 
         $this->line("Database: {$db}");
         $this->line('Tables: '.implode(', ', $tables));
+
+        if ($configScrubs !== []) {
+            $this->line('Config scrubs: '.implode(', ', array_map(fn (ConfigScrub $scrub): string => $scrub->name(), $configScrubs)));
+        }
 
         if ($this->input->isInteractive() && ! $this->confirm('Truncate these tables and reseed?', false)) {
             $this->line('Aborted.');
@@ -70,6 +78,11 @@ class Phase2ScrubStagingCommand extends Command
 
             $this->call('db:seed', ['--class' => $scrub->seeder(), '--force' => true]);
             $this->line("Scrubbed {$scrub->module()}: ".implode(', ', $scrub->tables()));
+        }
+
+        // Option names and table names only, never values.
+        foreach ($configScrubs as $scrub) {
+            $this->line("Config scrubbed {$scrub->name()}: ".implode(', ', $scrub->scrub()));
         }
 
         return 0;

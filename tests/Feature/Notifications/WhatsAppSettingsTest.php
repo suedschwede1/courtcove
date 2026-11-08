@@ -204,6 +204,13 @@ class WhatsAppSettingsTest extends TestCase
         config(['whatsapp.signature_header' => 'X-Test-Signature']);
         $this->assertNull($s->readyToSend());
 
+        // sandbox mode needs the sandbox sender, a normal sender does not help
+        config(['whatsapp.sandbox' => '1']);
+        $this->assertSame('credentials_missing', $s->readyToSend());
+        $this->opt('whatsapp.sandbox_sender', '+43 660 0000009');
+        $this->assertNull($s->readyToSend());
+        config(['whatsapp.sandbox' => '0']);
+
         // fake needs nothing either
         config(['whatsapp.driver' => 'fake', 'whatsapp.api_base' => null]);
         $this->assertNull($s->readyToSend());

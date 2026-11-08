@@ -230,7 +230,7 @@ class AdminWhatsAppActionsTest extends TestCase
         $this->assertSame(1, preg_match('/<form[^>]*action="[^"]*admin\/whatsapp\/test"[^>]*>(.*?)<\/form>/s', $html, $m));
         $this->assertDoesNotMatchRegularExpression('/<input(?![^>]*type="hidden")/', $m[1]);
 
-        $this->as($admin)->post('/admin/whatsapp/test', ['phone' => '+436601111111', 'to' => '+436601111111'])->assertRedirect();
+        $this->as($admin)->post('/admin/whatsapp/test', ['phone' => '+436600000077', 'to' => '+436600000077'])->assertRedirect();
 
         $sent = app(FakeTransport::class)->sent();
         $this->assertCount(1, $sent);

@@ -266,7 +266,7 @@ class NotificationDispatcherTest extends TestCase
     public function phone_changed_via_bulk_path_is_not_sent_and_revokes(): void
     {
         $user = $this->optedInUser();
-        UserMeta::query()->where('uid', $user->uid)->where('key', 'phone')->update(['value' => '+43 660 9999999']);
+        UserMeta::query()->where('uid', $user->uid)->where('key', 'phone')->update(['value' => '+43 660 0000033']);
         $row = $this->row($user);
 
         $this->dispatcher()->run();

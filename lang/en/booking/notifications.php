@@ -7,6 +7,13 @@ return [
         // Version of the WhatsApp consent notice; raise it when the wording changes materially.
         'consent_text_version' => 'wa-2026-11-v1',
 
+        // Consent notice shown next to the opt-in (account card, Task 11). Mentions: purpose, number from the account,
+        // own number only, withdrawal at any time (account or STOP), and that the searching person's name is in the message.
+        'consent_text_v1' => 'I want to be notified by WhatsApp when someone is looking for players (player search). The message goes to the mobile number stored in my account; I only enter my own number. The message contains the name of the person looking for players. I can withdraw my consent at any time in my account or by replying STOP to a message.',
+
+        // Privacy sentence; processors are named on the club's external privacy page, not here.
+        'privacy_notice' => 'With your consent we use the mobile number from your account to send you notifications (first: player searches) by WhatsApp. The messaging service we engage and the operator of WhatsApp are involved. You can withdraw your consent at any time in your account or by replying STOP.',
+
         'budget_alert' => [
             'subject_80' => 'WhatsApp budget 80% used',
             'subject_100' => 'WhatsApp budget used up, sending stopped',

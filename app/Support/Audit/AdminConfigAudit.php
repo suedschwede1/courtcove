@@ -21,7 +21,7 @@ final class AdminConfigAudit
         }
 
         Log::info('admin.'.$area.'.config_changed', [
-            'wer' => $admin->id,
+            'wer' => (int) $admin->getKey(),
             'wann' => now()->toIso8601String(),
             'area' => $area,
             'fields' => $changedFieldNames,

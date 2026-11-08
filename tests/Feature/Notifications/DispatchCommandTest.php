@@ -127,10 +127,28 @@ class DispatchCommandTest extends TestCase
 
         NotificationDrain::lazy();
         NotificationDrain::lazy();
+        defer()->invoke();
         $this->assertSame(1, $calls);
 
         Carbon::setTestNow(Carbon::now()->addSeconds(61));
         NotificationDrain::lazy();
+        defer()->invoke();
         $this->assertSame(2, $calls);
+    }
+
+    #[Test]
+    public function lazy_drain_does_not_run_before_the_deferred_callbacks_are_invoked(): void
+    {
+        $calls = 0;
+        app()->bind(NotificationDispatcher::class, function () use (&$calls): never {
+            $calls++;
+            throw new \RuntimeException('provider down');
+        });
+
+        NotificationDrain::lazy();
+        $this->assertSame(0, $calls);
+
+        defer()->invoke();
+        $this->assertSame(1, $calls);
     }
 }

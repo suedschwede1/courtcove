@@ -303,15 +303,17 @@ final class WhatsAppController extends Controller
         $wasEnabled = $this->settings->enabled();
         if ($request->boolean('enabled')) {
             // In a transaction: the dispatcher never sees the switch on unless the check passes.
-            DB::beginTransaction();
-            $this->store(self::SWITCHES['enabled'], '1');
-            $reason = $this->settings->readyToSend();
-            if ($reason === null) {
-                DB::commit();
-            } else {
-                DB::rollBack();
+            try {
+                DB::transaction(function (): void {
+                    $this->store(self::SWITCHES['enabled'], '1');
+                    $reason = $this->settings->readyToSend();
+                    if ($reason !== null) {
+                        throw new \DomainException($reason); // rolls the switch back
+                    }
+                });
+            } catch (\DomainException $e) {
                 $this->store(self::SWITCHES['enabled'], null);
-                $refusal = __('booking.admin.whatsapp.enable_refused', ['reason' => __('booking.admin.whatsapp.not_ready.'.$reason)]);
+                $refusal = __('booking.admin.whatsapp.enable_refused', ['reason' => __('booking.admin.whatsapp.not_ready.'.$e->getMessage())]);
             }
         } else {
             $this->store(self::SWITCHES['enabled'], null);
