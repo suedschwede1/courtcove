@@ -9,7 +9,7 @@ use App\Events\PlayerSearchStarted;
 use App\Models\NotificationLogEntry;
 use App\Models\Option;
 use App\Models\PlayerSearch;
-use App\Notifications\Types\NotificationType;
+use App\Notifications\Types\NotificationTypes;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use PHPUnit\Framework\Attributes\Group;
@@ -84,7 +84,7 @@ class PlayerSearchEnqueueMysqlTest extends MysqlTestCase
 
         $this->assertSame([$anna->uid], $this->closedRows()->pluck('user_id')->all());
         $this->assertSame(1, NotificationLogEntry::query()
-            ->where('type', NotificationType::PlayerSearchOpened->value)
+            ->where('type', NotificationTypes::PLAYER_SEARCH_OPENED)
             ->where('status', NotificationLogEntry::SKIPPED)
             ->count());
     }

@@ -11,6 +11,30 @@ return [
         // own number only, withdrawal at any time (account or STOP), and that the searching person's name is in the message.
         'consent_text_v1' => 'Ich möchte per WhatsApp benachrichtigt werden, wenn jemand Mitspieler sucht (Spielersuche). Die Nachricht geht an die Handynummer, die in meinem Konto hinterlegt ist; ich gebe nur meine eigene Nummer an. In der Nachricht steht der Name der Person, die Mitspieler sucht. Meine Einwilligung kann ich jederzeit im Konto widerrufen oder indem ich auf eine Nachricht mit STOP antworte.',
 
+        // Names and descriptions of the notification types (NotificationRegistry; keyed by template key).
+        'types' => [
+            'player_search_opened' => [
+                'label' => 'Neue Spielersuche',
+                'description' => 'Nachricht, wenn jemand über die Spielerbörse Mitspieler sucht.',
+            ],
+            'player_search_closed' => [
+                'label' => 'Suche beendet',
+                'description' => 'Folgenachricht, wenn eine gemeldete Suche voll ist oder beendet wurde.',
+            ],
+            'test' => [
+                'label' => 'Testnachricht',
+                'description' => 'Testnachricht der Admin-Seite an die eigene Nummer des Administrators.',
+            ],
+        ],
+
+        // Consent purposes (NotificationRegistry): one consent per purpose, with its own text and version.
+        'purposes' => [
+            'player_search' => [
+                'label' => 'Spielerbörse',
+                'description' => 'WhatsApp-Nachrichten zu Spielersuchen der Spielerbörse.',
+            ],
+        ],
+
         // Privacy sentence; processors are named on the club's external privacy page, not here.
         'privacy_notice' => 'Mit deiner Einwilligung verwenden wir die Handynummer aus deinem Konto, um dir Benachrichtigungen (zuerst: Spielersuchen) per WhatsApp zu senden. Dabei sind der von uns beauftragte Messaging-Dienst und der Betreiber von WhatsApp eingebunden. Du kannst die Einwilligung jederzeit im Konto oder per STOP widerrufen.',
 

@@ -7,7 +7,7 @@ namespace App\Notifications;
 use App\Models\User;
 use App\Notifications\Channels\WhatsAppChannel;
 use App\Notifications\Messages\WhatsAppMessage;
-use App\Notifications\Types\NotificationType;
+use App\Notifications\Types\NotificationTypes;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
@@ -26,10 +26,10 @@ final class AdminTestNotification extends Notification
         $userId = $notifiable instanceof User ? (int) $notifiable->getKey() : 0;
 
         return new WhatsAppMessage(
-            type: NotificationType::AdminTest,
+            type: NotificationTypes::ADMIN_TEST,
             variables: [],
             buttonSuffix: null,
-            dedupeKey: NotificationType::AdminTest->value.':'.$userId.':'.Str::uuid()->toString(),
+            dedupeKey: NotificationTypes::ADMIN_TEST.':'.$userId.':'.Str::uuid()->toString(),
             subjectType: 'user',
             subjectId: $userId,
             notBefore: Carbon::now(),

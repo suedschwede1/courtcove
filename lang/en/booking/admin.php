@@ -69,6 +69,7 @@ return [
                 'budget' => 'Budget used up',
                 'disabled' => 'Sending switched off',
                 'template_missing' => 'Template missing',
+                'type_disabled' => 'Message type switched off',
                 'paused' => 'Sending paused',
             ],
             'test_refused' => [
@@ -106,11 +107,6 @@ return [
                 'col_status' => 'Status',
                 'col_reason' => 'Reason / error code',
                 'col_cost' => 'Cost (estimated)',
-                'types' => [
-                    'player_search_opened' => 'New player search',
-                    'player_search_closed' => 'Search closed',
-                    'test' => 'Test message',
-                ],
                 'status' => [
                     'pending' => 'Pending',
                     'sending' => 'Sending',

@@ -14,12 +14,12 @@ use App\Models\UserMeta;
 use App\Modules\Members\Models\Member;
 use App\Notifications\AdminTestNotification;
 use App\Notifications\Channels\WhatsAppChannel;
-use App\Notifications\Types\NotificationType;
+use App\Notifications\Registry\NotificationRegistry;
+use App\Notifications\Types\NotificationTypes;
 use App\Services\Notifications\MessageContent;
 use App\Services\Notifications\NotificationDispatcher;
 use App\Services\Notifications\SubjectDeadline;
 use App\Services\Notifications\SubjectResolver;
-use App\Services\Notifications\SubjectResolverRegistry;
 use App\Services\Notifications\Transport\FakeTransport;
 use App\Services\Notifications\Transport\TransportResult;
 use App\Services\Notifications\WhatsAppSettings;
@@ -47,7 +47,7 @@ class NotificationDispatcherTest extends TestCase
         Carbon::setTestNow(Carbon::parse('2026-11-10 12:00:00', 'Europe/Vienna'));
 
         $this->resolver = new TestSearchResolver;
-        app(SubjectResolverRegistry::class)->register(NotificationType::PlayerSearchOpened, $this->resolver);
+        app(NotificationRegistry::class)->useResolver(NotificationTypes::PLAYER_SEARCH_OPENED, $this->resolver);
 
         $this->opt('whatsapp.enabled', '1');
         $this->opt('whatsapp.driver', 'fake');
@@ -90,18 +90,18 @@ class NotificationDispatcherTest extends TestCase
     /** @param  array<string, mixed>  $attributes */
     private function row(User $user, array $attributes = []): NotificationLogEntry
     {
-        $type = $attributes['type'] ?? NotificationType::PlayerSearchOpened;
+        $type = $attributes['type'] ?? NotificationTypes::PLAYER_SEARCH_OPENED;
         unset($attributes['type']);
 
         return NotificationLogEntry::create(array_merge([
-            'type' => $type->value,
+            'type' => $type,
             'channel' => 'whatsapp',
             'user_id' => $user->uid,
             'subject_type' => 'player_search',
             'subject_id' => 7,
             'dedupe_key' => 'test:'.Str::uuid()->toString(),
             'status' => NotificationLogEntry::PENDING,
-            'priority' => $type->priority(),
+            'priority' => (int) app(NotificationRegistry::class)->type($type)?->priority,
             'subject_payload' => ['search_id' => 7, 'sender_id' => 0],
             'attempts' => 0,
             'not_before' => Carbon::now(),
@@ -164,6 +164,8 @@ class NotificationDispatcherTest extends TestCase
             'disabled' => ['disabled'],
             'subject_gone' => ['subject_gone'],
             'subject_gone without resolver' => ['no_resolver'],
+            'subject_gone for an unregistered type' => ['unknown_type'],
+            'type_disabled' => ['type_disabled'],
             'no_consent' => ['no_consent'],
             'gate (exchange off)' => ['gate'],
             'daily_limit' => ['daily_limit'],
@@ -177,7 +179,7 @@ class NotificationDispatcherTest extends TestCase
     public function skips_with_reason(string $case): void
     {
         $user = $case === 'no_consent' ? $this->eligibleUser() : $this->optedInUser();
-        $type = NotificationType::PlayerSearchOpened;
+        $type = NotificationTypes::PLAYER_SEARCH_OPENED;
         $expected = $case;
 
         switch ($case) {
@@ -188,8 +190,17 @@ class NotificationDispatcherTest extends TestCase
                 $this->resolver->relevant = false;
                 break;
             case 'no_resolver':
-                $type = NotificationType::PlayerSearchClosed;
+                // The follow-up type is off by default; switched on, its resolver finds no search 7.
+                $this->opt('whatsapp.followup_closed', '1');
+                $type = NotificationTypes::PLAYER_SEARCH_CLOSED;
                 $expected = 'subject_gone';
+                break;
+            case 'unknown_type':
+                $type = 'retired.type';
+                $expected = 'subject_gone';
+                break;
+            case 'type_disabled':
+                $this->opt('whatsapp.type.'.NotificationTypes::PLAYER_SEARCH_OPENED.'.enabled', '0');
                 break;
             case 'gate':
                 // Raw update: no hook runs, the send-time gate keeps the row out.
@@ -242,7 +253,7 @@ class NotificationDispatcherTest extends TestCase
 
         $this->dispatcher()->run();
 
-        $row = NotificationLogEntry::where('type', NotificationType::AdminTest->value)->sole();
+        $row = NotificationLogEntry::where('type', NotificationTypes::ADMIN_TEST)->sole();
         $this->assertSame(NotificationLogEntry::SENT, $row->status);
         $sent = $this->fake()->sent();
         $this->assertCount(1, $sent);
@@ -668,7 +679,7 @@ class NotificationDispatcherTest extends TestCase
         $user = $this->optedInUser();
         foreach (range(1, 3) as $i) {
             $this->row($user, [
-                'type' => NotificationType::AdminTest,
+                'type' => NotificationTypes::ADMIN_TEST,
                 'status' => NotificationLogEntry::SENT,
                 'sent_at' => Carbon::now()->subHour(),
             ]);

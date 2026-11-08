@@ -69,6 +69,7 @@ return [
                 'budget' => 'Budget aufgebraucht',
                 'disabled' => 'Versand ausgeschaltet',
                 'template_missing' => 'Vorlage fehlt',
+                'type_disabled' => 'Nachrichtenart ausgeschaltet',
                 'paused' => 'Versand pausiert',
             ],
             'test_refused' => [
@@ -106,11 +107,6 @@ return [
                 'col_status' => 'Status',
                 'col_reason' => 'Grund / Fehlercode',
                 'col_cost' => 'Kosten (geschätzt)',
-                'types' => [
-                    'player_search_opened' => 'Neue Spielersuche',
-                    'player_search_closed' => 'Suche beendet',
-                    'test' => 'Testnachricht',
-                ],
                 'status' => [
                     'pending' => 'Wartet',
                     'sending' => 'Wird gesendet',

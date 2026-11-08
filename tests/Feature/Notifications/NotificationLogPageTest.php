@@ -6,7 +6,8 @@ namespace Tests\Feature\Notifications;
 
 use App\Models\NotificationLogEntry;
 use App\Models\User;
-use App\Notifications\Types\NotificationType;
+use App\Notifications\Registry\NotificationRegistry;
+use App\Notifications\Types\NotificationTypes;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Testing\TestResponse;
@@ -28,20 +29,20 @@ class NotificationLogPageTest extends TestCase
     /** @param  array<string, mixed>  $attributes */
     private function row(array $attributes = []): NotificationLogEntry
     {
-        $type = $attributes['type'] ?? NotificationType::PlayerSearchOpened;
+        $type = $attributes['type'] ?? NotificationTypes::PLAYER_SEARCH_OPENED;
         unset($attributes['type']);
         $created = $attributes['created_at'] ?? null;
         unset($attributes['created_at']);
 
         $row = NotificationLogEntry::create(array_merge([
-            'type' => $type->value,
+            'type' => $type,
             'channel' => 'whatsapp',
             'user_id' => null,
             'subject_type' => 'player_search',
             'subject_id' => 7,
             'dedupe_key' => 'log-test:'.(++$this->seq),
             'status' => NotificationLogEntry::SENT,
-            'priority' => $type->priority(),
+            'priority' => (int) app(NotificationRegistry::class)->type($type)?->priority,
             'subject_payload' => ['search_id' => 7],
             'attempts' => 1,
             'not_before' => Carbon::now(),
@@ -105,7 +106,7 @@ class NotificationLogPageTest extends TestCase
     {
         $this->row(['status' => NotificationLogEntry::FAILED, 'error_code' => 'E-failed-1']);
         $this->row(['status' => NotificationLogEntry::DELIVERED, 'error_code' => 'E-delivered-1']);
-        $this->row(['type' => NotificationType::PlayerSearchClosed, 'error_code' => 'E-closed-1']);
+        $this->row(['type' => NotificationTypes::PLAYER_SEARCH_CLOSED, 'error_code' => 'E-closed-1']);
         $this->row(['error_code' => 'E-old-1', 'created_at' => Carbon::now()->subMonths(2)->startOfMonth()->addDay()]);
 
         $byStatus = $this->open('?status=failed')->assertOk()->getContent();

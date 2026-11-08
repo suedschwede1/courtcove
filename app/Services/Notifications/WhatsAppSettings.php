@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Services\Notifications;
 
 use App\Models\Option;
+use App\Notifications\Registry\NotificationRegistry;
+use App\Notifications\Types\NotificationTypes;
 use App\Support\StagingDatabase;
 use BackedEnum;
 use Illuminate\Database\QueryException;
@@ -28,7 +30,47 @@ final class WhatsAppSettings
 
     private const DRIVERS = ['log', 'live', 'fake'];
 
-    public function __construct(private readonly SecretOptions $secrets) {}
+    /** @param  NotificationRegistry|null  $registry  defaults to the app's registry (resolved on first use) */
+    public function __construct(
+        private readonly SecretOptions $secrets,
+        private ?NotificationRegistry $registry = null,
+    ) {}
+
+    /** Option that switches a notification type on ('1') or off ('0'); unset = default of its definition. */
+    public static function typeEnabledOption(string $type): string
+    {
+        return "whatsapp.type.$type.enabled";
+    }
+
+    /** Option with the estimated price of one message of a type; unset = global estimate. */
+    public static function typePriceOption(string $type): string
+    {
+        return "whatsapp.price.$type";
+    }
+
+    /**
+     * Whether a notification type may be queued and sent: its option `whatsapp.type.<key>.enabled`, else the
+     * legacy option of its definition (when set), else the definition's default. Unknown types are off.
+     */
+    public function typeEnabled(string $type): bool
+    {
+        $definition = $this->registry()->type($type);
+        if ($definition === null) {
+            return false;
+        }
+
+        $value = $this->optionOrNull(self::typeEnabledOption($type));
+        if ($value === null && $definition->legacyEnabledOption !== null) {
+            $value = $this->optionOrNull($definition->legacyEnabledOption);
+        }
+
+        return $value === null ? $definition->defaultEnabled : $value === '1';
+    }
+
+    private function registry(): NotificationRegistry
+    {
+        return $this->registry ??= app(NotificationRegistry::class);
+    }
 
     public function enabled(): bool
     {
@@ -191,10 +233,20 @@ final class WhatsAppSettings
         return $this->micros($this->optionOrNull('whatsapp.budget_monthly'));
     }
 
-    /** Estimated price of one message in millionths; 0 = not set. */
-    public function priceEstimateMicros(): int
+    /**
+     * Estimated price of one message in millionths; 0 = not set. With a type: its own price option when set
+     * to a positive amount, else the global estimate. Test types always use the global estimate.
+     */
+    public function priceEstimateMicros(?string $type = null): int
     {
-        return $this->micros($this->optionOrNull('whatsapp.price_estimate'));
+        $global = $this->micros($this->optionOrNull('whatsapp.price_estimate'));
+        if ($type === null || $this->registry()->type($type)?->testType !== false) {
+            return $global;
+        }
+
+        $own = $this->micros($this->optionOrNull(self::typePriceOption($type)));
+
+        return $own > 0 ? $own : $global;
     }
 
     public function dailyLimitPerUser(): int
@@ -207,9 +259,10 @@ final class WhatsAppSettings
         return $this->positiveInt('whatsapp.max_per_run', 30);
     }
 
+    /** Switch of the "search closed" follow-up (its type option, else the old option whatsapp.followup_closed). */
     public function followupClosed(): bool
     {
-        return $this->option('whatsapp.followup_closed') === '1';
+        return $this->typeEnabled(NotificationTypes::PLAYER_SEARCH_CLOSED);
     }
 
     public function budgetAlertEmail(): ?string

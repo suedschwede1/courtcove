@@ -10,7 +10,7 @@ use App\Models\NotificationUsageMonthly;
 use App\Models\Option;
 use App\Models\User;
 use App\Modules\Members\Models\Member;
-use App\Notifications\Types\NotificationType;
+use App\Notifications\Types\NotificationTypes;
 use App\Services\Notifications\ConsentService;
 use App\Services\Notifications\SecretOptions;
 use App\Services\Notifications\Transport\FakeTransport;
@@ -274,7 +274,7 @@ class AdminWhatsAppActionsTest extends TestCase
 
         $this->assertCount(1, app(FakeTransport::class)->sent());
         $row = NotificationLogEntry::firstOrFail();
-        $this->assertSame(NotificationType::AdminTest->value, $row->type);
+        $this->assertSame(NotificationTypes::ADMIN_TEST, $row->type);
         $this->assertSame(NotificationLogEntry::SENT, $row->status);
         $this->assertSame(1, NotificationLogEntry::count());
     }

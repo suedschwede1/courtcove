@@ -9,7 +9,7 @@ use App\Models\Option;
 use App\Notifications\AdminTestNotification;
 use App\Notifications\Channels\WhatsAppChannel;
 use App\Notifications\Messages\WhatsAppMessage;
-use App\Notifications\Types\NotificationType;
+use App\Notifications\Types\NotificationTypes;
 use App\Services\Notifications\NotificationDispatcher;
 use App\Services\Notifications\Transport\FakeTransport;
 use Illuminate\Notifications\Notification;
@@ -112,7 +112,7 @@ class NotificationDispatcherMysqlTest extends MysqlTestCase
             public function toWhatsApp(object $notifiable): WhatsAppMessage
             {
                 return new WhatsAppMessage(
-                    type: NotificationType::PlayerSearchOpened,
+                    type: NotificationTypes::PLAYER_SEARCH_OPENED,
                     variables: [],
                     buttonSuffix: null,
                     dedupeKey: 'player_search.opened:7:1',

@@ -11,7 +11,7 @@ use App\Models\Option;
 use App\Models\PlayerSearch;
 use App\Models\Square;
 use App\Models\User;
-use App\Notifications\Types\NotificationType;
+use App\Notifications\Types\NotificationTypes;
 use App\Services\BookingService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -90,14 +90,14 @@ trait BuildsPlayerSearchFixtures
     {
         NotificationSubscription::query()
             ->where('user_id', $user->uid)
-            ->where('type', NotificationType::PlayerSearchOpened->value)
+            ->where('type', NotificationTypes::PLAYER_SEARCH_OPENED)
             ->update(['filters' => $filters === null ? null : json_encode($filters)]);
     }
 
     protected function openedRows(?int $searchId = null): Collection
     {
         return NotificationLogEntry::query()
-            ->where('type', NotificationType::PlayerSearchOpened->value)
+            ->where('type', NotificationTypes::PLAYER_SEARCH_OPENED)
             ->when($searchId !== null, fn ($q) => $q->where('subject_id', $searchId))
             ->orderBy('not_before')
             ->orderBy('id')
@@ -106,6 +106,6 @@ trait BuildsPlayerSearchFixtures
 
     protected function closedRows(): Collection
     {
-        return NotificationLogEntry::query()->where('type', NotificationType::PlayerSearchClosed->value)->orderBy('id')->get();
+        return NotificationLogEntry::query()->where('type', NotificationTypes::PLAYER_SEARCH_CLOSED)->orderBy('id')->get();
     }
 }

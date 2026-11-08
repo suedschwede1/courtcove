@@ -11,6 +11,30 @@ return [
         // own number only, withdrawal at any time (account or STOP), and that the searching person's name is in the message.
         'consent_text_v1' => 'I want to be notified by WhatsApp when someone is looking for players (player search). The message goes to the mobile number stored in my account; I only enter my own number. The message contains the name of the person looking for players. I can withdraw my consent at any time in my account or by replying STOP to a message.',
 
+        // Names and descriptions of the notification types (NotificationRegistry; keyed by template key).
+        'types' => [
+            'player_search_opened' => [
+                'label' => 'New player search',
+                'description' => 'A message when someone looks for players in the player exchange.',
+            ],
+            'player_search_closed' => [
+                'label' => 'Search closed',
+                'description' => 'Follow-up when a search you were told about has found its players or ended.',
+            ],
+            'test' => [
+                'label' => 'Test message',
+                'description' => 'Test message of the admin page to the admin\'s own number.',
+            ],
+        ],
+
+        // Consent purposes (NotificationRegistry): one consent per purpose, with its own text and version.
+        'purposes' => [
+            'player_search' => [
+                'label' => 'Player exchange',
+                'description' => 'WhatsApp messages about player searches in the player exchange.',
+            ],
+        ],
+
         // Privacy sentence; processors are named on the club's external privacy page, not here.
         'privacy_notice' => 'With your consent we use the mobile number from your account to send you notifications (first: player searches) by WhatsApp. The messaging service we engage and the operator of WhatsApp are involved. You can withdraw your consent at any time in your account or by replying STOP.',
 

@@ -66,6 +66,9 @@ class NotificationLogEntry extends Model
 
     public const TEMPLATE_MISSING = 'template_missing';
 
+    /** The notification type is switched off (option `whatsapp.type.<key>.enabled`). */
+    public const TYPE_DISABLED = 'type_disabled';
+
     public const PAUSED = 'paused';
 
     protected $table = 'notification_log';

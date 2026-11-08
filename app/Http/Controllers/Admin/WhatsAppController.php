@@ -9,7 +9,7 @@ use App\Models\NotificationLogEntry;
 use App\Models\Option;
 use App\Notifications\AdminTestNotification;
 use App\Notifications\Channels\WhatsAppChannel;
-use App\Notifications\Types\NotificationType;
+use App\Notifications\Registry\NotificationRegistry;
 use App\Services\Notifications\BudgetService;
 use App\Services\Notifications\ConsentService;
 use App\Services\Notifications\NotificationDispatcher;
@@ -71,6 +71,7 @@ final class WhatsAppController extends Controller
         private readonly SecretOptions $secrets,
         private readonly WhatsAppAdminStatus $status,
         private readonly BudgetService $budget,
+        private readonly NotificationRegistry $registry,
     ) {}
 
     /** Connection check: reads account and service, sends nothing, shows ok or an error code only. */
@@ -340,9 +341,9 @@ final class WhatsAppController extends Controller
     private function templateFields(): array
     {
         $fields = [];
-        foreach (NotificationType::cases() as $type) {
+        foreach ($this->registry->types() as $type) {
             foreach (self::LOCALES as $locale) {
-                $fields['tpl_'.$type->templateKey().'_'.$locale] = ['whatsapp.template.'.$type->templateKey().'.'.$locale, $type->templateKey(), $locale];
+                $fields['tpl_'.$type->templateKey.'_'.$locale] = ['whatsapp.template.'.$type->templateKey.'.'.$locale, $type->templateKey, $locale];
             }
         }
 
