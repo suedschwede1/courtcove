@@ -34,7 +34,7 @@
     </x-admin.page-header>
 
     @if($effectiveDriver === 'log')
-        <x-ui.notice tone="problem">{{ __('booking.admin.whatsapp.driver_log_notice') }}</x-ui.notice>
+        <x-ui.notice tone="attention">{{ __('booking.admin.whatsapp.driver_log_notice') }}</x-ui.notice>
     @endif
     @if($configMissing)
         <x-ui.notice tone="attention">{{ __('booking.admin.whatsapp.config_missing') }}</x-ui.notice>
@@ -54,7 +54,7 @@
         <x-ui.card :title="__('booking.admin.whatsapp.section_usage')" padding="lg" class="ds-admin-form-card">
             <x-ui.kpi
                 :label="__('booking.admin.whatsapp.budget_used', ['month' => $budget['month']])"
-                :value="$budget['messages'].' '.__('booking.admin.whatsapp.budget_messages').', ≈ '.$budget['percent'].' %'"
+                :value="$budget['messages'].' '.__('booking.admin.whatsapp.budget_messages').', ≈ '.$budget['percent'].' %'"
                 :meta="__('booking.admin.whatsapp.budget_amount', ['used' => $budget['used'], 'budget' => $budget['budget']]).($budget['previous'] !== null ? ' · '.$budget['previous'] : '')" />
             <progress class="ds-budget-bar{{ $notices['state'] === 'stopped' ? ' ds-budget-bar--stop' : ($notices['state'] === 'warn' ? ' ds-budget-bar--warn' : '') }}" max="100" value="{{ min(100, $budget['percent']) }}" aria-label="{{ __('booking.admin.whatsapp.budget_used', ['month' => $budget['month']]) }}">{{ $budget['percent'] }} %</progress>
         </x-ui.card>

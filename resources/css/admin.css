@@ -1391,6 +1391,23 @@
         margin: 0;
     }
 
+    /* WhatsApp send log: long or unknown raw values wrap inside the card instead of widening it. */
+    .ds-admin-wa-log .ds-table td {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .ds-admin-wa-log .ds-badge {
+        max-width: 100%;
+        overflow-wrap: anywhere;
+    }
+
+    /* Alias and last digits read as one inline text, not as two spread-out parts. */
+    .ds-admin-wa-user {
+        display: inline;
+        text-align: right;
+    }
+
     @media (width >= 48rem) {
         .ds-admin-rows .ds-table--list .ds-admin-actions-cell {
             text-align: right;

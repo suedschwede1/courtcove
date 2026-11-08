@@ -89,6 +89,18 @@ class NotificationLogPageTest extends TestCase
     }
 
     #[Test]
+    public function unknown_values_are_shown_raw_not_as_language_keys(): void
+    {
+        $this->row(['status' => 'queued', 'skip_reason' => 'odd_reason_test']);
+
+        $html = $this->open()->assertOk()->getContent();
+
+        $this->assertStringContainsString('odd_reason_test', $html);
+        $this->assertStringContainsString('queued', $html);
+        $this->assertStringNotContainsString('booking.admin.whatsapp.', $html);
+    }
+
+    #[Test]
     public function filters_by_status_type_and_month(): void
     {
         $this->row(['status' => NotificationLogEntry::FAILED, 'error_code' => 'E-failed-1']);

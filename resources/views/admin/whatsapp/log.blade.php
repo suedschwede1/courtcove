@@ -7,8 +7,10 @@
         'failed' => 'problem', 'undelivered' => 'problem',
         'skipped' => 'attention',
     ];
-    // Chip link: the current filters with one of them replaced (null = all); the page number is dropped.
-    $chipUrl = fn (string $key, ?string $value) => route('admin.whatsapp.log', array_filter(array_merge($filters, [$key => $value]), fn ($v) => $v !== null));
+    // Known keys translate; an unknown value (old or foreign data) is shown as the raw value, never as a language key.
+    $tr = fn (string $key, ?string $raw) => \Illuminate\Support\Facades\Lang::has($key) ? __($key) : (string) $raw;
+    $statusOptions = collect($statuses)->mapWithKeys(fn ($st) => [$st => $tr('booking.admin.whatsapp.log.status.'.$st, $st)])->all();
+    $typeOptions = collect($types)->mapWithKeys(fn ($t) => [$t['value'] => $tr('booking.admin.whatsapp.log.types.'.$t['key'], $t['value'])])->all();
     $de = app()->getLocale() === 'de';
     $money = fn (int $micros) => '≈ '.number_format($micros / 1_000_000, 2, $de ? ',' : '.', $de ? '.' : ',').' EUR';
 @endphp
@@ -18,27 +20,18 @@
     </x-admin.page-header>
 
     <x-ui.card padding="lg">
-        <p class="ds-admin-note">{{ __('booking.admin.whatsapp.log.filter_status') }}</p>
-        <div class="ds-admin-badges">
-            <x-ui.chip :href="$chipUrl('status', null)" :active="$filters['status'] === null">{{ __('booking.admin.search_status_all') }}</x-ui.chip>
-            @foreach($statuses as $status)
-                <x-ui.chip :href="$chipUrl('status', $status)" :active="$filters['status'] === $status">{{ __('booking.admin.whatsapp.log.status.'.$status) }}</x-ui.chip>
-            @endforeach
-        </div>
-        <p class="ds-admin-note">{{ __('booking.admin.whatsapp.log.filter_type') }}</p>
-        <div class="ds-admin-badges">
-            <x-ui.chip :href="$chipUrl('type', null)" :active="$filters['type'] === null">{{ __('booking.admin.whatsapp.log.all_types') }}</x-ui.chip>
-            @foreach($types as $type)
-                <x-ui.chip :href="$chipUrl('type', $type['value'])" :active="$filters['type'] === $type['value']">{{ __('booking.admin.whatsapp.log.types.'.$type['key']) }}</x-ui.chip>
-            @endforeach
-        </div>
-        <p class="ds-admin-note">{{ __('booking.admin.whatsapp.log.filter_month') }}</p>
-        <div class="ds-admin-badges">
-            <x-ui.chip :href="$chipUrl('month', null)" :active="$filters['month'] === null">{{ __('booking.admin.whatsapp.log.all_months') }}</x-ui.chip>
-            @foreach($months as $value => $label)
-                <x-ui.chip :href="$chipUrl('month', $value)" :active="$filters['month'] === $value">{{ $label }}</x-ui.chip>
-            @endforeach
-        </div>
+        <form method="GET" action="{{ route('admin.whatsapp.log') }}" class="ds-admin-filter">
+            <x-ui.field :label="__('booking.admin.whatsapp.log.filter_status')" for="wa-log-status">
+                <x-ui.select name="status" id="wa-log-status" :options="$statusOptions" :selected="$filters['status'] ?? ''" :placeholder="__('booking.admin.search_status_all')" />
+            </x-ui.field>
+            <x-ui.field :label="__('booking.admin.whatsapp.log.filter_type')" for="wa-log-type">
+                <x-ui.select name="type" id="wa-log-type" :options="$typeOptions" :selected="$filters['type'] ?? ''" :placeholder="__('booking.admin.whatsapp.log.all_types')" />
+            </x-ui.field>
+            <x-ui.field :label="__('booking.admin.whatsapp.log.filter_month')" for="wa-log-month">
+                <x-ui.select name="month" id="wa-log-month" :options="$months" :selected="$filters['month'] ?? ''" :placeholder="__('booking.admin.whatsapp.log.all_months')" />
+            </x-ui.field>
+            <x-ui.button type="submit" :block="false">{{ __('booking.admin.common.filter') }}</x-ui.button>
+        </form>
     </x-ui.card>
 
     @if($entries->isEmpty())
@@ -61,14 +54,14 @@
                         $typeCase = \App\Notifications\Types\NotificationType::tryFrom($entry->type);
                         $alias = $entry->user_id !== null ? ($users[$entry->user_id] ?? null) : null;
                         $reason = $entry->skip_reason !== null
-                            ? __('booking.admin.whatsapp.skip_reasons.'.$entry->skip_reason)
+                            ? $tr('booking.admin.whatsapp.skip_reasons.'.$entry->skip_reason, $entry->skip_reason)
                             : $entry->error_code;
                         $micros = $entry->cost_reported_micros ?? $entry->cost_estimate_micros;
                     @endphp
                     <tr>
                         <td class="ds-cell--title" data-label="{{ __('booking.admin.whatsapp.log.col_time') }}">{{ $entry->created_at?->format('d.m.Y H:i') }}</td>
-                        <td data-label="{{ __('booking.admin.whatsapp.log.col_type') }}">{{ $typeCase !== null ? __('booking.admin.whatsapp.log.types.'.$typeCase->templateKey()) : $entry->type }}</td>
-                        <td data-label="{{ __('booking.admin.whatsapp.log.col_user') }}">
+                        <td data-label="{{ __('booking.admin.whatsapp.log.col_type') }}">{{ $typeCase !== null ? $tr('booking.admin.whatsapp.log.types.'.$typeCase->templateKey(), $entry->type) : $entry->type }}</td>
+                        <td data-label="{{ __('booking.admin.whatsapp.log.col_user') }}"><span class="ds-admin-wa-user">
                             @if($alias !== null)
                                 <a href="{{ route('admin.users.edit', $entry->user_id) }}" class="ds-admin-link">{{ $alias }}</a>
                             @else
@@ -77,9 +70,9 @@
                             @if($entry->phone_last2 !== null)
                                 <span class="ds-admin-note">… {{ $entry->phone_last2 }}</span>
                             @endif
-                        </td>
+                        </span></td>
                         <td data-label="{{ __('booking.admin.whatsapp.log.col_status') }}">
-                            <x-ui.badge :tone="$statusTone[$entry->status] ?? 'neutral'">{{ __('booking.admin.whatsapp.log.status.'.$entry->status) }}</x-ui.badge>
+                            <x-ui.badge :tone="$statusTone[$entry->status] ?? 'neutral'">{{ $tr('booking.admin.whatsapp.log.status.'.$entry->status, $entry->status) }}</x-ui.badge>
                         </td>
                         <td data-label="{{ __('booking.admin.whatsapp.log.col_reason') }}">{{ $reason ?? '—' }}</td>
                         <td data-label="{{ __('booking.admin.whatsapp.log.col_cost') }}">{{ $micros !== null ? $money($micros) : '—' }}</td>

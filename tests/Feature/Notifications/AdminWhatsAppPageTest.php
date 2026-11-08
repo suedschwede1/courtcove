@@ -50,6 +50,15 @@ class AdminWhatsAppPageTest extends TestCase
         return $this->actingAsWithoutAdminMode($user ?? $this->admin())->get('/admin/whatsapp')->assertOk()->getContent();
     }
 
+    #[Test]
+    public function log_driver_hint_is_an_attention_notice_not_an_error(): void
+    {
+        $html = $this->page();
+
+        $this->assertStringContainsString(__('booking.admin.whatsapp.driver_log_notice'), $html);
+        $this->assertStringNotContainsString('ds-notice--problem', $html);
+    }
+
     /** @param array<string, mixed> $data */
     private function save(array $data, ?User $user = null): TestResponse
     {
