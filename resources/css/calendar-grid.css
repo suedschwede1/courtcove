@@ -1,13 +1,16 @@
 /*
  * Calendar board layout: a shared time column plus one card per day.
- * Desktop shows the selected day and the next two; phones show one day with a
- * sticky court row. Cell fills and text live with the cell rules (not here).
+ * Wide boards show the selected day and the next two; a board narrower than the
+ * three-day minimum shows two days (container query on the board's own width, so
+ * a sidebar or page margins are counted, not only the window); phones show one
+ * day with a sticky court row. Cell fills and text live with the cell rules (not here).
  *
  * The board takes the height left under the toolbar and the 12 hour rows share
  * it (1fr each), so cells grow with the window; --cal-cell is only the minimum.
  * Below that minimum the board scrolls instead of squeezing the rows.
  */
 .cal-page__board {
+    container: cal-board / inline-size;
     overflow: auto;
     /* Room for the today ring, which the scroll box would otherwise clip; the
        negative inline margin keeps the card edges on the page gutter. */
@@ -25,6 +28,23 @@
     min-width: 980px;
     height: 100%;
     box-sizing: border-box;
+}
+
+/*
+ * Two days: below the three-day minimum (980px: time column + three cards of
+ * about 290px + gaps) the third day drops out instead of the board scrolling
+ * sideways. Two days need about 680px; narrower windows are phones (< 48rem),
+ * which show one day (see the phone block at the end).
+ */
+@container cal-board (width < 980px) {
+    .cal-board {
+        grid-template-columns: 60px repeat(2, minmax(0, 1fr));
+        min-width: 680px;
+    }
+
+    .cal-day[data-day="3"] {
+        display: none;
+    }
 }
 
 /* Time column: the same row template as the day cards; the block padding
