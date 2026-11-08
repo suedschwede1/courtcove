@@ -158,6 +158,7 @@ return [
             'free' => 'Frei – zum Buchen tippen',
             'own' => 'Meine Buchung',
             'single_future' => 'Belegt',
+            'series' => 'Abo / Serie',
             'seeking' => 'Sucht Mitspieler',
             'event' => 'Veranstaltung',
             'blocked' => 'Platzsperre',

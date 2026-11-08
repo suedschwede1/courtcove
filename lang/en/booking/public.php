@@ -158,6 +158,7 @@ return [
             'free' => 'Free – tap to book',
             'own' => 'My booking',
             'single_future' => 'Booked',
+            'series' => 'Series',
             'seeking' => 'Looking for players',
             'event' => 'Event',
             'blocked' => 'Court closure',
