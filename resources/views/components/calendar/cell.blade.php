@@ -60,11 +60,11 @@
         $otherPlayers = $reservation->booking->other_players;
     }
     $secondaryLabel = ! $hasOpenSearch && $otherPlayers !== [] ? implode(', ', $otherPlayers) : null;
-    // Phones: the players as first names, at most three, "+N" for the rest (the cell is one narrow column).
+    // Phones: the players (full names, two lines at most, "+N" after four; the title and the dialog list all).
     // Same visibility as the desktop detail line: members only, never during an open search.
     $playersShort = null;
     if ($secondaryLabel !== null && $reservation) {
-        $playersShort = \App\Models\Booking::shortPlayerNames($otherPlayers);
+        $playersShort = \App\Models\Booking::compactPlayerNames($otherPlayers);
     }
     if ($secondaryLabel === null && $isSeriesBooking) {
         $secondaryLabel = __('booking.calendar.series_hint');
@@ -300,7 +300,7 @@
        class="calendar-cell {{ $cellClass }}{{ $seriesClass }}{{ $slotClass }}"
        data-state="{{ $state }}"
        aria-label="{{ $playersTitle }}"
-       title="{{ $cellTitle }}"
+       title="{{ $playersTitle }}"
        @click.prevent="$dispatch('open-players', {
            squareName: @js($squareFullLabel),
            dateLabel: @js($dateLabel),

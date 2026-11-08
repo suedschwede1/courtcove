@@ -40,8 +40,20 @@ final class BookingPlayersEverywhereTest extends TestCase
         $booking = $this->booking($owner, ['example owner ', 'Helga Muster', 'Sandra B', 'Inge P', 'Dora D']);
 
         $this->assertSame(['Helga Muster', 'Sandra B', 'Inge P', 'Dora D'], $booking->other_players);
-        $this->assertSame('Helga, Sandra, Inge +1', Booking::shortPlayerNames($booking->other_players));
-        $this->assertSame('', Booking::shortPlayerNames([]));
+        $this->assertSame('Helga Muster, Sandra B, Inge P, Dora D', Booking::compactPlayerNames($booking->other_players));
+        $this->assertSame('A, B, C, D +1', Booking::compactPlayerNames(['A', 'B', 'C', 'D', 'E']));
+        $this->assertSame('', Booking::compactPlayerNames([]));
+    }
+
+    #[Test]
+    public function one_field_with_several_names_counts_as_several_players(): void
+    {
+        $owner = User::factory()->create(['status' => 'enabled', 'alias' => 'Example Owner']);
+        $booking = $this->booking($owner, ['Helga, Sandra; Inge und Dora', ' , ', 'helga']);
+
+        $this->assertSame(['Helga', 'Sandra', 'Inge', 'Dora'], $booking->other_players);
+        // The stored slots stay as they are for the edit forms.
+        $this->assertCount(3, $booking->player_names);
     }
 
     #[Test]

@@ -127,30 +127,42 @@ class Booking extends Model
     }
 
     /**
-     * The players without the booker (the booker is shown as the name already). Case and spacing insensitive.
+     * The players without the booker (the booker is shown as the name already), one name per entry.
+     * Legacy rows keep several names in one field ("Helga, Sandra, Inge"): entries are split at comma,
+     * semicolon, slash and " und " / " and ", trimmed, de-duplicated and emptied of blanks, so counts
+     * and lists are right everywhere. Case and spacing insensitive. player_names keeps the stored slots
+     * (the edit forms map them to the player fields).
      *
      * @return list<string>
      */
     public function getOtherPlayersAttribute(): array
     {
         $ownerKey = mb_strtolower(trim($this->owner_label));
+        $seen = [];
+        $names = [];
+        foreach ($this->player_names as $entry) {
+            foreach (preg_split('/\s*(?:[,;\/]|\s+(?:und|and)\s+)\s*/iu', $entry) ?: [] as $name) {
+                $name = trim($name);
+                $key = mb_strtolower($name);
+                if ($name === '' || $key === $ownerKey || isset($seen[$key])) {
+                    continue;
+                }
+                $seen[$key] = true;
+                $names[] = $name;
+            }
+        }
 
-        return array_values(array_filter(
-            $this->player_names,
-            static fn (string $player): bool => mb_strtolower(trim($player)) !== $ownerKey,
-        ));
+        return $names;
     }
 
     /**
-     * Compact form for narrow cells: first names, at most $max, then "+N".
+     * Compact list for a narrow cell: the first $max full names, then "+N" for the rest.
      *
      * @param  list<string>  $names
      */
-    public static function shortPlayerNames(array $names, int $max = 3): string
+    public static function compactPlayerNames(array $names, int $max = 4): string
     {
-        $first = array_map(static fn (string $name): string => strtok(trim($name), ' ') ?: $name, $names);
-
-        return implode(', ', array_slice($first, 0, $max)).(count($first) > $max ? ' +'.(count($first) - $max) : '');
+        return implode(', ', array_slice($names, 0, $max)).(count($names) > $max ? ' +'.(count($names) - $max) : '');
     }
 
     public function getPlayerNamesLabelAttribute(): ?string
