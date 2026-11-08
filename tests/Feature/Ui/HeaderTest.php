@@ -143,16 +143,16 @@ class HeaderTest extends TestCase
     {
         $member = User::factory()->create(['status' => 'enabled']);
         $html = $this->actingAs($member)->get('/calendar')->assertOk()->assertDontSee('admin-mode', false)->getContent();
-        $this->assertStringNotContainsString('role="switch"', $html);
+        $this->assertStringNotContainsString('admin-mode-form-', $html);
 
         $admin = User::factory()->create(['status' => 'admin']);
         $html = $this->actingAsWithoutAdminMode($admin)->get('/calendar')->assertOk()
             ->assertSee(route('admin-mode.set', ['state' => 'on']), false)->getContent();
-        $this->assertSame(2, $this->xpath($html)->query('//button[@role="switch"][@aria-checked="false"]')->length); // bar + phone menu
+        $this->assertSame(2, $this->xpath($html)->query('//button[@role="switch"][starts-with(@form, "admin-mode-form-")][@aria-checked="false"]')->length); // bar + phone menu
 
         $html = $this->actingAsAdminMode($admin)->get('/calendar')->assertOk()
             ->assertSee(route('admin-mode.set', ['state' => 'off']), false)->getContent();
-        $this->assertSame(2, $this->xpath($html)->query('//button[@role="switch"][@aria-checked="true"]')->length);
+        $this->assertSame(2, $this->xpath($html)->query('//button[@role="switch"][starts-with(@form, "admin-mode-form-")][@aria-checked="true"]')->length);
     }
 
     #[Test]

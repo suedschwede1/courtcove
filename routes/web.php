@@ -56,6 +56,12 @@ Route::post('/admin-mode/{state}', [AdminModeController::class, 'set'])
     ->middleware('auth')
     ->name('admin-mode.set');
 
+// Player exchange switch in the menus (same opt-in/out as the account checkbox). POST with CSRF.
+Route::post('/player-exchange/{state}', [PlayerExchangeController::class, 'set'])
+    ->whereIn('state', ['on', 'off'])
+    ->middleware('auth')
+    ->name('player-exchange.set');
+
 Route::get('/', static fn () => redirect()->route('calendar.index'));
 Route::get('/booking', static fn () => redirect()->route('calendar.index'));
 Route::get('/bookings', static fn () => redirect()->route('calendar.index'));

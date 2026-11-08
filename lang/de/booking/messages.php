@@ -52,6 +52,8 @@ return [
             'not_open' => 'Für diese Buchung werden keine Mitspieler (mehr) gesucht.',
             'deadline_passed' => 'Die Anmeldung ist nur bis eine Stunde vor Beginn möglich.',
             'own_booking' => 'Das ist deine eigene Buchung.',
+            'switched_on' => 'Du bist bei der Spielerbörse angemeldet. Du bekommst eine E-Mail, wenn jemand Mitspieler sucht. Abmelden kannst du dich jederzeit hier im Menü.',
+            'switched_off' => 'Du bist von der Spielerbörse abgemeldet. Du bekommst keine E-Mails mehr, wenn jemand Mitspieler sucht.',
             'not_opted_in' => 'Melde dich zuerst unter „Mein Konto“ bei der Spielerbörse an.',
             'inactive' => 'Dein Konto ist nicht aktiv.',
             'already_joined' => 'Du bist bei dieser Buchung schon als Mitspieler angemeldet.',

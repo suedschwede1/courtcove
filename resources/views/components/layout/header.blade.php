@@ -44,6 +44,9 @@
             @if(auth()->user()?->hasAnyPrivilege())
                 <x-layout.admin-mode-switch />
             @endif
+            @auth
+                <x-layout.player-exchange-switch />
+            @endauth
             <x-layout.locale-switch />
             @auth
                 <x-ui.avatar :name="auth()->user()->alias" :href="route('account.edit')" :label="__('booking.nav.account_of', ['name' => auth()->user()->alias])" />
