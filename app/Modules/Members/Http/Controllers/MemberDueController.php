@@ -10,11 +10,13 @@ use App\Modules\Members\Models\FiscalYear;
 use App\Modules\Members\Models\HouseholdDue;
 use App\Modules\Members\Models\Member;
 use App\Modules\Members\Models\MemberDue;
+use App\Modules\Members\Support\BulkDuePayer;
 use App\Modules\Members\Support\DuesGenerationReport;
 use App\Modules\Members\Support\DuesGenerator;
 use App\Modules\Members\Support\HouseholdService;
 use App\Modules\Members\Support\MembersFormat;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -67,18 +69,9 @@ class MemberDueController
         $selectedFiscalYearId = $selectedFiscalYear->id ?? 0;
         $defaultFiscalYearId = $defaultFiscalYear->id ?? 0;
 
-        $duesQuery = MemberDue::query()
-            ->with(['member', 'feeCategory', 'payments', 'fiscalYear', 'bezahltBisFiscalYear'])
-            ->where('fiscal_year_id', $selectedFiscalYearId);
-
         $search = $request->query('search');
-        $search = is_string($search) ? trim($search) : '';
-        if ($search !== '') {
-            $duesQuery->whereHas('member', function ($q) use ($search) {
-                $q->where('firstname', 'like', "%{$search}%")
-                    ->orWhere('lastname', 'like', "%{$search}%");
-            });
-        }
+        // Capped like the bulk payment's validation, so "Alle der Filterung" never fails on a long search.
+        $search = is_string($search) ? mb_substr(trim($search), 0, 100) : '';
 
         // No status parameter (or an unusable one) means the default "offen"; "alle" must be
         // chosen explicitly and then travels in the query string like every other value.
@@ -86,40 +79,23 @@ class MemberDueController
         $statusFilter = is_string($statusFilter) && in_array($statusFilter, self::STATUS_FILTERS, true)
             ? $statusFilter
             : self::DEFAULT_STATUS_FILTER;
-        // A due with a linked payment is settled whatever its stored status says, so it is never
-        // "ausstehend" or "überfällig" here (it still shows under "Alle").
-        match ($statusFilter) {
-            'offen' => $duesQuery->open(),
-            'bezahlt' => $duesQuery->where('status', 'bezahlt'),
-            'ausstehend' => $duesQuery->where('status', 'ausstehend')->whereDoesntHave('payments')
-                ->where(fn ($q) => $q->whereNull('faellig_am')->orWhere('faellig_am', '>=', now()->toDateString())),
-            'ueberfaellig' => $duesQuery->overdue()->whereDoesntHave('payments'),
-            default => null,
-        };
+
+        [$duesQuery, $householdQuery] = $this->filteredQueries($selectedFiscalYearId, $statusFilter, $search);
+
+        // "Alle der aktuellen Filterung": what a bulk payment of the whole filter would pay (open rows of an open
+        // year), for the confirmation dialog; the server resolves the filter again on submit.
+        $payableMember = (clone $duesQuery)->open()->get(['member_dues.id', 'member_dues.amount']);
+        $payableHousehold = (clone $householdQuery)->open()->get(['household_dues.id', 'household_dues.amount']);
+        $yearOpen = $selectedFiscalYear !== null && ! $selectedFiscalYear->isClosed();
+        $payableCount = $yearOpen ? $payableMember->count() + $payableHousehold->count() : 0;
+        $payableSum = $yearOpen ? (float) $payableMember->sum('amount') + (float) $payableHousehold->sum('amount') : 0.0;
+
+        $duesQuery->with(['member', 'feeCategory', 'payments', 'fiscalYear', 'bezahltBisFiscalYear']);
+        $householdQuery->with(['household.members', 'coveredMembers' => fn ($q) => $q->orderBy('firstname'), 'payments', 'fiscalYear']);
 
         $outstandingTotal = (clone $duesQuery)->get(['member_dues.*'])
             ->sum(fn (MemberDue $due): float => (float) $due->outstandingAmount());
 
-        // Household dues of the year: few rows, not paginated, same search (household name or a covered
-        // member) and status filter; each counts once in the outstanding total.
-        $householdQuery = HouseholdDue::query()
-            ->with(['household.members', 'coveredMembers' => fn ($q) => $q->orderBy('firstname'), 'payments', 'fiscalYear'])
-            ->where('fiscal_year_id', $selectedFiscalYearId);
-        if ($search !== '') {
-            $householdQuery->where(function ($q) use ($search): void {
-                $q->whereHas('household', fn ($h) => $h->where('name', 'like', "%{$search}%"))
-                    ->orWhereHas('coveredMembers', fn ($m) => $m->where('firstname', 'like', "%{$search}%")->orWhere('lastname', 'like', "%{$search}%"))
-                    ->orWhereHas('household.members', fn ($m) => $m->where('lastname', 'like', "%{$search}%"));
-            });
-        }
-        match ($statusFilter) {
-            'offen' => $householdQuery->open(),
-            'bezahlt' => $householdQuery->where('status', 'bezahlt'),
-            'ausstehend' => $householdQuery->where('status', 'ausstehend')->whereDoesntHave('payments')
-                ->where(fn ($q) => $q->whereNull('faellig_am')->orWhere('faellig_am', '>=', now()->toDateString())),
-            'ueberfaellig' => $householdQuery->overdue()->whereDoesntHave('payments'),
-            default => null,
-        };
         $householdDues = $householdQuery->orderBy('id')->get()
             ->sortBy(fn (HouseholdDue $due) => mb_strtolower($due->household->label()), SORT_NATURAL)->values();
         if ($householdDues->isNotEmpty()) {
@@ -150,6 +126,9 @@ class MemberDueController
             'yearHasDues' => $yearHasDues,
             'dues' => $dues,
             'outstandingTotal' => $outstandingTotal,
+            'payableCount' => $payableCount,
+            'payableSum' => number_format($payableSum, 2, '.', ''),
+            'bulkPayReport' => $request->session()->get('bulk_pay_report'),
             'householdDues' => $householdDues,
             'filters' => array_filter(
                 ['search' => $search, 'status' => $statusFilter],
@@ -247,6 +226,110 @@ class MemberDueController
         return redirect()->route('members.dues.index', ['fiscal_year_id' => $fiscalYearId])
             ->with('status', $message)
             ->with('dues_report', $report->toArray());
+    }
+
+    /**
+     * The dues list filter (year, status, search) for member dues and household dues, without eager loads.
+     * Shared by the list and by the bulk payment, which resolves "all of the current filter" again on the server.
+     *
+     * @return array{0: Builder<MemberDue>, 1: Builder<HouseholdDue>}
+     */
+    private function filteredQueries(int $fiscalYearId, string $statusFilter, string $search): array
+    {
+        $duesQuery = MemberDue::query()->where('member_dues.fiscal_year_id', $fiscalYearId);
+        if ($search !== '') {
+            $duesQuery->whereHas('member', function ($q) use ($search) {
+                $q->where('firstname', 'like', "%{$search}%")
+                    ->orWhere('lastname', 'like', "%{$search}%");
+            });
+        }
+        // A due with a linked payment is settled whatever its stored status says, so it is never
+        // "ausstehend" or "überfällig" here (it still shows under "Alle").
+        match ($statusFilter) {
+            'offen' => $duesQuery->open(),
+            'bezahlt' => $duesQuery->where('status', 'bezahlt'),
+            'ausstehend' => $duesQuery->where('status', 'ausstehend')->whereDoesntHave('payments')
+                ->where(fn ($q) => $q->whereNull('faellig_am')->orWhere('faellig_am', '>=', now()->toDateString())),
+            'ueberfaellig' => $duesQuery->overdue()->whereDoesntHave('payments'),
+            default => null,
+        };
+
+        // Household dues of the year: few rows, not paginated, same search (household name or a covered
+        // member) and status filter; each counts once.
+        $householdQuery = HouseholdDue::query()->where('household_dues.fiscal_year_id', $fiscalYearId);
+        if ($search !== '') {
+            $householdQuery->where(function ($q) use ($search): void {
+                $q->whereHas('household', fn ($h) => $h->where('name', 'like', "%{$search}%"))
+                    ->orWhereHas('coveredMembers', fn ($m) => $m->where('firstname', 'like', "%{$search}%")->orWhere('lastname', 'like', "%{$search}%"))
+                    ->orWhereHas('household.members', fn ($m) => $m->where('lastname', 'like', "%{$search}%"));
+            });
+        }
+        match ($statusFilter) {
+            'offen' => $householdQuery->open(),
+            'bezahlt' => $householdQuery->where('status', 'bezahlt'),
+            'ausstehend' => $householdQuery->where('status', 'ausstehend')->whereDoesntHave('payments')
+                ->where(fn ($q) => $q->whereNull('faellig_am')->orWhere('faellig_am', '>=', now()->toDateString())),
+            'ueberfaellig' => $householdQuery->overdue()->whereDoesntHave('payments'),
+            default => null,
+        };
+
+        return [$duesQuery, $householdQuery];
+    }
+
+    /**
+     * Bulk "Als bezahlt markieren": one real payment per due (see BulkDuePayer), for the ticked rows of the listed
+     * year (mode "selected") or for every row of the current filter (mode "filter", resolved here again; client
+     * ids are ignored). More than BulkDuePayer::LIMIT rows are refused. The result (paid, skipped with reasons)
+     * comes back as flash and as a report shown above the list.
+     */
+    public function bulkPay(Request $request, BulkDuePayer $payer): RedirectResponse
+    {
+        $validated = $request->validate([
+            'mode' => ['required', 'string', Rule::in(['selected', 'filter'])],
+            'fiscal_year_id' => ['required', 'integer', 'exists:fiscal_years,id'],
+            'due_ids' => ['nullable', 'array', 'max:'.BulkDuePayer::LIMIT],
+            'due_ids.*' => ['integer'],
+            'household_due_ids' => ['nullable', 'array', 'max:'.BulkDuePayer::LIMIT],
+            'household_due_ids.*' => ['integer'],
+            'status' => ['nullable', 'string', Rule::in(self::STATUS_FILTERS)],
+            'search' => ['nullable', 'string', 'max:100'],
+            'paid_at' => ['nullable', ...MemberDue::paidOnRules()],
+            'note' => ['nullable', 'string', 'max:255'],
+        ], MemberDue::paidOnMessages('paid_at'));
+
+        $fiscalYearId = (int) $validated['fiscal_year_id'];
+        if ($validated['mode'] === 'filter') {
+            [$duesQuery, $householdQuery] = $this->filteredQueries($fiscalYearId, $validated['status'] ?? self::DEFAULT_STATUS_FILTER, trim((string) ($validated['search'] ?? '')));
+            // Only rows that can still be paid: "Alle der Filterung" means the open dues of the filter (as counted in
+            // the list), so paid rows of a status "alle"/"bezahlt" filter neither use up the limit nor flood the report.
+            $duesQuery->open();
+            $householdQuery->open();
+            $memberDueIds = $duesQuery->orderBy('member_dues.member_id')->pluck('member_dues.id')->map(intval(...))->all();
+            $householdDueIds = $householdQuery->orderBy('household_dues.id')->pluck('household_dues.id')->map(intval(...))->all();
+        } else {
+            $memberDueIds = array_map(intval(...), $validated['due_ids'] ?? []);
+            $householdDueIds = array_map(intval(...), $validated['household_due_ids'] ?? []);
+        }
+
+        $total = count(array_unique($memberDueIds)) + count(array_unique($householdDueIds));
+        if ($total === 0) {
+            throw ValidationException::withMessages(['bulk' => __('members::admin.dues.bulk_nothing_selected')]);
+        }
+        if ($total > BulkDuePayer::LIMIT) {
+            throw ValidationException::withMessages(['bulk' => __('members::admin.dues.bulk_too_many', ['count' => $total, 'limit' => BulkDuePayer::LIMIT])]);
+        }
+
+        // Up to LIMIT short transactions: give a shorter web time limit room, never shorten an unlimited one.
+        $limit = (int) ini_get('max_execution_time');
+        if ($limit > 0 && $limit < 120 && function_exists('set_time_limit')) {
+            @set_time_limit(120);
+        }
+
+        $result = $payer->pay($fiscalYearId, $memberDueIds, $householdDueIds, $validated['paid_at'] ?? now()->toDateString(), $validated['note'] ?? null);
+
+        return redirect()->back(fallback: route('members.dues.index', ['fiscal_year_id' => $fiscalYearId]))
+            ->with('status', __('members::admin.dues.bulk_pay_result', ['paid' => $result['paid'], 'skipped' => count($result['skipped'])]))
+            ->with('bulk_pay_report', $result);
     }
 
     /** Markiert alle ausgewählten Beitragszeilen (Mitglieds- und Haushaltsbeiträge) in einem Schritt als bezahlt, optional bis zu einem gewählten Fiskaljahr im Voraus. */

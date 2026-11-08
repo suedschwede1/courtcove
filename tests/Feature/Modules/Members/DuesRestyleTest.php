@@ -45,8 +45,10 @@ class DuesRestyleTest extends TestCase
 
         $this->assertSame(1, preg_match('/<button\b[^>]*\bid="dues-bulk-mark-paid"[^>]*>/', $html, $match));
         $tag = $match[0];
-        $this->assertStringContainsString('x-bind:disabled="selected.length === 0"', $tag);
-        $this->assertStringContainsString('type="submit"', $tag);
+        $this->assertStringContainsString('x-bind:disabled="mode === \'selected\' && selected.length === 0"', $tag);
+        // The button opens the confirmation (count and sum); the dialog submits the form.
+        $this->assertStringContainsString('type="button"', $tag);
+        $this->assertStringContainsString('x-on:click="openConfirm()"', $tag);
         $this->assertDoesNotMatchRegularExpression('/\sdisabled(?=[\s>])/', $tag);
     }
 

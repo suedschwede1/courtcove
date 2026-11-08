@@ -118,33 +118,107 @@
     @endunless
 </x-ui.card>
 
-<form method="POST" action="{{ route('members.dues.bulk-mark-paid') }}" class="flex flex-col gap-3"
+@if(is_array($bulkPayReport))
+    @php
+        $skippedByReason = collect($bulkPayReport['skipped'] ?? [])->groupBy('reason');
+    @endphp
+    <x-ui.notice :tone="$skippedByReason->isEmpty() ? 'good' : 'attention'" :title="__('members::admin.dues.bulk_report_title')" data-testid="bulk-pay-report">
+        <p class="m-0">{{ __('members::admin.dues.bulk_pay_result', ['paid' => $bulkPayReport['paid'] ?? 0, 'skipped' => count($bulkPayReport['skipped'] ?? [])]) }}</p>
+        @if($skippedByReason->isNotEmpty())
+            <ul class="m-0 mt-2 pl-5 list-disc">
+                @foreach($skippedByReason as $reason => $rows)
+                    <li><strong>{{ __('members::admin.dues.bulk_skip.'.$reason) }} ({{ $rows->count() }}):</strong> {{ $rows->pluck('label')->implode(', ') }}</li>
+                @endforeach
+            </ul>
+        @endif
+    </x-ui.notice>
+@endif
+
+{{--
+    Bulk actions on the listed year. Without "Bezahlt bis" the form posts to members.dues.bulk-pay: one real payment
+    per ticked due (or per open due of the whole filter, resolved again on the server), after a confirmation with
+    count and sum. With "Bezahlt bis" it keeps the status-only multi-year action (members.dues.bulk-mark-paid).
+--}}
+<form method="POST" id="dues-bulk-form" action="{{ route('members.dues.bulk-pay') }}" class="flex flex-col gap-3"
+    data-pay-url="{{ route('members.dues.bulk-pay') }}"
+    data-mark-url="{{ route('members.dues.bulk-mark-paid') }}"
+    data-payable-count="{{ $payableCount }}"
+    data-payable-sum="{{ $payableSum }}"
+    data-money="{{ str_replace(MembersFormat::amount(0), '__AMOUNT__', MembersFormat::money(0)) }}"
+    x-bind:action="legacy() ? $el.dataset.markUrl : $el.dataset.payUrl"
+    x-on:keydown.enter="if ($event.target.tagName === 'INPUT' && !confirming) { $event.preventDefault(); if (mode === 'filter' || selected.length > 0) openConfirm(); }"
+    x-on:submit="if (submitting || !confirming) { $event.preventDefault(); return; } submitting = true"
     x-data="{
         selected: [],
         allIds: @js($dues->pluck('id')),
+        mode: 'selected',
+        paidThrough: '',
+        paidAt: @js(old('paid_at', old('bezahlt_am', now()->toDateString()))),
+        confirming: false,
+        submitting: false,
+        confirmCount: 0,
+        confirmSum: '',
+        payableCount: Number($el.dataset.payableCount),
         {{-- Household rows add 'h<id>' entries (their checkboxes post household_due_ids[] themselves). --}}
         households() { return this.selected.filter(id => String(id).startsWith('h')); },
         toggleHousehold(key, on) { this.selected = on ? [...this.selected, key] : this.selected.filter(id => id !== key); },
         get selectAll() { return this.allIds.length > 0 && this.selected.length - this.households().length === this.allIds.length; },
-        set selectAll(value) { this.selected = [...(value ? this.allIds : []), ...this.households()]; }
+        set selectAll(value) { this.selected = [...(value ? this.allIds : []), ...this.households()]; if (!value) this.mode = 'selected'; },
+        legacy() { return this.paidThrough !== '' && this.mode !== 'filter'; },
+        money(value) {
+            const lang = document.documentElement.lang || 'de';
+            return this.$root.dataset.money.replace('__AMOUNT__', Number(value).toLocaleString(lang.startsWith('de') ? 'de-DE' : 'en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+        },
+        selectFilter() { this.mode = 'filter'; this.paidThrough = ''; },
+        clearSelection() { this.mode = 'selected'; this.selected = []; this.$root.querySelectorAll('input[name=\'household_due_ids[]\']').forEach(box => box.checked = false); },
+        openConfirm() {
+            if (this.mode === 'filter') {
+                this.confirmCount = this.payableCount;
+                this.confirmSum = this.money(this.$root.dataset.payableSum);
+            } else {
+                const boxes = [...this.$root.querySelectorAll('input[data-amount]:checked')];
+                this.confirmCount = boxes.length;
+                this.confirmSum = this.money(boxes.reduce((total, box) => total + Number(box.dataset.amount), 0));
+            }
+            this.confirming = true;
+        }
     }">
     @csrf
     <input type="hidden" name="fiscal_year_id" value="{{ $selectedFiscalYearId }}">
+    <input type="hidden" name="mode" x-bind:value="mode" value="selected">
+    <input type="hidden" name="status" value="{{ $filters['status'] ?? '' }}">
+    <input type="hidden" name="search" value="{{ $filters['search'] ?? '' }}">
+    <input type="hidden" name="bezahlt_am" x-bind:value="paidAt" value="{{ now()->toDateString() }}">
     @if($householdDues->isNotEmpty())
         @include('members::dues._household-dues')
     @endif
     <x-ui.card class="mbr-table-card" padding="none" as="div">
         @unless($yearClosed)
         <div class="mbr-filters mbr-bulk-bar">
-            <span class="mbr-selected" x-show="selected.length > 0" x-cloak x-text="@js(__('members::admin.dues.selected_count', ['count' => '__COUNT__'])).replace('__COUNT__', selected.length)"></span>
+            <span class="mbr-selected" x-show="mode === 'selected' && selected.length > 0" x-cloak x-text="@js(__('members::admin.dues.selected_count', ['count' => '__COUNT__'])).replace('__COUNT__', selected.length)"></span>
             <x-ui.field class="mbr-filters__field" :label="__('members::admin.dues.paid_through')" for="due-bulk-paid-through" :error="$errors->first('bezahlt_bis_fiscal_year_id') ?: $errors->first('due_ids')">
-                <x-ui.select name="bezahlt_bis_fiscal_year_id" :options="$bulkPaidThroughYears->pluck('name', 'id')->all()" :placeholder="__('members::admin.common.no')" />
+                <x-ui.select name="bezahlt_bis_fiscal_year_id" :options="$bulkPaidThroughYears->pluck('name', 'id')->all()" :placeholder="__('members::admin.common.no')" x-model="paidThrough" x-bind:disabled="mode === 'filter'" />
             </x-ui.field>
-            <x-ui.field class="mbr-filters__field" :label="__('members::admin.dues.bezahlt_am')" for="due-bulk-paid-on" :error="$errors->first('bezahlt_am')">
-                <x-ui.input type="date" name="bezahlt_am" :value="old('bezahlt_am', now()->toDateString())" :max="now()->toDateString()" :min="\App\Modules\Members\Models\MemberDue::PAID_ON_MIN" />
+            <x-ui.field class="mbr-filters__field" :label="__('members::admin.dues.bezahlt_am')" for="due-bulk-paid-on" :error="$errors->first('paid_at') ?: $errors->first('bezahlt_am')">
+                <x-ui.input type="date" name="paid_at" x-model="paidAt" :value="old('paid_at', old('bezahlt_am', now()->toDateString()))" :max="now()->toDateString()" :min="\App\Modules\Members\Models\MemberDue::PAID_ON_MIN" />
             </x-ui.field>
-            <x-ui.button id="dues-bulk-mark-paid" type="submit" :block="false" x-bind:disabled="selected.length === 0">{{ __('members::admin.dues.bulk_mark_paid') }}</x-ui.button>
+            <x-ui.field class="mbr-filters__search" :label="__('members::admin.dues.bulk_note')" for="due-bulk-note" :error="$errors->first('note')">
+                <x-ui.input name="note" maxlength="255" :value="old('note')" x-bind:disabled="legacy()" />
+            </x-ui.field>
+            <x-ui.button id="dues-bulk-mark-paid" :block="false" x-bind:disabled="mode === 'selected' && selected.length === 0" x-on:click="openConfirm()">{{ __('members::admin.dues.bulk_pay') }}</x-ui.button>
         </div>
+        @error('bulk')
+            <p class="ds-field__error px-4 m-0" role="alert">{{ $message }}</p>
+        @enderror
+        @if($payableCount > 0)
+            <p class="text-ink-2 px-4 py-2 m-0" x-show="mode === 'selected' && selectAll && payableCount > allIds.length" x-cloak>
+                <button type="button" class="ds-btn ds-btn--text" x-on:click="selectFilter()">{{ __('members::admin.dues.bulk_select_filter', ['count' => $payableCount]) }}</button>
+            </p>
+            <p class="text-ink px-4 py-2 m-0" x-show="mode === 'filter'" x-cloak data-testid="bulk-filter-selected">
+                <strong>{{ __('members::admin.dues.bulk_filter_selected', ['count' => $payableCount]) }}</strong>
+                <button type="button" class="ds-btn ds-btn--text" x-on:click="clearSelection()">{{ __('members::admin.dues.bulk_clear_selection') }}</button>
+            </p>
+        @endif
         @endunless
         <p class="text-ink-2 px-4 py-2" data-testid="dues-outstanding-total">{{ __('members::admin.dues.outstanding_total') }}: <strong class="tabular-nums">{{ MembersFormat::money($outstandingTotal) }}</strong></p>
         <x-ui.table :caption="__('members::admin.dues.title')">
@@ -171,7 +245,7 @@
                     $teilbetragDisplay = MembersFormat::optionalMoney($due->teilbetrag);
                 @endphp
                 <tr>
-                    <td class="mbr-check-cell"><label class="mbr-check"><input type="checkbox" name="due_ids[]" value="{{ $due->id }}" x-model="selected" aria-label="{{ __('members::admin.common.select_row', ['name' => $due->member->fullName()]) }}"></label></td>
+                    <td class="mbr-check-cell"><label class="mbr-check"><input type="checkbox" name="due_ids[]" value="{{ $due->id }}" @if($due->status !== 'bezahlt' && $due->payments->isEmpty()) data-amount="{{ number_format((float) $due->amount, 2, '.', '') }}" @endif x-model="selected" aria-label="{{ __('members::admin.common.select_row', ['name' => $due->member->fullName()]) }}"></label></td>
                     <td class="ds-cell--title" data-label="{{ __('members::admin.members.name') }}">{{ $due->member->fullName() }}</td>
                     <td class="mbr-phone-hidden text-ink-2" data-label="{{ __('members::admin.dues.fiscal_year') }}">{{ $due->fiscalYear->name }}</td>
                     <td class="mbr-phone-hidden text-ink-2" data-label="{{ __('members::admin.members.fee_category') }}">{{ $due->feeCategory->name }}</td>
@@ -300,6 +374,17 @@
             </div>
         @endif
     </x-ui.card>
+    @unless($yearClosed)
+    <x-ui.modal id="dues-bulk-pay-confirm" show="confirming" close="confirming = false" :label="__('members::admin.dues.bulk_pay_confirm_title')">
+        <x-slot:title>{{ __('members::admin.dues.bulk_pay_confirm_title') }}</x-slot:title>
+        <p class="m-0 text-ink" x-text="(confirmCount === 1 ? @js(trans_choice('members::admin.dues.bulk_pay_confirm_text', 1, ['count' => '__COUNT__', 'sum' => '__SUM__'])) : @js(trans_choice('members::admin.dues.bulk_pay_confirm_text', 2, ['count' => '__COUNT__', 'sum' => '__SUM__']))).replace('__COUNT__', confirmCount).replace('__SUM__', confirmSum)"></p>
+        <p class="m-0 mt-2 text-ink-2" x-show="legacy()">{{ __('members::admin.dues.bulk_pay_confirm_legacy') }}</p>
+        <x-slot:footer>
+            <x-ui.button variant="secondary" :block="false" x-on:click="confirming = false">{{ __('members::admin.common.cancel') }}</x-ui.button>
+            <x-ui.button type="submit" :block="false" data-modal-initial x-bind:disabled="submitting">{{ __('members::admin.dues.bulk_pay_confirm') }}</x-ui.button>
+        </x-slot:footer>
+    </x-ui.modal>
+    @endunless
 </form>
 
 @once
