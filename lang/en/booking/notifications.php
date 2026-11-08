@@ -21,5 +21,10 @@ return [
             'spent' => 'Estimated cost',
             'budget' => 'Monthly budget',
         ],
+
+        // Message texts; in sandbox mode they are sent as free text, otherwise the approved template is used.
+        'whatsapp' => [
+            'test' => 'Test message from the booking system: WhatsApp sending works.',
+        ],
     ],
 ];
