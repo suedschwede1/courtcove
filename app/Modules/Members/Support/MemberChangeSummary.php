@@ -67,6 +67,19 @@ final class MemberChangeSummary
         if ($change->action === 'connection') {
             return [self::connectionLine($change, $revealPersonal)];
         }
+        if ($change->action === MemberConnectionService::ENDED_ACTION) {
+            return [$revealPersonal
+                ? (string) __('members::admin.connection.history_ended', ['name' => self::memberName($change->after['connection_ended_by'] ?? null)])
+                : (string) __('members::admin.connection.history_changed')];
+        }
+        if ($change->action === MemberConnectionService::SWAP_ACTION) {
+            if (! $revealPersonal) {
+                return [(string) __('members::admin.connection.history_changed')];
+            }
+            $key = ($change->after['connected_to_member_id'] ?? null) === null ? 'history_swapped_vollzahler' : 'history_swapped_anschluss';
+
+            return [(string) __('members::admin.connection.'.$key, ['name' => self::memberName($change->after['swapped_with'] ?? null)])];
+        }
         if ($change->action === PaymentCanceller::CHANGE_ACTION) {
             return [self::paymentCancelledLine($change)];
         }

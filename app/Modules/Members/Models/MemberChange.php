@@ -7,6 +7,7 @@ namespace App\Modules\Members\Models;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -15,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $action
  * @property array<string, mixed>|null $before
  * @property array<string, mixed> $after
+ * @property Carbon|null $created_at
  */
 class MemberChange extends Model
 {

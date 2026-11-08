@@ -7,7 +7,6 @@ namespace App\Modules\Members\Http\Controllers;
 use App\Modules\Members\Models\FeeCategory;
 use App\Modules\Members\Models\FeeCategoryRate;
 use App\Modules\Members\Models\FiscalYear;
-use App\Modules\Members\Models\Member;
 use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -61,14 +60,6 @@ class FeeCategoryController
         FeeCategory::create(['name' => $validated['name'], 'billing_unit' => $validated['billing_unit'] ?? 'member']);
 
         return redirect()->route('members.fee-categories.index');
-    }
-
-    /** True while a member with this category is connected (as Anschlussmitglied or as Vollzahler of one). */
-    private static function usedByConnection(FeeCategory $category): bool
-    {
-        return Member::query()->where('fee_category_id', $category->id)
-            ->where(fn ($q) => $q->whereNotNull('connected_to_member_id')->orWhereHas('anschlussMembers'))
-            ->exists();
     }
 
     public function storeRates(Request $request): RedirectResponse
@@ -147,10 +138,6 @@ class FeeCategoryController
             $category = FeeCategory::query()->lockForUpdate()->findOrFail($category->id);
             if ($category->billingUnitLockedFor($unit)) {
                 throw ValidationException::withMessages(['billing_unit' => __('members::admin.fee_categories.billing_unit_locked')]);
-            }
-
-            if ($role !== $category->connection_role && self::usedByConnection($category)) {
-                throw ValidationException::withMessages(['connection_role' => __('members::admin.connection.role_locked')]);
             }
 
             $category->update(['name' => $validated['name'], 'billing_unit' => $unit, 'connection_role' => $role]);

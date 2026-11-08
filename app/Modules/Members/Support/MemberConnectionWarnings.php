@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace App\Modules\Members\Support;
 
 use App\Modules\Members\Models\Member;
+use App\Modules\Members\Models\MemberChange;
 
 /**
  * Warnings about the Anschlussmitglied state of a member: shown on the member page and in the dues run report.
- * They only describe what is wrong; nothing is changed automatically (club rule).
+ * They only describe what is wrong; nothing is changed automatically (club rule). Since the club decision of
+ * 2026-11-08 categories are not checked (each member pays its own category); the only category-based line left is
+ * the information that a member of the Anschluss category has no link yet.
  */
 final class MemberConnectionWarnings
 {
@@ -24,14 +27,8 @@ final class MemberConnectionWarnings
 
         $partner = $member->connectedTo;
         if ($member->connected_to_member_id !== null && $partner !== null) {
-            if (! $member->feeCategory?->isAnschluss()) {
-                $warnings[] = __('members::admin.connection.warnings.connected_category_not_anschluss');
-            }
             if (! in_array($partner->status, ['aktiv', 'ruhend'], true) || $partner->anonymized_at !== null) {
                 $warnings[] = __('members::admin.connection.warnings.partner_departed', ['name' => $partner->fullName()]);
-            }
-            if (! $partner->feeCategory?->isVollzahler()) {
-                $warnings[] = __('members::admin.connection.warnings.partner_not_vollzahler', ['name' => $partner->fullName()]);
             }
             if ($partner->connected_to_member_id !== null) {
                 $warnings[] = __('members::admin.connection.warnings.partner_connected', ['name' => $partner->fullName()]);
@@ -39,9 +36,6 @@ final class MemberConnectionWarnings
         }
 
         if ($member->anschlussMembers->isNotEmpty()) {
-            if (! $member->feeCategory?->isVollzahler()) {
-                $warnings[] = __('members::admin.connection.warnings.not_vollzahler_with_anschluss');
-            }
             // A departed or anonymised Anschlussmitglied still blocks a new partner: say so.
             $current = $member->anschlussMembers->filter(fn (Member $m) => in_array($m->status, ['aktiv', 'ruhend'], true) && $m->anonymized_at === null);
             foreach ($member->anschlussMembers->diff($current) as $gone) {
@@ -88,5 +82,34 @@ final class MemberConnectionWarnings
         }
 
         return $all;
+    }
+
+    /**
+     * The notice for a member whose link ended because its Vollzahler departed ("Anschluss an … am … gelöst"), as long
+     * as no later protocol entry changed the link again; null otherwise.
+     */
+    public static function endedNotice(Member $member): ?string
+    {
+        if ($member->connected_to_member_id !== null) {
+            return null;
+        }
+        $changes = MemberChange::query()->where('member_id', $member->id)->orderByDesc('id')->limit(100)->get(['id', 'action', 'before', 'after', 'created_at']);
+        foreach ($changes as $change) {
+            if ($change->action === MemberConnectionService::ENDED_ACTION) {
+                $vollzahler = Member::query()->find($change->after['connection_ended_by'] ?? null);
+
+                return (string) __('members::admin.connection.ended_notice', [
+                    'name' => $vollzahler?->fullName() ?? '—',
+                    'date' => $change->created_at?->format('d.m.Y') ?? '—',
+                ]);
+            }
+            // Any later change of the connection (own link, an Anschlussmitglied on this member, a swap) supersedes it.
+            if (in_array($change->action, ['connection', MemberConnectionService::SWAP_ACTION], true)
+                || ($change->before['connected_to_member_id'] ?? null) !== ($change->after['connected_to_member_id'] ?? null)) {
+                return null;
+            }
+        }
+
+        return null;
     }
 }

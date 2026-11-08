@@ -72,11 +72,11 @@ class MemberConnectionPagesTest extends TestCase
     #[Test]
     public function rule_violations_and_bad_input_come_back_as_errors(): void
     {
-        $youth = FeeCategory::create(['name' => 'Jugend']);
-        $kid = Member::factory()->create(['fee_category_id' => $youth->id]);
+        // Categories are not checked any more (club decision 2026-11-08); a departed member is still refused.
+        $gone = Member::factory()->create(['fee_category_id' => $this->full->id, 'status' => 'ausgetreten', 'left_at' => '2025-12-31']);
         $admin = $this->admin();
 
-        $this->actingAs($admin)->post("/members/{$this->helga->id}/connection", ['vollzahler_id' => $kid->id])->assertSessionHasErrors('connection');
+        $this->actingAs($admin)->post("/members/{$this->helga->id}/connection", ['vollzahler_id' => $gone->id])->assertSessionHasErrors('connection');
         $this->actingAs($admin)->post("/members/{$this->helga->id}/connection", ['vollzahler_id' => ['x']])->assertSessionHasErrors('vollzahler_id');
         $this->actingAs($admin)->post("/members/{$this->helga->id}/connection", ['vollzahler_id' => 999])->assertSessionHasErrors('connection');
         $this->actingAs($admin)->post('/members/999/connection', ['vollzahler_id' => $this->heinz->id])->assertNotFound();
@@ -116,16 +116,5 @@ class MemberConnectionPagesTest extends TestCase
 
         $this->actingAs($admin)->get('/members/fee-categories')->assertSeeText(__('members::admin.connection.role_badge_anschluss'));
         $this->actingAs($admin)->get("/members/fee-categories/{$this->partner->id}/edit")->assertSeeText(__('members::admin.connection.role'));
-    }
-
-    #[Test]
-    public function a_role_used_by_a_connection_cannot_be_removed(): void
-    {
-        app(MemberConnectionService::class)->connect($this->helga, $this->heinz);
-
-        $this->actingAs($this->admin())->put("/members/fee-categories/{$this->partner->id}", ['name' => $this->partner->name, 'connection_role' => ''])
-            ->assertSessionHasErrors('connection_role');
-
-        $this->assertSame('anschluss', $this->partner->fresh()?->connection_role);
     }
 }
