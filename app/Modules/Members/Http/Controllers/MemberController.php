@@ -203,7 +203,14 @@ class MemberController
                 app(MemberConnectionService::class)->memberDeparted($member);
             }
             // Departure date reached (today or past): the linked account is blocked; a future date waits for the daily run.
-            app(MemberDepartureAccounts::class)->handle($member);
+            // Only when the departure itself or the account link changed (a plain save must not re-block a kept account).
+            $leftChanged = substr((string) ($before['left_at'] ?? ''), 0, 10) !== ($member->left_at?->toDateString() ?? '');
+            if ($departs || ($leftChanged && $leftAt !== null) || ($before['user_id'] ?? null) !== $member->user_id) {
+                if ($departs) {
+                    app(MemberDepartureAccounts::class)->clearReleased($member);
+                }
+                app(MemberDepartureAccounts::class)->handle($member);
+            }
         });
 
         return redirect()->route('members.index');
@@ -262,6 +269,9 @@ class MemberController
                 }
                 // Departure date reached, or a departed member got an account linked: block the account (see MemberDepartureAccounts).
                 if (in_array($validated['field'], ['left_at', 'user_id'], true)) {
+                    if ($departs) {
+                        app(MemberDepartureAccounts::class)->clearReleased($member);
+                    }
                     app(MemberDepartureAccounts::class)->handle($member);
                 }
             });
@@ -317,9 +327,10 @@ class MemberController
 
         $before = $member->toArray();
 
-        DB::transaction(function () use ($member, $before) {
+        $accountResult = null;
+        DB::transaction(function () use ($member, $before, &$accountResult) {
             // The account is blocked while the link still exists (admin and assistant accounts stay as they are).
-            app(MemberDepartureAccounts::class)->handle($member, true);
+            $accountResult = app(MemberDepartureAccounts::class)->handle($member, true);
             // Household link and payer go in the same transaction, so the 'anonymized' snapshot records them.
             app(HouseholdService::class)->detachForAnonymisation($member);
             app(MemberConnectionService::class)->detachForAnonymisation($member);
@@ -338,8 +349,11 @@ class MemberController
             $this->logChange($member, 'anonymized', $before);
         });
 
-        return redirect()->route('members.edit', $member)
-            ->with('success', __('members::admin.members.anonymize_success'));
+        // A protected (admin/assistant) account loses its link here and stays active: say so, no other page can show it afterwards.
+        $message = __('members::admin.members.anonymize_success')
+            .($accountResult === MemberDepartureAccounts::RESULT_PROTECTED ? ' '.__('members::admin.departure.anonymized_protected') : '');
+
+        return redirect()->route('members.edit', $member)->with('success', $message);
     }
 
     /** One click after a re-entry: enables the account again, but only if this departure logic blocked it. */

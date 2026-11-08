@@ -620,6 +620,7 @@ return [
         'not_reactivatable' => 'Dieses Konto wurde nicht durch einen Austritt gesperrt und kann hier nicht wieder aktiviert werden.',
         'last' => 'Zuletzt: :count Konto wegen Austritt deaktiviert|Zuletzt: :count Konten wegen Austritt deaktiviert',
         'pending' => ':count ausgetretenes Mitglied hat noch ein aktives Konto (noch nicht gesperrt).|:count ausgetretene Mitglieder haben noch ein aktives Konto (noch nicht gesperrt).',
+        'anonymized_protected' => 'Das frühere Konto hat Admin- oder Assistenzrechte, blieb aktiv und ist nun nicht mehr verknüpft; bitte unter Benutzer manuell entscheiden.',
         'none' => 'Keine Auffälligkeiten.',
         'history_off' => 'Konto wegen Austritt deaktiviert',
         'history_on' => 'Konto nach Wiedereintritt wieder aktiviert',

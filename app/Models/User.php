@@ -82,6 +82,9 @@ class User extends Authenticatable
     /** Meta key (value: member id) of an account that was blocked because its member departed; see MemberDepartureAccounts. */
     public const META_DEPARTURE_DEACTIVATED = 'departure.deactivated';
 
+    /** Meta key (value: member id): the blocked state of a departure was lifted by hand; the automatic run leaves the account alone until the member departs anew. */
+    public const META_DEPARTURE_RELEASED = 'departure.released';
+
     /** Selectable account states, in form order. */
     public const STATUSES = ['placeholder', 'enabled', 'disabled', 'blocked', 'deleted'];
 
@@ -117,7 +120,7 @@ class User extends Authenticatable
             app(ConsentService::class)->userUpdated($user);
             // The departure marker only describes the blocked state it was set for.
             if ($user->wasChanged('status') && $user->accountStatus() !== 'blocked') {
-                $user->meta()->where('key', self::META_DEPARTURE_DEACTIVATED)->delete();
+                $user->meta()->where('key', self::META_DEPARTURE_DEACTIVATED)->update(['key' => self::META_DEPARTURE_RELEASED]);
                 $user->unsetRelation('meta');
             }
         });

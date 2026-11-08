@@ -75,6 +75,10 @@ final class MemberDepartureAccounts
             if (! $user->isEnabled()) {
                 return self::RESULT_INACTIVE;
             }
+            // An admin lifted an earlier block by hand: leave the account alone until the member departs anew.
+            if ($user->getMeta(User::META_DEPARTURE_RELEASED) === (string) $locked->id) {
+                return self::RESULT_INACTIVE;
+            }
             if ($this->isProtected($user)) {
                 return self::RESULT_PROTECTED;
             }
@@ -208,18 +212,30 @@ final class MemberDepartureAccounts
             $user = User::query()->lockForUpdate()->findOrFail($locked->user_id);
             $user->update(['status' => 'enabled']);
             $user->setMeta(User::META_DEPARTURE_DEACTIVATED, null);
+            $user->setMeta(User::META_DEPARTURE_RELEASED, null);
             MemberChangeLogger::log($locked, self::ACTION_ON, $before, ['account_user_id' => (int) $user->getKey()]);
 
             return true;
         });
     }
 
-    /** Raw admin, assistant or members right: such an account is never blocked automatically. */
+    /** A new departure (date set where there was none) ends the "lifted by hand" exemption of an earlier one. */
+    public function clearReleased(Member $member): void
+    {
+        if ($member->user_id !== null) {
+            UserMeta::query()->where('uid', $member->user_id)->where('key', User::META_DEPARTURE_RELEASED)->delete();
+        }
+    }
+
+    /**
+     * Raw admin, assistant or members right: such an account is never blocked automatically. A role column that
+     * is set to anything but member also protects (defensive, in case users.split_role is off over split data).
+     */
     public function isProtected(User $user): bool
     {
         $user->unsetRelation('meta');
 
-        return $user->requiresTrustedDevice();
+        return $user->requiresTrustedDevice() || ! in_array((string) ($user->getAttributes()['role'] ?? 'member'), ['member', ''], true);
     }
 
     private function isDeparted(Member $member, bool $ignoreDate): bool
@@ -247,7 +263,8 @@ final class MemberDepartureAccounts
             ->whereNotNull('user_id')
             ->whereDate('left_at', '<=', now()->toDateString())
             ->when($sinceDays !== null, fn (Builder $q) => $q->whereDate('left_at', '>=', now()->subDays($sinceDays)->toDateString()))
-            ->whereHas('user', fn (Builder $user) => $user->scopes(['active']))
+            ->whereHas('user', fn (Builder $user) => $user->scopes(['active'])
+                ->whereDoesntHave('meta', fn (Builder $meta) => $meta->where('key', User::META_DEPARTURE_RELEASED)->whereColumn('bs_users_meta.value', 'members.id')))
             ->with('user');
     }
 }

@@ -406,7 +406,7 @@ class MemberDepartureAccountsTest extends TestCase
     public function the_texts_exist_in_german_and_english(): void
     {
         foreach (['de', 'en'] as $locale) {
-            foreach (['card_title', 'protected_short', 'protected_here', 'reactivate', 'reactivated', 'not_reactivatable', 'reentered_notice', 'reentered_short', 'deactivated_here', 'last', 'pending', 'history_off', 'history_on'] as $key) {
+            foreach (['card_title', 'protected_short', 'protected_here', 'reactivate', 'reactivated', 'not_reactivatable', 'reentered_notice', 'reentered_short', 'deactivated_here', 'anonymized_protected', 'last', 'pending', 'history_off', 'history_on'] as $key) {
                 $this->assertNotSame("members::admin.departure.{$key}", trans("members::admin.departure.{$key}", ['name' => 'x', 'count' => 2], $locale), "{$locale} {$key}");
             }
         }
@@ -423,5 +423,56 @@ class MemberDepartureAccountsTest extends TestCase
 
         $this->assertNull($anschluss->fresh()->connected_to_member_id, 'the Anschluss link ends as before');
         $this->assertSame('blocked', $this->accountStatus($vollzahler));
+    }
+
+    #[Test]
+    public function an_account_an_admin_enabled_again_is_not_blocked_by_a_plain_save_or_the_daily_run(): void
+    {
+        $member = $this->accountMember();
+        $this->depart($member, '2026-11-08');
+        User::query()->find($member->user_id)->update(['status' => 'enabled']);
+
+        $this->actingAs($this->admin())->put("/members/{$member->id}", [
+            'member_number' => $member->member_number,
+            'firstname' => $member->firstname,
+            'lastname' => $member->lastname,
+            'joined_at' => $member->joined_at->format('Y-m-d'),
+            'left_at' => '2026-11-08',
+            'notiz' => 'nur eine Notiz',
+        ])->assertRedirect();
+        $this->artisan('members:deactivate-left-accounts', ['--since' => 14])->assertSuccessful();
+
+        $this->assertSame('enabled', $this->accountStatus($member));
+        $this->assertSame(1, $this->offCount($member));
+
+        // A new departure (re-entry, then leaving again) blocks it again.
+        $member->fresh()->setStatus('aktiv');
+        $this->depart($member->fresh(), '2026-11-08');
+        $this->assertSame('blocked', $this->accountStatus($member));
+    }
+
+    #[Test]
+    public function saving_a_blocked_status_in_the_user_form_drops_the_departure_marker(): void
+    {
+        $member = $this->accountMember();
+        $this->depart($member, '2026-11-08');
+        $member->setStatus('aktiv');
+        $user = User::query()->find($member->user_id);
+
+        $this->actingAs($this->admin())->put("/admin/users/{$user->uid}", [
+            'alias' => $user->alias, 'email' => $user->email, 'status' => 'blocked', 'role' => 'member',
+        ])->assertRedirect();
+
+        $this->assertFalse($this->service()->isAutoDeactivated($member->fresh()));
+    }
+
+    #[Test]
+    public function anonymising_a_protected_account_says_it_stays_active(): void
+    {
+        $adminUser = $this->admin();
+        $member = Member::factory()->create(['user_id' => $adminUser->uid, 'status' => 'ausgetreten', 'left_at' => '2020-01-01']);
+
+        $this->actingAs($this->admin())->post("/members/{$member->id}/anonymize", ['confirmation' => 'ANONYMISIEREN'])
+            ->assertSessionHas('success', fn (string $m): bool => str_contains($m, 'Admin- oder Assistenzrechte'));
     }
 }

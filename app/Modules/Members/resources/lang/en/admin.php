@@ -620,6 +620,7 @@ return [
         'not_reactivatable' => 'This account was not blocked by a departure and cannot be reactivated here.',
         'last' => 'Latest: :count account deactivated on departure|Latest: :count accounts deactivated on departure',
         'pending' => ':count departed member still has an active account (not blocked yet).|:count departed members still have an active account (not blocked yet).',
+        'anonymized_protected' => 'The former account has admin or assistant rights, stayed active and is no longer linked; please decide manually under users.',
         'none' => 'Nothing to report.',
         'history_off' => 'Account deactivated on departure',
         'history_on' => 'Account reactivated after re-entry',
