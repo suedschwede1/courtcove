@@ -26,7 +26,13 @@ use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\PlayerExchangeController;
 use App\Http\Controllers\UiGalleryController;
+use App\Http\Controllers\Webhooks\WhatsAppWebhookController;
+use App\Http\Middleware\SetLocale;
+use App\Http\Middleware\VerifyWebhookSignature;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 Route::get('/login', [LoginController::class, 'showForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
@@ -61,6 +67,18 @@ Route::post('/player-exchange/{state}', [PlayerExchangeController::class, 'set']
     ->whereIn('state', ['on', 'off'])
     ->middleware('auth')
     ->name('player-exchange.set');
+
+// Provider webhooks (WhatsApp status and inbound messages): the only routes without session and CSRF
+// (also listed in bootstrap/app.php); the signature middleware is their authentication.
+Route::prefix('webhooks/whatsapp')
+    ->name('webhooks.whatsapp.')
+    // throttle first, so rejected requests cannot flood the log
+    ->middleware(['throttle:300,1', VerifyWebhookSignature::class])
+    ->withoutMiddleware([StartSession::class, ShareErrorsFromSession::class, PreventRequestForgery::class, SetLocale::class])
+    ->group(function (): void {
+        Route::post('/status', [WhatsAppWebhookController::class, 'status'])->name('status');
+        Route::post('/inbound', [WhatsAppWebhookController::class, 'inbound'])->name('inbound');
+    });
 
 Route::get('/', static fn () => redirect()->route('calendar.index'));
 Route::get('/booking', static fn () => redirect()->route('calendar.index'));

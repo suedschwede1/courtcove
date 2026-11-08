@@ -7,6 +7,9 @@ namespace App\Providers;
 use App\Console\Scheduling\RunLog;
 use App\Models\Option;
 use App\Models\User;
+use App\Notifications\Types\NotificationType;
+use App\Services\Notifications\Resolvers\AdminTestResolver;
+use App\Services\Notifications\SubjectResolverRegistry;
 use App\Services\Notifications\Transport\FakeTransport;
 use App\Services\TournamentLinks;
 use Illuminate\Support\Facades\Cache;
@@ -21,6 +24,10 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(TournamentLinks::class);
         $this->app->singleton(RunLog::class);
         $this->app->singleton(FakeTransport::class);
+        // One subject resolver per WhatsApp notification type; a type without one is skipped as subject_gone.
+        $this->app->singleton(SubjectResolverRegistry::class, fn (): SubjectResolverRegistry => new SubjectResolverRegistry([
+            NotificationType::AdminTest->value => AdminTestResolver::class,
+        ]));
     }
 
     public function boot(): void

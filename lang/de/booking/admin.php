@@ -235,6 +235,14 @@ return [
                     'title' => 'Mitspielersuchen ablaufen lassen',
                     'description' => 'Beendet eine Stunde vor Spielbeginn jede offene Mitspielersuche; hat sich niemand gemeldet, wird die Buchung storniert und der Platz ist wieder frei.',
                 ],
+                'notifications-dispatch' => [
+                    'title' => 'WhatsApp-Nachrichten versenden',
+                    'description' => 'Verschickt fällige WhatsApp-Benachrichtigungen aus dem Postausgang (jede Minute, höchstens so viele wie im Lauf erlaubt).',
+                ],
+                'notifications-prune' => [
+                    'title' => 'WhatsApp-Daten aufräumen',
+                    'description' => 'Löscht WhatsApp-Protokolleinträge nach 12 Monaten, widerrufene Zustimmungen 3 Jahre nach dem Widerruf und löst bei gelöschten oder anonymisierten Konten Abos und Benutzerbezug.',
+                ],
                 'queue-work' => [
                     'title' => 'Warteschlange abarbeiten',
                     'description' => 'Arbeitet wartende Hintergrundaufgaben ab (höchstens 50 Sekunden pro Minute).',

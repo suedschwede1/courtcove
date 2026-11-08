@@ -246,6 +246,7 @@ class CalendarControllerTest extends TestCase
         // The lazy player search lapse runs at most once a minute; mark it done so both counted
         // requests run in the same cache state and only the per-booking queries are compared.
         Cache::put('player-exchange.lapse', 1, 60);
+        Cache::put('notifications.lazy-drain', 1, 60);
         $countQueries = function () use ($viewer, $date): int {
             DB::flushQueryLog();
             DB::enableQueryLog();
