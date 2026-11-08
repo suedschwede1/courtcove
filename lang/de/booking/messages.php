@@ -11,6 +11,8 @@ return [
         'booking_cancelled' => 'Buchung storniert.',
         'booking_deleted' => 'Buchung gelöscht.',
         'booking_failed' => 'Die Buchung konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.',
+        'booking_server_unavailable' => 'Der Server ist gerade nicht erreichbar, vielleicht wird er aktualisiert. Deine Eingaben sind noch da, bitte versuche es in einer Minute noch einmal.',
+        'booking_session_expired' => 'Deine Sitzung ist abgelaufen. Bitte lade die Seite neu und melde dich bei Bedarf wieder an.',
         'booking_not_cancellable' => 'Diese Buchung kann online nicht mehr storniert werden.',
         'booking_already_cancelled' => 'Diese Buchung ist schon storniert oder abgelaufen.',
         'booking_not_editable' => 'Diese Buchung kann nicht mehr geändert werden, sie ist storniert oder abgelaufen.',

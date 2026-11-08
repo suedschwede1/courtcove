@@ -11,6 +11,8 @@ return [
         'booking_cancelled' => 'Booking canceled.',
         'booking_deleted' => 'Booking deleted.',
         'booking_failed' => 'The booking could not be saved. Please try again.',
+        'booking_server_unavailable' => 'The server is not reachable right now, it may be updating. Your entries are still here, please try again in a minute.',
+        'booking_session_expired' => 'Your session has expired. Please reload the page and sign in again if needed.',
         'booking_not_cancellable' => 'This booking can no longer be canceled online.',
         'booking_already_cancelled' => 'This booking was already canceled or has lapsed.',
         'booking_not_editable' => 'This booking can no longer be changed: it was canceled or has lapsed.',

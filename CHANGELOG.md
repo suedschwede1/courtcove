@@ -8,6 +8,9 @@ reference point is `mobile-view-stable` (see [README.md](README.md#layout-refere
 When adding an entry: describe the *why*/user-facing effect in one line, not the diff —
 `git log` already has that. Add new entries at the top, under today's date.
 
+## 2026-11-08
+- Booking dialog: a reply that is not JSON (maintenance mode during a deploy, expired session) now says so instead of the generic save error, and validation messages are shown. An unexpected failure while booking is logged (exception class and location, court, date, number of players; no names or messages).
+
 ## 2026-11-07
 - Booking dialog error: scrolled and focused only after it is drawn, so at phone width it now really ends above the footer (checked in the browser at 375 px). A disabled select in admin forms (e.g. the locked repeat of a booking with a player search) looks like the read-only fields next to it. Build rebuilt.
 - Editing an own booking whose player search was ended without anyone signed up asks for a partner again (before, the booking could be saved with neither partner nor search). New tests: a blocked or inactive member in the exchange cannot join, and a member who did not book cannot end a search over HTTP.

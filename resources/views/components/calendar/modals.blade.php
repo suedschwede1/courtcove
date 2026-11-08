@@ -298,6 +298,14 @@
             this.$watch('quantity', () => { this.error = null; });
             this.$watch('search', () => { this.error = null; });
         },
+        failureMessage(status, json) {
+            if (json?.error) return json.error;
+            const first = json?.errors ? Object.values(json.errors).flat()[0] : null;
+            if (first) return first;
+            if (status === 419) return @js(__('booking.messages.booking_session_expired'));
+            if ([502, 503, 504].includes(status)) return @js(__('booking.messages.booking_server_unavailable'));
+            return @js(__('booking.messages.booking_failed'));
+        },
         showError(message) {
             this.error = message;
             // At phone width the notice sits under the sticky footer: bring it into view and announce it.
@@ -355,15 +363,16 @@
                     headers: { 'X-Requested-With': 'XMLHttpRequest' },
                     body: data,
                 });
-                const json = await res.json();
-                if (res.ok && json.redirect) {
+                // An error page (maintenance mode during a deploy, a proxy error) is not JSON.
+                const json = await res.json().catch(() => null);
+                if (res.ok && json?.redirect) {
                     this.redirect = json.redirect;
                     this.quote = json.quote ?? null;
                     this.searched = json.search === true;
                     this.state = 'success';
                     this.$nextTick(() => document.querySelector('#booking-dialog [data-modal-initial]')?.focus());
                 } else {
-                    this.showError(json.error ?? @js(__('booking.messages.booking_failed')));
+                    this.showError(this.failureMessage(res.status, json));
                 }
             } catch {
                 this.showError(@js(__('booking.messages.booking_failed')));
