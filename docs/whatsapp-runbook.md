@@ -6,7 +6,7 @@ Betriebsanleitung fuer den WhatsApp-Kanal. Dieses Dokument ist anbieterneutral; 
 
 ### Cron (Voraussetzung fuer Live)
 
-Im Hosting-Panel muss ein Cron-Eintrag minuetlich `php artisan schedule:run` im Projektverzeichnis ausfuehren. Ohne Cron verzoegert sich der Versand: Zeilen im Versandprotokoll werden erst nach 2 Minuten Debounce faellig und vom geplanten Dispatch-Lauf abgeholt. Auch Aufraeumen (Prune) und Budget-Alarme haengen am Scheduler.
+Im Hosting-Panel muss ein Cron-Eintrag minuetlich `php artisan schedule:run` im Projektverzeichnis ausfuehren. Ohne Cron verzoegert sich der Versand: Zeilen im Versandprotokoll werden erst nach 2 Minuten Debounce faellig und vom geplanten Dispatch-Lauf abgeholt. Das gilt fuer Spielersuchen-Nachrichten, die erst mit der Anbindung der Spielerboerse (Task 10) eingereiht werden; die Testnachricht aus dem Admin geht direkt hinaus. Auch Aufraeumen (Prune) und Budget-Alarme haengen am Scheduler.
 
 ### `.env`-Schluessel (nur Namen, keine Werte)
 
@@ -83,7 +83,6 @@ Vor dem Umschalten auf Treiber `live` und Hauptschalter an:
 - Datenschutz-Satz (`privacy_notice`, de/en); Namen der Dienstleister und Drittlanduebermittlung gehoeren in die externe Datenschutzseite.
 - Vorlagentexte: Spielersuche (de/en) einschliesslich Vor- und Nachname der suchenden Person; ob WhatsApp sie als Utility-Vorlage einstuft, ist offen. Dazu die Folge-Nachricht und die Testnachricht.
 - Ob der Hinweis auf der Registrierungsseite (Option `registration_privacy`, im Admin unter Einstellungen editierbar) den neuen Zweck nennen soll. Die Registrierungsseite wurde nicht geaendert; die Einwilligung wird getrennt im Konto eingeholt.
-
 
 ## Staging-Scrub
 
