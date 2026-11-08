@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Notifications;
 
+use App\Http\Middleware\VerifyWebhookSignature;
 use App\Models\NotificationConsent;
 use App\Models\NotificationLogEntry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -231,7 +232,7 @@ class WebhookTest extends TestCase
         $this->assertSame('stop', $this->lastRevokedVia($a));
         $this->assertSame(1, $this->activeConsentCount($other));
         $this->assertSame(1, $this->messages($response->getContent()));
-        $this->assertStringContainsString(__('booking.notifications.webhook.stop_confirmed', ['url' => route('account.edit')], 'de'), html_entity_decode($response->getContent()));
+        $this->assertStringContainsString(__('booking.notifications.webhook.stop_confirmed', ['url' => self::BASE.route('account.edit', [], false)], 'de'), html_entity_decode($response->getContent()));
     }
 
     #[Test]
@@ -264,7 +265,7 @@ class WebhookTest extends TestCase
         $response = $this->hook(self::INBOUND, ['From' => 'whatsapp:+436600000000', 'Body' => 'start'])->assertOk();
 
         $this->assertSame(0, NotificationConsent::query()->count());
-        $this->assertStringContainsString(route('account.edit'), html_entity_decode($response->getContent()));
+        $this->assertStringContainsString(self::BASE.route('account.edit', [], false), html_entity_decode($response->getContent()));
         $this->assertSame(0, $this->activeConsentCount($user));
     }
 
@@ -278,7 +279,7 @@ class WebhookTest extends TestCase
         $second = $this->hook(self::INBOUND, $params)->assertOk();
 
         $this->assertSame(1, $this->messages($first->getContent()));
-        $this->assertStringContainsString(route('account.edit'), html_entity_decode($first->getContent()));
+        $this->assertStringContainsString(self::BASE.route('account.edit', [], false), html_entity_decode($first->getContent()));
         $this->assertSame(0, $this->messages($second->getContent()));
 
         Carbon::setTestNow('2026-11-09 09:00:00');
@@ -304,6 +305,8 @@ class WebhookTest extends TestCase
 
         // a normal POST route without token is still rejected (Laravel skips the CSRF check while the environment is `testing`)
         $this->app['env'] = 'local';
+        // the webhook route still passes without a token under the same (non-testing) environment
+        $this->hook(self::STATUS, ['MessageSid' => 'SMnone', 'MessageStatus' => 'sent'])->assertOk();
         $this->post('/login', ['alias' => 'x', 'password' => 'y'])->assertStatus(419);
     }
 
@@ -345,5 +348,23 @@ class WebhookTest extends TestCase
             $this->assertSame(0, $this->messages($response->getContent()));
         }
         $this->assertSame(1, $this->activeConsentCount($user));
+    }
+
+    #[Test]
+    public function reply_links_use_the_configured_base_url_not_the_host_header(): void
+    {
+        $response = $this->hook(self::INBOUND, ['From' => 'whatsapp:+436600000000', 'Body' => 'start'], null, ['HTTP_HOST' => 'evil.example.test'])->assertOk();
+
+        $body = html_entity_decode($response->getContent());
+        $this->assertStringContainsString(self::BASE.'/my-account', $body);
+        $this->assertStringNotContainsString('evil.example.test', $body);
+    }
+
+    #[Test]
+    public function webhook_throttle_runs_before_the_signature_check(): void
+    {
+        $names = array_values(array_filter(app('router')->getRoutes()->getByName('webhooks.whatsapp.inbound')->gatherMiddleware(), 'is_string'));
+
+        $this->assertLessThan(array_search(VerifyWebhookSignature::class, $names, true), array_search('throttle:300,1', $names, true));
     }
 }

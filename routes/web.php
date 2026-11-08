@@ -72,7 +72,8 @@ Route::post('/player-exchange/{state}', [PlayerExchangeController::class, 'set']
 // (also listed in bootstrap/app.php); the signature middleware is their authentication.
 Route::prefix('webhooks/whatsapp')
     ->name('webhooks.whatsapp.')
-    ->middleware([VerifyWebhookSignature::class, 'throttle:300,1'])
+    // throttle first, so rejected requests cannot flood the log
+    ->middleware(['throttle:300,1', VerifyWebhookSignature::class])
     ->withoutMiddleware([StartSession::class, ShareErrorsFromSession::class, PreventRequestForgery::class, SetLocale::class])
     ->group(function (): void {
         Route::post('/status', [WhatsAppWebhookController::class, 'status'])->name('status');

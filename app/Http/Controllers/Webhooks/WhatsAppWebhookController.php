@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\NotificationLogEntry;
 use App\Services\Notifications\ConsentService;
 use App\Services\Notifications\WebhookReply;
+use App\Services\Notifications\WhatsAppSettings;
 use App\Support\Phone\PhoneNumber;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -32,7 +33,7 @@ final class WhatsAppWebhookController extends Controller
         NotificationLogEntry::UNDELIVERED => [NotificationLogEntry::SENDING, NotificationLogEntry::SENT],
     ];
 
-    public function __construct(private readonly ConsentService $consents) {}
+    public function __construct(private readonly ConsentService $consents, private readonly WhatsAppSettings $settings) {}
 
     public function status(Request $request): Response
     {
@@ -53,7 +54,8 @@ final class WhatsAppWebhookController extends Controller
             return WebhookReply::make(null);
         }
 
-        $url = route('account.edit');
+        // Public link from the configured base URL, not from the request host (proxy).
+        $url = rtrim($this->settings->webhookBaseUrl() ?? (string) config('app.url'), '/').route('account.edit', [], false);
         $word = mb_strtolower(trim($this->text($request, 'Body')));
 
         if (in_array($word, self::STOP_WORDS, true)) {
