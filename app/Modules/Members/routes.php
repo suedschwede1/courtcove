@@ -45,6 +45,7 @@ Route::middleware(['auth', 'can:admin.members'])
         Route::post('members/dues', [MemberDueController::class, 'store'])->name('members.dues.store');
         Route::post('members/dues/generate', [MemberDueController::class, 'generate'])->name('members.dues.generate');
         Route::post('members/dues/bulk-mark-paid', [MemberDueController::class, 'bulkMarkPaid'])->name('members.dues.bulk-mark-paid');
+        Route::post('members/dues/bulk-pay', [MemberDueController::class, 'bulkPay'])->name('members.dues.bulk-pay');
         Route::patch('members/dues/{due}/field', [MemberDueController::class, 'updateField'])->name('members.dues.update-field');
         Route::patch('members/dues/{due}/paid-through', [MemberDueController::class, 'markPaidThrough'])->name('members.dues.mark-paid-through');
 

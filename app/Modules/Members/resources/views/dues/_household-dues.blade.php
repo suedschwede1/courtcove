@@ -37,7 +37,7 @@
             <tr data-household-due="{{ $hdue->id }}">
                 <td class="mbr-check-cell">
                     @unless($locked)
-                        <label class="mbr-check"><input type="checkbox" name="household_due_ids[]" value="{{ $hdue->id }}" x-on:change="toggleHousehold('h{{ $hdue->id }}', $event.target.checked)" aria-label="{{ __('members::admin.common.select_row', ['name' => $hdue->household->label()]) }}"></label>
+                        <label class="mbr-check"><input type="checkbox" name="household_due_ids[]" value="{{ $hdue->id }}" @if($hdue->status !== 'bezahlt' && $hdue->payments->isEmpty()) data-amount="{{ number_format((float) $hdue->amount, 2, '.', '') }}" @endif x-on:change="toggleHousehold('h{{ $hdue->id }}', $event.target.checked)" aria-label="{{ __('members::admin.common.select_row', ['name' => $hdue->household->label()]) }}"></label>
                     @endunless
                 </td>
                 <td class="ds-cell--title" data-label="{{ __('members::admin.households.col_household') }}">
