@@ -67,6 +67,9 @@ final class MemberChangeSummary
         if ($change->action === 'connection') {
             return [self::connectionLine($change, $revealPersonal)];
         }
+        if ($change->action === PaymentCanceller::CHANGE_ACTION) {
+            return [self::paymentCancelledLine($change)];
+        }
 
         $lines = [];
         foreach ($change->changedFields() as ['field' => $field, 'old' => $old, 'new' => $new]) {
@@ -106,6 +109,20 @@ final class MemberChangeSummary
         return $new !== null
             ? (string) __('members::admin.history.household_payer_set', ['household' => self::householdLabel($new)])
             : (string) __('members::admin.history.household_payer_cleared', ['household' => self::householdLabel($old)]);
+    }
+
+    /** "Zahlung vom 01.03.2026 über 120,00 € storniert (Doppelt gebucht)". */
+    private static function paymentCancelledLine(MemberChange $change): string
+    {
+        $entry = (array) ($change->after['payment_cancelled'] ?? []);
+        $paidAt = isset($entry['paid_at']) ? Carbon::parse((string) $entry['paid_at'])->format('d.m.Y') : '–';
+        $reason = isset($entry['reason']) && $entry['reason'] !== '' ? ' ('.$entry['reason'].')' : '';
+
+        return (string) __('members::admin.history.payment_cancelled', [
+            'date' => $paidAt,
+            'amount' => MembersFormat::money($entry['amount'] ?? 0),
+            'reason' => $reason,
+        ]);
     }
 
     /** "Anschlussmitglied: Helga Beispiel" / "Kein Anschlussmitglied mehr: …" on the Vollzahler; without names when hidden. */

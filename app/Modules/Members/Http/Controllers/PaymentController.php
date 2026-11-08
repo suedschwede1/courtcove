@@ -10,6 +10,7 @@ use App\Modules\Members\Models\Member;
 use App\Modules\Members\Models\MemberDue;
 use App\Modules\Members\Models\Payment;
 use App\Modules\Members\Support\MembersFormat;
+use App\Modules\Members\Support\PaymentCanceller;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -169,5 +170,31 @@ class PaymentController
 
         return redirect()->route('members.edit', $member)
             ->with('status', __('members::admin.payments.created'));
+    }
+
+    /**
+     * "Zahlung stornieren" from the member page (members right + admin mode via the route group). The payment
+     * must belong to this member (payer) or pay a household due covering the member, else 404. See PaymentCanceller.
+     */
+    public function cancel(Request $request, Member $member, int $payment, PaymentCanceller $canceller): RedirectResponse
+    {
+        $record = Payment::query()->whereKey($payment)
+            ->where(fn ($q) => $q->where('member_id', $member->id)
+                ->orWhereHas('householdDues', fn ($h) => $h->whereHas('coveredMembers', fn ($m) => $m->whereKey($member->id))))
+            ->firstOrFail();
+
+        $validated = $request->validate([
+            'reason' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $result = $canceller->cancel($record, $validated['reason'] ?? null, $request->user()?->getAuthIdentifier());
+
+        if ($result instanceof FiscalYear) {
+            return redirect()->route('members.edit', $member)->withErrors(['payment' => $result->lockedMessage()]);
+        }
+
+        return redirect()->route('members.edit', $member)->with('status', $result === PaymentCanceller::ALREADY
+            ? __('members::admin.payments.already_cancelled')
+            : __('members::admin.payments.cancelled'));
     }
 }
