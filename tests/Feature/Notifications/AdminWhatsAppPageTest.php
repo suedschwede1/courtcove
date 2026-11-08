@@ -318,4 +318,43 @@ class AdminWhatsAppPageTest extends TestCase
         $this->assertNotEmpty($keys('de'));
         $this->assertEqualsCanonicalizing($keys('de'), $keys('en'));
     }
+
+    #[Test]
+    public function manipulated_fake_driver_is_rejected_unless_already_stored(): void
+    {
+        $this->save(['driver' => 'fake'])->assertSessionHasErrors('driver');
+        $this->assertNull($this->opt('whatsapp.driver'));
+
+        Option::create(['key' => 'whatsapp.driver', 'value' => 'fake', 'locale' => null]);
+        $this->save(['driver' => 'fake'])->assertSessionHasNoErrors();
+    }
+
+    #[Test]
+    public function audit_names_driver_switch_and_budget_changes_without_values(): void
+    {
+        Log::spy();
+
+        $this->save(['driver' => 'live', 'enabled' => '1', 'budget_monthly' => '31', 'price_estimate' => '0.07', 'sender' => 'whatsapp:+436600000000']);
+
+        Log::shouldHaveReceived('info')->withArgs(function (string $message, array $context = []): bool {
+            if ($message !== 'admin.whatsapp.config_changed') {
+                return false;
+            }
+            $this->assertContains('driver', $context['fields']);
+            $this->assertContains('budget_monthly', $context['fields']);
+            $this->assertNotContains('enabled', $context['fields']); // refused: live without credentials
+            $dump = json_encode($context, JSON_THROW_ON_ERROR);
+            foreach (['live', '31', '0.07', '+436600000000'] as $value) {
+                $this->assertStringNotContainsString($value, $dump);
+            }
+
+            return true;
+        })->once();
+
+        Log::spy();
+        $this->save(['driver' => 'log', 'enabled' => '1', 'budget_monthly' => '31', 'price_estimate' => '0.07']);
+        Log::shouldHaveReceived('info')->withArgs(
+            fn (string $m, array $c = []): bool => $m === 'admin.whatsapp.config_changed' && in_array('enabled', $c['fields'], true) && in_array('driver', $c['fields'], true),
+        )->once();
+    }
 }

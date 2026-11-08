@@ -21,6 +21,7 @@ use App\Support\Audit\AdminConfigAudit;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\View\View;
 
@@ -297,9 +298,14 @@ final class WhatsAppController extends Controller
         $refusal = null;
         $wasEnabled = $this->settings->enabled();
         if ($request->boolean('enabled')) {
+            // In a transaction: the dispatcher never sees the switch on unless the check passes.
+            DB::beginTransaction();
             $this->store(self::SWITCHES['enabled'], '1');
             $reason = $this->settings->readyToSend();
-            if ($reason !== null) {
+            if ($reason === null) {
+                DB::commit();
+            } else {
+                DB::rollBack();
                 $this->store(self::SWITCHES['enabled'], null);
                 $refusal = __('booking.admin.whatsapp.enable_refused', ['reason' => __('booking.admin.whatsapp.not_ready.'.$reason)]);
             }
@@ -340,7 +346,8 @@ final class WhatsAppController extends Controller
     private function rules(): array
     {
         $rules = [
-            'driver' => ['sometimes', 'in:log,live,fake'],
+            // "fake" only stays valid while it is already the stored value.
+            'driver' => ['sometimes', 'in:'.($this->settings->driver() === 'fake' ? 'log,live,fake' : 'log,live')],
             'sender' => ['nullable', 'string', 'max:40', 'regex:/^whatsapp:\+\d{6,15}$/'],
             'sandbox_sender' => ['nullable', 'string', 'max:40', 'regex:/^whatsapp:\+\d{6,15}$/'],
             'sender_label' => ['nullable', 'string', 'max:60'],
