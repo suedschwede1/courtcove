@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\SquareController;
 use App\Http\Controllers\Admin\StatisticsController;
 use App\Http\Controllers\Admin\TestMailController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\WhatsAppController;
 use App\Http\Controllers\AdminModeController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
@@ -151,6 +152,8 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function (): v
         Route::put('config', [OptionController::class, 'update'])->name('config.update');
         Route::get('config/verhalten', [OptionController::class, 'editBehavior'])->name('config.behavior.edit');
         Route::put('config/verhalten', [OptionController::class, 'updateBehavior'])->name('config.behavior.update');
+        Route::get('whatsapp', [WhatsAppController::class, 'edit'])->name('whatsapp.edit');
+        Route::put('whatsapp', [WhatsAppController::class, 'update'])->name('whatsapp.update');
         Route::resource('squares', SquareController::class)->except(['show']);
         Route::get('scheduler', [SchedulerController::class, 'index'])->name('scheduler.index');
         Route::post('scheduler/{task}/run', [SchedulerController::class, 'run'])
