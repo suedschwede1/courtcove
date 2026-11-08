@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-08
+- Staging scrub: the WhatsApp scrub also deletes the budget alert address and the pause reason from a live copy, and sets driver and main switch in one transaction.
 - WhatsApp: consent text v1 (wa-2026-11-v1) and privacy sentence in de/en, and the operations runbook (cron, env keys, staging flow, go-live checklist, items for the club to confirm); no provider is named in tracked files.
 - Staging scrub: phase2:scrub-staging now also runs tagged config scrubs; the WhatsApp one deletes the credential and sender options, sets driver log and the main switch off, and empties the notification tables (output lists names only). New runbook docs/whatsapp-runbook.md with the scrub section.
 - Assets rebuilt over the whole tracked tree after the WhatsApp admin pages (stylesheet hash changed).

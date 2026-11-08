@@ -22,6 +22,8 @@ final class WhatsAppConfigScrub implements ConfigScrub
         'whatsapp.messaging_service_sid',
         'whatsapp.sender',
         'whatsapp.sandbox_sender',
+        'whatsapp.budget_alert_email',
+        'whatsapp.paused_reason',
     ];
 
     /** Child tables first. */
@@ -47,11 +49,14 @@ final class WhatsAppConfigScrub implements ConfigScrub
                 $names[] = $key;
             }
 
-            foreach (['whatsapp.driver' => 'log', 'whatsapp.enabled' => '0'] as $key => $value) {
-                Option::query()->where('key', $key)->delete();
-                Option::create(['key' => $key, 'value' => $value, 'locale' => null]);
-                $names[] = $key;
-            }
+            // One transaction: never a state with the live driver and the switch half changed.
+            DB::transaction(function () use (&$names): void {
+                foreach (['whatsapp.driver' => 'log', 'whatsapp.enabled' => '0'] as $key => $value) {
+                    Option::query()->where('key', $key)->delete();
+                    Option::create(['key' => $key, 'value' => $value, 'locale' => null]);
+                    $names[] = $key;
+                }
+            });
         }
 
         foreach (self::TABLES as $table) {

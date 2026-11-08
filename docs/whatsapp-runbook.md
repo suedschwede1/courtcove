@@ -91,7 +91,7 @@ Vor dem Umschalten auf Treiber `live` und Hauptschalter an:
 
 ### Was der WhatsApp-Scrub entfernt oder zuruecksetzt
 
-- Geloescht werden die Optionen `whatsapp.account_sid`, `whatsapp.auth_token`, `whatsapp.messaging_service_sid`, `whatsapp.sender` und `whatsapp.sandbox_sender`.
+- Geloescht werden die Optionen `whatsapp.account_sid`, `whatsapp.auth_token`, `whatsapp.messaging_service_sid`, `whatsapp.sender`, `whatsapp.sandbox_sender`, `whatsapp.budget_alert_email` (Admin-Adresse aus dem Abzug) und `whatsapp.paused_reason`.
 - `whatsapp.driver` wird auf `log` gesetzt, `whatsapp.enabled` auf `0` (Hauptschalter aus).
 - Geleert werden `notification_log`, `notification_usage_monthly`, `notification_subscriptions` und `notification_consents`. Ein Abzug von Live traegt echte Zustimmungen und Versand-Metadaten; ohne Leeren koennten Sandbox-Modus oder `WHATSAPP_ALLOW_LIVE_ON_STAGING` echte Mitglieder erreichen.
 - Budget, Preisschaetzung, Vorlagen-IDs und alle uebrigen Optionen bleiben erhalten.

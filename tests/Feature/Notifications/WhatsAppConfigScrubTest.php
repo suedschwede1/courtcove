@@ -39,6 +39,9 @@ class WhatsAppConfigScrubTest extends TestCase
         foreach ([
             'whatsapp.sender' => '+43 660 0000001',
             'whatsapp.sandbox_sender' => '+43 660 0000002',
+            'whatsapp.budget_alert_email' => 'admin@example.test',
+            'whatsapp.paused_reason' => 'budget_exhausted',
+            'whatsapp.template.test.de' => 'HXtest-keep',
             'whatsapp.driver' => 'live',
             'whatsapp.enabled' => '1',
             'whatsapp.budget_monthly' => '5.00',
@@ -79,7 +82,7 @@ class WhatsAppConfigScrubTest extends TestCase
 
         app(WhatsAppConfigScrub::class)->scrub();
 
-        foreach (['account_sid', 'auth_token', 'messaging_service_sid', 'sender', 'sandbox_sender'] as $field) {
+        foreach (['account_sid', 'auth_token', 'messaging_service_sid', 'sender', 'sandbox_sender', 'budget_alert_email', 'paused_reason'] as $field) {
             $this->assertFalse(Option::where('key', 'whatsapp.'.$field)->exists(), $field);
         }
         $this->assertSame('log', Option::getValue('whatsapp.driver'));
@@ -90,6 +93,8 @@ class WhatsAppConfigScrubTest extends TestCase
         // Unrelated options and the budget survive.
         $this->assertSame('Keep me', Option::getValue('service.name'));
         $this->assertSame('5.00', Option::getValue('whatsapp.budget_monthly'));
+        $this->assertSame('0.05', Option::getValue('whatsapp.price_estimate'));
+        $this->assertSame('HXtest-keep', Option::getValue('whatsapp.template.test.de'));
     }
 
     #[Test]
@@ -176,8 +181,10 @@ class WhatsAppConfigScrubTest extends TestCase
         $this->assertContains('whatsapp.account_sid', $names);
         $this->assertContains('whatsapp.auth_token', $names);
         $this->assertContains('whatsapp.messaging_service_sid', $names);
+        $this->assertContains('whatsapp.budget_alert_email', $names);
+        $this->assertContains('whatsapp.paused_reason', $names);
         $joined = implode(' ', $names);
-        foreach ([...self::SECRET_VALUES, '+43 660 0000001', '+43 660 0000002', 'enc:'] as $value) {
+        foreach ([...self::SECRET_VALUES, 'admin@example.test', 'budget_exhausted', '+43 660 0000001', '+43 660 0000002', 'enc:'] as $value) {
             $this->assertStringNotContainsString($value, $joined);
         }
         foreach ($names as $name) {
