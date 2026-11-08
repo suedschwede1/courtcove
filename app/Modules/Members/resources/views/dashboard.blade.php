@@ -44,23 +44,6 @@
         </p>
     </x-ui.card>
 
-    <x-ui.card :title="__('members::admin.dashboard.recent')">
-        @if($recentChanges->isEmpty())
-            <p class="text-body-s text-ink-2">{{ __('members::admin.history.empty') }}</p>
-        @else
-            <ul class="mbr-changes">
-                @foreach($recentChanges as $change)
-                    @include('members::partials.change-row', ['change' => $change, 'categoryNames' => $categoryNames])
-                @endforeach
-            </ul>
-        @endif
-        <p class="mbr-card-foot">
-            <a href="{{ route('members.changes.index') }}" class="mbr-text-link">{{ __('members::admin.dashboard.all_changes') }}</a>
-        </p>
-    </x-ui.card>
-</div>
-
-<div class="mbr-split">
     <x-ui.card :title="__('members::admin.dashboard.age_structure')">
         @php
             $maxAgeCount = max([...array_values($ageStructure['buckets']), $ageStructure['unknown']]) ?: 0;
@@ -94,4 +77,22 @@
         @endforeach
     </x-ui.card>
 </div>
+
+{{-- "Recently changed" is always the last block of the page: full width and outside every grid, so later cards or columns never move it. --}}
+<section class="mbr-dashboard-last" data-dashboard-last>
+    <x-ui.card :title="__('members::admin.dashboard.recent')">
+        @if($recentChanges->isEmpty())
+            <p class="text-body-s text-ink-2">{{ __('members::admin.history.empty') }}</p>
+        @else
+            <ul class="mbr-changes">
+                @foreach($recentChanges as $change)
+                    @include('members::partials.change-row', ['change' => $change, 'categoryNames' => $categoryNames])
+                @endforeach
+            </ul>
+        @endif
+        <p class="mbr-card-foot">
+            <a href="{{ route('members.changes.index') }}" class="mbr-text-link">{{ __('members::admin.dashboard.all_changes') }}</a>
+        </p>
+    </x-ui.card>
+</section>
 @endsection

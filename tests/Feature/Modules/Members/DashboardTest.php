@@ -171,4 +171,27 @@ class DashboardTest extends TestCase
 
         $this->assertStringContainsString('href="'.route('members.create').'"', $html);
     }
+
+    #[Test]
+    public function recently_changed_is_the_last_full_width_block_outside_every_grid(): void
+    {
+        Member::factory()->create();
+
+        $html = $this->actingAs($this->admin())->get('/members/dashboard')->assertOk()->getContent();
+
+        $recent = strpos($html, 'data-dashboard-last');
+        $this->assertNotFalse($recent, 'the recent-changes block exists');
+
+        // Every other dashboard card comes before it.
+        foreach (['Altersstruktur', 'Mitglieder nach Kategorie'] as $title) {
+            $this->assertLessThan($recent, strpos($html, $title), $title.' must precede the recent-changes block');
+        }
+        $this->assertStringNotContainsString('Zuletzt geändert', substr($html, 0, $recent));
+
+        // Outside every grid: it is a section of its own and every opened mbr-split is closed before it.
+        $before = substr($html, 0, $recent);
+        $this->assertSame(1, substr_count($before, '<div class="mbr-split'));
+        $this->assertStringContainsString('Zuletzt geändert', substr($html, $recent));
+        $this->assertStringContainsString('<section class="mbr-dashboard-last"', $html);
+    }
 }

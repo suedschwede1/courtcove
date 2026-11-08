@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-08
+- Members dashboard: the "Recently changed" card is now its own full-width block at the very end of the page, outside every grid, so it stays at the bottom on phones and desktop even when cards or columns are added; the other three cards share one grid.
 - Assets rebuilt after merging the player exchange switch (stylesheet hash changed).
 - Test housekeeping: the join dialog markup test no longer counts the buttons of the players dialog that follows it.
 - Calendar board on medium widths: the board is now a size container; below the three-day minimum (980px of board width) it shows two days (selected day and the next) instead of scrolling sideways with the third day cut off. Phones (< 48rem) still show one day, wide boards three. Step size, arrows and date picker are unchanged.
