@@ -17,6 +17,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 final class BookingController extends Controller
 {
@@ -79,8 +80,14 @@ final class BookingController extends Controller
             }
 
             return back()->withErrors(['booking' => $e->getMessage()])->with('error', $e->getMessage());
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
             $msg = __('booking.messages.booking_failed');
+            $this->logFailure('booking.store', $e, [
+                'sid' => $square->sid,
+                'date' => $dateStart->toDateString(),
+                'quantity' => (int) $data['quantity'],
+                'search_players' => $searchPlayers,
+            ]);
             if ($request->ajax()) {
                 return response()->json(['error' => $msg], 422);
             }
@@ -259,8 +266,9 @@ final class BookingController extends Controller
             }
 
             return back()->withErrors(['booking' => $e->getMessage()])->with('error', $e->getMessage());
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
             $msg = __('booking.messages.booking_failed');
+            $this->logFailure('booking.update', $e, ['bid' => $booking->bid, 'quantity' => (int) $data['quantity']]);
             if ($request->ajax()) {
                 return response()->json(['error' => $msg], 422);
             }
@@ -313,5 +321,22 @@ final class BookingController extends Controller
 
         return redirect()->route('calendar.index')
             ->with('success', __('booking.messages.booking_cancelled'));
+    }
+
+    /**
+     * A failure the user only sees as a generic message must still leave a trace. Only the
+     * exception class, its code and location and ids that name no person are logged: the
+     * message of a database error can carry the values of the statement.
+     *
+     * @param  array<string, int|string>  $context
+     */
+    private function logFailure(string $action, \Throwable $e, array $context): void
+    {
+        Log::warning('Booking request failed', $context + [
+            'action' => $action,
+            'exception' => $e::class,
+            'code' => $e->getCode(),
+            'at' => basename($e->getFile()).':'.$e->getLine(),
+        ]);
     }
 }
