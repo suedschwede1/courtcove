@@ -154,6 +154,9 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function (): v
         Route::put('config/verhalten', [OptionController::class, 'updateBehavior'])->name('config.behavior.update');
         Route::get('whatsapp', [WhatsAppController::class, 'edit'])->name('whatsapp.edit');
         Route::put('whatsapp', [WhatsAppController::class, 'update'])->name('whatsapp.update');
+        Route::post('whatsapp/probe', [WhatsAppController::class, 'probe'])->middleware('throttle:5,1')->name('whatsapp.probe');
+        Route::post('whatsapp/test', [WhatsAppController::class, 'test'])->middleware('throttle:5,1')->name('whatsapp.test');
+        Route::post('whatsapp/resume', [WhatsAppController::class, 'resume'])->name('whatsapp.resume');
         Route::resource('squares', SquareController::class)->except(['show']);
         Route::get('scheduler', [SchedulerController::class, 'index'])->name('scheduler.index');
         Route::post('scheduler/{task}/run', [SchedulerController::class, 'run'])

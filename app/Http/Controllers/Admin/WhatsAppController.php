@@ -7,12 +7,20 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\NotificationLogEntry;
 use App\Models\Option;
+use App\Notifications\AdminTestNotification;
+use App\Notifications\Channels\WhatsAppChannel;
 use App\Notifications\Types\NotificationType;
+use App\Services\Notifications\BudgetService;
+use App\Services\Notifications\ConsentService;
+use App\Services\Notifications\NotificationDispatcher;
 use App\Services\Notifications\SecretOptions;
+use App\Services\Notifications\Transport\TransportFactory;
+use App\Services\Notifications\WhatsAppAdminStatus;
 use App\Services\Notifications\WhatsAppSettings;
 use App\Support\Audit\AdminConfigAudit;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\View\View;
 
@@ -60,7 +68,110 @@ final class WhatsAppController extends Controller
     public function __construct(
         private readonly WhatsAppSettings $settings,
         private readonly SecretOptions $secrets,
+        private readonly WhatsAppAdminStatus $status,
+        private readonly BudgetService $budget,
     ) {}
+
+    /** Connection check: reads account and service, sends nothing, shows ok or an error code only. */
+    public function probe(TransportFactory $transports): RedirectResponse
+    {
+        $back = redirect()->route('admin.whatsapp.edit');
+
+        if ($this->settings->effectiveDriver() === 'log') {
+            return $back->with('info', __('booking.admin.whatsapp.probe_log_driver'));
+        }
+        if ($this->settings->effectiveDriver() === 'live'
+            && ($this->settings->accountSid() === null || $this->settings->authToken() === null)) {
+            return $back->with('error', __('booking.admin.whatsapp.probe_no_credentials'));
+        }
+
+        $result = $transports->make()->probe();
+        if ($result->ok) {
+            return $back->with('success', __('booking.admin.whatsapp.probe_ok'));
+        }
+
+        // Only a short code is shown; nothing of the response is kept.
+        $code = preg_match('/^[a-z0-9_]{1,24}$/', (string) $result->code) === 1 ? (string) $result->code : 'error';
+
+        return $back->with('error', __('booking.admin.whatsapp.probe_failed', ['code' => $code]));
+    }
+
+    /** Test message to the admin's own number: needs the admin's active consent and the (admin-test) gate. */
+    public function test(
+        Request $request,
+        ConsentService $consents,
+        NotificationDispatcher $dispatcher,
+        WhatsAppChannel $channel,
+    ): RedirectResponse {
+        $back = redirect()->route('admin.whatsapp.edit');
+        $admin = $request->user();
+        $refuse = fn (string $reason) => $back->with('error', __('booking.admin.whatsapp.test_refused.'.$reason));
+
+        if ($admin === null) {
+            abort(403);
+        }
+        $gate = $consents->gate($admin, forAdminTest: true);
+        if (! $gate->passed) {
+            return $refuse((string) $gate->reason);
+        }
+        $consent = $consents->activeConsent($admin);
+        if ($consent === null || ! $consents->matchesCurrentPhone($consent, $admin)) {
+            return $refuse('no_consent');
+        }
+        if ($this->settings->pausedReason() !== null) {
+            return $refuse('paused');
+        }
+        $notReady = $this->settings->readyToSend();
+        if ($notReady !== null) {
+            return $back->with('error', __('booking.admin.whatsapp.enable_refused', ['reason' => __('booking.admin.whatsapp.not_ready.'.$notReady)]));
+        }
+
+        // The posted number (if any) is never read: the target is always the admin's own stored number.
+        $channel->send($admin, new AdminTestNotification);
+        $report = $dispatcher->drain(1, 20);
+
+        if ($report->sent > 0) {
+            return $back->with('success', __('booking.admin.whatsapp.test_sent'));
+        }
+        if ($report->skipped !== []) {
+            return $back->with('error', __('booking.admin.whatsapp.test_skipped', ['reason' => array_key_first($report->skipped)]));
+        }
+        if ($report->failed > 0 || $report->retried > 0) {
+            return $back->with('error', __('booking.admin.whatsapp.test_failed'));
+        }
+
+        return $back->with('info', __('booking.admin.whatsapp.test_queued'));
+    }
+
+    public function resume(Request $request): RedirectResponse
+    {
+        $this->settings->resume();
+        if ($request->user() !== null) {
+            AdminConfigAudit::record($request->user(), 'whatsapp', ['resume']);
+        }
+
+        return redirect()->route('admin.whatsapp.edit')->with('success', __('booking.admin.whatsapp.resumed'));
+    }
+
+    /** @return array{month: string, messages: int, percent: int, used: string, budget: string, hasBudget: bool, previous: ?string} */
+    private function budgetBlock(): array
+    {
+        $snap = $this->budget->current();
+        $previous = $snap->previousMonth;
+
+        return [
+            'month' => Carbon::createFromFormat('!Y-m', $snap->month)->translatedFormat('F Y'),
+            'messages' => $snap->messages,
+            'percent' => $snap->percent,
+            'used' => WhatsAppAdminStatus::money($snap->estimatedMicros),
+            'budget' => WhatsAppAdminStatus::money($snap->budgetMicros),
+            'hasBudget' => $snap->budgetMicros > 0,
+            'previous' => $previous === null ? null : __('booking.admin.whatsapp.budget_previous', [
+                'messages' => $previous['messages'],
+                'amount' => WhatsAppAdminStatus::money($previous['estimatedMicros']),
+            ]),
+        ];
+    }
 
     public function edit(): View
     {
@@ -105,6 +216,8 @@ final class WhatsAppController extends Controller
             'notReady' => in_array($reason, ['budget_missing', 'price_missing', 'credentials_missing'], true) ? $reason : null,
             'configMissing' => $liveConfigMissing,
             'problemCount' => $this->problemCount(),
+            'budget' => $this->budgetBlock(),
+            'notices' => $this->status->notices(),
         ]);
     }
 

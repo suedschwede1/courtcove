@@ -45,6 +45,31 @@
     @error('enabled')
         <x-ui.notice tone="problem">{{ $message }}</x-ui.notice>
     @enderror
+    @include('admin.whatsapp._status', ['notices' => $notices, 'resume' => true])
+
+    @if($budget['hasBudget'])
+        <x-ui.card :title="__('booking.admin.whatsapp.section_usage')" padding="lg" class="ds-admin-form-card">
+            <x-ui.kpi
+                :label="__('booking.admin.whatsapp.budget_used', ['month' => $budget['month']])"
+                :value="$budget['messages'].' '.__('booking.admin.whatsapp.budget_messages').', ≈ '.$budget['percent'].' %'"
+                :meta="__('booking.admin.whatsapp.budget_amount', ['used' => $budget['used'], 'budget' => $budget['budget']]).($budget['previous'] !== null ? ' · '.$budget['previous'] : '')" />
+            <progress max="100" value="{{ min(100, $budget['percent']) }}" aria-label="{{ __('booking.admin.whatsapp.budget_used', ['month' => $budget['month']]) }}">{{ $budget['percent'] }} %</progress>
+        </x-ui.card>
+    @endif
+
+    <x-ui.card :title="__('booking.admin.whatsapp.section_checks')" padding="lg" class="ds-admin-form-card">
+        <p class="ds-field__help">{{ __('booking.admin.whatsapp.checks_intro') }}</p>
+        <div class="ds-admin-actions__group">
+            <form method="POST" action="{{ route('admin.whatsapp.probe') }}">
+                @csrf
+                <x-ui.button type="submit" variant="secondary" :block="false">{{ __('booking.admin.whatsapp.probe') }}</x-ui.button>
+            </form>
+            <form method="POST" action="{{ route('admin.whatsapp.test') }}">
+                @csrf
+                <x-ui.button type="submit" variant="secondary" :block="false">{{ __('booking.admin.whatsapp.test') }}</x-ui.button>
+            </form>
+        </div>
+    </x-ui.card>
 
     <form method="POST" action="{{ route('admin.whatsapp.update') }}" class="ds-admin-stack" autocomplete="off">
         @method('PUT')
