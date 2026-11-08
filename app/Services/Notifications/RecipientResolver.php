@@ -18,9 +18,9 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 /**
- * Recipients of the WhatsApp message of a new search. Starts from the exchange's own recipient query (the
- * booker excluded), so nobody outside the exchange mail list is ever chosen, and narrows it to members with
- * an active consent for `player_search`, a passing gate, a `player_search.opened`/whatsapp subscription (a
+ * Recipients of the WhatsApp message of a new search. Starts from the exchange's own recipient query (enabled
+ * accounts with e-mail and player-exchange=1, the booker excluded; no member record involved), so nobody outside
+ * the exchange mail list is ever chosen, and narrows it to accounts with an active consent for `player_search`, a passing gate, a `player_search.opened`/whatsapp subscription (a
  * missing row means off) whose filters match, and no signup in this search yet.
  *
  * Filters are only applied when set: weekdays (ISO 1-7), start time window (H:i, both ends inclusive) and

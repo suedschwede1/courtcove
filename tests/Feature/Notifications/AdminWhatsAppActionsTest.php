@@ -9,6 +9,7 @@ use App\Models\NotificationLogEntry;
 use App\Models\NotificationUsageMonthly;
 use App\Models\Option;
 use App\Models\User;
+use App\Modules\Members\Models\Member;
 use App\Notifications\Types\NotificationType;
 use App\Services\Notifications\ConsentService;
 use App\Services\Notifications\SecretOptions;
@@ -276,6 +277,24 @@ class AdminWhatsAppActionsTest extends TestCase
         $this->assertSame(NotificationType::AdminTest->value, $row->type);
         $this->assertSame(NotificationLogEntry::SENT, $row->status);
         $this->assertSame(1, NotificationLogEntry::count());
+    }
+
+    /** The admin needs no member record: consent in the own account card, then the test message goes out. */
+    #[Test]
+    public function admin_without_member_record_consents_in_the_card_and_sends_the_test(): void
+    {
+        $this->readyFake();
+        $admin = $this->admin();
+        $admin->setMeta('phone', self::PHONE);
+        $admin->setMeta('player-exchange', '1');
+        $this->assertSame(0, Member::query()->where('user_id', $admin->uid)->count());
+
+        $this->as($admin->fresh())->post(route('account.whatsapp.enable'), ['consent' => '1'])->assertSessionHas('success');
+        $this->as($admin->fresh())->post('/admin/whatsapp/test')->assertRedirect(route('admin.whatsapp.edit'))->assertSessionHas('success');
+
+        $sent = app(FakeTransport::class)->sent();
+        $this->assertCount(1, $sent);
+        $this->assertSame('+436600000042', $sent[0]['to']);
     }
 
     #[Test]

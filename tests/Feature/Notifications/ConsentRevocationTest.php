@@ -133,33 +133,60 @@ class ConsentRevocationTest extends TestCase
         $this->assertSame(1, $this->activeConsentCount($user));
     }
 
+    /**
+     * The gate looks at the booking account only: leaving, unlinking, deleting or anonymising the member
+     * record ends no consent and does not pause the sending (the account lives on).
+     */
     #[Test]
-    public function member_exit_anonymize_unlink_and_user_blocked_revoke_with_matching_reason(): void
+    public function member_lifecycle_neither_revokes_nor_pauses(): void
     {
         // Member leaves (setLeftAt sets status ausgetreten).
         $leaving = $this->optedInUser();
-        Member::query()->where('user_id', $leaving->uid)->sole()->setLeftAt('2026-11-01');
-        $this->assertSame(0, $this->activeConsentCount($leaving));
-        $this->assertSame('member_exit', $this->lastRevokedVia($leaving));
+        $this->linkMember($leaving)->setLeftAt('2026-11-01');
 
-        // Anonymisation clears user_id in the same update: reason anonymized, not member_exit.
+        // Member record anonymised in the same update that clears the link (as the anonymise action does).
         $anonymized = $this->optedInUser();
-        Member::query()->where('user_id', $anonymized->uid)->sole()->update(['user_id' => null, 'anonymized_at' => now()]);
-        $this->assertSame(0, $this->activeConsentCount($anonymized));
-        $this->assertSame('anonymized', $this->lastRevokedVia($anonymized));
+        $this->linkMember($anonymized)->update(['user_id' => null, 'anonymized_at' => now()]);
 
         // Link to the booking account removed.
         $unlinked = $this->optedInUser();
-        Member::query()->where('user_id', $unlinked->uid)->sole()->update(['user_id' => null]);
-        $this->assertSame(0, $this->activeConsentCount($unlinked));
-        $this->assertSame('member_exit', $this->lastRevokedVia($unlinked));
+        $this->linkMember($unlinked)->update(['user_id' => null]);
 
         // Member record deleted.
         $deleted = $this->optedInUser();
-        Member::query()->where('user_id', $deleted->uid)->sole()->delete();
-        $this->assertSame(0, $this->activeConsentCount($deleted));
-        $this->assertSame('member_exit', $this->lastRevokedVia($deleted));
+        $this->linkMember($deleted)->delete();
 
+        // Dormant.
+        $dormant = $this->optedInUser();
+        $this->linkMember($dormant)->setStatus('ruhend');
+
+        foreach (['leaving' => $leaving, 'anonymized' => $anonymized, 'unlinked' => $unlinked, 'deleted' => $deleted, 'dormant' => $dormant] as $case => $user) {
+            $this->assertSame(1, $this->activeConsentCount($user), $case);
+            $this->assertNull($this->lastRevokedVia($user), $case);
+            $this->assertTrue($this->consents()->gate($user->fresh())->passed, $case);
+        }
+    }
+
+    /** The admin action "anonymise member" only touches member data: the linked account stays enabled. */
+    #[Test]
+    public function anonymising_a_member_keeps_the_account_and_its_consent(): void
+    {
+        $user = $this->optedInUser();
+        $member = $this->linkMember($user, ['status' => 'ausgetreten', 'left_at' => now()->subYears(5)->toDateString()]);
+
+        $this->actingAs($this->admin())->post("/members/{$member->id}/anonymize", ['confirmation' => 'ANONYMISIEREN'])
+            ->assertRedirect(route('members.edit', $member));
+
+        $this->assertNotNull($member->fresh()->anonymized_at);
+        $this->assertNull($member->fresh()->user_id);
+        $this->assertSame('enabled', $user->fresh()->status);
+        $this->assertSame(1, $this->activeConsentCount($user));
+        $this->assertTrue($this->consents()->gate($user->fresh())->passed);
+    }
+
+    #[Test]
+    public function blocked_deleted_disabled_and_destroyed_accounts_revoke(): void
+    {
         // Account status blocked, deleted, disabled.
         foreach (['blocked', 'deleted', 'disabled'] as $status) {
             $user = $this->optedInUser();
@@ -176,16 +203,11 @@ class ConsentRevocationTest extends TestCase
     }
 
     #[Test]
-    public function ruhend_and_exchange_off_pause_without_revoking(): void
+    public function exchange_off_pauses_without_revoking(): void
     {
         $user = $this->optedInUser();
-        $member = Member::query()->where('user_id', $user->uid)->sole();
+        $member = $this->linkMember($user);
 
-        $member->setStatus('ruhend');
-        $this->assertSame(1, $this->activeConsentCount($user));
-        $this->assertSame('member_inactive', $this->consents()->gate($user)->reason);
-
-        $member->setStatus('aktiv');
         $user->setMeta('player-exchange', null);
         $this->assertSame(1, $this->activeConsentCount($user));
         $this->assertSame('exchange_off', $this->consents()->gate($user)->reason);

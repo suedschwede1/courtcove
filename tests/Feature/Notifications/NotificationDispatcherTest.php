@@ -165,7 +165,7 @@ class NotificationDispatcherTest extends TestCase
             'subject_gone' => ['subject_gone'],
             'subject_gone without resolver' => ['no_resolver'],
             'no_consent' => ['no_consent'],
-            'gate (dormant member)' => ['gate'],
+            'gate (exchange off)' => ['gate'],
             'daily_limit' => ['daily_limit'],
             'budget' => ['budget'],
             'template_missing' => ['template_missing'],
@@ -192,7 +192,8 @@ class NotificationDispatcherTest extends TestCase
                 $expected = 'subject_gone';
                 break;
             case 'gate':
-                Member::query()->where('user_id', $user->uid)->update(['status' => 'ruhend']);
+                // Raw update: no hook runs, the send-time gate keeps the row out.
+                UserMeta::query()->where('uid', $user->uid)->where('key', 'player-exchange')->update(['value' => '0']);
                 break;
             case 'daily_limit':
                 $this->sentToday($user, 3);
@@ -251,15 +252,64 @@ class NotificationDispatcherTest extends TestCase
     }
 
     #[Test]
-    public function admin_test_skips_the_member_rules(): void
+    public function admin_test_skips_the_player_exchange_rule(): void
     {
         $user = $this->optedInUser();
-        Member::query()->where('user_id', $user->uid)->update(['status' => 'ruhend']);
+        UserMeta::query()->where('uid', $user->uid)->where('key', 'player-exchange')->update(['value' => '0']);
         app(WhatsAppChannel::class)->send($user, new AdminTestNotification);
 
         $this->dispatcher()->run();
 
         $this->assertSame(NotificationLogEntry::SENT, NotificationLogEntry::sole()->status);
+    }
+
+    /** Only the booking account counts: no member record, or a dormant, departed or anonymised one, still gets the message. */
+    #[Test]
+    public function account_without_member_or_with_any_member_state_gets_the_message(): void
+    {
+        $users = [
+            'none' => $this->optedInUser('+43 660 0000021'),
+            'ruhend' => $this->optedInUser('+43 660 0000022'),
+            'ausgetreten' => $this->optedInUser('+43 660 0000023'),
+            'anonymisiert' => $this->optedInUser('+43 660 0000024'),
+        ];
+        $this->linkMember($users['ruhend'], ['status' => 'ruhend']);
+        $this->linkMember($users['ausgetreten'], ['status' => 'ausgetreten', 'left_at' => '2026-10-31']);
+        $this->linkMember($users['anonymisiert'], ['status' => 'ausgetreten', 'left_at' => '2020-01-01', 'anonymized_at' => '2026-11-01 10:00:00']);
+        $this->assertSame(0, Member::query()->where('user_id', $users['none']->uid)->count());
+        $this->opt('whatsapp.budget_monthly', '10.00');
+        $rows = array_map(fn (User $u): NotificationLogEntry => $this->row($u), $users);
+
+        $this->dispatcher()->run();
+
+        foreach ($rows as $case => $row) {
+            $this->assertSame(NotificationLogEntry::SENT, $row->refresh()->status, $case);
+        }
+        $this->assertEqualsCanonicalizing(
+            ['+436600000021', '+436600000022', '+436600000023', '+436600000024'],
+            array_column($this->fake()->sent(), 'to'),
+        );
+    }
+
+    #[Test]
+    public function blocked_or_disabled_account_gets_no_message(): void
+    {
+        $blocked = $this->optedInUser('+43 660 0000031');
+        $disabled = $this->optedInUser('+43 660 0000032');
+        $this->linkMember($blocked);
+        $this->linkMember($disabled);
+        $rows = [$this->row($blocked), $this->row($disabled)];
+        // Raw updates: no hook revokes, the send-time gate must hold even for an active member.
+        User::query()->whereKey($blocked->uid)->update(['status' => 'blocked']);
+        User::query()->whereKey($disabled->uid)->update(['status' => 'disabled']);
+
+        $this->dispatcher()->run();
+
+        foreach ($rows as $row) {
+            $this->assertSame(NotificationLogEntry::SKIPPED, $row->refresh()->status);
+            $this->assertSame('gate', $row->skip_reason);
+        }
+        $this->assertSame([], $this->fake()->sent());
     }
 
     #[Test]

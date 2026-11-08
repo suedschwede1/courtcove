@@ -20,7 +20,7 @@ use Illuminate\Http\Request;
 final class NotificationSettingsController extends Controller
 {
     private const KNOWN_REASONS = [
-        'disabled', 'account_inactive', 'no_member', 'member_inactive', 'no_phone', 'phone_invalid', 'phone_not_mobile', 'exchange_off', 'conflict',
+        'disabled', 'account_inactive', 'no_phone', 'phone_invalid', 'phone_not_mobile', 'exchange_off', 'conflict',
     ];
 
     public function __construct(private readonly ConsentService $consents) {}

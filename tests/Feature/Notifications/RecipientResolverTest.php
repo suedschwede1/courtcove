@@ -80,13 +80,47 @@ class RecipientResolverTest extends TestCase
     #[Test]
     public function the_booker_is_excluded_even_with_consent(): void
     {
-        // The booker has no member record yet; give him one so only the exclusion can keep him out.
+        // The booker passes the gate (no member record needed), so only the exclusion can keep him out.
         $this->enableWhatsApp();
-        Member::factory()->create(['user_id' => $this->owner->uid, 'status' => 'aktiv', 'left_at' => null, 'anonymized_at' => null]);
         $this->consents()->optIn($this->owner->fresh(), 'player_search', 'de');
         $anna = $this->optedInUser('+43 660 0000001');
 
         $this->assertSame([$anna->uid], $this->uids($this->search()));
+    }
+
+    /**
+     * The exchange's recipient query (also the mail list) hangs on the account only: enabled, with e-mail and
+     * player-exchange=1. The member record (none, dormant, departed, anonymised) changes nothing.
+     */
+    #[Test]
+    public function recipients_query_does_not_depend_on_the_member_record(): void
+    {
+        $exchange = app(PlayerExchangeService::class);
+        $without = $this->optedInUser('+43 660 0000001');
+        $active = $this->optedInUser('+43 660 0000002');
+        $this->linkMember($active);
+        $dormant = $this->optedInUser('+43 660 0000003');
+        $this->linkMember($dormant, ['status' => 'ruhend']);
+        $departed = $this->optedInUser('+43 660 0000004');
+        $this->linkMember($departed, ['status' => 'ausgetreten', 'left_at' => '2026-10-31']);
+        $anonymised = $this->optedInUser('+43 660 0000005');
+        $this->linkMember($anonymised, ['status' => 'ausgetreten', 'left_at' => '2020-01-01', 'anonymized_at' => '2026-11-01 10:00:00']);
+        $blocked = $this->optedInUser('+43 660 0000006');
+        User::query()->whereKey($blocked->uid)->update(['status' => 'blocked']);
+        // An active member whose account is out of the exchange stays out.
+        $memberOnly = User::factory()->create(['status' => 'enabled']);
+        $this->linkMember($memberOnly);
+
+        $expected = [$without->uid, $active->uid, $dormant->uid, $departed->uid, $anonymised->uid];
+        $query = $exchange->recipientsQuery($this->owner)->pluck('uid')->map(fn ($id): int => (int) $id)->all();
+        $this->assertEqualsCanonicalizing($expected, $query);
+
+        // Removing every member record leaves the recipient list (mail) unchanged.
+        Member::query()->delete();
+        $this->assertEqualsCanonicalizing($query, $exchange->recipientsQuery($this->owner)->pluck('uid')->map(fn ($id): int => (int) $id)->all());
+
+        // WhatsApp gets the same people (all consented and subscribed).
+        $this->assertEqualsCanonicalizing($expected, $this->uids($this->search()));
     }
 
     /** @return iterable<string, array{0: string}> */
@@ -95,7 +129,6 @@ class RecipientResolverTest extends TestCase
         yield 'without consent' => ['no_consent'];
         yield 'revoked consent' => ['revoked'];
         yield 'exchange off' => ['exchange_off'];
-        yield 'member ruhend' => ['ruhend'];
         yield 'account blocked' => ['blocked'];
         yield 'no mobile number any more' => ['no_phone'];
         yield 'subscription switched off' => ['no_subscription'];
@@ -115,7 +148,6 @@ class RecipientResolverTest extends TestCase
             'revoked' => $this->consents()->revoke($user, 'account'),
             // Raw update: the exchange switch must keep the user out even where no hook revoked the consent.
             'exchange_off' => UserMeta::query()->where('uid', $user->uid)->where('key', 'player-exchange')->update(['value' => '0']),
-            'ruhend' => Member::query()->where('user_id', $user->uid)->update(['status' => 'ruhend']),
             'blocked' => User::query()->whereKey($user->uid)->update(['status' => 'blocked']),
             'no_phone' => UserMeta::query()->where('uid', $user->uid)->where('key', 'phone')->update(['value' => '']),
             'no_subscription' => NotificationSubscription::query()->where('user_id', $user->uid)->delete(),

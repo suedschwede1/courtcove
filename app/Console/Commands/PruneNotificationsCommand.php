@@ -8,13 +8,13 @@ use App\Models\NotificationConsent;
 use App\Models\NotificationLogEntry;
 use App\Models\NotificationSubscription;
 use App\Models\User;
-use App\Modules\Members\Models\Member;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 
 /**
  * Retention for the WhatsApp tables (daily): log rows after 12 months, revoked consents 3 years after the
- * revocation; for deleted or anonymised users the subscriptions go and the log loses its user link.
+ * revocation; for deleted or missing booking accounts the subscriptions go and the log loses its user link.
+ * Only the account counts: a member record (anonymised or not) does not end an account's WhatsApp data.
  * The monthly usage table stays. Output: counters only.
  */
 class PruneNotificationsCommand extends Command
@@ -41,7 +41,7 @@ class PruneNotificationsCommand extends Command
         return self::SUCCESS;
     }
 
-    /** @return \Generator<int, list<int>> chunks of ids of users that are deleted, anonymised or gone */
+    /** @return \Generator<int, list<int>> chunks of ids of users that are deleted or gone */
     private function goneUserIds(): \Generator
     {
         $referenced = collect()
@@ -54,8 +54,7 @@ class PruneNotificationsCommand extends Command
         foreach ($referenced->chunk(500) as $chunk) {
             $ids = $chunk->all();
             $present = User::query()->whereIn('uid', $ids)->where('status', '!=', 'deleted')->pluck('uid')->map(fn ($id): int => (int) $id)->all();
-            $anonymised = Member::query()->whereIn('user_id', $ids)->whereNotNull('anonymized_at')->pluck('user_id')->map(fn ($id): int => (int) $id)->all();
-            $gone = array_values(array_diff($ids, array_diff($present, $anonymised)));
+            $gone = array_values(array_diff($ids, $present));
             if ($gone !== []) {
                 yield $gone;
             }
