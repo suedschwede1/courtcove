@@ -638,6 +638,10 @@
         align-items: start;
     }
 
+    .mbr-dashboard-last {
+        margin-top: 16px;
+    }
+
     .mbr-bar-row + .mbr-bar-row {
         margin-top: 14px;
     }
