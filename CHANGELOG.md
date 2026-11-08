@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-08
+- Calendar board on medium widths: the board is now a size container; below the three-day minimum (980px of board width) it shows two days (selected day and the next) instead of scrolling sideways with the third day cut off. Phones (< 48rem) still show one day, wide boards three. Step size, arrows and date picker are unchanged.
 - Calendar: player search and series bookings no longer rely on two similar violets. A search cell gets a 2px violet ring and a person-plus symbol before its "Sucht noch N" text; a series cell gets a bar on its left edge; the legend lists the series state too ("Abo / Serie") and the swatches match.
 - Player lists: legacy rows with several names in one field ("Helga, Sandra, Inge") are split into single names centrally (comma, semicolon, slash, "und"), so lists and the "+N" count are right in the calendar, dialogs and lists. The phone cell shows full names on up to two lines ("+N" after four); the title lists everyone.
 - Players of a booking in every list: one model helper (other players without the booker, short first names) feeds the calendar cell, the My bookings list (new column), the admin dashboard table (new column) and the booking confirmation mail (teammates row); admin bookings list and detail already showed them. Members only, guests get no names.
