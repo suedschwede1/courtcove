@@ -116,7 +116,8 @@ class HouseholdDue extends Model
     /** @return BelongsToMany<Payment, $this> */
     public function payments(): BelongsToMany
     {
-        return $this->belongsToMany(Payment::class, 'household_due_payment', 'household_due_id', 'payment_id')
+        // Only payments that are not cancelled pay a due (see MemberDue::payments()).
+        return $this->belongsToMany(Payment::class, 'household_due_payment', 'household_due_id', 'payment_id')->whereNull('payments.cancelled_at')
             ->withTimestamps();
     }
 }

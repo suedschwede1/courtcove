@@ -563,6 +563,9 @@ final class DatabaseSchemaChecker
                 'note' => fn (Blueprint $t) => $t->string('note', 255)->nullable(),
                 'created_at' => fn (Blueprint $t) => $t->timestamp('created_at')->nullable(),
                 'updated_at' => fn (Blueprint $t) => $t->timestamp('updated_at')->nullable(),
+                'cancelled_at' => fn (Blueprint $t) => $t->dateTime('cancelled_at')->nullable(),
+                'cancelled_by' => fn (Blueprint $t) => $t->unsignedInteger('cancelled_by')->nullable(),
+                'cancel_reason' => fn (Blueprint $t) => $t->string('cancel_reason', 500)->nullable(),
             ],
             'payment_dues' => [
                 'id' => fn (Blueprint $t) => $t->id(),

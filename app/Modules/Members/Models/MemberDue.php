@@ -107,6 +107,13 @@ class MemberDue extends Model
     /** @return BelongsToMany<Payment, $this> */
     public function payments(): BelongsToMany
     {
+        // Only payments that are not cancelled pay a due; every "linked payment = paid" rule goes through here.
+        return $this->belongsToMany(Payment::class, 'payment_dues')->whereNull('payments.cancelled_at');
+    }
+
+    /** Every payment ever linked, cancelled ones included (history). @return BelongsToMany<Payment, $this> */
+    public function allPayments(): BelongsToMany
+    {
         return $this->belongsToMany(Payment::class, 'payment_dues');
     }
 

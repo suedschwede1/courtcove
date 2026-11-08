@@ -230,6 +230,7 @@
         <x-ui.button variant="secondary" :block="false" :href="route('members.payments.create', $member)">{{ __('members::admin.payments.new_payment') }}</x-ui.button>
     </div>
 </x-ui.card>
+@include('members::members._payments-card')
 </div>
 
 <div class="mbr-detail__side">

@@ -12,6 +12,7 @@ use App\Modules\Members\Models\HouseholdDue;
 use App\Modules\Members\Models\Member;
 use App\Modules\Members\Models\MemberChange;
 use App\Modules\Members\Models\MemberHousehold;
+use App\Modules\Members\Models\Payment;
 use App\Modules\Members\Support\HouseholdService;
 use App\Modules\Members\Support\MemberChangeLogger;
 use App\Modules\Members\Support\MemberConnectionService;
@@ -112,6 +113,12 @@ class MemberController
             // Household dues covering the member: rows with a "Haushalt" chip in the dues card (status editable like the list).
             'coveringDues' => $member->coveringHouseholdDues()->with('fiscalYear', 'household.members', 'payments')->withExists('payments')->get()
                 ->sortByDesc(fn (HouseholdDue $due) => $due->fiscalYear->starts_on->toDateString())->values(),
+            // Payments of the member and of household dues covering the member, cancelled ones included.
+            'payments' => Payment::query()
+                ->where(fn ($q) => $q->where('member_id', $member->id)
+                    ->orWhereHas('householdDues', fn ($h) => $h->whereHas('coveredMembers', fn ($m) => $m->whereKey($member->id))))
+                ->with(['dues.fiscalYear', 'householdDues.fiscalYear', 'householdDues.household', 'cancelledByUser'])
+                ->orderByDesc('paid_at')->orderByDesc('id')->get(),
             'changes' => MemberChange::where('member_id', $member->id)->with('adminUser')->latest()->get(),
             'users' => User::query()->orderBy('alias')->get(),
             ...$this->householdCardData($member),
