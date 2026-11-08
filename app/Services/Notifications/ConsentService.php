@@ -41,7 +41,8 @@ final class ConsentService
     /**
      * Checks the booking account only, in order: main switch, account enabled (not blocked, disabled or
      * deleted), mobile number in the account, then the purpose's own prerequisite (player search: player
-     * exchange switched on; none for a purpose without condition or when `$purpose` is null). A member record
+     * exchange switched on; none for a purpose without condition or when `$purpose` is null; an unregistered
+     * purpose fails as `unknown_purpose`, a broken condition as `condition_invalid`). A member record
      * (linked or not, in whatever state) plays no part. The admin test skips only the purpose prerequisite,
      * so an admin account can test without being in the exchange.
      */
@@ -64,7 +65,14 @@ final class ConsentService
             }, $phone->e164, $phone->last2());
         }
 
-        $failure = $forAdminTest || $purpose === null ? null : $this->registry->purpose($purpose)?->gateFailure($user);
+        // Fails closed: a purpose that is not registered (any more) lets nobody through.
+        $definition = $purpose === null ? null : $this->registry->purpose($purpose);
+        $failure = match (true) {
+            $purpose === null => null,
+            $definition === null => 'unknown_purpose',
+            $forAdminTest => null,
+            default => $definition->gateFailure($user),
+        };
         if ($failure !== null) {
             return GateResult::fail($failure, $phone->e164, $phone->last2());
         }
@@ -218,11 +226,7 @@ final class ConsentService
             $count++;
         }
 
-        $subscriptions = NotificationSubscription::query()->where('user_id', $userId)->where('channel', self::CHANNEL);
-        if ($purpose !== null) {
-            $subscriptions->whereIn('type', $this->registry->typesOfPurpose($purpose));
-        }
-        $subscriptions->delete();
+        $this->deleteSubscriptions($userId, self::CHANNEL, $purpose);
 
         if ($count > 0) {
             Log::info('whatsapp consent revoked', ['user_id' => $userId, 'via' => $via, 'count' => $count]);
@@ -234,11 +238,21 @@ final class ConsentService
     private function revokeRow(NotificationConsent $consent, string $via): void
     {
         $consent->revoke($via);
-        NotificationSubscription::query()
-            ->where('user_id', $consent->user_id)
-            ->where('channel', $consent->channel)
-            ->whereIn('type', $this->registry->typesOfPurpose($consent->purpose))
-            ->delete();
+        $this->deleteSubscriptions((int) $consent->user_id, $consent->channel, $consent->purpose);
+    }
+
+    /**
+     * Deletes the user's subscriptions of a purpose's types (all of them when `$purpose` is null). For a purpose
+     * that is no longer registered its types are unknown, so every subscription of the user goes: a consent
+     * ends, nothing may keep sending on its behalf.
+     */
+    private function deleteSubscriptions(int $userId, string $channel, ?string $purpose): void
+    {
+        $query = NotificationSubscription::query()->where('user_id', $userId)->where('channel', $channel);
+        if ($purpose !== null && $this->registry->purpose($purpose) !== null) {
+            $query->whereIn('type', $this->registry->typesOfPurpose($purpose));
+        }
+        $query->delete();
     }
 
     private function subscribe(User $user, string $purpose): void

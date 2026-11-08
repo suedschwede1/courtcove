@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Notifications;
 
 use App\Events\PlayerSearchStarted;
+use App\Models\NotificationConsent;
 use App\Models\NotificationLogEntry;
 use App\Models\NotificationSubscription;
 use App\Models\PlayerSearch;
@@ -13,8 +14,10 @@ use App\Models\User;
 use App\Models\UserMeta;
 use App\Modules\Members\Models\Member;
 use App\Notifications\Registry\NotificationRegistry;
+use App\Notifications\Registry\NotificationTypeDefinition;
 use App\Notifications\Types\NotificationTypes;
 use App\Services\Notifications\RecipientResolver;
+use App\Services\Notifications\Resolvers\AdminTestResolver;
 use App\Services\PlayerExchangeService;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -201,6 +204,17 @@ class RecipientResolverTest extends TestCase
         $this->sentRows($quiet, 2, Carbon::parse('2026-10-30 12:00:00'));          // last month: does not count
         $this->sentRows($fresh, 2, null, NotificationLogEntry::SKIPPED);            // not sent: does not count
         $this->sentRows($fresh, 5, null, NotificationLogEntry::SENT, NotificationTypes::ADMIN_TEST); // admin test: does not count
+        // Any other registered test type does not count either.
+        app(NotificationRegistry::class)->register(new NotificationTypeDefinition(
+            key: 'extra.test',
+            labelKey: 'booking.notifications.types.test.label',
+            descriptionKey: 'booking.notifications.types.test.description',
+            templateKey: 'extra_test',
+            resolver: AdminTestResolver::class,
+            purpose: NotificationConsent::PURPOSE_PLAYER_SEARCH,
+            testType: true,
+        ));
+        $this->sentRows($fresh, 5, null, NotificationLogEntry::SENT, 'extra.test');
 
         $this->assertSame([$quiet->uid, $fresh->uid, $middle->uid, $busy->uid], $this->uids($this->search()));
     }

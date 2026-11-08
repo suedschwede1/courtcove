@@ -28,6 +28,9 @@ class AdminWhatsAppPageTest extends TestCase
 
     private const SERVICE = 'MGtest00000000000000000000000002';
 
+    /** Form field of the "search closed" follow-up switch. */
+    private const FOLLOWUP_FIELD = 'followup_closed';
+
     private function admin(): User
     {
         return User::factory()->create(['status' => 'admin']);
@@ -366,5 +369,30 @@ class AdminWhatsAppPageTest extends TestCase
         Log::shouldHaveReceived('info')->withArgs(
             fn (string $m, array $c = []): bool => $m === 'admin.whatsapp.config_changed' && in_array('enabled', $c['fields'], true) && in_array('driver', $c['fields'], true),
         )->once();
+    }
+
+    #[Test]
+    public function followup_switch_reads_and_writes_the_type_option_only(): void
+    {
+        $typeOption = 'whatsapp.type.player_search.closed.enabled';
+        $checked = fn (string $html): bool => preg_match('/name="'.preg_quote(self::FOLLOWUP_FIELD, '/').'"[^>]*checked/', $html) === 1;
+
+        // The old option is only a read fallback while the type option is unset.
+        Option::create(['key' => 'whatsapp.followup_closed', 'value' => '1', 'locale' => null]);
+        $this->assertTrue($checked($this->page()));
+
+        // The type option wins over the old one.
+        Option::create(['key' => $typeOption, 'value' => '0', 'locale' => null]);
+        $this->assertFalse($checked($this->page()));
+
+        // Saving writes the type option and drops the old one.
+        $this->save([self::FOLLOWUP_FIELD => '1'])->assertRedirect();
+        $this->assertSame('1', $this->opt($typeOption));
+        $this->assertNull($this->opt('whatsapp.followup_closed'));
+        $this->assertTrue($this->settings()->followupClosed());
+
+        $this->save([])->assertRedirect();
+        $this->assertSame('0', $this->opt($typeOption));
+        $this->assertFalse($this->settings()->followupClosed());
     }
 }

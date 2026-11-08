@@ -10,6 +10,7 @@ use App\Models\Option;
 use App\Notifications\AdminTestNotification;
 use App\Notifications\Channels\WhatsAppChannel;
 use App\Notifications\Registry\NotificationRegistry;
+use App\Notifications\Types\NotificationTypes;
 use App\Services\Notifications\BudgetService;
 use App\Services\Notifications\ConsentService;
 use App\Services\Notifications\NotificationDispatcher;
@@ -61,7 +62,6 @@ final class WhatsAppController extends Controller
     private const SWITCHES = [
         'enabled' => 'whatsapp.enabled',
         'sandbox' => 'whatsapp.sandbox',
-        'followup_closed' => 'whatsapp.followup_closed',
     ];
 
     private const LOCALES = ['de', 'en'];
@@ -112,12 +112,14 @@ final class WhatsAppController extends Controller
         if ($admin === null) {
             abort(403);
         }
-        $gate = $consents->gate($admin, forAdminTest: true);
+        // The consent the admin test needs is the purpose of its type definition (player search today).
+        $purpose = $this->registry->type(NotificationTypes::ADMIN_TEST)?->purpose;
+        $gate = $consents->gate($admin, true, $purpose);
         if (! $gate->passed) {
             return $refuse((string) $gate->reason);
         }
-        $consent = $consents->activeConsent($admin);
-        if ($consent === null || ! $consents->matchesCurrentPhone($consent, $admin)) {
+        $consent = $purpose === null ? null : $consents->activeConsent($admin, $purpose);
+        if ($purpose !== null && ($consent === null || ! $consents->matchesCurrentPhone($consent, $admin))) {
             // The flash text cannot hold a link; the page shows one next to the test button.
             return $refuse('no_consent')->with('whatsapp_account_link', true);
         }
@@ -194,6 +196,7 @@ final class WhatsAppController extends Controller
                 ? (string) $this->settings->value($field)
                 : (string) Option::getValue($key, '');
         }
+        $values['followup_closed'] = $this->settings->typeEnabled(NotificationTypes::PLAYER_SEARCH_CLOSED) ? '1' : '';
 
         $templates = [];
         foreach ($this->templateFields() as $field => [$key]) {
@@ -280,13 +283,16 @@ final class WhatsAppController extends Controller
             }
         }
 
-        foreach (['sandbox', 'followup_closed'] as $field) {
-            if ($field === 'sandbox' && in_array($field, $locked, true)) {
-                continue;
-            }
-            if ($this->store(self::SWITCHES[$field], $request->boolean($field) ? '1' : null)) {
-                $changed[] = $field;
-            }
+        if (! in_array('sandbox', $locked, true) && $this->store(self::SWITCHES['sandbox'], $request->boolean('sandbox') ? '1' : null)) {
+            $changed[] = 'sandbox';
+        }
+        // The follow-up switch is the type switch of player_search.closed; the old option is only a read fallback.
+        $closedOption = WhatsAppSettings::typeEnabledOption(NotificationTypes::PLAYER_SEARCH_CLOSED);
+        $closedBefore = $this->settings->typeEnabled(NotificationTypes::PLAYER_SEARCH_CLOSED);
+        $this->store($closedOption, $request->boolean('followup_closed') ? '1' : '0');
+        $this->store('whatsapp.followup_closed', null);
+        if ($closedBefore !== $this->settings->typeEnabled(NotificationTypes::PLAYER_SEARCH_CLOSED)) {
+            $changed[] = 'followup_closed';
         }
 
         foreach (self::SECRETS as $field => $logText) {

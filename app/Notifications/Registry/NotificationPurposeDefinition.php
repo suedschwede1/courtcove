@@ -35,6 +35,9 @@ final readonly class NotificationPurposeDefinition
         if (preg_match(self::KEY_PATTERN, $key) !== 1) {
             throw new InvalidArgumentException("Invalid consent purpose key [$key].");
         }
+        if (is_string($gateCondition) && ! is_subclass_of($gateCondition, PurposeGateCondition::class)) {
+            throw new InvalidArgumentException("Gate condition [$gateCondition] of purpose [$key] is no PurposeGateCondition.");
+        }
     }
 
     /** Version of the consent text, stored with every consent of this purpose (max. 32 characters). */
@@ -43,7 +46,10 @@ final readonly class NotificationPurposeDefinition
         return substr((string) trans($this->consentVersionKey), 0, 32);
     }
 
-    /** Gate reason when the account misses the purpose's own prerequisite, null when it qualifies. */
+    /**
+     * Gate reason when the account misses the purpose's own prerequisite, null when it qualifies. Fails closed
+     * (`condition_invalid`) when the container hands back something that is no PurposeGateCondition.
+     */
     public function gateFailure(User $user): ?string
     {
         $condition = $this->gateCondition;
@@ -57,6 +63,6 @@ final readonly class NotificationPurposeDefinition
             $condition = app($condition);
         }
 
-        return $condition instanceof PurposeGateCondition ? $condition->failure($user) : null;
+        return $condition instanceof PurposeGateCondition ? $condition->failure($user) : 'condition_invalid';
     }
 }
