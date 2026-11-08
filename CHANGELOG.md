@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-08
+- Player exchange: joining no longer needs the detour via My account. A member outside the exchange who taps a player search now gets the join dialog with the consent notice and one button (join the exchange and play); ticking Seek players in the booking dialog shows a notice and joins the exchange with the booking. The consent is stored with time, source and notice version; My account keeps the checkbox, every e-mail keeps the unsubscribe link. The separate hint dialog is gone.
 - Booking dialog: a reply that is not JSON (maintenance mode during a deploy, expired session) now says so instead of the generic save error, and validation messages are shown. An unexpected failure while booking is logged (exception class and location, court, date, number of players; no names or messages).
 
 ## 2026-11-07

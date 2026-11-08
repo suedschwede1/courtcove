@@ -202,7 +202,7 @@ final class CalendarSeekingStateTest extends TestCase
     }
 
     #[Test]
-    public function other_member_click_opens_the_info_dialog(): void
+    public function member_outside_the_exchange_click_opens_the_join_dialog_to_join_with_one_click(): void
     {
         $this->search($this->booking(User::factory()->create(), 15), 15);
 
@@ -210,10 +210,11 @@ final class CalendarSeekingStateTest extends TestCase
         $cell = $this->cell($this->xpath($html), 15);
 
         $this->assertSame('seeking', $cell->getAttribute('data-state'));
-        $this->assertStringContainsString("\$dispatch('open-join-info'", $this->click($html, 'seeking'));
-        $this->assertStringNotContainsString("'open-join'", $this->click($html, 'seeking'));
-        $this->assertStringContainsString('id="join-info-dialog"', $html);
-        $this->assertStringContainsString(route('account.edit'), $html);
+        $click = $this->click($html, 'seeking');
+        $this->assertStringContainsString("\$dispatch('open-join'", $click);
+        $this->assertStringContainsString('optedIn: false', $click);
+        $this->assertStringNotContainsString('open-join-info', $html);
+        $this->assertStringNotContainsString('join-info-dialog', $html);
     }
 
     #[Test]

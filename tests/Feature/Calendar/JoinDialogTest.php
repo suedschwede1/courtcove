@@ -97,11 +97,11 @@ final class JoinDialogTest extends TestCase
 
     private function dialog(string $html): string
     {
-        // The join dialog block: from the x-data wrapper that listens for open-join to the info dialog after it.
+        // The join dialog block: from the x-data wrapper that listens for open-join to the end of the page.
         $listener = strpos($html, '@open-join.window');
         $this->assertNotFalse($listener);
         $start = strrpos(substr($html, 0, $listener), '<div x-data');
-        $end = strpos($html, '@open-join-info.window');
+        $end = strlen($html);
         $this->assertNotFalse($start);
         $this->assertNotFalse($end);
 
@@ -129,13 +129,15 @@ final class JoinDialogTest extends TestCase
         // Closed while the request runs (Escape, backdrop, X): reload once the answer is in.
         $this->assertMatchesRegularExpression('/close\(\) \{.*?if \(this\.loading\) \{\s*this\.closeAfterRequest = true;/s', $dialog);
         $this->assertMatchesRegularExpression('/finally \{.*?if \(this\.closeAfterRequest\) \{\s*window\.location\.reload\(\);/s', $dialog);
-        // Each visible primary action (Mitspielen / Austragen / Zu meinem Konto) can take the first focus.
-        $this->assertSame(3, preg_match_all('/\sdata-modal-initial\b/', $dialog), 'join, leave, account');
+        // Each visible primary action (Mitspielen / Austragen) can take the first focus.
+        $this->assertSame(2, preg_match_all('/\sdata-modal-initial\b/', $dialog), 'join, leave');
 
-        // Buttons and texts: join, leave, the hint for members outside the exchange, the result.
+        // Buttons and texts: join, leave, the consent notice with the one-click button for members outside the exchange, the result.
         $this->assertStringContainsString('Mitspielen', $dialog);
         $this->assertStringContainsString('Austragen', $dialog);
-        $this->assertStringContainsString(route('account.edit'), $dialog);
+        $this->assertStringContainsString(__('booking.calendar.join.opt_in_hint'), $dialog);
+        $this->assertStringContainsString(__('booking.calendar.join.join_and_enter'), $dialog);
+        $this->assertStringNotContainsString(route('account.edit'), $dialog);
         $this->assertStringContainsString(__('booking.messages.player_exchange.joined'), $dialog);
         $this->assertStringContainsString(__('booking.messages.player_exchange.left'), $dialog);
         $this->assertStringContainsString(__('booking.calendar.join.failed'), $dialog);

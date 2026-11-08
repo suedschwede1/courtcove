@@ -152,7 +152,7 @@
     </div>
 </div>
 
-<x-calendar.modals :date="$date" :squares="$squares" />
+<x-calendar.modals :date="$date" :squares="$squares" :player-exchange-opted-in="$playerExchangeOptedIn ?? false" />
 @endsection
 
 

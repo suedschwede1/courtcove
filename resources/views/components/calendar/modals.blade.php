@@ -1,4 +1,4 @@
-@props(['date', 'squares'])
+@props(['date', 'squares', 'playerExchangeOptedIn' => false])
 
 @auth
 <div x-data="{
@@ -258,6 +258,8 @@
         search: false,
         searchCount: '1',
         searched: false,
+        optedIn: @js((bool) $playerExchangeOptedIn),
+        newlyJoined: false,
         acResults: [],
         acOpen: false,
         error: null,
@@ -345,6 +347,7 @@
             this.search = false;
             this.searchCount = '1';
             this.searched = false;
+            this.newlyJoined = false;
             this.acResults = [];
             this.acOpen = false;
             this.error = null;
@@ -369,6 +372,8 @@
                     this.redirect = json.redirect;
                     this.quote = json.quote ?? null;
                     this.searched = json.search === true;
+                    this.newlyJoined = json.opted_in === true;
+                    if (this.newlyJoined) this.optedIn = true;
                     this.state = 'success';
                     this.$nextTick(() => document.querySelector('#booking-dialog [data-modal-initial]')?.focus());
                 } else {
@@ -424,6 +429,9 @@
                         <template x-for="n in searchOptions" :key="n"><option :value="n" x-text="n"></option></template>
                     </select>
                 </x-ui.field>
+                {{-- Not yet in the exchange: seeking players joins it; the flag below is the member's consent to the notice. --}}
+                <input type="hidden" name="player_exchange_opt_in" value="1" x-bind:disabled="!(search && !optedIn)">
+                <x-ui.notice tone="neutral" x-show="search && !optedIn">{{ __('booking.modal.search_opt_in_hint') }}</x-ui.notice>
             </div>
 
             <x-ui.notice tone="problem" x-show="error" data-booking-error tabindex="-1"><span x-text="error"></span></x-ui.notice>
@@ -434,6 +442,7 @@
             <p class="ds-success__title">{{ __('booking.modal.success_title') }}</p>
             <p class="ds-success__text" x-text="dateLabel + ' · ' + timeRange + ' · ' + courtLabel"></p>
             <p class="ds-success__text" x-show="searched">{{ __('booking.modal.search_success') }}</p>
+            <p class="ds-success__text" x-show="searched && newlyJoined">{{ __('booking.modal.search_opted_in_done') }}</p>
             <p class="ds-modal__quote" x-show="quote" x-text="quote"></p>
         </div>
 
@@ -579,7 +588,7 @@
             return @js(__('booking.calendar.join.players')).replace(':players', this.players.join(', '));
         },
         get canJoin() {
-            return this.optedIn && !this.joined;
+            return !this.joined;
         },
         openJoin(detail) {
             // A request from a dialog closed mid-way is still running; its reload follows.
@@ -627,6 +636,8 @@
                         'X-Requested-With': 'XMLHttpRequest',
                         'Accept': 'application/json',
                     },
+                    // Not yet in the exchange: the button offers to join it and play, and the notice says so.
+                    body: method === 'POST' && !this.optedIn ? new URLSearchParams({ opt_in: '1' }) : undefined,
                 });
                 let json = {};
                 try { json = await res.json(); } catch { json = {}; }
@@ -669,9 +680,8 @@
             <p class="ds-modal__message" x-show="players.length > 0" x-text="playersText"></p>
 
             <x-ui.notice tone="neutral" x-show="joined">{{ __('booking.calendar.join.joined_hint') }}</x-ui.notice>
-            {{-- Fallback only: cells send members outside the exchange to the hint dialog (open-join-info),
-                 except one already signed up, who opens this dialog as joined to leave. --}}
-            <x-ui.notice tone="attention" x-show="!optedIn && !joined">{{ __('booking.calendar.join.not_opted_in') }}</x-ui.notice>
+            {{-- Not yet in the exchange: the notice is the consent text, the button below agrees to it. --}}
+            <x-ui.notice tone="neutral" x-show="!optedIn && !joined">{{ __('booking.calendar.join.opt_in_hint') }}</x-ui.notice>
             <x-ui.notice tone="problem" x-show="error"><span x-text="error"></span></x-ui.notice>
         </div>
 
@@ -685,50 +695,13 @@
         <x-slot:footer>
             <div class="ds-modal__footer-part" x-show="state === 'form'">
                 <x-ui.button variant="secondary" :block="false" class="ds-modal__dismiss" x-on:click="close()">{{ __('booking.modal.cancel') }}</x-ui.button>
-                <x-ui.button :block="false" x-show="canJoin" data-modal-initial x-bind:disabled="loading" x-on:click="send('POST')"><span x-text="loading ? @js(__('booking.calendar.join.joining')) : @js(__('booking.calendar.join.join'))"></span></x-ui.button>
+                <x-ui.button :block="false" x-show="canJoin" data-modal-initial x-bind:disabled="loading" x-on:click="send('POST')"><span x-text="loading ? @js(__('booking.calendar.join.joining')) : (optedIn ? @js(__('booking.calendar.join.join')) : @js(__('booking.calendar.join.join_and_enter')))"></span></x-ui.button>
                 <x-ui.button variant="danger" :block="false" x-show="joined" data-modal-initial x-bind:disabled="loading" x-on:click="send('DELETE')"><span x-text="loading ? @js(__('booking.calendar.join.leaving')) : @js(__('booking.calendar.join.leave'))"></span></x-ui.button>
-                <x-ui.button :block="false" :href="route('account.edit')" x-show="!optedIn && !joined" data-modal-initial>{{ __('booking.calendar.join.account') }}</x-ui.button>
             </div>
             <div class="ds-modal__footer-part ds-modal__footer-part--stack" x-show="state === 'success'">
                 <x-ui.button variant="dark" data-join-done x-on:click="close()">{{ __('booking.modal.to_calendar') }}</x-ui.button>
             </div>
         </x-slot:footer>
-    </x-ui.modal>
-</div>
-@endauth
-
-{{-- Player search, viewer not in the player exchange: explain how to take part. --}}
-@auth
-<div x-data="{
-        open: false,
-        squareName: '',
-        dateLabel: '',
-        timeLabel: '',
-        openInfo(detail) {
-            this.squareName = detail.squareName;
-            this.dateLabel  = detail.dateLabel;
-            this.timeLabel  = detail.timeLabel;
-            this.open = true;
-        }
-     }"
-     @open-join-info.window="openInfo($event.detail)">
-    <x-ui.modal id="join-info-dialog" show="open" close="open = false">
-        <x-slot:title>
-            {{ __('booking.calendar.seeking_info.title') }}
-        </x-slot:title>
-
-        <x-ui.summary-tiles :items="[
-            ['label' => __('booking.calendar.date'), 'bind' => 'dateLabel'],
-            ['label' => __('booking.calendar.time'), 'bind' => 'timeLabel'],
-            ['label' => __('booking.calendar.court'), 'bind' => 'squareName'],
-        ]" />
-
-        <p class="ds-modal__message">{{ __('booking.calendar.seeking_info.message') }}</p>
-
-        <div class="ds-modal__actions">
-            <x-ui.button :href="route('account.edit')" data-modal-initial>{{ __('booking.calendar.seeking_info.account') }}</x-ui.button>
-            <x-ui.button variant="secondary" class="ds-modal__dismiss" x-on:click="open = false">{{ __('booking.modal.close') }}</x-ui.button>
-        </div>
     </x-ui.modal>
 </div>
 @endauth
