@@ -145,6 +145,17 @@ return [
     |
     */
 
+    /*
+    | Staging mail protection (App\Services\Mail\StagingMailGuard): on a staging database (name ends in _staging)
+    | every mail goes to this one address; with a real transport and no valid address nothing is sent.
+    | No default: set it only in the staging .env. Has no effect on any other database.
+    */
+
+    'staging_redirect' => env('MAIL_STAGING_REDIRECT'),
+
+    /*
+    */
+
     'tournament' => [
         'from' => [
             'address' => env('TOURNAMENT_MAIL_FROM_ADDRESS'),
