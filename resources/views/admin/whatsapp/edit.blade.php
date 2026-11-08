@@ -28,6 +28,9 @@
 <div class="ds-admin-stack ds-admin-form-page">
     <x-admin.page-header :title="__('booking.admin.whatsapp.title')" :eyebrow="__('booking.admin.nav.eyebrow')">
         <p class="ds-admin-note">{{ __('booking.admin.whatsapp.intro') }}</p>
+        <x-slot:actions>
+            <x-ui.button :href="route('admin.whatsapp.log')" variant="secondary" :block="false">{{ __('booking.admin.whatsapp.open_log') }}</x-ui.button>
+        </x-slot:actions>
     </x-admin.page-header>
 
     @if($effectiveDriver === 'log')
@@ -40,7 +43,7 @@
         <x-ui.notice tone="attention">{{ __('booking.admin.whatsapp.not_ready.'.$notReady) }}</x-ui.notice>
     @endif
     @if($problemCount > 0)
-        <x-ui.notice tone="attention" data-whatsapp-warning="{{ $problemCount }}">{{ __('booking.admin.whatsapp.warning', ['count' => $problemCount]) }}</x-ui.notice>
+        <x-ui.notice tone="attention" data-whatsapp-warning="{{ $problemCount }}">{{ __('booking.admin.whatsapp.warning', ['count' => $problemCount]) }} <a href="{{ route('admin.whatsapp.log') }}" class="ds-admin-link">{{ __('booking.admin.whatsapp.open_log') }}</a></x-ui.notice>
     @endif
     @error('enabled')
         <x-ui.notice tone="problem">{{ $message }}</x-ui.notice>

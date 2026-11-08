@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DatabaseController;
 use App\Http\Controllers\Admin\EventController;
 use App\Http\Controllers\Admin\LoginHistoryController;
+use App\Http\Controllers\Admin\NotificationLogController;
 use App\Http\Controllers\Admin\OptionController;
 use App\Http\Controllers\Admin\SchedulerController;
 use App\Http\Controllers\Admin\SquareController;
@@ -154,6 +155,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function (): v
         Route::put('config/verhalten', [OptionController::class, 'updateBehavior'])->name('config.behavior.update');
         Route::get('whatsapp', [WhatsAppController::class, 'edit'])->name('whatsapp.edit');
         Route::put('whatsapp', [WhatsAppController::class, 'update'])->name('whatsapp.update');
+        Route::get('whatsapp/protokoll', [NotificationLogController::class, 'index'])->name('whatsapp.log');
         Route::post('whatsapp/probe', [WhatsAppController::class, 'probe'])->middleware('throttle:5,1')->name('whatsapp.probe');
         Route::post('whatsapp/test', [WhatsAppController::class, 'test'])->middleware('throttle:5,1')->name('whatsapp.test');
         Route::post('whatsapp/resume', [WhatsAppController::class, 'resume'])->name('whatsapp.resume');
