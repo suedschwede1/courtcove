@@ -72,6 +72,9 @@
                 <x-ui.button type="submit" variant="secondary" :block="false">{{ __('booking.admin.whatsapp.test') }}</x-ui.button>
             </form>
         </div>
+        @if(session('whatsapp_account_link'))
+            <p class="ds-field__help"><a href="{{ route('account.edit') }}#whatsapp" class="ds-admin-link">{{ __('booking.admin.whatsapp.open_account_card') }}</a></p>
+        @endif
     </x-ui.card>
 
     <form method="POST" action="{{ route('admin.whatsapp.update') }}" class="ds-admin-stack" autocomplete="off">

@@ -204,6 +204,7 @@ class AdminWhatsAppActionsTest extends TestCase
         $admin = $this->adminWithConsent(consent: false);
         $html = $this->as($admin)->followingRedirects()->post('/admin/whatsapp/test')->getContent();
         $this->assertStringContainsString(e(__('booking.admin.whatsapp.test_refused.no_consent')), $html);
+        $this->assertStringContainsString('href="'.route('account.edit').'#whatsapp"', $html);
         $this->assertSame(0, NotificationLogEntry::count());
 
         $admin = $this->adminWithConsent();

@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-08
+- WhatsApp admin test message: the refusal for a missing consent now links to the account card, and the runbook drops the Tinker workaround (consent is given in the card; Task 10 still follows).
 - Account page: new card "WhatsApp-Benachrichtigungen" (consent per purpose with the v1 text and a masked number, player search switch with weekday/time/singles-doubles filters, withdrawal with revoked_via account, STOP and changed-number notices, refusal texts for every gate reason with a profile link); hidden while the main switch is off.
 - WhatsApp branch files normalised to mode 644 (no behaviour change).
 - WhatsApp phone parsing drops a trunk zero after +43/+49 (+43 (0) 660 ... now counts as mobile), the admin switch check uses a closure transaction, and tests use only fictional 660 0000xxx numbers.

@@ -117,7 +117,8 @@ final class WhatsAppController extends Controller
         }
         $consent = $consents->activeConsent($admin);
         if ($consent === null || ! $consents->matchesCurrentPhone($consent, $admin)) {
-            return $refuse('no_consent');
+            // The flash text cannot hold a link; the page shows one next to the test button.
+            return $refuse('no_consent')->with('whatsapp_account_link', true);
         }
         if ($this->settings->pausedReason() !== null) {
             return $refuse('paused');
