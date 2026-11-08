@@ -11,6 +11,7 @@ use App\Models\TrustedDevice;
 use App\Models\User;
 use App\Services\TrustedDeviceService;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
@@ -228,7 +229,7 @@ class TrustedDeviceTest extends TestCase
     }
 
     #[Test]
-    public function code_sending_is_capped_per_hour(): void
+    public function code_sending_is_capped_per_hour_with_a_wait_message_not_a_lock(): void
     {
         Mail::fake();
         $admin = $this->admin();
@@ -241,8 +242,223 @@ class TrustedDeviceTest extends TestCase
 
         Mail::assertQueued(LoginVerificationCode::class, $max);
 
-        $this->signIn($admin)->assertRedirect(route('login.verify.show'))->assertSessionHasErrors('code');
+        $this->signIn($admin)->assertRedirect('/login')->assertSessionHasErrors('email');
+        $this->assertStringContainsString('Minuten', session('errors')->first('email'));
         Mail::assertQueued(LoginVerificationCode::class, $max);
+
+        // Only waiting: after the hour a code is possible again.
+        $this->travel(61)->minutes();
+        $this->flushSession();
+        $this->signIn($admin)->assertRedirect(route('login.verify.show'));
+    }
+
+    #[Test]
+    public function an_attacker_with_the_password_cannot_use_up_the_real_admins_code_sending(): void
+    {
+        Mail::fake();
+        $admin = $this->admin();
+
+        for ($i = 0; $i < 5; $i++) {
+            $this->withServerVariables(['REMOTE_ADDR' => '203.0.113.9'])->signIn($admin);
+            $this->flushSession();
+        }
+        $this->withServerVariables(['REMOTE_ADDR' => '203.0.113.9'])->signIn($admin)->assertRedirect('/login');
+        $this->flushSession();
+
+        // The real admin comes from another address: their own cap is untouched.
+        $this->withServerVariables(['REMOTE_ADDR' => '127.0.0.1'])->signIn($admin)->assertRedirect(route('login.verify.show'));
+    }
+
+    #[Test]
+    public function an_expired_device_is_confirmed_again_with_a_new_code_and_gets_a_new_cookie(): void
+    {
+        Mail::fake();
+        $admin = $this->admin();
+        [$oldToken, $old] = $this->deviceFor($admin, ['expires_at' => now()->subDay()]);
+
+        $this->signIn($admin, [$this->cookieName($admin) => $oldToken])->assertRedirect(route('login.verify.show'));
+        $response = $this->post('/login/verify', ['code' => $this->pendingCode()]);
+
+        $response->assertRedirect(route('calendar.index'));
+        $newToken = (string) $response->getCookie($this->cookieName($admin))->getValue();
+        $this->assertNotSame($oldToken, $newToken);
+        $this->assertSame(2, TrustedDevice::query()->where('user_id', $admin->uid)->count());
+
+        // The new cookie works without a code.
+        $this->post('/logout');
+        $this->signIn($admin, [$this->cookieName($admin) => $newToken])->assertRedirect(route('calendar.index'));
+        $this->assertAuthenticatedAs($admin);
+    }
+
+    #[Test]
+    public function a_new_code_can_always_be_requested_after_a_wrong_expired_or_used_up_code(): void
+    {
+        Mail::fake();
+        $admin = $this->admin();
+        $this->signIn($admin);
+
+        // Wrong tries to the limit, then an expired code: every time a new code is possible after the pause.
+        for ($i = 0; $i < 7; $i++) {
+            $this->post('/login/verify', ['code' => '000000']);
+        }
+        $pending = session('login.pending_verification');
+        session(['login.pending_verification' => array_merge($pending, ['expires_at' => now()->subMinute()->toIso8601String()])]);
+
+        $this->post('/login/verify', ['code' => '000000'])->assertSessionHasErrors('code');
+        $this->post('/login/verify/resend')->assertSessionHasErrors('code'); // within the pause: a wait message
+        $this->travel(31)->seconds();
+
+        $this->post('/login/verify/resend')->assertSessionHasNoErrors()->assertSessionHas('status');
+        $this->post('/login/verify', ['code' => $this->pendingCode()])->assertRedirect(route('calendar.index'));
+        $this->assertAuthenticatedAs($admin);
+    }
+
+    #[Test]
+    public function the_code_check_is_counted_server_side_per_account(): void
+    {
+        Mail::fake();
+        $admin = $this->admin();
+        $this->signIn($admin);
+        $good = $this->pendingCode();
+
+        // The session counter plays no role: whatever the session says, the sixth try is not even checked.
+        for ($i = 0; $i < 5; $i++) {
+            $this->post('/login/verify', ['code' => '000000']);
+            $pending = session('login.pending_verification');
+            $pending['attempts'] = 0;
+            session(['login.pending_verification' => $pending]);
+        }
+
+        $this->post('/login/verify', ['code' => $good])->assertSessionHasErrors('code');
+        $this->assertGuest();
+    }
+
+    #[Test]
+    public function a_password_reset_confirms_this_device_in_the_same_flow(): void
+    {
+        Mail::fake();
+        $admin = $this->admin();
+        $this->deviceFor($admin);
+        $token = Password::broker()->createToken($admin);
+
+        $this->post('/password/reset', [
+            'token' => $token,
+            'email' => $admin->email,
+            'password' => 'newsecret456',
+            'password_confirmation' => 'newsecret456',
+        ])->assertRedirect(route('login.verify.show'));
+
+        $this->assertGuest();
+        $this->assertSame(0, TrustedDevice::query()->valid()->count(), 'old devices are revoked');
+
+        $response = $this->post('/login/verify', ['code' => $this->pendingCode()]);
+
+        $response->assertRedirect(route('calendar.index'));
+        $this->assertAuthenticatedAs($admin);
+        $this->assertTrue(Hash::check('newsecret456', (string) $admin->fresh()->pw));
+        $this->assertNotNull($response->getCookie($this->cookieName($admin)));
+        $this->assertSame(1, TrustedDevice::query()->valid()->count());
+    }
+
+    #[Test]
+    public function a_password_reset_voids_open_codes_and_restarts_the_counters(): void
+    {
+        Mail::fake();
+        $admin = $this->admin();
+        $this->signIn($admin);
+        $oldCode = $this->pendingCode();
+        $session = session()->all();
+        RateLimiter::hit('login-verify-fail:'.$admin->uid);
+
+        $token = Password::broker()->createToken($admin);
+        $this->flushSession();
+        $this->post('/password/reset', [
+            'token' => $token,
+            'email' => $admin->email,
+            'password' => 'newsecret456',
+            'password_confirmation' => 'newsecret456',
+        ]);
+        $this->assertSame(0, RateLimiter::attempts('login-verify-fail:'.$admin->uid));
+
+        // The session that held the old code (another browser) can no longer use it.
+        $this->flushSession();
+        session($session);
+        $this->post('/login/verify', ['code' => $oldCode])->assertRedirect('/login');
+        $this->assertGuest();
+    }
+
+    #[Test]
+    public function the_verify_step_rechecks_the_account(): void
+    {
+        Mail::fake();
+        $admin = $this->admin();
+        $this->signIn($admin);
+        $code = $this->pendingCode();
+
+        $admin->update(['status' => 'blocked']);
+
+        $this->post('/login/verify', ['code' => $code])->assertRedirect('/login');
+        $this->assertGuest();
+        $this->assertSame(0, TrustedDevice::query()->count());
+    }
+
+    #[Test]
+    public function a_rights_change_between_password_and_code_voids_the_pending_code(): void
+    {
+        Mail::fake();
+        $admin = $this->admin();
+        $this->signIn($admin);
+        $code = $this->pendingCode();
+
+        usleep(2000);
+        app(TrustedDeviceService::class)->revokeAll($admin);
+
+        $this->post('/login/verify', ['code' => $code])->assertRedirect('/login');
+        $this->assertGuest();
+    }
+
+    #[Test]
+    public function a_user_with_only_the_members_right_needs_a_device_and_a_plain_member_does_not(): void
+    {
+        $assistant = $this->admin(['email' => 'kassier@example.com', 'status' => 'assist']);
+        $assistant->syncPrivileges(['admin.members']);
+        $this->assertTrue($assistant->fresh()->requiresTrustedDevice());
+        $this->assertTrue($this->admin(['email' => 'a2@example.com'])->requiresTrustedDevice());
+        $this->assertFalse($this->member()->requiresTrustedDevice());
+
+        Mail::fake();
+        $this->signIn($assistant->fresh())->assertRedirect(route('login.verify.show'));
+    }
+
+    #[Test]
+    public function changing_the_email_address_revokes_the_devices(): void
+    {
+        $admin = $this->admin();
+        $this->deviceFor($admin);
+
+        $this->actingAs($admin)->put('/my-account', ['alias' => $admin->alias, 'email' => 'new@example.com'])->assertRedirect(route('account.edit'));
+
+        $this->assertSame(0, TrustedDevice::query()->valid()->count());
+    }
+
+    #[Test]
+    public function a_password_change_ends_the_other_sessions_of_the_account(): void
+    {
+        config(['session.driver' => 'database']);
+        $admin = $this->admin();
+        $other = $this->admin(['email' => 'other@example.com']);
+        foreach (['mine-other-browser' => $admin->uid, 'foreign' => $other->uid] as $id => $uid) {
+            DB::table('sessions')->insert(['id' => $id, 'user_id' => $uid, 'ip_address' => '1.1.1.1', 'user_agent' => 'x', 'payload' => '', 'last_activity' => time()]);
+        }
+
+        $this->actingAs($admin)->put('/my-account/password', [
+            'current_password' => 'secret123',
+            'password' => 'newsecret456',
+            'password_confirmation' => 'newsecret456',
+        ]);
+
+        $this->assertDatabaseMissing('sessions', ['id' => 'mine-other-browser']);
+        $this->assertDatabaseHas('sessions', ['id' => 'foreign']);
     }
 
     #[Test]
@@ -316,25 +532,6 @@ class TrustedDeviceTest extends TestCase
         ])->assertRedirect(route('admin.users.index'));
 
         $this->assertSame(1, TrustedDevice::query()->valid()->where('user_id', $target->uid)->count());
-    }
-
-    #[Test]
-    public function a_password_reset_via_mail_link_revokes_devices_and_does_not_sign_a_privileged_account_in(): void
-    {
-        $admin = $this->admin();
-        $this->deviceFor($admin);
-        $token = Password::broker()->createToken($admin);
-
-        $this->post('/password/reset', [
-            'token' => $token,
-            'email' => $admin->email,
-            'password' => 'newsecret456',
-            'password_confirmation' => 'newsecret456',
-        ])->assertRedirect(route('login'));
-
-        $this->assertGuest();
-        $this->assertSame(0, TrustedDevice::query()->valid()->count());
-        $this->assertTrue(Hash::check('newsecret456', (string) $admin->fresh()->pw));
     }
 
     #[Test]

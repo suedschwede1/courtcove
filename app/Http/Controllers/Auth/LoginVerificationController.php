@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Mail\LoginVerificationCode;
 use App\Mail\TrustedDeviceAdded;
 use App\Models\LoginHistory;
 use App\Models\User;
 use App\Services\LoginBookkeeping;
+use App\Services\LoginVerificationService;
 use App\Services\TrustedDeviceService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,16 +22,19 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\View\View;
 
 /**
- * LoginVerificationController — the code-entry step for logins that
- * LoginController flagged as risky (see App\Services\LoginRiskEvaluator).
- * The pending state (hashed code, expiry, attempts, remember/redirect_to)
- * lives entirely in the session under 'login.pending_verification'.
+ * LoginVerificationController — the code-entry step for sign-ins that need an e-mail code (risk flags, a device
+ * that is not trusted yet, a password reset; see App\Services\LoginVerificationService). The pending state lives
+ * in the session under 'login.pending_verification'; the attempt counter lives server-side per account.
+ *
+ * A wrong, expired or used-up code never locks anything for good: "send a new code" is always possible, limited
+ * only by waiting times, and a new code voids the old one and restarts the counter.
  */
 final class LoginVerificationController extends Controller
 {
     public function __construct(
         private readonly LoginBookkeeping $bookkeeping,
         private readonly TrustedDeviceService $devices,
+        private readonly LoginVerificationService $verification,
     ) {}
 
     public function show(Request $request): RedirectResponse|View
@@ -55,27 +58,33 @@ final class LoginVerificationController extends Controller
 
         $data = $request->validate(['code' => ['required', 'string']]);
 
-        if (Carbon::parse($pending['expires_at'])->isPast()) {
+        $user = User::find($pending['user_id']);
+
+        // The account may have changed since the password step (disabled, removed, trust reset): start over.
+        if (! $user || ! $user->isEnabled() || $this->verification->isVoided($pending)) {
             $request->session()->forget('login.pending_verification');
 
             return redirect('/login')->withErrors(['code' => __('booking.auth.verify.expired')]);
         }
 
-        if (! Hash::check($data['code'], $pending['code_hash'])) {
-            $pending['attempts']++;
-
-            if ($pending['attempts'] >= (int) config('booking.login_verification.max_attempts')) {
-                $request->session()->forget('login.pending_verification');
-
-                return redirect('/login')->withErrors(['code' => __('booking.auth.verify.expired')]);
-            }
-
-            $request->session()->put('login.pending_verification', $pending);
-
-            return redirect()->route('login.verify.show')->withErrors(['code' => __('booking.auth.verify.invalid')]);
+        if (Carbon::parse($pending['expires_at'])->isPast()) {
+            return $this->back(__('booking.auth.verify.expired_new'));
         }
 
-        $user = User::findOrFail($pending['user_id']);
+        // Count first, then check: parallel guesses cannot all pass a "still below the limit" test.
+        $failKey = $this->verification->failKey($user);
+        $tries = RateLimiter::hit($failKey, (int) config('booking.login_verification.code_ttl_minutes') * 60);
+
+        if ($tries > (int) config('booking.login_verification.max_attempts')) {
+            return $this->back(__('booking.auth.verify.too_many_attempts'));
+        }
+
+        if (! Hash::check($data['code'], $pending['code_hash'])) {
+            return $this->back(__('booking.auth.verify.invalid'));
+        }
+
+        RateLimiter::clear($failKey);
+
         $ip = (string) ($pending['ip'] ?? $request->ip());
         $countryCode = isset($pending['country_code']) ? (string) $pending['country_code'] : null;
         $riskFlags = is_array($pending['risk_flags'] ?? null)
@@ -89,7 +98,7 @@ final class LoginVerificationController extends Controller
         $request->session()->forget('login.pending_verification');
 
         // The code proved access to the account's mailbox: this browser becomes a trusted device.
-        if (($pending['trust_device'] ?? false) === true) {
+        if (($pending['trust_device'] ?? false) === true && $this->devices->isRequiredFor($user)) {
             $device = $this->devices->issue($request, $user, $countryCode);
 
             try {
@@ -108,6 +117,7 @@ final class LoginVerificationController extends Controller
         return redirect()->to($pending['redirect_to']);
     }
 
+    /** "Send a new code": always allowed, limited by waiting times only (see LoginVerificationService). */
     public function resend(Request $request): RedirectResponse
     {
         $pending = $request->session()->get('login.pending_verification');
@@ -116,42 +126,27 @@ final class LoginVerificationController extends Controller
             return redirect('/login');
         }
 
-        $key = 'login-verify-resend:'.$pending['user_id'];
+        $user = User::find($pending['user_id']);
 
-        $sendKey = 'login-verify-send:'.$pending['user_id'];
+        if (! $user || ! $user->isEnabled() || $this->verification->isVoided($pending)) {
+            $request->session()->forget('login.pending_verification');
 
-        if (RateLimiter::tooManyAttempts($sendKey, (int) config('booking.login_verification.max_sends_per_hour'))) {
-            return redirect()->route('login.verify.show')->withErrors(['code' => __('booking.auth.verify.too_many_codes')]);
+            return redirect('/login')->withErrors(['code' => __('booking.auth.verify.expired')]);
         }
 
-        if (! RateLimiter::tooManyAttempts($key, 1)) {
-            RateLimiter::hit($key, (int) config('booking.login_verification.resend_decay_seconds'));
-            RateLimiter::hit($sendKey, 3600);
+        $result = $this->verification->resend($request, $user, $pending);
+        $ip = (string) ($pending['ip'] ?? $request->ip());
 
-            $code = (string) random_int(100000, 999999);
-            $newPending = $pending;
-            $newPending['code_hash'] = Hash::make($code);
-            $newPending['expires_at'] = now()->addMinutes((int) config('booking.login_verification.code_ttl_minutes'))->toIso8601String();
-            $newPending['attempts'] = 0;
+        return match ($result) {
+            LoginVerificationService::SENT => redirect()->route('login.verify.show')->with('status', __('booking.auth.verify.resent')),
+            LoginVerificationService::PAUSE => $this->back(__('booking.auth.verify.resend_wait', ['seconds' => $this->verification->waitSeconds($user, $ip)])),
+            LoginVerificationService::CAP => $this->back(__('booking.auth.verify.too_many_codes', ['minutes' => (int) ceil($this->verification->waitSeconds($user, $ip) / 60)])),
+            default => $this->back(__('booking.auth.verify.send_failed')),
+        };
+    }
 
-            $user = User::findOrFail($pending['user_id']);
-
-            try {
-                Mail::to($user->email)->send(new LoginVerificationCode($code, (bool) ($pending['trust_device'] ?? false)));
-            } catch (\Throwable $e) {
-                Log::error('Failed to resend login verification code', [
-                    'user_id' => $user->getKey(),
-                    'exception' => $e->getMessage(),
-                ]);
-
-                return redirect()->route('login.verify.show')->withErrors([
-                    'code' => __('booking.auth.verify.send_failed'),
-                ]);
-            }
-
-            $request->session()->put('login.pending_verification', $newPending);
-        }
-
-        return redirect()->route('login.verify.show');
+    private function back(string $message): RedirectResponse
+    {
+        return redirect()->route('login.verify.show')->withErrors(['code' => $message]);
     }
 }

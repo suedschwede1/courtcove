@@ -5,19 +5,17 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Mail\LoginVerificationCode;
 use App\Models\LoginHistory;
 use App\Models\User;
 use App\Services\GeoLookup;
 use App\Services\LoginBookkeeping;
 use App\Services\LoginRiskEvaluator;
+use App\Services\LoginVerificationService;
 use App\Services\TrustedDeviceService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -43,6 +41,7 @@ final class LoginController extends Controller
         private readonly GeoLookup $geoLookup,
         private readonly LoginRiskEvaluator $riskEvaluator,
         private readonly TrustedDeviceService $devices,
+        private readonly LoginVerificationService $verification,
     ) {}
 
     /** Render the login form. */
@@ -137,11 +136,17 @@ final class LoginController extends Controller
             Auth::logout();
             $request->session()->regenerate();
 
-            $started = $this->beginPendingVerification($request, $user, $rememberApplied, $redirectTarget, $ip, $countryCode, $riskFlags, $confirmNewDevice);
+            $started = $this->verification->begin($request, $user, $rememberApplied, $redirectTarget, $ip, $countryCode, $riskFlags, $confirmNewDevice);
 
-            if ($started !== true) {
+            if ($started === LoginVerificationService::CAP) {
+                return redirect('/login')->withErrors([
+                    'email' => __('booking.auth.verify.too_many_codes', ['minutes' => (int) ceil($this->verification->waitSeconds($user, $ip) / 60)]),
+                ])->withInput($request->except('password'));
+            }
+
+            if ($started === LoginVerificationService::MAIL_FAILED) {
                 return redirect()->route('login.verify.show')->withErrors([
-                    'code' => $started === 'throttled' ? __('booking.auth.verify.too_many_codes') : __('booking.auth.verify.send_failed'),
+                    'code' => __('booking.auth.verify.send_failed'),
                 ]);
             }
 
@@ -182,57 +187,6 @@ final class LoginController extends Controller
         }
 
         return redirect()->to($redirectTarget);
-    }
-
-    /**
-     * @param  array<int, string>  $riskFlags
-     * @return bool|string true when the code was sent, false when sending failed, 'throttled' at the hourly cap
-     */
-    private function beginPendingVerification(
-        Request $request,
-        User $user,
-        bool $remember,
-        string $redirectTo,
-        string $ip,
-        ?string $countryCode,
-        array $riskFlags,
-        bool $trustDevice = false,
-    ): bool|string {
-        $sendKey = 'login-verify-send:'.$user->getKey();
-
-        if (RateLimiter::tooManyAttempts($sendKey, (int) config('booking.login_verification.max_sends_per_hour'))) {
-            return 'throttled';
-        }
-
-        RateLimiter::hit($sendKey, 3600);
-
-        $code = (string) random_int(100000, 999999);
-
-        $request->session()->put('login.pending_verification', [
-            'user_id' => $user->getKey(),
-            'ip' => $ip,
-            'country_code' => $countryCode,
-            'risk_flags' => $riskFlags,
-            'code_hash' => Hash::make($code),
-            'expires_at' => now()->addMinutes((int) config('booking.login_verification.code_ttl_minutes'))->toIso8601String(),
-            'attempts' => 0,
-            'remember' => $remember,
-            'redirect_to' => $redirectTo,
-            'trust_device' => $trustDevice,
-        ]);
-
-        try {
-            Mail::to($user->email)->send(new LoginVerificationCode($code, $trustDevice));
-        } catch (\Throwable $e) {
-            Log::error('Failed to send login verification code', [
-                'user_id' => $user->getKey(),
-                'exception' => $e->getMessage(),
-            ]);
-
-            return false;
-        }
-
-        return true;
     }
 
     private function isLoginBlockedByCountry(?string $countryCode): bool

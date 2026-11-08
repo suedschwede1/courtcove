@@ -34,9 +34,12 @@ return [
     'login_verification' => [
         'code_ttl_minutes' => 10,
         'max_attempts' => 5,
-        'resend_decay_seconds' => 60,
-        // Codes sent per account and hour (first send plus resends), against mail flooding.
+        // Pause between two codes of one account (a new code is always possible, only after this wait).
+        'resend_decay_seconds' => 30,
+        // Codes per account, hour and IP address, and per account and hour in total, against mail flooding.
+        // Only waiting times, never a permanent lock.
         'max_sends_per_hour' => 5,
+        'max_sends_per_hour_total' => 15,
     ],
     // Trusted devices (see App\Services\TrustedDeviceService): privileged accounts must sign in from a device
     // that was confirmed once by e-mail code. Fixed validity from issue, no renewal ("once a month").

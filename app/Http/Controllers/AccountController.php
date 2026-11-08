@@ -176,10 +176,16 @@ final class AccountController extends Controller
             'gender' => ['nullable', 'string', 'max:128'],
         ]);
 
+        $emailBefore = (string) $user->email;
         $user->update([
             'alias' => $data['alias'],
             'email' => $data['email'] ?? null,
         ]);
+
+        // Codes and reset links go to the address: a changed address ends the trust in all devices.
+        if (Str::lower((string) $user->email) !== Str::lower($emailBefore)) {
+            app(TrustedDeviceService::class)->revokeAll($user, true, $request->session()->getId());
+        }
 
         foreach (self::PROFILE_FIELDS as $field) {
             $value = $data[$field] ?? null;
@@ -213,7 +219,7 @@ final class AccountController extends Controller
         }
 
         $user->update(['pw' => Hash::make($data['password'])]);
-        app(TrustedDeviceService::class)->revokeAll($user);
+        app(TrustedDeviceService::class)->revokeAll($user, true, $request->session()->getId());
 
         return redirect()->route('account.edit')->with('success', __('booking.messages.password_changed'));
     }

@@ -13,7 +13,7 @@ class ResetTrustedDevicesCommand extends Command
 {
     protected $signature = 'security:reset-devices {user : User id (uid) or e-mail address}';
 
-    protected $description = 'Revoke all trusted devices of an account so its next sign-in needs a new e-mail code';
+    protected $description = 'Revoke all trusted devices of an account and end its sessions; the next sign-in needs a new e-mail code';
 
     public function handle(TrustedDeviceService $devices): int
     {
@@ -29,7 +29,7 @@ class ResetTrustedDevicesCommand extends Command
             return self::FAILURE;
         }
 
-        $count = $devices->revokeAll($user);
+        $count = $devices->revokeAll($user, true);
 
         $this->info("Revoked {$count} trusted device(s) of user {$user->getKey()}.");
 

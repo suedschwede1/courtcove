@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\MessageBag;
+use Illuminate\Support\Str;
 use Illuminate\Support\ViewErrorBag;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -311,6 +312,7 @@ final class UserController extends Controller
 
         $role = $data['role'] ?? 'member';
         $wasEnabled = $user->isEnabled();
+        $emailBefore = (string) $user->email;
         $rightsBefore = [$user->effectiveRole(), $user->accountStatus(), $user->grantedPrivileges()];
         $user->update(['alias' => $data['alias'], 'email' => $data['email'] ?? null, ...self::statusRoleColumns($data['status'], $role)]);
         foreach (['firstname', 'lastname', 'phone'] as $field) {
@@ -330,8 +332,9 @@ final class UserController extends Controller
         sort($privilegesAfter);
         $privilegesBefore = $rightsBefore[2];
         sort($privilegesBefore);
-        if ($rightsBefore[0] !== $user->effectiveRole() || $rightsBefore[1] !== $user->accountStatus() || $privilegesBefore !== $privilegesAfter) {
-            app(TrustedDeviceService::class)->revokeAll($user);
+        $emailChanged = Str::lower((string) $user->email) !== Str::lower($emailBefore);
+        if ($emailChanged || $rightsBefore[0] !== $user->effectiveRole() || $rightsBefore[1] !== $user->accountStatus() || $privilegesBefore !== $privilegesAfter) {
+            app(TrustedDeviceService::class)->revokeAll($user, true, $this->ownSessionId($request, $user));
         }
 
         if (! $wasEnabled && $data['status'] === 'enabled' && ! empty($user->email)) {
@@ -345,7 +348,7 @@ final class UserController extends Controller
     {
         $request->validate(['password' => ['required', 'string', 'min:6']]);
         $user->update(['pw' => Hash::make($request->string('password')->value())]);
-        app(TrustedDeviceService::class)->revokeAll($user);
+        app(TrustedDeviceService::class)->revokeAll($user, true, $this->ownSessionId($request, $user));
 
         return back()->with('success', __('booking.messages.user_password_reset'));
     }
@@ -371,16 +374,22 @@ final class UserController extends Controller
             ->update(['status' => $data['action']]);
 
         foreach ($data['uids'] as $uid) {
-            app(TrustedDeviceService::class)->revokeAll((int) $uid);
+            app(TrustedDeviceService::class)->revokeAll((int) $uid, true);
         }
 
         return back()->with('success', count($data['uids']).' Benutzer aktualisiert.');
     }
 
-    public function destroy(User $user): RedirectResponse
+    /** The signed-in admin keeps their own session when they edit themselves. */
+    private function ownSessionId(Request $request, User $user): ?string
+    {
+        return (int) $request->user()?->getKey() === (int) $user->getKey() ? $request->session()->getId() : null;
+    }
+
+    public function destroy(Request $request, User $user): RedirectResponse
     {
         $user->update(['status' => 'deleted']);
-        app(TrustedDeviceService::class)->revokeAll($user);
+        app(TrustedDeviceService::class)->revokeAll($user, true, $this->ownSessionId($request, $user));
 
         return redirect()->route('admin.users.index')->with('success', __('booking.messages.user_deleted'));
     }

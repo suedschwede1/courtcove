@@ -8,6 +8,8 @@ use App\Models\TrustedDevice;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * Trusted devices for sign-in: privileged accounts (or all, per config) must present a device cookie that
@@ -29,7 +31,7 @@ final class TrustedDeviceService
         return match ((string) config('booking.security.trusted_device_scope', 'privileged')) {
             'all' => true,
             'off' => false,
-            default => $user->isPrivileged(),
+            default => $user->requiresTrustedDevice(),
         };
     }
 
@@ -103,15 +105,30 @@ final class TrustedDeviceService
         return $device;
     }
 
-    /** Revoke every device of the account (password change, rights change, removal, "remove all"). */
-    public function revokeAll(int|User $user): int
+    /**
+     * Revoke every device of the account and void its open codes (password change, rights or e-mail change,
+     * removal, reset, "remove all"). With $endSessions the account's other signed-in sessions end too (database
+     * session driver), except $exceptSessionId, usually the caller's own.
+     */
+    public function revokeAll(int|User $user, bool $endSessions = false, ?string $exceptSessionId = null): int
     {
         $id = $user instanceof User ? (int) $user->getKey() : $user;
 
-        return TrustedDevice::query()
+        $count = TrustedDevice::query()
             ->where('user_id', $id)
             ->whereNull('revoked_at')
             ->update(['revoked_at' => now()]);
+
+        app(LoginVerificationService::class)->voidPendingCodes($id);
+
+        if ($endSessions && config('session.driver') === 'database' && Schema::hasTable((string) config('session.table', 'sessions'))) {
+            DB::table((string) config('session.table', 'sessions'))
+                ->where('user_id', $id)
+                ->when($exceptSessionId !== null, fn ($query) => $query->where('id', '!=', $exceptSessionId))
+                ->delete();
+        }
+
+        return $count;
     }
 
     /** Short display label from a user agent, e.g. "Firefox on Windows". Display only. */
