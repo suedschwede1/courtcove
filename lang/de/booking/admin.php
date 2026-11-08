@@ -51,6 +51,7 @@ return [
             'checks_intro' => 'Der Verbindungstest liest nur Konto und Dienst und kostet nichts. Die Testnachricht geht an Ihre eigene, im Konto hinterlegte Nummer.',
             'probe' => 'Verbindung testen',
             'test' => 'Testnachricht an meine Nummer',
+            'open_account_card' => 'Zur Konto-Karte „WhatsApp-Benachrichtigungen“',
             'probe_ok' => 'Verbindung in Ordnung.',
             'probe_failed' => 'Verbindung fehlgeschlagen (Code: :code).',
             'probe_no_credentials' => 'Zugangsdaten fehlen – es wurde nichts abgefragt.',
@@ -71,7 +72,7 @@ return [
                 'paused' => 'Versand pausiert',
             ],
             'test_refused' => [
-                'no_consent' => 'Zustimmung des Administrators fehlt.',
+                'no_consent' => 'Zustimmung des Administrators fehlt. Bitte im eigenen Konto in der Karte „WhatsApp-Benachrichtigungen“ zustimmen.',
                 'disabled' => 'Der Versand ist ausgeschaltet.',
                 'account_inactive' => 'Das Konto ist nicht aktiv.',
                 'no_phone' => 'Im Konto ist keine Handynummer hinterlegt.',

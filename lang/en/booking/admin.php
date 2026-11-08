@@ -51,6 +51,7 @@ return [
             'checks_intro' => 'The connection test only reads account and service and costs nothing. The test message goes to your own number stored on your account.',
             'probe' => 'Test connection',
             'test' => 'Test message to my number',
+            'open_account_card' => 'Open the "WhatsApp notifications" card in my account',
             'probe_ok' => 'Connection OK.',
             'probe_failed' => 'Connection failed (code: :code).',
             'probe_no_credentials' => 'Credentials are missing – nothing was queried.',
@@ -71,7 +72,7 @@ return [
                 'paused' => 'Sending paused',
             ],
             'test_refused' => [
-                'no_consent' => 'The administrator has not given consent.',
+                'no_consent' => 'The administrator has not given consent. Please consent in your own account, in the "WhatsApp notifications" card.',
                 'disabled' => 'Sending is switched off.',
                 'account_inactive' => 'The account is not active.',
                 'no_phone' => 'No mobile number is stored on the account.',

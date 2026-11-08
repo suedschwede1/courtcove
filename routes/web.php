@@ -26,6 +26,7 @@ use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\LocaleController;
+use App\Http\Controllers\NotificationSettingsController;
 use App\Http\Controllers\PlayerExchangeController;
 use App\Http\Controllers\UiGalleryController;
 use App\Http\Controllers\Webhooks\WhatsAppWebhookController;
@@ -119,6 +120,11 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/my-account', [AccountController::class, 'edit'])->name('account.edit');
     Route::put('/my-account', [AccountController::class, 'update'])->name('account.update');
     Route::put('/my-account/password', [AccountController::class, 'password'])->name('account.password');
+
+    // WhatsApp card on the account page: consent, switch and filters, withdrawal.
+    Route::post('/my-account/whatsapp', [NotificationSettingsController::class, 'enable'])->middleware('throttle:10,1')->name('account.whatsapp.enable');
+    Route::put('/my-account/whatsapp', [NotificationSettingsController::class, 'update'])->middleware('throttle:10,1')->name('account.whatsapp.update');
+    Route::delete('/my-account/whatsapp', [NotificationSettingsController::class, 'revoke'])->middleware('throttle:10,1')->name('account.whatsapp.revoke');
 });
 
 // The administration checks the stored right; only the booking and event admin routes depend on the admin mode
