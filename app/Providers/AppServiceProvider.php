@@ -7,6 +7,7 @@ namespace App\Providers;
 use App\Console\Scheduling\RunLog;
 use App\Models\Option;
 use App\Models\User;
+use App\Services\Notifications\Transport\FakeTransport;
 use App\Services\TournamentLinks;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
@@ -19,6 +20,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton(TournamentLinks::class);
         $this->app->singleton(RunLog::class);
+        $this->app->singleton(FakeTransport::class);
     }
 
     public function boot(): void
