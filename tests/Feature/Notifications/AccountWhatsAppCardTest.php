@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Notifications;
 
+use App\Http\Controllers\NotificationSettingsController;
 use App\Models\NotificationConsent;
 use App\Models\NotificationSubscription;
 use App\Models\Option;
@@ -117,7 +118,10 @@ class AccountWhatsAppCardTest extends TestCase
         $this->assertStringNotContainsString('0000042', $card);
         $this->assertStringContainsString('name="consent"', $card);
         $this->assertDoesNotMatchRegularExpression('/name="consent"[^>]*checked/', $card);
-        $this->assertStringContainsString(e(trans('booking.notifications.consent_text_v1', [], 'de')), $card);
+        $this->assertStringContainsString(e(trans('booking.notifications.consent_text_v1', [], 'de')), $this->text($card));
+        // Only the core sentence is bold; the checkbox sits at the top of the long text.
+        $this->assertMatchesRegularExpression('/<label class="ds-option items-start"><input type="checkbox" name="consent"/', $card);
+        $this->assertStringContainsString('<strong>'.e('Ich möchte per WhatsApp benachrichtigt werden, wenn jemand Mitspieler sucht (Spielersuche).').'</strong>', $card);
         $this->assertStringContainsString(e(trans('booking.notifications.account_card.own_number_hint', [], 'de')), $card);
         $this->assertStringContainsString(route('account.whatsapp.enable'), $card);
     }
@@ -508,7 +512,7 @@ class AccountWhatsAppCardTest extends TestCase
     {
         $card = $this->card($this->eligibleUser(), 'en');
 
-        $this->assertStringContainsString(e(trans('booking.notifications.consent_text_v1', [], 'en')), $card);
+        $this->assertStringContainsString(e(trans('booking.notifications.consent_text_v1', [], 'en')), $this->text($card));
         $this->assertStringContainsString(e(trans('booking.notifications.account_card.title', [], 'en')), $card);
     }
 
@@ -528,5 +532,34 @@ class AccountWhatsAppCardTest extends TestCase
         $this->post(route('account.whatsapp.enable'), ['consent' => '1'])->assertRedirect('/login');
         $this->put(route('account.whatsapp.update'), $this->form(['search' => '1']))->assertRedirect('/login');
         $this->delete(route('account.whatsapp.revoke'))->assertRedirect('/login');
+    }
+
+    #[Test]
+    public function saving_the_card_keeps_filter_keys_no_card_field_owns(): void
+    {
+        $user = $this->optedInUser();
+        NotificationSubscription::query()->where('user_id', $user->uid)->update(['filters' => json_encode(['square_ids' => [3], 'weekdays' => [2]])]);
+
+        $this->actingAs($user)->put(route('account.whatsapp.update'), $this->form(['search' => '1', 'weekdays' => ['5']]))
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame(['square_ids' => [3], 'weekdays' => [5]], NotificationSubscription::query()->where('user_id', $user->uid)->first()->filters);
+    }
+
+    #[Test]
+    public function an_unknown_refusal_reason_falls_back_to_the_general_text(): void
+    {
+        $this->assertSame('booking.notifications.refused.unavailable', NotificationSettingsController::refusedKey('dummy_off'));
+        $this->assertSame('booking.notifications.refused.unavailable', NotificationSettingsController::refusedKey(null));
+        $this->assertSame('booking.notifications.refused.exchange_off', NotificationSettingsController::refusedKey('exchange_off'));
+        foreach (['de', 'en'] as $locale) {
+            $this->assertNotSame('booking.notifications.refused.unavailable', trans('booking.notifications.refused.unavailable', [], $locale));
+        }
+    }
+
+    /** Visible text of a fragment: tags become single spaces (texts split by markup still read in one piece). */
+    private function text(string $html): string
+    {
+        return trim((string) preg_replace('/\s+/', ' ', (string) preg_replace('/<[^>]+>/', ' ', $html)));
     }
 }

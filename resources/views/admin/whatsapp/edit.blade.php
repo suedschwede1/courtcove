@@ -173,24 +173,24 @@
                 <input type="hidden" name="{{ $f['shown'] }}" value="1">
                 <div class="ds-admin-choice">
                     <x-ui.option-group :columns="2" class="ds-admin-flags ds-admin-flags--single">
-                        <x-ui.option-tile type="checkbox" :name="$f['enabled']" value="1" :label="__('booking.admin.whatsapp.type_enabled')" :checked="$typeOn" />
+                        <x-ui.option-tile type="checkbox" :name="$f['enabled']" value="1" :label="__('booking.admin.whatsapp.type_enabled', ['type' => $type['label']])" :checked="$typeOn" />
                     </x-ui.option-group>
                 </div>
-                @if($type['enabled'])
-                    @foreach($type['templates'] as $locale => $tpl)
-                        @if($tpl['missing'])
-                            <x-ui.notice tone="attention" data-wa-template-missing="{{ $type['key'] }}.{{ $locale }}">{{ __('booking.admin.whatsapp.template_missing_hint', ['locale' => strtoupper($locale)]) }}</x-ui.notice>
-                        @endif
-                    @endforeach
+                @php
+                    $missing = $type['enabled'] ? array_keys(array_filter($type['templates'], fn ($tpl) => $tpl['missing'])) : [];
+                @endphp
+                @if($missing !== [])
+                    {{-- One hint per type that names every language without a template. --}}
+                    <x-ui.notice tone="attention" data-wa-template-missing="{{ $type['key'] }}">{{ __('booking.admin.whatsapp.template_missing_hint', ['locales' => strtoupper(implode(', ', $missing))]) }}</x-ui.notice>
                 @endif
                 <div class="ds-admin-form-grid ds-admin-form-grid--2">
                     @foreach($type['templates'] as $locale => $tpl)
-                        <x-ui.field :label="__('booking.admin.whatsapp.template_id', ['type' => $type['label'], 'locale' => strtoupper($locale)])" :for="'wa-'.$tpl['field']">
+                        <x-ui.field :label="__('booking.admin.whatsapp.template_id', ['type' => $type['label'], 'locale' => strtoupper($locale)])" :for="'wa-'.$tpl['field']" :error="$errors->first($tpl['field']) ?: null">
                             <x-ui.input :id="'wa-'.$tpl['field']" :name="$tpl['field']" :value="old($tpl['field'], $tpl['value'])" />
                         </x-ui.field>
                     @endforeach
                     @if(! $type['testType'])
-                        <x-ui.field :label="__('booking.admin.whatsapp.type_price')" :for="'wa-'.$f['price']" :help="__('booking.admin.whatsapp.type_price_hint')">
+                        <x-ui.field :label="__('booking.admin.whatsapp.type_price')" :for="'wa-'.$f['price']" :help="__('booking.admin.whatsapp.type_price_hint')" :error="$errors->first($f['price']) ?: null">
                             <x-ui.input :id="'wa-'.$f['price']" :name="$f['price']" inputmode="decimal" :value="old($f['price'], $type['price'])" />
                         </x-ui.field>
                     @endif
@@ -199,7 +199,7 @@
                     <p class="ds-field__help">{{ __('booking.admin.whatsapp.type_test_price') }}</p>
                 @endif
                 <p class="ds-field__help" data-wa-variables="{{ $type['key'] }}">
-                    <strong>{{ __('booking.admin.whatsapp.type_variables') }}:</strong>
+                    <strong>{{ __('booking.admin.whatsapp.type_variables') }}</strong>
                     @forelse($type['variables'] as $i => $variable)
                         {{ __('booking.admin.whatsapp.type_variable', ['number' => $i + 1, 'text' => $variable]) }}@if(! $loop->last); @endif
                     @empty
@@ -214,7 +214,7 @@
                         'last30' => $stats['last30']['total'],
                     ]) }}
                     {{ $stats['last_sent_at'] !== null
-                        ? __('booking.admin.whatsapp.type_last_sent', ['date' => $stats['last_sent_at']->format('d.m.Y H:i')])
+                        ? __('booking.admin.whatsapp.type_last_sent', ['date' => $stats['last_sent_at']->copy()->setTimezone('Europe/Vienna')->locale(app()->getLocale())->translatedFormat(__('booking.admin.whatsapp.type_last_sent_format'))])
                         : __('booking.admin.whatsapp.type_never_sent') }}
                 </p>
             </x-ui.card>

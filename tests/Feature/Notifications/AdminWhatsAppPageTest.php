@@ -11,6 +11,7 @@ use App\Services\Notifications\SecretOptions;
 use App\Services\Notifications\WhatsAppSettings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Testing\TestResponse;
@@ -392,7 +393,7 @@ class AdminWhatsAppPageTest extends TestCase
         $this->save([self::FOLLOWUP_SHOWN => '1', self::FOLLOWUP_FIELD => '1'])->assertRedirect();
         $this->assertSame('1', $this->opt($typeOption));
         $this->assertNull($this->opt('whatsapp.followup_closed'));
-        $this->assertTrue($this->settings()->followupClosed());
+        $this->assertTrue($this->settings()->typeEnabled('player_search.closed'));
 
         // A save without the type block (partial form) leaves the switch alone.
         $this->save([])->assertRedirect();
@@ -400,6 +401,36 @@ class AdminWhatsAppPageTest extends TestCase
 
         $this->save([self::FOLLOWUP_SHOWN => '1'])->assertRedirect();
         $this->assertSame('0', $this->opt($typeOption));
-        $this->assertFalse($this->settings()->followupClosed());
+        $this->assertFalse($this->settings()->typeEnabled('player_search.closed'));
+    }
+
+    #[Test]
+    public function the_test_type_has_no_price_field_and_a_posted_price_is_ignored(): void
+    {
+        $html = $this->page();
+        preg_match('/<section[^>]*data-wa-type="whatsapp\.test"[^>]*>.*?<\/section>/s', $html, $m);
+
+        $this->assertNotSame('', $m[0] ?? '');
+        $this->assertStringNotContainsString('name="type_whatsapp-test_price"', $m[0]);
+        $this->assertStringContainsString('name="type_player_search-opened_price"', $html);
+
+        $this->save(['type_whatsapp-test_price' => '0.50'])->assertSessionHasNoErrors();
+        $this->assertNull($this->opt('whatsapp.price.whatsapp.test'));
+    }
+
+    #[Test]
+    public function last_sent_time_is_shown_in_vienna_time_in_the_format_of_the_language(): void
+    {
+        NotificationLogEntry::create([
+            'type' => 'player_search.opened', 'channel' => 'whatsapp', 'user_id' => null, 'subject_type' => 'player_search',
+            'subject_id' => 1, 'dedupe_key' => 'stat-time-1', 'status' => NotificationLogEntry::SENT, 'priority' => 20,
+            'attempts' => 0, 'not_before' => now(), 'sent_at' => Carbon::parse('2026-11-05 13:07:00', 'Europe/Vienna'),
+        ]);
+        $admin = $this->admin();
+
+        $this->assertStringContainsString('05.11.2026 13:07', $this->page($admin));
+
+        $admin->setMeta('locale', 'en');
+        $this->assertStringContainsString('5 Nov 2026, 13:07', $this->page($admin->fresh()));
     }
 }

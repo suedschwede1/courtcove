@@ -36,6 +36,9 @@ final class NotificationSettingsController extends Controller
     public function enable(Request $request, ?string $purpose = null): RedirectResponse
     {
         $definition = $this->purpose($purpose);
+        // A purpose without a switched-on subscribable type is not offered, so there is nothing to consent to
+        // (an existing consent is answered by optIn() as before).
+        abort_if(! $this->card->offered($definition->key) && $this->consents->activeConsent($this->user($request), $definition->key) === null, 404);
         $request->validate(
             ['consent' => ['accepted']],
             ['consent.accepted' => __('booking.notifications.account_card.consent_required')],

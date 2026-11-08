@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Notifications\Registry;
 
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\In;
 use InvalidArgumentException;
 
 /**
@@ -53,7 +55,7 @@ final class SubscriptionFilters
     /**
      * Validation rules of a type's filter fields.
      *
-     * @return array<string, list<string>>
+     * @return array<string, list<string|In>>
      */
     public static function rules(NotificationTypeDefinition $type): array
     {
@@ -74,7 +76,8 @@ final class SubscriptionFilters
                     $options = array_values((array) $filter['options']);
                     $ints = array_filter($options, 'is_int') === $options;
                     $rules["$p.$name"] = ['nullable', 'array', 'max:'.count($options)];
-                    $rules["$p.$name.*"] = [...($ints ? ['integer'] : ['string']), 'in:'.implode(',', $options)];
+                    // Rule::in quotes every option, so an option with a comma or quote cannot break the rule.
+                    $rules["$p.$name.*"] = [$ints ? 'integer' : 'string', Rule::in($options)];
                     break;
             }
         }

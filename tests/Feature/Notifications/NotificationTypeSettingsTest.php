@@ -55,12 +55,12 @@ class NotificationTypeSettingsTest extends TestCase
 
         $this->opt('whatsapp.followup_closed', '1');
         $this->assertTrue($s->typeEnabled(NotificationTypes::PLAYER_SEARCH_CLOSED));
-        $this->assertTrue($s->followupClosed());
+        $this->assertTrue($s->typeEnabled('player_search.closed'));
 
         // The per-type option wins over the old one.
         $this->opt(WhatsAppSettings::typeEnabledOption(NotificationTypes::PLAYER_SEARCH_CLOSED), '0');
         $this->assertFalse($s->typeEnabled(NotificationTypes::PLAYER_SEARCH_CLOSED));
-        $this->assertFalse($s->followupClosed());
+        $this->assertFalse($s->typeEnabled('player_search.closed'));
     }
 
     #[Test]

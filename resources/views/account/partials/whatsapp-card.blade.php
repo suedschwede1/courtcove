@@ -146,7 +146,11 @@
                     <p class="ds-field__help">{{ __('booking.notifications.account_card.own_number_hint') }}</p>
 
                     <x-ui.option-group :columns="2" class="ds-admin-flags ds-admin-flags--single" :aria-describedby="'whatsapp-privacy-'.$card['key']">
-                        <x-ui.option-tile type="checkbox" name="consent" value="1" :label="$card['consentText']" :checked="false" />
+                        @php
+                            // The first sentence is the core statement (bold), the rest explains it.
+                            $consentParts = preg_split('/(?<=[.!?])\s+/u', $card['consentText'], 2) ?: [$card['consentText']];
+                        @endphp
+                        <x-ui.option-tile type="checkbox" name="consent" value="1" :label="$consentParts[0]" :description="$consentParts[1] ?? null" :checked="false" />
                     </x-ui.option-group>
                     @if($reload || $single)
                         @error('consent')

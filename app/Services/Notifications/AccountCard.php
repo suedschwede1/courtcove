@@ -15,8 +15,9 @@ use Illuminate\Support\Carbon;
 
 /**
  * View state of the account cards "WhatsApp-Benachrichtigungen", one per consent purpose of the registry. The
- * whole block is hidden while the main switch is off. A purpose is shown when at least one of its types (not the
- * admin test) is switched on, or when the user still holds an active consent for it (so it can be withdrawn).
+ * whole block is hidden while the main switch is off. A purpose is shown when at least one of its subscribable
+ * types (not the admin test, not a follow-up) is switched on, or when the user still holds an active consent for
+ * it (then only withdrawal is left when no type is on).
  * Per purpose: locked (a gate reason of the booking account or of the purpose keeps the user out), ready (may
  * consent) or active (consent given), with one switch per subscribable type and the filters its definition
  * declares. No member record is needed. Never carries the full number.
@@ -65,19 +66,20 @@ final class AccountCard
         ));
     }
 
+    /**
+     * Whether the purpose is offered for a new consent: at least one subscribable type of it is switched on (a
+     * follow-up or the admin test alone does not count, they have no subscription of their own).
+     */
+    public function offered(string $purpose): bool
+    {
+        return $this->switchableTypes($purpose) !== [];
+    }
+
     /** @return array<string, mixed>|null */
     private function purposeCard(User $user, NotificationPurposeDefinition $purpose): ?array
     {
-        $anyEnabled = false;
-        foreach ($this->registry->types() as $type) {
-            if ($type->purpose === $purpose->key && ! $type->testType && $this->settings->typeEnabled($type->key)) {
-                $anyEnabled = true;
-                break;
-            }
-        }
-
         $consent = $this->consents->activeConsent($user, $purpose->key);
-        if (! $anyEnabled && $consent === null) {
+        if (! $this->offered($purpose->key) && $consent === null) {
             return null;
         }
 

@@ -6,7 +6,6 @@ namespace App\Services\Notifications;
 
 use App\Models\Option;
 use App\Notifications\Registry\NotificationRegistry;
-use App\Notifications\Types\NotificationTypes;
 use App\Support\StagingDatabase;
 use BackedEnum;
 use Illuminate\Database\QueryException;
@@ -257,12 +256,6 @@ final class WhatsAppSettings
     public function maxPerRun(): int
     {
         return $this->positiveInt('whatsapp.max_per_run', 30);
-    }
-
-    /** Switch of the "search closed" follow-up (its type option, else the old option whatsapp.followup_closed). */
-    public function followupClosed(): bool
-    {
-        return $this->typeEnabled(NotificationTypes::PLAYER_SEARCH_CLOSED);
     }
 
     public function budgetAlertEmail(): ?string

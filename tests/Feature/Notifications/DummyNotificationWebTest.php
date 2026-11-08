@@ -204,10 +204,47 @@ class DummyNotificationWebTest extends TestCase
     #[Test]
     public function a_purpose_without_switched_on_types_and_without_consent_is_not_shown(): void
     {
+        $this->onlyTheFollowupIsOn();
+        $user = $this->user();
+
+        // A switched-on follow-up alone does not offer the purpose: it has no subscription of its own.
+        $this->assertSame('', $this->dummyCard($user));
+
+        // Nor can the purpose be consented to through its URL.
+        $this->actingAs($user)->post(route('account.whatsapp.enable', ['purpose' => self::PURPOSE]), ['consent' => '1'])->assertNotFound();
+        $this->assertNull($this->consentOf($user, self::PURPOSE));
+    }
+
+    #[Test]
+    public function a_purpose_with_consent_but_without_switched_on_types_only_offers_withdrawal(): void
+    {
+        $user = $this->user();
+        $this->consents()->optIn($user, self::PURPOSE, 'de');
+        $this->onlyTheFollowupIsOn();
+
+        $card = $this->dummyCard($user);
+
+        $this->assertStringContainsString('data-whatsapp-card="active"', $card);
+        $this->assertStringContainsString(route('account.whatsapp.revoke', ['purpose' => self::PURPOSE]), $card);
+        $this->assertStringContainsString('name="_method" value="DELETE"', $card);
+        $this->assertStringNotContainsString('name="on[', $card);
+        $this->assertStringNotContainsString('name="_method" value="PUT"', $card);
+    }
+
+    /** Both subscribable dummy types off, a dummy follow-up on. */
+    private function onlyTheFollowupIsOn(): void
+    {
+        app(NotificationRegistry::class)->register(new NotificationTypeDefinition(
+            key: 'dummy.followup',
+            labelKey: 'dummyweb::texts.plain',
+            descriptionKey: 'dummyweb::texts.plain_description',
+            templateKey: 'dummy_followup',
+            resolver: WebDummyResolver::class,
+            purpose: self::PURPOSE,
+            followupOf: self::PLAIN,
+        ));
         Option::create(['key' => 'whatsapp.type.'.self::PLAIN.'.enabled', 'value' => '0', 'locale' => null]);
         Option::create(['key' => 'whatsapp.type.'.self::FILTERED.'.enabled', 'value' => '0', 'locale' => null]);
-
-        $this->assertSame('', $this->dummyCard($this->user()));
     }
 
     #[Test]
@@ -228,6 +265,8 @@ class DummyNotificationWebTest extends TestCase
         $this->assertStringContainsString('Dummy-Erinnerung', $block);
         $this->assertStringContainsString('name="type_dummy-reminder_shown"', $block);
         $this->assertMatchesRegularExpression('/name="type_dummy-reminder_enabled"[^>]*checked/', $block);
+        // The switch names its type (several "active" switches on one page).
+        $this->assertMatchesRegularExpression('/name="type_dummy-reminder_enabled"[^>]*>\s*<span class="ds-option__label">[^<]*Dummy-Erinnerung/', $block);
         $this->assertStringContainsString('value="HXtest-dummy-de"', $block);
         $this->assertStringContainsString('name="type_dummy-reminder_tpl_en"', $block);
         $this->assertStringContainsString('name="type_dummy-reminder_price"', $block);
@@ -236,7 +275,9 @@ class DummyNotificationWebTest extends TestCase
         $this->assertMatchesRegularExpression('/data-wa-stats="dummy\.reminder"[^>]*>\s*Gesendet in diesem Monat: 1 \(davon 1 zugestellt/', $block);
         // English falls back to the German template: nothing is skipped, so no hint; the other dummy type has none at all.
         $this->assertStringNotContainsString('data-wa-template-missing="dummy.reminder', $block);
-        $this->assertStringContainsString('data-wa-template-missing="dummy.digest.de"', $html);
+        // One hint per type, naming every language without a template.
+        $this->assertSame(1, substr_count($html, 'data-wa-template-missing="dummy.digest"'));
+        $this->assertMatchesRegularExpression('/data-wa-template-missing="dummy\.digest"[^>]*>[^<]*DE, EN/', $html);
 
         $this->actingAsWithoutAdminMode($admin)->put('/admin/whatsapp', [
             'type_dummy-reminder_shown' => '1',
@@ -251,6 +292,11 @@ class DummyNotificationWebTest extends TestCase
 
         $this->actingAsWithoutAdminMode($admin)->put('/admin/whatsapp', ['type_dummy-reminder_price' => 'abc'])
             ->assertSessionHasErrors('type_dummy-reminder_price');
+        // The error is shown under the field, with the id the input points to.
+        $html = (string) $this->actingAsWithoutAdminMode($admin)->followingRedirects()
+            ->put('/admin/whatsapp', ['type_dummy-reminder_price' => 'abc'])->assertOk()->getContent();
+        $this->assertStringContainsString('id="wa-type_dummy-reminder_price-error"', $html);
+        $this->assertMatchesRegularExpression('/aria-describedby="[^"]*wa-type_dummy-reminder_price-error/', $html);
     }
 }
 
