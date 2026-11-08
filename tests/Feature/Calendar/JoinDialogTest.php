@@ -101,7 +101,9 @@ final class JoinDialogTest extends TestCase
         $listener = strpos($html, '@open-join.window');
         $this->assertNotFalse($listener);
         $start = strrpos(substr($html, 0, $listener), '<div x-data');
-        $end = strlen($html);
+        // Ends where the next dialog (players dialog) starts, so its own buttons are not counted.
+        $next = strpos($html, '@open-players.window', $listener);
+        $end = $next === false ? strlen($html) : strrpos(substr($html, 0, $next), '<div x-data');
         $this->assertNotFalse($start);
         $this->assertNotFalse($end);
 
