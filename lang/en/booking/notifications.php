@@ -91,6 +91,10 @@ return [
         // Message texts; in sandbox mode they are sent as free text, otherwise the approved template is used.
         'whatsapp' => [
             'test' => 'Test message from the booking system: WhatsApp sending works.',
+            // Variable 1 of the player search templates (ISO format of the date, e.g. "Sat, 14.11.").
+            'date_format' => 'ddd, DD.MM.',
+            'player_search_opened' => 'New player search in the booking system: :date, :time, :court. Players needed: :count, searched by :name. You can join here: :url To unsubscribe, use Notifications in your account or reply STOP.',
+            'player_search_closed' => 'The player search on :date at :time on :court is closed. Thanks for your interest.',
         ],
 
         // Answers to inbound messages (returned in the webhook response, sent as free text inside the 24-hour window).

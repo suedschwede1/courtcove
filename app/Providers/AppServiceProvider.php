@@ -9,6 +9,8 @@ use App\Models\Option;
 use App\Models\User;
 use App\Notifications\Types\NotificationType;
 use App\Services\Notifications\Resolvers\AdminTestResolver;
+use App\Services\Notifications\Resolvers\PlayerSearchClosedSubjectCheck;
+use App\Services\Notifications\Resolvers\PlayerSearchSubjectCheck;
 use App\Services\Notifications\SubjectResolverRegistry;
 use App\Services\Notifications\Transport\FakeTransport;
 use App\Services\Notifications\WhatsAppConfigScrub;
@@ -28,6 +30,8 @@ class AppServiceProvider extends ServiceProvider
         // One subject resolver per WhatsApp notification type; a type without one is skipped as subject_gone.
         $this->app->singleton(SubjectResolverRegistry::class, fn (): SubjectResolverRegistry => new SubjectResolverRegistry([
             NotificationType::AdminTest->value => AdminTestResolver::class,
+            NotificationType::PlayerSearchOpened->value => PlayerSearchSubjectCheck::class,
+            NotificationType::PlayerSearchClosed->value => PlayerSearchClosedSubjectCheck::class,
         ]));
         // Staging scrub hook: phase2:scrub-staging runs every tagged ConfigScrub after the module scrubs.
         $this->app->tag([WhatsAppConfigScrub::class], 'phase2.config-scrub');

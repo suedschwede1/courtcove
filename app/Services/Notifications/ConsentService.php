@@ -33,8 +33,16 @@ final class ConsentService
     /** Account states that end every consent (merged storage keeps them as plain status values). */
     private const REVOKING_STATUSES = ['blocked', 'deleted', 'disabled'];
 
-    /** Notification types switched on together with the consent of a purpose. */
+    /** Notification types of a purpose: their subscriptions go when the consent of the purpose is revoked. */
     private const PURPOSE_TYPES = [
+        NotificationConsent::PURPOSE_PLAYER_SEARCH => ['player_search.opened', 'player_search.closed'],
+    ];
+
+    /**
+     * Notification types switched on together with the consent of a purpose. The closed follow-up has no
+     * switch of its own: it only follows an opened message that went out (option whatsapp.followup_closed).
+     */
+    private const OPT_IN_TYPES = [
         NotificationConsent::PURPOSE_PLAYER_SEARCH => ['player_search.opened'],
     ];
 
@@ -254,7 +262,7 @@ final class ConsentService
 
     private function subscribe(User $user, string $purpose): void
     {
-        foreach (self::PURPOSE_TYPES[$purpose] ?? [] as $type) {
+        foreach (self::OPT_IN_TYPES[$purpose] ?? [] as $type) {
             NotificationSubscription::firstOrCreate(
                 ['user_id' => $user->getKey(), 'type' => $type, 'channel' => self::CHANNEL],
                 ['filters' => null],
