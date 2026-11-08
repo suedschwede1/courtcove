@@ -235,6 +235,14 @@ return [
                     'title' => 'Let player searches expire',
                     'description' => 'Ends every open player search one hour before the start; if nobody has joined, the booking is cancelled and the court is free again.',
                 ],
+                'notifications-dispatch' => [
+                    'title' => 'Send WhatsApp messages',
+                    'description' => 'Sends due WhatsApp notifications from the outbox (every minute, up to the per-run limit).',
+                ],
+                'notifications-prune' => [
+                    'title' => 'Clean up WhatsApp data',
+                    'description' => 'Deletes WhatsApp log entries after 12 months and revoked consents 3 years after the revocation, and removes subscriptions and the user link for deleted or anonymised accounts.',
+                ],
                 'queue-work' => [
                     'title' => 'Process the queue',
                     'description' => 'Processes waiting background jobs (at most 50 seconds per minute).',

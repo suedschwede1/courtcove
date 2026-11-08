@@ -34,6 +34,8 @@ final class ScheduleDefinition
         $this->command($schedule, 'sanctum-prune-expired', 'sanctum:prune-expired --hours=24')->dailyAt('03:20');
         $this->command($schedule, 'auth-clear-resets', 'auth:clear-resets')->dailyAt('03:30');
         $this->command($schedule, 'player-exchange-expire', 'player-exchange:expire')->everyFiveMinutes();
+        $this->command($schedule, 'notifications-dispatch', 'notifications:dispatch')->everyMinute();
+        $this->command($schedule, 'notifications-prune', 'notifications:prune')->dailyAt('03:50');
 
         // A queue worker is only needed when jobs are queued (QUEUE_CONNECTION is sync today).
         if (self::usesQueue()) {

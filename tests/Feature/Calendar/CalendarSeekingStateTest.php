@@ -33,6 +33,7 @@ final class CalendarSeekingStateTest extends TestCase
         $this->travelTo(Carbon::parse('2026-11-04 12:30'));
         // Keep the lazy lapse out of the way; the seeking state checks the deadline itself.
         Cache::put('player-exchange.lapse', 1, 600);
+        Cache::put('notifications.lazy-drain', 1, 600);
 
         $this->court = Square::factory()->create(['name' => '1', 'priority' => 1]);
         SquareMeta::create(['sid' => $this->court->sid, 'key' => 'alias', 'value' => 'Court A']);

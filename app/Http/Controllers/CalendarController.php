@@ -9,6 +9,7 @@ use App\Models\Reservation;
 use App\Models\Square;
 use App\Models\User;
 use App\Services\CalendarHours;
+use App\Services\Notifications\NotificationDrain;
 use App\Services\PlayerExchangeService;
 use App\Services\ReservationService;
 use App\Support\Calendar\EventKind;
@@ -59,6 +60,7 @@ final class CalendarController extends Controller
         Carbon::setLocale(app()->getLocale());
 
         $this->lapseExpiredSearches();
+        NotificationDrain::lazy();
 
         $dateInput = (string) $request->input('date');
         $date = Carbon::today();
