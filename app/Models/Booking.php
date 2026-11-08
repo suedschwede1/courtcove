@@ -126,6 +126,33 @@ class Booking extends Model
         )));
     }
 
+    /**
+     * The players without the booker (the booker is shown as the name already). Case and spacing insensitive.
+     *
+     * @return list<string>
+     */
+    public function getOtherPlayersAttribute(): array
+    {
+        $ownerKey = mb_strtolower(trim($this->owner_label));
+
+        return array_values(array_filter(
+            $this->player_names,
+            static fn (string $player): bool => mb_strtolower(trim($player)) !== $ownerKey,
+        ));
+    }
+
+    /**
+     * Compact form for narrow cells: first names, at most $max, then "+N".
+     *
+     * @param  list<string>  $names
+     */
+    public static function shortPlayerNames(array $names, int $max = 3): string
+    {
+        $first = array_map(static fn (string $name): string => strtok(trim($name), ' ') ?: $name, $names);
+
+        return implode(', ', array_slice($first, 0, $max)).(count($first) > $max ? ' +'.(count($first) - $max) : '');
+    }
+
     public function getPlayerNamesLabelAttribute(): ?string
     {
         $names = $this->player_names;

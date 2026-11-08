@@ -70,6 +70,7 @@
                             <th scope="col">{{ $labelTime }}</th>
                             <th scope="col">{{ $labelCourt }}</th>
                             <th scope="col">{{ $labelMember }}</th>
+                            <th scope="col">{{ __('booking.admin.common.player') }}</th>
                             <th scope="col">{{ $labelStatus }}</th>
                         </tr>
                     </x-slot:head>
@@ -83,6 +84,7 @@
                             <td class="ds-cell--title ds-admin-today__time" data-label="{{ $labelTime }}">{{ $timeStart }}@if($timeEnd)<span class="ds-admin-today__end"> – {{ $timeEnd }}</span>@endif</td>
                             <td class="ds-admin-today__court" data-label="{{ $labelCourt }}">{{ $booking->square?->display_name ?? __('booking.account.empty_option') }}</td>
                             <td class="ds-admin-today__member" data-label="{{ $labelMember }}">{{ $booking->owner_label }}</td>
+                            <td data-label="{{ __('booking.admin.common.player') }}">{{ implode(', ', $booking->other_players) ?: __('booking.account.empty_option') }}</td>
                             <td class="ds-admin-today__status" data-label="{{ $labelStatus }}">
                                 @if($booking->isCancelled())
                                     <x-ui.badge status="cancelled">{{ __('booking.admin.bookings.status_cancelled') }}</x-ui.badge>

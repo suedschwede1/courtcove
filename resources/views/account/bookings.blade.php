@@ -81,6 +81,7 @@
                         <th scope="col">{{ __('booking.account.court') }}</th>
                         <th scope="col">{{ __('booking.account.date') }}</th>
                         <th scope="col">{{ __('booking.account.time') }}</th>
+                        <th scope="col">{{ __('booking.admin.common.player') }}</th>
                         <th scope="col">{{ __('booking.account.status') }}</th>
                         <th scope="col"><span class="sr-only">{{ __('booking.account.actions') }}</span></th>
                     </tr>
@@ -96,6 +97,7 @@
                         <td class="ds-cell--title">{{ $booking->square?->display_name }}</td>
                         <td data-label="{{ __('booking.account.date') }}">{{ $reservation?->date }}</td>
                         <td data-label="{{ __('booking.account.time') }}">@if($reservation){{ \Illuminate\Support\Str::of($reservation->time_start)->substr(0, 5) }}-{{ \Illuminate\Support\Str::of($reservation->time_end)->substr(0, 5) }} {{ __('booking.admin.common.clock_suffix') }}@endif</td>
+                        <td data-label="{{ __('booking.admin.common.player') }}">{{ trim((string) view('components.booking.players', ['booking' => $booking])->render()) ?: __('booking.account.empty_option') }}</td>
                         <td data-label="{{ __('booking.account.status') }}"><x-ui.badge :status="$statusKey">{{ $statusLabel }}</x-ui.badge></td>
                         <td class="ds-cell--actions text-right">
                             @if($canCancel)
