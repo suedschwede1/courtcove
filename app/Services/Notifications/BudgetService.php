@@ -25,6 +25,9 @@ final class BudgetService
 
     private const TIMEZONE = 'Europe/Vienna';
 
+    /** Retries of a locking transaction after a deadlock. */
+    private const TRANSACTION_ATTEMPTS = 3;
+
     public function __construct(
         private readonly WhatsAppSettings $settings,
         private readonly BookingService $bookings,
@@ -41,6 +44,8 @@ final class BudgetService
 
         $month = $this->month();
 
+        $this->ensureRow($month);
+
         return DB::transaction(function () use ($month, $micros, $budget): ?BudgetReservation {
             $row = $this->lockedRow($month);
             if ($row->estimated_micros + $micros > $budget) {
@@ -52,12 +57,14 @@ final class BudgetService
             $row->save();
 
             return new BudgetReservation($month, $micros);
-        });
+        }, self::TRANSACTION_ATTEMPTS);
     }
 
     /** An accepted message (provider SID received) keeps its cost; a rejected one counts 0. */
     public function settle(BudgetReservation $reservation, bool $accepted): void
     {
+        $this->ensureRow($reservation->month);
+
         DB::transaction(function () use ($reservation, $accepted): void {
             $row = $this->lockedRow($reservation->month);
             $row->messages_reserved = max(0, $row->messages_reserved - 1);
@@ -67,7 +74,7 @@ final class BudgetService
                 $row->estimated_micros = max(0, $row->estimated_micros - $reservation->micros);
             }
             $row->save();
-        });
+        }, self::TRANSACTION_ATTEMPTS);
     }
 
     public function current(): BudgetSnapshot
@@ -121,6 +128,7 @@ final class BudgetService
         }
 
         $level = $this->stopped($snap) ? 100 : 80;
+        $this->ensureRow($snap->month);
         $claimed = DB::transaction(function () use ($snap, $level): bool {
             $row = $this->lockedRow($snap->month);
             if ($level === 100 ? $row->warned_100_at !== null : $row->warned_80_at !== null) {
@@ -134,7 +142,7 @@ final class BudgetService
             $row->save();
 
             return true;
-        });
+        }, self::TRANSACTION_ATTEMPTS);
         if (! $claimed) {
             return;
         }
@@ -179,13 +187,20 @@ final class BudgetService
         return NotificationUsageMonthly::where('month', $month)->where('channel', self::CHANNEL)->first();
     }
 
-    /** The month row under a write lock; created on first use (insert-or-ignore, safe against a parallel create). */
-    private function lockedRow(string $month): NotificationUsageMonthly
+    /**
+     * Creates the month row if missing. Runs OUTSIDE the locking transaction on purpose: an ignored duplicate
+     * insert takes a shared lock on InnoDB, which deadlocks against a parallel SELECT ... FOR UPDATE.
+     */
+    private function ensureRow(string $month): void
     {
         DB::table('notification_usage_monthly')->insertOrIgnore([
             'month' => $month, 'channel' => self::CHANNEL,
         ]);
+    }
 
+    /** The month row under a write lock; call inside a transaction after ensureRow(). */
+    private function lockedRow(string $month): NotificationUsageMonthly
+    {
         return NotificationUsageMonthly::where('month', $month)
             ->where('channel', self::CHANNEL)
             ->lockForUpdate()

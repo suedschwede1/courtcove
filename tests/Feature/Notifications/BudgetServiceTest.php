@@ -8,10 +8,12 @@ use App\Mail\WhatsAppBudgetAlert;
 use App\Models\NotificationUsageMonthly;
 use App\Models\Option;
 use App\Services\Notifications\BudgetService;
+use App\Services\Notifications\BudgetSnapshot;
 use App\Support\Mail\SystemMailSender;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -264,5 +266,33 @@ class BudgetServiceTest extends TestCase
         $this->opt('whatsapp.budget_alert_email', 'owner@example.test');
         $this->service()->sendAlertsIfNeeded();
         Mail::assertSent(WhatsAppBudgetAlert::class, 1);
+    }
+
+    /** @return array<string, array{string, int}> */
+    public static function alertViews(): array
+    {
+        return [
+            'de 80' => ['de', 80], 'de 100' => ['de', 100], 'en 80' => ['en', 80], 'en 100' => ['en', 100],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('alertViews')]
+    public function alert_mail_renders_in_both_locales_and_levels(string $locale, int $level): void
+    {
+        app()->setLocale($locale);
+        $mail = new WhatsAppBudgetAlert(
+            new BudgetSnapshot('2026-11', 12, 600_000, 750_000, 80, null),
+            $level,
+        );
+
+        $html = $mail->render();
+
+        $this->assertStringNotContainsString('booking.notifications.budget_alert', $html, 'untranslated key');
+        $this->assertStringContainsString(__('booking.notifications.budget_alert.heading_'.$level), $html);
+        $this->assertStringContainsString($locale === 'de' ? '0,60' : '0.60', $html);
+        $this->assertStringContainsString($locale === 'de' ? '0,75' : '0.75', $html);
+        $this->assertStringContainsString('2026-11', $html);
+        $this->assertSame(__('booking.notifications.budget_alert.subject_'.$level), $mail->envelope()->subject);
     }
 }

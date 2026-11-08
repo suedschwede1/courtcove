@@ -45,6 +45,12 @@ class BudgetServiceMysqlTest extends MysqlTestCase
         parent::tearDown();
     }
 
+    /**
+     * Proves the row lock, not true concurrency: a second connection holds SELECT ... FOR UPDATE on the month
+     * row, so reserve() on the first connection must block (lock wait timeout, nothing booked) instead of
+     * reading a stale total. After the other connection commits its reservation, the budget is exhausted and
+     * reserve() returns null, so the sum never exceeds the budget.
+     */
     #[Test]
     public function parallel_reserve_cannot_overshoot(): void
     {
