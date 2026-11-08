@@ -8,6 +8,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Event;
 use App\Models\User;
+use App\Services\Notifications\WhatsAppAdminStatus;
+use App\Services\Notifications\WhatsAppSettings;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
@@ -71,7 +73,17 @@ final class DashboardController extends Controller
             ->orderBy('datetime_start')
             ->first();
 
+        // Budget and pause hint of the WhatsApp channel, only for admins who manage it and only while it is on.
+        $whatsappNotices = null;
+        if (auth()->user()?->can('admin.config') && app(WhatsAppSettings::class)->enabled()) {
+            $whatsappNotices = app(WhatsAppAdminStatus::class)->notices();
+            if ($whatsappNotices['state'] === null && ! $whatsappNotices['paused']) {
+                $whatsappNotices = null;
+            }
+        }
+
         return view('admin.dashboard', compact(
+            'whatsappNotices',
             'bookingsToday',
             'bookingsTodayCount',
             'bookingsTodayBySquare',

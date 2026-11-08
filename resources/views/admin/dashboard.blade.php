@@ -39,6 +39,10 @@
         @endcan
     </x-admin.page-header>
 
+    @if(($whatsappNotices ?? null) !== null)
+        @include('admin.whatsapp._status', ['notices' => $whatsappNotices])
+    @endif
+
     <div class="ds-admin-kpis">
         <x-ui.card as="div" class="ds-admin-kpi">
             <x-ui.kpi :label="__('booking.admin.dashboard.bookings_today')" :value="$bookingsTodayCount" :meta="$bookingsTodayDetail" />

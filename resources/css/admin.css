@@ -1391,6 +1391,31 @@
         margin: 0;
     }
 
+    /* WhatsApp send log: long or unknown raw values wrap inside the card instead of widening it. */
+    .ds-admin-wa-log .ds-table--stack tr {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .ds-admin-wa-log .ds-table-wrap {
+        overflow-x: clip;
+    }
+
+    .ds-admin-wa-log .ds-table td {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .ds-admin-wa-log .ds-badge {
+        max-width: 100%;
+        overflow-wrap: anywhere;
+    }
+
+    /* Alias and last digits read as one inline text, not as two spread-out parts. */
+    .ds-admin-wa-user {
+        display: inline;
+        text-align: right;
+    }
+
     @media (width >= 48rem) {
         .ds-admin-rows .ds-table--list .ds-admin-actions-cell {
             text-align: right;
@@ -1596,6 +1621,49 @@
             flex: 0 0 auto;
             width: auto;
         }
+    }
+
+    /* Budget bar of the WhatsApp page: a native <progress>; --warn from 80 %, --stop at 100 %. */
+    .ds-budget-bar {
+        display: block;
+        width: 100%;
+        height: 8px;
+        margin-top: 12px;
+        border: 0;
+        border-radius: var(--radius-pill);
+        background: var(--color-sand);
+        overflow: hidden;
+        appearance: none;
+    }
+
+    .ds-budget-bar::-webkit-progress-bar {
+        background: var(--color-sand);
+    }
+
+    .ds-budget-bar::-webkit-progress-value {
+        background: var(--color-court);
+        border-radius: var(--radius-pill);
+    }
+
+    .ds-budget-bar::-moz-progress-bar {
+        background: var(--color-court);
+        border-radius: var(--radius-pill);
+    }
+
+    .ds-budget-bar--warn::-webkit-progress-value {
+        background: var(--color-warn-ink);
+    }
+
+    .ds-budget-bar--warn::-moz-progress-bar {
+        background: var(--color-warn-ink);
+    }
+
+    .ds-budget-bar--stop::-webkit-progress-value {
+        background: var(--color-danger);
+    }
+
+    .ds-budget-bar--stop::-moz-progress-bar {
+        background: var(--color-danger);
     }
 }
 
