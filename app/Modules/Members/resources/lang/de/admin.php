@@ -334,6 +334,9 @@ return [
         'household_payer_set' => 'Zahlende Person für Haushalt :household',
         'household_payer_cleared' => 'Nicht mehr zahlende Person für Haushalt :household',
         'household_payer_changed' => 'Zahlende Person eines Haushalts geändert',
+        'payment_recorded' => 'Zahlung erfasst: :amount am :date für :dues',
+        'payment_note' => 'Notiz: :note',
+        'payment_batch' => 'Sammelzahlung :batch',
         'payment_cancelled' => 'Zahlung vom :date über :amount storniert:reason',
     ],
     'changes' => [

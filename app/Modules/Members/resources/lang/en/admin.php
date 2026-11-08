@@ -324,6 +324,9 @@ return [
         'open_dues_meta_households' => 'of which :count household fees',
     ],
     'history' => [
+        'payment_recorded' => 'Payment recorded: :amount on :date for :dues',
+        'payment_note' => 'Note: :note',
+        'payment_batch' => 'Bulk payment :batch',
         'payment_cancelled' => 'Payment of :date for :amount cancelled:reason',
         'title' => 'Change log',
         'created' => 'Created',

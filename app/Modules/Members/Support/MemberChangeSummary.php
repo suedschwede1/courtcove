@@ -83,6 +83,9 @@ final class MemberChangeSummary
         if ($change->action === PaymentCanceller::CHANGE_ACTION) {
             return [self::paymentCancelledLine($change)];
         }
+        if ($change->action === PaymentProtocol::CHANGE_ACTION) {
+            return [self::paymentRecordedLine($change, $revealPersonal)];
+        }
 
         $lines = [];
         foreach ($change->changedFields() as ['field' => $field, 'old' => $old, 'new' => $new]) {
@@ -122,6 +125,38 @@ final class MemberChangeSummary
         return $new !== null
             ? (string) __('members::admin.history.household_payer_set', ['household' => self::householdLabel($new)])
             : (string) __('members::admin.history.household_payer_cleared', ['household' => self::householdLabel($old)]);
+    }
+
+    /**
+     * "Zahlung erfasst: 230,00 € am 01.11.2026 für 2025 (Vollzahler), 2026 (Vollzahler) · Notiz: … · Sammelzahlung #K3F9QZ".
+     * Household labels and the note are left out where personal values are hidden.
+     */
+    private static function paymentRecordedLine(MemberChange $change, bool $revealPersonal): string
+    {
+        $entry = (array) ($change->after['payment_recorded'] ?? []);
+        $dues = collect((array) ($entry['dues'] ?? []))->map(function (mixed $due) use ($revealPersonal): string {
+            $due = (array) $due;
+            $detail = (string) ($due['category'] ?? '–');
+            if ($revealPersonal && isset($due['household']) && $due['household'] !== '') {
+                $detail .= ', '.$due['household'];
+            }
+
+            return ($due['year'] ?? '–').' ('.$detail.')';
+        })->implode(', ');
+
+        $line = (string) __('members::admin.history.payment_recorded', [
+            'amount' => MembersFormat::money($entry['amount'] ?? 0),
+            'date' => isset($entry['paid_at']) ? Carbon::parse((string) $entry['paid_at'])->format('d.m.Y') : '–',
+            'dues' => $dues !== '' ? $dues : '–',
+        ]);
+        if ($revealPersonal && isset($entry['note']) && $entry['note'] !== '') {
+            $line .= ' · '.__('members::admin.history.payment_note', ['note' => $entry['note']]);
+        }
+        if (isset($entry['batch']) && is_string($entry['batch']) && $entry['batch'] !== '') {
+            $line .= ' · '.__('members::admin.history.payment_batch', ['batch' => PaymentProtocol::shortBatch($entry['batch'])]);
+        }
+
+        return $line;
     }
 
     /** "Zahlung vom 01.03.2026 über 120,00 € storniert (Doppelt gebucht)". */
