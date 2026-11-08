@@ -96,7 +96,7 @@ final class CalendarPlayersLabelTest extends TestCase
         $cell = $this->cell($xp, 17);
 
         $this->assertSame('a', $cell->nodeName);
-        $this->assertSame('Helga, Sandra, Inge', $this->text($xp, $cell, 'cc-label-players'));
+        $this->assertSame('Helga Muster, Sandra Beispiel, Inge Probe', $this->text($xp, $cell, 'cc-label-players'));
         // The full detail line stays for the desktop.
         $this->assertSame('Helga Muster, Sandra Beispiel, Inge Probe', $this->text($xp, $cell, 'cc-label-secondary'));
         $this->assertStringContainsString("\$dispatch('open-players'", $html);
@@ -105,14 +105,14 @@ final class CalendarPlayersLabelTest extends TestCase
     }
 
     #[Test]
-    public function more_than_three_players_are_counted_with_a_plus(): void
+    public function more_than_four_players_are_counted_with_a_plus(): void
     {
         $owner = User::factory()->create(['status' => 'enabled', 'alias' => 'Example Owner']);
         $this->booking($owner, 17, ['Anna A', 'Berta B', 'Clara C', 'Dora D', 'Emma E']);
 
         $xp = $this->xpath($this->calendar(User::factory()->create(['status' => 'enabled'])));
 
-        $this->assertSame('Anna, Berta, Clara +2', $this->text($xp, $this->cell($xp, 17), 'cc-label-players'));
+        $this->assertSame('Anna A, Berta B, Clara C, Dora D +1', $this->text($xp, $this->cell($xp, 17), 'cc-label-players'));
     }
 
     #[Test]
@@ -143,7 +143,7 @@ final class CalendarPlayersLabelTest extends TestCase
         $xp = $this->xpath($html);
 
         $withPlayers = $this->cell($xp, 15);
-        $this->assertSame('Helga', $this->text($xp, $withPlayers, 'cc-label-players'));
+        $this->assertSame('Helga Muster', $this->text($xp, $withPlayers, 'cc-label-players'));
         // "Mine" stays in the markup; the phone CSS hides it while the players are shown.
         $this->assertMatchesRegularExpression('/\.cc-own:has\(\.cc-label-players\) \.cc-label-own \{\s*display: none;/', (string) file_get_contents(resource_path('css/calendar-grid.css')));
         // The cancel dialog gets the names too.
@@ -155,11 +155,27 @@ final class CalendarPlayersLabelTest extends TestCase
     }
 
     #[Test]
+    public function legacy_rows_with_several_names_in_one_field_are_split(): void
+    {
+        $owner = User::factory()->create(['status' => 'enabled', 'alias' => 'Example Owner']);
+        $this->booking($owner, 17, ['Helga, Sandra, Inge']);
+
+        $html = $this->calendar(User::factory()->create(['status' => 'enabled']));
+        $xp = $this->xpath($html);
+        $cell = $this->cell($xp, 17);
+
+        $this->assertSame('Helga, Sandra, Inge', $this->text($xp, $cell, 'cc-label-players'));
+        $this->assertSame('Helga, Sandra, Inge', $this->text($xp, $cell, 'cc-label-secondary'));
+        $this->assertSame('Example Owner, Helga, Sandra, Inge', $cell->getAttribute('title'));
+    }
+
+    #[Test]
     public function the_phone_rule_shows_the_players_label_and_it_is_hidden_by_default(): void
     {
         $css = (string) file_get_contents(resource_path('css/calendar-grid.css'));
 
         $this->assertMatchesRegularExpression('/\.cal-row \.cc-label-players \{\s*display: none;/', $css);
-        $this->assertMatchesRegularExpression('/@media \(width < 48rem\) \{.*\.cal-row \.cc-label-players \{\s*display: block;/s', $css);
+        $this->assertMatchesRegularExpression('/@media \(width < 48rem\) \{.*\.cal-row \.cc-label-players \{\s*display: -webkit-box;/s', $css);
+        $this->assertStringContainsString('line-clamp: 2', $css);
     }
 }
