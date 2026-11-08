@@ -9,6 +9,9 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-08
+- WhatsApp: no "search closed" follow-up to members who joined that search themselves; the opened message takes the booking id from the listener instead of reading the search per recipient; runbook go-live items for the event cache after deploy and the open join suffix decision.
+- WhatsApp account card: errors of every weekday and player-count choice are shown, the privacy link only appears for an http(s) address, and the weekday tiles carry the full weekday name for screen readers.
+- WhatsApp: a new player search is now also sent by WhatsApp to exchange members with consent (same recipients as the mail, narrowed by consent, gate, switch and filters, fewest messages this month first), due after a 2-minute debounce and re-checked at send time; the exchange mail is unchanged and WhatsApp works without a mail server. Optional "search closed" follow-up behind whatsapp.followup_closed (off).
 - Assets rebuilt from the tracked tree only (the previous build carried two stray utilities from files outside it).
 - Assets: rebuilt `public/build` over the whole tree for the WhatsApp account card.
 - WhatsApp admin test message: the refusal for a missing consent now links to the account card, and the runbook drops the Tinker workaround (consent is given in the card; Task 10 still follows).

@@ -13,6 +13,7 @@ use App\Models\PlayerSearch;
 use App\Models\PlayerSignup;
 use App\Models\Reservation;
 use App\Models\User;
+use App\Services\Notifications\PlayerSearchEvents;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -197,6 +198,7 @@ final class PlayerExchangeService
 
             if ($search->remaining() === 0) {
                 $search->update(['status' => PlayerSearch::FILLED]);
+                PlayerSearchEvents::closed((int) $search->id, 'filled');
             }
 
             return [$signup, $search];
@@ -260,6 +262,7 @@ final class PlayerExchangeService
             }
 
             $search->update(['status' => PlayerSearch::ENDED]);
+            PlayerSearchEvents::closed((int) $search->id, 'ended');
         }, self::TRANSACTION_ATTEMPTS);
     }
 
@@ -365,6 +368,7 @@ final class PlayerExchangeService
         if ($remaining === 0 && $signups->isEmpty()) {
             if ($search->status === PlayerSearch::OPEN) {
                 $search->update(['status' => PlayerSearch::ENDED]);
+                PlayerSearchEvents::closed((int) $search->id, 'ended');
             }
 
             return;
@@ -375,6 +379,9 @@ final class PlayerExchangeService
             $changes['status'] = PlayerSearch::FILLED;
         }
         $search->update($changes);
+        if (($changes['status'] ?? null) === PlayerSearch::FILLED) {
+            PlayerSearchEvents::closed((int) $search->id, 'filled');
+        }
     }
 
     /**
@@ -520,8 +527,12 @@ final class PlayerExchangeService
         }
 
         $signups = $search->signups()->with('user')->get();
+        $wasOpen = $search->status === PlayerSearch::OPEN;
         $search->update(['status' => PlayerSearch::CANCELLED]);
         $search->setRelation('booking', $booking);
+        if ($wasOpen) {
+            PlayerSearchEvents::closed((int) $search->id, 'cancelled');
+        }
 
         foreach ($signups as $signup) {
             if ($signup->user !== null) {
@@ -564,16 +575,19 @@ final class PlayerExchangeService
             if ($locked === null || ! in_array($locked->status, Booking::ACTIVE_STATUSES, true)) {
                 // The booking is gone or was cancelled without the exchange noticing: close the search quietly.
                 $search->update(['status' => PlayerSearch::CANCELLED]);
+                PlayerSearchEvents::closed((int) $search->id, 'cancelled');
 
                 return false;
             }
             if ($search->signups()->exists()) {
                 $search->update(['status' => PlayerSearch::ENDED]);
+                PlayerSearchEvents::closed((int) $search->id, 'ended');
 
                 return false;
             }
 
             $search->update(['status' => PlayerSearch::LAPSED]);
+            PlayerSearchEvents::closed((int) $search->id, 'lapsed');
             app(BookingService::class)->cancelSingle($locked, notifyOwner: false);
 
             $locked->loadMissing('user');

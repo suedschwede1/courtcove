@@ -57,6 +57,16 @@ return [
                 6 => 'Sa',
                 7 => 'So',
             ],
+            // Full names for screen readers (aria-label of the short weekday tiles).
+            'weekdays_full' => [
+                1 => 'Montag',
+                2 => 'Dienstag',
+                3 => 'Mittwoch',
+                4 => 'Donnerstag',
+                5 => 'Freitag',
+                6 => 'Samstag',
+                7 => 'Sonntag',
+            ],
             'weekdays_label' => 'Wochentage',
             'time_from' => 'Spielbeginn ab',
             'time_to' => 'Spielbeginn bis',
@@ -91,6 +101,10 @@ return [
         // Message texts; in sandbox mode they are sent as free text, otherwise the approved template is used.
         'whatsapp' => [
             'test' => 'Testnachricht aus dem Buchungssystem: der WhatsApp-Versand funktioniert.',
+            // Variable 1 of the player search templates (ISO format of the date, e.g. "Sa, 14.11.").
+            'date_format' => 'dd, DD.MM.',
+            'player_search_opened' => 'Neue Spielersuche im Buchungssystem: :date, :time Uhr, :court. Gesucht: :count Mitspieler, gesucht von :name. Mitspielen kannst du hier: :url Abmelden: im Konto unter Benachrichtigungen oder mit STOP antworten.',
+            'player_search_closed' => 'Die Spielersuche am :date um :time Uhr auf :court ist abgeschlossen. Danke fürs Interesse.',
         ],
 
         // Answers to inbound messages (returned in the webhook response, sent as free text inside the 24-hour window).

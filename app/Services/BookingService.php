@@ -14,6 +14,7 @@ use App\Models\Event;
 use App\Models\Reservation;
 use App\Models\Square;
 use App\Models\User;
+use App\Services\Notifications\PlayerSearchEvents;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -524,6 +525,12 @@ final class BookingService
         // The exchange mails go out after the response, outside the booking transaction.
         if ($searchId !== null && $this->isMailConfigured()) {
             dispatch(new SendPlayerSearchMails($searchId))->afterResponse();
+        }
+
+        // WhatsApp in addition to the mail, also without a mail server: the event is fired after the response
+        // (in the console at once); its listener only writes outbox rows and never fails the booking.
+        if ($searchId !== null) {
+            PlayerSearchEvents::started($searchId);
         }
 
         return $booking;

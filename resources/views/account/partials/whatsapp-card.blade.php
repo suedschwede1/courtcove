@@ -1,6 +1,8 @@
 {{-- Account card "WhatsApp-Benachrichtigungen". $whatsapp comes from App\Services\Notifications\AccountCard. --}}
 @php
     $privacyUrl = trim((string) \App\Models\Option::getValue('client.website.privacy', ''));
+    // Only a web address becomes a link (no javascript: or other schemes from the option).
+    $privacyUrl = preg_match('#^https?://#i', $privacyUrl) === 1 ? $privacyUrl : '';
     $card = $whatsapp;
     $reload = old('_whatsapp_form') === '1';
     $weekdaysOn = array_map('intval', (array) ($reload ? old('weekdays', []) : $card['filters']['weekdays']));
@@ -9,7 +11,11 @@
     $timeTo = $reload ? (string) old('time_to', '') : $card['filters']['time_to'];
     $searchOn = $reload ? old('search') === '1' : $card['searchOn'];
     $filtersUsed = $weekdaysOn !== [] || $quantitiesOn !== [] || $timeFrom !== '' || $timeTo !== '';
-    $filterErrors = $errors->hasAny(['weekdays', 'time_from', 'time_to', 'quantities']) || $errors->has('weekdays.0') || $errors->has('quantities.0');
+    // Every message of the list and of each of its elements (weekdays.0, weekdays.1, ...), each text once.
+    $listErrors = fn (string $key): array => array_values(array_unique(\Illuminate\Support\Arr::flatten([$errors->get($key), $errors->get($key.'.*')])));
+    $weekdayErrors = $listErrors('weekdays');
+    $quantityErrors = $listErrors('quantities');
+    $filterErrors = $errors->hasAny(['time_from', 'time_to']) || $weekdayErrors !== [] || $quantityErrors !== [];
 @endphp
 @if($card['state'] !== 'hidden')
 <x-ui.card :title="__('booking.notifications.account_card.title')" id="whatsapp" data-whatsapp-card="{{ $card['state'] }}">
@@ -45,12 +51,12 @@
 
                         <x-ui.option-group :legend="__('booking.notifications.account_card.weekdays_label')" :columns="3">
                             @foreach(__('booking.notifications.account_card.weekdays') as $day => $dayLabel)
-                                <x-ui.option-tile type="checkbox" name="weekdays[]" :value="$day" :label="$dayLabel" :checked="in_array($day, $weekdaysOn, true)" />
+                                <x-ui.option-tile type="checkbox" name="weekdays[]" :value="$day" :label="$dayLabel" :checked="in_array($day, $weekdaysOn, true)" :aria-label="__('booking.notifications.account_card.weekdays_full.'.$day)" />
                             @endforeach
                         </x-ui.option-group>
-                        @if($errors->has('weekdays.0') || $errors->has('weekdays'))
-                            <p class="ds-field__error">{{ $errors->first('weekdays.0') ?: $errors->first('weekdays') }}</p>
-                        @endif
+                        @foreach($weekdayErrors as $message)
+                            <p class="ds-field__error">{{ $message }}</p>
+                        @endforeach
 
                         <div class="grid gap-4 md:grid-cols-2">
                             <x-ui.field :label="__('booking.notifications.account_card.time_from')" for="wa-time-from">
@@ -67,9 +73,9 @@
                                 <x-ui.option-tile type="checkbox" name="quantities[]" :value="$quantity" :label="$quantityLabel" :checked="in_array($quantity, $quantitiesOn, true)" />
                             @endforeach
                         </x-ui.option-group>
-                        @if($errors->has('quantities.0') || $errors->has('quantities'))
-                            <p class="ds-field__error">{{ $errors->first('quantities.0') ?: $errors->first('quantities') }}</p>
-                        @endif
+                        @foreach($quantityErrors as $message)
+                            <p class="ds-field__error">{{ $message }}</p>
+                        @endforeach
                     </div>
                 </x-ui.disclosure>
 

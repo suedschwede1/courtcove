@@ -13,6 +13,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\ViewErrorBag;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Feature\Notifications\Concerns\BuildsConsentFixtures;
@@ -325,6 +326,53 @@ class AccountWhatsAppCardTest extends TestCase
 
         $this->assertMatchesRegularExpression('/<a [^>]*href="https:\/\/club\.example\.test\/datenschutz"/', $card);
         $this->assertStringContainsString(e(trans('booking.notifications.privacy_notice', [], 'de')), $card);
+    }
+
+    #[Test]
+    public function errors_of_every_weekday_and_quantity_element_are_shown(): void
+    {
+        $user = $this->optedInUser();
+        $this->actingAs($user)->from(route('account.edit'))->put(route('account.whatsapp.update'), [
+            '_whatsapp_form' => '1', 'search' => '1', 'weekdays' => ['1', '9'], 'quantities' => ['2', '3'],
+        ])->assertRedirect(route('account.edit'));
+        $bag = session('errors');
+        // The session stores the bag as JSON (session serialisation "json"), so it reads back as an array.
+        $messages = $bag instanceof ViewErrorBag ? $bag->getBag('default')->toArray() : ($bag['default']['messages'] ?? []);
+
+        // Same login as the request before; the flashed errors are rendered on the account page.
+        $html = (string) $this->get(route('account.edit'))->assertOk()->getContent();
+        preg_match('/<section[^>]*data-whatsapp-card.*?<\/section>/s', $html, $m);
+        $card = $m[0] ?? '';
+
+        foreach (['weekdays.1', 'quantities.1'] as $key) {
+            $this->assertNotEmpty($messages[$key][0] ?? null, $key);
+            $this->assertStringContainsString(e($messages[$key][0]), $card, $key);
+        }
+        $this->assertStringContainsString('<details', $card);
+        $this->assertMatchesRegularExpression('/<details[^>]*open/', $card);
+    }
+
+    #[Test]
+    public function a_privacy_option_that_is_not_http_gets_no_link(): void
+    {
+        Option::create(['key' => 'client.website.privacy', 'value' => 'javascript:alert(1)', 'locale' => null]);
+
+        $card = $this->card($this->eligibleUser());
+
+        $this->assertStringNotContainsString('javascript:', $card);
+        $this->assertStringNotContainsString(e(trans('booking.notifications.account_card.privacy_link', [], 'de')).'</a>', $card);
+        $this->assertStringContainsString(e(trans('booking.notifications.privacy_notice', [], 'de')), $card);
+    }
+
+    #[Test]
+    public function weekday_tiles_carry_the_full_weekday_name(): void
+    {
+        $de = $this->card($this->optedInUser());
+        $this->assertMatchesRegularExpression('/name="weekdays\[\]" value="1"[^>]*aria-label="Montag"/', $de);
+        $this->assertMatchesRegularExpression('/name="weekdays\[\]" value="7"[^>]*aria-label="Sonntag"/', $de);
+
+        $en = $this->card($this->optedInUser('+43 660 0000001'), 'en');
+        $this->assertMatchesRegularExpression('/name="weekdays\[\]" value="1"[^>]*aria-label="Monday"/', $en);
     }
 
     #[Test]
