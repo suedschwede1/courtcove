@@ -9,6 +9,7 @@ use App\Mail\UserActivated;
 use App\Models\Booking;
 use App\Models\LoginHistory;
 use App\Models\User;
+use App\Models\UserMeta;
 use App\Modules\Members\Models\Member;
 use App\Services\QuoteGroups;
 use App\Services\TrustedDeviceService;
@@ -372,6 +373,11 @@ final class UserController extends Controller
             ->when(User::splitsRole(), fn (Builder $query) => $query->where('role', '!=', 'admin'))
             ->when($data['action'] === 'enabled', fn (Builder $query) => $query->whereNot(fn (Builder $sub) => $sub->active()))
             ->update(['status' => $data['action']]);
+
+        // Mass updates fire no model events: an account that leaves the blocked state loses its departure marker here.
+        if ($data['action'] !== 'blocked') {
+            UserMeta::query()->whereIn('uid', $data['uids'])->where('key', User::META_DEPARTURE_DEACTIVATED)->delete();
+        }
 
         foreach ($data['uids'] as $uid) {
             app(TrustedDeviceService::class)->revokeAll((int) $uid, true);

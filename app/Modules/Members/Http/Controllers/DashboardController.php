@@ -9,6 +9,7 @@ use App\Modules\Members\Models\FiscalYear;
 use App\Modules\Members\Models\Member;
 use App\Modules\Members\Models\MemberChange;
 use App\Modules\Members\Support\DuesSummary;
+use App\Modules\Members\Support\MemberDepartureAccounts;
 use Illuminate\Contracts\View\View;
 
 class DashboardController
@@ -31,6 +32,7 @@ class DashboardController
             'dormantCount' => Member::query()->where('status', 'ruhend')->withoutPlaceholderAccount()->count(),
             // Informational only: the link to a booking-system account is optional; a placeholder is no real account.
             'withoutAccountCount' => Member::query()->current()->withoutRealAccount()->count(),
+            'departureOverview' => app(MemberDepartureAccounts::class)->overview(),
             'openDuesTop' => $dues->openRows(5),
             'recentChanges' => MemberChange::query()->with(['member', 'adminUser'])->orderByDesc('created_at')->orderByDesc('id')->limit(5)->get(),
             'categoryNames' => FeeCategory::query()->pluck('name', 'id')->all(),

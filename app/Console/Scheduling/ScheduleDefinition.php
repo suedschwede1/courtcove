@@ -19,8 +19,9 @@ use Illuminate\Console\Scheduling\Schedule;
  * Name and description come from the task name (lang booking.admin.scheduler.tasks.<name>.title/.description),
  * every task runs without overlapping and command output is kept for the run log.
  *
- * Only housekeeping and the player search expiry (player-exchange:expire, must run unattended) are
- * scheduled here; business commands (members:*, users:split-role,
+ * Only housekeeping, the player search expiry (player-exchange:expire, must run unattended) and the daily
+ * block of the accounts of departed members (members:deactivate-left-accounts --since=14) are
+ * scheduled here; business commands (other members:*, users:split-role,
  * booking:adopt-booking-rules, imports, phase2:*) stay manual on purpose.
  */
 final class ScheduleDefinition
@@ -36,6 +37,7 @@ final class ScheduleDefinition
         $this->command($schedule, 'player-exchange-expire', 'player-exchange:expire')->everyFiveMinutes();
         $this->command($schedule, 'notifications-dispatch', 'notifications:dispatch')->everyMinute();
         $this->command($schedule, 'notifications-prune', 'notifications:prune')->dailyAt('03:50');
+        $this->command($schedule, 'members-deactivate-left', 'members:deactivate-left-accounts --since=14')->dailyAt('04:00');
 
         // A queue worker is only needed when jobs are queued (QUEUE_CONNECTION is sync today).
         if (self::usesQueue()) {

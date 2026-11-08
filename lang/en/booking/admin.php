@@ -378,6 +378,10 @@ return [
                     'title' => 'Clean up WhatsApp data',
                     'description' => 'Deletes WhatsApp log entries after 12 months and revoked consents 3 years after the revocation, and removes subscriptions and the user link for deleted or anonymised accounts.',
                 ],
+                'members-deactivate-left' => [
+                    'title' => 'Block accounts of departed members',
+                    'description' => 'Daily blocks the user accounts of members whose departure date was reached in the last 14 days (admin and assistant accounts stay active and are flagged in the members area).',
+                ],
                 'queue-work' => [
                     'title' => 'Process the queue',
                     'description' => 'Processes waiting background jobs (at most 50 seconds per minute).',

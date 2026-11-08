@@ -17,6 +17,7 @@ use App\Modules\Members\Support\HouseholdService;
 use App\Modules\Members\Support\MemberChangeLogger;
 use App\Modules\Members\Support\MemberConnectionService;
 use App\Modules\Members\Support\MemberConnectionWarnings;
+use App\Modules\Members\Support\MemberDepartureAccounts;
 use App\Modules\Members\Support\MemberListFilter;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
@@ -61,6 +62,7 @@ class MemberController
             'feeCategories' => FeeCategory::query()->perMember()->orderBy('name')->get(),
             'fiscalYears' => $fiscalYears,
             'currentFiscalYear' => $currentFiscalYear,
+            'departureOverview' => app(MemberDepartureAccounts::class)->overview(),
         ]);
     }
 
@@ -124,6 +126,8 @@ class MemberController
             ...$this->householdCardData($member),
             'connectionWarnings' => MemberConnectionWarnings::forMember($member),
             'connectionEndedNotice' => MemberConnectionWarnings::endedNotice($member),
+            'departureProtected' => app(MemberDepartureAccounts::class)->isProtectedPending($member),
+            'departureReactivatable' => app(MemberDepartureAccounts::class)->isAutoDeactivated($member),
             // Possible Vollzahler: any current member that is not connected and has no partner yet (no category check
             // since the club decision of 2026-11-08); the category is shown next to the name.
             'connectionCandidates' => Member::query()
@@ -198,6 +202,8 @@ class MemberController
                 // Club decision: the Vollzahler departing ends its Anschluss links (logged, shown on the partner's page).
                 app(MemberConnectionService::class)->memberDeparted($member);
             }
+            // Departure date reached (today or past): the linked account is blocked; a future date waits for the daily run.
+            app(MemberDepartureAccounts::class)->handle($member);
         });
 
         return redirect()->route('members.index');
@@ -254,6 +260,10 @@ class MemberController
                     app(HouseholdService::class)->memberDeparted($member);
                     app(MemberConnectionService::class)->memberDeparted($member);
                 }
+                // Departure date reached, or a departed member got an account linked: block the account (see MemberDepartureAccounts).
+                if (in_array($validated['field'], ['left_at', 'user_id'], true)) {
+                    app(MemberDepartureAccounts::class)->handle($member);
+                }
             });
         } catch (\Throwable $e) {
             report($e);
@@ -308,6 +318,8 @@ class MemberController
         $before = $member->toArray();
 
         DB::transaction(function () use ($member, $before) {
+            // The account is blocked while the link still exists (admin and assistant accounts stay as they are).
+            app(MemberDepartureAccounts::class)->handle($member, true);
             // Household link and payer go in the same transaction, so the 'anonymized' snapshot records them.
             app(HouseholdService::class)->detachForAnonymisation($member);
             app(MemberConnectionService::class)->detachForAnonymisation($member);
@@ -328,6 +340,16 @@ class MemberController
 
         return redirect()->route('members.edit', $member)
             ->with('success', __('members::admin.members.anonymize_success'));
+    }
+
+    /** One click after a re-entry: enables the account again, but only if this departure logic blocked it. */
+    public function reactivateAccount(Member $member): RedirectResponse
+    {
+        if (! app(MemberDepartureAccounts::class)->reactivate($member)) {
+            return back()->withErrors(['account' => __('members::admin.departure.not_reactivatable')]);
+        }
+
+        return back()->with('success', __('members::admin.departure.reactivated'));
     }
 
     /** @param  array<string, mixed>|null  $before */

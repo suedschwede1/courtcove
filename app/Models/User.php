@@ -79,6 +79,9 @@ class User extends Authenticatable
         'admin.tournament', 'admin.mixed', 'admin.pyramid', 'admin.draw',
     ];
 
+    /** Meta key (value: member id) of an account that was blocked because its member departed; see MemberDepartureAccounts. */
+    public const META_DEPARTURE_DEACTIVATED = 'departure.deactivated';
+
     /** Selectable account states, in form order. */
     public const STATUSES = ['placeholder', 'enabled', 'disabled', 'blocked', 'deleted'];
 
@@ -110,7 +113,14 @@ class User extends Authenticatable
     /** A blocked, deleted or disabled account loses its WhatsApp consents (see ConsentService::userUpdated). */
     protected static function booted(): void
     {
-        static::updated(static fn (User $user) => app(ConsentService::class)->userUpdated($user));
+        static::updated(static function (User $user): void {
+            app(ConsentService::class)->userUpdated($user);
+            // The departure marker only describes the blocked state it was set for.
+            if ($user->wasChanged('status') && $user->accountStatus() !== 'blocked') {
+                $user->meta()->where('key', self::META_DEPARTURE_DEACTIVATED)->delete();
+                $user->unsetRelation('meta');
+            }
+        });
     }
 
     /** Route-model binding for {user} resolves on the primary key `uid`. */

@@ -245,6 +245,19 @@
     }">
         <div class="mbr-account-card">
         <p class="m-0 text-body-s text-ink-2">{{ __('members::admin.members.user_account_help') }}</p>
+        @if($departureProtected)
+            <x-ui.notice tone="attention" data-testid="departure-protected">{{ __('members::admin.departure.protected_here') }}</x-ui.notice>
+        @endif
+        @if($departureReactivatable)
+            <x-ui.notice tone="neutral" data-testid="departure-reentered">{{ __('members::admin.departure.reentered_notice') }}</x-ui.notice>
+            <form method="POST" action="{{ route('members.account.reactivate', $member->id) }}">
+                @csrf
+                <x-ui.button type="submit" variant="secondary" :block="false">{{ __('members::admin.departure.reactivate') }}</x-ui.button>
+            </form>
+        @endif
+        @error('account')
+            <p class="ds-field__error">{{ $message }}</p>
+        @enderror
         @if($member->user)
             <div x-show="linked" class="flex flex-col items-start gap-3">
                 <p class="font-semibold text-ink">{{ $member->user->alias }}@if($member->user->email) · {{ $member->user->email }}@endif</p>
