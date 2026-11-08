@@ -26,6 +26,11 @@
     </nav>
 
     <div class="ds-phone-menu__rows">
+        @auth
+            <div class="ds-phone-menu__row">
+                <x-layout.player-exchange-switch variant="menu" />
+            </div>
+        @endauth
         @if(auth()->user()?->hasAnyPrivilege())
             <div class="ds-phone-menu__row">
                 <x-layout.admin-mode-switch variant="menu" />

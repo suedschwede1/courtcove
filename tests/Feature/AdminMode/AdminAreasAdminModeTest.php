@@ -236,7 +236,7 @@ class AdminAreasAdminModeTest extends TestCase
         $html = $this->actingAsAdminMode($member)->get('/calendar')->assertOk()->getContent();
         $this->assertStringNotContainsString('href="'.route('admin.dashboard').'"', $html);
         $this->assertStringNotContainsString('href="'.route('members.dashboard').'"', $html);
-        $this->assertStringNotContainsString('role="switch"', $html);
+        $this->assertStringNotContainsString('admin-mode-form-', $html);
     }
 
     #[Test]
@@ -249,6 +249,6 @@ class AdminAreasAdminModeTest extends TestCase
         $html = $this->actingAsWithoutAdminMode($assist)->get('/calendar')->assertOk()->getContent();
         $this->assertStringContainsString('href="'.route('members.dashboard').'"', $html);
         $this->assertStringNotContainsString('href="'.route('admin.dashboard').'"', $html);
-        $this->assertStringContainsString('role="switch"', $html);
+        $this->assertStringContainsString('admin-mode-form-', $html);
     }
 }

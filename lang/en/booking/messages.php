@@ -52,6 +52,8 @@ return [
             'not_open' => 'This booking is not (or no longer) looking for players.',
             'deadline_passed' => 'Joining is only possible until one hour before the start.',
             'own_booking' => 'This is your own booking.',
+            'switched_on' => 'You are signed up for the player exchange. You get an e-mail when someone looks for players. You can leave at any time here in the menu.',
+            'switched_off' => 'You left the player exchange. You will not get e-mails when someone looks for players any more.',
             'not_opted_in' => 'Join the player exchange under "My account" first.',
             'inactive' => 'Your account is not active.',
             'already_joined' => 'You have already joined this booking as a player.',

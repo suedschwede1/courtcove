@@ -8,6 +8,7 @@ use App\Exceptions\PlayerExchangeException;
 use App\Models\Booking;
 use App\Models\User;
 use App\Services\PlayerExchangeService;
+use App\Support\AdminMode;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\DetectsConcurrencyErrors;
 use Illuminate\Http\JsonResponse;
@@ -30,6 +31,25 @@ final class PlayerExchangeController extends Controller
         $exchange->optOut($user);
 
         return view('player-exchange.unsubscribed');
+    }
+
+    /**
+     * Switch in the header and phone menu: the same opt-in and opt-out as the checkbox in the
+     * account (one service), consent recorded with the source "menu". The redirect goes to the
+     * posted same-host path only.
+     */
+    public function set(Request $request, string $state, PlayerExchangeService $exchange): RedirectResponse
+    {
+        $member = $this->member($request);
+
+        if ($state === 'on') {
+            $exchange->optIn($member, 'menu');
+        } else {
+            $exchange->optOut($member);
+        }
+
+        return redirect()->to(AdminMode::safePath($request->input('redirect')))
+            ->with('success', __('booking.messages.player_exchange.'.($state === 'on' ? 'switched_on' : 'switched_off')));
     }
 
     public function join(Request $request, Booking $booking, PlayerExchangeService $exchange): JsonResponse|RedirectResponse

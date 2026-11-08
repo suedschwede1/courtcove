@@ -63,7 +63,7 @@ class PhoneMenuTest extends TestCase
         $this->assertStringContainsString('$refs.menuButton', $click);
 
         $this->assertSame(1, $xp->query('//div[@id="phone-menu"]//span[@aria-current="true"]')->length);
-        $this->assertSame(0, $xp->query('//div[@id="phone-menu"]//button[@role="switch"]')->length);
+        $this->assertSame(0, $xp->query('//div[@id="phone-menu"]//button[@role="switch"][@form="admin-mode-form-menu"]')->length);
 
         $logout = $xp->query('//div[@id="phone-menu"]//form[@action="'.route('logout').'"]//button[@type="submit"]');
         $this->assertSame(1, $logout->length);
@@ -72,7 +72,7 @@ class PhoneMenuTest extends TestCase
 
         $admin = User::factory()->create(['status' => 'admin']);
         $xp = $this->xpath($this->actingAs($admin)->get('/calendar')->assertOk()->getContent());
-        $this->assertSame(1, $xp->query('//div[@id="phone-menu"]//button[@role="switch"]')->length);
+        $this->assertSame(1, $xp->query('//div[@id="phone-menu"]//button[@role="switch"][@form="admin-mode-form-menu"]')->length);
     }
 
     #[Test]
