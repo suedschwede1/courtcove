@@ -378,6 +378,10 @@ return [
                     'title' => 'WhatsApp-Daten aufräumen',
                     'description' => 'Löscht WhatsApp-Protokolleinträge nach 12 Monaten, widerrufene Zustimmungen 3 Jahre nach dem Widerruf und löst bei gelöschten oder anonymisierten Konten Abos und Benutzerbezug.',
                 ],
+                'members-deactivate-left' => [
+                    'title' => 'Konten ausgetretener Mitglieder sperren',
+                    'description' => 'Sperrt täglich die Benutzerkonten von Mitgliedern, deren Austrittsdatum in den letzten 14 Tagen erreicht wurde (Admin- und Assistenzkonten bleiben aktiv und werden in der Mitgliederverwaltung gemeldet).',
+                ],
                 'queue-work' => [
                     'title' => 'Warteschlange abarbeiten',
                     'description' => 'Arbeitet wartende Hintergrundaufgaben ab (höchstens 50 Sekunden pro Minute).',

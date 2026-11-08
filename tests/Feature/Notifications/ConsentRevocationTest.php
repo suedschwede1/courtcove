@@ -167,9 +167,13 @@ class ConsentRevocationTest extends TestCase
         }
     }
 
-    /** The admin action "anonymise member" only touches member data: the linked account stays enabled. */
+    /**
+     * Decision 2026-11-08 (replaces the earlier rule that anonymising leaves the account alone): the admin action
+     * "anonymise member" first blocks the still-enabled linked account (see MemberDepartureAccounts), so the
+     * consent ends with it, and only then removes the link.
+     */
     #[Test]
-    public function anonymising_a_member_keeps_the_account_and_its_consent(): void
+    public function anonymising_a_member_blocks_the_account_and_revokes_its_consent_before_unlinking(): void
     {
         $user = $this->optedInUser();
         $member = $this->linkMember($user, ['status' => 'ausgetreten', 'left_at' => now()->subYears(5)->toDateString()]);
@@ -179,9 +183,10 @@ class ConsentRevocationTest extends TestCase
 
         $this->assertNotNull($member->fresh()->anonymized_at);
         $this->assertNull($member->fresh()->user_id);
-        $this->assertSame('enabled', $user->fresh()->status);
-        $this->assertSame(1, $this->activeConsentCount($user));
-        $this->assertTrue($this->consents()->gate($user->fresh())->passed);
+        $this->assertSame('blocked', $user->fresh()->status);
+        $this->assertSame(0, $this->activeConsentCount($user));
+        $this->assertSame('user_status', $this->lastRevokedVia($user));
+        $this->assertFalse($this->consents()->gate($user->fresh())->passed);
     }
 
     #[Test]

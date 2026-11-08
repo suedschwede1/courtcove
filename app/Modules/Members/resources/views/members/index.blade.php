@@ -42,6 +42,8 @@
     </x-slot:phoneAction>
 </x-members::page-header>
 
+@include('members::partials.departure-accounts', ['overview' => $departureOverview])
+
 {{-- Search and quick-filter chips (server side; chips keep the search and the more filters, the pager keeps everything). --}}
 <form method="GET" action="{{ route('members.index') }}" class="mbr-list-filters" role="search">
     @if($filter->chip !== MemberListFilter::DEFAULT)

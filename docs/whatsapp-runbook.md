@@ -64,9 +64,9 @@ Die Anbindung der Spielerboerse (Task 10) ist fertig. Mail und WhatsApp gehen do
 
 ### Widerruf und Konto-Lebenszyklus
 
-Zustimmungen enden automatisch bei Aenderung oder Entfernen der Mobilnummer (`phone_changed`), bei Konto-Status gesperrt, deaktiviert oder geloescht bzw. beim Loeschen ueber die Benutzerliste (`user_status`), per STOP (`stop`) und ueber die Konto-Karte (`account`). Austritt, Ruhendstellung, Entkopplung, Loeschen oder Anonymisieren eines Mitgliedsdatensatzes beenden keine Zustimmung: das Benutzerkonto lebt weiter, und die Anonymisierung betrifft nur die Mitgliedsdaten (sie entkoppelt das Konto, aendert es aber nicht). Aeltere Zeilen koennen noch `member_exit` oder `anonymized` tragen; diese Werte werden nicht mehr geschrieben.
+Zustimmungen enden automatisch bei Aenderung oder Entfernen der Mobilnummer (`phone_changed`), bei Konto-Status gesperrt, deaktiviert oder geloescht bzw. beim Loeschen ueber die Benutzerliste (`user_status`), per STOP (`stop`) und ueber die Konto-Karte (`account`). Ruhendstellung, Entkopplung oder Loeschen eines Mitgliedsdatensatzes beenden keine Zustimmung. Der Austritt (Austrittsdatum erreicht) und die Anonymisierung sperren dagegen das verknuepfte Konto (Entscheidung 2026-11-08, `members:deactivate-left-accounts`); das Sperren widerruft die Zustimmung ueber `user_status`. Admin- und Assistenzkonten bleiben davon ausgenommen. Aeltere Zeilen koennen noch `member_exit` oder `anonymized` tragen; diese Werte werden nicht mehr geschrieben.
 
-Wichtig: Der Austritt eines Mitglieds deaktiviert oder sperrt das Benutzerkonto nicht. Ein ausgetretenes Mitglied mit weiter aktivem Konto, Mobilnummer, Boerse und Zustimmung bekommt deshalb weiter WhatsApp-Nachrichten (und, unveraendert, die Boersen-Mails). Soll es keine mehr bekommen, das Konto in der Benutzerverwaltung sperren oder deaktivieren; das widerruft die Zustimmung sofort.
+Wichtig: Der Austritt eines Mitglieds sperrt das Benutzerkonto automatisch (ab dem Austrittsdatum, taeglicher Lauf plus sofort beim Speichern); damit enden Zustimmung, WhatsApp-Versand und Boersen-Mails. Ausgenommen sind Konten mit Admin-, Assistenz- oder Mitgliederrecht: sie bleiben aktiv und erscheinen als Warnung in der Mitgliederverwaltung, die Entscheidung trifft ein Admin von Hand.
 
 ### Aufgaben des Vereins
 

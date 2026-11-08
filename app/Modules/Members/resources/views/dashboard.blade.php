@@ -44,6 +44,20 @@
         </p>
     </x-ui.card>
 
+    <x-ui.card :title="__('members::admin.departure.card_title')" data-testid="departure-card">
+        <p class="m-0 text-body-s text-ink-2">{{ __('members::admin.departure.help') }}</p>
+        @include('members::partials.departure-accounts', ['overview' => $departureOverview, 'withActions' => true])
+        @if($departureOverview['protected']->isEmpty() && $departureOverview['reactivatable']->isEmpty())
+            <p class="text-body-s text-ink-2">{{ __('members::admin.departure.none') }}</p>
+        @endif
+        <p class="mbr-card-foot">
+            @if($departureOverview['pending'] > 0)
+                <span class="text-body-s text-ink-2">{{ trans_choice('members::admin.departure.pending', $departureOverview['pending'], ['count' => $departureOverview['pending']]) }}</span>
+            @endif
+            <span class="text-body-s text-ink-2">{{ trans_choice('members::admin.departure.last', $departureOverview['recent'], ['count' => $departureOverview['recent']]) }}</span>
+        </p>
+    </x-ui.card>
+
     <x-ui.card :title="__('members::admin.dashboard.age_structure')">
         @php
             $maxAgeCount = max([...array_values($ageStructure['buckets']), $ageStructure['unknown']]) ?: 0;

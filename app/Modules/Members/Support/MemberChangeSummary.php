@@ -61,6 +61,12 @@ final class MemberChangeSummary
         if ($change->action === 'anonymized') {
             return [(string) __('members::admin.history.anonymized')];
         }
+        if ($change->action === MemberDepartureAccounts::ACTION_OFF) {
+            return [(string) __('members::admin.departure.history_off')];
+        }
+        if ($change->action === MemberDepartureAccounts::ACTION_ON) {
+            return [(string) __('members::admin.departure.history_on')];
+        }
         if ($change->action === 'household_payer') {
             return [self::payerLine($change, $revealPersonal)];
         }

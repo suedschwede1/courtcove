@@ -9,6 +9,7 @@ use App\Mail\UserActivated;
 use App\Models\Booking;
 use App\Models\LoginHistory;
 use App\Models\User;
+use App\Models\UserMeta;
 use App\Modules\Members\Models\Member;
 use App\Services\QuoteGroups;
 use App\Services\TrustedDeviceService;
@@ -315,6 +316,11 @@ final class UserController extends Controller
         $emailBefore = (string) $user->email;
         $rightsBefore = [$user->effectiveRole(), $user->accountStatus(), $user->grantedPrivileges()];
         $user->update(['alias' => $data['alias'], 'email' => $data['email'] ?? null, ...self::statusRoleColumns($data['status'], $role)]);
+        // An explicit "blocked" from the form is a manual block: the departure marker no longer applies.
+        if ($data['status'] === 'blocked') {
+            $user->meta()->whereIn('key', [User::META_DEPARTURE_DEACTIVATED, User::META_DEPARTURE_RELEASED])->delete();
+            $user->unsetRelation('meta');
+        }
         foreach (['firstname', 'lastname', 'phone'] as $field) {
             $user->setMeta($field, $data[$field] ?? null);
         }
@@ -372,6 +378,11 @@ final class UserController extends Controller
             ->when(User::splitsRole(), fn (Builder $query) => $query->where('role', '!=', 'admin'))
             ->when($data['action'] === 'enabled', fn (Builder $query) => $query->whereNot(fn (Builder $sub) => $sub->active()))
             ->update(['status' => $data['action']]);
+
+        // Mass updates fire no model events: an account that leaves the blocked state loses its departure marker here.
+        if ($data['action'] !== 'blocked') {
+            UserMeta::query()->whereIn('uid', $data['uids'])->where('key', User::META_DEPARTURE_DEACTIVATED)->update(['key' => User::META_DEPARTURE_RELEASED]);
+        }
 
         foreach ($data['uids'] as $uid) {
             app(TrustedDeviceService::class)->revokeAll((int) $uid, true);

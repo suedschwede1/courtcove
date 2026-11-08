@@ -55,6 +55,7 @@ Route::middleware(['auth', 'can:admin.members'])
 
         Route::patch('members/{member}/field', [MemberController::class, 'updateField'])->name('members.update-field');
         Route::post('members/{member}/anonymize', [MemberController::class, 'anonymize'])->name('members.anonymize');
+        Route::post('members/{member}/account/reactivate', [MemberController::class, 'reactivateAccount'])->whereNumber('member')->name('members.account.reactivate');
 
         Route::get('members/functions', [ClubRoleController::class, 'index'])->name('members.functions.index');
         Route::get('members/functions/create', [ClubRoleController::class, 'create'])->name('members.functions.create');

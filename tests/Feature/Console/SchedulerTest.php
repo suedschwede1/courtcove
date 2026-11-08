@@ -36,13 +36,15 @@ class SchedulerTest extends TestCase
     #[Test]
     public function the_schedule_has_the_housekeeping_tasks_with_names_and_no_overlapping(): void
     {
-        $this->assertSame(['scheduler-heartbeat', 'scheduler-prune-runs', 'sanctum-prune-expired', 'auth-clear-resets', 'player-exchange-expire', 'notifications-dispatch', 'notifications-prune'], $this->names());
+        $this->assertSame(['scheduler-heartbeat', 'scheduler-prune-runs', 'sanctum-prune-expired', 'auth-clear-resets', 'player-exchange-expire', 'notifications-dispatch', 'notifications-prune', 'members-deactivate-left'], $this->names());
 
         foreach (ScheduleDefinition::events() as $event) {
             $this->assertTrue($event->withoutOverlapping, $event->description.' without overlapping');
         }
 
         $commands = implode(' ', array_map(fn ($event) => (string) $event->command, ScheduleDefinition::events()));
+        // The one scheduled members command is the daily block of the accounts of departed members (decision 2026-11-08).
+        $commands = str_replace('members:deactivate-left-accounts', '', $commands);
         foreach (['members:', 'users:split-role', 'booking:adopt-booking-rules', 'phase2:', 'import'] as $business) {
             $this->assertStringNotContainsString($business, $commands, 'business commands are never scheduled');
         }
