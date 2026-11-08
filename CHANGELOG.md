@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-08
+- Notifications: four new tables (consent, subscriptions, outbox log, monthly usage) with models and schema checker entries, groundwork for the WhatsApp notifications and not used anywhere yet; the log keeps IDs only, no message text or phone numbers.
 - Phone numbers: new strict E.164 parser (PhoneNumber class) with a mobile check for +43 and +49, groundwork for the WhatsApp notifications and not used anywhere yet.
 - Members dashboard: the full-width last block now has its own style rule (spacing above), assets rebuilt.
 - Members dashboard: the "Recently changed" card is now its own full-width block at the very end of the page, outside every grid, so it stays at the bottom on phones and desktop even when cards or columns are added; the other three cards share one grid.
