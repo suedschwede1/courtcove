@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-08
+- Notifications: WhatsApp transports (log, fake, live over the HTTP client) with a connection check and an error table; the live driver is downgraded to log on a `_staging` database unless sandbox mode or WHATSAPP_ALLOW_LIVE_ON_STAGING is set; groundwork, not used anywhere yet, no real sending.
 - Notifications: WhatsApp settings (config/whatsapp.php, WhatsAppSettings, SecretOptions) with .env > admin option > default resolution and encrypted secret options; the provider URL, paths and signature header name have no default and must be configured; groundwork, not used anywhere yet.
 - Notifications: four new tables (consent, subscriptions, outbox log, monthly usage) with models and schema checker entries, groundwork for the WhatsApp notifications and not used anywhere yet; the log keeps IDs only, no message text or phone numbers.
 - Phone numbers: new strict E.164 parser (PhoneNumber class) with a mobile check for +43 and +49, groundwork for the WhatsApp notifications and not used anywhere yet.

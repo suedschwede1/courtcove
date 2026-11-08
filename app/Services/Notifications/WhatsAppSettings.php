@@ -7,6 +7,7 @@ namespace App\Services\Notifications;
 use App\Models\Option;
 use BackedEnum;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -42,10 +43,27 @@ final class WhatsAppSettings
         return in_array($driver, self::DRIVERS, true) ? $driver : 'log';
     }
 
-    /** The driver that really runs; staging downgrade follows in a later task. */
+    /**
+     * The driver that really runs: `live` becomes `log` on a staging database (name ends in `_staging`)
+     * unless sandbox mode or WHATSAPP_ALLOW_LIVE_ON_STAGING is set.
+     */
     public function effectiveDriver(): string
     {
-        return $this->driver();
+        $driver = $this->driver();
+        if ($driver === 'live' && $this->onStagingDatabase() && ! $this->sandbox() && ! $this->allowLiveOnStaging()) {
+            return 'log';
+        }
+
+        return $driver;
+    }
+
+    private function onStagingDatabase(): bool
+    {
+        try {
+            return str_ends_with((string) DB::connection()->getDatabaseName(), '_staging');
+        } catch (\Throwable) {
+            return false;
+        }
     }
 
     public function accountSid(): ?string
