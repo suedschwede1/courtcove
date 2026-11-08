@@ -144,7 +144,7 @@ class AdminWhatsAppPageTest extends TestCase
         $this->assertMatchesRegularExpression('/<input[^>]*name="sender"[^>]*disabled/', $html);
         $this->assertMatchesRegularExpression('/<input[^>]*name="auth_token"[^>]*disabled/', $html);
 
-        $this->save(['sender' => 'whatsapp:+436601111111', 'auth_token' => 'other-token', 'driver' => 'log'])->assertSessionHasNoErrors();
+        $this->save(['sender' => 'whatsapp:+436600000066', 'auth_token' => 'other-token', 'driver' => 'log'])->assertSessionHasNoErrors();
 
         $this->assertNull($this->opt('whatsapp.sender'));
         $this->assertNull($this->opt('whatsapp.auth_token'));
