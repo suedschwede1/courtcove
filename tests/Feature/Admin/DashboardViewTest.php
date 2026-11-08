@@ -121,7 +121,7 @@ final class DashboardViewTest extends TestCase
             fn ($n) => trim($n->textContent),
             iterator_to_array($this->nodes('//main//table//thead//th'))
         );
-        $this->assertSame(['Zeit', 'Platz', 'Mitglied', 'Status'], $heads);
+        $this->assertSame(['Zeit', 'Platz', 'Mitglied', 'Spieler', 'Status'], $heads);
 
         $this->assertSame('10:00 – 11:00', $this->text('//main//table//tbody/tr[1]/td[@data-label="Zeit"]'));
         $this->assertSame('Court A', $this->text('//main//table//tbody/tr[1]/td[@data-label="Platz"]'));

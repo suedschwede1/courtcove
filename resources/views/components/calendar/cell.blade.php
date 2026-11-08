@@ -57,20 +57,14 @@
     // The same list goes into the join dialog (joined members are written into the player names).
     $otherPlayers = [];
     if ($isLoggedIn && $reservation?->booking) {
-        $ownerKey = mb_strtolower(trim($reservation->booking->owner_label));
-        $otherPlayers = array_values(array_filter(
-            $reservation->booking->player_names,
-            fn (string $player) => mb_strtolower(trim($player)) !== $ownerKey,
-        ));
+        $otherPlayers = $reservation->booking->other_players;
     }
     $secondaryLabel = ! $hasOpenSearch && $otherPlayers !== [] ? implode(', ', $otherPlayers) : null;
     // Phones: the players as first names, at most three, "+N" for the rest (the cell is one narrow column).
     // Same visibility as the desktop detail line: members only, never during an open search.
     $playersShort = null;
     if ($secondaryLabel !== null && $reservation) {
-        $firstNames = array_map(fn (string $player) => strtok(trim($player), ' ') ?: $player, $otherPlayers);
-        $playersShort = implode(', ', array_slice($firstNames, 0, 3))
-            . (count($firstNames) > 3 ? ' +'.(count($firstNames) - 3) : '');
+        $playersShort = \App\Models\Booking::shortPlayerNames($otherPlayers);
     }
     if ($secondaryLabel === null && $isSeriesBooking) {
         $secondaryLabel = __('booking.calendar.series_hint');

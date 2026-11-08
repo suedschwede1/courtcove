@@ -36,6 +36,9 @@
     </tr>
     @endif
     <tr><td>{{ __('booking.mail.players') }}</td><td>{{ $booking->quantity }}</td></tr>
+    @if($booking->other_players !== [])
+    <tr><td>{{ __('booking.mail.teammates') }}</td><td>{{ implode(', ', $booking->other_players) }}</td></tr>
+    @endif
     <tr><td>{{ __('booking.mail.booking_number') }}</td><td>#{{ $booking->bid }}</td></tr>
   </table>
 

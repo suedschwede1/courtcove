@@ -28,6 +28,7 @@ final class DashboardController extends Controller
             ->with([
                 'square',
                 'user',
+                'meta',
                 'reservations' => fn ($q) => $q->where('date', $today->toDateString()),
             ])
             ->get();

@@ -15,6 +15,7 @@ return [
         'date' => 'Date',
         'time' => 'Time',
         'players' => 'Players',
+        'teammates' => 'Teammates',
         'booking_number' => 'Booking No.',
         'greeting_confirmed' => 'Hello :name,',
         'greeting_cancelled' => 'Hello :name,',
