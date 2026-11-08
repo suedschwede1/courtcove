@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Notifications;
 
+use App\Mail\WhatsAppBudgetAlert;
 use App\Models\NotificationConsent;
 use App\Models\NotificationLogEntry;
 use App\Models\NotificationUsageMonthly;
@@ -21,10 +22,12 @@ use App\Services\Notifications\SubjectResolver;
 use App\Services\Notifications\SubjectResolverRegistry;
 use App\Services\Notifications\Transport\FakeTransport;
 use App\Services\Notifications\Transport\TransportResult;
+use App\Services\Notifications\WhatsAppSettings;
 use Carbon\CarbonInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
@@ -510,6 +513,161 @@ class NotificationDispatcherTest extends TestCase
         $this->assertSame(1, $report->sent);
         $this->assertSame(0, NotificationUsageMonthly::sole()->messages_reserved);
     }
+
+    #[Test]
+    public function a_failing_settle_after_an_accepted_send_keeps_the_row_sent(): void
+    {
+        $user = $this->optedInUser();
+        $row = $this->row($user);
+        NotificationUsageMonthly::updating(function (NotificationUsageMonthly $usage): void {
+            if ($usage->isDirty('messages_sent')) {
+                throw new \RuntimeException('settle broken');
+            }
+        });
+
+        $report = $this->dispatcher()->run();
+
+        $row->refresh();
+        $this->assertSame(NotificationLogEntry::SENT, $row->status);
+        $this->assertStringStartsWith('fake-', (string) $row->provider_sid);
+        $this->assertNull($row->error_code);
+        $this->assertSame(1, $report->sent);
+        // The reservation is not freed: the message did go out.
+        $usage = NotificationUsageMonthly::sole();
+        $this->assertSame(1, $usage->messages_reserved);
+        $this->assertSame(50_000, $usage->estimated_micros);
+
+        Carbon::setTestNow(Carbon::now()->addMinutes(10));
+        $this->dispatcher()->run();
+        $this->assertCount(1, $this->fake()->sent());
+    }
+
+    #[Test]
+    public function a_failing_store_after_an_accepted_send_leaves_the_row_sending_and_never_resends(): void
+    {
+        $user = $this->optedInUser();
+        $row = $this->row($user);
+        NotificationLogEntry::updating(function (NotificationLogEntry $entry): void {
+            if ($entry->status === NotificationLogEntry::SENT) {
+                throw new \RuntimeException('store broken');
+            }
+        });
+
+        $this->dispatcher()->run();
+
+        $stored = DB::table('notification_log')->where('id', $row->id)->first();
+        $this->assertSame(NotificationLogEntry::SENDING, $stored->status);
+        $this->assertNull($stored->error_code);
+        $this->assertCount(1, $this->fake()->sent());
+        $usage = NotificationUsageMonthly::sole();
+        $this->assertSame(1, $usage->messages_reserved);
+        $this->assertSame(50_000, $usage->estimated_micros);
+
+        $this->dispatcher()->run();
+        $this->assertCount(1, $this->fake()->sent());
+
+        // The stale sweep resolves it: failed, cost kept, reservation settled as accepted.
+        Carbon::setTestNow(Carbon::now()->addMinutes(6));
+        $this->dispatcher()->run();
+
+        $row->refresh();
+        $this->assertSame(NotificationLogEntry::FAILED, $row->status);
+        $this->assertSame('stale', $row->error_code);
+        $this->assertCount(1, $this->fake()->sent());
+        $usage->refresh();
+        $this->assertSame(0, $usage->messages_reserved);
+        $this->assertSame(1, $usage->messages_sent);
+        $this->assertSame(50_000, $usage->estimated_micros);
+    }
+
+    #[Test]
+    public function a_pause_during_the_run_puts_the_next_row_back_and_ends_the_run(): void
+    {
+        $user = $this->optedInUser();
+        $first = $this->row($user);
+        $second = $this->row($user);
+        $this->resolver->onBuild = fn () => app(WhatsAppSettings::class)->pause('auth_failed');
+
+        $report = $this->dispatcher()->run();
+
+        $this->assertSame(NotificationLogEntry::SENT, $first->refresh()->status);
+        $second->refresh();
+        $this->assertSame(NotificationLogEntry::PENDING, $second->status);
+        $this->assertNull($second->skip_reason);
+        $this->assertSame('paused', $report->stoppedReason);
+        $this->assertCount(1, $this->fake()->sent());
+    }
+
+    #[Test]
+    public function daily_limit_counts_rows_being_sent(): void
+    {
+        $user = $this->optedInUser();
+        foreach (range(1, 3) as $i) {
+            $this->row($user, ['status' => NotificationLogEntry::SENDING]);
+        }
+        $row = $this->row($user);
+
+        $this->dispatcher()->run();
+
+        $this->assertSame('daily_limit', $row->refresh()->skip_reason);
+    }
+
+    #[Test]
+    public function daily_limit_does_not_count_admin_tests(): void
+    {
+        $user = $this->optedInUser();
+        foreach (range(1, 3) as $i) {
+            $this->row($user, [
+                'type' => NotificationType::AdminTest,
+                'status' => NotificationLogEntry::SENT,
+                'sent_at' => Carbon::now()->subHour(),
+            ]);
+        }
+        $row = $this->row($user);
+
+        $this->dispatcher()->run();
+
+        $this->assertSame(NotificationLogEntry::SENT, $row->refresh()->status);
+    }
+
+    #[Test]
+    public function budget_alert_is_sent_after_settling(): void
+    {
+        Mail::fake();
+        config(['mail.default' => 'smtp', 'mail.mailers.smtp.host' => 'smtp.example.test']);
+        $this->opt('whatsapp.budget_monthly', '0.05');
+        $this->opt('whatsapp.budget_alert_email', 'admin@example.test');
+        $user = $this->optedInUser();
+        $this->row($user);
+
+        $this->dispatcher()->run();
+
+        Mail::assertSent(WhatsAppBudgetAlert::class, fn (WhatsAppBudgetAlert $mail): bool => $mail->hasTo('admin@example.test'));
+        $this->assertNotNull(NotificationUsageMonthly::sole()->warned_100_at);
+    }
+
+    #[Test]
+    public function stale_rows_are_settled_outside_the_row_transaction(): void
+    {
+        $user = $this->optedInUser();
+        $stale = $this->row($user, ['status' => NotificationLogEntry::SENDING, 'cost_estimate_micros' => 50_000]);
+        DB::table('notification_log')->where('id', $stale->id)->update(['updated_at' => Carbon::now()->subMinutes(6)]);
+        DB::table('notification_usage_monthly')->insert([
+            'month' => '2026-11', 'channel' => 'whatsapp', 'messages_reserved' => 1, 'estimated_micros' => 50_000,
+        ]);
+        $baseline = DB::transactionLevel();
+        $levels = [];
+        NotificationUsageMonthly::updating(function () use (&$levels): void {
+            $levels[] = DB::transactionLevel();
+        });
+
+        $this->dispatcher()->run();
+
+        $this->assertSame('stale', $stale->refresh()->error_code);
+        // Only settle()'s own transaction is open, never the row transaction around it.
+        $this->assertSame([$baseline + 1], $levels);
+        $this->assertSame(0, NotificationUsageMonthly::sole()->messages_reserved);
+    }
 }
 
 /** Stand-in for the player search resolver (Task 10): rebuilds the name from the sender's user id. */
@@ -520,6 +678,9 @@ final class TestSearchResolver implements SubjectDeadline, SubjectResolver
     public ?CarbonInterface $deadline = null;
 
     public ?int $throwFor = null;
+
+    /** @var (\Closure(): mixed)|null */
+    public ?\Closure $onBuild = null;
 
     public function stillRelevant(NotificationLogEntry $row): bool
     {
@@ -535,6 +696,10 @@ final class TestSearchResolver implements SubjectDeadline, SubjectResolver
     {
         if ($row->id === $this->throwFor) {
             throw new \RuntimeException('broken subject');
+        }
+        if ($this->onBuild !== null) {
+            ($this->onBuild)();
+            $this->onBuild = null;
         }
         $sender = User::find($row->subject_payload['sender_id'] ?? 0);
         $name = $sender === null ? '?' : trim($sender->getMeta('firstname').' '.$sender->getMeta('lastname'));

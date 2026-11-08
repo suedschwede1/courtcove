@@ -36,6 +36,8 @@ final class WhatsAppChannel
             $gate = $this->consents->gate($notifiable, $message->type->isAdminTest());
             $now = Carbon::now();
 
+            // insertOrIgnore only swallows the unique dedupe key: every value is set and cut to its column
+            // size here, so no other constraint can be ignored silently.
             DB::table('notification_log')->insertOrIgnore([
                 'type' => $message->type->value,
                 'channel' => ConsentService::CHANNEL,

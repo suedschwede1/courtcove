@@ -137,7 +137,11 @@ final class NotificationDispatcher
                 return $this->skip($row, NotificationLogEntry::DISABLED, $report);
             }
             if ($this->settings->pausedReason() !== null) {
-                return $this->skip($row, NotificationLogEntry::PAUSED, $report);
+                // Paused by a parallel run: the row waits for "resume" like the rest, and this run ends.
+                $this->update($row, ['status' => NotificationLogEntry::PENDING]);
+                $report->stoppedReason = 'paused';
+
+                return true;
             }
 
             $type = NotificationType::tryFrom($row->type);
@@ -196,7 +200,16 @@ final class NotificationDispatcher
                 $content->buttonSuffix,
             );
 
-            $this->budget->settle($reservation, $result->accepted);
+            if ($result->accepted) {
+                // From here on the message is out: nothing may fail the row, lose the SID or free the budget.
+                $accepted = $reservation;
+                $reservation = null;
+                $this->recordAccepted($row, (string) $result->sid, $accepted, $report);
+
+                return false;
+            }
+
+            $this->release($reservation);
             $reservation = null;
             $this->sendBudgetAlerts();
 
@@ -213,21 +226,42 @@ final class NotificationDispatcher
         }
     }
 
-    /** Stores the transport outcome; true when the run must stop. */
-    private function record(NotificationLogEntry $row, TransportResult $result, SubjectResolver $resolver, DispatchReport $report): bool
+    /**
+     * An accepted message: first the SID and `sent` are stored, then the budget is settled, each step on its
+     * own and never throwing. If storing fails the row stays `sending`; the stale sweep later fails it and
+     * settles the reservation as accepted, so it is neither sent again nor freed.
+     */
+    private function recordAccepted(NotificationLogEntry $row, string $sid, BudgetReservation $reservation, DispatchReport $report): void
     {
-        if ($result->accepted) {
+        $report->sent++;
+
+        try {
             $row->forceFill([
                 'status' => NotificationLogEntry::SENT,
-                'provider_sid' => $result->sid,
+                'provider_sid' => $sid,
                 'sent_at' => Carbon::now(),
                 'error_code' => null,
             ])->save();
-            $report->sent++;
+        } catch (Throwable $e) {
+            report($e);
+            Log::warning('whatsapp sent row not stored', ['id' => $row->getKey(), 'error' => $e::class]);
 
-            return false;
+            return;
         }
 
+        try {
+            $this->budget->settle($reservation, true);
+        } catch (Throwable $e) {
+            report($e);
+            Log::warning('whatsapp budget settle failed', ['id' => $row->getKey(), 'error' => $e::class]);
+        }
+
+        $this->sendBudgetAlerts();
+    }
+
+    /** Stores a rejected transport outcome; true when the run must stop. */
+    private function record(NotificationLogEntry $row, TransportResult $result, SubjectResolver $resolver, DispatchReport $report): bool
+    {
         $code = substr((string) ($result->errorCode ?? 'unknown'), 0, 16);
 
         if ($result->authFailure) {
@@ -239,6 +273,7 @@ final class NotificationDispatcher
             return true;
         }
 
+        // `attempts` counts scheduled retries: 1, 5 and 15 minutes, so at most four sends in total.
         if ($result->retryable && $row->attempts < count(self::BACKOFF_MINUTES)) {
             $next = Carbon::now()->addMinutes(self::BACKOFF_MINUTES[$row->attempts]);
             $deadline = $resolver instanceof SubjectDeadline ? $resolver->deadline($row) : null;
@@ -265,7 +300,8 @@ final class NotificationDispatcher
     /**
      * `sending` rows whose claim is older than five minutes: the worker died during or after the provider
      * call, so a resend could duplicate the message. They fail as `stale`; a status webhook that resolved
-     * the row has already moved it out of `sending`. A held reservation is settled as accepted (cost kept).
+     * the row has already moved it out of `sending`. A held reservation is settled as accepted (cost kept),
+     * after the row transaction has committed so the budget lock is never taken inside another lock.
      */
     private function failStaleRows(DispatchReport $report): void
     {
@@ -277,27 +313,43 @@ final class NotificationDispatcher
 
         foreach ($ids as $id) {
             try {
-                DB::transaction(function () use ($id, $cutoff, $report): void {
+                $reservation = DB::transaction(function () use ($id, $cutoff): BudgetReservation|false|null {
                     $query = NotificationLogEntry::query()
                         ->whereKey($id)
                         ->where('status', NotificationLogEntry::SENDING)
                         ->where('updated_at', '<', $cutoff);
                     $row = $this->lockSkippingLocked($query)->first();
                     if ($row === null) {
-                        return;
+                        return false;
                     }
 
-                    $claimedAt = $row->updated_at instanceof Carbon ? $row->updated_at->copy() : Carbon::now();
+                    // The month of the reservation: `cost_estimate_micros` is written right after reserve(),
+                    // which sets `updated_at` to that moment (no column holds the month itself). `created_at`
+                    // would be wrong for retried or debounced rows.
+                    $reservedAt = $row->updated_at instanceof Carbon ? $row->updated_at->copy() : Carbon::now();
                     $cost = $row->cost_estimate_micros;
                     $row->forceFill(['status' => NotificationLogEntry::FAILED, 'error_code' => 'stale'])->save();
-                    if ($cost !== null) {
-                        $month = $claimedAt->setTimezone(self::TIMEZONE)->format('Y-m');
-                        $this->budget->settle(new BudgetReservation($month, $cost), true);
-                    }
-                    $report->stale++;
+
+                    return $cost === null ? null : new BudgetReservation($reservedAt->setTimezone(self::TIMEZONE)->format('Y-m'), $cost);
                 });
             } catch (Throwable $e) {
                 report($e);
+
+                continue;
+            }
+
+            if ($reservation === false) {
+                continue;
+            }
+            $report->stale++;
+
+            if ($reservation !== null) {
+                try {
+                    $this->budget->settle($reservation, true);
+                } catch (Throwable $e) {
+                    report($e);
+                    Log::warning('whatsapp budget settle failed', ['id' => $id, 'error' => $e::class]);
+                }
             }
         }
     }
