@@ -43,7 +43,7 @@ enum CellState: string
     /** @return list<self> */
     public static function legend(bool $loggedIn): array
     {
-        $states = [self::Free, self::Own, self::SingleFuture, self::Seeking, self::Event, self::Blocked, self::Tournament, self::Past];
+        $states = [self::Free, self::Own, self::SingleFuture, self::Series, self::Seeking, self::Event, self::Blocked, self::Tournament, self::Past];
 
         return array_values(array_filter($states, fn (self $s) => $loggedIn || $s !== self::Own));
     }

@@ -175,7 +175,7 @@ Tournament modules and admin sub-areas use tabs below the page title: `padding: 
 | Free | `surface`, `1px dashed cell-free-line` | none | `<a href>` with `aria-label` "Court A, 17:00 Uhr buchen" |
 | My booking (`cc-own`) | `clay` | `on-clay` | link to own booking / cancel dialog |
 | Booked / subscription (`cc-single-future`) | `cell-booked` | `ink` | span (link for admins) |
-| Player search (`cc-seeking`, someone else's booking) | `cell-seek` + `box-shadow: inset 0 0 0 1px cell-seek-line` | `cell-seek-ink`, extra line "Sucht noch N" | link: join dialog (in the player exchange), info dialog (other members), login (guests). An own booking with an open search stays `cc-own` and shows "Sucht noch N Mitspieler" |
+| Player search (`cc-seeking`, someone else's booking) | `cell-seek` + `box-shadow: inset 0 0 0 2px cell-seek-line` and a person-plus symbol before the search text | `cell-seek-ink`, extra line "Sucht noch N" | link: join dialog (in the player exchange), info dialog (other members), login (guests). An own booking with an open search stays `cc-own` and shows "Sucht noch N Mitspieler" |
 | Event | `court`, joined across hours | `on-court` | first hour 40px with `margin-bottom: -4px`, following hours plain `court` |
 | Tournament match (`cc-turnier`) | `court-soft` + `box-shadow: inset 0 0 0 1px court` | `court-ink` | span |
 | Past (`slot-cell--past`) | `repeating-linear-gradient(135deg, cell-past-a 0 4px, cell-past-b 4px 8px)` | none | span |

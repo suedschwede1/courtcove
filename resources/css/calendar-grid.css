@@ -273,6 +273,19 @@
     overflow-wrap: anywhere;
 }
 
+/* The search text carries a person-plus symbol: the state reads by shape, not by the violet alone. */
+.cal-row .cc-label-seeking::before {
+    content: "";
+    display: inline-block;
+    width: 11px;
+    height: 11px;
+    margin-inline-end: 3px;
+    vertical-align: -1px;
+    background: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='9' cy='7' r='4' fill='black'/%3E%3Cpath d='M1 21c0-4.4 3.6-8 8-8s8 3.6 8 8z' fill='black'/%3E%3Cpath d='M19 6v3h3v2h-3v3h-2v-3h-3V9h3V6z' fill='black'/%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='9' cy='7' r='4' fill='black'/%3E%3Cpath d='M1 21c0-4.4 3.6-8 8-8s8 3.6 8 8z' fill='black'/%3E%3Cpath d='M19 6v3h3v2h-3v3h-2v-3h-3V9h3V6z' fill='black'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
 /* Player search line: the text marker of an open search (bold, so it reads apart from the players). */
 .cal-row .cc-label-seeking {
     font-size: 11px;
@@ -369,13 +382,13 @@
 /* Player search on someone else's booking: pale violet fill with a violet ring; the text line says it. */
 .cal-row > .cc-seeking {
     background: var(--cal-seeking-bg);
-    box-shadow: inset 0 0 0 1px var(--cal-seeking-line);
+    box-shadow: inset 0 0 0 2px var(--cal-seeking-line);
     color: var(--cal-seeking-label);
 }
 
 .cal-row > a.cc-seeking:not(.slot-cell--past):hover,
 .cal-row > a.cc-seeking:not(.slot-cell--past):focus-visible {
-    box-shadow: inset 0 0 0 2px var(--cal-seeking-line);
+    box-shadow: inset 0 0 0 3px var(--cal-seeking-line);
 }
 
 /*
@@ -384,6 +397,7 @@
  */
 .cal-row > .cc-series:not(.slot-cell--past):not(.cc-turnier) {
     background: var(--cal-series-bg);
+    box-shadow: inset 4px 0 0 0 var(--cal-series-label);
     color: var(--cal-series-label);
 }
 
@@ -393,7 +407,7 @@
 }
 
 .cal-row > .cc-own.cc-series:not(.slot-cell--past):not(.cc-turnier) {
-    box-shadow: inset 0 0 0 1.5px var(--cal-own-line);
+    box-shadow: inset 0 0 0 1.5px var(--cal-own-line), inset 4px 0 0 0 var(--cal-series-label);
 }
 
 /* Past: hatched, booked past slots keep their text in the muted colour. */
