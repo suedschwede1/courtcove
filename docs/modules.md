@@ -1,6 +1,6 @@
 # Modules
 
-A module is a self-contained area of the booking system (the tournament areas are modules). Modules register
+A module is a self-contained area of CourtCove (the tournament areas are modules). Modules register
 themselves in a registry; the main menu, the module overview (`/modules`), the administration group "Module", the
 rights list of the user form and the module sidebar read only from that registry. Adding a module needs **no change
 to core navigation code**.

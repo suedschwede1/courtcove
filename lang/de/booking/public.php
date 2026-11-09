@@ -45,6 +45,7 @@ return [
     ],
     'auth' => [
         'back_to_calendar' => 'Zum Kalender',
+        'powered_by' => 'Powered by :product',
         'panel' => [
             'line1' => 'Dein Platz.',
             'line2' => 'Deine Zeit.',
@@ -142,7 +143,7 @@ return [
     'calendar' => [
         'title' => 'Buchungsplan – :date',
         'date_navigation' => 'Tagesnavigation',
-        'system_eyebrow' => 'Buchungssystem',
+        'system_eyebrow' => ':product',
         'information' => 'Informationen',
         'system_text' => 'Der Plan zeigt drei Tage nebeneinander, auf dem Handy einen Tag. Mit den Pfeilen neben dem Datum wechselst du tageweise.',
         'system_items' => [

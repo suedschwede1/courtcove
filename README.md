@@ -1,6 +1,8 @@
-# Tennis Booking System
+# CourtCove
 
-Laravel-based court booking system for a tennis club.
+*Your club. Your court. Your game.*
+
+CourtCove is a Laravel-based court booking system for sports clubs.
 Replaces the old Zend/Laminas system (`booking`).
 
 ## Stack

@@ -45,6 +45,7 @@ return [
     ],
     'auth' => [
         'back_to_calendar' => 'Back to calendar',
+        'powered_by' => 'Powered by :product',
         'panel' => [
             'line1' => 'Your court.',
             'line2' => 'Your time.',
@@ -142,7 +143,7 @@ return [
     'calendar' => [
         'title' => 'Booking Schedule - :date',
         'date_navigation' => 'Day navigation',
-        'system_eyebrow' => 'Booking System',
+        'system_eyebrow' => ':product',
         'information' => 'Information',
         'system_text' => 'The schedule shows three days side by side, one day on phones. Use the arrows next to the date to switch days.',
         'system_items' => [

@@ -36,6 +36,7 @@
             @if($hasFooter)
                 <div class="ds-auth__footer">{{ $footer }}</div>
             @endif
+            <p class="ds-auth__powered">{{ __('booking.auth.powered_by', ['product' => config('booking.product_name')]) }}</p>
         </div>
     </main>
 </div>

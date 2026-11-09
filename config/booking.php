@@ -4,6 +4,9 @@ declare(strict_types=1);
 use App\Http\Middleware\RestrictApiByIp;
 
 return [
+    // Product (software) name, shown e.g. in the "Powered by" line. Not the club name (that is 'name' below).
+    'product_name' => 'CourtCove',
+    'product_tagline' => 'Your club. Your court. Your game.',
     'name' => env('BOOKING_NAME', env('APP_NAME', 'Tennis-Booking')),
     'watermark' => 'src:hm-'.hash('crc32b', 'Heinz Mayer|bookingnew'),
     'logo_path' => env('BOOKING_LOGO_PATH', ''),
