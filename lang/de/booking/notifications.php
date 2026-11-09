@@ -87,6 +87,8 @@ return [
             'privacy_link' => 'Datenschutzerklärung',
             'consent_more' => 'Mehr erfahren',
             'consent_required' => 'Bitte schalte die Benachrichtigung mit dem Schalter ein.',
+            // The switch was sent with the version of an earlier consent sentence: nothing is stored.
+            'consent_outdated' => 'Der Text wurde aktualisiert, bitte erneut einschalten.',
             'enabled_flash' => 'Die Benachrichtigung ist eingeschaltet.',
             'revoked_flash' => 'Die Benachrichtigung ist ausgeschaltet, deine Einwilligung ist widerrufen.',
             'consented_at' => 'Eingewilligt am :date',
@@ -131,7 +133,9 @@ return [
             'notice_stop_again' => 'Du kannst die Benachrichtigungen hier jederzeit wieder einschalten.',
             // A row that is on but has no message type on (its types are not switched on with the consent).
             'choose_types' => 'Wähle, welche Nachrichten du bekommen möchtest, und speichere.',
-            'notice_phone_changed' => 'Deine Handynummer hat sich geändert. Schalte die Benachrichtigungen für die neue Nummer wieder ein.',
+            'notice_phone_changed' => 'Deine Handynummer hat sich geändert.',
+            // Added to notice_phone_changed only while account and number allow switching on again.
+            'notice_phone_changed_again' => 'Schalte die Benachrichtigungen für die neue Nummer wieder ein.',
         ],
 
         'budget_alert' => [

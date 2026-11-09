@@ -87,6 +87,8 @@ return [
             'privacy_link' => 'Privacy policy',
             'consent_more' => 'Learn more',
             'consent_required' => 'Please switch the notification on with the switch.',
+            // The switch was sent with the version of an earlier consent sentence: nothing is stored.
+            'consent_outdated' => 'The text has been updated, please switch on again.',
             'enabled_flash' => 'The notification is switched on.',
             'revoked_flash' => 'The notification is switched off and your consent is withdrawn.',
             'consented_at' => 'Consent given on :date',
@@ -131,7 +133,9 @@ return [
             'notice_stop_again' => 'You can switch the notifications on again here at any time.',
             // A row that is on but has no message type on (its types are not switched on with the consent).
             'choose_types' => 'Choose which messages you want to get, then save.',
-            'notice_phone_changed' => 'Your mobile number has changed. Switch the notifications on again for the new number.',
+            'notice_phone_changed' => 'Your mobile number has changed.',
+            // Added to notice_phone_changed only while account and number allow switching on again.
+            'notice_phone_changed_again' => 'Switch the notifications on again for the new number.',
         ],
 
         'budget_alert' => [

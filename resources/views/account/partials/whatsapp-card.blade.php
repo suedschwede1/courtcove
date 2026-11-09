@@ -42,6 +42,9 @@
                         @endif
                     @else
                         {{ __('booking.notifications.account_card.notice_phone_changed') }}
+                        @if($whatsapp['reason'] === null)
+                            {{ __('booking.notifications.account_card.notice_phone_changed_again') }}
+                        @endif
                     @endif
                 </x-ui.notice>
             @endif
@@ -64,7 +67,7 @@
                             .($locked && $whatsapp['reason'] !== null ? ' whatsapp-reason' : '')
                             .($consentError ? ' whatsapp-consent-error-'.$key : '');
                     @endphp
-                    <li id="whatsapp-{{ $key }}" class="flex flex-col gap-3 py-3 first:pt-0 last:pb-0" data-whatsapp-purpose="{{ $key }}" data-whatsapp-row="{{ $row['state'] }}">
+                    <li id="whatsapp-{{ $key }}" tabindex="-1" class="flex flex-col gap-3 py-3 first:pt-0 last:pb-0" data-whatsapp-purpose="{{ $key }}" data-whatsapp-row="{{ $row['state'] }}">
                         <div class="flex items-start justify-between gap-4">
                             <div class="flex min-w-0 flex-col gap-1">
                                 <h4 class="ds-field__label" id="whatsapp-title-{{ $key }}">{{ $row['label'] }}</h4>
@@ -84,6 +87,8 @@
                                         <button type="submit" class="ds-switch ds-switch--card" role="switch" aria-checked="true" aria-labelledby="whatsapp-title-{{ $key }}" aria-describedby="{{ $describedBy }}">
                                     @else
                                         <input type="hidden" name="_whatsapp_form" value="{{ $key }}">
+                                        {{-- The version of the sentence shown; an outdated one is refused (text changed meanwhile). --}}
+                                        <input type="hidden" name="consent_version" value="{{ $row['consentVersion'] }}">
                                         <button type="submit" name="consent" value="1" class="ds-switch ds-switch--card" role="switch" aria-checked="false" aria-labelledby="whatsapp-title-{{ $key }}" aria-describedby="{{ $describedBy }}">
                                     @endif
                                         <span class="ds-switch__label" aria-hidden="true">{{ $on ? __('booking.notifications.account_card.switch_on') : __('booking.notifications.account_card.switch_off') }}</span>
@@ -125,6 +130,9 @@
                                     @endif
                                 @else
                                     {{ __('booking.notifications.account_card.notice_phone_changed') }}
+                                    @if($whatsapp['reason'] === null && $row['reason'] === null)
+                                        {{ __('booking.notifications.account_card.notice_phone_changed_again') }}
+                                    @endif
                                 @endif
                             </x-ui.notice>
                         @endif

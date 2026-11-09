@@ -10,6 +10,7 @@ use App\Models\NotificationUsageMonthly;
 use App\Models\Option;
 use App\Models\User;
 use App\Modules\Members\Models\Member;
+use App\Notifications\Registry\NotificationRegistry;
 use App\Notifications\Types\NotificationTypes;
 use App\Services\Notifications\ConsentService;
 use App\Services\Notifications\SecretOptions;
@@ -289,7 +290,7 @@ class AdminWhatsAppActionsTest extends TestCase
         $admin->setMeta('player-exchange', '1');
         $this->assertSame(0, Member::query()->where('user_id', $admin->uid)->count());
 
-        $this->as($admin->fresh())->post(route('account.whatsapp.enable'), ['consent' => '1'])->assertSessionHas('success');
+        $this->as($admin->fresh())->post(route('account.whatsapp.enable'), ['consent' => '1', 'consent_version' => (string) app(NotificationRegistry::class)->purpose('player_search')?->consentVersion()])->assertSessionHas('success');
         $this->as($admin->fresh())->post('/admin/whatsapp/test')->assertRedirect(route('admin.whatsapp.edit'))->assertSessionHas('success');
 
         $sent = app(FakeTransport::class)->sent();

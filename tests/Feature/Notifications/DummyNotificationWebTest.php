@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Notifications;
 
+use App\Http\Controllers\NotificationSettingsController;
 use App\Models\NotificationConsent;
 use App\Models\NotificationLogEntry;
 use App\Models\NotificationSubscription;
@@ -165,14 +166,14 @@ class DummyNotificationWebTest extends TestCase
 
         // The dummy switch posts to the dummy purpose only, with what the button sends.
         $this->assertMatchesRegularExpression('/<form[^>]*method="POST"[^>]*action="'.preg_quote(route('account.whatsapp.enable', ['purpose' => self::PURPOSE]), '/').'"/', $this->dummyCard($user));
-        $this->actingAs($user)->post(route('account.whatsapp.enable', ['purpose' => self::PURPOSE]), ['consent' => '1'])->assertSessionHas('success');
+        $this->actingAs($user)->post(route('account.whatsapp.enable', ['purpose' => self::PURPOSE]), $this->switchOn(self::PURPOSE))->assertSessionHas('success');
         $this->assertSame(app(NotificationRegistry::class)->purpose(self::PURPOSE)?->consentVersion(), $this->consentOf($user, self::PURPOSE)?->consent_text_version);
 
         $active = $this->dummyCard($user);
         $this->assertStringContainsString('data-whatsapp-row="active"', $active);
         $this->assertMatchesRegularExpression('/action="'.preg_quote(route('account.whatsapp.revoke', ['purpose' => self::PURPOSE]), '/').'"[^>]*>\s*<input type="hidden" name="_token"[^>]*>\s*<input type="hidden" name="_method" value="DELETE">\s*<button type="submit"[^>]*role="switch"[^>]*aria-checked="true"/', $active);
 
-        $this->actingAs($user)->delete(route('account.whatsapp.revoke', ['purpose' => self::PURPOSE]))->assertRedirect(route('account.edit'));
+        $this->actingAs($user)->delete(route('account.whatsapp.revoke', ['purpose' => self::PURPOSE]))->assertRedirect(NotificationSettingsController::rowUrl(self::PURPOSE));
         $this->assertNull($this->consentOf($user, self::PURPOSE));
         $this->assertNotNull($this->consentOf($user, NotificationConsent::PURPOSE_PLAYER_SEARCH));
     }
@@ -238,8 +239,8 @@ class DummyNotificationWebTest extends TestCase
         $user = $this->user();
         $this->actingAs($user)->post(route('account.whatsapp.enable', ['purpose' => self::PURPOSE]))->assertSessionHasErrors('consent');
 
-        $this->actingAs($user)->post(route('account.whatsapp.enable', ['purpose' => self::PURPOSE]), ['consent' => '1'])
-            ->assertRedirect(route('account.edit'))->assertSessionHas('success');
+        $this->actingAs($user)->post(route('account.whatsapp.enable', ['purpose' => self::PURPOSE]), $this->switchOn(self::PURPOSE))
+            ->assertRedirect(NotificationSettingsController::rowUrl(self::PURPOSE))->assertSessionHas('success');
 
         $this->assertSame('dummy-v7', $this->consentOf($user, self::PURPOSE)?->consent_text_version);
         $this->assertNull($this->consentOf($user, NotificationConsent::PURPOSE_PLAYER_SEARCH));
@@ -249,7 +250,7 @@ class DummyNotificationWebTest extends TestCase
         // A player search consent next to it stays when the dummy purpose is withdrawn.
         $user->setMeta('player-exchange', '1');
         $this->consents()->optIn($user->fresh(), NotificationConsent::PURPOSE_PLAYER_SEARCH, 'de');
-        $this->actingAs($user)->delete(route('account.whatsapp.revoke', ['purpose' => self::PURPOSE]))->assertRedirect(route('account.edit'));
+        $this->actingAs($user)->delete(route('account.whatsapp.revoke', ['purpose' => self::PURPOSE]))->assertRedirect(NotificationSettingsController::rowUrl(self::PURPOSE));
 
         $this->assertNull($this->consentOf($user, self::PURPOSE));
         $this->assertNotNull($this->consentOf($user, NotificationConsent::PURPOSE_PLAYER_SEARCH));
@@ -262,7 +263,7 @@ class DummyNotificationWebTest extends TestCase
     {
         $user = $this->user();
 
-        $this->actingAs($user)->post(route('account.whatsapp.enable', ['purpose' => 'nope']), ['consent' => '1'])->assertNotFound();
+        $this->actingAs($user)->post(route('account.whatsapp.enable', ['purpose' => 'nope']), $this->switchOn('nope'))->assertNotFound();
         $this->actingAs($user)->put(route('account.whatsapp.update', ['purpose' => 'nope']))->assertNotFound();
         $this->actingAs($user)->delete(route('account.whatsapp.revoke', ['purpose' => 'nope']))->assertNotFound();
     }
@@ -316,7 +317,7 @@ class DummyNotificationWebTest extends TestCase
         $this->assertSame('', $this->dummyCard($user));
 
         // Nor can the purpose be consented to through its URL.
-        $this->actingAs($user)->post(route('account.whatsapp.enable', ['purpose' => self::PURPOSE]), ['consent' => '1'])->assertNotFound();
+        $this->actingAs($user)->post(route('account.whatsapp.enable', ['purpose' => self::PURPOSE]), $this->switchOn(self::PURPOSE))->assertNotFound();
         $this->assertNull($this->consentOf($user, self::PURPOSE));
     }
 
