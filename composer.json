@@ -1,8 +1,8 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/laravel",
+    "name": "courtcove/courtcove",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "CourtCove: court booking and club tournaments for sports clubs.",
     "keywords": ["laravel", "framework"],
     "license": "MIT",
     "authors": [

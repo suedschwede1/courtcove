@@ -305,6 +305,13 @@
         line-height: 1.45;
     }
 
+    .ds-auth__powered {
+        margin: 0;
+        color: var(--color-ink-2);
+        font-size: 13px;
+        text-align: center;
+    }
+
     .ds-auth__footer > :first-child {
         margin-top: 0;
     }

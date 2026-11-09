@@ -15,7 +15,7 @@
 @endphp
 <div class="help-panel__grid">
     <section class="help-card">
-        <p class="help-card__eyebrow">{{ __('booking.calendar.system_eyebrow') }}</p>
+        <p class="help-card__eyebrow">{{ __('booking.calendar.system_eyebrow', ['product' => config('booking.product_name')]) }}</p>
         <h2 class="help-card__title">{{ __('booking.calendar.information') }}</h2>
         <p class="help-card__text">
             {{ __('booking.calendar.system_text') }}
