@@ -162,6 +162,8 @@ scan_text_block() { # <label> <text on stdin>: label:line
     scan_files "$TMP/t.meta" "$TMP/t.text"
 }
 
+ALLOWED_IDS=${BOOKING_GUARD_ALLOWED_IDENTITIES:-$HOME/.config/booking-guard/allowed-identities.txt}
+
 GIT_DIFF_OPTS=(-c core.quotepath=off -c diff.noprefix=false -c diff.mnemonicPrefix=false)
 GIT_DIFF_FLAGS=(-U0 --no-color --no-ext-diff --no-textconv --src-prefix=a/ --dst-prefix=b/)
 
@@ -182,6 +184,11 @@ check_commit() { # <sha> <ref label>
     git_or_block git log -1 --format=%B "$c"
     scan_text_block "message" < "$TMP/g.out"
     git_or_block git log -1 --format='%an%n%ae%n%cn%n%ce' "$c"
+    # identity lines that exactly equal a line of the local allow file are exempt (exact match, whole line, no patterns)
+    if [ -s "$ALLOWED_IDS" ]; then
+        sed -e 's/\r$//' "$ALLOWED_IDS" | grep -v '^[[:space:]]*\(#\|$\)' > "$TMP/allowed.ids" || true
+        if [ -s "$TMP/allowed.ids" ]; then grep -vixFf "$TMP/allowed.ids" "$TMP/g.out" > "$TMP/g.filtered" || true; cp "$TMP/g.filtered" "$TMP/g.out"; fi
+    fi
     scan_text_block "identity" < "$TMP/g.out"
     # merges and normal commits: against the first parent; root commits: against the empty tree
     base=$(git rev-parse --verify -q "$c^1") || base=$(git hash-object -t tree /dev/null)
