@@ -133,8 +133,8 @@ scan_names() {
             done
         fi
         case "$p" in
-            .env.example | .env.dusk.example | */.env.example) ;;
-            .env | .env.* | */.env | */.env.*) hit "(a .env file):0" "secret-like file name" ;;
+            .env.example | .env.dusk.example) ;; # the only two templates, exactly (repository root)
+            .env | .env.* | .envrc | */.env | */.env.* | */.envrc) hit "(a .env file):0" "secret-like file name" ;;
             tests/Fixtures/*.sql) ;;
             *.sql | *.sql.gz | *.pem | *.key | *.zip | *.p12 | *.pfx | *.sqlite | *.sqlite3 | *id_rsa* | *.kdbx | *.htpasswd)
                 hit "(a file named *.${p##*.}):0" "secret-like file name" ;;
