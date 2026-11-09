@@ -157,6 +157,17 @@ final class PushGuardTest extends TestCase
         [$code3] = $this->push($sha3, $env);
         $this->assertSame(1, $code3);
 
+        // the exemption covers author/committer lines only: the same address in file content or in the message stays blocked
+        $this->sh('git reset -q --hard HEAD~1');
+        $sha5 = $this->commit(['e.txt' => "contact ok@acme-dummy.test\n"], 'Neutral message', 'Zed <ok@acme-dummy.test>');
+        [$code5] = $this->push($sha5, $env);
+        $this->assertSame(1, $code5);
+
+        $this->sh('git reset -q --hard HEAD~1');
+        $sha6 = $this->commit(['f.txt' => "ok\n"], 'Mail ok@acme-dummy.test', 'Zed <ok@acme-dummy.test>');
+        [$code6] = $this->push($sha6, $env);
+        $this->assertSame(1, $code6);
+
         // without the allow file the same address is blocked
         $this->sh('git reset -q --hard HEAD~1');
         $sha4 = $this->commit(['d.txt' => "ok\n"], 'Neutral message', 'Zed <ok@acme-dummy.test>');
