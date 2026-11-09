@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\LoginHistoryController;
 use App\Http\Controllers\Admin\NotificationLogController;
 use App\Http\Controllers\Admin\OptionController;
 use App\Http\Controllers\Admin\SchedulerController;
+use App\Http\Controllers\Admin\SecurityController;
 use App\Http\Controllers\Admin\SquareController;
 use App\Http\Controllers\Admin\StatisticsController;
 use App\Http\Controllers\Admin\TestMailController;
@@ -168,6 +169,9 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function (): v
         Route::post('whatsapp/probe', [WhatsAppController::class, 'probe'])->middleware('throttle:5,1')->name('whatsapp.probe');
         Route::post('whatsapp/test', [WhatsAppController::class, 'test'])->middleware('throttle:5,1')->name('whatsapp.test');
         Route::post('whatsapp/resume', [WhatsAppController::class, 'resume'])->name('whatsapp.resume');
+        Route::get('sicherheit', [SecurityController::class, 'edit'])->name('security.edit');
+        Route::put('sicherheit', [SecurityController::class, 'update'])->name('security.update');
+        Route::post('sicherheit/geraet', [SecurityController::class, 'confirmDevice'])->middleware('throttle:5,1')->name('security.device');
         Route::resource('squares', SquareController::class)->except(['show']);
         Route::get('scheduler', [SchedulerController::class, 'index'])->name('scheduler.index');
         Route::post('scheduler/{task}/run', [SchedulerController::class, 'run'])

@@ -91,14 +91,20 @@ final class LoginVerificationController extends Controller
             ? array_values(array_filter($pending['risk_flags'], 'is_string'))
             : [];
 
-        LoginHistory::record($user->getKey(), $ip, $countryCode, 'success', $riskFlags);
+        // "Confirm this device" (admin page) runs for an account that is signed in already: no second login record.
+        $alreadySignedIn = ($pending['force_trust'] ?? false) === true && (int) Auth::id() === (int) $user->getKey();
+
+        if (! $alreadySignedIn) {
+            LoginHistory::record($user->getKey(), $ip, $countryCode, 'success', $riskFlags);
+        }
 
         Auth::loginUsingId($user->getKey(), (bool) $pending['remember']);
         $request->session()->regenerate();
         $request->session()->forget('login.pending_verification');
 
-        // The code proved access to the account's mailbox: this browser becomes a trusted device.
-        if (($pending['trust_device'] ?? false) === true && $this->devices->isRequiredFor($user)) {
+        // The code proved access to the account's mailbox: this browser becomes a trusted device (also when the scope
+        // does not require one yet, if the admin asked for it on the page "Sicherheit": force_trust).
+        if (($pending['trust_device'] ?? false) === true && ($this->devices->isRequiredFor($user) || ($pending['force_trust'] ?? false) === true)) {
             $device = $this->devices->issue($request, $user, $countryCode);
 
             try {
@@ -108,11 +114,13 @@ final class LoginVerificationController extends Controller
             }
         }
 
-        $this->bookkeeping->syncLegacyLoginTracking($user, true, $ip, 600);
-        $this->bookkeeping->logAttempt('succeeded', $request, $user, [
-            'email' => (string) $user->email,
-            'verified' => true,
-        ]);
+        if (! $alreadySignedIn) {
+            $this->bookkeeping->syncLegacyLoginTracking($user, true, $ip, 600);
+            $this->bookkeeping->logAttempt('succeeded', $request, $user, [
+                'email' => (string) $user->email,
+                'verified' => true,
+            ]);
+        }
 
         return redirect()->to($pending['redirect_to']);
     }

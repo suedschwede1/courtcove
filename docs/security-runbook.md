@@ -1,9 +1,41 @@
 # Security runbook: trusted devices for sign-in
 
-Admin and assistant accounts, and everyone holding the members right (`admin.members`, also as a single
-right), must sign in from a *trusted device* (`User::requiresTrustedDevice()`, independent of admin mode). A device is a browser with a valid device
-cookie. Without one (first sign-in, new browser, cleared cookies, expired after 30 days, removed), the sign-in
-goes through the existing e-mail code step after the correct password; the right code trusts the browser.
+Accounts in the configured *scope* must sign in from a *trusted device* (independent of admin mode). A device
+is a browser with a valid device cookie. Without one (first sign-in, new browser, cleared cookies, expired after
+30 days, removed), the sign-in goes through the existing e-mail code step after the correct password; the right code
+trusts the browser.
+
+## Scope: who needs a device
+
+Four levels, widening from top to bottom (`App\Services\TrustedDeviceSettings`):
+
+| Level (admin page) | Value | Accounts |
+| --- | --- | --- |
+| Aus | `off` | nobody (default when nothing is configured) |
+| Nur Admins | `admins` | role admin |
+| Admins und Bearbeiter | `privileged` | admins, plus assistants (role "Assistent", the staff role) and every holder of the members right (`User::requiresTrustedDevice()`) |
+| Alle Benutzer | `all` | every account, regular members included |
+
+"Bearbeiter" in the club's wording is the assistant role of the system; there is no separate role of that name.
+
+Where it is set, in order of precedence: **`.env` > admin value > default `off`**.
+
+- Admin page *Verwaltung → Einstellungen → Sicherheit* (`/admin/sicherheit`, right `admin.config`, no admin mode
+  needed). **The page is editable only while `.env` does not set `BOOKING_TRUSTED_DEVICE_SCOPE`**; with a value
+  in `.env` it shows the level as "Fest durch Serverkonfiguration" and cannot save.
+- Admin value from the shell (idempotent, no secrets): `php artisan security:set-device-scope privileged`
+  (`off` | `admins` | `privileged` | `all`); it stores option `security.trusted_device_scope` and prints the effective
+  value and its source. A value in `.env` still wins (the command warns).
+- Saving writes one line to the log (`admin.security.config_changed`: who, when, `trusted_device_scope: old > new`).
+- Widening: the newly covered users confirm one e-mail code at their next sign-in; running sessions stay.
+- Lock-out guard: the admin cannot save a level that covers their own account unless this browser is a confirmed
+  device. The page then offers "Dieses Gerät jetzt bestätigen" (code by e-mail, trusts this browser even while the
+  scope is still `off`, returns to the page). Narrowing or `off` is always possible. The shell command has no such
+  guard: use it only with a working mail system.
+- **Default changed:** without a `.env` value and without an admin value the scope is now `off` (before: `privileged`
+  from the code default). An installation that relied on the old default must set the level once
+  (`php artisan security:set-device-scope privileged`, or the admin page), or keep `BOOKING_TRUSTED_DEVICE_SCOPE=privileged` in `.env`.
+- Running sessions are not ended when the scope is widened; to end them for an account use `security:reset-devices`.
 
 ## How it works
 
@@ -34,7 +66,7 @@ goes through the existing e-mail code step after the correct password; the right
 | Variable | Default | Meaning |
 | --- | --- | --- |
 | `BOOKING_TRUSTED_DEVICE_DAYS` | `30` | Validity of a confirmed device in days. |
-| `BOOKING_TRUSTED_DEVICE_SCOPE` | `privileged` | `privileged` = admins and assistants, `all` = every account, `off` = no device check. |
+| `BOOKING_TRUSTED_DEVICE_SCOPE` | *(unset)* | `off`, `admins`, `privileged` or `all` (see above). Leave unset to manage the scope on the admin page; a value here wins and locks the page. Invalid values count as unset. |
 
 Run `php artisan config:clear` after changing them.
 
@@ -54,9 +86,11 @@ All its devices are revoked; the next sign-in needs a new code.
 **The mail system is down, so no code can be sent** – nobody privileged can sign in on a new browser. Already
 signed-in sessions and browsers with a valid device keep working. To get in:
 
-1. Set `BOOKING_TRUSTED_DEVICE_SCOPE=off` in `.env`, run `php artisan config:clear`.
+1. Switch the scope off: `php artisan security:set-device-scope off` (works while `.env` does not set the
+   variable; otherwise set `BOOKING_TRUSTED_DEVICE_SCOPE=off` in `.env` and run `php artisan config:clear`).
 2. Sign in, repair the mail setup.
-3. Set the value back to `privileged` (or remove the line) and clear the config again.
+3. Set the level back (`security:set-device-scope privileged`, or the admin page; remove the `.env` line again)
+   and clear the config if `.env` was touched.
 
 While `off`, sign-in is password only plus the normal risk check: keep the time short.
 
