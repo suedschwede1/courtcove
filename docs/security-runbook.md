@@ -168,3 +168,10 @@ Tests: `tests/Feature/Tooling/PushGuardTest.php` (process tests with dummy terms
 Local hooks only protect machines that have them. In the repository settings of the hosting platform enable
 *Secret scanning* and *Push protection* (Settings > Code security). Push protection rejects a push that contains a
 recognised secret; it does not know club or person names, so the local term list stays necessary.
+
+### Allowed identities (push guard)
+
+The author/committer check can exempt exact identity lines (the e-mail address or the name as git prints it) that are listed in the
+local file `~/.config/booking-guard/allowed-identities.txt` (override: `BOOKING_GUARD_ALLOWED_IDENTITIES`). One entry per line, `#` comments
+allowed, matched as a whole line, case-insensitive, no patterns. Everything else on the same domain stays blocked. The file stays local,
+like the term list.

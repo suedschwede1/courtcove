@@ -136,6 +136,35 @@ final class PushGuardTest extends TestCase
         $this->assertSame(1, $code2);
     }
 
+    public function test_allowed_identity_file_exempts_exactly_one_line(): void
+    {
+        $allow = $this->dir.'.allowed';
+        file_put_contents($allow, "# exact identity lines\nok@acme-dummy.test\n");
+        $env = ['BOOKING_GUARD_ALLOWED_IDENTITIES' => $allow];
+
+        $sha = $this->commit(['a.txt' => "ok\n"], 'Neutral message', 'Zed <ok@acme-dummy.test>');
+        [$code, $out] = $this->push($sha, $env);
+        $this->assertSame(0, $code, $out);
+
+        // another address on the same domain, and the same address in a different case-insensitive form with a suffix, stay blocked
+        $this->sh('git reset -q --hard HEAD~1');
+        $sha2 = $this->commit(['b.txt' => "ok\n"], 'Neutral message', 'Zed <other@acme-dummy.test>');
+        [$code2] = $this->push($sha2, $env);
+        $this->assertSame(1, $code2);
+
+        $this->sh('git reset -q --hard HEAD~1');
+        $sha3 = $this->commit(['c.txt' => "ok\n"], 'Neutral message', 'Zed <ok@acme-dummy.test.evil>');
+        [$code3] = $this->push($sha3, $env);
+        $this->assertSame(1, $code3);
+
+        // without the allow file the same address is blocked
+        $this->sh('git reset -q --hard HEAD~1');
+        $sha4 = $this->commit(['d.txt' => "ok\n"], 'Neutral message', 'Zed <ok@acme-dummy.test>');
+        [$code4] = $this->push($sha4, ['BOOKING_GUARD_ALLOWED_IDENTITIES' => $this->dir.'.none']);
+        $this->assertSame(1, $code4);
+        @unlink($allow);
+    }
+
     public function test_term_in_file_name_is_blocked_and_name_is_withheld(): void
     {
         $sha = $this->commit(['notes-acme-dummy.txt' => "clean content\n"]);
