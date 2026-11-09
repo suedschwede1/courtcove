@@ -1,7 +1,7 @@
 @extends('layouts.base')
 
 @section('title')
-    {{ str_replace(':system', $bookingName, __('booking.register.title')) }}
+    {{ str_replace(':system', $bookingName, __('booking.register.title')) }} – {{ config('booking.product_name') }}
 @endsection
 
 @section('body')

@@ -2,7 +2,7 @@
     "$schema": "https://getcomposer.org/schema.json",
     "name": "courtcove/courtcove",
     "type": "project",
-    "description": "CourtCove: court booking and club tournaments for sports clubs.",
+    "description": "CourtCove: tennis court booking and club tournaments.",
     "keywords": ["laravel", "framework"],
     "license": "MIT",
     "authors": [

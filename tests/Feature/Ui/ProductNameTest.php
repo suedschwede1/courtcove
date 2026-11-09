@@ -24,9 +24,22 @@ class ProductNameTest extends TestCase
     {
         $this->get('/login')
             ->assertOk()
-            ->assertSee('Powered by CourtCove')
+            ->assertSee('ds-auth__product-name', false)
+            ->assertSee(config('booking.product_name'))
+            ->assertSee(config('booking.product_tagline'))
+            ->assertSee('<title>', false)
             ->assertSee('ds-auth__club', false)
             ->assertSee(config('booking.name'));
+    }
+
+    #[Test]
+    public function every_sign_in_page_names_the_product_in_the_tab_title(): void
+    {
+        foreach ([route('login', absolute: false), route('register', absolute: false), route('password.forgot', absolute: false)] as $url) {
+            $html = $this->get($url)->getContent();
+            preg_match('#<title>(.*?)</title>#s', $html, $m);
+            $this->assertStringContainsString(' – CourtCove', $m[1] ?? '', $url);
+        }
     }
 
     #[Test]

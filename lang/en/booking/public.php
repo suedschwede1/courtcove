@@ -45,7 +45,6 @@ return [
     ],
     'auth' => [
         'back_to_calendar' => 'Back to calendar',
-        'powered_by' => 'Powered by :product',
         'panel' => [
             'line1' => 'Your court.',
             'line2' => 'Your time.',

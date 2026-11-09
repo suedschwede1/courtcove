@@ -4,7 +4,7 @@ Instructions for AI coding agents working in this repository.
 
 ## Project
 
-CourtCove: Laravel-based court booking system for sports clubs, replacing an older Zend/Laminas
+CourtCove: Laravel-based tennis court booking system for clubs, replacing an older Zend/Laminas
 system (`booking`, a separate repository). Stack: PHP 8.3, Laravel 13, MySQL, Tailwind
 CSS + Alpine.js, Vite. See [README.md](README.md) for the full stack table and
 [docs/DESIGN.md](docs/DESIGN.md) for the UI design system (colors, spacing, philosophy).

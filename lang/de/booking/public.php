@@ -45,7 +45,6 @@ return [
     ],
     'auth' => [
         'back_to_calendar' => 'Zum Kalender',
-        'powered_by' => 'Powered by :product',
         'panel' => [
             'line1' => 'Dein Platz.',
             'line2' => 'Deine Zeit.',
