@@ -77,7 +77,7 @@
                             .($locked && $whatsapp['reason'] !== null ? ' whatsapp-reason' : '')
                             .($consentError ? ' whatsapp-consent-error-'.$key : '');
                     @endphp
-                    <li id="whatsapp-{{ $key }}" tabindex="-1" class="flex scroll-mt-6 flex-col gap-3 py-3 first:pt-0 last:pb-0" data-whatsapp-purpose="{{ $key }}" data-whatsapp-row="{{ $row['state'] }}">
+                    <li id="whatsapp-{{ $key }}" class="flex scroll-mt-6 flex-col gap-3 py-3 first:pt-0 last:pb-0" data-whatsapp-purpose="{{ $key }}" data-whatsapp-row="{{ $row['state'] }}">
                         <div class="flex items-start justify-between gap-4">
                             <div class="flex min-w-0 flex-col gap-1">
                                 <h4 class="ds-field__label" id="whatsapp-title-{{ $key }}">{{ $row['label'] }}</h4>
