@@ -25,7 +25,8 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->app->singleton(TournamentLinks::class);
+        // Scoped: its per-request championship lookup must not outlive a request or a queue job.
+        $this->app->scoped(TournamentLinks::class);
         // Registry of the modules (menu, overview, administration group, rights, sidebar); every module registers
         // itself in the boot() of its own service provider (docs/modules.md).
         $this->app->singleton(ModuleRegistry::class);
