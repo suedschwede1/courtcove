@@ -19,10 +19,12 @@ use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Validator;
 
 /**
- * The account cards "WhatsApp-Benachrichtigungen": consent, type switches with filters and withdrawal, per
- * consent purpose of the registry (route parameter `{purpose}`; without it the player search purpose, so the
- * original URLs keep working; an unregistered purpose is a 404). Every action works on the logged-in user's own
- * consent only (no id in the request).
+ * The rows of the account card "WhatsApp-Benachrichtigungen", one per consent purpose of the registry (route
+ * parameter `{purpose}`; without it the player search purpose, so the original URLs keep working; an unregistered
+ * purpose is a 404): switching a row on gives the consent (and subscribes the purpose's opt-in types), the row's
+ * settings save its types and filters, switching it off withdraws the consent (which deletes the subscriptions of
+ * the purpose, saved filters included). Every action works on the logged-in user's own consent only (no id in
+ * the request).
  */
 final class NotificationSettingsController extends Controller
 {

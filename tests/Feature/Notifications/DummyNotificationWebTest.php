@@ -99,10 +99,20 @@ class DummyNotificationWebTest extends TestCase
         return $user->fresh();
     }
 
-    private function dummyCard(User $user): string
+    /** The dummy purpose's row of the list (query: e.g. `['whatsapp' => purpose]` asks for the row's panel). */
+    private function dummyCard(User $user, array $query = []): string
+    {
+        $html = (string) $this->actingAs($user->fresh())->get(route('account.edit', $query))->assertOk()->getContent();
+        preg_match('/<li[^>]*data-whatsapp-purpose="'.self::PURPOSE.'"[^>]*>.*?<\/li>/s', $html, $m);
+
+        return $m[0] ?? '';
+    }
+
+    /** The whole card (number section, list, common note). */
+    private function wholeCard(User $user): string
     {
         $html = (string) $this->actingAs($user->fresh())->get(route('account.edit'))->assertOk()->getContent();
-        preg_match('/<section[^>]*data-whatsapp-purpose="'.self::PURPOSE.'"[^>]*>.*?<\/section>/s', $html, $m);
+        preg_match('/<section[^>]*data-whatsapp-card.*?<\/section>/s', $html, $m);
 
         return $m[0] ?? '';
     }
@@ -119,13 +129,78 @@ class DummyNotificationWebTest extends TestCase
         $html = (string) $this->actingAs($user)->get(route('account.edit'))->assertOk()->getContent();
 
         $card = $this->dummyCard($user);
-        $this->assertStringContainsString('data-whatsapp-card="ready"', $card);
-        $this->assertStringContainsString('WhatsApp-Benachrichtigungen: Dummy-Zweck', $card);
-        $this->assertStringContainsString('Benachrichtigungen des Dummy-Zwecks.', $card);
+        $this->assertStringContainsString('data-whatsapp-row="ready"', $card);
+        $this->assertMatchesRegularExpression('/id="whatsapp-title-'.self::PURPOSE.'"[^>]*>Dummy-Zweck</', $card);
+        $this->assertMatchesRegularExpression('/id="whatsapp-desc-'.self::PURPOSE.'"[^>]*>Benachrichtigungen des Dummy-Zwecks\.</', $card);
+        $this->assertMatchesRegularExpression('/<button[^>]*role="switch"[^>]*aria-checked="false"[^>]*aria-labelledby="whatsapp-title-'.self::PURPOSE.'"/', $card);
         $this->assertStringContainsString('Ich stimme den Dummy-Nachrichten zu.', $card);
+        $this->assertStringContainsString('data-whatsapp-consent-version="dummy-v7"', $card);
         $this->assertStringContainsString(route('account.whatsapp.enable', ['purpose' => self::PURPOSE]), $card);
-        // The player search card is its own, locked by its own prerequisite.
-        $this->assertMatchesRegularExpression('/data-whatsapp-card="locked" data-whatsapp-purpose="player_search"/', $html);
+        // No filters before the row is on.
+        $this->assertStringNotContainsString('<details', $card);
+
+        // One card, one list: the dummy purpose is the second row next to the player search, which is locked by its
+        // own prerequisite (said in its row, not in the number section).
+        $this->assertSame(1, substr_count($html, 'data-whatsapp-card'));
+        $this->assertSame(1, substr_count($html, 'data-whatsapp-number'));
+        $this->assertMatchesRegularExpression('/data-whatsapp-purpose="player_search" data-whatsapp-row="locked".*data-whatsapp-purpose="'.self::PURPOSE.'" data-whatsapp-row="ready"/s', $html);
+        $this->assertStringNotContainsString('WhatsApp-Benachrichtigungen: ', $html);
+        $whole = $this->wholeCard($user);
+        $this->assertSame(1, substr_count($whole, 'data-whatsapp-reason="exchange_off"'));
+        $this->assertMatchesRegularExpression('/<li[^>]*data-whatsapp-purpose="player_search"(?:(?!<\/li>).)*data-whatsapp-reason="exchange_off"/s', $whole);
+        $this->assertSame(1, substr_count($whole, 'id="whatsapp-privacy"'));
+    }
+
+    #[Test]
+    public function the_dummy_row_has_its_own_consent_panel_and_switch_off_confirmation(): void
+    {
+        $user = $this->user();
+
+        $ready = $this->dummyCard($user, ['whatsapp' => self::PURPOSE]);
+        $this->assertMatchesRegularExpression('/<div[^>]*id="whatsapp-panel-'.self::PURPOSE.'"(?![^>]*\shidden[\s>])[^>]*>/', $ready);
+        $this->assertStringContainsString('name="consent"', $ready);
+        // Asking for the dummy panel leaves the player search row closed.
+        $html = (string) $this->actingAs($user)->get(route('account.edit', ['whatsapp' => self::PURPOSE]))->getContent();
+        $this->assertDoesNotMatchRegularExpression('/<div[^>]*id="whatsapp-panel-player_search"(?![^>]*\shidden[\s>])[^>]*>/', $html);
+
+        $this->consents()->optIn($user, self::PURPOSE, 'de');
+        $active = $this->dummyCard($user, ['whatsapp' => self::PURPOSE]);
+        $this->assertStringContainsString('data-whatsapp-row="active"', $active);
+        $this->assertMatchesRegularExpression('/role="switch"[^>]*aria-checked="true"/', $active);
+        $this->assertStringContainsString('data-whatsapp-revoke-confirm', $active);
+        $this->assertStringContainsString(e(trans('booking.notifications.account_card.revoke_confirm', ['purpose' => 'Dummy-Zweck'], 'de')), $active);
+    }
+
+    #[Test]
+    public function a_row_without_filter_definitions_has_no_filter_area(): void
+    {
+        Option::create(['key' => 'whatsapp.type.'.self::FILTERED.'.enabled', 'value' => '0', 'locale' => null]);
+        $user = $this->user();
+        $this->consents()->optIn($user, self::PURPOSE, 'de');
+
+        $card = $this->dummyCard($user);
+
+        $this->assertStringContainsString('data-whatsapp-row="active"', $card);
+        $this->assertStringNotContainsString('<details', $card);
+        $this->assertStringNotContainsString('name="filters[', $card);
+        $this->assertStringNotContainsString('name="_method" value="PUT"', $card);
+    }
+
+    #[Test]
+    public function a_locked_number_is_said_once_and_locks_every_row(): void
+    {
+        $user = $this->user();
+        $user->setMeta('phone', null);
+
+        $card = $this->wholeCard($user);
+
+        $this->assertSame(1, substr_count($card, e(trans('booking.notifications.refused.no_phone', [], 'de'))));
+        $this->assertMatchesRegularExpression('/<div[^>]*data-whatsapp-number[^>]*>(?:(?!data-whatsapp-list).)*data-whatsapp-reason="no_phone"/s', $card);
+        $this->assertSame(2, substr_count($card, 'data-whatsapp-row="locked"'));
+        $this->assertSame(2, preg_match_all('/<button[^>]*role="switch"[^>]*disabled/', $card));
+        $this->assertStringNotContainsString('name="consent"', $card);
+        // The player search row does not repeat its own prerequisite while the number blocks everything.
+        $this->assertStringNotContainsString('data-whatsapp-reason="exchange_off"', $card);
     }
 
     #[Test]
@@ -171,8 +246,9 @@ class DummyNotificationWebTest extends TestCase
 
         $card = $this->dummyCard($user);
 
-        $this->assertStringContainsString('data-whatsapp-card="active"', $card);
-        $this->assertMatchesRegularExpression('/name="on\[dummy-reminder\]"[^>]*checked/', $card);
+        $this->assertStringContainsString('data-whatsapp-row="active"', $card);
+        // Two types in one purpose: each gets its own box inside the row's settings.
+        $this->assertMatchesRegularExpression('/type="checkbox" name="on\[dummy-reminder\]"[^>]*checked/', $card);
         $this->assertStringContainsString('name="on[dummy-digest]"', $card);
         $this->assertStringNotContainsString('filters[dummy-reminder]', $card);
         $this->assertStringContainsString('name="filters[dummy-digest][sizes][]"', $card);
@@ -224,7 +300,7 @@ class DummyNotificationWebTest extends TestCase
 
         $card = $this->dummyCard($user);
 
-        $this->assertStringContainsString('data-whatsapp-card="active"', $card);
+        $this->assertStringContainsString('data-whatsapp-row="active"', $card);
         $this->assertStringContainsString(route('account.whatsapp.revoke', ['purpose' => self::PURPOSE]), $card);
         $this->assertStringContainsString('name="_method" value="DELETE"', $card);
         $this->assertStringNotContainsString('name="on[', $card);

@@ -44,12 +44,14 @@ return [
         'purposes' => [
             'player_search' => [
                 'label' => 'Spielerbörse',
-                'description' => 'Lass dich per WhatsApp benachrichtigen, wenn jemand über die Spielerbörse Mitspieler sucht.',
+                // Row text in the account card; purpose specific hints (what the message contains) belong here.
+                'description' => 'Nachricht, wenn jemand über die Spielerbörse Mitspieler sucht. Darin stehen Vor- und Nachname der suchenden Person.',
             ],
         ],
 
-        // Privacy sentence; processors are named on the club's external privacy page, not here.
-        'privacy_notice' => 'Mit deiner Einwilligung verwenden wir die Handynummer aus deinem Konto, um dir Benachrichtigungen (zuerst: Spielersuchen) per WhatsApp zu senden. Dabei sind der von uns beauftragte Messaging-Dienst und der Betreiber von WhatsApp eingebunden. Du kannst die Einwilligung jederzeit im Konto oder per STOP widerrufen.',
+        // Privacy sentence, once under the list of the account card for every purpose; processors are named on the club's
+        // external privacy page, not here.
+        'privacy_notice' => 'Mit deiner Einwilligung verwenden wir die Handynummer aus deinem Konto, um dir die gewählten Benachrichtigungen per WhatsApp zu senden. Dabei sind der von uns beauftragte Messaging-Dienst und der Betreiber von WhatsApp eingebunden. Abmelden kannst du dich jederzeit hier oder per Antwort STOP.',
 
         // Why an account cannot switch WhatsApp notifications on (gate reasons, shown in the account card and after a refused request).
         // Only the booking account counts (status, mobile number, player exchange); a member record is not required.
@@ -65,24 +67,29 @@ return [
             'unavailable' => 'Die Voraussetzungen für diese Benachrichtigungen sind bei dir derzeit nicht erfüllt.',
         ],
 
-        // Account card "Benachrichtigungen" (consent, filters, withdrawal).
+        // Account card "WhatsApp-Benachrichtigungen": number section, one row per purpose (switch, consent, filters), common note.
         'account_card' => [
             'title' => 'WhatsApp-Benachrichtigungen',
-            'title_purpose' => 'WhatsApp-Benachrichtigungen: :purpose',
-            'number_label' => 'Nummer aus deinem Profil: :number',
-            'own_number_hint' => 'In der Nachricht stehen der Vor- und Nachname der suchenden Person. Die Nachricht geht an die Handynummer aus deinem Profil, und diese muss deine eigene sein.',
-            'profile_link' => 'Zum Profil',
+            'intro' => 'Lass dich per WhatsApp benachrichtigen. Wähle, wofür.',
+            'number_heading' => 'Deine Nummer',
+            'number_label' => 'Nummer aus deinem Profil: :number.',
+            'own_number_hint' => 'Die Nummer muss deine eigene sein.',
+            'profile_link' => 'Im Profil ändern',
+            'list_heading' => 'Benachrichtigungen',
+            'switch_on' => 'An',
+            'switch_off' => 'Aus',
             'privacy_link' => 'Datenschutzerklärung',
-            'locked_button' => 'WhatsApp aktivieren',
-            'consent_required' => 'Bitte bestätige die Einwilligung, um WhatsApp zu aktivieren.',
-            'enable' => 'WhatsApp aktivieren',
-            'enabled_flash' => 'WhatsApp-Benachrichtigungen sind aktiviert.',
-            'revoke' => 'WhatsApp abmelden',
-            'revoked_flash' => 'Du bist von den WhatsApp-Benachrichtigungen abgemeldet.',
-            'badge_active' => 'Aktiv',
+            'confirm' => 'Bestätigen',
+            'cancel' => 'Abbrechen',
+            'consent_required' => 'Bitte bestätige die Einwilligung, um die Benachrichtigung einzuschalten.',
+            'enabled_flash' => 'Die Benachrichtigung ist eingeschaltet.',
+            'revoke_confirm' => 'Wenn du „:purpose“ ausschaltest, widerrufst du deine Einwilligung dafür. Du bekommst dann keine dieser Nachrichten mehr und kannst sie hier jederzeit wieder einschalten.',
+            'revoke' => 'Ausschalten',
+            'revoked_flash' => 'Die Benachrichtigung ist ausgeschaltet, deine Einwilligung ist widerrufen.',
             'consented_at' => 'Eingewilligt am :date',
-            'type_help' => 'Ausschalten pausiert nur diese Nachrichten, deine Einwilligung bleibt bestehen. Mit „WhatsApp abmelden“ widerrufst du sie.',
-            'paused' => 'Zurzeit werden dir keine Nachrichten geschickt. :reason',
+            'paused' => 'Zurzeit werden dir keine dieser Nachrichten geschickt. :reason',
+            'paused_all' => 'Bis dahin werden dir keine Nachrichten geschickt.',
+            'settings' => 'Nachrichten und Filter',
             'filters' => 'Filter',
             'filters_help' => 'Ohne Auswahl wirst du bei jeder dieser Nachrichten benachrichtigt.',
             'weekdays' => [
@@ -115,9 +122,9 @@ return [
             ],
             'save' => 'Speichern',
             'saved_flash' => 'Die Einstellungen für WhatsApp sind gespeichert.',
-            'no_consent_flash' => 'Bitte aktiviere zuerst WhatsApp-Benachrichtigungen.',
-            'notice_stop' => 'Du hast dich am :date per STOP abgemeldet. Du kannst WhatsApp hier jederzeit wieder einschalten.',
-            'notice_phone_changed' => 'Du hast deine Handynummer geändert. Bitte schalte WhatsApp für die neue Nummer neu ein.',
+            'no_consent_flash' => 'Bitte schalte die Benachrichtigung zuerst ein.',
+            'notice_stop' => 'Du hast dich am :date per STOP abgemeldet. Du kannst die Benachrichtigungen hier jederzeit wieder einschalten.',
+            'notice_phone_changed' => 'Deine Handynummer hat sich geändert. Schalte die Benachrichtigungen für die neue Nummer wieder ein.',
         ],
 
         'budget_alert' => [

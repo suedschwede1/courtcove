@@ -984,6 +984,28 @@
         min-height: var(--spacing-touch-min);
     }
 
+    /* Switch on a card surface (account card rows): ink colors instead of the chrome ones, touch-sized. */
+    .ds-switch--card {
+        flex: 0 0 auto;
+        min-height: var(--spacing-touch-min);
+        cursor: pointer;
+    }
+
+    .ds-switch--card .ds-switch__label {
+        min-width: 3ch;
+        text-align: right;
+        color: var(--color-ink-2);
+    }
+
+    .ds-switch--card .ds-switch__track {
+        background: var(--color-line-strong);
+    }
+
+    .ds-switch--card:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+
     .ds-locale--menu {
         gap: 12px;
         font-size: 15px;

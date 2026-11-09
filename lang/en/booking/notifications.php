@@ -44,12 +44,14 @@ return [
         'purposes' => [
             'player_search' => [
                 'label' => 'Player exchange',
-                'description' => 'Get a WhatsApp message when someone looks for players in the player exchange.',
+                // Row text in the account card; purpose specific hints (what the message contains) belong here.
+                'description' => 'A message when someone looks for players in the player exchange. It contains the first and last name of the person looking.',
             ],
         ],
 
-        // Privacy sentence; processors are named on the club's external privacy page, not here.
-        'privacy_notice' => 'With your consent we use the mobile number from your account to send you notifications (first: player searches) by WhatsApp. The messaging service we engage and the operator of WhatsApp are involved. You can withdraw your consent at any time in your account or by replying STOP.',
+        // Privacy sentence, once under the list of the account card for every purpose; processors are named on the club's
+        // external privacy page, not here.
+        'privacy_notice' => 'With your consent we use the mobile number from your account to send you the notifications you choose by WhatsApp. The messaging service we engage and the operator of WhatsApp are involved. You can unsubscribe at any time here or by replying STOP.',
 
         // Why an account cannot switch WhatsApp notifications on (gate reasons, shown in the account card and after a refused request).
         // Only the booking account counts (status, mobile number, player exchange); a member record is not required.
@@ -65,24 +67,29 @@ return [
             'unavailable' => 'You do not meet the requirements for these notifications at the moment.',
         ],
 
-        // Account card "Benachrichtigungen" (consent, filters, withdrawal).
+        // Account card "WhatsApp notifications": number section, one row per purpose (switch, consent, filters), common note.
         'account_card' => [
             'title' => 'WhatsApp notifications',
-            'title_purpose' => 'WhatsApp notifications: :purpose',
-            'number_label' => 'Number from your profile: :number',
-            'own_number_hint' => 'The message contains the first and last name of the person looking for players. It goes to the mobile number in your profile, and that number must be your own.',
-            'profile_link' => 'Go to profile',
+            'intro' => 'Get notified on WhatsApp. Choose what for.',
+            'number_heading' => 'Your number',
+            'number_label' => 'Number from your profile: :number.',
+            'own_number_hint' => 'It must be your own number.',
+            'profile_link' => 'Change in your profile',
+            'list_heading' => 'Notifications',
+            'switch_on' => 'On',
+            'switch_off' => 'Off',
             'privacy_link' => 'Privacy policy',
-            'locked_button' => 'Activate WhatsApp',
-            'consent_required' => 'Please confirm your consent to activate WhatsApp.',
-            'enable' => 'Activate WhatsApp',
-            'enabled_flash' => 'WhatsApp notifications are activated.',
-            'revoke' => 'Unsubscribe from WhatsApp',
-            'revoked_flash' => 'You are unsubscribed from WhatsApp notifications.',
-            'badge_active' => 'Active',
+            'confirm' => 'Confirm',
+            'cancel' => 'Cancel',
+            'consent_required' => 'Please confirm your consent to switch this notification on.',
+            'enabled_flash' => 'The notification is switched on.',
+            'revoke_confirm' => 'If you switch off ":purpose", you withdraw your consent for it. You will no longer get these messages and can switch them on again here at any time.',
+            'revoke' => 'Switch off',
+            'revoked_flash' => 'The notification is switched off and your consent is withdrawn.',
             'consented_at' => 'Consent given on :date',
-            'type_help' => 'Switching this off only pauses these messages, your consent stays. "Unsubscribe from WhatsApp" withdraws it.',
-            'paused' => 'No messages are being sent to you at the moment. :reason',
+            'paused' => 'None of these messages are being sent to you at the moment. :reason',
+            'paused_all' => 'Until then no messages are sent to you.',
+            'settings' => 'Messages and filters',
             'filters' => 'Filters',
             'filters_help' => 'Without a selection you are notified about every one of these messages.',
             'weekdays' => [
@@ -115,9 +122,9 @@ return [
             ],
             'save' => 'Save',
             'saved_flash' => 'Your WhatsApp settings are saved.',
-            'no_consent_flash' => 'Please activate WhatsApp notifications first.',
-            'notice_stop' => 'You unsubscribed with STOP on :date. You can switch WhatsApp on again here at any time.',
-            'notice_phone_changed' => 'You changed your mobile number. Please switch WhatsApp on again for the new number.',
+            'no_consent_flash' => 'Please switch the notification on first.',
+            'notice_stop' => 'You unsubscribed with STOP on :date. You can switch the notifications on again here at any time.',
+            'notice_phone_changed' => 'Your mobile number has changed. Switch the notifications on again for the new number.',
         ],
 
         'budget_alert' => [
