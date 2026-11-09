@@ -10,6 +10,8 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-09
 
+- Calendar booking review: preserve series on stale occurrence actions and ownership on unchanged ambiguous names, show every partial-hour reservation and usable gap, retain irregular-series schedules on metadata edits, enforce time/limit boundaries, and reject event closures over active bookings with a resolution list and shared court locks.
+
 - Push guard hardened after review: binary-safe matching, term list validation (CRLF/BOM, invalid or empty-matching entries refuse), merge commits checked against the first parent, paths containing listed terms withheld in findings.
 - Push guard: `.githooks/pre-push`, `pre-commit` and `commit-msg` check added lines, messages, author identity and file names against a local term list (fail-closed without it; findings show file:line and entry number only) plus generic secret, key, file-name and public-IP rules; multi-ref pushes need `BOOKING_GUARD_ALLOW_MULTI=1`; runbook and process tests added.
 

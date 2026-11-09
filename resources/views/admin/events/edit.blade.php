@@ -35,5 +35,6 @@
 @endsection
 
 @section('admin-content')
+@include('admin.events._booking-conflicts')
     @yield('content')
 @endsection

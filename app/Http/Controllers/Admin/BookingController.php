@@ -226,8 +226,8 @@ final class BookingController extends Controller
             // validation; updateSeries decides again under the booking row lock.
             $searchBinding = app(PlayerExchangeService::class)->searchBindingAdminEdit($booking) !== null;
             $data = $this->validateBookingData($request, $this->bookingService->legacyRepeatTypesOf($booking, $occurrenceDate), $searchBinding);
-            $owner = $this->bookingService->resolveOwner($data['booked_for']);
-            [, , $occurrenceStarts, $durationSeconds] = $this->bookingService->buildOccurrenceTimeline($data);
+            $owner = $this->bookingService->resolveOwner($data['booked_for'], $booking);
+            [, , $occurrenceStarts, $durationSeconds] = $this->bookingService->buildUpdateTimeline($booking, $data, $occurrenceDate, $scope);
 
             $this->bookingService->updateSeries($booking, $data, $owner, $occurrenceStarts, $durationSeconds, $occurrenceDate, $scope);
         } catch (BookingValidationException $e) {
@@ -250,9 +250,13 @@ final class BookingController extends Controller
     {
         [$occurrenceDate, $scope] = $this->resolveOccurrenceScope($request);
         // False: the booking was already cancelled (e.g. lapsed by its player search meanwhile).
-        [$flashKey, $flashText] = $this->bookingService->cancelSingle($booking, $occurrenceDate, $scope)
-            ? ['success', __('booking.messages.booking_cancelled')]
-            : ['error', __('booking.messages.booking_already_cancelled')];
+        try {
+            [$flashKey, $flashText] = $this->bookingService->cancelSingle($booking, $occurrenceDate, $scope)
+                ? ['success', __('booking.messages.booking_cancelled')]
+                : ['error', __('booking.messages.booking_already_cancelled')];
+        } catch (BookingValidationException $e) {
+            return back()->withErrors(['booking' => $e->getMessage()]);
+        }
 
         if ($request->boolean('popup')) {
             if ($flashKey === 'error') {
@@ -274,7 +278,11 @@ final class BookingController extends Controller
     public function destroy(Request $request, Booking $booking): RedirectResponse|Response
     {
         [$occurrenceDate, $scope] = $this->resolveOccurrenceScope($request);
-        $this->bookingService->deleteSingle($booking, $occurrenceDate, $scope);
+        try {
+            $this->bookingService->deleteSingle($booking, $occurrenceDate, $scope);
+        } catch (BookingValidationException $e) {
+            return back()->withErrors(['booking' => $e->getMessage()]);
+        }
 
         if ($request->boolean('popup')) {
             return response('<script>window.parent.location.reload();</script>')->header('Content-Type', 'text/html');
@@ -291,6 +299,10 @@ final class BookingController extends Controller
     /** @return array{0: ?string, 1: string} */
     private function resolveOccurrenceScope(Request $request): array
     {
+        $request->validate([
+            'occurrence' => ['nullable', 'date_format:Y-m-d'],
+            'edit_scope' => ['nullable', 'in:single_occurrence,this_and_following'],
+        ]);
         $occurrence = $request->string('occurrence')->trim()->value();
         $scope = $request->string('edit_scope')->trim()->value();
 

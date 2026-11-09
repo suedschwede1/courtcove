@@ -9,6 +9,7 @@ use App\Models\Reservation;
 use App\Models\Square;
 use App\Models\User;
 use App\Services\CalendarHours;
+use App\Services\CalendarSegments;
 use App\Services\Notifications\NotificationDrain;
 use App\Services\PlayerExchangeService;
 use App\Services\ReservationService;
@@ -114,9 +115,10 @@ final class CalendarController extends Controller
             $reservationsByDate[$dateKey][$sid]->push($reservation);
 
             $startH = (int) substr((string) $reservation->time_start, 0, 2);
-            $endH = (int) substr((string) $reservation->time_end, 0, 2);
+            $endSeconds = CalendarSegments::seconds((string) $reservation->time_end);
+            $endH = (int) ceil($endSeconds / 3600);
             for ($slotH = $startH; $slotH < $endH; $slotH++) {
-                $reservationsBySlot[$dateKey][$sid][$slotH] = $reservation;
+                $reservationsBySlot[$dateKey][$sid][$slotH] ??= $reservation;
             }
         }
 

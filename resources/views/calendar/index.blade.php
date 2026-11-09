@@ -134,11 +134,13 @@
     @endif
 
     <div class="cal-page__board">
+        @include('admin.events._booking-conflicts')
         <x-calendar.grid
             :dates="$dates"
             :squares="$squares"
             :date-labels="$dateLabels"
             :reservations-by-slot="$reservationsBySlot"
+            :reservations-by-date="$reservationsByDate"
             :event-blocks="$eventBlocks"
             :today="$today"
             :now="$now"

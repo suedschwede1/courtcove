@@ -7,11 +7,10 @@
 $sprueche = __('booking.quotes');
 $spruch = $sprueche[array_rand($sprueche)];
 
-$timeStartSeconds = $timeStart * 3600;
-$timeEndSeconds   = $timeEnd   * 3600;
-
-$timeStartLabel = str_pad((string) $timeStart, 2, '0', STR_PAD_LEFT) . ':00';
-$timeEndLabel   = str_pad((string) $timeEnd,   2, '0', STR_PAD_LEFT) . ':00';
+$timeStartSeconds = $slotStart ?? $timeStart * 3600;
+$timeEndSeconds = $slotEnd ?? $timeEnd * 3600;
+$timeStartLabel = gmdate('H:i', $timeStartSeconds);
+$timeEndLabel = gmdate('H:i', $timeEndSeconds);
 @endphp
 
 <div class="ds-booking-page">

@@ -31,6 +31,8 @@ final class BookingController extends Controller
             'sid' => ['required', 'integer', 'exists:bs_squares,sid'],
             'date' => ['required', 'date_format:Y-m-d'],
             'time_start' => ['required', 'integer', 'min:0', 'max:23'],
+            'slot_start' => ['nullable', 'integer', 'min:0', 'max:86399'],
+            'slot_end' => ['nullable', 'integer', 'min:1', 'max:86400'],
         ]);
 
         $square = Square::findOrFail((int) $data['sid']);
@@ -38,7 +40,7 @@ final class BookingController extends Controller
         $timeStart = (int) $data['time_start'];
         $timeEnd = $timeStart + 1;
 
-        return view('bookings.create', compact('square', 'date', 'timeStart', 'timeEnd'));
+        return view('bookings.create', compact('square', 'date', 'timeStart', 'timeEnd') + ['slotStart' => $data['slot_start'] ?? null, 'slotEnd' => $data['slot_end'] ?? null]);
     }
 
     public function store(Request $request): RedirectResponse|JsonResponse

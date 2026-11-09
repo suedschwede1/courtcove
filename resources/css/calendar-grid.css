@@ -50,8 +50,9 @@
 /* Time column: the same row template as the day cards; the block padding
    matches the card's border + padding (9px), so every hour lines up. */
 .cal-times {
+    min-height: 0;
     display: grid;
-    grid-template-rows: 30px 34px repeat(12, minmax(var(--cal-cell), 1fr));
+    grid-template-rows: 30px 34px var(--cal-hour-rows, repeat(12, minmax(var(--cal-cell), 1fr)));
     gap: var(--cal-gap);
     padding-block: 9px;
 }
@@ -91,9 +92,10 @@
 
 /* Day card */
 .cal-day {
+    min-height: 0;
     min-width: 0;
     display: grid;
-    grid-template-rows: 30px 34px repeat(12, minmax(var(--cal-cell), 1fr));
+    grid-template-rows: 30px 34px var(--cal-hour-rows, repeat(12, minmax(var(--cal-cell), 1fr)));
     gap: var(--cal-gap);
     padding: 8px;
     background: var(--color-surface);
@@ -214,7 +216,7 @@
  * free and past slots carry no text, booked slots and events a centred name
  * line plus a detail line, both cut with an ellipsis instead of wrapping.
  */
-.cal-row > .calendar-cell {
+.cal-row .calendar-cell {
     display: block;
     box-sizing: border-box;
     width: auto;
@@ -227,11 +229,11 @@
     transition: background-color 0.12s ease, box-shadow 0.12s ease;
 }
 
-.cal-row > .cc-own,
-.cal-row > .cc-single-future,
-.cal-row > .cc-seeking,
-.cal-row > .cc-turnier,
-.cal-row > .event-cell {
+.cal-row .cc-own,
+.cal-row .cc-single-future,
+.cal-row .cc-seeking,
+.cal-row .cc-turnier,
+.cal-row .event-cell {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -317,7 +319,7 @@
  * shows the longest one that fits, so the number is never cut off (phones, many courts):
  * own bookings the long line, other bookings the short one, very narrow cells the shortest.
  */
-.cal-row > .calendar-cell:has(.cc-label-seeking) {
+.cal-row .calendar-cell:has(.cc-label-seeking) {
     container-type: inline-size;
 }
 
@@ -348,13 +350,13 @@
 }
 
 /* Free: white with a dashed line; it has no text, so the border shifts nothing. */
-.cal-row > .cc-free {
+.cal-row .cc-free {
     background: var(--cal-free-bg);
     border: 1px dashed var(--cal-free-line);
 }
 
-.cal-row > a.cc-free:hover,
-.cal-row > a.cc-free:focus-visible {
+.cal-row a.cc-free:hover,
+.cal-row a.cc-free:focus-visible {
     background-color: var(--cal-free-bg-hover);
 }
 
@@ -366,48 +368,48 @@
  */
 
 /* Own booking: the only ringed booking state. */
-.cal-row > .cc-own {
+.cal-row .cc-own {
     background: var(--cal-own-bg);
     box-shadow: inset 0 0 0 1.5px var(--cal-own-line);
     color: var(--cal-own-label);
 }
 
-.cal-row > .cc-own .cc-label-secondary,
-.cal-row > .cc-own .cc-label-players,
-.cal-row > .cc-own .cc-label-own {
+.cal-row .cc-own .cc-label-secondary,
+.cal-row .cc-own .cc-label-players,
+.cal-row .cc-own .cc-label-own {
     color: var(--cal-own-label-secondary);
 }
 
-.cal-row > a.cc-own:not(.slot-cell--past):hover,
-.cal-row > a.cc-own:not(.slot-cell--past):focus-visible {
+.cal-row a.cc-own:not(.slot-cell--past):hover,
+.cal-row a.cc-own:not(.slot-cell--past):focus-visible {
     box-shadow: inset 0 0 0 2px var(--cal-own-line);
 }
 
 /* Booked by someone else */
-.cal-row > .cc-single-future {
+.cal-row .cc-single-future {
     background: var(--cal-single-future-bg);
     color: var(--cal-single-future-label);
 }
 
-.cal-row > .cc-single-future .cc-label-secondary,
-.cal-row > .cc-single-future .cc-label-players {
+.cal-row .cc-single-future .cc-label-secondary,
+.cal-row .cc-single-future .cc-label-players {
     color: var(--cal-single-future-label-secondary);
 }
 
-.cal-row > a.cc-single-future:not(.slot-cell--past):hover,
-.cal-row > a.cc-single-future:not(.slot-cell--past):focus-visible {
+.cal-row a.cc-single-future:not(.slot-cell--past):hover,
+.cal-row a.cc-single-future:not(.slot-cell--past):focus-visible {
     box-shadow: inset 0 0 0 2px var(--color-ink-3);
 }
 
 /* Player search on someone else's booking: pale violet fill with a violet ring; the text line says it. */
-.cal-row > .cc-seeking {
+.cal-row .cc-seeking {
     background: var(--cal-seeking-bg);
     box-shadow: inset 0 0 0 2px var(--cal-seeking-line);
     color: var(--cal-seeking-label);
 }
 
-.cal-row > a.cc-seeking:not(.slot-cell--past):hover,
-.cal-row > a.cc-seeking:not(.slot-cell--past):focus-visible {
+.cal-row a.cc-seeking:not(.slot-cell--past):hover,
+.cal-row a.cc-seeking:not(.slot-cell--past):focus-visible {
     box-shadow: inset 0 0 0 3px var(--cal-seeking-line);
 }
 
@@ -415,30 +417,30 @@
  * Subscription: its own fill and text colour; an own subscription keeps the
  * own ring on top. Tournament matches and past slots are left out (they win).
  */
-.cal-row > .cc-series:not(.slot-cell--past):not(.cc-turnier) {
+.cal-row .cc-series:not(.slot-cell--past):not(.cc-turnier) {
     background: var(--cal-series-bg);
     box-shadow: inset 4px 0 0 0 var(--cal-series-label);
     color: var(--cal-series-label);
 }
 
-.cal-row > .cc-series:not(.slot-cell--past):not(.cc-turnier) .cc-label-secondary,
-.cal-row > .cc-series:not(.slot-cell--past):not(.cc-turnier) .cc-label-own {
+.cal-row .cc-series:not(.slot-cell--past):not(.cc-turnier) .cc-label-secondary,
+.cal-row .cc-series:not(.slot-cell--past):not(.cc-turnier) .cc-label-own {
     color: var(--cal-series-label);
 }
 
-.cal-row > .cc-own.cc-series:not(.slot-cell--past):not(.cc-turnier) {
+.cal-row .cc-own.cc-series:not(.slot-cell--past):not(.cc-turnier) {
     box-shadow: inset 0 0 0 1.5px var(--cal-own-line), inset 4px 0 0 0 var(--cal-series-label);
 }
 
 /* Past: hatched, booked past slots keep their text in the muted colour. */
-.cal-row > .slot-cell--past {
+.cal-row .slot-cell--past {
     background: repeating-linear-gradient(135deg, var(--cal-past-bg) 0 4px, var(--cal-past-bg-alt) 4px 8px);
     box-shadow: none;
     color: var(--cal-past-label);
 }
 
-.cal-row > .slot-cell--past .cc-label-secondary,
-.cal-row > .slot-cell--past .cc-label-own {
+.cal-row .slot-cell--past .cc-label-secondary,
+.cal-row .slot-cell--past .cc-label-own {
     color: var(--cal-past-label);
 }
 
@@ -447,89 +449,89 @@
  * over the row gap into the next hour (100% of their own, growing row plus the
  * gap), so the parts join into one block at any row height.
  */
-.cal-row > .event-cell {
+.cal-row .event-cell {
     background: var(--cal-event-bg);
     color: var(--cal-event-label);
 }
 
 /* Court closure: diagonal hatching (fixed to the viewport, so the stripes run through the joined hours), muted text. */
-.cal-row > .event-cell--blocked {
+.cal-row .event-cell--blocked {
     background: repeating-linear-gradient(135deg, var(--cal-blocked-a) 0 6px, var(--cal-blocked-b) 6px 12px);
     background-attachment: fixed;
     color: var(--cal-blocked-label);
 }
 
-.cal-row > .event-cell--single {
+.cal-row .event-cell--single {
     border-radius: var(--radius-sm);
 }
 
 /* Club event: a green outline around the whole joined block (no line between the hours). */
-.cal-row > .event-cell--single:not(.event-cell--blocked) {
+.cal-row .event-cell--single:not(.event-cell--blocked) {
     box-shadow: inset 0 0 0 1px var(--cal-event-line);
 }
 
-.cal-row > .event-cell--start:not(.event-cell--blocked) {
+.cal-row .event-cell--start:not(.event-cell--blocked) {
     box-shadow: inset 1px 0 0 0 var(--cal-event-line), inset -1px 0 0 0 var(--cal-event-line), inset 0 1px 0 0 var(--cal-event-line);
 }
 
-.cal-row > .event-cell--middle:not(.event-cell--blocked) {
+.cal-row .event-cell--middle:not(.event-cell--blocked) {
     box-shadow: inset 1px 0 0 0 var(--cal-event-line), inset -1px 0 0 0 var(--cal-event-line);
 }
 
-.cal-row > .event-cell--end:not(.event-cell--blocked) {
+.cal-row .event-cell--end:not(.event-cell--blocked) {
     box-shadow: inset 1px 0 0 0 var(--cal-event-line), inset -1px 0 0 0 var(--cal-event-line), inset 0 -1px 0 0 var(--cal-event-line);
 }
 
-.cal-row > .event-cell--start,
-.cal-row > .event-cell--middle {
+.cal-row .event-cell--start,
+.cal-row .event-cell--middle {
     height: calc(100% + var(--cal-gap));
     margin-bottom: calc(-1 * var(--cal-gap));
 }
 
-.cal-row > .event-cell--start {
+.cal-row .event-cell--start {
     padding: 4px 10px 8px;
     border-radius: var(--radius-sm) var(--radius-sm) 0 0;
 }
 
-.cal-row > .event-cell--middle {
+.cal-row .event-cell--middle {
     border-radius: 0;
 }
 
-.cal-row > .event-cell--end {
+.cal-row .event-cell--end {
     border-radius: 0 0 var(--radius-sm) var(--radius-sm);
 }
 
 /* Only the first hour carries the visible label at every viewport width. */
-.cal-row > .event-cell--middle .event-label,
-.cal-row > .event-cell--end .event-label {
+.cal-row .event-cell--middle .event-label,
+.cal-row .event-cell--end .event-label {
     visibility: hidden;
 }
 
-.cal-row > .event-cell--editable a.event-label:hover,
-.cal-row > .event-cell--editable a.event-label:focus-visible {
+.cal-row .event-cell--editable a.event-label:hover,
+.cal-row .event-cell--editable a.event-label:focus-visible {
     text-decoration: underline;
 }
 
 /* Tournament match last, so it wins over the past hatch. The tripled class
    lifts the hover ring above the own/booked hover rules. */
-.cal-row > .cc-turnier {
+.cal-row .cc-turnier {
     background: var(--cal-tournament-bg);
     box-shadow: inset 0 0 0 1px var(--cal-tournament-line);
     color: var(--cal-tournament-label);
 }
 
-.cal-row > .cc-turnier .cc-label-secondary,
-.cal-row > .cc-turnier .cc-label-own {
+.cal-row .cc-turnier .cc-label-secondary,
+.cal-row .cc-turnier .cc-label-own {
     color: var(--cal-tournament-label);
 }
 
-.cal-row > a.calendar-cell.cc-turnier.cc-turnier:hover,
-.cal-row > a.calendar-cell.cc-turnier.cc-turnier:focus-visible {
+.cal-row a.calendar-cell.cc-turnier.cc-turnier:hover,
+.cal-row a.calendar-cell.cc-turnier.cc-turnier:focus-visible {
     box-shadow: inset 0 0 0 2px var(--cal-tournament-line);
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .cal-row > .calendar-cell {
+    .cal-row .calendar-cell {
         transition: none;
     }
 }
@@ -557,7 +559,7 @@
     .cal-day {
         box-sizing: border-box;
         height: 100%;
-        grid-template-rows: auto repeat(12, minmax(var(--cal-cell), 1fr));
+        grid-template-rows: auto var(--cal-hour-rows, repeat(12, minmax(var(--cal-cell), 1fr)));
         padding: 0 0 8px;
         background: transparent;
         border: 0;
@@ -616,15 +618,15 @@
         font-size: var(--text-body-s);
     }
 
-    .cal-row > .calendar-cell {
+    .cal-row .calendar-cell {
         border-radius: var(--radius-md);
     }
 
-    .cal-row > .cc-own,
-    .cal-row > .cc-single-future,
-    .cal-row > .cc-seeking,
-    .cal-row > .cc-turnier,
-    .cal-row > .event-cell {
+    .cal-row .cc-own,
+    .cal-row .cc-single-future,
+    .cal-row .cc-seeking,
+    .cal-row .cc-turnier,
+    .cal-row .event-cell {
         gap: 0;
         padding: 4px 6px;
         font-size: var(--text-label);
@@ -637,7 +639,7 @@
     }
 
     /* Name plus the players as first names; own bookings without players keep "Mine". */
-    .cal-row > .cc-own .cc-label-secondary {
+    .cal-row .cc-own .cc-label-secondary {
         display: none;
     }
 
@@ -646,46 +648,75 @@
     }
 
     /* Room for name + two player lines in the 44px row. */
-    .cal-row > .calendar-cell:has(.cc-label-players) {
+    .cal-row .calendar-cell:has(.cc-label-players) {
         padding-block: 3px;
     }
 
-    .cal-row > .cc-own .cc-label-own {
+    .cal-row .cc-own .cc-label-own {
         display: block;
     }
 
     /* The players replace "Mine" (two lines fit the 44px row; the own ring already says it is yours). */
-    .cal-row > .cc-own:has(.cc-label-players) .cc-label-own {
+    .cal-row .cc-own:has(.cc-label-players) .cc-label-own {
         display: none;
     }
 
-    .cal-row > .calendar-cell:not(.cc-own) .cc-label-primary {
+    .cal-row .calendar-cell:not(.cc-own) .cc-label-primary {
         font-weight: 600;
     }
 
-    .cal-row > .calendar-cell:not(.cc-own) .cc-label-secondary {
+    .cal-row .calendar-cell:not(.cc-own) .cc-label-secondary {
         display: none;
     }
 
     /* Keep multi-hour events joined, with mobile radii only at the outer corners. */
-    .cal-row > .event-cell--single {
+    .cal-row .event-cell--single {
         border-radius: var(--radius-md);
     }
 
-    .cal-row > .event-cell--start {
+    .cal-row .event-cell--start {
         padding: 4px 6px;
         border-radius: var(--radius-md) var(--radius-md) 0 0;
     }
 
-    .cal-row > .event-cell--middle {
+    .cal-row .event-cell--middle {
         border-radius: 0;
     }
 
-    .cal-row > .event-cell--end {
+    .cal-row .event-cell--end {
         border-radius: 0 0 var(--radius-md) var(--radius-md);
     }
 
     .cal-row .event-range {
         display: none;
     }
+}
+
+/* Separate minute intervals keep every reservation visible and every tap target usable. */
+.cal-parts {
+    display: grid;
+    grid-auto-rows: minmax(0, 1fr);
+    min-width: 0;
+    min-height: 0;
+    gap: var(--cal-gap);
+}
+.cal-part {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+}
+.cal-part > .calendar-cell {
+    flex: 1;
+    min-height: 0;
+}
+.cal-parts--split .calendar-cell {
+    min-height: 52px;
+}
+.cal-part__time {
+    color: var(--color-ink-2);
+    font-size: var(--text-label);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.3;
+    text-align: center;
 }

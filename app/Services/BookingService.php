@@ -48,9 +48,12 @@ final class BookingService
      *
      * @return array{uid: int, ownerName: ?string}
      */
-    public function resolveOwner(string $bookedFor): array
+    public function resolveOwner(string $bookedFor, ?Booking $existing = null): array
     {
         $name = trim($bookedFor);
+        if ($existing !== null && mb_strtolower($name) === mb_strtolower(trim($existing->owner_label))) {
+            return ['uid' => (int) $existing->uid, 'ownerName' => $existing->meta->firstWhere('key', 'owner-name')?->value];
+        }
 
         $matches = User::where('status', '!=', 'deleted')
             ->whereRaw('LOWER(alias) = ?', [mb_strtolower($name)])
@@ -100,6 +103,28 @@ final class BookingService
         }
 
         return [$dateStart, $dateEnd, $occurrenceStarts, (int) $dateStart->diffInSeconds($dateEnd)];
+    }
+
+    /** @return array{0: Carbon, 1: Carbon, 2: list<Carbon>, 3: int} */
+    public function buildUpdateTimeline(Booking $booking, array $data, ?string $occurrenceDate, string $scope): array
+    {
+        if ($data['repeat_type'] !== 'custom') {
+            return $this->buildOccurrenceTimeline($data);
+        }
+        $reservations = $booking->reservations()->orderBy('date')->orderBy('time_start')->get()
+            ->filter(fn (Reservation $r): bool => $occurrenceDate === null || ($scope === 'this_and_following' ? $r->date >= $occurrenceDate : $r->date === $occurrenceDate))->values();
+        $first = $reservations->first();
+        $last = $reservations->last();
+        if (! $first || $this->detectRepeatType($reservations->all()) !== 'custom'
+            || $data['date'] !== $first->date || ($data['date_end'] ?? '') !== $last->date
+            || $data['time_start'] !== substr((string) $first->time_start, 0, 5)
+            || $data['time_end'] !== substr((string) $first->time_end, 0, 5)) {
+            throw new BookingValidationException(__('booking.validation.custom_repeat_not_editable'));
+        }
+        $start = Carbon::parse($first->date.' '.$first->time_start);
+        $end = Carbon::parse($first->date.' '.$first->time_end);
+
+        return [$start, $end, $reservations->map(fn (Reservation $r): Carbon => Carbon::parse($r->date.' '.$r->time_start))->all(), (int) $start->diffInSeconds($end)];
     }
 
     /** @return list<Carbon> */
@@ -238,6 +263,7 @@ final class BookingService
             ->whereBetween('bs_reservations.date', [$dateMin, $dateMax])
             ->when($excludeBookingId !== null, fn ($q) => $q->where('bs_bookings.bid', '!=', $excludeBookingId))
             ->select(['bs_reservations.date', 'bs_reservations.time_start', 'bs_reservations.time_end'])
+            ->lockForUpdate()
             ->get();
 
         // One query: all enabled events overlapping the range.
@@ -247,6 +273,7 @@ final class BookingService
             ->where('datetime_start', '<', $lastEnd->format('Y-m-d H:i:s'))
             ->where('datetime_end', '>', min($occurrenceStarts)->format('Y-m-d H:i:s'))
             ->select(['datetime_start', 'datetime_end'])
+            ->lockForUpdate()
             ->get();
 
         foreach ($occurrenceStarts as $occurrenceStart) {
@@ -283,7 +310,7 @@ final class BookingService
      * form or the API — as opposed to createSingle(), which is the simple self-service
      * single-slot path used by the member-facing booking flow.
      *
-     * @param  array{sid: int|string, quantity: int|string, mitspieler?: ?string, player_names?: array<int, string|null>, admin_note?: ?string}  $data
+     * @param  array{sid: int|string, quantity: int|string, repeat_type?: string, date?: string, date_end?: ?string, time_start?: string, time_end?: string, mitspieler?: ?string, player_names?: array<int, string|null>, admin_note?: ?string}  $data
      * @param  array{uid: int, ownerName: ?string}  $owner
      * @param  list<Carbon>  $occurrenceStarts
      */
@@ -322,7 +349,7 @@ final class BookingService
      * Update a (possibly repeating) booking for a resolved owner, replacing its
      * reservations — the update counterpart to createSeries().
      *
-     * @param  array{sid: int|string, quantity: int|string, mitspieler?: ?string, player_names?: array<int, string|null>, admin_note?: ?string}  $data
+     * @param  array{sid: int|string, quantity: int|string, repeat_type?: string, date?: string, date_end?: ?string, time_start?: string, time_end?: string, mitspieler?: ?string, player_names?: array<int, string|null>, admin_note?: ?string}  $data
      * @param  array{uid: int, ownerName: ?string}  $owner
      * @param  list<Carbon>  $occurrenceStarts
      */
@@ -341,7 +368,11 @@ final class BookingService
             Booking::query()->whereKey($booking->bid)->lockForUpdate()->first();
             $booking->refresh();
 
+            if (($data['repeat_type'] ?? '') === 'custom') {
+                $this->buildUpdateTimeline($booking, $data, $occurrenceDate, $scope);
+            }
             $targetBooking = $this->splitForScope($booking, $occurrenceDate, $scope);
+            $preserveSchedule = ($data['repeat_type'] ?? '') === 'custom';
 
             // A cancelled booking stays cancelled (only the cancel action sets that) and holds no slot to check.
             $isCancelled = $targetBooking->status === 'cancelled';
@@ -349,7 +380,19 @@ final class BookingService
             if (! $isCancelled) {
                 // Serialize with concurrent bookings on this square, then check conflicts.
                 Square::query()->whereKey((int) $data['sid'])->lockForUpdate()->get();
-                $conflictError = $this->batchCheckConflicts((int) $data['sid'], $occurrenceStarts, $durationSeconds, $targetBooking->bid);
+                $conflictError = null;
+                if ($preserveSchedule) {
+                    foreach ($targetBooking->reservations()->get() as $reservation) {
+                        $start = Carbon::parse($reservation->date.' '.$reservation->time_start);
+                        $duration = (int) $start->diffInSeconds(Carbon::parse($reservation->date.' '.$reservation->time_end));
+                        $conflictError = $this->batchCheckConflicts((int) $data['sid'], [$start], $duration, $targetBooking->bid);
+                        if ($conflictError !== null) {
+                            break;
+                        }
+                    }
+                } else {
+                    $conflictError = $this->batchCheckConflicts((int) $data['sid'], $occurrenceStarts, $durationSeconds, $targetBooking->bid);
+                }
                 if ($conflictError !== null) {
                     throw new BookingValidationException($conflictError);
                 }
@@ -392,20 +435,21 @@ final class BookingService
                 'status' => $effectiveStatus,
             ]);
 
-            $targetBooking->loadMissing(['reservations.meta']);
-            foreach ($targetBooking->reservations as $reservation) {
-                $reservation->meta()->delete();
+            if (! $preserveSchedule) {
+                $targetBooking->loadMissing(['reservations.meta']);
+                foreach ($targetBooking->reservations as $reservation) {
+                    $reservation->meta()->delete();
+                }
+                $targetBooking->reservations()->delete();
+                $this->insertReservations($targetBooking, $occurrenceStarts, $durationSeconds);
             }
-            $targetBooking->reservations()->delete();
-
-            $this->insertReservations($targetBooking, $occurrenceStarts, $durationSeconds);
 
             $this->syncPlayerMeta($targetBooking, $data['player_names'] ?? [2 => $data['mitspieler'] ?? null]);
             $this->syncBookingMeta($targetBooking, 'owner-name', $owner['ownerName']);
             $this->syncBookingMeta($targetBooking, 'admin-note', $data['admin_note'] ?? null);
 
             return $targetBooking->fresh(['reservations', 'meta']);
-        });
+        }, self::TRANSACTION_ATTEMPTS);
     }
 
     /** @param list<Carbon> $occurrenceStarts */
@@ -789,17 +833,18 @@ final class BookingService
 
     public function splitForScope(Booking $booking, ?string $occurrenceDate, string $scope): Booking
     {
-        if ($occurrenceDate === null || ! $booking->isSubscription()) {
+        if ($occurrenceDate === null) {
             return $booking;
         }
 
-        $booking->loadMissing(['reservations', 'meta']);
+        $booking->load(['reservations', 'meta']);
         $reservations = $booking->reservations
             ->sortBy([['date', 'asc'], ['time_start', 'asc']])
             ->values();
 
-        if (! $reservations->contains(fn (Reservation $r): bool => $r->date === $occurrenceDate)) {
-            return $booking;
+        if (! in_array($scope, ['single_occurrence', 'this_and_following'], true)
+            || ! $reservations->contains(fn (Reservation $r): bool => $r->date === $occurrenceDate)) {
+            throw new BookingValidationException(__('booking.validation.occurrence_missing'));
         }
 
         return $scope === 'this_and_following'
@@ -932,6 +977,9 @@ final class BookingService
 
     private function normalizeBookableEnd(Square $square, Carbon $dateStart, Carbon $dateEnd): Carbon
     {
+        if (! $dateEnd->greaterThan($dateStart)) {
+            throw new BookingValidationException(__('booking.validation.end_time_after_start'));
+        }
         $minimumSeconds = app(BookingRules::class)->minimumSeconds($square);
         if ($minimumSeconds <= 0) {
             return $dateEnd;

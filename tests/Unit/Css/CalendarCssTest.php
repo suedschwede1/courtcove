@@ -82,14 +82,14 @@ final class CalendarCssTest extends TestCase
         $css = $this->grid();
 
         // Hover/focus and series rules outrank the past rule, so they must skip past slots.
-        $this->assertDoesNotMatchRegularExpression('/\.cal-row > a\.cc-(?:own|single-future):(?:hover|focus-visible)/', $css);
+        $this->assertDoesNotMatchRegularExpression('/\.cal-row a\.cc-(?:own|single-future):(?:hover|focus-visible)/', $css);
         foreach (['own', 'single-future'] as $state) {
-            $this->assertStringContainsString('.cal-row > a.cc-'.$state.':not(.slot-cell--past):hover', $css);
-            $this->assertStringContainsString('.cal-row > a.cc-'.$state.':not(.slot-cell--past):focus-visible', $css);
+            $this->assertStringContainsString('.cal-row a.cc-'.$state.':not(.slot-cell--past):hover', $css);
+            $this->assertStringContainsString('.cal-row a.cc-'.$state.':not(.slot-cell--past):focus-visible', $css);
         }
-        $this->assertDoesNotMatchRegularExpression('/\.cal-row > \.cc-(?:own\.cc-)?series\s*[{,]/', $css);
-        $this->assertStringContainsString('.cal-row > .cc-series:not(.slot-cell--past)', $css);
-        $this->assertStringContainsString('.cal-row > .cc-own.cc-series:not(.slot-cell--past)', $css);
+        $this->assertDoesNotMatchRegularExpression('/\.cal-row \.cc-(?:own\.cc-)?series\s*[{,]/', $css);
+        $this->assertStringContainsString('.cal-row .cc-series:not(.slot-cell--past)', $css);
+        $this->assertStringContainsString('.cal-row .cc-own.cc-series:not(.slot-cell--past)', $css);
     }
 
     #[Test]
@@ -174,7 +174,7 @@ final class CalendarCssTest extends TestCase
     public function hour_rows_share_the_height_with_a_minimum(): void
     {
         $css = $this->grid();
-        $rows = 'grid-template-rows: 30px 34px repeat(12, minmax(var(--cal-cell), 1fr));';
+        $rows = 'grid-template-rows: 30px 34px var(--cal-hour-rows, repeat(12, minmax(var(--cal-cell), 1fr)));';
 
         // Day cards and the time column use the same row template, so the hours line up.
         $this->assertStringContainsString($rows, $this->rule($css, '.cal-day'));
@@ -182,7 +182,7 @@ final class CalendarCssTest extends TestCase
         $this->assertMatchesRegularExpression('/height:\s*100%;/', $this->rule($css, '.cal-board'));
 
         // Cells follow the row instead of a fixed height.
-        $cell = $this->rule($css, '.cal-row > .calendar-cell');
+        $cell = $this->rule($css, '.cal-row .calendar-cell');
         $this->assertMatchesRegularExpression('/height:\s*100%;/', $cell);
         $this->assertStringNotContainsString('var(--cal-cell)', $cell);
         $this->assertDoesNotMatchRegularExpression('/(?<![\w-])height:/', $this->rule($css, '.cal-times__row'));
@@ -202,7 +202,7 @@ final class CalendarCssTest extends TestCase
         $this->assertNotEmpty($phone);
 
         $this->assertStringContainsString(
-            'grid-template-rows: auto repeat(12, minmax(var(--cal-cell), 1fr));',
+            'grid-template-rows: auto var(--cal-hour-rows, repeat(12, minmax(var(--cal-cell), 1fr)));',
             $this->rule($phone[1], '.cal-day'),
         );
     }
@@ -213,8 +213,8 @@ final class CalendarCssTest extends TestCase
         // The first and middle hours reach over the gap into the next row by
         // a share of their own (growing) row, not by a fixed cell height.
         $css = $this->grid();
-        $join = $this->rule($css, '.cal-row > .event-cell--start,
-.cal-row > .event-cell--middle');
+        $join = $this->rule($css, '.cal-row .event-cell--start,
+.cal-row .event-cell--middle');
 
         $this->assertStringContainsString('height: calc(100% + var(--cal-gap));', $join);
         $this->assertStringContainsString('margin-bottom: calc(-1 * var(--cal-gap));', $join);
@@ -261,7 +261,7 @@ final class CalendarCssTest extends TestCase
     #[Test]
     public function own_booking_is_a_blue_ringed_pastel_cell(): void
     {
-        $own = $this->rule($this->grid(), '.cal-row > .cc-own');
+        $own = $this->rule($this->grid(), '.cal-row .cc-own');
 
         $this->assertStringContainsString('background: var(--cal-own-bg);', $own);
         $this->assertStringContainsString('box-shadow: inset 0 0 0 1.5px var(--cal-own-line);', $own);
@@ -274,17 +274,17 @@ final class CalendarCssTest extends TestCase
     {
         $css = $this->grid();
 
-        $series = $this->rule($css, '.cal-row > .cc-series:not(.slot-cell--past):not(.cc-turnier)');
+        $series = $this->rule($css, '.cal-row .cc-series:not(.slot-cell--past):not(.cc-turnier)');
         $this->assertStringContainsString('background: var(--cal-series-bg);', $series);
         $this->assertStringContainsString('color: var(--cal-series-label);', $series);
         // An own series keeps the own ring on the series fill.
-        $this->assertStringContainsString('inset 0 0 0 1.5px var(--cal-own-line)', $this->rule($css, '.cal-row > .cc-own.cc-series:not(.slot-cell--past):not(.cc-turnier)'));
+        $this->assertStringContainsString('inset 0 0 0 1.5px var(--cal-own-line)', $this->rule($css, '.cal-row .cc-own.cc-series:not(.slot-cell--past):not(.cc-turnier)'));
 
-        $blocked = $this->rule($css, '.cal-row > .event-cell--blocked');
+        $blocked = $this->rule($css, '.cal-row .event-cell--blocked');
         $this->assertStringContainsString('repeating-linear-gradient(135deg, var(--cal-blocked-a) 0 6px, var(--cal-blocked-b) 6px 12px)', $blocked);
         $this->assertStringContainsString('color: var(--cal-blocked-label);', $blocked);
 
-        $match = $this->rule($css, '.cal-row > .cc-turnier');
+        $match = $this->rule($css, '.cal-row .cc-turnier');
         $this->assertStringContainsString('box-shadow: inset 0 0 0 1px var(--cal-tournament-line);', $match);
     }
 

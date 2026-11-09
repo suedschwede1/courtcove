@@ -67,9 +67,9 @@ final class SquareValidator
             return ValidationResult::fail('Booking time is outside square opening hours');
         }
 
-        // Block past slots: booking not allowed once the slot time has fully passed.
-        // The current hour remains bookable ($dateEnd is still in the future).
-        if ($dateEnd->lessThanOrEqualTo(Carbon::now())
+        // Only the current hour may start before now, and its end must still be future.
+        // An older start must not turn an arbitrary long booking into a short booking.
+        if (($dateEnd->lessThanOrEqualTo(Carbon::now()) || $dateStart->lessThan(Carbon::now()->startOfHour()))
             && ! $user->can('calendar.see-past')) {
             return ValidationResult::fail(__('booking.messages.booking_in_past'));
         }
@@ -156,7 +156,8 @@ final class SquareValidator
             return false;
         }
 
-        return Carbon::now()->diffInSeconds($dateStart, absolute: false) <= $windowSeconds;
+        return $dateStart->greaterThanOrEqualTo(Carbon::now()->startOfHour())
+            && Carbon::now()->diffInSeconds($dateStart, absolute: false) <= $windowSeconds;
     }
 
     /**
@@ -188,7 +189,13 @@ final class SquareValidator
             ->join('bs_bookings', 'bs_bookings.bid', '=', 'bs_reservations.bid')
             ->where('bs_bookings.uid', $user->uid)
             ->whereIn('bs_bookings.status', Booking::ACTIVE_STATUSES)
-            ->where('bs_reservations.date', '>=', Carbon::today()->toDateString())
+            ->where(function ($query): void {
+                $query->where('bs_reservations.date', '>', Carbon::today()->toDateString())
+                    ->orWhere(function ($today): void {
+                        $today->where('bs_reservations.date', Carbon::today()->toDateString())
+                            ->where('bs_reservations.time_end', '>', Carbon::now()->format('H:i:s'));
+                    });
+            })
             ->when($excludeBookingId !== null, fn ($query) => $query->where('bs_bookings.bid', '!=', $excludeBookingId))
             ->count();
     }
@@ -200,7 +207,13 @@ final class SquareValidator
             ->join('bs_bookings', 'bs_bookings.bid', '=', 'bs_reservations.bid')
             ->where('bs_bookings.uid', $user->uid)
             ->whereIn('bs_bookings.status', Booking::ACTIVE_STATUSES)
-            ->where('bs_reservations.date', '>=', Carbon::today()->toDateString())
+            ->where(function ($query): void {
+                $query->where('bs_reservations.date', '>', Carbon::today()->toDateString())
+                    ->orWhere(function ($today): void {
+                        $today->where('bs_reservations.date', Carbon::today()->toDateString())
+                            ->where('bs_reservations.time_end', '>', Carbon::now()->format('H:i:s'));
+                    });
+            })
             ->when($excludeBookingId !== null, fn ($query) => $query->where('bs_bookings.bid', '!=', $excludeBookingId))
             ->where(function ($query) use ($windows): void {
                 foreach ($windows as $window) {

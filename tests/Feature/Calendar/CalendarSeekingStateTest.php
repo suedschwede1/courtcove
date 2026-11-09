@@ -274,7 +274,7 @@ final class CalendarSeekingStateTest extends TestCase
         $toolbar = (string) file_get_contents(resource_path('css/calendar-toolbar.css'));
 
         // Search: 2px ring and a person-plus symbol before the search text.
-        $this->assertMatchesRegularExpression('/\.cal-row > \.cc-seeking \{[^}]*inset 0 0 0 2px var\(--cal-seeking-line\)/s', $css);
+        $this->assertMatchesRegularExpression('/\.cal-row \.cc-seeking \{[^}]*inset 0 0 0 2px var\(--cal-seeking-line\)/s', $css);
         $this->assertStringContainsString('.cal-row .cc-label-seeking::before', $css);
         // Series: a bar on the left edge.
         $this->assertMatchesRegularExpression('/\.cc-series:not\(\.slot-cell--past\):not\(\.cc-turnier\) \{[^}]*inset 4px 0 0 0 var\(--cal-series-label\)/s', $css);

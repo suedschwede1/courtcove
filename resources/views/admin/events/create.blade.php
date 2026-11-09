@@ -5,6 +5,7 @@
     @section('admin-back', route('admin.events.index'))
 @endunless
 @section('admin-content')
+@include('admin.events._booking-conflicts')
 @php
     $bookingUrl = route('admin.bookings.create', array_filter([
         'sid'        => request('sid'),

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exceptions\EventBookingConflictException;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\Square;
@@ -79,7 +80,11 @@ final class EventController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $data = $this->validateEvent($request);
-        $this->eventService->create($data);
+        try {
+            $this->eventService->create($data);
+        } catch (EventBookingConflictException $e) {
+            return back()->withErrors($e->errors())->withInput()->with('event_conflicts', $e->conflicts);
+        }
 
         $redirectTo = $request->string('redirect_to')->trim()->value();
         if ($redirectTo !== '') {
@@ -110,7 +115,11 @@ final class EventController extends Controller
     public function update(Request $request, Event $event): RedirectResponse
     {
         $data = $this->validateEvent($request);
-        $this->eventService->update($event, $data);
+        try {
+            $this->eventService->update($event, $data);
+        } catch (EventBookingConflictException $e) {
+            return back()->withErrors($e->errors())->withInput()->with('event_conflicts', $e->conflicts);
+        }
 
         $redirectTo = $request->string('redirect_to')->trim()->value();
         if ($redirectTo !== '') {
@@ -145,7 +154,7 @@ final class EventController extends Controller
         }
 
         $data = $request->validate([
-            'sid' => ['nullable'],
+            'sid' => ['nullable', 'integer', 'exists:bs_squares,sid'],
             'name' => ['nullable', 'string', 'max:128'],
             'kind' => ['nullable', Rule::in(array_column(EventKind::cases(), 'value'))],
             'description' => ['nullable', 'string', 'max:4096'],

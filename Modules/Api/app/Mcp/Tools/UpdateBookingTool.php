@@ -77,8 +77,8 @@ class UpdateBookingTool extends Tool
         $booking = Booking::findOrFail($data['booking_id']);
 
         try {
-            $owner = $this->bookingService->resolveOwner($data['booked_for']);
-            [, , $occurrenceStarts, $durationSeconds] = $this->bookingService->buildOccurrenceTimeline($data);
+            $owner = $this->bookingService->resolveOwner($data['booked_for'], $booking);
+            [, , $occurrenceStarts, $durationSeconds] = $this->bookingService->buildUpdateTimeline($booking, $data, $data['occurrence'] ?? null, $data['edit_scope'] ?? 'single_occurrence');
             $booking = $this->bookingService->updateSeries(
                 $booking,
                 $data,

@@ -5,6 +5,9 @@
     'dateLabel',
     'isPast',
     'closed' => false,
+    'tooShort' => false,
+    'slotStart' => null,
+    'slotEnd' => null,
     'reservation' => null,
     'isLoggedIn',
     'isAdmin',
@@ -18,8 +21,10 @@
     $sid = $square->sid;
     $squareLabel = $square->display_name;
     $squareFullLabel = $square->name.' '.$square->display_name;
-    $timeLabel = str_pad((string) $h, 2, '0', STR_PAD_LEFT) . ':00';
-    $nextLabel = str_pad((string) ($h + 1), 2, '0', STR_PAD_LEFT) . ':00';
+    $slotStart ??= $h * 3600;
+    $slotEnd ??= ($h + 1) * 3600;
+    $timeLabel = $reservation ? substr((string) $reservation->time_start, 0, 5) : gmdate('H:i', $slotStart);
+    $nextLabel = $reservation ? substr((string) $reservation->time_end, 0, 5) : gmdate('H:i', $slotEnd);
     $timeRangeLabel = $timeLabel . ' – ' . $nextLabel . ' ' . __('booking.admin.common.clock_suffix');
 
     $isOwn = $reservation
@@ -127,6 +132,10 @@
         $slotClass .= ' slot-cell--closed';
     }
 
+    if ($tooShort && ! $reservation) {
+        $cellTitle = __('booking.messages.booking_duration_too_short');
+    }
+
     if ($isTournament) {
         $cellClass .= ' cc-turnier';
     }
@@ -151,7 +160,7 @@
     $seekingCellLabel = $hasOpenSearch
         ? __('booking.calendar.seeking_cell', ['court' => $squareLabel, 'time' => $timeLabel, 'remaining' => $seekingLine])
         : null;
-    $adminCreateUrl = route('admin.bookings.create') . '?sid=' . $sid . '&date=' . $dateKey . '&time_start=' . ($h * 3600) . '&time_end=' . (($h + 1) * 3600);
+    $adminCreateUrl = route('admin.bookings.create') . '?sid=' . $sid . '&date=' . $dateKey . '&time_start=' . $slotStart . '&time_end=' . $slotEnd;
     // Own booking with an open search: keep the usual name (owner, "Mine") and append the search
     // (the three visual lengths of the search line would otherwise all be read out).
     $ownSeekingLabel = $isOwn && $hasOpenSearch
@@ -173,7 +182,7 @@
 @endphp
 
 @if($action === 'book')
-    <a href="{{ route('bookings.create', ['sid' => $sid, 'date' => $dateKey, 'time_start' => $h]) }}"
+    <a href="{{ route('bookings.create', ['sid' => $sid, 'date' => $dateKey, 'time_start' => $h] + (($slotStart !== $h * 3600 || $slotEnd !== ($h + 1) * 3600) ? ['slot_start' => $slotStart, 'slot_end' => $slotEnd] : [])) }}"
        class="calendar-cell {{ $cellClass }}{{ $slotClass }}"
        data-state="{{ $state }}"
        aria-label="{{ $bookLabel }}"
@@ -181,10 +190,10 @@
        @click.prevent="$dispatch('open-booking', {
            sid: {{ $sid }},
            date: @js($dateKey),
-           timeStart: {{ $h * 3600 }},
-           timeEnd: {{ ($h + 1) * 3600 }},
-           timeStartFormatted: @js(str_pad($h, 2, '0', STR_PAD_LEFT) . ':00'),
-           timeEndFormatted: @js(str_pad($h + 1, 2, '0', STR_PAD_LEFT) . ':00'),
+           timeStart: {{ $slotStart }},
+           timeEnd: {{ $slotEnd }},
+           timeStartFormatted: @js($timeLabel),
+           timeEndFormatted: @js($nextLabel),
            squareName: @js($squareFullLabel),
            dateLabel: @js($dateLabel),
            timeLabel: @js($timeRangeLabel)
@@ -198,8 +207,8 @@
        data-action="admin-book"
        data-sid="{{ $sid }}"
        data-date="{{ $dateKey }}"
-       data-time-start="{{ $h * 3600 }}"
-       data-time-end="{{ ($h + 1) * 3600 }}"
+       data-time-start="{{ $slotStart }}"
+       data-time-end="{{ $slotEnd }}"
        data-square-name="{{ $squareFullLabel }}"
        data-date-label="{{ $dateLabel }}"
        data-time-label="{{ $timeRangeLabel }}"

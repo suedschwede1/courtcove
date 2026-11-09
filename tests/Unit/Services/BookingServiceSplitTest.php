@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services;
 
+use App\Exceptions\BookingValidationException;
 use App\Models\Booking;
 use App\Models\Reservation;
 use App\Models\Square;
@@ -72,13 +73,12 @@ class BookingServiceSplitTest extends TestCase
     }
 
     #[Test]
-    public function returns_same_booking_when_occurrence_date_matches_no_reservation(): void
+    public function rejects_an_occurrence_date_missing_from_the_current_reservations(): void
     {
         [$booking] = $this->makeSubscription(['2026-07-06', '2026-07-13']);
 
-        $result = $this->service->splitForScope($booking, '2026-08-01', 'single_occurrence');
-
-        $this->assertSame($booking->bid, $result->bid);
+        $this->expectException(BookingValidationException::class);
+        $this->service->splitForScope($booking, '2026-08-01', 'single_occurrence');
     }
 
     #[Test]

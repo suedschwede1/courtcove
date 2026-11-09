@@ -93,7 +93,7 @@ class BookingRepeatApiTest extends TestCase
     }
 
     #[Test]
-    public function rest_update_of_custom_series_as_custom_is_rejected_without_data_loss(): void
+    public function rest_update_of_custom_series_metadata_preserves_the_schedule(): void
     {
         $admin = User::factory()->create(['status' => 'admin']);
         $square = Square::factory()->create();
@@ -102,7 +102,7 @@ class BookingRepeatApiTest extends TestCase
 
         $this->putJson("/api/v1/bookings/{$booking->bid}", $this->payload($admin, $square, [
             'date_end' => '2026-07-27', 'repeat_type' => 'custom',
-        ]))->assertUnprocessable();
+        ]))->assertSuccessful();
 
         $this->assertCount(3, $booking->fresh()->reservations);
     }

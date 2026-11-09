@@ -642,7 +642,7 @@ class AdminBookingTest extends TestCase
     }
 
     #[Test]
-    public function saving_a_custom_series_as_custom_is_rejected_and_keeps_reservations(): void
+    public function saving_custom_series_metadata_keeps_reservations(): void
     {
         $admin = $this->admin();
         $square = Square::factory()->create();
@@ -655,7 +655,7 @@ class AdminBookingTest extends TestCase
         $this->actingAs($admin)->put("/admin/bookings/{$booking->bid}", $this->bookingPayload([
             'booked_for' => $admin->alias, 'sid' => $square->sid,
             'date' => '2026-07-06', 'date_end' => '2026-07-27', 'repeat_type' => 'custom',
-        ]))->assertSessionHasErrors('booking');
+        ]))->assertSessionHasNoErrors();
 
         $this->assertCount(3, $booking->fresh()->reservations);
 
