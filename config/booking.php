@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+use App\Http\Middleware\RestrictApiByIp;
 
 return [
     'name' => env('BOOKING_NAME', env('APP_NAME', 'Tennis-Booking')),
@@ -48,5 +49,11 @@ return [
     'security' => [
         'trusted_device_days' => (int) env('BOOKING_TRUSTED_DEVICE_DAYS', 30),
         'trusted_device_scope' => env('BOOKING_TRUSTED_DEVICE_SCOPE'),
+    ],
+
+    // Client addresses allowed on /api (env API_ALLOWED_IPS, comma separated, set per server; empty = nobody).
+    // See App\Http\Middleware\RestrictApiByIp and docs/security-runbook.md.
+    'api' => [
+        'allowed_ips' => RestrictApiByIp::parse(env('API_ALLOWED_IPS')),
     ],
 ];
