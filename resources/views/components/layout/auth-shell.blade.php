@@ -16,7 +16,7 @@
             <span class="ds-auth__club">{{ $bookingName }}</span>
         </p>
         <div class="ds-auth__claim">
-            <p class="ds-auth__tagline"><span>{{ __('booking.auth.panel.line1') }}</span> <span>{{ __('booking.auth.panel.line2') }}</span></p>
+            <p class="ds-auth__tagline">@foreach(preg_split('/(?<=\.)\s+/', (string) config('booking.product_tagline')) as $sentence)<span>{{ $sentence }}</span> @endforeach</p>
             <p class="ds-auth__panel-text">{{ __('booking.auth.panel.text') }}</p>
         </div>
     </div>
@@ -38,7 +38,6 @@
             @endif
             <p class="ds-auth__product">
                 <span class="ds-auth__product-name">{{ config('booking.product_name') }}</span>
-                <span class="ds-auth__product-tagline">{{ config('booking.product_tagline') }}</span>
             </p>
         </div>
     </main>

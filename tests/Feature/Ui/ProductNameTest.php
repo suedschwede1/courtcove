@@ -26,7 +26,7 @@ class ProductNameTest extends TestCase
             ->assertOk()
             ->assertSee('ds-auth__product-name', false)
             ->assertSee(config('booking.product_name'))
-            ->assertSee(config('booking.product_tagline'))
+            ->assertSeeInOrder(['Your club.', 'Your court.', 'Your game.'])
             ->assertSee('<title>', false)
             ->assertSee('ds-auth__club', false)
             ->assertSee(config('booking.name'));
