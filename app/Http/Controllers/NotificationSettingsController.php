@@ -66,10 +66,10 @@ final class NotificationSettingsController extends Controller
         try {
             $this->consents->optIn($this->user($request), $definition->key, app()->getLocale());
         } catch (ConsentRefused $e) {
-            return $this->back($definition->key)->with('error', __(self::refusedKey($e->reason)));
+            return $this->rowStatus($definition->key, 'problem', __(self::refusedKey($e->reason)));
         }
 
-        return $this->back($definition->key)->with('success', __('booking.notifications.account_card.enabled_flash'));
+        return $this->rowStatus($definition->key, 'good', __('booking.notifications.account_card.enabled_flash'));
     }
 
     /**
@@ -130,7 +130,18 @@ final class NotificationSettingsController extends Controller
         $definition = $this->purpose($purpose);
         $this->consents->revoke($this->user($request), 'account', $definition->key);
 
-        return $this->back($definition->key)->with('success', __('booking.notifications.account_card.revoked_flash'));
+        return $this->rowStatus($definition->key, 'good', __('booking.notifications.account_card.revoked_flash'));
+    }
+
+    /**
+     * Back on the purpose's row with a short status shown inline in that row (session key `whatsapp_row`), not the
+     * global modal flash: switching should not cover the card or take the focus.
+     *
+     * @param  'good'|'problem'  $tone
+     */
+    private function rowStatus(string $purpose, string $tone, string $text): RedirectResponse
+    {
+        return $this->back($purpose)->with('whatsapp_row', ['purpose' => $purpose, 'tone' => $tone, 'text' => $text]);
     }
 
     /** Account page anchor of a purpose's row in the card (the row the switch was in). */

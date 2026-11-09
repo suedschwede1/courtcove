@@ -116,7 +116,7 @@ Vor dem Umschalten auf Treiber `live` und Hauptschalter an:
 
 ## Vom Auftraggeber zu bestaetigen
 
-- Einwilligungssatz am Schalter (`purposes.player_search.consent_short`, de/en, Version `wa-2026-11-v2` in `purposes.player_search.consent_version`) und voller Text hinter "Mehr erfahren" (`consent_text_v1`); bisherige Einwilligungen mit `wa-2026-11-v1` bleiben gueltig.
+- Einwilligungssatz am Schalter (`purposes.player_search.consent_short`, de/en, Version `wa-2026-11-v2` in `purposes.player_search.consent_version`) und voller Text hinter "Mehr erfahren" (`consent_text_v1`); bisherige Einwilligungen mit `wa-2026-11-v1` bleiben gueltig. Bei der Freigabe Satz, "Mehr erfahren"-Text und Datenschutz-Satz in einer Form vereinheitlichen (derzeit Satz und Datenschutz-Satz in Du-Form, der "Mehr erfahren"-Text in Ich-Form); eine Aenderung des Satzes braucht eine neue Version.
 - Datenschutz-Satz (`privacy_notice`, de/en); Namen der Dienstleister und Drittlanduebermittlung gehoeren in die externe Datenschutzseite.
 - Vorlagentexte: Spielersuche (de/en) einschliesslich Vor- und Nachname der suchenden Person; ob WhatsApp sie als Utility-Vorlage einstuft, ist offen. Dazu die Folge-Nachricht und die Testnachricht.
 - Ob der Hinweis auf der Registrierungsseite (Option `registration_privacy`, im Admin unter Einstellungen editierbar) den neuen Zweck nennen soll. Die Registrierungsseite wurde nicht geaendert; die Einwilligung wird getrennt im Konto eingeholt.

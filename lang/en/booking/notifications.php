@@ -76,7 +76,7 @@ return [
         // Account card "WhatsApp notifications": number section, one row per purpose (switch, consent, filters), common note.
         'account_card' => [
             'title' => 'WhatsApp notifications',
-            'intro' => 'Get notified on WhatsApp. Choose what for.',
+            'intro' => 'Get notified on WhatsApp. Choose which messages you want.',
             'number_heading' => 'Your number',
             'number_label' => 'Number from your profile: :number.',
             'own_number_hint' => 'It must be your own number.',
@@ -89,9 +89,12 @@ return [
             'consent_required' => 'Please switch the notification on with the switch.',
             // The switch was sent with the version of an earlier consent sentence: nothing is stored.
             'consent_outdated' => 'The text has been updated, please switch on again.',
-            'enabled_flash' => 'The notification is switched on.',
-            'revoked_flash' => 'The notification is switched off and your consent is withdrawn.',
+            // Short status shown inline in the row after switching (not the modal flash).
+            'enabled_flash' => 'Switched on.',
+            'revoked_flash' => 'Switched off, your consent is withdrawn.',
             'consented_at' => 'Consent given on :date',
+            // Date format of the card (consent date, STOP notice), PHP date format.
+            'date_format' => 'j M Y',
             'paused' => 'None of these messages are being sent to you at the moment. :reason',
             'paused_all' => 'Until then no messages are sent to you.',
             'settings' => 'Messages and filters',

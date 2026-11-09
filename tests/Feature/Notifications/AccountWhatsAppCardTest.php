@@ -94,15 +94,70 @@ class AccountWhatsAppCardTest extends TestCase
         $this->post(route('account.whatsapp.enable'), ['_whatsapp_form' => 'player_search'])
             ->assertRedirect($this->row())->assertSessionHasErrors('consent')->assertSessionHasInput('_whatsapp_form', 'player_search');
         $this->flushSession();
-        $this->post(route('account.whatsapp.enable'), $this->switchOn())->assertRedirect($this->row())->assertSessionHas('success');
-        $this->delete(route('account.whatsapp.revoke'))->assertRedirect($this->row())->assertSessionHas('success');
+        $this->post(route('account.whatsapp.enable'), $this->switchOn())->assertRedirect($this->row())->assertSessionHas('whatsapp_row.tone', 'good');
+        $this->delete(route('account.whatsapp.revoke'))->assertRedirect($this->row())->assertSessionHas('whatsapp_row.tone', 'good');
 
         // A refused gate answers on the row too.
         $user->setMeta('player-exchange', null);
-        $this->actingAs($user->fresh())->post(route('account.whatsapp.enable'), $this->switchOn())->assertRedirect($this->row())->assertSessionHas('error');
+        $this->actingAs($user->fresh())->post(route('account.whatsapp.enable'), $this->switchOn())->assertRedirect($this->row())->assertSessionHas('whatsapp_row.tone', 'problem');
 
-        // The row is a focus target for the anchor.
-        $this->assertMatchesRegularExpression('/<li id="whatsapp-player_search"[^>]*tabindex="-1"/', $this->card($user));
+        // The row is a focus target for the anchor and keeps a margin above it when jumped to.
+        $this->assertMatchesRegularExpression('/<li id="whatsapp-player_search"[^>]*tabindex="-1"[^>]*class="[^"]*scroll-mt-6/', $this->card($user));
+    }
+
+    #[Test]
+    public function switching_answers_inline_in_the_row_without_the_modal_flash(): void
+    {
+        $user = $this->eligibleUser();
+        $user->setMeta('locale', 'de');
+        $status = fn (string $html): string => preg_match('/<li id="whatsapp-player_search".*?<\/li>/s', $html, $m) === 1 ? $m[0] : '';
+
+        $on = $this->actingAs($user->fresh())->post(route('account.whatsapp.enable'), $this->switchOn());
+        $on->assertSessionMissing('success')->assertSessionMissing('error')
+            ->assertSessionHas('whatsapp_row', ['purpose' => 'player_search', 'tone' => 'good', 'text' => trans('booking.notifications.account_card.enabled_flash', [], 'de')]);
+        $html = (string) $this->followRedirects($on)->assertOk()->getContent();
+        $this->assertDoesNotMatchRegularExpression('/data-modal|x-data="dsModal/', $html);
+        $this->assertMatchesRegularExpression('/<p[^>]*role="status"[^>]*aria-live="polite"[^>]*data-whatsapp-status="good"[^>]*>'.preg_quote(e(trans('booking.notifications.account_card.enabled_flash', [], 'de')), '/').'</', $status($html));
+
+        $off = $this->actingAs($user->fresh())->delete(route('account.whatsapp.revoke'));
+        $off->assertSessionMissing('success')->assertSessionHas('whatsapp_row.text', trans('booking.notifications.account_card.revoked_flash', [], 'de'));
+        $this->assertStringContainsString(e(trans('booking.notifications.account_card.revoked_flash', [], 'de')), $status((string) $this->followRedirects($off)->getContent()));
+
+        // A refused gate is an error at the row, not a modal either.
+        $user->setMeta('player-exchange', null);
+        $refused = $this->actingAs($user->fresh())->post(route('account.whatsapp.enable'), $this->switchOn());
+        $refused->assertSessionMissing('error');
+        $this->assertMatchesRegularExpression('/data-whatsapp-status="problem"[^>]*>'.preg_quote(e(trans('booking.notifications.refused.exchange_off', [], 'de')), '/').'</', $status((string) $this->followRedirects($refused)->getContent()));
+
+        $this->assertSame('Eingeschaltet.', trans('booking.notifications.account_card.enabled_flash', [], 'de'));
+        $this->assertNotSame('booking.notifications.account_card.enabled_flash', trans('booking.notifications.account_card.enabled_flash', [], 'en'));
+    }
+
+    #[Test]
+    public function dates_in_the_card_use_an_unambiguous_format_per_language(): void
+    {
+        Carbon::setTestNow('2026-11-09 12:00:00');
+        $user = $this->optedInUser();
+
+        $this->assertStringContainsString('09.11.2026', $this->card($user, 'de'));
+        $en = $this->card($user, 'en');
+        $this->assertStringContainsString('9 Nov 2026', $en);
+        $this->assertStringNotContainsString('11/09/2026', $en);
+
+        $this->consents()->revoke($user, 'stop', NotificationConsent::PURPOSE_PLAYER_SEARCH);
+        $this->assertStringContainsString(e(trans('booking.notifications.account_card.notice_stop', ['date' => '9 Nov 2026'], 'en')), $this->card($user, 'en'));
+        $this->assertSame('Get notified on WhatsApp. Choose which messages you want.', trans('booking.notifications.account_card.intro', [], 'en'));
+    }
+
+    #[Test]
+    public function a_missing_number_carries_the_profile_link_in_its_reason_box(): void
+    {
+        $user = $this->eligibleUser();
+        $user->setMeta('phone', null);
+
+        $card = $this->card($user);
+
+        $this->assertMatchesRegularExpression('/data-whatsapp-reason="no_phone"[^>]*>(?:(?!<\/div>).)*href="'.preg_quote(route('account.edit').'#phone', '/').'"/s', $card);
     }
 
     #[Test]
@@ -248,7 +303,7 @@ class AccountWhatsAppCardTest extends TestCase
         // Exactly what the switch button sends (name="consent" value="1"), nothing else.
         $this->actingAs($user->fresh())->post(route('account.whatsapp.enable', ['purpose' => 'player_search']), $this->switchOn())
             ->assertRedirect($this->row())
-            ->assertSessionHas('success');
+            ->assertSessionHas('whatsapp_row.tone', 'good');
 
         $consent = $this->consents()->activeConsent($user);
         $this->assertNotNull($consent);
@@ -312,7 +367,7 @@ class AccountWhatsAppCardTest extends TestCase
         $this->assertStringContainsString('data-whatsapp-row="active"', $this->card($user));
 
         // Switching on again (idempotent) neither replaces nor upgrades it.
-        $this->actingAs($user)->post(route('account.whatsapp.enable'), $this->switchOn())->assertSessionHas('success');
+        $this->actingAs($user)->post(route('account.whatsapp.enable'), $this->switchOn())->assertSessionHas('whatsapp_row.tone', 'good');
         $this->assertSame(1, NotificationConsent::query()->where('user_id', $user->uid)->count());
         $this->assertSame('wa-2026-11-v1', $this->consents()->activeConsent($user)?->consent_text_version);
     }
@@ -383,7 +438,7 @@ class AccountWhatsAppCardTest extends TestCase
 
         $this->actingAs($user->fresh())->post(route('account.whatsapp.enable'), $this->switchOn())
             ->assertRedirect($this->row())
-            ->assertSessionHas('success');
+            ->assertSessionHas('whatsapp_row.tone', 'good');
 
         $consent = $this->consents()->activeConsent($user);
         $this->assertNotNull($consent);
@@ -401,7 +456,7 @@ class AccountWhatsAppCardTest extends TestCase
 
         $this->actingAs($user->fresh())->post(route('account.whatsapp.enable'), $this->switchOn())
             ->assertRedirect($this->row())
-            ->assertSessionHas('error', trans('booking.notifications.refused.'.$reason, [], 'de'));
+            ->assertSessionHas('whatsapp_row.text', trans('booking.notifications.refused.'.$reason, [], 'de'));
 
         $this->assertSame(0, $this->activeConsentCount($user));
     }
@@ -413,7 +468,7 @@ class AccountWhatsAppCardTest extends TestCase
         Option::query()->where('key', 'whatsapp.enabled')->update(['value' => '0']);
 
         $this->actingAs($user)->post(route('account.whatsapp.enable'), $this->switchOn())
-            ->assertSessionHas('error', trans('booking.notifications.refused.disabled', [], 'de'));
+            ->assertSessionHas('whatsapp_row.text', trans('booking.notifications.refused.disabled', [], 'de'));
 
         $this->assertSame(0, $this->activeConsentCount($user));
     }
@@ -452,7 +507,7 @@ class AccountWhatsAppCardTest extends TestCase
 
         $this->actingAs($user->fresh())->post(route('account.whatsapp.enable'), $this->switchOn())
             ->assertRedirect($this->row())
-            ->assertSessionHas('success');
+            ->assertSessionHas('whatsapp_row.tone', 'good');
 
         $this->assertSame(1, $this->activeConsentCount($user));
         $this->assertStringContainsString('data-whatsapp-row="active"', $this->card($user));
@@ -460,7 +515,7 @@ class AccountWhatsAppCardTest extends TestCase
         $departed = $this->eligibleUser('+43 660 0000043');
         $this->linkMember($departed, ['status' => 'ausgetreten', 'left_at' => '2026-10-31']);
         $this->actingAs($departed->fresh())->post(route('account.whatsapp.enable'), $this->switchOn())
-            ->assertSessionHas('success');
+            ->assertSessionHas('whatsapp_row.tone', 'good');
         $this->assertSame(1, $this->activeConsentCount($departed));
     }
 
@@ -505,7 +560,7 @@ class AccountWhatsAppCardTest extends TestCase
 
         $this->actingAs($user)->delete(route('account.whatsapp.revoke'))
             ->assertRedirect($this->row())
-            ->assertSessionHas('success');
+            ->assertSessionHas('whatsapp_row.tone', 'good');
 
         $this->assertSame(0, $this->activeConsentCount($user));
         $this->assertSame('account', $this->lastRevokedVia($user));

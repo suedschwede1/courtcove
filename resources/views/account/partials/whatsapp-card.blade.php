@@ -10,6 +10,10 @@
     $listErrors = fn (string $key): array => array_values(array_unique(\Illuminate\Support\Arr::flatten([$errors->get($key), $errors->get($key.'.*')])));
     $refused = fn (?string $reason): string => __(\App\Http\Controllers\NotificationSettingsController::refusedKey($reason));
     $single = count($whatsapp['purposes']) === 1;
+    // Unambiguous dates per language (de 09.11.2026, en 9 Nov 2026).
+    $dateFormat = (string) __('booking.notifications.account_card.date_format');
+    // Inline status of the last switch (enable/revoke), shown in its row instead of the modal flash.
+    $rowStatus = session('whatsapp_row');
 @endphp
 @if($whatsapp['state'] !== 'hidden')
 <x-ui.card :title="__('booking.notifications.account_card.title')" id="whatsapp" data-whatsapp-card="shown">
@@ -23,7 +27,9 @@
                     {{ __('booking.notifications.account_card.number_label', ['number' => $whatsapp['maskedPhone']]) }}
                 @endif
                 {{ __('booking.notifications.account_card.own_number_hint') }}
-                <a href="{{ route('account.edit') }}#phone" class="ds-admin-link">{{ __('booking.notifications.account_card.profile_link') }}</a>
+                @unless($whatsapp['phoneReason'])
+                    <a href="{{ route('account.edit') }}#phone" class="ds-admin-link">{{ __('booking.notifications.account_card.profile_link') }}</a>
+                @endunless
             </p>
             @if($whatsapp['reason'] !== null)
                 <x-ui.notice tone="neutral" id="whatsapp-reason" data-whatsapp-reason="{{ $whatsapp['reason'] }}">
@@ -31,12 +37,16 @@
                     @if($whatsapp['paused'])
                         {{ __('booking.notifications.account_card.paused_all') }}
                     @endif
+                    {{-- A number problem is fixed in the profile: the link sits with the reason. --}}
+                    @if($whatsapp['phoneReason'])
+                        <a href="{{ route('account.edit') }}#phone" class="ds-admin-link">{{ __('booking.notifications.account_card.profile_link') }}</a>
+                    @endif
                 </x-ui.notice>
             @endif
             @if($whatsapp['notice'] !== null)
                 <x-ui.notice tone="neutral" data-whatsapp-notice="{{ $whatsapp['notice']['kind'] }}">
                     @if($whatsapp['notice']['kind'] === 'stop')
-                        {{ __('booking.notifications.account_card.notice_stop', ['date' => $whatsapp['notice']['date']->isoFormat('L')]) }}
+                        {{ __('booking.notifications.account_card.notice_stop', ['date' => $whatsapp['notice']['date']->translatedFormat($dateFormat)]) }}
                         @if($whatsapp['reason'] === null)
                             {{ __('booking.notifications.account_card.notice_stop_again') }}
                         @endif
@@ -67,7 +77,7 @@
                             .($locked && $whatsapp['reason'] !== null ? ' whatsapp-reason' : '')
                             .($consentError ? ' whatsapp-consent-error-'.$key : '');
                     @endphp
-                    <li id="whatsapp-{{ $key }}" tabindex="-1" class="flex flex-col gap-3 py-3 first:pt-0 last:pb-0" data-whatsapp-purpose="{{ $key }}" data-whatsapp-row="{{ $row['state'] }}">
+                    <li id="whatsapp-{{ $key }}" tabindex="-1" class="flex scroll-mt-6 flex-col gap-3 py-3 first:pt-0 last:pb-0" data-whatsapp-purpose="{{ $key }}" data-whatsapp-row="{{ $row['state'] }}">
                         <div class="flex items-start justify-between gap-4">
                             <div class="flex min-w-0 flex-col gap-1">
                                 <h4 class="ds-field__label" id="whatsapp-title-{{ $key }}">{{ $row['label'] }}</h4>
@@ -98,11 +108,16 @@
                             @endif
                         </div>
 
+                        @if(is_array($rowStatus) && ($rowStatus['purpose'] ?? null) === $key)
+                            {{-- Result of the last switch in this row: polite live region, no modal, no focus change. --}}
+                            <p class="{{ ($rowStatus['tone'] ?? '') === 'problem' ? 'ds-field__error' : 'ds-field__help font-semibold' }}" role="status" aria-live="polite" data-whatsapp-status="{{ ($rowStatus['tone'] ?? '') === 'problem' ? 'problem' : 'good' }}">{{ $rowStatus['text'] ?? '' }}</p>
+                        @endif
+
                         {{-- The consent sentence belongs to the switch (aria-describedby); the full text is one click away. --}}
                         <div class="flex flex-col gap-1">
                             <p class="ds-field__help" id="whatsapp-consent-{{ $key }}">{{ $row['consentSentence'] }}</p>
                             @if($on && $row['consentedAt'] !== null)
-                                <p class="ds-field__help">{{ __('booking.notifications.account_card.consented_at', ['date' => $row['consentedAt']->isoFormat('L')]) }}</p>
+                                <p class="ds-field__help">{{ __('booking.notifications.account_card.consented_at', ['date' => $row['consentedAt']->translatedFormat($dateFormat)]) }}</p>
                             @endif
                             @if($row['consentText'] !== null)
                                 <details>
@@ -124,7 +139,7 @@
                         @if($row['notice'] !== null)
                             <x-ui.notice tone="neutral" data-whatsapp-notice="{{ $row['notice']['kind'] }}">
                                 @if($row['notice']['kind'] === 'stop')
-                                    {{ __('booking.notifications.account_card.notice_stop', ['date' => $row['notice']['date']->isoFormat('L')]) }}
+                                    {{ __('booking.notifications.account_card.notice_stop', ['date' => $row['notice']['date']->translatedFormat($dateFormat)]) }}
                                     @if($whatsapp['reason'] === null && $row['reason'] === null)
                                         {{ __('booking.notifications.account_card.notice_stop_again') }}
                                     @endif

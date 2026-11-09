@@ -290,7 +290,7 @@ class AdminWhatsAppActionsTest extends TestCase
         $admin->setMeta('player-exchange', '1');
         $this->assertSame(0, Member::query()->where('user_id', $admin->uid)->count());
 
-        $this->as($admin->fresh())->post(route('account.whatsapp.enable'), ['consent' => '1', 'consent_version' => (string) app(NotificationRegistry::class)->purpose('player_search')?->consentVersion()])->assertSessionHas('success');
+        $this->as($admin->fresh())->post(route('account.whatsapp.enable'), ['consent' => '1', 'consent_version' => (string) app(NotificationRegistry::class)->purpose('player_search')?->consentVersion()])->assertSessionHas('whatsapp_row.tone', 'good');
         $this->as($admin->fresh())->post('/admin/whatsapp/test')->assertRedirect(route('admin.whatsapp.edit'))->assertSessionHas('success');
 
         $sent = app(FakeTransport::class)->sent();

@@ -166,7 +166,7 @@ class DummyNotificationWebTest extends TestCase
 
         // The dummy switch posts to the dummy purpose only, with what the button sends.
         $this->assertMatchesRegularExpression('/<form[^>]*method="POST"[^>]*action="'.preg_quote(route('account.whatsapp.enable', ['purpose' => self::PURPOSE]), '/').'"/', $this->dummyCard($user));
-        $this->actingAs($user)->post(route('account.whatsapp.enable', ['purpose' => self::PURPOSE]), $this->switchOn(self::PURPOSE))->assertSessionHas('success');
+        $this->actingAs($user)->post(route('account.whatsapp.enable', ['purpose' => self::PURPOSE]), $this->switchOn(self::PURPOSE))->assertSessionHas('whatsapp_row.tone', 'good');
         $this->assertSame(app(NotificationRegistry::class)->purpose(self::PURPOSE)?->consentVersion(), $this->consentOf($user, self::PURPOSE)?->consent_text_version);
 
         $active = $this->dummyCard($user);
@@ -240,7 +240,7 @@ class DummyNotificationWebTest extends TestCase
         $this->actingAs($user)->post(route('account.whatsapp.enable', ['purpose' => self::PURPOSE]))->assertSessionHasErrors('consent');
 
         $this->actingAs($user)->post(route('account.whatsapp.enable', ['purpose' => self::PURPOSE]), $this->switchOn(self::PURPOSE))
-            ->assertRedirect(NotificationSettingsController::rowUrl(self::PURPOSE))->assertSessionHas('success');
+            ->assertRedirect(NotificationSettingsController::rowUrl(self::PURPOSE))->assertSessionHas('whatsapp_row.tone', 'good');
 
         $this->assertSame('dummy-v7', $this->consentOf($user, self::PURPOSE)?->consent_text_version);
         $this->assertNull($this->consentOf($user, NotificationConsent::PURPOSE_PLAYER_SEARCH));

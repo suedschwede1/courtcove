@@ -89,9 +89,12 @@ return [
             'consent_required' => 'Bitte schalte die Benachrichtigung mit dem Schalter ein.',
             // The switch was sent with the version of an earlier consent sentence: nothing is stored.
             'consent_outdated' => 'Der Text wurde aktualisiert, bitte erneut einschalten.',
-            'enabled_flash' => 'Die Benachrichtigung ist eingeschaltet.',
-            'revoked_flash' => 'Die Benachrichtigung ist ausgeschaltet, deine Einwilligung ist widerrufen.',
+            // Short status shown inline in the row after switching (not the modal flash).
+            'enabled_flash' => 'Eingeschaltet.',
+            'revoked_flash' => 'Ausgeschaltet, deine Einwilligung ist widerrufen.',
             'consented_at' => 'Eingewilligt am :date',
+            // Date format of the card (consent date, STOP notice), PHP date format.
+            'date_format' => 'd.m.Y',
             'paused' => 'Zurzeit werden dir keine dieser Nachrichten geschickt. :reason',
             'paused_all' => 'Bis dahin werden dir keine Nachrichten geschickt.',
             'settings' => 'Nachrichten und Filter',

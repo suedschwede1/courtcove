@@ -997,13 +997,27 @@
         color: var(--color-ink-2);
     }
 
+    /* Off: outlined track with a dark knob (ink-3 on surface, above 3:1); on: the clay track of .ds-switch with a light knob. */
     .ds-switch--card .ds-switch__track {
-        background: var(--color-line-strong);
+        background: var(--color-surface);
+        box-shadow: inset 0 0 0 1px var(--color-ink-3);
+    }
+
+    .ds-switch--card .ds-switch__knob {
+        background: var(--color-ink-3);
+    }
+
+    .ds-switch--card[aria-checked="true"] .ds-switch__track {
+        box-shadow: none;
+    }
+
+    .ds-switch--card[aria-checked="true"] .ds-switch__knob {
+        background: var(--color-surface);
     }
 
     .ds-switch--card:disabled {
         cursor: not-allowed;
-        opacity: 0.5;
+        opacity: 0.6;
     }
 
     .ds-locale--menu {
