@@ -26,7 +26,7 @@ class AuthShellTest extends TestCase
             'ds-auth__line--service', 'ds-auth__line--center',
             '<main id="content" class="ds-auth__main">', '<h1 class="ds-auth__title">T</h1>',
             '<p class="ds-auth__intro">I</p>', '<p>Body</p>', '<div class="ds-auth__footer"><p>Foot</p></div>',
-            e(__('booking.auth.panel.line1')), e(__('booking.auth.panel.line2')), e(__('booking.auth.panel.text')),
+            '<span>Your club.</span>', '<span>Your court.</span>', '<span>Your game.</span>', e(__('booking.auth.panel.text')),
             'class="ds-logo ds-logo--44"', 'href="'.route('calendar.index').'"', e(__('booking.auth.back_to_calendar')),
         ] as $needle) {
             $this->assertStringContainsString($needle, $html);

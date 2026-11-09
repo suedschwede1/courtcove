@@ -46,8 +46,6 @@ return [
     'auth' => [
         'back_to_calendar' => 'Zum Kalender',
         'panel' => [
-            'line1' => 'Dein Platz.',
-            'line2' => 'Deine Zeit.',
             'text' => 'Plätze buchen, Mitspieler eintragen und Termine im Blick behalten.',
         ],
         'title' => 'Anmelden – :system',
