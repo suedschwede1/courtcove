@@ -9,8 +9,10 @@ use App\Modules\Members\Events\FiscalYearsLocking;
 use App\Modules\Members\Models\FeeCategory;
 use App\Modules\Members\Models\FiscalYear;
 use App\Modules\Members\Models\Member;
+use App\Modules\Members\Models\MemberChange;
 use App\Modules\Members\Models\MemberDue;
 use App\Modules\Members\Models\Payment;
+use App\Modules\Members\Support\PaymentProtocol;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Testing\TestResponse;
@@ -124,6 +126,8 @@ class DuesBulkPayMysqlLockTest extends MysqlTestCase
         $this->assertSame('bezahlt', $this->first->fresh()->status);
         $this->assertSame('ausstehend', $this->second->fresh()->status);
         $this->assertSame(0, $this->second->payments()->count());
+        // The protocol entry of the paid row is written on MySQL too (member_changes.action is varchar(16) there).
+        $this->assertSame(1, MemberChange::query()->where('action', PaymentProtocol::CHANGE_ACTION)->where('member_id', $this->first->member_id)->count());
     }
 
     #[Test]

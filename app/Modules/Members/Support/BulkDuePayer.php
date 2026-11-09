@@ -14,7 +14,10 @@ use Throwable;
 /**
  * Bulk "Als bezahlt markieren" on the dues list. Every due gets the same result as "Zahlung erfassen" for that one
  * due: a payment row (full amount, chosen date, optional note) linked through payment_dues / household_due_payment,
- * the due set to "bezahlt" with "Bezahlt am". Payments are never deleted; a bulk payment is cancelled like any other.
+ * the due set to "bezahlt" with "Bezahlt am", and the change-protocol entries (PaymentProtocol, one run id for the
+ * whole run). The protocol is written in the due's transaction: if it fails, that one payment is rolled back and the
+ * row is reported as 'failed' (never a payment without its entry); the other rows go on. Payments are never deleted; a
+ * bulk payment is cancelled like any other.
  *
  * Each due runs in its OWN transaction (one failure never undoes the others), with the same lock order as the
  * single payment and the year close: the fiscal-year row first (closed = skipped), then the due row, then the
@@ -37,19 +40,21 @@ final class BulkDuePayer
     public function pay(int $fiscalYearId, array $memberDueIds, array $householdDueIds, string $paidAt, ?string $note): array
     {
         $result = ['paid' => 0, 'skipped' => []];
+        // One id for the whole run: every payment's protocol entries carry it, so they read as one bulk payment.
+        $batch = PaymentProtocol::newBatch();
         $note = $note !== null && trim($note) !== '' ? trim($note) : null;
 
-        $memberDues = MemberDue::query()->with('member')->whereKey(array_values(array_unique($memberDueIds)))->get()->keyBy('id');
+        $memberDues = MemberDue::query()->with(['member', 'fiscalYear', 'feeCategory'])->whereKey(array_values(array_unique($memberDueIds)))->get()->keyBy('id');
         foreach (array_values(array_unique($memberDueIds)) as $id) {
             $due = $memberDues->get($id);
-            $outcome = $due === null ? 'not_found' : $this->payMemberDue($due, $fiscalYearId, $paidAt, $note);
+            $outcome = $due === null ? 'not_found' : $this->payMemberDue($due, $fiscalYearId, $paidAt, $note, $batch);
             $this->record($result, $outcome, $due?->member?->fullName() ?? '#'.$id);
         }
 
-        $householdDues = HouseholdDue::query()->with(['household.payer', 'coveredMembers'])->whereKey(array_values(array_unique($householdDueIds)))->get()->keyBy('id');
+        $householdDues = HouseholdDue::query()->with(['household.payer', 'household.members', 'coveredMembers', 'fiscalYear', 'feeCategory'])->whereKey(array_values(array_unique($householdDueIds)))->get()->keyBy('id');
         foreach (array_values(array_unique($householdDueIds)) as $id) {
             $due = $householdDues->get($id);
-            $outcome = $due === null ? 'not_found' : $this->payHouseholdDue($due, $fiscalYearId, $paidAt, $note);
+            $outcome = $due === null ? 'not_found' : $this->payHouseholdDue($due, $fiscalYearId, $paidAt, $note, $batch);
             $this->record($result, $outcome, $due?->household?->label() ?? '#'.$id);
         }
 
@@ -67,13 +72,13 @@ final class BulkDuePayer
         $result['skipped'][] = ['reason' => $outcome, 'label' => $label];
     }
 
-    private function payMemberDue(MemberDue $due, int $fiscalYearId, string $paidAt, ?string $note): string
+    private function payMemberDue(MemberDue $due, int $fiscalYearId, string $paidAt, ?string $note, string $batch): string
     {
         if ((int) $due->fiscal_year_id !== $fiscalYearId) {
             return 'other_year';
         }
 
-        return $this->guarded(function () use ($due, $paidAt, $note): string {
+        return $this->guarded(function () use ($due, $paidAt, $note, $batch): string {
             if (FiscalYear::lockForWrite([(int) $due->fiscal_year_id]) !== null) {
                 return 'closed_year';
             }
@@ -88,12 +93,14 @@ final class BulkDuePayer
             $payment = Payment::create(['member_id' => $locked->member_id, 'amount' => $locked->amount, 'paid_at' => $paidAt, 'note' => $note]);
             $payment->dues()->attach($locked->id);
             $locked->update(['status' => 'bezahlt', 'bezahlt_am' => $paidAt]);
+            // The relations loaded once for the run (year, category): no extra queries per row for the protocol.
+            PaymentProtocol::log($payment, [$locked->setRelations($due->getRelations())], [], $batch);
 
             return 'paid';
         });
     }
 
-    private function payHouseholdDue(HouseholdDue $due, int $fiscalYearId, string $paidAt, ?string $note): string
+    private function payHouseholdDue(HouseholdDue $due, int $fiscalYearId, string $paidAt, ?string $note, string $batch): string
     {
         if ((int) $due->fiscal_year_id !== $fiscalYearId) {
             return 'other_year';
@@ -104,7 +111,7 @@ final class BulkDuePayer
             return 'failed';
         }
 
-        return $this->guarded(function () use ($due, $paidAt, $note, $payerId): string {
+        return $this->guarded(function () use ($due, $paidAt, $note, $payerId, $batch): string {
             if (FiscalYear::lockForWrite([(int) $due->fiscal_year_id]) !== null) {
                 return 'closed_year';
             }
@@ -119,6 +126,7 @@ final class BulkDuePayer
             $payment = Payment::create(['member_id' => (int) $payerId, 'amount' => $locked->amount, 'paid_at' => $paidAt, 'note' => $note]);
             $payment->householdDues()->attach($locked->id);
             $locked->update(['status' => 'bezahlt', 'bezahlt_am' => $paidAt]);
+            PaymentProtocol::log($payment, [], [$locked->setRelations($due->getRelations())], $batch);
 
             return 'paid';
         });

@@ -181,7 +181,10 @@ class MemberConnectionDecisionsTest extends TestCase
         $this->assertSame($this->partner->id, $helga->fee_category_id, 'no automatic category change');
         $this->assertSame(['ausstehend', '90.00'], [$due->fresh()?->status, $due->fresh()?->amount], 'open dues untouched');
         $this->assertSame(1, MemberChange::where('member_id', $helga->id)->where('action', MemberConnectionService::ENDED_ACTION)->count());
-        $this->assertSame(2, MemberChange::where('member_id', $heinz->id)->where('action', 'connection')->count(), 'connect + end on the Vollzahler');
+        $this->assertSame([1, 1], [
+            MemberChange::where('member_id', $heinz->id)->where('action', 'connection')->count(),
+            MemberChange::where('member_id', $heinz->id)->where('action', MemberConnectionService::ENDED_ACTION)->count(),
+        ], 'connect + end on the Vollzahler');
 
         $notice = __('members::admin.connection.ended_notice', ['name' => 'Heinz Muster', 'date' => '08.11.2026']);
         $this->actingAs($admin)->get("/members/{$helga->id}/edit")
@@ -210,19 +213,70 @@ class MemberConnectionDecisionsTest extends TestCase
     }
 
     #[Test]
-    public function an_anschluss_member_departing_keeps_its_own_link_reported(): void
+    public function an_anschluss_member_departing_ends_the_link_too(): void
+    {
+        // Club decision (a), 2026-11-08: the Anschlussmitglied leaving ends the connection like the Vollzahler leaving.
+        $admin = $this->admin();
+        $heinz = $this->member('Heinz', $this->full);
+        $helga = $this->member('Helga', $this->partner);
+        $this->service->connect($helga, $heinz);
+        $due = $this->openDue($heinz, 180);
+
+        $this->actingAs($admin)->put("/members/{$helga->id}", [
+            'member_number' => $helga->member_number, 'firstname' => 'Helga', 'lastname' => 'Muster', 'joined_at' => '2010-01-01', 'left_at' => '2026-11-08', 'fee_category_id' => $this->partner->id,
+        ])->assertSessionHasNoErrors();
+
+        $this->assertNull($helga->fresh()?->connected_to_member_id);
+        $this->assertSame([$this->partner->id, $this->full->id], [$helga->fresh()?->fee_category_id, $heinz->fresh()?->fee_category_id], 'categories unchanged');
+        $this->assertSame('ausstehend', $due->fresh()?->status, 'open dues untouched');
+        foreach ([$helga, $heinz] as $member) {
+            $this->assertSame(1, MemberChange::where('member_id', $member->id)->where('action', MemberConnectionService::ENDED_ACTION)->count());
+        }
+
+        // A notice on the Vollzahler instead of the old warning; history readable on both.
+        $notice = __('members::admin.connection.ended_notice_anschluss', ['name' => 'Helga Muster', 'date' => '08.11.2026']);
+        $this->assertSame([], MemberConnectionWarnings::forMember($heinz->fresh() ?? $heinz));
+        $this->actingAs($admin)->get("/members/{$heinz->id}/edit")
+            ->assertSeeText($notice)
+            ->assertSeeText(__('members::admin.connection.history_ended_anschluss', ['name' => 'Helga Muster']))
+            ->assertDontSee('id="connection-swap"', false);
+        $this->actingAs($admin)->get("/members/{$helga->id}/edit")
+            ->assertSeeText(__('members::admin.connection.history_ended_self', ['name' => 'Heinz Muster']))
+            ->assertDontSeeText($notice);
+        $this->assertNull(MemberConnectionWarnings::endedNotice($helga->fresh() ?? $helga), 'no notice on the departed member itself');
+
+        // Heinz gets a new partner: the notice is gone.
+        $this->service->connect($this->member('Hanna', $this->partner), $heinz->fresh() ?? $heinz);
+        $this->actingAs($admin)->get("/members/{$heinz->id}/edit")->assertDontSeeText($notice);
+    }
+
+    #[Test]
+    public function an_anschluss_member_departing_inline_ends_the_link(): void
     {
         $heinz = $this->member('Heinz', $this->full);
         $helga = $this->member('Helga', $this->partner);
         $this->service->connect($helga, $heinz);
 
-        $this->actingAs($this->admin())->put("/members/{$helga->id}", [
-            'member_number' => $helga->member_number, 'firstname' => 'Helga', 'lastname' => 'Muster', 'joined_at' => '2010-01-01', 'left_at' => '2026-11-08', 'fee_category_id' => $this->partner->id,
-        ])->assertSessionHasNoErrors();
+        $this->actingAs($this->admin())->patchJson("/members/{$helga->id}/field", ['field' => 'left_at', 'value' => '2026-11-08'])->assertOk();
 
-        $this->assertSame($heinz->id, $helga->fresh()?->connected_to_member_id, 'only the Vollzahler departing ends the link');
-        $this->assertContains(__('members::admin.connection.warnings.anschluss_departed', ['name' => 'Helga Muster']), MemberConnectionWarnings::forMember($heinz->fresh() ?? $heinz));
-        $this->actingAs($this->admin())->get("/members/{$heinz->id}/edit")->assertDontSee('id="connection-swap"', false);
+        $this->assertNull($helga->fresh()?->connected_to_member_id);
+        $this->assertNotNull(MemberConnectionWarnings::endedNotice($heinz->fresh() ?? $heinz));
+    }
+
+    #[Test]
+    public function a_vollzahler_coming_back_does_not_get_the_link_back(): void
+    {
+        // Club decision (b): re-entry restores nothing.
+        $heinz = $this->member('Heinz', $this->full);
+        $helga = $this->member('Helga', $this->partner);
+        $this->service->connect($helga, $heinz);
+        $admin = $this->admin();
+        $this->actingAs($admin)->patchJson("/members/{$heinz->id}/field", ['field' => 'left_at', 'value' => '2026-11-08'])->assertOk();
+
+        $this->actingAs($admin)->patchJson("/members/{$heinz->id}/field", ['field' => 'left_at', 'value' => null])->assertOk();
+
+        $this->assertSame('aktiv', $heinz->fresh()?->status);
+        $this->assertNull($helga->fresh()?->connected_to_member_id);
     }
 
     #[Test]

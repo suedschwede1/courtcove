@@ -11,6 +11,7 @@ use App\Modules\Members\Models\MemberDue;
 use App\Modules\Members\Models\Payment;
 use App\Modules\Members\Support\MembersFormat;
 use App\Modules\Members\Support\PaymentCanceller;
+use App\Modules\Members\Support\PaymentProtocol;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -166,6 +167,9 @@ class PaymentController
                 $payment->householdDues()->attach($householdDueIds);
                 HouseholdDue::whereKey($householdDueIds)->update(['status' => 'bezahlt', 'bezahlt_am' => $validated['paid_at']]);
             }
+
+            // Change protocol of the payer and of every member the payment covers (club decision 2026-11-08).
+            PaymentProtocol::log($payment, MemberDue::query()->whereKey($dueIds)->orderBy('fiscal_year_id')->get(), HouseholdDue::query()->whereKey($householdDueIds)->orderBy('fiscal_year_id')->get());
         });
 
         return redirect()->route('members.edit', $member)

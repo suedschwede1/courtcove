@@ -74,9 +74,7 @@ final class MemberChangeSummary
             return [self::connectionLine($change, $revealPersonal)];
         }
         if ($change->action === MemberConnectionService::ENDED_ACTION) {
-            return [$revealPersonal
-                ? (string) __('members::admin.connection.history_ended', ['name' => self::memberName($change->after['connection_ended_by'] ?? null)])
-                : (string) __('members::admin.connection.history_changed')];
+            return [self::connectionEndedLine($change, $revealPersonal)];
         }
         if ($change->action === MemberConnectionService::SWAP_ACTION) {
             if (! $revealPersonal) {
@@ -88,6 +86,9 @@ final class MemberChangeSummary
         }
         if ($change->action === PaymentCanceller::CHANGE_ACTION) {
             return [self::paymentCancelledLine($change)];
+        }
+        if ($change->action === PaymentProtocol::CHANGE_ACTION) {
+            return [self::paymentRecordedLine($change, $revealPersonal)];
         }
 
         $lines = [];
@@ -130,6 +131,38 @@ final class MemberChangeSummary
             : (string) __('members::admin.history.household_payer_cleared', ['household' => self::householdLabel($old)]);
     }
 
+    /**
+     * "Zahlung erfasst: 230,00 € am 01.11.2026 für 2025 (Vollzahler), 2026 (Vollzahler) · Notiz: … · Sammelzahlung #K3F9QZ".
+     * Household labels and the note are left out where personal values are hidden.
+     */
+    private static function paymentRecordedLine(MemberChange $change, bool $revealPersonal): string
+    {
+        $entry = (array) ($change->after['payment_recorded'] ?? []);
+        $dues = collect((array) ($entry['dues'] ?? []))->map(function (mixed $due) use ($revealPersonal): string {
+            $due = (array) $due;
+            $detail = (string) ($due['category'] ?? '–');
+            if ($revealPersonal && isset($due['household']) && $due['household'] !== '') {
+                $detail .= ', '.$due['household'];
+            }
+
+            return ($due['year'] ?? '–').' ('.$detail.')';
+        })->implode(', ');
+
+        $line = (string) __('members::admin.history.payment_recorded', [
+            'amount' => MembersFormat::money($entry['amount'] ?? 0),
+            'date' => isset($entry['paid_at']) ? Carbon::parse((string) $entry['paid_at'])->format('d.m.Y') : '–',
+            'dues' => $dues !== '' ? $dues : '–',
+        ]);
+        if ($revealPersonal && isset($entry['note']) && $entry['note'] !== '') {
+            $line .= ' · '.__('members::admin.history.payment_note', ['note' => $entry['note']]);
+        }
+        if (isset($entry['batch']) && is_string($entry['batch']) && $entry['batch'] !== '') {
+            $line .= ' · '.__('members::admin.history.payment_batch', ['batch' => PaymentProtocol::shortBatch($entry['batch'])]);
+        }
+
+        return $line;
+    }
+
     /** "Zahlung vom 01.03.2026 über 120,00 € storniert (Doppelt gebucht)". */
     private static function paymentCancelledLine(MemberChange $change): string
     {
@@ -156,6 +189,27 @@ final class MemberChangeSummary
         return $new !== null
             ? (string) __('members::admin.connection.history_set', ['name' => self::memberName($new)])
             : (string) __('members::admin.connection.history_cleared', ['name' => self::memberName($old)]);
+    }
+
+    /**
+     * A link ended by a departure: on the Anschlussmitglied "Anschluss an … gelöst (Austritt des Vollzahlers)" or
+     * "(eigener Austritt)", on the Vollzahler "Anschlussmitglied … gelöst (Austritt)"; without names when hidden.
+     */
+    private static function connectionEndedLine(MemberChange $change, bool $revealPersonal): string
+    {
+        if (! $revealPersonal) {
+            return (string) __('members::admin.connection.history_changed');
+        }
+        $departed = $change->after['connection_ended_by'] ?? null;
+        $partner = $change->after['connection_partner'] ?? $departed;
+        if (array_key_exists('anschluss_member', (array) $change->before)) {
+            return (string) __('members::admin.connection.history_ended_anschluss', ['name' => self::memberName($partner)]);
+        }
+        if ((int) $departed === (int) $change->member_id) {
+            return (string) __('members::admin.connection.history_ended_self', ['name' => self::memberName($partner)]);
+        }
+
+        return (string) __('members::admin.connection.history_ended', ['name' => self::memberName($partner)]);
     }
 
     private static function memberName(mixed $id): string
