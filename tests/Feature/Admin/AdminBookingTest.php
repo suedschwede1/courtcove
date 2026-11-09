@@ -123,11 +123,11 @@ class AdminBookingTest extends TestCase
     #[Test]
     public function store_resolves_booked_for_to_matching_member(): void
     {
-        $member = User::factory()->create(['alias' => 'Sabrina Genshofer']);
+        $member = User::factory()->create(['alias' => 'Sabrina Gast']);
         $square = Square::factory()->create();
 
         $this->actingAs($this->admin())->post('/admin/bookings', $this->bookingPayload([
-            'booked_for' => 'Sabrina Genshofer',
+            'booked_for' => 'Sabrina Gast',
             'sid' => $square->sid,
         ]))->assertRedirect();
 
