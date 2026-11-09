@@ -26,6 +26,9 @@ abstract class TestCase extends BaseTestCase
         // trusted-device check; the check is covered by TrustedDeviceTest, which switches it back on.
         config(['booking.security.trusted_device_scope' => 'off']);
 
+        // The /api address restriction is covered by ApiIpAllowlistTest; every other test calls from the test client address.
+        config(['booking.api.allowed_ips' => ['127.0.0.1']]);
+
         $geoipPath = (string) config('location.maxmind.local.path');
 
         if ($geoipPath !== '' && ! file_exists($geoipPath)) {

@@ -100,3 +100,22 @@ under *Benutzer*; if nobody can sign in, use the switch above, fix the address, 
 
 **Suspected stolen device** – the owner removes the device in *Mein Konto* → *Meine Geräte*, or an admin runs
 `security:reset-devices`; also change the password (that removes all devices as well).
+
+## API only from allowed addresses
+
+The API path (`/api` and everything below it) answers only to client addresses listed in the server environment value
+`API_ALLOWED_IPS` (comma separated, for example `API_ALLOWED_IPS=203.0.113.10,203.0.113.11`). Any other address gets
+`403` with an empty-looking body and the header `X-Api-Restricted: 1`. Everything outside `/api` (calendar, sign-in,
+the provider webhooks, ...) is not affected.
+
+- **Fails closed:** the value unset or empty means nobody may use the API. Set it before the first API client connects.
+- **Where:** only in the server `.env` of each installation (never in the repository, never in a tracked file). Run
+  `php artisan config:cache` afterwards.
+- **Address source:** the connection address. No proxy is trusted, so `X-Forwarded-For` and similar headers cannot be used
+  to pretend to be an allowed address. If the host is ever put behind a proxy or CDN, configure trusted proxies first,
+  otherwise every caller looks like the proxy.
+- **Check:** from an allowed address a call without a token returns `401` from the application; from any other address
+  it returns `403` with the header above (the application is not even reached).
+- **Why not Apache:** the deploy replaces `public/.htaccess` with the tracked file and the web server ignores
+  `.htaccess` files above the document root, so an address rule there would be lost on every deploy.
+
