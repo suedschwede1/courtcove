@@ -9,6 +9,10 @@ Replaces the old Zend/Laminas system (`booking`).
 
 Based on [ep3-bs](https://github.com/tkrebs/ep3-bs) by Tobias Krebs (MIT), rewritten in Laravel. See [LICENSE](LICENSE).
 
+## License
+
+Source-available, **not** an open-source license in the OSI sense. The ep3-bs parts stay under their original MIT license; all modifications, extensions and new development are under the proprietary license in [LICENSE](LICENSE) (German text authoritative, English version included). Third-party components keep their own licenses.
+
 ## Stack
 
 | Component | Version |

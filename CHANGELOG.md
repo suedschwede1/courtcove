@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-09
 
+- License block: `composer.json` license is `proprietary` (matches LICENSE), LICENSE is bilingual (German authoritative), upstream copyright line includes the year, contact address spelling corrected, third-party notice, README license paragraph.
 - CourtCove brand block (name and tagline) under all sign-in forms and " – CourtCove" in their tab titles, both from `booking.product_name`/`product_tagline`; tennis-only wording and a Credits section (ep3-bs) in the README.
 - Product name CourtCove (tagline: Your club. Your court. Your game.): one config entry `booking.product_name`, README/AGENTS/composer/docs retitled, "Powered by CourtCove" line on the sign-in pages, calendar info card label, `APP_NAME` default and `.env.example`. The club name in the header and mails is unchanged.
 - Calendar booking review: preserve series on stale occurrence actions and ownership on unchanged ambiguous names, show every partial-hour reservation and usable gap, retain irregular-series schedules on metadata edits, enforce time/limit boundaries, and reject event closures over active bookings with a resolution list and shared court locks.

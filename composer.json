@@ -4,7 +4,7 @@
     "type": "project",
     "description": "CourtCove: tennis court booking and club tournaments.",
     "keywords": ["laravel", "framework"],
-    "license": "MIT",
+    "license": "proprietary",
     "authors": [
         {
             "name": "Heinz Mayer"
