@@ -42,7 +42,7 @@ Wenn Staging einen echten Mailer nutzt, sendet es ueber **dieselben Absender- un
 ## Produktname und Vereinsname
 
 - `APP_NAME` ist der **Produktname** (CourtCove). Er steht auf den Anmeldeseiten und im Betreff der Mail „Neues Gerät bestätigt".
-- Der **Vereinsname** (Seitenkopf, Admin-Menü, Mail-Signatur, Passwort-Reset) kommt aus der Administration (Option `service.name`). Solange sie leer ist, greift `BOOKING_NAME`, danach `APP_NAME`.
+- Der **Vereinsname** (Seitenkopf, Admin-Menü, Mail-Signatur, Passwort-Reset) kommt aus der Administration (Option `service.name`). Solange sie leer ist, greift `BOOKING_NAME`, danach `APP_NAME`. Einige Stellen (z. B. die Turnier-Mail-Signatur) lesen nur `config('booking.name')` und brauchen daher `BOOKING_NAME` zusätzlich zur Option.
 - `MAIL_FROM_NAME` ist der Absendername aller Mails und gehört auf den **Vereinsnamen**, nicht auf `${APP_NAME}`.
-- Reihenfolge beim Umstellen einer Instanz von Vereinsname auf CourtCove in `APP_NAME`: erst `service.name` setzen, dann `MAIL_FROM_NAME` setzen, dann `APP_NAME` ändern, dann `php artisan config:cache`. So ändern sich die sichtbaren Vereinstexte nicht.
+- Reihenfolge beim Umstellen einer Instanz von Vereinsname auf CourtCove in `APP_NAME`: erst `service.name` setzen, dann `MAIL_FROM_NAME` setzen, dann `BOOKING_NAME` auf den Vereinsnamen setzen (sonst fällt `config('booking.name')`, das z. B. die Turnier-Mail-Signatur nutzt, auf `APP_NAME` zurück), dann `APP_NAME` ändern, dann `php artisan config:cache`. So ändern sich die sichtbaren Vereinstexte nicht.
 - Nebenwirkung: Der Sitzungs-Cookie heißt nach `APP_NAME` (und das Cache-Präfix auch). Nach der Umstellung müssen sich alle Nutzer einmal neu anmelden.
