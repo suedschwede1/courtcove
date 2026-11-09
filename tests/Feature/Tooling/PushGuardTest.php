@@ -229,6 +229,68 @@ final class PushGuardTest extends TestCase
         $this->assertSame(0, $ok);
     }
 
+    public function test_crlf_and_bom_in_the_term_list_still_match(): void
+    {
+        file_put_contents($this->terms, "\xEF\xBB\xBF# list\r\nacme-dummy\r\nzz[0-9]{3}x\r\n");
+        $sha = $this->commit(['a.txt' => "acme-dummy\n"]);
+        $this->assertSame(1, $this->push($sha)[0]);
+    }
+
+    public function test_invalid_or_empty_matching_term_entries_refuse(): void
+    {
+        $sha = $this->commit(['a.txt' => "fine\n"]);
+        file_put_contents($this->terms, "acme-dummy\n(unclosed\n");
+        [$code, $out] = $this->push($sha);
+        $this->assertSame(1, $code);
+        $this->assertStringContainsString('entry #2 is not a valid', $out);
+        file_put_contents($this->terms, "acme-dummy\nx*\n");
+        [$code2, $out2] = $this->push($sha);
+        $this->assertSame(1, $code2);
+        $this->assertStringContainsString('matches the empty string', $out2);
+    }
+
+    public function test_non_utf8_line_with_a_term_is_still_reported(): void
+    {
+        $sha = $this->commit(['a.txt' => "caf\xE9 acme-dummy\n"]);
+        [$code, $out] = $this->push($sha);
+        $this->assertSame(1, $code);
+        $this->assertStringContainsString('a.txt:1', $out);
+    }
+
+    public function test_added_line_starting_with_plus_signs_is_scanned(): void
+    {
+        $this->commit(['a.txt' => "one\n"]);
+        $sha = $this->commit(['a.txt' => "one\n++ acme-dummy\n"]);
+        [$code, $out] = $this->push($sha);
+        $this->assertSame(1, $code);
+        $this->assertStringContainsString('a.txt:2', $out);
+    }
+
+    public function test_merge_commit_changes_are_checked(): void
+    {
+        $this->commit(['base.txt' => "base\n"]);
+        $this->sh('git checkout -q -b side');
+        $this->commit(['side.txt' => "side\n"]);
+        $this->sh('git checkout -q main');
+        $this->commit(['main.txt' => "main\n"]);
+        $this->sh('git merge -q --no-ff --no-commit side');
+        file_put_contents($this->dir.'/conflict-fix.txt', "acme-dummy\n");
+        $this->sh('git add -A && git commit -q -m "Merge side"');
+        $sha = trim($this->sh('git rev-parse HEAD')[1]);
+        [$code, $out] = $this->push($sha);
+        $this->assertSame(1, $code);
+        $this->assertStringContainsString('conflict-fix.txt:1', $out);
+    }
+
+    public function test_path_that_contains_a_term_is_withheld_in_findings(): void
+    {
+        $sha = $this->commit(['acme-dummy/readme.txt' => "x\nzz123x\n"]);
+        [$code, $out] = $this->push($sha);
+        $this->assertSame(1, $code);
+        $this->assertStringNotContainsStringIgnoringCase('acme-dummy', $out);
+        $this->assertStringContainsString('<path withheld>:2', $out);
+    }
+
     public function test_message_check(): void
     {
         file_put_contents($this->dir.'/msg', "Add thing\n# comment line acme-dummy\n");

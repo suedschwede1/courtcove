@@ -15,6 +15,8 @@
 # A line containing the marker "guard:allow" is exempt from the generic rules (never from the term list).
 # Optional: gitleaks, when installed (skip with BOOKING_GUARD_NO_GITLEAKS=1).
 set -u
+export LC_ALL=C
+grep() { command grep -a "$@"; }
 
 ZERO=0000000000000000000000000000000000000000
 TERMS_FILE="${BOOKING_GUARD_TERMS_FILE:-$HOME/.config/booking-guard/terms.txt}"
@@ -23,6 +25,7 @@ TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 CTX=""
 FOUND=0
+HITS=0
 TERMS=()
 TERMS_ALL=""
 
@@ -39,7 +42,17 @@ load_terms() {
     TERMS=()
     while IFS= read -r line; do
         TERMS+=("$line")
-    done < <(grep -v '^[[:space:]]*\(#\|$\)' "$TERMS_FILE")
+    done < <(sed -e 's/\r$//' -e '1s/^\xef\xbb\xbf//' "$TERMS_FILE" | grep -v '^[[:space:]]*\(#\|$\)')
+    local t i=0 rc
+    for t in "${TERMS[@]}"; do
+        i=$((i + 1))
+        printf 'x\n' | grep -E -e "$t" > /dev/null 2>&1
+        rc=$?
+        if [ "$rc" -eq 2 ]; then say "booking-guard: term list entry #$i is not a valid extended regex, refusing."; return 1; fi
+        if printf '' | grep -E -e "$t" > /dev/null 2>&1 || printf '\n' | grep -E -e "$t" > /dev/null 2>&1; then
+            say "booking-guard: term list entry #$i matches the empty string, refusing."; return 1
+        fi
+    done
     if [ "${#TERMS[@]}" -eq 0 ]; then
         say "booking-guard: the local term list is empty, nothing was checked, refusing."
         return 1
@@ -51,8 +64,11 @@ load_terms() {
 }
 
 hit() { # <meta> <reason>
-    say "  ${CTX}${1}  [${2}]"
+    local m=$1 path=${1%:*}
+    if [ -n "$TERMS_ALL" ] && printf '%s\n' "$path" | grep -qiE -e "$TERMS_ALL"; then m="<path withheld>:${1##*:}"; fi
+    say "  ${CTX}${m}  [${2}]"
     FOUND=1
+    HITS=$((HITS + 1))
 }
 
 # Generic credential assignment: (1) name = quoted literal of 12+ token characters, or (2) env-file style
@@ -66,12 +82,14 @@ scan_files() {
     local meta=$1 text=$2 n re ln
     if grep -qiE -e "$TERMS_ALL" "$text"; then
         n=0
+        local before=$HITS
         for re in "${TERMS[@]}"; do
             n=$((n + 1))
             while IFS= read -r ln; do
                 hit "$(sed -n "${ln}p" "$meta")" "term list entry #$n"
             done < <(grep -niE -e "$re" "$text" | cut -d: -f1 | head -20)
         done
+        [ "$HITS" -gt "$before" ] || hit "unattributed:0" "term list match, entry unknown"
     fi
     # credentials
     while IFS= read -r ln; do
@@ -111,15 +129,15 @@ scan_names() {
             local n=0 re
             for re in "${TERMS[@]}"; do
                 n=$((n + 1))
-                grep -qiE -e "$re" "$TMP/n.text" && hit "a file name in this change (withheld)" "term list entry #$n"
+                grep -qiE -e "$re" "$TMP/n.text" && hit "(file name withheld):0" "term list entry #$n"
             done
         fi
         case "$p" in
             .env.example | .env.dusk.example | */.env.example) ;;
-            .env | .env.* | */.env | */.env.*) hit "$p" "secret-like file name" ;;
+            .env | .env.* | */.env | */.env.*) hit "(a .env file):0" "secret-like file name" ;;
             tests/Fixtures/*.sql) ;;
             *.sql | *.sql.gz | *.pem | *.key | *.zip | *.p12 | *.pfx | *.sqlite | *.sqlite3 | *id_rsa* | *.kdbx | *.htpasswd)
-                hit "$p" "secret-like file name" ;;
+                hit "(a file named *.${p##*.}):0" "secret-like file name" ;;
         esac
     done
 }
@@ -127,9 +145,10 @@ scan_names() {
 # diff_to_files: unified diff (-U0) on stdin -> $TMP/d.meta ("path:line") and $TMP/d.text (added line) for added lines.
 diff_to_files() {
     awk -v meta="$TMP/d.meta" -v text="$TMP/d.text" '
-        /^\+\+\+ / { f = substr($0, 7); if ($0 == "+++ /dev/null") f = ""; next }
-        /^@@/ { s = $0; sub(/^@@ -[0-9,]+ \+/, "", s); sub(/[ ,].*$/, "", s); n = s + 0; next }
-        /^\+/ && f != "" { print f ":" n > meta; print substr($0, 2) > text; n++ }
+        /^diff --git / { inhunk = 0; f = ""; next }
+        /^\+\+\+ / && !inhunk { f = substr($0, 7); if ($0 == "+++ /dev/null") f = ""; next }
+        /^@@/ { inhunk = 1; s = $0; sub(/^@@ -[0-9,]+ \+/, "", s); sub(/[ ,].*$/, "", s); n = s + 0; next }
+        /^\+/ && inhunk && f != "" { print f ":" n > meta; print substr($0, 2) > text; n++ }
     '
     [ -f "$TMP/d.meta" ] || : > "$TMP/d.meta"
     [ -f "$TMP/d.text" ] || : > "$TMP/d.text"
@@ -143,18 +162,35 @@ scan_text_block() { # <label> <text on stdin>: label:line
     scan_files "$TMP/t.meta" "$TMP/t.text"
 }
 
-check_commit() { # <sha> <ref label>
-    local c=$1 short
-    short=$(git rev-parse --short "$c")
-    CTX="commit $short ($2): "
-    scan_text_block "message" < <(git log -1 --format=%B "$c")
-    scan_text_block "identity" < <(git log -1 --format='%an%n%ae%n%cn%n%ce' "$c")
-    if [ "$(git rev-list --parents -n1 "$c" | wc -w)" -le 2 ]; then
-        scan_names < <(git -c core.quotepath=off diff-tree -r --no-commit-id --name-only --diff-filter=ACMRT --root "$c")
-        rm -f "$TMP/d.meta" "$TMP/d.text"
-        git -c core.quotepath=off show --format= -U0 --no-color --no-ext-diff "$c" | diff_to_files
-        scan_files "$TMP/d.meta" "$TMP/d.text"
+GIT_DIFF_OPTS=(-c core.quotepath=off -c diff.noprefix=false -c diff.mnemonicPrefix=false)
+GIT_DIFF_FLAGS=(-U0 --no-color --no-ext-diff --no-textconv --src-prefix=a/ --dst-prefix=b/)
+
+git_or_block() { # run a git command into $TMP/g.out; a failure blocks (never "clean by accident")
+    if ! "$@" > "$TMP/g.out" 2> "$TMP/g.err"; then
+        say "  ${CTX}git command failed, cannot verify"
+        FOUND=1
+        HITS=$((HITS + 1))
+        : > "$TMP/g.out"
+        return 1
     fi
+}
+
+check_commit() { # <sha> <ref label>
+    local c=$1 short base
+    short=$(git rev-parse --short "$c") || { say "  cannot resolve a commit"; FOUND=1; return; }
+    CTX="commit $short ($2): "
+    git_or_block git log -1 --format=%B "$c"
+    scan_text_block "message" < "$TMP/g.out"
+    git_or_block git log -1 --format='%an%n%ae%n%cn%n%ce' "$c"
+    scan_text_block "identity" < "$TMP/g.out"
+    # merges and normal commits: against the first parent; root commits: against the empty tree
+    base=$(git rev-parse --verify -q "$c^1") || base=$(git hash-object -t tree /dev/null)
+    git_or_block git "${GIT_DIFF_OPTS[@]}" diff --name-only --diff-filter=ACMRT "$base" "$c"
+    scan_names < "$TMP/g.out"
+    rm -f "$TMP/d.meta" "$TMP/d.text"
+    git_or_block git "${GIT_DIFF_OPTS[@]}" diff "${GIT_DIFF_FLAGS[@]}" "$base" "$c"
+    diff_to_files < "$TMP/g.out"
+    scan_files "$TMP/d.meta" "$TMP/d.text"
     CTX=""
 }
 
@@ -168,8 +204,12 @@ run_gitleaks() { # <log-opts or "--staged">
     fi
     local rc=$?
     if [ "$rc" -eq 99 ]; then
-        say "booking-guard: gitleaks reported findings (values redacted):"
-        grep -E '^(File|Line|RuleID|Commit):' "$TMP/gl.out" | paste -sd' ' - | sed 's/ File:/\n  File:/g' >&2
+        say "booking-guard: gitleaks reported findings (values redacted; file names that match the term list withheld):"
+        grep -E '^(File|Line|RuleID|Commit):' "$TMP/gl.out" | paste -sd' ' - | sed 's/ File:/\n  File:/g' \
+            | while IFS= read -r l; do if printf '%s\n' "$l" | grep -qiE -e "$TERMS_ALL"; then say "  (finding in a file whose name is withheld)"; else say "$l"; fi; done
+        FOUND=1
+    elif [ "$rc" -ne 0 ]; then
+        say "booking-guard: gitleaks failed (exit $rc), cannot verify. Fix gitleaks or set BOOKING_GUARD_NO_GITLEAKS=1 deliberately."
         FOUND=1
     fi
 }
@@ -196,7 +236,7 @@ cmd_push() {
         say "  Push one branch at a time, or confirm deliberately with BOOKING_GUARD_ALLOW_MULTI=1."
         exit 1
     fi
-    local cache seen=0 bad=0 total=0 entry c range
+    local cache seen=0 bad=0 total=0 entry c range commits
     cache=$(cache_file)
     touch "$cache"
     for entry in "${refs[@]}"; do
@@ -206,7 +246,8 @@ cmd_push() {
         else
             range="$rsha..$lsha"
         fi
-        for c in $(git rev-list "$range"); do
+        commits=$(git rev-list "$range") || { say "booking-guard: cannot list the commits of $lref, refusing."; exit 1; }
+        for c in $commits; do
             total=$((total + 1))
             grep -qx "$c" "$cache" && { seen=$((seen + 1)); continue; }
             FOUND=0
@@ -225,8 +266,8 @@ cmd_push() {
 cmd_staged() {
     load_terms || exit 1
     CTX="staged: "
-    scan_names < <(git -c core.quotepath=off diff --cached --name-only --diff-filter=ACMRT)
-    git -c core.quotepath=off diff --cached -U0 --no-color --no-ext-diff | diff_to_files
+    scan_names < <(git "${GIT_DIFF_OPTS[@]}" diff --cached --name-only --diff-filter=ACMRT)
+    git "${GIT_DIFF_OPTS[@]}" diff --cached "${GIT_DIFF_FLAGS[@]}" | diff_to_files
     scan_files "$TMP/d.meta" "$TMP/d.text"
     run_gitleaks "--staged"
     [ "$FOUND" -eq 0 ] || { say "booking-guard: commit refused. Remove the findings; do not use --no-verify."; exit 1; }

@@ -159,6 +159,8 @@ number of refs; confirm deliberately with `BOOKING_GUARD_ALLOW_MULTI=1`. Deletin
 check is wrong, fix the rule (generic rule, marker `guard:allow` on a harmless line, or the list), never skip the hook.
 A finding in an already committed change needs a history rewrite, not a new commit on top.
 
+Limits: binary files are checked by name only (not by content), and annotated-tag messages are not scanned. A term list with CRLF line ends or a BOM is read correctly; an invalid entry, or one that matches the empty string, makes every hook refuse. Paths that contain a listed term are shown as `<path withheld>`.
+
 Tests: `tests/Feature/Tooling/PushGuardTest.php` (process tests with dummy terms in a temporary list).
 
 ### Server-side backstop (one-time setting on the hosting platform)
