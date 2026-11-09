@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-09
+- Assets rebuilt over the whole tree (without the old build) for the card switch style and row spacing of the WhatsApp card.
 - WhatsApp account card is general: one card with a general intro, the number section once for every purpose (masked number, "must be your own", profile link; a missing, invalid or non-mobile number or an inactive account is said there once and locks every switch) and a list "Benachrichtigungen" with one row per registered purpose (title, short text, real switch). Switching a row on folds out that purpose's consent text (required tick, "Bestätigen"); switching it off asks first and withdraws the purpose's consent. Filters sit in a fold-out per row, only where a type defines them; several types of one purpose get a box each. STOP or a changed number shows once above the list when it concerns every row. One common privacy and STOP note under the list; the searching person's name moved into the player exchange row text. Works without JavaScript (the switch is a GET for the row's panel). No "WhatsApp aktivieren" buttons any more; new card switch style `ds-switch--card`.
 
 ## 2026-11-08
