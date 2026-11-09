@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Support\Modules;
 
+use App\Models\User;
 use App\Support\Modules\ModuleAdminEntry;
 use App\Support\Modules\ModuleDefinition;
 use App\Support\Modules\ModuleRegistry;
@@ -85,6 +86,35 @@ final class ModuleRegistryTest extends TestCase
         $registry->register($this->module('b', 20, extra: ['privileges' => ['admin.b' => 'x.label_b']]));
 
         $this->assertSame(['admin.a' => 'x.label_a', 'admin.b' => 'x.label_b'], $registry->privileges());
+    }
+
+    #[Test]
+    public function a_privilege_of_another_module_or_of_the_core_cannot_be_registered_again(): void
+    {
+        $registry = new ModuleRegistry;
+        $registry->register($this->module('a', 10, extra: ['privileges' => ['admin.a' => 'x.label_a']]));
+        $registry->register($this->module('a', 20, extra: ['privileges' => ['admin.a' => 'x.label_a2']]));
+
+        try {
+            $registry->register($this->module('b', 30, extra: ['privileges' => ['admin.a' => 'x.other']]));
+            $this->fail('duplicate privilege accepted');
+        } catch (InvalidArgumentException) {
+            $this->assertSame(['admin.a' => 'x.label_a2'], $registry->privileges());
+        }
+
+        $this->expectException(InvalidArgumentException::class);
+        $registry->register($this->module('c', 40, extra: ['privileges' => ['admin.user' => 'x.relabel']]));
+    }
+
+    #[Test]
+    public function a_module_without_a_visible_rule_is_for_logged_in_users_and_a_closure_can_open_it_to_guests(): void
+    {
+        $private = $this->module('a');
+        $public = $this->module('b', extra: ['visible' => fn () => true]);
+
+        $this->assertFalse($private->visibleTo(null));
+        $this->assertTrue($private->visibleTo(User::factory()->make()));
+        $this->assertTrue($public->visibleTo(null));
     }
 
     #[Test]

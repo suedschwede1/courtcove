@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Support\Modules;
 
+use App\Models\User;
 use Illuminate\Http\Request;
+use InvalidArgumentException;
 
 /**
  * The one place that knows which modules exist (singleton, bound in AppServiceProvider). A module registers itself
@@ -22,10 +24,30 @@ final class ModuleRegistry
 
     private int $sequence = 0;
 
-    /** Registers (or replaces) a module. */
+    /** @var list<ModuleDefinition>|null sorted list, rebuilt after a registration */
+    private ?array $sorted = null;
+
+    /**
+     * Registers (or replaces) a module. A privilege that the core or another module already defines is refused,
+     * so a module can neither relabel nor take over an existing right.
+     *
+     * @throws InvalidArgumentException
+     */
     public function register(ModuleDefinition $module): void
     {
+        foreach (array_keys($module->privileges) as $privilege) {
+            if (in_array($privilege, User::CORE_PRIVILEGES, true)) {
+                throw new InvalidArgumentException("Privilege [{$privilege}] of module [{$module->key}] is a core privilege.");
+            }
+            foreach ($this->modules as $key => [$other]) {
+                if ($key !== $module->key && array_key_exists($privilege, $other->privileges)) {
+                    throw new InvalidArgumentException("Privilege [{$privilege}] of module [{$module->key}] is already defined by module [{$key}].");
+                }
+            }
+        }
+
         $this->modules[$module->key] = [$module, $this->sequence++];
+        $this->sorted = null;
     }
 
     /**
@@ -35,10 +57,13 @@ final class ModuleRegistry
      */
     public function all(): array
     {
-        $entries = array_values($this->modules);
-        usort($entries, static fn (array $a, array $b): int => [$a[0]->order, $a[1]] <=> [$b[0]->order, $b[1]]);
+        if ($this->sorted === null) {
+            $entries = array_values($this->modules);
+            usort($entries, static fn (array $a, array $b): int => [$a[0]->order, $a[1]] <=> [$b[0]->order, $b[1]]);
+            $this->sorted = array_map(static fn (array $entry): ModuleDefinition => $entry[0], $entries);
+        }
 
-        return array_map(static fn (array $entry): ModuleDefinition => $entry[0], $entries);
+        return $this->sorted;
     }
 
     /**

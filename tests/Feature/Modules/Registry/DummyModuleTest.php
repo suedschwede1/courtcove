@@ -84,6 +84,43 @@ final class DummyModuleTest extends TestCase
     }
 
     #[Test]
+    public function a_public_module_shows_for_guests_and_a_module_outside_the_menu_only_in_the_overview(): void
+    {
+        $registry = new ModuleRegistry;
+        $this->app->instance(ModuleRegistry::class, $registry);
+        $registry->register(new ModuleDefinition(
+            key: 'open', name: 'dummy.name', icon: 'trophy', description: 'dummy.description',
+            route: 'dummy.index', routePatterns: ['dummy.*'], visible: fn () => true, order: 10,
+        ));
+        $registry->register(new ModuleDefinition(
+            key: 'hidden', name: 'dummy.name', icon: 'trophy', description: 'dummy.description',
+            route: 'dummy.admin', routePatterns: ['dummy.admin'], visible: fn () => true, inMenu: false, order: 20,
+        ));
+
+        $keys = array_map(fn ($i) => $i->key, app(MainNavigation::class)->items(null, $this->request('/calendar')));
+        $this->assertSame(['calendar', 'open', 'module-overview'], $keys);
+
+        $this->get('/modules')->assertOk()->assertSee('module-open', false)->assertSee('module-hidden', false);
+    }
+
+    #[Test]
+    public function a_module_entry_without_an_ability_is_visible_to_every_admin_user(): void
+    {
+        $registry = new ModuleRegistry;
+        $this->app->instance(ModuleRegistry::class, $registry);
+        $registry->register(new ModuleDefinition(
+            key: 'open', name: 'dummy.name', icon: 'trophy', description: 'dummy.description', route: 'dummy.index',
+            adminEntries: [new ModuleAdminEntry('open', 'dummy.admin', null, 'dummy.admin_label', ['dummy.admin'])],
+        ));
+
+        $assist = User::factory()->status('assist')->create();
+        $assist->syncPrivileges(['admin.see-menu']);
+        $group = collect(app(AdminNavigation::class)->groups($assist->fresh(), $this->request('/admin')))->firstWhere('key', 'modules');
+
+        $this->assertSame(['open'], array_map(fn ($i) => $i->key, $group->items));
+    }
+
+    #[Test]
     public function the_module_group_is_current_on_its_pages(): void
     {
         $user = User::factory()->create();
