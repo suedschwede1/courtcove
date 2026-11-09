@@ -84,8 +84,10 @@ class NotificationRegistryTest extends TestCase
         $purpose = $this->registry()->purpose(NotificationConsent::PURPOSE_PLAYER_SEARCH);
         $this->assertNotNull($purpose);
         $this->assertSame('booking.notifications.consent_text_v1', $purpose->consentTextKey);
-        $this->assertSame('booking.notifications.consent_text_version', $purpose->consentVersionKey);
-        $this->assertSame('wa-2026-11-v1', $purpose->consentVersion());
+        $this->assertSame('booking.notifications.purposes.player_search.consent_version', $purpose->consentVersionKey);
+        $this->assertSame('booking.notifications.purposes.player_search.consent_short', $purpose->consentShortKey);
+        $this->assertSame('booking.notifications.purposes.player_search.consent_short', $purpose->switchConsentKey());
+        $this->assertSame('wa-2026-11-v2', $purpose->consentVersion());
         $this->assertSame(
             [NotificationTypes::ADMIN_TEST, NotificationTypes::PLAYER_SEARCH_OPENED, NotificationTypes::PLAYER_SEARCH_CLOSED],
             $this->registry()->typesOfPurpose(NotificationConsent::PURPOSE_PLAYER_SEARCH),
@@ -115,7 +117,7 @@ class NotificationRegistryTest extends TestCase
                 }
             }
             foreach ($this->registry()->purposes() as $purpose) {
-                foreach ([$purpose->labelKey, $purpose->descriptionKey, $purpose->consentTextKey, $purpose->consentVersionKey] as $key) {
+                foreach ([$purpose->labelKey, $purpose->descriptionKey, $purpose->consentTextKey, $purpose->consentVersionKey, $purpose->switchConsentKey()] as $key) {
                     $this->assertTrue(trans()->has($key, $locale, false), "$key ($locale)");
                 }
             }
@@ -208,6 +210,30 @@ class NotificationRegistryTest extends TestCase
 
         $this->expectException(InvalidArgumentException::class);
         $this->registry()->register($this->type('reg.follow2', 'reg_purpose', followupOf: 'reg.unknown'));
+    }
+
+    #[Test]
+    public function a_purpose_without_a_short_sentence_shows_its_full_text_at_the_switch(): void
+    {
+        $purpose = $this->purpose('reg_plain');
+
+        $this->assertNull($purpose->consentShortKey);
+        $this->assertSame($purpose->consentTextKey, $purpose->switchConsentKey());
+    }
+
+    /** Switching a purpose on in the account card must subscribe something: each offered purpose has an opt-in type. */
+    #[Test]
+    public function every_registered_purpose_with_subscribable_types_has_an_opt_in_type(): void
+    {
+        $this->assertSame([], $this->registry()->purposesWithoutOptInType());
+
+        // Only a type without opt-in: listed. Only a follow-up or the admin test: not offered, not listed.
+        $this->registry()->register($this->type('reg.manual', 'reg_manual', optIn: false), $this->purpose('reg_manual'));
+        $this->registry()->registerPurpose($this->purpose('reg_empty'));
+        $this->assertSame(['reg_manual'], $this->registry()->purposesWithoutOptInType());
+
+        $this->registry()->register($this->type('reg.auto', 'reg_manual'));
+        $this->assertSame([], $this->registry()->purposesWithoutOptInType());
     }
 
     private function type(string $key, string $purpose, bool $optIn = true, ?string $followupOf = null): NotificationTypeDefinition

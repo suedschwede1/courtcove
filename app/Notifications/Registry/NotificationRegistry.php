@@ -105,6 +105,27 @@ final class NotificationRegistry
     }
 
     /**
+     * Purposes whose subscribable types (not the admin test, not a follow-up) include no opt-in type: switching
+     * such a purpose on in the account card subscribes nothing. Purposes without subscribable types (e.g. only
+     * the admin test) are not listed. A registration check for tests and the runbook; it cannot run at
+     * register() time because a purpose is registered before its types.
+     *
+     * @return list<string>
+     */
+    public function purposesWithoutOptInType(): array
+    {
+        $missing = [];
+        foreach (array_keys($this->purposes) as $purpose) {
+            $subscribable = array_filter($this->types, static fn (NotificationTypeDefinition $t): bool => $t->purpose === $purpose && $t->isSubscribable());
+            if ($subscribable !== [] && array_filter($subscribable, static fn (NotificationTypeDefinition $t): bool => $t->optIn) === []) {
+                $missing[] = $purpose;
+            }
+        }
+
+        return $missing;
+    }
+
+    /**
      * Keys of the test types (admin test): they skip the daily limit and do not count towards it.
      *
      * @return list<string>

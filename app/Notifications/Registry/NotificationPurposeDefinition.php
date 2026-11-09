@@ -16,6 +16,11 @@ use InvalidArgumentException;
  *
  * `gateCondition` is a {@see PurposeGateCondition}, its class name (resolved from the container) or a
  * closure `fn (User $user): ?string`; null means no prerequisite beyond the general gate.
+ *
+ * Texts in the account card: `consentShortKey` is the short consent sentence next to the switch (the switch is
+ * the consent; without it the full text stands there), `consentTextKey` the full consent text behind "Mehr
+ * erfahren", `consentVersionKey` the version of the wording the user consents to (raise it whenever the visible
+ * wording changes; consents keep the version they were given under).
  */
 final readonly class NotificationPurposeDefinition
 {
@@ -31,6 +36,7 @@ final readonly class NotificationPurposeDefinition
         public string $consentTextKey,
         public string $consentVersionKey,
         public PurposeGateCondition|Closure|string|null $gateCondition = null,
+        public ?string $consentShortKey = null,
     ) {
         if (preg_match(self::KEY_PATTERN, $key) !== 1) {
             throw new InvalidArgumentException("Invalid consent purpose key [$key].");
@@ -38,6 +44,12 @@ final readonly class NotificationPurposeDefinition
         if (is_string($gateCondition) && ! is_subclass_of($gateCondition, PurposeGateCondition::class)) {
             throw new InvalidArgumentException("Gate condition [$gateCondition] of purpose [$key] is no PurposeGateCondition.");
         }
+    }
+
+    /** Lang key of the consent sentence next to the switch: the short sentence, else the full text. */
+    public function switchConsentKey(): string
+    {
+        return $this->consentShortKey ?? $this->consentTextKey;
     }
 
     /** Version of the consent text, stored with every consent of this purpose (max. 32 characters). */

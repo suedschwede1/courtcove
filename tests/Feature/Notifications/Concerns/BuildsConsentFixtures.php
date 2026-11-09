@@ -8,6 +8,7 @@ use App\Models\NotificationConsent;
 use App\Models\Option;
 use App\Models\User;
 use App\Modules\Members\Models\Member;
+use App\Notifications\Registry\NotificationRegistry;
 use App\Services\Notifications\ConsentService;
 
 /**
@@ -40,6 +41,17 @@ trait BuildsConsentFixtures
             ['user_id' => $user->uid, 'status' => 'aktiv', 'left_at' => null, 'anonymized_at' => null],
             $attributes,
         ));
+    }
+
+    /**
+     * What the row switch of a purpose sends when switched on: the consent and the version of the sentence shown
+     * (the purpose's current version; empty for an unregistered purpose).
+     *
+     * @return array{consent: string, consent_version: string}
+     */
+    protected function switchOn(string $purpose = NotificationConsent::PURPOSE_PLAYER_SEARCH): array
+    {
+        return ['consent' => '1', 'consent_version' => (string) app(NotificationRegistry::class)->purpose($purpose)?->consentVersion()];
     }
 
     protected function consents(): ConsentService

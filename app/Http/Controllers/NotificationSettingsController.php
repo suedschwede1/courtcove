@@ -19,10 +19,12 @@ use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Validator;
 
 /**
- * The account cards "WhatsApp-Benachrichtigungen": consent, type switches with filters and withdrawal, per
- * consent purpose of the registry (route parameter `{purpose}`; without it the player search purpose, so the
- * original URLs keep working; an unregistered purpose is a 404). Every action works on the logged-in user's own
- * consent only (no id in the request).
+ * The rows of the account card "WhatsApp-Benachrichtigungen", one per consent purpose of the registry (route
+ * parameter `{purpose}`; without it the player search purpose, so the original URLs keep working; an unregistered
+ * purpose is a 404): switching a row on gives the consent (and subscribes the purpose's opt-in types), the row's
+ * settings save its types and filters, switching it off withdraws the consent (which deletes the subscriptions of
+ * the purpose, saved filters included). Every action works on the logged-in user's own consent only (no id in
+ * the request).
  */
 final class NotificationSettingsController extends Controller
 {
@@ -32,25 +34,42 @@ final class NotificationSettingsController extends Controller
         private readonly AccountCard $card,
     ) {}
 
-    /** Give the consent of the purpose (needs the ticked checkbox and the complete gate of the purpose). */
+    /**
+     * Give the consent of the purpose: the row switch posts `consent=1` together with `consent_version`, the version
+     * of the consent sentence the user saw. Refused without both, when that version is no longer the purpose's
+     * current one (nothing is stored, the user switches on again under the new text) and when the purpose's complete
+     * gate fails. Answers on the row's anchor.
+     */
     public function enable(Request $request, ?string $purpose = null): RedirectResponse
     {
         $definition = $this->purpose($purpose);
         // A purpose without a switched-on subscribable type is not offered, so there is nothing to consent to
         // (an existing consent is answered by optIn() as before).
         abort_if(! $this->card->offered($definition->key) && $this->consents->activeConsent($this->user($request), $definition->key) === null, 404);
-        $request->validate(
-            ['consent' => ['accepted']],
-            ['consent.accepted' => __('booking.notifications.account_card.consent_required')],
-        );
+
+        $required = __('booking.notifications.account_card.consent_required');
+        $validator = Validator::make($request->all(), [
+            'consent' => ['accepted'],
+            'consent_version' => ['required', 'string'],
+        ], ['consent.accepted' => $required, 'consent_version.required' => $required, 'consent_version.string' => $required]);
+        $validator->after(function ($validator) use ($request, $definition): void {
+            $seen = $request->input('consent_version');
+            if (is_string($seen) && $seen !== '' && $seen !== $definition->consentVersion()) {
+                $validator->errors()->add('consent', __('booking.notifications.account_card.consent_outdated'));
+            }
+        });
+        if ($validator->fails()) {
+            // One message at the row, under the consent key the card shows.
+            return $this->back($definition->key)->withErrors(['consent' => $validator->errors()->first()])->withInput();
+        }
 
         try {
             $this->consents->optIn($this->user($request), $definition->key, app()->getLocale());
         } catch (ConsentRefused $e) {
-            return $this->back()->with('error', __(self::refusedKey($e->reason)));
+            return $this->rowStatus($definition->key, 'problem', __(self::refusedKey($e->reason)));
         }
 
-        return $this->back()->with('success', __('booking.notifications.account_card.enabled_flash'));
+        return $this->rowStatus($definition->key, 'good', __('booking.notifications.account_card.enabled_flash'));
     }
 
     /**
@@ -111,7 +130,24 @@ final class NotificationSettingsController extends Controller
         $definition = $this->purpose($purpose);
         $this->consents->revoke($this->user($request), 'account', $definition->key);
 
-        return $this->back()->with('success', __('booking.notifications.account_card.revoked_flash'));
+        return $this->rowStatus($definition->key, 'good', __('booking.notifications.account_card.revoked_flash'));
+    }
+
+    /**
+     * Back on the purpose's row with a short status shown inline in that row (session key `whatsapp_row`), not the
+     * global modal flash: switching should not cover the card or take the focus.
+     *
+     * @param  'good'|'problem'  $tone
+     */
+    private function rowStatus(string $purpose, string $tone, string $text): RedirectResponse
+    {
+        return $this->back($purpose)->with('whatsapp_row', ['purpose' => $purpose, 'tone' => $tone, 'text' => $text]);
+    }
+
+    /** Account page anchor of a purpose's row in the card (the row the switch was in). */
+    public static function rowUrl(string $purpose): string
+    {
+        return route('account.edit').'#whatsapp-'.$purpose;
     }
 
     /** Text key of a refusal: the reason's own text, else the generic one. */
@@ -138,8 +174,9 @@ final class NotificationSettingsController extends Controller
         return $user;
     }
 
-    private function back(): RedirectResponse
+    /** Back to the account page, on the purpose's row when given. */
+    private function back(?string $purpose = null): RedirectResponse
     {
-        return redirect()->route('account.edit');
+        return $purpose === null ? redirect()->route('account.edit') : redirect()->to(self::rowUrl($purpose));
     }
 }
