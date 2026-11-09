@@ -38,6 +38,9 @@
                 <x-ui.notice tone="neutral" data-whatsapp-notice="{{ $whatsapp['notice']['kind'] }}">
                     @if($whatsapp['notice']['kind'] === 'stop')
                         {{ __('booking.notifications.account_card.notice_stop', ['date' => $whatsapp['notice']['date']->isoFormat('L')]) }}
+                        @if($whatsapp['reason'] === null)
+                            {{ __('booking.notifications.account_card.notice_stop_again') }}
+                        @endif
                     @else
                         {{ __('booking.notifications.account_card.notice_phone_changed') }}
                     @endif
@@ -82,7 +85,7 @@
                                     @unless($open)
                                         <input type="hidden" name="whatsapp" value="{{ $key }}">
                                     @endunless
-                                    <button type="submit" class="ds-switch ds-switch--card" role="switch" aria-checked="{{ $on ? 'true' : 'false' }}" aria-labelledby="whatsapp-title-{{ $key }}" aria-describedby="{{ $describedBy }}" aria-controls="whatsapp-panel-{{ $key }}" aria-expanded="{{ $open ? 'true' : 'false' }}" x-bind:aria-expanded="open ? 'true' : 'false'" x-on:click.prevent="open = ! open">
+                                    <button type="submit" class="ds-switch ds-switch--card" role="switch" aria-checked="{{ $on ? 'true' : 'false' }}" aria-labelledby="whatsapp-title-{{ $key }}" aria-describedby="{{ $describedBy }}" aria-controls="whatsapp-panel-{{ $key }}" aria-expanded="{{ $open ? 'true' : 'false' }}" x-bind:aria-expanded="open ? 'true' : 'false'" x-on:click.prevent="open = ! open" x-ref="switch">
                                         <span class="ds-switch__label" aria-hidden="true">{{ $on ? __('booking.notifications.account_card.switch_on') : __('booking.notifications.account_card.switch_off') }}</span>
                                         <span class="ds-switch__track" aria-hidden="true"><span class="ds-switch__knob"></span></span>
                                     </button>
@@ -100,6 +103,9 @@
                             <x-ui.notice tone="neutral" data-whatsapp-notice="{{ $row['notice']['kind'] }}">
                                 @if($row['notice']['kind'] === 'stop')
                                     {{ __('booking.notifications.account_card.notice_stop', ['date' => $row['notice']['date']->isoFormat('L')]) }}
+                                    @if($whatsapp['reason'] === null && $row['reason'] === null)
+                                        {{ __('booking.notifications.account_card.notice_stop_again') }}
+                                    @endif
                                 @else
                                     {{ __('booking.notifications.account_card.notice_phone_changed') }}
                                 @endif
@@ -123,7 +129,7 @@
                                         <p class="ds-field__error" id="whatsapp-consent-error-{{ $key }}">{{ $errors->first('consent') }}</p>
                                     @endif
                                     <div class="flex flex-wrap justify-end gap-3">
-                                        <x-ui.button variant="secondary" :href="route('account.edit').'#whatsapp-'.$key" :block="false" x-on:click.prevent="open = false">{{ __('booking.notifications.account_card.cancel') }}</x-ui.button>
+                                        <x-ui.button variant="secondary" :href="route('account.edit').'#whatsapp-'.$key" :block="false" x-on:click.prevent="open = false; $nextTick(() => $refs.switch.focus())">{{ __('booking.notifications.account_card.cancel') }}</x-ui.button>
                                         <x-ui.button type="submit" variant="dark" :block="false">{{ __('booking.notifications.account_card.confirm') }}</x-ui.button>
                                     </div>
                                 </form>
@@ -134,7 +140,7 @@
                                 <form method="POST" action="{{ route('account.whatsapp.revoke', $routeArgs) }}" class="flex flex-wrap justify-end gap-3">
                                     @csrf
                                     @method('DELETE')
-                                    <x-ui.button variant="secondary" :href="route('account.edit').'#whatsapp-'.$key" :block="false" x-on:click.prevent="open = false">{{ __('booking.notifications.account_card.cancel') }}</x-ui.button>
+                                    <x-ui.button variant="secondary" :href="route('account.edit').'#whatsapp-'.$key" :block="false" x-on:click.prevent="open = false; $nextTick(() => $refs.switch.focus())">{{ __('booking.notifications.account_card.cancel') }}</x-ui.button>
                                     <x-ui.button type="submit" variant="danger" :block="false">{{ __('booking.notifications.account_card.revoke') }}</x-ui.button>
                                 </form>
                             </div>
@@ -143,10 +149,12 @@
                         @php
                             $hasChoice = collect($row['types'])->contains(fn (array $type): bool => $type['choice']);
                             $hasSettings = $on && collect($row['types'])->contains(fn (array $type): bool => $type['choice'] || $type['filters'] !== []);
+                            // On, but no type subscribed (no opt-in type, or all switched off before): ask for a choice.
+                            $needsChoice = $hasSettings && ! collect($row['types'])->contains(fn (array $type): bool => $type['on']);
                         @endphp
                         @if($hasSettings)
                             @php
-                                $settingsOpen = false;
+                                $settingsOpen = $needsChoice;
                                 foreach ($row['types'] as $type) {
                                     $prefix = 'filters.'.$type['slug'];
                                     foreach ($type['values'] as $field => $stored) {
@@ -160,6 +168,9 @@
                                     @csrf
                                     @method('PUT')
                                     <input type="hidden" name="_whatsapp_form" value="{{ $key }}">
+                                    @if($needsChoice)
+                                        <x-ui.notice tone="attention" data-whatsapp-choose>{{ __('booking.notifications.account_card.choose_types') }}</x-ui.notice>
+                                    @endif
 
                                     @foreach($row['types'] as $type)
                                         @php

@@ -210,6 +210,21 @@ class NotificationRegistryTest extends TestCase
         $this->registry()->register($this->type('reg.follow2', 'reg_purpose', followupOf: 'reg.unknown'));
     }
 
+    /** Switching a purpose on in the account card must subscribe something: each offered purpose has an opt-in type. */
+    #[Test]
+    public function every_registered_purpose_with_subscribable_types_has_an_opt_in_type(): void
+    {
+        $this->assertSame([], $this->registry()->purposesWithoutOptInType());
+
+        // Only a type without opt-in: listed. Only a follow-up or the admin test: not offered, not listed.
+        $this->registry()->register($this->type('reg.manual', 'reg_manual', optIn: false), $this->purpose('reg_manual'));
+        $this->registry()->registerPurpose($this->purpose('reg_empty'));
+        $this->assertSame(['reg_manual'], $this->registry()->purposesWithoutOptInType());
+
+        $this->registry()->register($this->type('reg.auto', 'reg_manual'));
+        $this->assertSame([], $this->registry()->purposesWithoutOptInType());
+    }
+
     private function type(string $key, string $purpose, bool $optIn = true, ?string $followupOf = null): NotificationTypeDefinition
     {
         return new NotificationTypeDefinition(

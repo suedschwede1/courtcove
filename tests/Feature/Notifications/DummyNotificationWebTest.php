@@ -187,6 +187,29 @@ class DummyNotificationWebTest extends TestCase
     }
 
     #[Test]
+    public function the_dummy_registration_is_complete_and_a_row_without_subscription_asks_for_a_choice(): void
+    {
+        // As registered in setUp, the dummy purpose subscribes its opt-in type when switched on.
+        $this->assertSame([], app(NotificationRegistry::class)->purposesWithoutOptInType());
+
+        // With the opt-in type off only the manual type is left: switching on subscribes nothing, so the row's
+        // settings stand open with a hint to choose.
+        Option::create(['key' => 'whatsapp.type.'.self::PLAIN.'.enabled', 'value' => '0', 'locale' => null]);
+        $user = $this->user();
+        $this->consents()->optIn($user, self::PURPOSE, 'de');
+        $this->assertFalse(NotificationSubscription::query()->where('user_id', $user->uid)->where('type', self::FILTERED)->exists());
+
+        $card = $this->dummyCard($user);
+        $this->assertMatchesRegularExpression('/<details[^>]*open/', $card);
+        $this->assertStringContainsString('data-whatsapp-choose', $card);
+        $this->assertStringContainsString(e(trans('booking.notifications.account_card.choose_types', [], 'de')), $card);
+
+        // Once a type is on, the hint goes.
+        NotificationSubscription::create(['user_id' => $user->uid, 'type' => self::FILTERED, 'channel' => 'whatsapp', 'filters' => null]);
+        $this->assertStringNotContainsString('data-whatsapp-choose', $this->dummyCard($user));
+    }
+
+    #[Test]
     public function a_locked_number_is_said_once_and_locks_every_row(): void
     {
         $user = $this->user();

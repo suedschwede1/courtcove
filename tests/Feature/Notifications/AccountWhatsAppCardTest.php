@@ -216,6 +216,75 @@ class AccountWhatsAppCardTest extends TestCase
     }
 
     #[Test]
+    public function cancel_returns_the_focus_to_the_row_switch(): void
+    {
+        $card = $this->card($this->eligibleUser());
+
+        $this->assertMatchesRegularExpression('/role="switch"[^>]*x-ref="switch"/', $card);
+        // Alpine closes the panel and puts the focus back; without JavaScript the link reloads the row anchor.
+        $this->assertMatchesRegularExpression('/href="[^"]*#whatsapp-player_search"[^>]*x-on:click\.prevent="open = false; \$nextTick\(\(\) (?:=>|=&gt;) \$refs\.switch\.focus\(\)\)"/', $card);
+    }
+
+    /** @return array<string, array{0: array<string, mixed>}> */
+    public static function oddPanelQueries(): array
+    {
+        return [
+            'unknown purpose' => [['whatsapp' => 'unknown']],
+            'array' => [['whatsapp' => ['x']]],
+            'array with the purpose' => [['whatsapp' => ['player_search']]],
+            'empty' => [['whatsapp' => '']],
+        ];
+    }
+
+    /** @param  array<string, mixed>  $query */
+    #[Test]
+    #[DataProvider('oddPanelQueries')]
+    public function an_odd_panel_query_opens_nothing_and_fails_nothing(array $query): void
+    {
+        $user = $this->eligibleUser();
+
+        $html = (string) $this->actingAs($user)->get(route('account.edit', $query))->assertOk()->getContent();
+
+        $this->assertMatchesRegularExpression('/<div[^>]*id="whatsapp-panel-player_search"[^>]*\shidden[\s>]/', $html);
+        $this->assertMatchesRegularExpression('/role="switch"[^>]*aria-expanded="false"/', $html);
+    }
+
+    #[Test]
+    public function the_panel_query_changes_no_state(): void
+    {
+        $ready = $this->eligibleUser('+43 660 0000042');
+        $active = $this->optedInUser('+43 660 0000043');
+        $before = [NotificationConsent::query()->count(), NotificationConsent::query()->whereNull('revoked_at')->count(), NotificationSubscription::query()->count()];
+
+        foreach ([$ready, $active] as $user) {
+            foreach (['player_search', 'unknown'] as $purpose) {
+                $this->actingAs($user)->get(route('account.edit', ['whatsapp' => $purpose]))->assertOk();
+            }
+        }
+
+        $this->assertSame($before, [NotificationConsent::query()->count(), NotificationConsent::query()->whereNull('revoked_at')->count(), NotificationSubscription::query()->count()]);
+        $this->assertSame(0, $this->activeConsentCount($ready));
+        $this->assertSame(1, $this->activeConsentCount($active));
+    }
+
+    #[Test]
+    public function the_stop_notice_offers_switching_on_again_only_when_the_number_allows_it(): void
+    {
+        Carbon::setTestNow('2026-11-09 12:00:00');
+        $user = $this->optedInUser('+43 660 0000042');
+        $this->consents()->revoke($user, 'stop', NotificationConsent::PURPOSE_PLAYER_SEARCH);
+        $again = e(trans('booking.notifications.account_card.notice_stop_again', [], 'de'));
+
+        $this->assertStringContainsString($again, $this->card($user));
+
+        $user->setMeta('phone', null);
+        $card = $this->card($user);
+        $this->assertStringContainsString(e(trans('booking.notifications.account_card.notice_stop', ['date' => '09.11.2026'], 'de')), $card);
+        $this->assertStringNotContainsString($again, $card);
+        $this->assertStringContainsString('data-whatsapp-reason="no_phone"', $card);
+    }
+
+    #[Test]
     public function enable_requires_the_ticked_consent_checkbox(): void
     {
         $user = $this->eligibleUser();

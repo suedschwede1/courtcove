@@ -123,7 +123,11 @@ return [
             'save' => 'Save',
             'saved_flash' => 'Your WhatsApp settings are saved.',
             'no_consent_flash' => 'Please switch the notification on first.',
-            'notice_stop' => 'You unsubscribed with STOP on :date. You can switch the notifications on again here at any time.',
+            'notice_stop' => 'You unsubscribed with STOP on :date.',
+            // Added to notice_stop only while account and number allow switching on again.
+            'notice_stop_again' => 'You can switch the notifications on again here at any time.',
+            // A row that is on but has no message type on (its types are not switched on with the consent).
+            'choose_types' => 'Choose which messages you want to get, then save.',
             'notice_phone_changed' => 'Your mobile number has changed. Switch the notifications on again for the new number.',
         ],
 

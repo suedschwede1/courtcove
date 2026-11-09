@@ -123,7 +123,11 @@ return [
             'save' => 'Speichern',
             'saved_flash' => 'Die Einstellungen für WhatsApp sind gespeichert.',
             'no_consent_flash' => 'Bitte schalte die Benachrichtigung zuerst ein.',
-            'notice_stop' => 'Du hast dich am :date per STOP abgemeldet. Du kannst die Benachrichtigungen hier jederzeit wieder einschalten.',
+            'notice_stop' => 'Du hast dich am :date per STOP abgemeldet.',
+            // Added to notice_stop only while account and number allow switching on again.
+            'notice_stop_again' => 'Du kannst die Benachrichtigungen hier jederzeit wieder einschalten.',
+            // A row that is on but has no message type on (its types are not switched on with the consent).
+            'choose_types' => 'Wähle, welche Nachrichten du bekommen möchtest, und speichere.',
             'notice_phone_changed' => 'Deine Handynummer hat sich geändert. Schalte die Benachrichtigungen für die neue Nummer wieder ein.',
         ],
 
