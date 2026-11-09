@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\User;
+use App\Support\Modules\ModuleRegistry;
 use App\Support\Navigation\AreaNavBuilder;
 use App\Support\Navigation\AreaNavGroup;
 use App\Support\Navigation\AreaNavigation;
@@ -16,6 +17,10 @@ use Illuminate\Support\Facades\Route;
  */
 final class AdminNavigation implements AreaNavigation
 {
+    private const MODULES_GROUP = 'modules';
+
+    public function __construct(private readonly ModuleRegistry $registry) {}
+
     public function eyebrow(): string
     {
         return __('booking.admin.nav.eyebrow');
@@ -29,7 +34,7 @@ final class AdminNavigation implements AreaNavigation
     /**
      * Group key => [label key, rows]; row = [key, route name, gate, label key, active patterns, route must exist].
      *
-     * @return list<array{0: string, 1: string, 2: list<array{0: string, 1: string, 2: string, 3: string, 4: list<string>, 5?: bool}>}>
+     * @return list<array{0: string, 1: string, 2: list<array{0: string, 1: string, 2: string|null, 3: string, 4: list<string>, 5?: bool}>}>
      */
     private function definition(): array
     {
@@ -45,12 +50,8 @@ final class AdminNavigation implements AreaNavigation
                 ['users', 'admin.users.index', 'admin.user', 'booking.admin.users.accounts', ['admin.users.*']],
                 ['login_history', 'admin.login-history.index', 'admin.user', 'booking.admin.login_history.title', ['admin.login-history.*']],
             ]],
-            ['tournaments', 'booking.admin.nav.group_tournaments', [
-                ['pyramid', 'pyramide.admin.index', 'admin.pyramid', 'booking.admin.nav.pyramid', ['pyramide.admin.*'], true],
-                ['championship', 'tournament.admin', 'admin.tournament', 'booking.admin.nav.championship', ['tournament.admin*'], true],
-                ['draws', 'draw.index', 'admin.draw', 'booking.admin.nav.draws', ['draw.*'], true],
-                ['mixed', 'mixed.admin.index', 'admin.mixed', 'booking.admin.nav.mixed', ['mixed.admin.*'], true],
-            ]],
+            // Rows come from the module registry (modules() below); empty here on purpose.
+            [self::MODULES_GROUP, 'booking.admin.nav.group_modules', []],
             ['settings', 'booking.admin.nav.group_settings', [
                 ['squares', 'admin.squares.index', 'admin.config', 'booking.admin.squares.title', ['admin.squares.*']],
                 ['texts', 'admin.config.edit', 'admin.config', 'booking.admin.texts', ['admin.config.edit', 'admin.config.update']],
@@ -66,6 +67,22 @@ final class AdminNavigation implements AreaNavigation
     }
 
     /**
+     * The administration entries of all registered modules as rows; each is shown by its own ability, so the group
+     * is left out for a viewer who may use none of them.
+     *
+     * @return list<array{0: string, 1: string, 2: string|null, 3: string, 4: list<string>, 5?: bool}>
+     */
+    private function moduleRows(): array
+    {
+        $rows = [];
+        foreach ($this->registry->adminEntries() as $entry) {
+            $rows[] = [$entry->key, $entry->route, $entry->ability, $entry->label, $entry->patterns, true];
+        }
+
+        return $rows;
+    }
+
+    /**
      * @return list<AreaNavGroup>
      */
     public function groups(?User $user, Request $request): array
@@ -78,6 +95,10 @@ final class AdminNavigation implements AreaNavigation
         $groups = [];
 
         foreach ($this->definition() as [$groupKey, $groupLabel, $rows]) {
+            if ($groupKey === self::MODULES_GROUP) {
+                $rows = $this->moduleRows();
+            }
+
             $items = [];
             foreach ($rows as $row) {
                 [$key, $routeName, $ability, $label, $patterns] = $row;

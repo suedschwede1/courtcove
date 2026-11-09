@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Services\Notifications\ConsentService;
 use App\Support\AdminMode;
+use App\Support\Modules\ModuleRegistry;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -42,14 +43,40 @@ class User extends Authenticatable
     use HasApiTokens;
     use HasFactory;
 
-    /** All assignable privileges (ported from ZF2 User::$privileges). */
-    public const PRIVILEGES = [
+    /**
+     * The privileges of the core (ported from ZF2 User::$privileges). Modules add their own through the
+     * ModuleRegistry; the full assignable list is privileges().
+     */
+    public const CORE_PRIVILEGES = [
         'admin.user', 'admin.booking', 'admin.event', 'admin.config', 'admin.see-menu', 'admin.members', 'admin.api-tokens',
         'calendar.see-past', 'calendar.see-data',
         'calendar.create-single-bookings', 'calendar.cancel-single-bookings', 'calendar.delete-single-bookings',
         'calendar.create-subscription-bookings', 'calendar.cancel-subscription-bookings', 'calendar.delete-subscription-bookings',
-        'admin.tournament', 'admin.mixed', 'admin.pyramid', 'admin.draw',
     ];
+
+    /**
+     * All assignable privileges: the core's plus the ones registered by modules (ModuleDefinition::$privileges;
+     * in the tournament modules admin.tournament, admin.mixed, admin.pyramid, admin.draw).
+     *
+     * @return list<string>
+     */
+    public static function privileges(): array
+    {
+        return array_values(array_unique([
+            ...self::CORE_PRIVILEGES,
+            ...array_keys(app(ModuleRegistry::class)->privileges()),
+        ]));
+    }
+
+    /**
+     * Privileges that only count while admin mode is active (privileges() minus BASE_PRIVILEGES).
+     *
+     * @return list<string>
+     */
+    public static function privilegedPrivileges(): array
+    {
+        return array_values(array_diff(self::privileges(), self::BASE_PRIVILEGES));
+    }
 
     /**
      * Privileges that count WITHOUT admin mode (base member rights). Every other privilege in
@@ -69,15 +96,6 @@ class User extends Authenticatable
      * @var list<string>
      */
     public const BASE_PRIVILEGES = [];
-
-    /** Privileges that only count while admin mode is active (PRIVILEGES minus BASE_PRIVILEGES). */
-    public const PRIVILEGED_PRIVILEGES = [
-        'admin.user', 'admin.booking', 'admin.event', 'admin.config', 'admin.see-menu', 'admin.members', 'admin.api-tokens',
-        'calendar.see-past', 'calendar.see-data',
-        'calendar.create-single-bookings', 'calendar.cancel-single-bookings', 'calendar.delete-single-bookings',
-        'calendar.create-subscription-bookings', 'calendar.cancel-subscription-bookings', 'calendar.delete-subscription-bookings',
-        'admin.tournament', 'admin.mixed', 'admin.pyramid', 'admin.draw',
-    ];
 
     /** Meta key (value: member id) of an account that was blocked because its member departed; see MemberDepartureAccounts. */
     public const META_DEPARTURE_DEACTIVATED = 'departure.deactivated';
@@ -304,7 +322,7 @@ class User extends Authenticatable
     /** Whether the account holds at least one raw privilege (role admin, or assist with any allow.* flag). */
     public function hasAnyPrivilege(): bool
     {
-        return $this->hasPrivilege(implode(',', self::PRIVILEGES));
+        return $this->hasPrivilege(implode(',', self::privileges()));
     }
 
     /**
@@ -391,7 +409,7 @@ class User extends Authenticatable
     /** Replace the set of granted privileges (assist allow.* flags). */
     public function syncPrivileges(array $privileges): void
     {
-        foreach (self::PRIVILEGES as $priv) {
+        foreach (self::privileges() as $priv) {
             $this->setMeta('allow.'.$priv, in_array($priv, $privileges, true) ? 'true' : null);
         }
     }

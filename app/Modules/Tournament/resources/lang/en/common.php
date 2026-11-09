@@ -12,7 +12,7 @@ return [
         'voluntary' => 'optional – otherwise one is assigned',
         'pick' => 'Pick a token',
     ],
-    'login_required' => 'You need to be logged in for the tournament area.',
+    'login_required' => 'You need to be logged in for the championship.',
     'match' => [
         'context_group' => 'Group :group · Match :slot',
         'context_round' => ':phase · Round :round',
@@ -43,7 +43,7 @@ return [
         'mine' => 'My matches',
         'mode' => 'Format',
         'draw' => 'Draw',
-        'admin' => 'Admin',
+        'admin' => 'Championship',
     ],
     'weekdays_short' => ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
 ];

@@ -22,13 +22,13 @@ class AdminModeMechanismTest extends TestCase
     #[Test]
     public function every_privilege_is_classified_as_base_or_privileged(): void
     {
-        $classified = array_merge(User::BASE_PRIVILEGES, User::PRIVILEGED_PRIVILEGES);
+        $classified = array_merge(User::BASE_PRIVILEGES, User::privilegedPrivileges());
         sort($classified);
-        $all = User::PRIVILEGES;
+        $all = User::privileges();
         sort($all);
 
         $this->assertSame($all, $classified);
-        $this->assertSame([], array_intersect(User::BASE_PRIVILEGES, User::PRIVILEGED_PRIVILEGES));
+        $this->assertSame([], array_intersect(User::BASE_PRIVILEGES, User::privilegedPrivileges()));
     }
 
     #[Test]

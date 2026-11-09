@@ -4,7 +4,7 @@ return [
     'round_not_future' => 'drand round :round is not in the future (current round: :current).',
 
     'index' => [
-        'eyebrow' => 'Tournaments',
+        'eyebrow' => 'Modules',
         'title' => 'Draws',
         'lead' => 'Every draw is committed in advance and executed with a public source of randomness. Anyone can recompute the record.',
         'list_title' => 'Draws so far',

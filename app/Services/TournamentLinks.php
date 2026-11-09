@@ -42,6 +42,11 @@ class TournamentLinks
         ];
     }
 
+    public function championshipUrl(): string
+    {
+        return $this->absolute('/tournament');
+    }
+
     public function pyramidUrl(): string
     {
         return $this->absolute('/pyramide');

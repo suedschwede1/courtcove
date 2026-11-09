@@ -16,8 +16,8 @@ class TournamentProviderTest extends TestCase
     #[Test]
     public function translations_load_in_both_locales(): void
     {
-        $this->assertSame('Für den Turnierbereich musst du angemeldet sein.', __('tournament::common.login_required', [], 'de'));
-        $this->assertSame('You need to be logged in for the tournament area.', __('tournament::common.login_required', [], 'en'));
+        $this->assertSame('Für die Meisterschaft musst du angemeldet sein.', __('tournament::common.login_required', [], 'de'));
+        $this->assertSame('You need to be logged in for the championship.', __('tournament::common.login_required', [], 'en'));
         $this->assertSame('KO-Raster', __('tournament::common.tabs.bracket', [], 'de'));
     }
 

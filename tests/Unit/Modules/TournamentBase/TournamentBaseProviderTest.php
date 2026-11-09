@@ -66,7 +66,7 @@ class TournamentBaseProviderTest extends TestCase
     #[Test]
     public function translations_load_in_both_locales(): void
     {
-        $this->assertSame('Turnierbereich', __('tournament-base::common.area', [], 'de'));
-        $this->assertSame('Tournament area', __('tournament-base::common.area', [], 'en'));
+        $this->assertSame('Module', __('tournament-base::common.area', [], 'de'));
+        $this->assertSame('Modules', __('tournament-base::common.area', [], 'en'));
     }
 }

@@ -13,6 +13,7 @@
     $groups = $quoteGroups ?? [];
     $currentQuoteGroup = old('quote_group', $profile['quote_group'] ?? '');
     $privLabels = __('booking.admin.users.privileges');
+    $modulePrivLabels = app(\App\Support\Modules\ModuleRegistry::class)->privileges();
 @endphp
 @csrf
 <div class="ds-admin-stack" x-data="{ status: {{ Js::from($formStatus) }}, role: {{ Js::from($formRole) }} }" x-effect="if (status !== 'enabled') role = 'member'">
@@ -73,7 +74,7 @@
         <select id="uf-privileges" name="privileges[]" multiple size="{{ count($privileges) }}" class="ds-select ds-admin-privileges" aria-describedby="uf-privileges-help">
             @foreach($privileges as $priv)
                 <option value="{{ $priv }}" @selected(in_array($priv, old('privileges', $granted ?? []), true))>
-                    {{ $privLabels[$priv] ?? $priv }}
+                    {{ isset($modulePrivLabels[$priv]) ? __($modulePrivLabels[$priv]) : ($privLabels[$priv] ?? $priv) }}
                 </option>
             @endforeach
         </select>

@@ -208,7 +208,7 @@ final class UserController extends Controller
     public function create(): View
     {
         return view('admin.users.create', [
-            'privileges' => User::PRIVILEGES,
+            'privileges' => User::privileges(),
             'quoteGroups' => QuoteGroups::all(),
         ]);
     }
@@ -225,7 +225,7 @@ final class UserController extends Controller
             'phone' => ['nullable', 'string', 'max:64'],
             'quote_group' => ['nullable', 'string', 'in:'.implode(',', array_keys(QuoteGroups::all()))],
             'privileges' => ['array'],
-            'privileges.*' => ['in:'.implode(',', User::PRIVILEGES)],
+            'privileges.*' => ['in:'.implode(',', User::privileges())],
         ]);
 
         $role = $data['role'] ?? 'member';
@@ -258,7 +258,7 @@ final class UserController extends Controller
 
         return view('admin.users.edit', [
             'user' => $user,
-            'privileges' => User::PRIVILEGES,
+            'privileges' => User::privileges(),
             'quoteGroups' => QuoteGroups::all(),
             'granted' => $user->grantedPrivileges(),
             'currentStatus' => $user->accountStatus(),
@@ -308,7 +308,7 @@ final class UserController extends Controller
             'phone' => ['nullable', 'string', 'max:64'],
             'quote_group' => ['nullable', 'string', 'in:'.implode(',', $allowedQuoteGroups)],
             'privileges' => ['array'],
-            'privileges.*' => ['in:'.implode(',', User::PRIVILEGES)],
+            'privileges.*' => ['in:'.implode(',', User::privileges())],
         ]);
 
         $role = $data['role'] ?? 'member';

@@ -85,7 +85,7 @@ class ApplyDrawRouteTest extends TestCase
 
         $this->post($url)
             ->assertRedirect(route('login', ['redirect_to' => '/tournament/admin/apply-draw/'.$draw->did]))
-            ->assertSessionHas('error', 'Für den Turnierbereich musst du angemeldet sein.');
+            ->assertSessionHas('error', 'Für die Meisterschaft musst du angemeldet sein.');
         $this->actingAs($this->users[3])->post($url)->assertForbidden();
         $this->actingAs($this->users[3])->post('/tournament/admin/apply-draw/999999')->assertForbidden();
 

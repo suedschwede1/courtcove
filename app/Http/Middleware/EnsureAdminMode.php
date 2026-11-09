@@ -88,7 +88,7 @@ final class EnsureAdminMode
         foreach ($request->route()?->gatherMiddleware() ?? [] as $middleware) {
             if (is_string($middleware) && str_starts_with($middleware, 'can:')) {
                 $ability = explode(',', substr($middleware, 4))[0];
-                if (in_array($ability, User::PRIVILEGES, true)) {
+                if (in_array($ability, User::privileges(), true)) {
                     $abilities[] = $ability;
                 }
             }

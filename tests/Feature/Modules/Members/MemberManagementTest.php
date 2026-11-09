@@ -26,7 +26,7 @@ class MemberManagementTest extends TestCase
     #[Test]
     public function admin_members_is_a_registered_privilege(): void
     {
-        $this->assertContains('admin.members', User::PRIVILEGES);
+        $this->assertContains('admin.members', User::privileges());
     }
 
     #[Test]

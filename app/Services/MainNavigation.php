@@ -5,19 +5,23 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\User;
+use App\Support\Modules\ModuleRegistry;
 use App\Support\Ui\NavItem;
 use Illuminate\Http\Request;
 
 /**
  * Builds the main navigation once for the header bar and the phone menu.
  *
- * items() is the flat list (phone menu); bar() folds the tournaments into one entry so
- * the desktop header has at most five top-level entries and never wraps:
- * Calendar, My bookings, Tournaments, Members, Admin.
+ * items() is the flat list (phone menu); bar() folds the modules (every module of the ModuleRegistry that the
+ * viewer sees, plus the module overview) into one entry so the desktop header has at most five top-level entries
+ * and never wraps: Calendar, My bookings, Modules, Members, Admin.
  */
 final class MainNavigation
 {
-    public function __construct(private TournamentLinks $links) {}
+    /** Item key of the module overview link. */
+    public const OVERVIEW_KEY = 'module-overview';
+
+    public function __construct(private ModuleRegistry $registry) {}
 
     /**
      * @return list<NavItem>
@@ -34,14 +38,19 @@ final class MainNavigation
 
         if ($user !== null) {
             $add('bookings', __('booking.nav.my_bookings'), route('account.bookings'), 'bookings', $request->routeIs('account.bookings'));
+        }
 
-            $championship = $this->links->currentChampionship();
-            if ($championship !== null) {
-                $add('championship', $championship['title'], $championship['url'], 'medal', $request->is('tournament', 'tournament/*'));
+        $visible = array_values(array_filter($this->registry->available(), static fn ($module): bool => $module->visibleTo($user)));
+        foreach ($visible as $module) {
+            if ($module->inMenu) {
+                $add($module->key, $module->label(), $module->entryUrl(), $module->icon, $module->matches($request));
             }
+        }
+        if ($visible !== []) {
+            $add(self::OVERVIEW_KEY, __('modules.overview'), route('modules.index'), 'trophy', $request->routeIs('modules.index'));
+        }
 
-            $add('pyramid', __('booking.nav.challenge_pyramid'), $this->links->pyramidUrl(), 'pyramid', $request->is('pyramide', 'pyramide/*'));
-            $add('mixed', __('booking.nav.mixed_tournament'), $this->links->mixedUrl(), 'trophy', $request->is('mixed-tournament', 'mixed-tournament/*'));
+        if ($user !== null) {
             $add('account', __('booking.nav.my_account'), route('account.edit'), 'user', $request->routeIs('account.edit'), false);
 
             // Members (club membership records) and Admin (booking system) are separate areas with their own gates.
@@ -66,60 +75,48 @@ final class MainNavigation
         return $items;
     }
 
-    /** Item keys folded into one "Tournaments" dropdown in the header bar. */
-    private const TOURNAMENT_KEYS = ['championship', 'pyramid', 'mixed'];
-
-    /** Route names of the tournament area (all its modules, the draws included). */
-    private const TOURNAMENT_ROUTES = ['pyramide.*', 'mixed.*', 'tournament.*', 'draw.*'];
-
-    /** Whether the request is a page of the tournament area: the "Tournaments" entry is then current. */
-    public static function inTournamentArea(Request $request): bool
+    /**
+     * Whether the request is a page of the module area (the overview or any module): the "Modules" entry is then
+     * current.
+     */
+    public function inModuleArea(Request $request): bool
     {
-        return $request->routeIs(...self::TOURNAMENT_ROUTES);
+        return $request->routeIs('modules.index') || $this->registry->inArea($request);
     }
 
     /**
-     * The header bar's entries: bar-only items, the tournaments collapsed into one group.
-     * A group with a single entry shows that entry directly. With the request, the tournaments entry is current on
-     * every page of the tournament area, also where none of its children matches (e.g. a draw record).
+     * The header bar's entries: bar-only items, the modules collapsed into one group.
+     * A group with a single entry shows that entry directly. With the request, the modules entry is current on
+     * every page of the module area, also where none of its children matches (e.g. a draw record).
      *
      * @param  list<NavItem>  $items  as returned by items()
      * @return list<NavItem>
      */
     public function bar(array $items, ?Request $request = null): array
     {
-        $inTournaments = $request !== null && self::inTournamentArea($request);
-        $groups = [
-            'tournaments' => ['label' => __('booking.nav.tournaments'), 'icon' => 'trophy', 'keys' => self::TOURNAMENT_KEYS],
-        ];
+        $areaActive = $request !== null && $this->inModuleArea($request);
+        $moduleKeys = [...array_map(static fn ($module): string => $module->key, $this->registry->available()), self::OVERVIEW_KEY];
+        $groupKey = 'modules';
 
         $bar = [];
-        $placed = [];
+        $placed = false;
         foreach ($items as $item) {
             if (! $item->inBar) {
                 continue;
             }
 
-            $groupKey = null;
-            foreach ($groups as $key => $group) {
-                if (in_array($item->key, $group['keys'], true)) {
-                    $groupKey = $key;
-                }
-            }
-
-            if ($groupKey === null) {
+            if (! in_array($item->key, $moduleKeys, true)) {
                 $bar[] = $item;
 
                 continue;
             }
 
-            if (isset($placed[$groupKey])) {
+            if ($placed) {
                 continue;
             }
-            $placed[$groupKey] = true;
+            $placed = true;
 
-            $children = array_values(array_filter($items, fn (NavItem $i) => $i->inBar && in_array($i->key, $groups[$groupKey]['keys'], true)));
-            $areaActive = $inTournaments; // the tournaments group is the only group
+            $children = array_values(array_filter($items, static fn (NavItem $i): bool => $i->inBar && in_array($i->key, $moduleKeys, true)));
             if (count($children) === 1) {
                 $child = $children[0];
                 $bar[] = $areaActive && ! $child->active
@@ -129,8 +126,8 @@ final class MainNavigation
                 continue;
             }
 
-            $active = $areaActive || array_filter($children, fn (NavItem $i) => $i->active) !== [];
-            $bar[] = new NavItem($groupKey, $groups[$groupKey]['label'], $children[0]->url, $groups[$groupKey]['icon'], $active, true, $children);
+            $active = $areaActive || array_filter($children, static fn (NavItem $i): bool => $i->active) !== [];
+            $bar[] = new NavItem($groupKey, __('modules.area'), $children[0]->url, 'trophy', $active, true, $children);
         }
 
         return $bar;

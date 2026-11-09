@@ -40,7 +40,7 @@ class OverviewPageTest extends TestCase
 
         $this->get('/tournament')
             ->assertRedirect(route('login', ['redirect_to' => '/tournament']))
-            ->assertSessionHas('error', 'Für den Turnierbereich musst du angemeldet sein.');
+            ->assertSessionHas('error', 'Für die Meisterschaft musst du angemeldet sein.');
         $this->get('/tournament/modus')->assertRedirect(route('login', ['redirect_to' => '/tournament/modus']));
     }
 
@@ -108,7 +108,7 @@ class OverviewPageTest extends TestCase
 
         $this->assertStringContainsString('>Auslosungen verwalten</a>', $html);
         $this->assertStringContainsString('href="'.route('draw.index').'"', $html);
-        $this->assertStringContainsString('>Leitung</a>', $html);
+        $this->assertStringContainsString('>Meisterschaft</a>', $html);
         $this->assertStringContainsString('href="'.route('tournament.admin').'"', $html);
     }
 
@@ -121,7 +121,7 @@ class OverviewPageTest extends TestCase
         $html = $this->actingAs($this->member())->get('/tournament')->assertOk()->getContent();
 
         $this->assertStringNotContainsString('>Auslosungen verwalten</a>', $html);
-        $this->assertStringNotContainsString('>Leitung</a>', $html);
+        $this->assertStringNotContainsString('>Meisterschaft</a>', $html);
         foreach (['Übersicht', 'Modus'] as $tab) {
             $this->assertStringContainsString('>'.$tab.'</a>', $html);
         }
@@ -169,7 +169,7 @@ class OverviewPageTest extends TestCase
         $this->assertStringContainsString('Ansicht von Demo Spieler 02', $html);
         $this->assertStringContainsString('action="'.route('tournament.admin.simulate').'"', $html);
         // the simulated level hides the admin entry
-        $this->assertStringNotContainsString('>Leitung</a>', $html);
+        $this->assertStringNotContainsString('>Meisterschaft</a>', $html);
     }
 
     #[Test]

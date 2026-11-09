@@ -42,7 +42,7 @@ class ReadPagesLoginTest extends TestCase
 
         $this->get($path)
             ->assertRedirect(route('login', ['redirect_to' => $path]))
-            ->assertSessionHas('error', 'Für den Turnierbereich musst du angemeldet sein.');
+            ->assertSessionHas('error', 'Für die Meisterschaft musst du angemeldet sein.');
     }
 
     #[Test]

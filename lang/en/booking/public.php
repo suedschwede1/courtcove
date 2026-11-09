@@ -6,13 +6,10 @@ return [
     'nav' => [
         'info' => 'Info',
         'help' => 'Help',
-        'challenge_pyramid' => 'Challenge pyramid',
-        'mixed_tournament' => 'Mixed/fun tournament',
         'my_bookings' => 'My Bookings',
         'my_account' => 'My Account',
         'admin' => 'Administration',
         'members' => 'Members',
-        'tournaments' => 'Tournaments',
         'back_to_calendar' => 'Back to calendar',
         'logout' => 'Log Out',
         'actions' => 'Actions',

@@ -243,29 +243,29 @@ class HeaderTest extends TestCase
     }
 
     #[Test]
-    public function tournaments_collapse_into_one_dropdown(): void
+    public function modules_collapse_into_one_dropdown(): void
     {
         $member = User::factory()->create(['status' => 'enabled']);
         $xp = $this->xpath($this->actingAs($member)->get('/calendar')->assertOk()->getContent());
         $nav = '//nav[@aria-label="Hauptmenü"]';
 
-        $this->assertSame(3, $xp->query($nav.'/ul/li')->length); // Kalender, Meine Buchungen, Turniere
+        $this->assertSame(3, $xp->query($nav.'/ul/li')->length); // Kalender, Meine Buchungen, Module
 
-        $button = $xp->query($nav.'//button[@aria-controls="nav-group-tournaments"]');
+        $button = $xp->query($nav.'//button[@aria-controls="nav-group-modules"]');
         $this->assertSame(1, $button->length);
         $btn = $button->item(0);
         $this->assertSame('button', $btn->getAttribute('type'));
         $this->assertSame('false', $btn->getAttribute('aria-expanded'));
         $this->assertStringContainsString('open', $btn->getAttribute('x-bind:aria-expanded'));
-        $this->assertStringContainsString('Turniere', $btn->textContent);
+        $this->assertStringContainsString('Module', $btn->textContent);
         $this->assertFalse($btn->hasAttribute('aria-current'));
 
-        $panel = $xp->query($nav.'//*[@id="nav-group-tournaments"]');
+        $panel = $xp->query($nav.'//*[@id="nav-group-modules"]');
         $this->assertSame(1, $panel->length);
         $this->assertTrue($panel->item(0)->hasAttribute('x-cloak'));
         $this->assertSame('open', $panel->item(0)->getAttribute('x-show'));
         $labels = array_map(fn ($a) => trim($a->textContent), iterator_to_array($xp->query('.//a', $panel->item(0))));
-        $this->assertSame(['Forderungspyramide', 'Mixed-/Fun-Turnier'], $labels);
+        $this->assertSame(['Forderungspyramide', 'Mixed-/Fun-Turnier', 'Alle Module'], $labels);
 
         $group = $xp->query($nav.'//*[@x-data="dsNavGroup"]');
         $this->assertSame(1, $group->length);
@@ -294,13 +294,13 @@ class HeaderTest extends TestCase
     }
 
     #[Test]
-    public function tournaments_group_is_current_on_a_tournament_page(): void
+    public function modules_group_is_current_on_a_module_page(): void
     {
         $this->actingAs(User::factory()->create(['status' => 'enabled']));
         $xp = $this->xpath($this->renderHeader(url('/pyramide/regeln')));
         $nav = '//nav[@aria-label="Hauptmenü"]';
 
-        $this->assertSame('true', $xp->query($nav.'//button[@aria-controls="nav-group-tournaments"]')->item(0)->getAttribute('aria-current'));
+        $this->assertSame('true', $xp->query($nav.'//button[@aria-controls="nav-group-modules"]')->item(0)->getAttribute('aria-current'));
         $current = $xp->query($nav.'//a[@aria-current="page"]');
         $this->assertSame(1, $current->length);
         $this->assertSame('Forderungspyramide', trim($current->item(0)->textContent));
