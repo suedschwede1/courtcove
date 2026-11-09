@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-09
 
+- Push guard test: an allowed identity is exempt only in author/committer lines, never in file content or commit messages.
 - Push guard: optional local allow file `~/.config/booking-guard/allowed-identities.txt` (or `BOOKING_GUARD_ALLOWED_IDENTITIES`); a commit author/committer line that equals one of its lines exactly is exempt from the term-list check. Whole-line match only, no patterns, nothing is stored in the repository.
 - Documented the product name vs. club name split (`APP_NAME`, `service.name`/`BOOKING_NAME`, `MAIL_FROM_NAME`) in `.env.example` and the mail runbook.
 - Push guard: any `.env*` / `.envrc` file is blocked except exactly `.env.example` and `.env.dusk.example` in the repository root (subdirectory templates are no longer exempt); test covers `.env`, `.env.local`, `.env.dusk.local`, `.env.production` and the two templates.
