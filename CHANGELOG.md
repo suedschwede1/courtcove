@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-09
 
+- Documented the product name vs. club name split (`APP_NAME`, `service.name`/`BOOKING_NAME`, `MAIL_FROM_NAME`) in `.env.example` and the mail runbook.
 - Push guard: any `.env*` / `.envrc` file is blocked except exactly `.env.example` and `.env.dusk.example` in the repository root (subdirectory templates are no longer exempt); test covers `.env`, `.env.local`, `.env.dusk.local`, `.env.production` and the two templates.
 - Sign-in panel claim is now the product tagline from `booking.product_tagline` ("Your club. Your court. Your game.") in both languages, replacing the translated two-line claim; the small tagline under the form is dropped as a duplicate.
 - LICENSE clause 2 (German and English): use by non-profit clubs for their own operation (membership, court and tournament fees) is expressly permitted; sale, rental, paid hosting/SaaS and inclusion in paid products stay prohibited; other commercial use needs written permission.

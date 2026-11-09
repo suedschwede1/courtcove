@@ -38,3 +38,11 @@ Wenn Staging einen echten Mailer nutzt, sendet es ueber **dieselben Absender- un
 
 - Der Schutz wirkt nur im Mail-System der App. Andere Wege (z. B. WhatsApp) haben eigene Schutzmechanismen (siehe `docs/whatsapp-runbook.md`).
 - Eine Datenbank, die nicht auf `_staging` endet, gilt als Live; dort aendert dieser Schutz nichts. Deshalb darf eine Staging-Instanz nie an die Live-Datenbank angeschlossen werden.
+
+## Produktname und Vereinsname
+
+- `APP_NAME` ist der **Produktname** (CourtCove). Er steht auf den Anmeldeseiten und im Betreff der Mail „Neues Gerät bestätigt".
+- Der **Vereinsname** (Seitenkopf, Admin-Menü, Mail-Signatur, Passwort-Reset) kommt aus der Administration (Option `service.name`). Solange sie leer ist, greift `BOOKING_NAME`, danach `APP_NAME`.
+- `MAIL_FROM_NAME` ist der Absendername aller Mails und gehört auf den **Vereinsnamen**, nicht auf `${APP_NAME}`.
+- Reihenfolge beim Umstellen einer Instanz von Vereinsname auf CourtCove in `APP_NAME`: erst `service.name` setzen, dann `MAIL_FROM_NAME` setzen, dann `APP_NAME` ändern, dann `php artisan config:cache`. So ändern sich die sichtbaren Vereinstexte nicht.
+- Nebenwirkung: Der Sitzungs-Cookie heißt nach `APP_NAME` (und das Cache-Präfix auch). Nach der Umstellung müssen sich alle Nutzer einmal neu anmelden.
