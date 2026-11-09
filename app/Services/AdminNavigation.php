@@ -59,6 +59,7 @@ final class AdminNavigation implements AreaNavigation
                 ['scheduler', 'admin.scheduler.index', 'admin.config', 'booking.admin.scheduler.title', ['admin.scheduler.*']],
                 ['api_tokens', 'admin.api-tokens.index', 'admin.api-tokens', 'booking.admin.api_tokens.title', ['admin.api-tokens.*']],
                 ['whatsapp', 'admin.whatsapp.edit', 'admin.config', 'booking.admin.whatsapp.title', ['admin.whatsapp.*']],
+                ['security', 'admin.security.edit', 'admin.config', 'booking.admin.security.title', ['admin.security.*']],
                 ['testmail', 'admin.testmail.index', 'admin.config', 'booking.admin.testmail.title', ['admin.testmail.*']],
             ]],
         ];

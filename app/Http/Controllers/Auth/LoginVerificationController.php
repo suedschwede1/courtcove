@@ -97,8 +97,9 @@ final class LoginVerificationController extends Controller
         $request->session()->regenerate();
         $request->session()->forget('login.pending_verification');
 
-        // The code proved access to the account's mailbox: this browser becomes a trusted device.
-        if (($pending['trust_device'] ?? false) === true && $this->devices->isRequiredFor($user)) {
+        // The code proved access to the account's mailbox: this browser becomes a trusted device (also when the scope
+        // does not require one yet, if the admin asked for it on the page "Sicherheit": force_trust).
+        if (($pending['trust_device'] ?? false) === true && ($this->devices->isRequiredFor($user) || ($pending['force_trust'] ?? false) === true)) {
             $device = $this->devices->issue($request, $user, $countryCode);
 
             try {

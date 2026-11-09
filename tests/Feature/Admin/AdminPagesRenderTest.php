@@ -83,6 +83,7 @@ final class AdminPagesRenderTest extends TestCase
 
                 return route('admin.api-tokens.index');
             }],
+            'security' => [fn (): string => route('admin.security.edit')],
             'testmail' => [fn (): string => route('admin.testmail.index')],
             'booking_show' => [function (): string {
                 $square = Square::factory()->create(['name' => 'Court A']);

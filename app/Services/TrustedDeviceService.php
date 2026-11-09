@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Trusted devices for sign-in: privileged accounts (or all, per config) must present a device cookie that
+ * Trusted devices for sign-in: accounts in the configured scope must present a device cookie that
  * belongs to a valid TrustedDevice row; without one the sign-in goes through the e-mail code step
  * (LoginVerificationController), which then issues the device.
  *
@@ -25,14 +25,12 @@ final class TrustedDeviceService
     /** Rows revoked or expired longer ago than this are deleted when a new device is issued. */
     private const PURGE_AFTER_DAYS = 90;
 
-    /** Whether this account has to sign in from a trusted device (config scope: privileged | all | off). */
+    public function __construct(private readonly TrustedDeviceSettings $settings) {}
+
+    /** Whether this account has to sign in from a trusted device (scope: see TrustedDeviceSettings). */
     public function isRequiredFor(User $user): bool
     {
-        return match ((string) config('booking.security.trusted_device_scope', 'privileged')) {
-            'all' => true,
-            'off' => false,
-            default => $user->requiresTrustedDevice(),
-        };
+        return $this->settings->covers($user, $this->settings->scope());
     }
 
     public function cookieName(int $userId): string

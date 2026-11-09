@@ -41,12 +41,12 @@ return [
         'max_sends_per_hour' => 5,
         'max_sends_per_hour_total' => 15,
     ],
-    // Trusted devices (see App\Services\TrustedDeviceService): privileged accounts must sign in from a device
-    // that was confirmed once by e-mail code. Fixed validity from issue, no renewal ("once a month").
-    // scope: 'privileged' (admins and assistants, default), 'all' (every account) or 'off' (emergency switch,
-    // e.g. when the mail system is down; see docs/security-runbook.md).
+    // Trusted devices (see App\Services\TrustedDeviceService / TrustedDeviceSettings): accounts in the scope must
+    // sign in from a device that was confirmed once by e-mail code. Fixed validity from issue, no renewal.
+    // scope: off | admins | privileged | all. Set here (.env) it is fixed by the server configuration; left empty the
+    // admin page decides (default off). See docs/security-runbook.md.
     'security' => [
         'trusted_device_days' => (int) env('BOOKING_TRUSTED_DEVICE_DAYS', 30),
-        'trusted_device_scope' => (string) env('BOOKING_TRUSTED_DEVICE_SCOPE', 'privileged'),
+        'trusted_device_scope' => env('BOOKING_TRUSTED_DEVICE_SCOPE'),
     ],
 ];
