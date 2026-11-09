@@ -45,7 +45,7 @@ class TournamentSidebarTest extends TestCase
         'tournament.mine' => 'Meine Spiele',
         'tournament.players' => 'Teilnehmer',
         'tournament.mode' => 'Modus',
-        'tournament.admin' => 'Leitung',
+        'tournament.admin' => 'Meisterschaft',
         'draw.index' => 'Auslosungen verwalten',
         // The demo has a default event: /mixed-tournament opens it, its "Teilnehmer" page is current.
         'mixed.index' => 'Teilnehmer',
@@ -178,7 +178,7 @@ class TournamentSidebarTest extends TestCase
         $this->assertSame(['Meisterschaft', 'Einstellungen'], array_keys($groups));
         $this->assertSame(['Übersicht', 'Gruppen', 'KO-Raster', 'Spielplan', 'Meine Spiele', 'Teilnehmer', 'Modus'],
             array_slice($groups['Meisterschaft'], 0, 7));
-        $this->assertSame(['Leitung', 'Auslosungen verwalten'], $groups['Einstellungen']);
+        $this->assertSame(['Meisterschaft', 'Auslosungen verwalten'], $groups['Einstellungen']);
 
         // The draw admin belongs to the championship.
         $this->assertSame(['Meisterschaft', 'Einstellungen'], array_keys($this->sidebar((string) $admin->get(route('draw.index'))->getContent())));

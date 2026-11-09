@@ -30,7 +30,7 @@ class AdminOverviewTest extends TestCase
 
         $this->get(route('tournament.admin'))
             ->assertRedirect(route('login', ['redirect_to' => '/tournament/admin']))
-            ->assertSessionHas('error', 'Für den Turnierbereich musst du angemeldet sein.');
+            ->assertSessionHas('error', 'Für die Meisterschaft musst du angemeldet sein.');
 
         $this->actingAs($this->member())->get(route('tournament.admin'))->assertForbidden();
 
@@ -41,7 +41,7 @@ class AdminOverviewTest extends TestCase
 
         $this->actingAs($this->admin())->get(route('tournament.admin'))
             ->assertOk()
-            ->assertSee('Turnierleitung')
+            ->assertSee('Meisterschaft')
             ->assertSee('6 Teilnehmer · '.TournamentMatch::query()->where('tid', $this->tournament->tid)->count().' Partien angelegt · Status in Vorbereitung');
     }
 

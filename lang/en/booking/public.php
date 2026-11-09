@@ -6,8 +6,6 @@ return [
     'nav' => [
         'info' => 'Info',
         'help' => 'Help',
-        'challenge_pyramid' => 'Challenge pyramid',
-        'mixed_tournament' => 'Mixed/fun tournament',
         'my_bookings' => 'My Bookings',
         'my_account' => 'My Account',
         'admin' => 'Administration',

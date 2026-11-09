@@ -67,8 +67,8 @@ return [
         'selected_test' => ' (test tournament)',
     ],
     'index' => [
-        'title' => 'Tournament management',
-        'eyebrow' => 'Tournament management',
+        'title' => 'Championship',
+        'eyebrow' => 'Championship',
         'facts' => ':players participants · :matches matches created · status :status',
         'status_setup' => 'in preparation',
         'status_drawn' => 'drawn',

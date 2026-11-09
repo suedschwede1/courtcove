@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 return [
-    'area' => 'Turnierbereich',
+    'area' => 'Module',
     'csrf_expired' => 'Ungültiger oder abgelaufener Formularschlüssel. Bitte Seite neu laden.',
     'match' => [
         'no_date' => 'noch kein Termin',

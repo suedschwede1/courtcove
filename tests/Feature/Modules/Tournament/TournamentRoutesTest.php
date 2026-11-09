@@ -237,7 +237,7 @@ class TournamentRoutesTest extends TestCase
 
             $this->{$method}($uri)
                 ->assertRedirect(route('login', ['redirect_to' => $uri]))
-                ->assertSessionHas('error', 'Für den Turnierbereich musst du angemeldet sein.');
+                ->assertSessionHas('error', 'Für die Meisterschaft musst du angemeldet sein.');
         }
     }
 

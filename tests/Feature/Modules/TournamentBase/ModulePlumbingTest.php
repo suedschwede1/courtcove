@@ -33,7 +33,7 @@ class ModulePlumbingTest extends TestCase
         $response = $this->get('/pyramide/_probe?x=1');
 
         $response->assertRedirect(route('login', ['redirect_to' => '/pyramide/_probe?x=1']));
-        $response->assertSessionHas('error', 'Turnierbereich');
+        $response->assertSessionHas('error', 'Module');
     }
 
     /** @return array<string,string> */

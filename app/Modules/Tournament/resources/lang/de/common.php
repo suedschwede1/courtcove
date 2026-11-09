@@ -12,7 +12,7 @@ return [
         'voluntary' => 'freiwillig – sonst wird zugeteilt',
         'pick' => 'Token wählen',
     ],
-    'login_required' => 'Für den Turnierbereich musst du angemeldet sein.',
+    'login_required' => 'Für die Meisterschaft musst du angemeldet sein.',
     'match' => [
         'context_group' => 'Gruppe :group · Spiel :slot',
         'context_round' => ':phase · Runde :round',
@@ -43,7 +43,7 @@ return [
         'mine' => 'Meine Spiele',
         'mode' => 'Modus',
         'draw' => 'Auslosung',
-        'admin' => 'Leitung',
+        'admin' => 'Meisterschaft',
     ],
     'weekdays_short' => ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'],
 ];

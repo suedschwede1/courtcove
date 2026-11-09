@@ -57,7 +57,7 @@ class ModuleShellTest extends TestCase
         $response = $this->get('/tournament/_probe?tab=1');
 
         $response->assertRedirect(route('login', ['redirect_to' => '/tournament/_probe?tab=1']));
-        $response->assertSessionHas('error', 'Für den Turnierbereich musst du angemeldet sein.');
+        $response->assertSessionHas('error', 'Für die Meisterschaft musst du angemeldet sein.');
     }
 
     #[Test]

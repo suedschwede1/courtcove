@@ -67,8 +67,8 @@ return [
         'selected_test' => ' (Testturnier)',
     ],
     'index' => [
-        'title' => 'Turnierleitung',
-        'eyebrow' => 'Turnierleitung',
+        'title' => 'Meisterschaft',
+        'eyebrow' => 'Meisterschaft',
         'facts' => ':players Teilnehmer · :matches Partien angelegt · Status :status',
         'status_setup' => 'in Vorbereitung',
         'status_drawn' => 'ausgelost',

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 return [
-    'area' => 'Tournament area',
+    'area' => 'Modules',
     'csrf_expired' => 'Invalid or expired form key. Please reload the page.',
     'match' => [
         'no_date' => 'no date yet',
