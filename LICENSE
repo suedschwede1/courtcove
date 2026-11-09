@@ -1,6 +1,13 @@
 LIZENZ / LICENSE
 ================================================================================
 
+Maßgeblich ist die deutsche Fassung. Eine englische Fassung folgt weiter unten
+(ENGLISH VERSION below; the German version is authoritative).
+
+================================================================================
+DEUTSCHE FASSUNG
+================================================================================
+
 Dieses Projekt basiert auf ep3-bs von Tobias Krebs
 (https://github.com/tkrebs/ep3-bs), lizenziert unter der MIT-Lizenz.
 Der originale MIT-Lizenztext ist am Ende dieser Datei angeführt.
@@ -20,15 +27,19 @@ zu verändern und weiterzuverbreiten, unter folgenden Bedingungen:
    Jede Weiterverbreitung muss diesen Lizenztext sowie den obigen
    Copyright-Hinweis vollständig enthalten.
 
-2. KEINE KOMMERZIELLE NUTZUNG
+2. NICHTKOMMERZIELLE NUTZUNG, VEREINSBETRIEB
    Die Modifikationen und Erweiterungen dürfen weder direkt noch indirekt
-   für kommerzielle Zwecke genutzt werden. Als kommerzielle Nutzung gilt:
-   - Verkauf, Vermietung oder Lizenzierung gegen Entgelt
-   - Einsatz als Teil eines kostenpflichtigen Produkts oder Dienstleistung
-   - Nutzung zur Erzielung von Einnahmen
+   für kommerzielle Zwecke genutzt werden, mit folgenden Maßgaben:
 
-   Kommerzielle Nutzung ist nur mit ausdrücklicher schriftlicher Genehmigung
-   des Urhebers gestattet. Kontakt: suedchwede1@gmail.com
+   a) Ausdrücklich erlaubt ist der Einsatz durch gemeinnützige Vereine für
+      den eigenen Betrieb, einschließlich der Erhebung von Mitgliedsbeiträgen,
+      Platzgebühren und Turnier-Startgeldern.
+   b) Untersagt bleiben: Verkauf, Vermietung oder Lizenzierung gegen Entgelt;
+      entgeltliches Hosting oder Betrieb als Dienstleistung für Dritte
+      (SaaS); Einbau in kostenpflichtige Produkte oder Dienstleistungen.
+   c) Jede sonstige kommerzielle Nutzung ist nur mit ausdrücklicher
+      schriftlicher Genehmigung des Urhebers gestattet.
+      Kontakt: suedschwede1@gmail.com
 
 3. WEITERGABE UNTER GLEICHEN BEDINGUNGEN
    Veränderte Versionen dürfen weitergegeben werden, jedoch ausschließlich
@@ -38,11 +49,61 @@ DIESE SOFTWARE WIRD OHNE JEGLICHE GEWÄHRLEISTUNG BEREITGESTELLT.
 IN KEINEM FALL HAFTET DER URHEBER FÜR SCHÄDEN, DIE AUS DER NUTZUNG
 DIESER SOFTWARE ENTSTEHEN.
 
+Komponenten Dritter (z. B. Laravel, die Barlow-Schriften unter der SIL Open
+Font License) behalten ihre eigenen Lizenzen.
+
+================================================================================
+ENGLISH VERSION (the German version above is authoritative)
+================================================================================
+
+This project is based on ep3-bs by Tobias Krebs
+(https://github.com/tkrebs/ep3-bs), licensed under the MIT License.
+The original MIT license text is included at the end of this file.
+
+All modifications, extensions and new developments relative to the original
+ep3-bs code base are subject to the following proprietary license:
+
+--------------------------------------------------------------------------------
+PROPRIETARY LICENSE FOR MODIFICATIONS AND EXTENSIONS
+Copyright (c) 2026 Heinz Mayer
+--------------------------------------------------------------------------------
+
+Permission is granted to use, copy, modify and redistribute this software
+under the following conditions:
+
+1. ATTRIBUTION
+   Any redistribution must include this license text and the copyright notice
+   above in full.
+
+2. NON-COMMERCIAL USE, CLUB OPERATION
+   The modifications and extensions may not be used for commercial purposes,
+   neither directly nor indirectly, subject to the following:
+
+   a) Use by non-profit clubs for their own operation is expressly permitted,
+      including the collection of membership fees, court fees and tournament
+      entry fees.
+   b) The following remain prohibited: sale, rental or licensing for a fee;
+      paid hosting or operation as a service for third parties (SaaS);
+      inclusion in paid products or services.
+   c) Any other commercial use is permitted only with the express written
+      permission of the author.
+      Contact: suedschwede1@gmail.com
+
+3. REDISTRIBUTION UNDER THE SAME CONDITIONS
+   Modified versions may be redistributed, but only under the terms of this
+   license.
+
+THIS SOFTWARE IS PROVIDED WITHOUT WARRANTY OF ANY KIND. IN NO EVENT SHALL THE
+AUTHOR BE LIABLE FOR ANY DAMAGES ARISING FROM THE USE OF THIS SOFTWARE.
+
+Third-party components (e.g. Laravel, Barlow fonts under the SIL OFL) retain
+their own licenses.
+
 ================================================================================
 ORIGINALLIZENZ ep3-bs (MIT License)
 ================================================================================
 
-Copyright (c) Tobias Krebs
+Copyright (c) 2025 Tobias Krebs
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
