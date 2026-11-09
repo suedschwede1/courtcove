@@ -24,8 +24,9 @@ use Illuminate\Support\Carbon;
  * Row (purpose): shown when at least one of its subscribable types (not the admin test, not a follow-up) is
  * switched on, or when the user still holds an active consent for it (then only switching off is left when no
  * type is on). State locked (gate reason of the account or of the purpose), ready (off, may consent) or active
- * (consent given for the current number). A row that is on means: consent given and the purpose's opt-in types
- * subscribed; switching it off withdraws the consent. Types with filters, and every type when a purpose has
+ * (consent given for the current number). The row switch is the consent (sentence and version from the purpose
+ * definition): on means consent given and the purpose's opt-in types subscribed; switching it off withdraws the
+ * consent at once. Types with filters, and every type when a purpose has
  * several or one that is not subscribed, show in the row's settings. No member record is needed. Never carries
  * the full number.
  */
@@ -129,7 +130,9 @@ final class AccountCard
             'key' => $purpose->key,
             'label' => (string) __($purpose->labelKey),
             'description' => (string) __($purpose->descriptionKey),
-            'consentText' => (string) __($purpose->consentTextKey),
+            // The switch is the consent: its sentence stands next to it, the full text (if different) behind "Mehr erfahren".
+            'consentSentence' => (string) __($purpose->switchConsentKey()),
+            'consentText' => $purpose->consentShortKey === null ? null : (string) __($purpose->consentTextKey),
             'consentVersion' => $purpose->consentVersion(),
             'state' => 'ready',
             'reason' => null,

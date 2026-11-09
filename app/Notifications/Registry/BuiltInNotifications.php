@@ -23,9 +23,12 @@ final class BuiltInNotifications
             key: NotificationConsent::PURPOSE_PLAYER_SEARCH,
             labelKey: 'booking.notifications.purposes.player_search.label',
             descriptionKey: 'booking.notifications.purposes.player_search.description',
+            // The switch is the consent (short sentence, version v2 since 2026-11-09); the full v1 text stays behind
+            // "Mehr erfahren". Consents given under v1 keep their version and stay valid.
             consentTextKey: 'booking.notifications.consent_text_v1',
-            consentVersionKey: 'booking.notifications.consent_text_version',
+            consentVersionKey: 'booking.notifications.purposes.player_search.consent_version',
             gateCondition: PlayerExchangeRequired::class,
+            consentShortKey: 'booking.notifications.purposes.player_search.consent_short',
         ));
 
         // The admin test needs the admin's own player search consent (see the admin page).

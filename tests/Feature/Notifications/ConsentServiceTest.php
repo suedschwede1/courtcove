@@ -6,6 +6,7 @@ namespace Tests\Feature\Notifications;
 
 use App\Models\NotificationConsent;
 use App\Models\NotificationSubscription;
+use App\Notifications\Registry\NotificationRegistry;
 use App\Services\Notifications\ConsentRefused;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -26,6 +27,12 @@ class ConsentServiceTest extends TestCase
     {
         $this->assertSame('wa-2026-11-v1', trans('booking.notifications.consent_text_version', [], 'de'));
         $this->assertSame('wa-2026-11-v1', trans('booking.notifications.consent_text_version', [], 'en'));
+        // v1 stays for consents given under the earlier opt-in text; new consents use the purpose version (v2).
+        $version = app(NotificationRegistry::class)->purpose(NotificationConsent::PURPOSE_PLAYER_SEARCH)?->consentVersion();
+        $this->assertSame('wa-2026-11-v2', $version);
+        foreach (['de', 'en'] as $locale) {
+            $this->assertSame($version, trans('booking.notifications.purposes.player_search.consent_version', [], $locale));
+        }
     }
 
     #[Test]
@@ -40,7 +47,7 @@ class ConsentServiceTest extends TestCase
         $this->assertSame('whatsapp', $consent->channel);
         $this->assertSame(NotificationConsent::PURPOSE_PLAYER_SEARCH, $consent->purpose);
         $this->assertSame('en', $consent->locale);
-        $this->assertSame('wa-2026-11-v1', $consent->consent_text_version);
+        $this->assertSame(app(NotificationRegistry::class)->purpose(NotificationConsent::PURPOSE_PLAYER_SEARCH)?->consentVersion(), $consent->consent_text_version);
         $this->assertSame('2026-11-08 10:00:00', $consent->consented_at->format('Y-m-d H:i:s'));
         $this->assertSame(1, $consent->active_marker);
         $this->assertNull($consent->revoked_at);

@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 return [
     'notifications' => [
-        // Version of the WhatsApp consent notice; raise it when the wording changes materially.
+        // Version of consent_text_v1 as the visible consent wording (consents given until 2026-11-09 carry it and stay
+        // valid). New player search consents use purposes.player_search.consent_version.
         'consent_text_version' => 'wa-2026-11-v1',
 
-        // Consent notice shown next to the opt-in (account card, Task 11). Mentions: purpose, number from the account,
+        // Full consent text; since v2 shown behind "Mehr erfahren" in the account card (was the opt-in text of v1). Mentions: purpose, number from the account,
         // own number only, withdrawal at any time (account or STOP), and that the searching person's name is in the message.
         'consent_text_v1' => 'Ich möchte per WhatsApp benachrichtigt werden, wenn jemand Mitspieler sucht (Spielersuche). Die Nachricht geht an die Handynummer, die in meinem Konto hinterlegt ist; ich gebe nur meine eigene Nummer an. In der Nachricht steht der Name der Person, die Mitspieler sucht. Meine Einwilligung kann ich jederzeit im Konto widerrufen oder indem ich auf eine Nachricht mit STOP antworte.',
 
@@ -44,8 +45,13 @@ return [
         'purposes' => [
             'player_search' => [
                 'label' => 'Spielerbörse',
-                // Row text in the account card; purpose specific hints (what the message contains) belong here.
-                'description' => 'Nachricht, wenn jemand über die Spielerbörse Mitspieler sucht. Darin stehen Vor- und Nachname der suchenden Person.',
+                // Row text in the account card.
+                'description' => 'Nachricht, wenn jemand über die Spielerbörse Mitspieler sucht.',
+                // Consent sentence next to the switch (the switch is the consent); purpose specific hints belong here.
+                // To be approved by the club and its data protection contact.
+                'consent_short' => 'Mit dem Einschalten stimmst du zu, dass wir dir per WhatsApp an die Handynummer aus deinem Profil schreiben, wenn jemand Mitspieler sucht. In der Nachricht stehen Vor- und Nachname der suchenden Person; Ausschalten oder eine Antwort mit STOP widerruft deine Zustimmung.',
+                // Version of consent_short, stored with every new consent (v1 = the earlier opt-in with consent_text_v1).
+                'consent_version' => 'wa-2026-11-v2',
             ],
         ],
 
@@ -79,12 +85,9 @@ return [
             'switch_on' => 'An',
             'switch_off' => 'Aus',
             'privacy_link' => 'Datenschutzerklärung',
-            'confirm' => 'Bestätigen',
-            'cancel' => 'Abbrechen',
-            'consent_required' => 'Bitte bestätige die Einwilligung, um die Benachrichtigung einzuschalten.',
+            'consent_more' => 'Mehr erfahren',
+            'consent_required' => 'Bitte schalte die Benachrichtigung mit dem Schalter ein.',
             'enabled_flash' => 'Die Benachrichtigung ist eingeschaltet.',
-            'revoke_confirm' => 'Wenn du „:purpose“ ausschaltest, widerrufst du deine Einwilligung dafür. Du bekommst dann keine dieser Nachrichten mehr und kannst sie hier jederzeit wieder einschalten.',
-            'revoke' => 'Ausschalten',
             'revoked_flash' => 'Die Benachrichtigung ist ausgeschaltet, deine Einwilligung ist widerrufen.',
             'consented_at' => 'Eingewilligt am :date',
             'paused' => 'Zurzeit werden dir keine dieser Nachrichten geschickt. :reason',

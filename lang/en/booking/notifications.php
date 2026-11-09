@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 return [
     'notifications' => [
-        // Version of the WhatsApp consent notice; raise it when the wording changes materially.
+        // Version of consent_text_v1 as the visible consent wording (consents given until 2026-11-09 carry it and stay
+        // valid). New player search consents use purposes.player_search.consent_version.
         'consent_text_version' => 'wa-2026-11-v1',
 
-        // Consent notice shown next to the opt-in (account card, Task 11). Mentions: purpose, number from the account,
+        // Full consent text; since v2 shown behind "Mehr erfahren" in the account card (was the opt-in text of v1). Mentions: purpose, number from the account,
         // own number only, withdrawal at any time (account or STOP), and that the searching person's name is in the message.
         'consent_text_v1' => 'I want to be notified by WhatsApp when someone is looking for players (player search). The message goes to the mobile number stored in my account; I only enter my own number. The message contains the name of the person looking for players. I can withdraw my consent at any time in my account or by replying STOP to a message.',
 
@@ -44,8 +45,13 @@ return [
         'purposes' => [
             'player_search' => [
                 'label' => 'Player exchange',
-                // Row text in the account card; purpose specific hints (what the message contains) belong here.
-                'description' => 'A message when someone looks for players in the player exchange. It contains the first and last name of the person looking.',
+                // Row text in the account card.
+                'description' => 'A message when someone looks for players in the player exchange.',
+                // Consent sentence next to the switch (the switch is the consent); purpose specific hints belong here.
+                // To be approved by the club and its data protection contact.
+                'consent_short' => 'By switching this on you agree that we message you on WhatsApp at the mobile number in your profile when someone is looking for players. The message contains the first and last name of the person looking; switching off or replying STOP withdraws your consent.',
+                // Version of consent_short, stored with every new consent (v1 = the earlier opt-in with consent_text_v1).
+                'consent_version' => 'wa-2026-11-v2',
             ],
         ],
 
@@ -79,12 +85,9 @@ return [
             'switch_on' => 'On',
             'switch_off' => 'Off',
             'privacy_link' => 'Privacy policy',
-            'confirm' => 'Confirm',
-            'cancel' => 'Cancel',
-            'consent_required' => 'Please confirm your consent to switch this notification on.',
+            'consent_more' => 'Learn more',
+            'consent_required' => 'Please switch the notification on with the switch.',
             'enabled_flash' => 'The notification is switched on.',
-            'revoke_confirm' => 'If you switch off ":purpose", you withdraw your consent for it. You will no longer get these messages and can switch them on again here at any time.',
-            'revoke' => 'Switch off',
             'revoked_flash' => 'The notification is switched off and your consent is withdrawn.',
             'consented_at' => 'Consent given on :date',
             'paused' => 'None of these messages are being sent to you at the moment. :reason',

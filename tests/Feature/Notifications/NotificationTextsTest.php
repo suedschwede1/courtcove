@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Notifications;
 
 use App\Models\NotificationConsent;
+use App\Notifications\Registry\NotificationRegistry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Arr;
 use PHPUnit\Framework\Attributes\Test;
@@ -15,6 +16,23 @@ class NotificationTextsTest extends TestCase
 {
     use BuildsConsentFixtures;
     use RefreshDatabase;
+
+    /** The sentence next to the switch is the visible consent: purpose, channel, own number, name, withdrawal. */
+    #[Test]
+    public function the_short_consent_sentence_has_the_required_notices_in_de_and_en(): void
+    {
+        $required = [
+            'de' => ['Einschalten', 'WhatsApp', 'Handynummer', 'Profil', 'Mitspieler', 'Name', 'Ausschalten', 'STOP', 'widerruft'],
+            'en' => ['switching this on', 'WhatsApp', 'mobile number', 'profile', 'players', 'name', 'switching off', 'STOP', 'withdraws'],
+        ];
+
+        foreach ($required as $locale => $words) {
+            $text = trans('booking.notifications.purposes.player_search.consent_short', [], $locale);
+            foreach ($words as $word) {
+                $this->assertStringContainsStringIgnoringCase($word, $text, "$locale consent sentence lacks '$word'");
+            }
+        }
+    }
 
     #[Test]
     public function consent_text_has_all_required_notices_in_de_and_en(): void
@@ -56,8 +74,9 @@ class NotificationTextsTest extends TestCase
         $consent = $this->consents()->optIn($user, NotificationConsent::PURPOSE_PLAYER_SEARCH, 'de');
 
         foreach (['de', 'en'] as $locale) {
-            $version = trans('booking.notifications.consent_text_version', [], $locale);
-            $this->assertNotSame('booking.notifications.consent_text_version', $version);
+            $version = trans('booking.notifications.purposes.player_search.consent_version', [], $locale);
+            $this->assertNotSame('booking.notifications.purposes.player_search.consent_version', $version);
+            $this->assertSame(app(NotificationRegistry::class)->purpose(NotificationConsent::PURPOSE_PLAYER_SEARCH)?->consentVersion(), $version);
             $this->assertSame($version, $consent->fresh()->consent_text_version);
         }
         $this->assertMatchesRegularExpression('/^wa-\d{4}-\d{2}-v\d+$/', $consent->consent_text_version);

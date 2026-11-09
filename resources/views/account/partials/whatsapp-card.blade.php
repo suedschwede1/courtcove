@@ -1,7 +1,7 @@
 {{-- Account card "WhatsApp-Benachrichtigungen". $whatsapp comes from App\Services\Notifications\AccountCard: one number section,
      one list row per consent purpose of the notification registry (texts, types and filters all come from there), one common
-     privacy note. Works without JavaScript: the row switch is a GET for the row's panel (consent when off, withdrawal when on);
-     Alpine only opens and closes the panel in place. --}}
+     privacy note. The row switch IS the consent: a POST form with the switch as its submit button (on: consent with the
+     purpose's sentence and version; off: withdrawal at once). Works the same with and without JavaScript. --}}
 @php
     $privacyUrl = trim((string) \App\Models\Option::getValue('client.website.privacy', ''));
     // Only a web address becomes a link (no javascript: or other schemes from the option).
@@ -10,7 +10,6 @@
     $listErrors = fn (string $key): array => array_values(array_unique(\Illuminate\Support\Arr::flatten([$errors->get($key), $errors->get($key.'.*')])));
     $refused = fn (?string $reason): string => __(\App\Http\Controllers\NotificationSettingsController::refusedKey($reason));
     $single = count($whatsapp['purposes']) === 1;
-    $requested = request()->query('whatsapp');
 @endphp
 @if($whatsapp['state'] !== 'hidden')
 <x-ui.card :title="__('booking.notifications.account_card.title')" id="whatsapp" data-whatsapp-card="shown">
@@ -58,21 +57,18 @@
                         $reload = old('_whatsapp_form') === $key;
                         $on = $row['state'] === 'active';
                         $locked = $row['state'] === 'locked';
+                        // A request without the switch's consent value comes back with the error at this row.
                         $consentError = $row['state'] === 'ready' && ($reload || $single) && $errors->has('consent');
-                        // The panel (consent when off, withdrawal when on) is open when the switch asked for it or the consent came back unticked.
-                        $open = ! $locked && ($requested === $key || $consentError);
-                        $describedBy = trim('whatsapp-desc-'.$key
+                        $describedBy = 'whatsapp-desc-'.$key.' whatsapp-consent-'.$key
                             .($row['reason'] !== null ? ' whatsapp-reason-'.$key : '')
-                            .($locked && $whatsapp['reason'] !== null ? ' whatsapp-reason' : ''));
+                            .($locked && $whatsapp['reason'] !== null ? ' whatsapp-reason' : '')
+                            .($consentError ? ' whatsapp-consent-error-'.$key : '');
                     @endphp
-                    <li id="whatsapp-{{ $key }}" class="flex flex-col gap-3 py-3 first:pt-0 last:pb-0" data-whatsapp-purpose="{{ $key }}" data-whatsapp-row="{{ $row['state'] }}" x-data="{ open: {{ $open ? 'true' : 'false' }} }">
+                    <li id="whatsapp-{{ $key }}" class="flex flex-col gap-3 py-3 first:pt-0 last:pb-0" data-whatsapp-purpose="{{ $key }}" data-whatsapp-row="{{ $row['state'] }}">
                         <div class="flex items-start justify-between gap-4">
                             <div class="flex min-w-0 flex-col gap-1">
                                 <h4 class="ds-field__label" id="whatsapp-title-{{ $key }}">{{ $row['label'] }}</h4>
                                 <p class="ds-field__help" id="whatsapp-desc-{{ $key }}">{{ $row['description'] }}</p>
-                                @if($on && $row['consentedAt'] !== null)
-                                    <p class="ds-field__help">{{ __('booking.notifications.account_card.consented_at', ['date' => $row['consentedAt']->isoFormat('L')]) }}</p>
-                                @endif
                             </div>
                             @if($locked)
                                 <button type="button" class="ds-switch ds-switch--card" role="switch" aria-checked="false" aria-labelledby="whatsapp-title-{{ $key }}" aria-describedby="{{ $describedBy }}" disabled>
@@ -80,18 +76,39 @@
                                     <span class="ds-switch__track" aria-hidden="true"><span class="ds-switch__knob"></span></span>
                                 </button>
                             @else
-                                {{-- Without JavaScript the switch asks the page for this row's panel (and closes it again). --}}
-                                <form id="whatsapp-toggle-{{ $key }}" method="GET" action="{{ route('account.edit') }}#whatsapp-{{ $key }}" class="shrink-0">
-                                    @unless($open)
-                                        <input type="hidden" name="whatsapp" value="{{ $key }}">
-                                    @endunless
-                                    <button type="submit" class="ds-switch ds-switch--card" role="switch" aria-checked="{{ $on ? 'true' : 'false' }}" aria-labelledby="whatsapp-title-{{ $key }}" aria-describedby="{{ $describedBy }}" aria-controls="whatsapp-panel-{{ $key }}" aria-expanded="{{ $open ? 'true' : 'false' }}" x-bind:aria-expanded="open ? 'true' : 'false'" x-on:click.prevent="open = ! open" x-ref="switch">
+                                {{-- The switch is the submit button: on = consent (POST), off = withdrawal (DELETE). --}}
+                                <form method="POST" action="{{ $on ? route('account.whatsapp.revoke', $routeArgs) : route('account.whatsapp.enable', $routeArgs) }}" class="shrink-0" data-whatsapp-consent-version="{{ $row['consentVersion'] }}">
+                                    @csrf
+                                    @if($on)
+                                        @method('DELETE')
+                                        <button type="submit" class="ds-switch ds-switch--card" role="switch" aria-checked="true" aria-labelledby="whatsapp-title-{{ $key }}" aria-describedby="{{ $describedBy }}">
+                                    @else
+                                        <input type="hidden" name="_whatsapp_form" value="{{ $key }}">
+                                        <button type="submit" name="consent" value="1" class="ds-switch ds-switch--card" role="switch" aria-checked="false" aria-labelledby="whatsapp-title-{{ $key }}" aria-describedby="{{ $describedBy }}">
+                                    @endif
                                         <span class="ds-switch__label" aria-hidden="true">{{ $on ? __('booking.notifications.account_card.switch_on') : __('booking.notifications.account_card.switch_off') }}</span>
                                         <span class="ds-switch__track" aria-hidden="true"><span class="ds-switch__knob"></span></span>
                                     </button>
                                 </form>
                             @endif
                         </div>
+
+                        {{-- The consent sentence belongs to the switch (aria-describedby); the full text is one click away. --}}
+                        <div class="flex flex-col gap-1">
+                            <p class="ds-field__help" id="whatsapp-consent-{{ $key }}">{{ $row['consentSentence'] }}</p>
+                            @if($on && $row['consentedAt'] !== null)
+                                <p class="ds-field__help">{{ __('booking.notifications.account_card.consented_at', ['date' => $row['consentedAt']->isoFormat('L')]) }}</p>
+                            @endif
+                            @if($row['consentText'] !== null)
+                                <details>
+                                    <summary class="ds-admin-link cursor-pointer">{{ __('booking.notifications.account_card.consent_more') }}</summary>
+                                    <p class="ds-field__help mt-1">{{ $row['consentText'] }}</p>
+                                </details>
+                            @endif
+                        </div>
+                        @if($consentError)
+                            <p class="ds-field__error" id="whatsapp-consent-error-{{ $key }}">{{ $errors->first('consent') }}</p>
+                        @endif
 
                         @if($row['reason'] !== null)
                             <x-ui.notice tone="neutral" id="whatsapp-reason-{{ $key }}" data-whatsapp-reason="{{ $row['reason'] }}">{{ $refused($row['reason']) }}</x-ui.notice>
@@ -112,40 +129,6 @@
                             </x-ui.notice>
                         @endif
 
-                        @if($row['state'] === 'ready')
-                            <div x-bind:hidden="! open" id="whatsapp-panel-{{ $key }}" class="flex flex-col gap-4" data-whatsapp-consent-version="{{ $row['consentVersion'] }}"@unless($open) hidden @endunless>
-                                <form method="POST" action="{{ route('account.whatsapp.enable', $routeArgs) }}" class="flex flex-col gap-4">
-                                    @csrf
-                                    <input type="hidden" name="_whatsapp_form" value="{{ $key }}">
-                                    @php
-                                        // The first sentence is the core statement (bold), the rest explains it.
-                                        $consentParts = preg_split('/(?<=[.!?])\s+/u', $row['consentText'], 2) ?: [$row['consentText']];
-                                    @endphp
-                                    <x-ui.option-group :columns="2" class="ds-admin-flags ds-admin-flags--single">
-                                        <x-ui.option-tile type="checkbox" name="consent" value="1" :label="$consentParts[0]" :description="$consentParts[1] ?? null" :checked="false"
-                                            :aria-describedby="'whatsapp-privacy'.($consentError ? ' whatsapp-consent-error-'.$key : '')" :aria-invalid="$consentError ? 'true' : null" />
-                                    </x-ui.option-group>
-                                    @if($consentError)
-                                        <p class="ds-field__error" id="whatsapp-consent-error-{{ $key }}">{{ $errors->first('consent') }}</p>
-                                    @endif
-                                    <div class="flex flex-wrap justify-end gap-3">
-                                        <x-ui.button variant="secondary" :href="route('account.edit').'#whatsapp-'.$key" :block="false" x-on:click.prevent="open = false; $nextTick(() => $refs.switch.focus())">{{ __('booking.notifications.account_card.cancel') }}</x-ui.button>
-                                        <x-ui.button type="submit" variant="dark" :block="false">{{ __('booking.notifications.account_card.confirm') }}</x-ui.button>
-                                    </div>
-                                </form>
-                            </div>
-                        @elseif($on)
-                            <div x-bind:hidden="! open" id="whatsapp-panel-{{ $key }}" class="flex flex-col gap-3" data-whatsapp-revoke-confirm @unless($open) hidden @endunless>
-                                <p>{{ __('booking.notifications.account_card.revoke_confirm', ['purpose' => $row['label']]) }}</p>
-                                <form method="POST" action="{{ route('account.whatsapp.revoke', $routeArgs) }}" class="flex flex-wrap justify-end gap-3">
-                                    @csrf
-                                    @method('DELETE')
-                                    <x-ui.button variant="secondary" :href="route('account.edit').'#whatsapp-'.$key" :block="false" x-on:click.prevent="open = false; $nextTick(() => $refs.switch.focus())">{{ __('booking.notifications.account_card.cancel') }}</x-ui.button>
-                                    <x-ui.button type="submit" variant="danger" :block="false">{{ __('booking.notifications.account_card.revoke') }}</x-ui.button>
-                                </form>
-                            </div>
-                        @endif
-
                         @php
                             $hasChoice = collect($row['types'])->contains(fn (array $type): bool => $type['choice']);
                             $hasSettings = $on && collect($row['types'])->contains(fn (array $type): bool => $type['choice'] || $type['filters'] !== []);
@@ -163,7 +146,7 @@
                                     }
                                 }
                             @endphp
-                            <x-ui.disclosure :summary="$hasChoice ? __('booking.notifications.account_card.settings') : __('booking.notifications.account_card.filters')" :open="$settingsOpen">
+                            <x-ui.disclosure :summary="$hasChoice ? __('booking.notifications.account_card.settings') : __('booking.notifications.account_card.filters')" :open="$settingsOpen" data-whatsapp-settings="{{ $key }}">
                                 <form method="POST" action="{{ route('account.whatsapp.update', $routeArgs) }}" class="flex flex-col gap-4">
                                     @csrf
                                     @method('PUT')
