@@ -165,6 +165,20 @@ final class PushGuardTest extends TestCase
         }
     }
 
+    public function test_every_env_file_is_blocked_except_the_two_templates(): void
+    {
+        $this->commit(['base.txt' => "base\n"]);
+        foreach (['.env', '.env.local', '.env.dusk.local', '.env.production', '.env.backup', '.envrc', 'sub/.env', 'sub/.env.example'] as $path) {
+            $sha = $this->commit([$path => "A=b\n"]);
+            [$code, $out] = $this->push($sha);
+            $this->assertSame(1, $code, "$path should be blocked: $out");
+            $this->sh('git reset -q --hard HEAD~1');
+        }
+        $sha = $this->commit(['.env.example' => "A=\n", '.env.dusk.example' => "A=\n"]);
+        [$code, $out] = $this->push($sha);
+        $this->assertSame(0, $code, $out);
+    }
+
     public function test_generic_rules_do_not_flag_placeholders_examples_and_fixtures(): void
     {
         $sha = $this->commit([
