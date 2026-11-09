@@ -91,7 +91,12 @@ final class LoginVerificationController extends Controller
             ? array_values(array_filter($pending['risk_flags'], 'is_string'))
             : [];
 
-        LoginHistory::record($user->getKey(), $ip, $countryCode, 'success', $riskFlags);
+        // "Confirm this device" (admin page) runs for an account that is signed in already: no second login record.
+        $alreadySignedIn = ($pending['force_trust'] ?? false) === true && (int) Auth::id() === (int) $user->getKey();
+
+        if (! $alreadySignedIn) {
+            LoginHistory::record($user->getKey(), $ip, $countryCode, 'success', $riskFlags);
+        }
 
         Auth::loginUsingId($user->getKey(), (bool) $pending['remember']);
         $request->session()->regenerate();
@@ -109,11 +114,13 @@ final class LoginVerificationController extends Controller
             }
         }
 
-        $this->bookkeeping->syncLegacyLoginTracking($user, true, $ip, 600);
-        $this->bookkeeping->logAttempt('succeeded', $request, $user, [
-            'email' => (string) $user->email,
-            'verified' => true,
-        ]);
+        if (! $alreadySignedIn) {
+            $this->bookkeeping->syncLegacyLoginTracking($user, true, $ip, 600);
+            $this->bookkeeping->logAttempt('succeeded', $request, $user, [
+                'email' => (string) $user->email,
+                'verified' => true,
+            ]);
+        }
 
         return redirect()->to($pending['redirect_to']);
     }

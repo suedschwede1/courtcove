@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Auth;
 
 use App\Mail\LoginVerificationCode;
+use App\Models\LoginHistory;
 use App\Models\Option;
 use App\Models\TrustedDevice;
 use App\Models\User;
@@ -271,6 +272,58 @@ class TrustedDeviceScopeSettingTest extends TestCase
         $this->post('/login/verify', ['code' => $code])->assertRedirect(route('admin.security.edit'))
             ->assertCookie(app(TrustedDeviceService::class)->cookieName((int) $admin->uid));
         $this->assertSame(1, TrustedDevice::query()->where('user_id', $admin->uid)->count());
+    }
+
+    #[Test]
+    public function confirming_this_device_writes_no_second_login_record(): void
+    {
+        Mail::fake();
+        $admin = $this->user('admin', ['email' => 'admin@example.com']);
+        $before = LoginHistory::query()->count();
+
+        $this->actingAs($admin)->post(route('admin.security.device'));
+        $code = null;
+        Mail::assertQueued(LoginVerificationCode::class, function (LoginVerificationCode $mail) use (&$code): bool {
+            $code = $mail->code;
+
+            return true;
+        });
+        $this->post('/login/verify', ['code' => $code])->assertRedirect(route('admin.security.edit'));
+
+        $this->assertSame($before, LoginHistory::query()->count());
+    }
+
+    #[Test]
+    public function the_force_trust_flag_does_not_leak_into_a_later_normal_sign_in(): void
+    {
+        Mail::fake();
+        $admin = $this->user('admin', ['email' => 'admin@example.com']);
+
+        $this->actingAs($admin)->post(route('admin.security.device'));
+        $this->post('/logout');
+        $this->flushSession();
+
+        // Scope is off: a normal sign-in signs in at once and issues no device.
+        $this->post('/login', ['email' => 'admin@example.com', 'password' => 'secret123'])->assertRedirect();
+        $this->assertSame(0, TrustedDevice::query()->count());
+    }
+
+    #[Test]
+    public function writing_routes_need_the_config_right_too(): void
+    {
+        $assistant = $this->user('assist');
+
+        $this->actingAs($assistant)->put(route('admin.security.update'), ['scope' => 'off'])->assertForbidden();
+        $this->actingAs($assistant)->post(route('admin.security.device'))->assertForbidden();
+    }
+
+    #[Test]
+    public function the_command_warns_when_env_wins(): void
+    {
+        config(['booking.security.trusted_device_scope' => 'all']);
+
+        $this->artisan('security:set-device-scope', ['scope' => 'off'])->expectsOutputToContain('wins')->assertSuccessful();
+        $this->assertSame('all', $this->settings()->scope());
     }
 
     // ---- command ----------------------------------------------------------------------------------------

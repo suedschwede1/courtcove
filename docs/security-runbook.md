@@ -1,7 +1,9 @@
 # Security runbook: trusted devices for sign-in
 
 Accounts in the configured *scope* must sign in from a *trusted device* (independent of admin mode). A device
-is a browser with a valid device cookie.
+is a browser with a valid device cookie. Without one (first sign-in, new browser, cleared cookies, expired after
+30 days, removed), the sign-in goes through the existing e-mail code step after the correct password; the right code
+trusts the browser.
 
 ## Scope: who needs a device
 
@@ -29,8 +31,11 @@ Where it is set, in order of precedence: **`.env` > admin value > default `off`*
 - Lock-out guard: the admin cannot save a level that covers their own account unless this browser is a confirmed
   device. The page then offers "Dieses Gerät jetzt bestätigen" (code by e-mail, trusts this browser even while the
   scope is still `off`, returns to the page). Narrowing or `off` is always possible. The shell command has no such
-  guard: use it only with a working mail system. Without one (first sign-in, new browser, cleared cookies, expired after 30 days, removed), the sign-in
-goes through the existing e-mail code step after the correct password; the right code trusts the browser.
+  guard: use it only with a working mail system.
+- **Default changed:** without a `.env` value and without an admin value the scope is now `off` (before: `privileged`
+  from the code default). An installation that relied on the old default must set the level once
+  (`php artisan security:set-device-scope privileged`, or the admin page), or keep `BOOKING_TRUSTED_DEVICE_SCOPE=privileged` in `.env`.
+- Running sessions are not ended when the scope is widened; to end them for an account use `security:reset-devices`.
 
 ## How it works
 
