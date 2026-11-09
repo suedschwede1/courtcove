@@ -119,3 +119,52 @@ the provider webhooks, ...) is not affected.
 - **Why not Apache:** the deploy replaces `public/.htaccess` with the tracked file and the web server ignores
   `.htaccess` files above the document root, so an address rule there would be lost on every deploy.
 
+
+## Guard against pushing confidential information (hooks)
+
+Git hooks in `.githooks/` stop confidential information before it leaves the machine. They are active when
+`core.hooksPath` is `.githooks` (set in the shared clone configuration; check with `git config core.hooksPath`, set it
+in a fresh clone with `git config core.hooksPath .githooks`).
+
+| Hook | Checks |
+| --- | --- |
+| `pre-commit` | staged changes (added lines, file names), before the CHANGELOG/UI checks |
+| `commit-msg` | the commit message |
+| `pre-push` | every commit to be sent: added lines of the diff, message, author/committer names and e-mails, file names. Commits whose author or committer identity matches the term list are refused, so configure a neutral identity for this repository (`git config user.name`, `git config user.email`) before committing |
+
+For a ref that already exists remotely only the new commits (`remote..local`) are checked; for a new branch the whole
+history (an empty base) is. Verified commits are remembered per term list and hook version
+(`<git-dir>/booking-guard/`), so repeated pushes are fast; the first push of a long history takes about a minute.
+
+**Term list (local, never in the repository).** One extended regular expression per line, `#` for comments, in
+`$BOOKING_GUARD_TERMS_FILE`, default `~/.config/booking-guard/terms.txt` (keep it private, `chmod 600`). Put the club,
+host, domain and person names, real addresses and similar there. **Without the file, or with an empty one, every hook
+fails closed**: commit and push are refused with instructions, nothing is checked. Findings show only
+`<file>:<line>` and the number of the list entry, never the matched text; the entry number refers to the n-th active
+line of the list.
+
+**Generic rules (no list needed):** credential assignments (`name = "literal"` with password, secret, token, api key,
+app key; env-file lines such as `NAME_PASSWORD=value`; not in `tests/`, placeholders such as `REDACTED`/`example`
+are ignored), private key headers, secret-like file names (`.env*` except `*.example`, `*.sql` except
+`tests/Fixtures/`, `*.pem`, `*.key`, `*.zip`, `*.p12`, `*.pfx`, `*.sqlite`), and IPv4 addresses outside the
+documentation ranges (203.0.113.x, 198.51.100.x, 192.0.2.x), loopback (127.x) and private ranges (10.x, 172.16-31.x,
+192.168.x; repeated-digit test addresses such as 1.1.1.1 are ignored). A line with the marker `guard:allow` is exempt
+from the generic rules (never from the term list). `gitleaks` is run in addition when it is installed
+(`BOOKING_GUARD_NO_GITLEAKS=1` skips it).
+
+**Several refs at once.** A push of more than one ref (`--all`, `--mirror`, several branches) is refused with the
+number of refs; confirm deliberately with `BOOKING_GUARD_ALLOW_MULTI=1`. Deleting a ref is not scanned.
+
+**Do not bypass.** `git commit --no-verify` and `git push --no-verify` are forbidden for this repository; if a
+check is wrong, fix the rule (generic rule, marker `guard:allow` on a harmless line, or the list), never skip the hook.
+A finding in an already committed change needs a history rewrite, not a new commit on top.
+
+Limits: binary files are checked by name only (not by content), and annotated-tag messages are not scanned. A term list with CRLF line ends or a BOM is read correctly; an invalid entry, or one that matches the empty string, makes every hook refuse. Paths that contain a listed term are shown as `<path withheld>`.
+
+Tests: `tests/Feature/Tooling/PushGuardTest.php` (process tests with dummy terms in a temporary list).
+
+### Server-side backstop (one-time setting on the hosting platform)
+
+Local hooks only protect machines that have them. In the repository settings of the hosting platform enable
+*Secret scanning* and *Push protection* (Settings > Code security). Push protection rejects a push that contains a
+recognised secret; it does not know club or person names, so the local term list stays necessary.

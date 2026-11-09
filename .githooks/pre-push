@@ -1,36 +1,4 @@
 #!/bin/sh
-# Blocks a push when the commits about to be pushed (messages and added lines) match a local denylist.
-# The patterns live ONLY in the local, untracked file .git/info/deny-patterns (one extended regex per line);
-# this script itself contains no identifying strings. Without that file the push is refused.
-
-DENY_FILE="$(git rev-parse --git-common-dir)/info/deny-patterns"
-if [ ! -f "$DENY_FILE" ]; then
-    echo "pre-push: $DENY_FILE is missing, refusing to push (create it with one regex per line)." >&2
-    exit 1
-fi
-
-PATTERN=$(grep -v '^[[:space:]]*\(#\|$\)' "$DENY_FILE" | paste -sd'|' -)
-[ -n "$PATTERN" ] || { echo "pre-push: deny-patterns file is empty, refusing to push." >&2; exit 1; }
-
-ZERO=0000000000000000000000000000000000000000
-status=0
-
-while read -r local_ref local_sha remote_ref remote_sha; do
-    [ "$local_sha" = "$ZERO" ] && continue   # deleting a ref: nothing to scan
-
-    if [ "$remote_sha" = "$ZERO" ]; then
-        commits=$(git rev-list "$local_sha" --not --remotes)
-    else
-        commits=$(git rev-list "$remote_sha..$local_sha")
-    fi
-
-    for c in $commits; do
-        hits=$( { git log -1 --format=%B "$c"; git show --format= --unified=0 "$c" | grep '^+' | grep -v '^+++'; } | grep -c -i -E "$PATTERN")
-        if [ "$hits" -gt 0 ]; then
-            echo "pre-push: commit $(git rev-parse --short "$c") ($local_ref) has $hits line(s) matching the denylist; push refused." >&2
-            status=1
-        fi
-    done
-done
-
-exit $status
+# Blocks a push that would send confidential information (term list, credentials, secret-like files, public IPs).
+# Logic and rules: .githooks/lib/guard.sh, docs/security-runbook.md. The local term list is not in the repository.
+exec bash "$(dirname "$0")/lib/guard.sh" push "$@"
