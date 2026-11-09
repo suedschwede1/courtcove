@@ -9,7 +9,7 @@ use App\Modules\Pyramid\Models\PyramidGrant;
 use App\Modules\Pyramid\Models\PyramidLadder;
 use App\Modules\Pyramid\Models\PyramidPlayer;
 use App\Modules\Pyramid\Services\PyramidRepository;
-use App\Modules\TournamentBase\Support\TournamentModuleNavigation;
+use App\Support\Modules\ModuleNavigation;
 use App\Support\Navigation\AreaNavBuilder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -22,34 +22,9 @@ use Illuminate\Support\Facades\Route;
  * Detail pages count to their list: a challenge to Forderungen, a foreign player and the challenge
  * confirmation to Rangliste, the own player page to Mein Profil.
  */
-final class PyramidNavigation implements TournamentModuleNavigation
+final class PyramidNavigation implements ModuleNavigation
 {
     public function __construct(private readonly PyramidRepository $repo) {}
-
-    public function key(): string
-    {
-        return 'pyramid';
-    }
-
-    public function group(): string
-    {
-        return 'pyramid';
-    }
-
-    public function label(): string
-    {
-        return __('tournament-base::common.nav.pyramid');
-    }
-
-    public function available(): bool
-    {
-        return Route::has('pyramide.index');
-    }
-
-    public function matches(Request $request): bool
-    {
-        return $request->routeIs('pyramide.*');
-    }
 
     public function entries(AreaNavBuilder $nav): array
     {

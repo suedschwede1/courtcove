@@ -13,6 +13,7 @@ use App\Services\Mail\StagingMailGuard;
 use App\Services\Notifications\Transport\FakeTransport;
 use App\Services\Notifications\WhatsAppConfigScrub;
 use App\Services\TournamentLinks;
+use App\Support\Modules\ModuleRegistry;
 use Illuminate\Mail\Events\MessageSending;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
@@ -25,6 +26,9 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(TournamentLinks::class);
+        // Registry of the modules (menu, overview, administration group, rights, sidebar); every module registers
+        // itself in the boot() of its own service provider (docs/modules.md).
+        $this->app->singleton(ModuleRegistry::class);
         $this->app->singleton(RunLog::class);
         $this->app->singleton(FakeTransport::class);
         // Central registry of the WhatsApp notification types and consent purposes; a row whose type is not

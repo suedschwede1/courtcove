@@ -75,9 +75,9 @@ class UserModelTest extends TestCase
     #[Test]
     public function privileges_constant_lists_known_abilities(): void
     {
-        $this->assertContains('admin.user', User::PRIVILEGES);
-        $this->assertContains('calendar.see-data', User::PRIVILEGES);
-        $this->assertContains('admin.see-menu', User::PRIVILEGES);
+        $this->assertContains('admin.user', User::CORE_PRIVILEGES);
+        $this->assertContains('calendar.see-data', User::CORE_PRIVILEGES);
+        $this->assertContains('admin.see-menu', User::CORE_PRIVILEGES);
     }
 
     #[Test]

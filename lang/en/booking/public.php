@@ -12,7 +12,6 @@ return [
         'my_account' => 'My Account',
         'admin' => 'Administration',
         'members' => 'Members',
-        'tournaments' => 'Tournaments',
         'back_to_calendar' => 'Back to calendar',
         'logout' => 'Log Out',
         'actions' => 'Actions',

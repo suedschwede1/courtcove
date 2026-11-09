@@ -475,6 +475,13 @@
         padding: 18px 20px;
     }
 
+    /* Module overview: cards, one column on a phone, as many as fit otherwise. */
+    .ds-module-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+        gap: 16px;
+    }
+
     .ds-admin-kpi .ds-kpi {
         gap: 6px;
     }

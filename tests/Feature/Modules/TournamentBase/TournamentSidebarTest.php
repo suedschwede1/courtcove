@@ -175,13 +175,13 @@ class TournamentSidebarTest extends TestCase
         ], $groups);
 
         $groups = $this->sidebar((string) $admin->get(route('tournament.index'))->getContent());
-        $this->assertSame(['Vereinsmeisterschaft', 'Einstellungen'], array_keys($groups));
+        $this->assertSame(['Meisterschaft', 'Einstellungen'], array_keys($groups));
         $this->assertSame(['Übersicht', 'Gruppen', 'KO-Raster', 'Spielplan', 'Meine Spiele', 'Teilnehmer', 'Modus'],
-            array_slice($groups['Vereinsmeisterschaft'], 0, 7));
+            array_slice($groups['Meisterschaft'], 0, 7));
         $this->assertSame(['Leitung', 'Auslosungen verwalten'], $groups['Einstellungen']);
 
         // The draw admin belongs to the championship.
-        $this->assertSame(['Vereinsmeisterschaft', 'Einstellungen'], array_keys($this->sidebar((string) $admin->get(route('draw.index'))->getContent())));
+        $this->assertSame(['Meisterschaft', 'Einstellungen'], array_keys($this->sidebar((string) $admin->get(route('draw.index'))->getContent())));
 
         $groups = $this->sidebar((string) $admin->get(route('mixed.admin.index'))->getContent());
         $this->assertSame(['Mixed-/Fun-Turnier', 'Einstellungen'], array_keys($groups));
@@ -220,7 +220,7 @@ class TournamentSidebarTest extends TestCase
         // On a record page the guest gets that record only (slugs are not listed to guests).
         $html = (string) $this->get(route('draw.record', ['slug' => 'demo-direct']))->assertOk()->getContent();
         $groups = $this->sidebar($html);
-        $this->assertSame(['Vereinsmeisterschaft' => ['Losprotokoll']], $groups);
+        $this->assertSame(['Meisterschaft' => ['Losprotokoll']], $groups);
         $this->assertStringNotContainsString('demo-committed', $html);
         $this->assertStringContainsString('aria-current="page">Losprotokoll</a>', $html);
         // The guest's sidebar foot and phone bar offer the login.
@@ -283,7 +283,7 @@ class TournamentSidebarTest extends TestCase
             $request->setRouteResolver(fn () => app('router')->getRoutes()->match($request));
 
             $bar = $nav->bar($nav->items($admin, $request), $request);
-            $tournaments = array_values(array_filter($bar, fn ($item) => in_array($item->key, ['tournaments', 'pyramid', 'mixed', 'championship'], true)));
+            $tournaments = array_values(array_filter($bar, fn ($item) => in_array($item->key, ['modules', 'pyramid', 'mixed', 'championship'], true)));
             $this->assertNotSame([], $tournaments, $url);
             $this->assertTrue($tournaments[0]->active, $url);
         }

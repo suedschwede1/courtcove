@@ -506,11 +506,11 @@ class TrustedDeviceTest extends TestCase
 
         $payload = ['alias' => $target->alias, 'email' => 'target@example.com', 'status' => 'enabled', 'role' => 'assist'];
 
-        $this->actingAs($root)->put('/admin/users/'.$target->uid, $payload + ['privileges' => [User::PRIVILEGES[0]]])->assertRedirect(route('admin.users.index'));
+        $this->actingAs($root)->put('/admin/users/'.$target->uid, $payload + ['privileges' => [User::CORE_PRIVILEGES[0]]])->assertRedirect(route('admin.users.index'));
         $this->assertSame(0, TrustedDevice::query()->valid()->where('user_id', $target->uid)->count(), 'right granted');
 
         $this->deviceFor($target);
-        $this->actingAs($root)->put('/admin/users/'.$target->uid, $payload + ['privileges' => [User::PRIVILEGES[0]]])->assertRedirect(route('admin.users.index'));
+        $this->actingAs($root)->put('/admin/users/'.$target->uid, $payload + ['privileges' => [User::CORE_PRIVILEGES[0]]])->assertRedirect(route('admin.users.index'));
         $this->assertSame(1, TrustedDevice::query()->valid()->where('user_id', $target->uid)->count(), 'unchanged rights keep the device');
 
         $this->actingAs($root)->put('/admin/users/'.$target->uid, $payload)->assertRedirect(route('admin.users.index'));

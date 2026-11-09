@@ -8,12 +8,11 @@ return [
     'match' => [
         'no_date' => 'noch kein Termin',
     ],
-    'login_required' => 'Für die Turniere musst du angemeldet sein.',
+    'login_required' => 'Für die Module musst du angemeldet sein.',
     'nav' => [
         'settings' => 'Einstellungen',
-        'area' => 'Turniere',
         'pyramid' => 'Forderungspyramide',
-        'championship' => 'Vereinsmeisterschaft',
+        'championship' => 'Meisterschaft',
         'mixed' => 'Mixed-/Fun-Turnier',
         'draw' => 'Auslosung',
         'my_profile' => 'Mein Profil',
@@ -28,6 +27,18 @@ return [
         'token_pick' => 'Auslosung',
         'token_pick_of' => 'Auslosung: :title',
         'draw_admin' => 'Auslosungen verwalten',
+    ],
+    'module_description' => [
+        'pyramid' => 'Ranglisten-Wettbewerb: Spieler fordern Mitspieler über ihnen heraus.',
+        'championship' => 'Gruppen, KO-Runde, Spielplan und Ergebnisse der Vereinsmeisterschaft.',
+        'draw' => 'Auslosungen mit nachvollziehbarem Losprotokoll.',
+        'mixed' => 'Mixed- und Fun-Turniere mit wechselnden Paarungen.',
+    ],
+    'privilege' => [
+        'championship' => 'Darf die Meisterschaft verwalten',
+        'mixed' => 'Darf das Mixed-/Fun-Turnier verwalten',
+        'pyramid' => 'Darf die Forderungspyramide verwalten',
+        'draw' => 'Darf Auslosungen verwalten',
     ],
     'page_of' => 'Seite :page von :last',
     'test_mode' => [

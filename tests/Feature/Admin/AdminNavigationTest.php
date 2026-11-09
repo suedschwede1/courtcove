@@ -50,7 +50,7 @@ final class AdminNavigationTest extends TestCase
         $admin = User::factory()->create(['status' => 'admin']);
         $groups = $this->groupsFor($admin, route('admin.dashboard'));
 
-        $this->assertSame(['operations', 'users', 'tournaments', 'settings'], array_map(fn ($g) => $g->key, $groups));
+        $this->assertSame(['operations', 'users', 'modules', 'settings'], array_map(fn ($g) => $g->key, $groups));
         $this->assertSame(
             [
                 ['dashboard', 'bookings', 'events', 'statistics'],
@@ -64,7 +64,7 @@ final class AdminNavigationTest extends TestCase
 
         app()->setLocale('de');
         $groups = $this->groupsFor($admin, route('admin.dashboard'));
-        $this->assertSame(['Betrieb', 'Benutzer', 'Turniere', 'Einstellungen'], array_map(fn ($g) => $g->label, $groups));
+        $this->assertSame(['Betrieb', 'Benutzer', 'Module', 'Einstellungen'], array_map(fn ($g) => $g->label, $groups));
         $this->assertSame('Übersicht', $groups[0]->items[0]->label);
         $this->assertSame(['Benutzerkonten', 'Anmeldeverlauf'], array_map(fn ($i) => $i->label, $groups[1]->items));
     }
@@ -127,7 +127,7 @@ final class AdminNavigationTest extends TestCase
     }
 
     #[Test]
-    public function tournament_entries_need_route_and_gate(): void
+    public function module_entries_need_route_and_gate(): void
     {
         $admin = User::factory()->create(['status' => 'admin']);
         $assist = User::factory()->create(['status' => 'assist']);
@@ -137,27 +137,27 @@ final class AdminNavigationTest extends TestCase
 
         // Only entries whose routes exist show up: Pyramid, Championship, Draws and Mixed are Laravel modules.
         $groups = $this->groupsFor($admin, route('admin.dashboard'));
-        $this->assertContains('tournaments', $keys($groups));
-        $tournaments = collect($groups)->firstWhere('key', 'tournaments');
-        $this->assertSame(['pyramid', 'championship', 'draws', 'mixed'], array_map(fn ($i) => $i->key, $tournaments->items));
-        $this->assertSame(route('pyramide.admin.index'), $tournaments->items[0]->url);
-        $this->assertSame(route('tournament.admin'), $tournaments->items[1]->url);
-        $this->assertSame(route('draw.index'), $tournaments->items[2]->url);
-        $this->assertSame(route('mixed.admin.index'), $tournaments->items[3]->url);
+        $this->assertContains('modules', $keys($groups));
+        $modules = collect($groups)->firstWhere('key', 'modules');
+        $this->assertSame(['pyramid', 'championship', 'draws', 'mixed'], array_map(fn ($i) => $i->key, $modules->items));
+        $this->assertSame(route('pyramide.admin.index'), $modules->items[0]->url);
+        $this->assertSame(route('tournament.admin'), $modules->items[1]->url);
+        $this->assertSame(route('draw.index'), $modules->items[2]->url);
+        $this->assertSame(route('mixed.admin.index'), $modules->items[3]->url);
 
         // An assist user sees the draws entry with the admin.draw privilege only.
         $drawAssist = User::factory()->create(['status' => 'assist']);
         $drawAssist->syncPrivileges(['admin.see-menu', 'admin.draw']);
-        $drawTournaments = collect($this->groupsFor($drawAssist->fresh(), route('admin.dashboard')))->firstWhere('key', 'tournaments');
-        $this->assertSame(['draws'], array_map(fn ($i) => $i->key, $drawTournaments->items));
+        $drawModules = collect($this->groupsFor($drawAssist->fresh(), route('admin.dashboard')))->firstWhere('key', 'modules');
+        $this->assertSame(['draws'], array_map(fn ($i) => $i->key, $drawModules->items));
 
-        $this->assertNotContains('tournaments', $keys($this->groupsFor($assist->fresh(), route('admin.dashboard'))));
+        $this->assertNotContains('modules', $keys($this->groupsFor($assist->fresh(), route('admin.dashboard'))));
     }
 
     #[Test]
     public function labels_exist_in_both_locales(): void
     {
-        $keys = ['label', 'eyebrow', 'group_operations', 'group_users', 'group_tournaments', 'group_settings',
+        $keys = ['label', 'eyebrow', 'group_operations', 'group_users', 'group_modules', 'group_settings',
             'pyramid', 'championship', 'draws', 'mixed', 'open', 'close', 'breadcrumb', 'back'];
 
         foreach (['de', 'en'] as $locale) {

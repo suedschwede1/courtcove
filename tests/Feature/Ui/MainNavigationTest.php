@@ -82,7 +82,7 @@ class MainNavigationTest extends TestCase
     public function member_gets_the_member_items(): void
     {
         $this->assertSame(
-            ['calendar', 'bookings', 'pyramid', 'mixed', 'account'],
+            ['calendar', 'bookings', 'pyramid', 'mixed', 'module-overview', 'account'],
             $this->keys($this->items(User::factory()->create())),
         );
     }
@@ -95,9 +95,9 @@ class MainNavigationTest extends TestCase
 
         $items = $this->items(User::factory()->create());
 
-        $this->assertSame(['calendar', 'bookings', 'championship', 'pyramid', 'mixed', 'account'], $this->keys($items));
-        $this->assertSame('VM 2026', $items[2]->label);
-        $this->assertSame(url('/tournament'), $items[2]->url);
+        $this->assertSame(['calendar', 'bookings', 'pyramid', 'championship', 'mixed', 'module-overview', 'account'], $this->keys($items));
+        $this->assertSame('Meisterschaft', $items[3]->label);
+        $this->assertSame(url('/tournament'), $items[3]->url);
     }
 
     #[Test]
@@ -132,13 +132,13 @@ class MainNavigationTest extends TestCase
         $items = $this->items($membersOnly->fresh());
         $this->assertContains('members', $this->keys($items));
         $this->assertNotContains('admin', $this->keys($items));
-        $this->assertSame(['calendar', 'bookings', 'tournaments', 'members'], $this->keys(app(MainNavigation::class)->bar($items)));
+        $this->assertSame(['calendar', 'bookings', 'modules', 'members'], $this->keys(app(MainNavigation::class)->bar($items)));
     }
 
     #[Test]
     public function tournament_path_activates_only_that_item(): void
     {
-        $items = $this->items(User::factory()->create(), '/pyramide/ladder/1');
+        $items = $this->items(User::factory()->create(), '/pyramide/1');
 
         $this->assertSame(['pyramid'], $this->activeKeys($items));
     }
@@ -163,9 +163,9 @@ class MainNavigationTest extends TestCase
 
         $bar = app(MainNavigation::class)->bar($this->items(User::factory()->create()));
 
-        $this->assertSame(['calendar', 'bookings', 'tournaments'], $this->keys($bar));
-        $this->assertSame('Turniere', $bar[2]->label);
-        $this->assertSame(['championship', 'pyramid', 'mixed'], $this->keys($bar[2]->children));
+        $this->assertSame(['calendar', 'bookings', 'modules'], $this->keys($bar));
+        $this->assertSame('Module', $bar[2]->label);
+        $this->assertSame(['pyramid', 'championship', 'mixed', 'module-overview'], $this->keys($bar[2]->children));
         $this->assertFalse($bar[2]->active);
     }
 
@@ -174,7 +174,7 @@ class MainNavigationTest extends TestCase
     {
         $bar = app(MainNavigation::class)->bar($this->items(User::factory()->status('admin')->create()));
 
-        $this->assertSame(['calendar', 'bookings', 'tournaments', 'members', 'admin'], $this->keys($bar));
+        $this->assertSame(['calendar', 'bookings', 'modules', 'members', 'admin'], $this->keys($bar));
         $this->assertSame([], $bar[3]->children);
         $this->assertSame([], $bar[4]->children);
         $this->assertSame('Mitglieder', $bar[3]->label);
@@ -193,12 +193,12 @@ class MainNavigationTest extends TestCase
     #[Test]
     public function group_is_active_when_a_child_is_active(): void
     {
-        $bar = app(MainNavigation::class)->bar($this->items(User::factory()->create(), '/pyramide/ladder/1'));
-        $group = collect($bar)->firstWhere('key', 'tournaments');
+        $bar = app(MainNavigation::class)->bar($this->items(User::factory()->create(), '/pyramide/1'));
+        $group = collect($bar)->firstWhere('key', 'modules');
 
         $this->assertTrue($group->active);
         $this->assertSame(['pyramid'], $this->activeKeys($group->children));
-        $this->assertSame(['tournaments'], $this->activeKeys($bar));
+        $this->assertSame(['modules'], $this->activeKeys($bar));
     }
 
     #[Test]

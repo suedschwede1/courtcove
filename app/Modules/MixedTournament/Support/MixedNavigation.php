@@ -9,12 +9,11 @@ use App\Modules\MixedTournament\Domain\EventService;
 use App\Modules\MixedTournament\Models\MixedEvent;
 use App\Modules\MixedTournament\Models\MixedEventGrant;
 use App\Modules\MixedTournament\Models\MixedRound;
-use App\Modules\TournamentBase\Support\TournamentModuleNavigation;
+use App\Support\Modules\ModuleNavigation;
 use App\Support\Navigation\AreaNavBuilder;
 use App\Support\Navigation\AreaNavItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Route;
 
 /**
  * Sidebar entries of the Mixed tournament (every page needs a login), for the event of the page or else the default
@@ -23,33 +22,8 @@ use Illuminate\Support\Facades\Route;
  * (global right admin.mixed or an event grant) and the member import (global right). Event abilities go through the
  * event policy, which asks User::can('admin.mixed').
  */
-final class MixedNavigation implements TournamentModuleNavigation
+final class MixedNavigation implements ModuleNavigation
 {
-    public function key(): string
-    {
-        return 'mixed';
-    }
-
-    public function group(): string
-    {
-        return 'mixed';
-    }
-
-    public function label(): string
-    {
-        return __('tournament-base::common.nav.mixed');
-    }
-
-    public function available(): bool
-    {
-        return Route::has('mixed.index');
-    }
-
-    public function matches(Request $request): bool
-    {
-        return $request->routeIs('mixed.*');
-    }
-
     public function entries(AreaNavBuilder $nav): array
     {
         if ($nav->user === null) {

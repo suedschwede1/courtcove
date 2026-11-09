@@ -6,11 +6,9 @@ namespace App\Modules\Tournament\Support;
 
 use App\Models\User;
 use App\Modules\TournamentBase\Support\TestModeSession;
-use App\Modules\TournamentBase\Support\TournamentModuleNavigation;
 use App\Services\TournamentLinks;
+use App\Support\Modules\ModuleNavigation;
 use App\Support\Navigation\AreaNavBuilder;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
 
 /**
  * Sidebar entries of the club championship (formerly the module tabs, every page needs a login): Übersicht,
@@ -19,37 +17,12 @@ use Illuminate\Support\Facades\Route;
  * tabs were). Listed while a championship runs (as the header entry) or for its administrators; the draws add their
  * entries to the same group (DrawNavigation).
  */
-final class ChampionshipNavigation implements TournamentModuleNavigation
+final class ChampionshipNavigation implements ModuleNavigation
 {
     public function __construct(
         private readonly TournamentLinks $links,
         private readonly TestModeSession $testMode,
     ) {}
-
-    public function key(): string
-    {
-        return 'championship';
-    }
-
-    public function group(): string
-    {
-        return 'championship';
-    }
-
-    public function label(): string
-    {
-        return __('tournament-base::common.nav.championship');
-    }
-
-    public function available(): bool
-    {
-        return Route::has('tournament.index');
-    }
-
-    public function matches(Request $request): bool
-    {
-        return $request->routeIs('tournament.*');
-    }
 
     public function entries(AreaNavBuilder $nav): array
     {
@@ -58,7 +31,7 @@ final class ChampionshipNavigation implements TournamentModuleNavigation
             return [];
         }
 
-        if (! $this->matches($nav->request) && $this->links->currentChampionship() === null && ! $user->can('admin.tournament')) {
+        if (! $nav->request->routeIs('tournament.*') && $this->links->currentChampionship() === null && ! $user->can('admin.tournament')) {
             return [];
         }
 

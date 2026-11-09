@@ -4,7 +4,7 @@ return [
     'round_not_future' => 'drand-Runde :round ist nicht zukünftig (aktuelle Runde: :current).',
 
     'index' => [
-        'eyebrow' => 'Turniere',
+        'eyebrow' => 'Module',
         'title' => 'Auslosungen',
         'lead' => 'Jede Ziehung wird vorab festgeschrieben und mit einer öffentlichen Zufallsquelle ausgeführt. Das Protokoll ist für alle nachrechenbar.',
         'list_title' => 'Bisherige Ziehungen',

@@ -27,6 +27,7 @@ use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\LocaleController;
+use App\Http\Controllers\ModulesController;
 use App\Http\Controllers\NotificationSettingsController;
 use App\Http\Controllers\PlayerExchangeController;
 use App\Http\Controllers\UiGalleryController;
@@ -88,6 +89,7 @@ Route::get('/', static fn () => redirect()->route('calendar.index'));
 Route::get('/booking', static fn () => redirect()->route('calendar.index'));
 Route::get('/bookings', static fn () => redirect()->route('calendar.index'));
 Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');
+Route::get('/modules', ModulesController::class)->name('modules.index');
 
 // Legacy ZF2 URLs (bookmarks, mails, links on the club site). Temporary (302) redirects,
 // deliberately NOT 301: a rollback to ZF2 must not be poisoned by browser-cached

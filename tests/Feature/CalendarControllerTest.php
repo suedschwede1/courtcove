@@ -79,7 +79,7 @@ class CalendarControllerTest extends TestCase
         $this->actingAs(User::factory()->create())
             ->get('/calendar')
             ->assertOk()
-            ->assertSee('VM 2026')
+            ->assertSee('Meisterschaft')
             ->assertSee('Forderungspyramide')
             ->assertSee('Mixed-/Fun-Turnier')
             ->assertSee(url('/tournament'))

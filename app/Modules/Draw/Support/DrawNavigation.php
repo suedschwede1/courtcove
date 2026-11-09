@@ -9,11 +9,10 @@ use App\Modules\Draw\Models\Draw;
 use App\Modules\Draw\Models\DrawEligible;
 use App\Modules\Tournament\Models\Tournament;
 use App\Modules\Tournament\Models\TournamentPlayer;
-use App\Modules\TournamentBase\Support\TournamentModuleNavigation;
+use App\Support\Modules\ModuleNavigation;
 use App\Support\Navigation\AreaNavBuilder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Route;
 
 /**
  * Sidebar entries of the draws: Losprotokolle (sub-group of record pages), Token-Ziehung (an open token draw the
@@ -22,34 +21,9 @@ use Illuminate\Support\Facades\Route;
  * A record can be public, but its slug is random and not listed anywhere: logged-in users see the newest records of
  * the current real championship, guests (config require_login off) only the record they are on.
  */
-final class DrawNavigation implements TournamentModuleNavigation
+final class DrawNavigation implements ModuleNavigation
 {
     private const RECORDS = 5;
-
-    public function key(): string
-    {
-        return 'draw';
-    }
-
-    public function group(): string
-    {
-        return 'championship';
-    }
-
-    public function label(): string
-    {
-        return __('tournament-base::common.nav.draw');
-    }
-
-    public function available(): bool
-    {
-        return Route::has('draw.record');
-    }
-
-    public function matches(Request $request): bool
-    {
-        return $request->routeIs('draw.*');
-    }
 
     public function entries(AreaNavBuilder $nav): array
     {

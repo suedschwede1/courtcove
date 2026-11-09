@@ -8,12 +8,11 @@ return [
     'match' => [
         'no_date' => 'no date yet',
     ],
-    'login_required' => 'Please log in to see the tournaments.',
+    'login_required' => 'Please log in to see the modules.',
     'nav' => [
         'settings' => 'Settings',
-        'area' => 'Tournaments',
         'pyramid' => 'Challenge pyramid',
-        'championship' => 'Club championship',
+        'championship' => 'Championship',
         'mixed' => 'Mixed/fun tournament',
         'draw' => 'Draws',
         'my_profile' => 'My profile',
@@ -28,6 +27,18 @@ return [
         'token_pick' => 'Draw',
         'token_pick_of' => 'Draw: :title',
         'draw_admin' => 'Manage draws',
+    ],
+    'module_description' => [
+        'pyramid' => 'Ranking competition: players challenge opponents ranked above them.',
+        'championship' => 'Groups, knockout round, schedule and results of the club championship.',
+        'draw' => 'Draws with a verifiable draw record.',
+        'mixed' => 'Mixed and fun tournaments with changing pairings.',
+    ],
+    'privilege' => [
+        'championship' => 'Can manage the championship',
+        'mixed' => 'Can manage the mixed/fun tournament',
+        'pyramid' => 'Can manage the challenge pyramid',
+        'draw' => 'Can manage draws',
     ],
     'page_of' => 'Page :page of :last',
     'test_mode' => [
