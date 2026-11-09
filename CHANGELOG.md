@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-09
 
+- Mail runbook: `BOOKING_NAME` added to the product/club name switch-over order.
 - Tests: four member-like example names replaced by neutral ones (statistics and admin booking tests); no test logic changed. A scan of tests, fixtures, factories, migrations, docs, lang and example config found no real e-mail addresses, phone numbers, IBANs, hosts or postal addresses.
 - Push guard test: an allowed identity is exempt only in author/committer lines, never in file content or commit messages.
 - Push guard: optional local allow file `~/.config/booking-guard/allowed-identities.txt` (or `BOOKING_GUARD_ALLOWED_IDENTITIES`); a commit author/committer line that equals one of its lines exactly is exempt from the term-list check. Whole-line match only, no patterns, nothing is stored in the repository.
