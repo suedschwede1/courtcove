@@ -101,8 +101,10 @@ class AccountWhatsAppCardTest extends TestCase
         $user->setMeta('player-exchange', null);
         $this->actingAs($user->fresh())->post(route('account.whatsapp.enable'), $this->switchOn())->assertRedirect($this->row())->assertSessionHas('whatsapp_row.tone', 'problem');
 
-        // The row is a focus target for the anchor and keeps a margin above it when jumped to.
-        $this->assertMatchesRegularExpression('/<li id="whatsapp-player_search"[^>]*tabindex="-1"[^>]*class="[^"]*scroll-mt-6/', $this->card($user));
+        // The row keeps a margin above it when jumped to; it takes no focus itself (no ring around the whole row).
+        $card = $this->card($user);
+        $this->assertMatchesRegularExpression('/<li id="whatsapp-player_search"[^>]*class="[^"]*scroll-mt-6/', $card);
+        $this->assertDoesNotMatchRegularExpression('/<li id="whatsapp-player_search"[^>]*tabindex/', $card);
     }
 
     #[Test]
