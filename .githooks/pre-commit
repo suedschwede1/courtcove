@@ -1,6 +1,9 @@
 #!/bin/sh
 # Require a CHANGELOG.md update whenever code/behavior-relevant files are staged.
-# Bypass for a single commit: git commit --no-verify
+# (--no-verify is not allowed here: docs/security-runbook.md)
+
+# Confidential-information guard first (term list, credentials, secret-like files, public IPs); fail-closed.
+bash "$(dirname "$0")/lib/guard.sh" staged || exit 1
 
 staged=$(git diff --cached --name-only --diff-filter=ACMR)
 
@@ -30,5 +33,5 @@ fi
 echo "pre-commit: staged changes look feature/behavior-relevant, but CHANGELOG.md wasn't updated:" >&2
 echo "$relevant" | sed 's/^/  /' >&2
 echo "" >&2
-echo "Add a dated entry to CHANGELOG.md, or bypass with: git commit --no-verify" >&2
+echo "Add a dated entry to CHANGELOG.md." >&2
 exit 1

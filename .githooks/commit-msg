@@ -1,0 +1,3 @@
+#!/bin/sh
+# Checks the commit message against the local term list (see .githooks/lib/guard.sh).
+exec bash "$(dirname "$0")/lib/guard.sh" message "$1"

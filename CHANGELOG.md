@@ -10,6 +10,8 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-09
 
+- Push guard: `.githooks/pre-push`, `pre-commit` and `commit-msg` check added lines, messages, author identity and file names against a local term list (fail-closed without it; findings show file:line and entry number only) plus generic secret, key, file-name and public-IP rules; multi-ref pushes need `BOOKING_GUARD_ALLOW_MULTI=1`; runbook and process tests added.
+
 - Integrate reviewed member privacy, role audit, tariff import, payment consistency and mail outcome fixes without replacing Stage household billing, cancellation, closed-year rules or the mobile design; add annual preview and regression coverage.
 
 - Design documentation brought up to date: header menu with module dropdown, sidebar per module, module overview and registry, two-day calendar board, WhatsApp account card, security page.
