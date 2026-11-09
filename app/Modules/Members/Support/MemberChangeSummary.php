@@ -68,9 +68,7 @@ final class MemberChangeSummary
             return [self::connectionLine($change, $revealPersonal)];
         }
         if ($change->action === MemberConnectionService::ENDED_ACTION) {
-            return [$revealPersonal
-                ? (string) __('members::admin.connection.history_ended', ['name' => self::memberName($change->after['connection_ended_by'] ?? null)])
-                : (string) __('members::admin.connection.history_changed')];
+            return [self::connectionEndedLine($change, $revealPersonal)];
         }
         if ($change->action === MemberConnectionService::SWAP_ACTION) {
             if (! $revealPersonal) {
@@ -185,6 +183,27 @@ final class MemberChangeSummary
         return $new !== null
             ? (string) __('members::admin.connection.history_set', ['name' => self::memberName($new)])
             : (string) __('members::admin.connection.history_cleared', ['name' => self::memberName($old)]);
+    }
+
+    /**
+     * A link ended by a departure: on the Anschlussmitglied "Anschluss an … gelöst (Austritt des Vollzahlers)" or
+     * "(eigener Austritt)", on the Vollzahler "Anschlussmitglied … gelöst (Austritt)"; without names when hidden.
+     */
+    private static function connectionEndedLine(MemberChange $change, bool $revealPersonal): string
+    {
+        if (! $revealPersonal) {
+            return (string) __('members::admin.connection.history_changed');
+        }
+        $departed = $change->after['connection_ended_by'] ?? null;
+        $partner = $change->after['connection_partner'] ?? $departed;
+        if (array_key_exists('anschluss_member', (array) $change->before)) {
+            return (string) __('members::admin.connection.history_ended_anschluss', ['name' => self::memberName($partner)]);
+        }
+        if ((int) $departed === (int) $change->member_id) {
+            return (string) __('members::admin.connection.history_ended_self', ['name' => self::memberName($partner)]);
+        }
+
+        return (string) __('members::admin.connection.history_ended', ['name' => self::memberName($partner)]);
     }
 
     private static function memberName(mixed $id): string

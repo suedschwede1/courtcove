@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-08
+- Members, Anschlussmitglied: an Anschlussmitglied leaving (Austrittsdatum on the form or in the list) now also ends its connection automatically, logged on both and shown as a notice on the Vollzahler's page instead of the former warning; categories and open dues stay unchanged. A re-entry restores no connection.
 - Members: recording a payment ("Zahlung erfassen" and the bulk "Als bezahlt markieren") now writes the change protocol of the payer and of every member it covers: amount, payment date, covered dues (year, category, household), a short note and, for a bulk run, a shared "Sammelzahlung" id; shown readably in German and English on the member page.
 - Members dashboard: the full-width last block now has its own style rule (spacing above), assets rebuilt.
 - Members dashboard: the "Recently changed" card is now its own full-width block at the very end of the page, outside every grid, so it stays at the bottom on phones and desktop even when cards or columns are added; the other three cards share one grid.

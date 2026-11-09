@@ -81,36 +81,53 @@ final class MemberConnectionService
     }
 
     /**
-     * The member departed (Austrittsdatum set): every Anschlussmitglied connected to it loses the link (club decision:
-     * the connection no longer applies). Each is logged with ENDED_ACTION (the member page shows a notice from it) and
-     * the Vollzahler gets a 'connection' entry per partner. Categories and dues stay as they are. Called inside the
-     * departure transaction; a departing Anschlussmitglied keeps its own link (reported as a warning).
+     * The member departed (Austrittsdatum set): its connections end (club decisions of 2026-11-08). As Vollzahler, every
+     * Anschlussmitglied connected to it loses the link; as Anschlussmitglied, its own link goes. Both members of each
+     * ended link get an ENDED_ACTION entry ('connection_ended_by' = the departed member, 'connection_partner' = the
+     * other one); the one who stays sees a notice on the member page. Categories and dues stay as they are. Called
+     * inside the departure transaction after lockForDeparture(). A re-entry restores nothing.
      */
-    public function memberDeparted(Member $vollzahler): void
+    public function memberDeparted(Member $member): void
     {
-        DB::transaction(function () use ($vollzahler): void {
-            $this->lockForDeparture($vollzahler);
-            $partners = Member::query()->where('connected_to_member_id', $vollzahler->id)->orderBy('id')->lockForUpdate()->get();
+        DB::transaction(function () use ($member): void {
+            $this->lockForDeparture($member);
+            $partners = Member::query()->where('connected_to_member_id', $member->id)->orderBy('id')->lockForUpdate()->get();
             foreach ($partners as $partner) {
-                $before = MemberChangeLogger::snapshot($partner);
-                $partner->forceFill(['connected_to_member_id' => null])->save();
-                MemberChangeLogger::log($partner, self::ENDED_ACTION, $before, ['connection_ended_by' => $vollzahler->id]);
-                MemberChangeLogger::log($vollzahler, 'connection',
-                    [...MemberChangeLogger::snapshot($vollzahler), 'anschluss_member' => $partner->id],
-                    ['anschluss_member' => null]);
+                $this->endLink($partner, $member, $member);
+            }
+
+            $self = Member::query()->lockForUpdate()->find($member->id);
+            $vollzahler = $self?->connected_to_member_id !== null ? Member::query()->find($self->connected_to_member_id) : null;
+            if ($self !== null && $vollzahler !== null) {
+                $this->endLink($self, $vollzahler, $self);
             }
         });
     }
 
-    /**
-     * Locks the departing member and the members connected to it in ascending id order (the order of connect() and
-     * swap()). The departure flow calls this before it writes the member row, so it never holds the Vollzahler row
-     * while waiting for a partner row that a swap holds.
-     */
-    public function lockForDeparture(Member $vollzahler): void
+    /** Clears the link of $anschluss to $vollzahler and logs the end on both, naming who departed. */
+    private function endLink(Member $anschluss, Member $vollzahler, Member $departed): void
     {
-        $ids = Member::query()->where('connected_to_member_id', $vollzahler->id)->pluck('id')->push($vollzahler->id)->all();
-        Member::query()->whereKey($ids)->orderBy('id')->lockForUpdate()->get(['id']);
+        $beforeAnschluss = MemberChangeLogger::snapshot($anschluss);
+        $beforeVollzahler = MemberChangeLogger::snapshot($vollzahler);
+        $anschluss->forceFill(['connected_to_member_id' => null])->save();
+        MemberChangeLogger::log($anschluss, self::ENDED_ACTION, $beforeAnschluss, ['connection_ended_by' => $departed->id, 'connection_partner' => $vollzahler->id]);
+        MemberChangeLogger::log($vollzahler, self::ENDED_ACTION, [...$beforeVollzahler, 'anschluss_member' => $anschluss->id],
+            ['anschluss_member' => null, 'connection_ended_by' => $departed->id, 'connection_partner' => $anschluss->id]);
+    }
+
+    /**
+     * Locks the departing member, the members connected to it and its own Vollzahler in ascending id order (the order
+     * of connect() and swap()). The departure flow calls this before it writes the member row, so it never holds one
+     * row of a pair while waiting for the other one that a swap holds.
+     */
+    public function lockForDeparture(Member $member): void
+    {
+        $ids = Member::query()->where('connected_to_member_id', $member->id)->pluck('id')->push($member->id);
+        $own = Member::query()->whereKey($member->id)->value('connected_to_member_id');
+        if ($own !== null) {
+            $ids->push((int) $own);
+        }
+        Member::query()->whereKey($ids->unique()->all())->orderBy('id')->lockForUpdate()->get(['id']);
     }
 
     /**

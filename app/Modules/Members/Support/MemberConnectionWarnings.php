@@ -85,8 +85,9 @@ final class MemberConnectionWarnings
     }
 
     /**
-     * The notice for a member whose link ended because its Vollzahler departed ("Anschluss an … am … gelöst"), as long
-     * as no later protocol entry changed the link again; null otherwise.
+     * The notice for the member that stays when a link ended because the partner departed ("Der Anschluss an … /
+     * von … wurde am … gelöst"), as long as no later protocol entry changed the connection; null otherwise and on the
+     * departed member itself.
      */
     public static function endedNotice(Member $member): ?string
     {
@@ -96,10 +97,16 @@ final class MemberConnectionWarnings
         $changes = MemberChange::query()->where('member_id', $member->id)->orderByDesc('id')->limit(100)->get(['id', 'action', 'before', 'after', 'created_at']);
         foreach ($changes as $change) {
             if ($change->action === MemberConnectionService::ENDED_ACTION) {
-                $vollzahler = Member::query()->find($change->after['connection_ended_by'] ?? null);
+                $departedId = (int) ($change->after['connection_ended_by'] ?? 0);
+                if ($departedId === $member->id) {
+                    return null;
+                }
+                $departed = Member::query()->find($departedId);
+                // Older entries (Vollzahler departed) have no partner key: the member was the Anschlussmitglied.
+                $wasVollzahler = array_key_exists('anschluss_member', (array) $change->before);
 
-                return (string) __('members::admin.connection.ended_notice', [
-                    'name' => $vollzahler?->fullName() ?? '—',
+                return (string) __($wasVollzahler ? 'members::admin.connection.ended_notice_anschluss' : 'members::admin.connection.ended_notice', [
+                    'name' => $departed?->fullName() ?? '—',
                     'date' => $change->created_at?->format('d.m.Y') ?? '—',
                 ]);
             }
