@@ -1,8 +1,8 @@
 # Design Documentation
 
-**Design system:** "Example Club" (Claude design system artifact, private to the owner). This file is the in-repo copy of its rules.
-**Mockups:** design canvas "Example Club – Platzbuchung Redesign" (calendar, booking, account, admin, tournaments; desktop and phone). Screenshots and sources: [`design/README.md`](design/README.md).
-**Status:** target design. The current Blade views and `resources/css/app.css` still use the previous look (Red Hat fonts, `#bf4316`, PatternFly blue). Migrate view by view; new or touched views follow this document.
+**Design system:** the club design system (tokens, components, copy rules). This file is the in-repo copy of its rules.
+**Mockups:** the court booking redesign mockups (calendar, booking, account, admin, tournaments; desktop and phone). They are kept outside the repository.
+**Status:** the Blade views and `resources/css/*.css` follow this design (Barlow fonts, `clay`/`court` tokens). New or touched views follow this document.
 
 **Development language:** English. All code, comments, commit messages and internal docs are written in English. Only the `lang/` translation files contain German (and English) UI text.
 
@@ -130,25 +130,61 @@ Cards: `surface`, `1px solid line`, `radius-lg`, no shadow. Lay out siblings wit
 
 - Full-width bar on `chrome`, content max 1400px, padding 14px 24px.
 - Left: logo in a 44px circle on `clay` (from `booking.logo_path`), club name in `display` 24px, "PLATZBUCHUNG" eyebrow.
-- Main menu: Kalender, Meine Buchungen, Vereinsmeisterschaft (only while running), Forderungspyramide, Mixed-/Fun-Turnier, Admin (permission). Items `padding: 10px 14px`, `color: chrome-ink`; active item `background: rgba(255,255,255,0.10)`, white, 600, `aria-current="page"`.
-- Right: admin mode switch, language DE/EN, avatar (links to account).
+- Main menu (from `App\Services\MainNavigation`, at most five top-level entries, never wraps): **Kalender**, **Meine Buchungen** (logged in), **Module** (dropdown, see below), **Mitglieder** (permission `admin.members`), **Administration** (permission `admin.see-menu`). Items `padding: 10px 14px`, `color: chrome-ink`; active item `background: rgba(255,255,255,0.10)`, white, 600, `aria-current="page"`.
+- The **Module** dropdown lists every module of the module registry that the viewer may see (Forderungspyramide, Meisterschaft, Mixed-/Fun-Turnier; the Meisterschaft only while a championship runs or for its administrators) and ends with **Alle Module** (the overview `/modules`). It is current on every page of the module area. With a single module it shows that entry directly; with none and no overview there is no entry. The dropdown is a button with `aria-expanded`/`aria-controls`; Escape closes it, arrow keys move.
+- The Members and Admin entries use the raw privilege, so they stay visible while admin mode is off and lead to the "switch on admin mode" page.
+- Right: admin mode switch (users with any privilege), player exchange switch (logged in), language DE/EN, avatar (links to account) and "Abmelden"; guests get "Anmelden".
 - The date navigation moves out of the header into the page toolbar (see Calendar).
 
-**Phone:** logo, section title and a 44px ☰ button. The button opens a full-screen menu on `chrome` (all menu items with icons, admin mode, language, log out). **No bottom navigation bar.**
+**Phone:** logo, section title and a 44px ☰ button. The button opens a full-screen menu on `chrome`: the flat item list with icons (modules and "Alle Module" individually, plus "Mein Konto"), then rows for player exchange, admin mode and language, and log out. **No bottom navigation bar.**
 
-### Module tabs
+### Module sidebar (one per module)
 
-Tournament modules and admin sub-areas use tabs below the page title: `padding: 12px 16px`, 3px bottom border, active tab `border-color: clay`, `ink`, 700. They scroll horizontally on narrow screens, never wrap. On phones they become a row of pill chips.
+Tournament modules have no tab row. They use the area shell (`layouts.modules` extends `layouts.admin`) with the same sidebar component as the administration (`x-layout.admin-sidebar`, prop `area`). The navigation comes from `App\Support\Modules\ModuleAreaNavigation`, which reads the module registry (see [modules.md](modules.md)):
+
+- On a page of a module the sidebar shows **only that module**: group heading and eyebrow carry the module name, below it a group **Einstellungen** with the module's administration entries. Modules that share a `sidebarGroup` (the draws sit in the Meisterschaft group) share one group.
+- Only a page that belongs to no module (the overview `/modules`) lists the groups of all modules.
+- A group without a visible entry is left out; exactly one entry carries `aria-current="page"`. Guests see the entries that are public and a login button in the foot.
+- Phones (< 48rem): the admin top bar with the module name replaces the sidebar, which slides in behind the ☰ button.
+
+Entries per module: **Forderungspyramide** (Rangliste, Forderungen, Regeln, Mein Profil, Verwaltung), **Meisterschaft** (Übersicht, Gruppen, KO-Raster, Spielplan, Meine Spiele, Teilnehmer, Modus, plus the administration entry), **Mixed-/Fun-Turnier** (Veranstaltungen, Info, current round and standings per event, Verwaltung, Mitglieder importieren), **Auslosung** (Verwaltung, record pages, token pages). The module's own CSS prefixes are unchanged.
+
+### Module overview (`/modules`)
+
+**Files:** `resources/views/modules/index.blade.php`, `.ds-module-grid` in `resources/css/admin.css`
+
+- Area shell with page header "Alle Module" (eyebrow "MODULE") and the intro text.
+- One card per module the viewer may see, straight from the registry: icon (28px), module name as card title, one-line description, secondary button "Öffnen" (`aria-label` "<name> öffnen").
+- `.ds-module-grid`: `display: grid`, `repeat(auto-fill, minmax(min(100%, 16rem), 1fr))`, gap 16px, so one column on phones. Without a visible module a neutral notice appears.
+
+### Module registry
+
+Modules register in `App\Support\Modules\ModuleRegistry` (`ModuleDefinition`: key, name, icon, description, entry route, route patterns, optional sidebar, admin entries, rights, order). Header dropdown, overview, administration group "Module", the rights list of the user form and the module sidebar read only from it, so a new module needs no change to core navigation. Developer guide: [modules.md](modules.md).
 
 ### Admin
 
 **File:** `resources/views/components/layout/admin-sidebar.blade.php`
 
 - Sidebar on `chrome`, `flex: 1 1 240px`; logo + "VERWALTUNG" eyebrow at the top.
-- Groups with `label` headings in `#A79D8F`: **Betrieb** (Übersicht, Buchungen, Veranstaltungen, Statistik), **Mitglieder** (Mitglieder, Anmeldeverlauf), **Turniere** (Forderungspyramide, Meisterschaft, Auslosungen, Mixed-Turniere), **Einstellungen** (Plätze, Texte, Verhalten, Datenbank, API-Tokens, Testmail).
+- Navigation from `App\Services\AdminNavigation`. Groups with `label` headings in `#A79D8F`; every entry has its own gate, a group without a visible entry is left out:
+  - **Betrieb**: Übersicht, Buchungen, Veranstaltungen, Statistik.
+  - **Benutzer**: Benutzerkonten, Anmeldeverlauf (booking-system logins only; club membership records live in the Members area).
+  - **Module**: one entry per registered module with an administration page (Forderungspyramide, Meisterschaft, Auslosungen, Mixed-Turniere), each by its own ability.
+  - **Einstellungen**: Plätze, Texte, Verhalten, Datenbank, Geplante Aufgaben, API-Tokens, WhatsApp, Sicherheit, Test-E-Mail.
 - Items 40px high, `radius-md`; active item filled `clay` with `on-clay` text (replaces the old left-border marker).
 - Content `flex: 999 1 560px`, padding 28px 32px. The row uses `flex-wrap: wrap`, so on phones the sidebar becomes a slide-in menu behind a ☰ button.
-- The inline `onmouseover` styles in the current sidebar are replaced by classes.
+- The same shell and sidebar component serve the Members area and the module area; only the navigation provider (`AreaNavigation`) differs.
+
+#### Security page (`/admin/sicherheit`)
+
+Admin page "Sicherheit" (gate `admin.config`) for the secure sign-in with a device cookie, independent of admin mode.
+- Card with an option group "Sichere Anmeldung", four levels as option tiles (2 columns): **Aus** (password only), **Nur Admins**, **Admins und Bearbeiter** (adds assistants and every account with the members right), **Alle Benutzer**. Help text explains the trusted period in days and that widening the circle makes newly covered users confirm one device by e-mail code.
+- A value fixed in `.env` locks the tiles and shows a help line.
+- Second card "Dieses Gerät": shows whether the current device is confirmed; a button "Dieses Gerät jetzt bestätigen" sends the code. Choosing a level that includes the configuring admin is refused until this device is confirmed (no self lock-out).
+
+#### WhatsApp page (`/admin/whatsapp`)
+
+Admin page "WhatsApp" for the sending service: master switch, templates, budget, usage, connection test and a test message to the admin's own number. Values from `.env` win and show as locked. Members consent on their own account page (see Account).
 
 ## Calendar
 
@@ -159,11 +195,11 @@ Tournament modules and admin sub-areas use tabs below the page title: `padding: 
 ### Toolbar
 - Date as `h1` (`display`, 32px), e.g. "Mittwoch, 4. November 2026". No eyebrow above it.
 - Right: previous day (44px icon button), "Heute", date field, next day; then text buttons "Infos" and "Hinweise".
-- Legend row below: Frei, Meine Buchung, Belegt, Veranstaltung, Turnierspiel, Vergangen (13px, swatch 18×14).
+- No legend row: the page is exactly one screen high. The legend (nine states: Frei, Meine Buchung, Belegt, Abo / Serie, Sucht Mitspieler, Veranstaltung, Platzsperre, Turnierspiel, Vergangen; "Meine Buchung" only when logged in) sits in the "Infos" panel.
 
 ### Desktop grid
 - Time column 60px: hour in 15px bold tabular, "bis 09" 11px `ink-3`, right-aligned, 36px high.
-- One card per day (`surface`, `line`, `radius-lg`, padding 8px), three days side by side, gap 14px; wrapper `overflow-x: auto` with `min-width: 980px`.
+- One card per day (`surface`, `line`, `radius-lg`, padding 8px), gap 14px. The board is a size container: with at least 980px width it shows the selected day and the next two; narrower (down to phones below 48rem) it shows **two days** (`min-width: 680px`, third day hidden) instead of scrolling sideways. The board takes the height left under the toolbar and the 12 hour rows share it (`--cal-cell` 36px is only the minimum; below it the board scrolls).
 - Day header 36px: day name `display` 22px + date 13px `ink-3` on one line; "HEUTE" pill (`#F8E4D9` / `#8F3412`) on today.
 - Court header 34px per court on `ground`: alias 14px bold, "Platz 1" 11px `ink-3` beneath.
 - Rows: 3 cells, gap 4px, cell height 36px.
@@ -174,8 +210,9 @@ Tournament modules and admin sub-areas use tabs below the page title: `padding: 
 |---|---|---|---|
 | Free | `surface`, `1px dashed cell-free-line` | none | `<a href>` with `aria-label` "Court A, 17:00 Uhr buchen" |
 | My booking (`cc-own`) | `clay` | `on-clay` | link to own booking / cancel dialog |
-| Booked / subscription (`cc-single-future`) | `cell-booked` | `ink` | span (link for admins) |
-| Player search (`cc-seeking`, someone else's booking) | `cell-seek` + `box-shadow: inset 0 0 0 2px cell-seek-line` and a person-plus symbol before the search text | `cell-seek-ink`, extra line "Sucht noch N" | link: join dialog (in the player exchange), info dialog (other members), login (guests). An own booking with an open search stays `cc-own` and shows "Sucht noch N Mitspieler" |
+| Booked (`cc-single-future`) | `cell-booked` | `ink`; line 2 lists the other players (members only, never during an open search) | span (link for admins) |
+| Subscription / series (`cc-series`) | tinted fill plus a 4px bar on the left edge (inset shadow) | line 2 "Abo" when no players are shown | as booked |
+| Player search (`cc-seeking`, someone else's booking) | `cell-seek` + `box-shadow: inset 0 0 0 2px cell-seek-line` and a person-plus symbol before the search text | `cell-seek-ink`, extra line "Sucht noch N" in up to three lengths (long, short, tiny), the longest that fits the cell (container query) | link: join dialog (in the player exchange), info dialog (other members), login (guests). An own booking with an open search stays `cc-own` and shows "Sucht noch N Mitspieler" |
 | Event | `court`, joined across hours | `on-court` | first hour 40px with `margin-bottom: -4px`, following hours plain `court` |
 | Tournament match (`cc-turnier`) | `court-soft` + `box-shadow: inset 0 0 0 1px court` | `court-ink` | span |
 | Past (`slot-cell--past`) | `repeating-linear-gradient(135deg, cell-past-a 0 4px, cell-past-b 4px 8px)` | none | span |
@@ -185,6 +222,7 @@ Cell text is **centered horizontally and vertically**: padding 4px 10px, line 1 
 ### Phone
 - One day; header with ‹ day › buttons (44px) and "4. November 2026 · Heute".
 - Sticky court header row (alias + number), time column 52px, cells 48px.
+- The other players show on every view: the full list as detail line on wide boards, on phones as compact names (two lines at most, "+N" after four). On phones the compact names replace the "Mine" label; the full list is in the title and the dialog.
 - Tapping a free cell opens the booking bottom sheet.
 
 ## Booking
@@ -253,6 +291,15 @@ Height `control-h` (46px), `radius-md`, `button` style. On phones `control-h-mob
 ### Icons
 Inline SVG, 24px grid, 2px stroke, `stroke="currentColor"`, round caps. Icon-only buttons need an `aria-label`. No icon library, no emoji, no arrow characters as icons.
 
+## Account
+
+### WhatsApp card ("WhatsApp-Benachrichtigungen")
+
+**File:** `resources/views/account/partials/whatsapp-card.blade.php`; the card is hidden when the service is not available.
+- Card with intro, a "Deine Nummer" section (masked number from the profile, hint that it must be the member's own number, link "Im Profil ändern", notices for reasons such as a changed number or a STOP reply) and a list "Benachrichtigungen".
+- **One row per purpose** of the notification registry: title, description, the consent sentence and, once given, the date; "Mehr erfahren" opens the full consent text.
+- **The switch is the consent.** It is a `role="switch"` button that submits a form: on sends the consent for exactly that purpose and sentence version, off withdraws it at once. It works without JavaScript; a locked row shows a disabled switch with the reason. The result appears as a polite status line in the row, not as a modal.
+
 ## Login
 
 - Two halves (`flex-wrap`): left a `clay` panel with court lines drawn as borders (white at 35–55% opacity), logo and "Dein Platz. Deine Zeit."; right the form, max 420px.
@@ -260,9 +307,11 @@ Inline SVG, 24px grid, 2px stroke, `stroke="currentColor"`, round caps. Icon-onl
 - "Passwort vergessen?" link next to the password label; registration hint in a card below.
 - Phone: clay panel shrinks to a 230px band at the top.
 
-## Tournament modules (ZF2, to be ported)
+## Tournament modules (ported)
 
-Forderungspyramide, Vereinsmeisterschaft, Mixed-/Fun-Turnier and Auslosung use the same tokens and components. Their own CSS prefixes (`pyr-`, `tn-`, `mx-`) map to the tokens above; their "Desktop / Handy" view switch is removed because every page is responsive.
+The tournament areas are Laravel modules (`app/Modules/Pyramid`, `Tournament`, `MixedTournament`, `Draw`, shared code in `TournamentBase`) and use the same tokens and components. Names in the interface: **Forderungspyramide** (Pyramide), **Meisterschaft** (the club championship; "Vereinsmeisterschaft" is no longer used), **Mixed-/Fun-Turnier** (administration: "Mixed-Turniere"), **Auslosung** (administration: "Auslosungen"). Navigation is one sidebar per module (see Module sidebar). Their CSS prefixes (`pyr-`, `tn-`, `mx-`) map to the tokens above; the old "Desktop / Handy" view switch is gone because every page is responsive.
+
+The table records how the former colors were mapped:
 
 | Old meaning | Old color | New token |
 |---|---|---|
@@ -296,7 +345,7 @@ All components live under `resources/views/components/`.
 | Component | Path | Purpose |
 |---|---|---|
 | Header | `layout/header.blade.php` | Logo, navigation, action buttons; carries class `no-print` |
-| Admin sidebar | `layout/admin-sidebar.blade.php` | Dark sidebar with grouped navigation |
+| Admin sidebar | `layout/admin-sidebar.blade.php` | Dark sidebar with grouped navigation; shared by administration, Members and module areas (`area` prop) |
 | Calendar grid | `calendar/grid.blade.php` | Booking table; cell clicks via Alpine `$dispatch('open-booking', {...})` |
 | Calendar modals | `calendar/modals.blade.php` | All modals in the booking flow (create booking, cancel, feedback, admin iframe) |
 
@@ -327,6 +376,14 @@ Order is always: date start → time start → date end → time end, in a 2-col
 ### Members module
 
 The Members module (`app/Modules/Members`, views under `members::`) uses the same tokens plus two Alpine patterns: inline edit-in-place in list tables (`PATCH` to `*.update-field`, brief checkmark, Escape cancels) and the mail composer with templates, dynamic audiences (`MailController::audienceDefinitions()`) and a server-rendered preview.
+
+**Side menu (since 2026-11-06).** Members pages use the admin shell (`members::layout` extends `layouts.admin` and fills `admin-sidebar`) with the same sidebar component (`x-layout.admin-sidebar`, props `groups`, `eyebrow`, `label`) but their own navigation from `MembersNavigation::groups()`:
+
+- Brand block (logo, club name, eyebrow "MITGLIEDER") and "Zum Kalender" exactly as in the admin sidebar; user alias and "Abmelden" at the foot.
+- Two groups as in the Mitglieder-* mockups (2026-11-06): **Mitglieder** (Übersicht, Mitglieder, Beiträge, Rundmail, Protokoll) and **Einstellungen** (Fiskaljahre, Beitragskategorien, Funktionen, Mail-Einstellungen, DSGVO), always visible, items as in the admin sidebar. Every entry needs `admin.members` (the gate of all `/members/*` routes); a group without a visible entry is left out.
+- Exactly one item carries `aria-current="page"` (clay fill).
+- Phones (< 48rem): the admin top bar (☰ button with `aria-controls="admin-nav"`/`aria-expanded`, eyebrow "MITGLIEDERVERWALTUNG", page title, calendar icon), the slide-in sidebar with backdrop, `inert` on bar and content while open, Escape/backdrop/✕ close. The page head's eyebrow is hidden and its h1 is visually hidden (the bar shows the title); a head with no visible action leaves the flow. The bottom action bar ("Mitglied anlegen", "Speichern") stays.
+- No tab row and no settings chip row under the page head any more. The app header ("Mitglieder" before "Administration") is not part of the shell, as on the admin pages; its active state (`MainNavigation`, `members.*` lights "Mitglieder") is unchanged for the pages that show it.
 
 ### Loading and feedback
 

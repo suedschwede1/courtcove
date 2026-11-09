@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-09
+- Design documentation brought up to date: header menu with module dropdown, sidebar per module, module overview and registry, two-day calendar board, WhatsApp account card, security page.
 - Assets rebuilt over the whole tree for the modules overview grid (.ds-module-grid).
 - Menu: the running championship is looked up once per request instead of up to three times (menu, module overview, sidebar); nothing is kept between requests, so a created or finished championship shows at once.
 - Championship: the admin page title, the sidebar entry "Leitung" and the login hint now say "Meisterschaft" (en "Championship"); unused menu texts removed. The module overview card grid is one column on phones (CSS source only, asset build pending).
