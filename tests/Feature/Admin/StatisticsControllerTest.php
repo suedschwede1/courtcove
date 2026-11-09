@@ -82,7 +82,7 @@ class StatisticsControllerTest extends TestCase
     #[Test]
     public function shows_bookings_from_last_calendar_month_via_reservation_dates(): void
     {
-        $user = User::factory()->create(['alias' => 'Helga Miglbauer', 'status' => 'enabled']);
+        $user = User::factory()->create(['alias' => 'Helga Muster', 'status' => 'enabled']);
         $lastMonthDate = now()->subMonthNoOverflow()->startOfMonth()->addDays(3)->toDateString();
         $thisMonthDate = now()->startOfMonth()->addDays(3)->toDateString();
 
@@ -103,7 +103,7 @@ class StatisticsControllerTest extends TestCase
     #[Test]
     public function shows_the_most_booked_court_per_user(): void
     {
-        $user = User::factory()->create(['alias' => 'Sandra Wenigwieser', 'status' => 'enabled']);
+        $user = User::factory()->create(['alias' => 'Sandra Weiss', 'status' => 'enabled']);
         $courtA = Square::factory()->create(['name' => '1']);
         $courtB = Square::factory()->create(['name' => '2']);
 
@@ -119,7 +119,7 @@ class StatisticsControllerTest extends TestCase
     #[Test]
     public function shows_cancellation_rate_per_user(): void
     {
-        $user = User::factory()->create(['alias' => 'Gerhard Bichlwagner', 'status' => 'enabled']);
+        $user = User::factory()->create(['alias' => 'Gerhard Beispiel', 'status' => 'enabled']);
         Booking::factory()->create(['uid' => $user->uid, 'status' => 'single']);
         Booking::factory()->create(['uid' => $user->uid, 'status' => 'cancelled']);
         Booking::factory()->create(['uid' => $user->uid, 'status' => 'cancelled']);
