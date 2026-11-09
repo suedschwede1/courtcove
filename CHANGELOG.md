@@ -9,6 +9,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-09
+- Menu: the running championship is looked up once per request instead of up to three times (menu, module overview, sidebar); nothing is kept between requests, so a created or finished championship shows at once.
 - Championship: the admin page title, the sidebar entry "Leitung" and the login hint now say "Meisterschaft" (en "Championship"); unused menu texts removed. The module overview card grid is one column on phones (CSS source only, asset build pending).
 - Modules: the developer guide `docs/modules.md` ("new module in 10 steps") describes how a module registers; a module right that clashes with a core or another module's right is refused at registration.
 - Modules: the menu entry and administration group "Turniere" are now "Module" (new overview page `/modules`); the club championship is called "Meisterschaft" in menu and administration. Modules register themselves in a registry, so a new module appears in menu, overview, administration group and rights list without touching the core navigation (see `docs/modules.md`). URLs are unchanged; the module order in menu and overview is now Pyramid, Meisterschaft, Mixed.

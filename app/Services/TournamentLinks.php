@@ -16,9 +16,39 @@ use Illuminate\Support\Facades\DB;
 class TournamentLinks
 {
     /**
+     * Lookup result of the current request (null result included), keyed by the request object, so a new request
+     * starts without it. The class is bound scoped as well, so a queue worker starts every job without it.
+     *
+     * @var \WeakMap<object, mixed>|null
+     */
+    private ?\WeakMap $perRequest = null;
+
+    /**
+     * The running championship, looked up once per request (menu, module overview and sidebar all ask for it);
+     * nothing is remembered beyond the request.
+     *
      * @return array{title: string, url: string}|null
      */
     public function currentChampionship(): ?array
+    {
+        $request = request();
+        $this->perRequest ??= new \WeakMap;
+
+        // Wrapped in a list so that "no championship" (null) counts as remembered too.
+        if (! isset($this->perRequest[$request])) {
+            $this->perRequest[$request] = [$this->lookupChampionship()];
+        }
+
+        /** @var array{0: array{title: string, url: string}|null} $remembered */
+        $remembered = $this->perRequest[$request];
+
+        return $remembered[0];
+    }
+
+    /**
+     * @return array{title: string, url: string}|null
+     */
+    private function lookupChampionship(): ?array
     {
         try {
             $tournament = DB::table('bs_tournaments')
