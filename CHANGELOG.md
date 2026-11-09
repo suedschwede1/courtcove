@@ -10,6 +10,7 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 
 ## 2026-11-09
 
+- LICENSE clause 2 (German and English): use by non-profit clubs for their own operation (membership, court and tournament fees) is expressly permitted; sale, rental, paid hosting/SaaS and inclusion in paid products stay prohibited; other commercial use needs written permission.
 - License block: `composer.json` license is `proprietary` (matches LICENSE), LICENSE is bilingual (German authoritative), upstream copyright line includes the year, contact address spelling corrected, third-party notice, README license paragraph.
 - CourtCove brand block (name and tagline) under all sign-in forms and " – CourtCove" in their tab titles, both from `booking.product_name`/`product_tagline`; tennis-only wording and a Credits section (ep3-bs) in the README.
 - Product name CourtCove (tagline: Your club. Your court. Your game.): one config entry `booking.product_name`, README/AGENTS/composer/docs retitled, "Powered by CourtCove" line on the sign-in pages, calendar info card label, `APP_NAME` default and `.env.example`. The club name in the header and mails is unchanged.
