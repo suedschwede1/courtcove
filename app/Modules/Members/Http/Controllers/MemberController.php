@@ -43,6 +43,8 @@ class MemberController
             fn (FiscalYear $fiscalYear) => now()->between($fiscalYear->starts_on, $fiscalYear->ends_on),
         ) ?? $fiscalYears->last();
 
+        $currentFiscalYear = $fiscalYears->firstWhere('id', $filter->fiscalYear) ?? $currentFiscalYear;
+
         $query = Member::query()->with([
             'feeCategory',
             'dues' => fn ($dues) => $dues->where('fiscal_year_id', $currentFiscalYear->id ?? 0)->withExists('payments'),
@@ -50,7 +52,7 @@ class MemberController
             'household.members',
             'coveringHouseholdDues' => fn ($dues) => $dues->wherePivot('fiscal_year_id', $currentFiscalYear->id ?? 0)->withExists('payments')->with('household.members'),
         ]);
-        $filter->apply($query);
+        $filter->apply($query, $currentFiscalYear->id ?? 0);
 
         $members = $query->orderBy('lastname')->orderBy('firstname')->orderBy('id')
             ->paginate(25)
@@ -93,10 +95,18 @@ class MemberController
             'city' => ['nullable', 'string', 'max:128'],
             'fee_category_id' => ['nullable', FeeCategory::assignableRule()],
             'joined_at' => ['required', 'date'],
+            'left_at' => ['nullable', 'date'],
+            'notiz' => ['nullable', 'string', 'max:5000'],
+            'club_roles' => ['array'],
+            'club_roles.*' => ['integer', 'distinct', 'exists:club_roles,id'],
         ]);
 
         DB::transaction(function () use ($request, $validated) {
-            $member = Member::create($validated);
+            $member = Member::create(collect($validated)->except(['club_roles', 'left_at'])->all());
+            $member->setLeftAt($validated['left_at'] ?? null);
+            if ($member->left_at !== null) {
+                app(MemberDepartureAccounts::class)->handle($member);
+            }
             $member->clubRoles()->sync($request->input('club_roles', []));
             $this->logChange($member, 'created', null);
         });
@@ -181,12 +191,14 @@ class MemberController
             'joined_at' => ['required', 'date'],
             'left_at' => ['nullable', 'date'],
             'notiz' => ['nullable', 'string', 'max:5000'],
+            'club_roles' => ['array'],
+            'club_roles.*' => ['integer', 'distinct', 'exists:club_roles,id'],
         ]);
 
         $leftAt = $validated['left_at'] ?? null;
-        unset($validated['left_at']);
+        unset($validated['left_at'], $validated['club_roles']);
 
-        $before = $member->toArray();
+        $before = $member->auditSnapshot();
         $departs = $before['left_at'] === null && $leftAt !== null;
 
         DB::transaction(function () use ($request, $member, $validated, $before, $leftAt, $departs) {
@@ -249,7 +261,7 @@ class MemberController
             return response()->json(['message' => __('members::admin.members.anonymize_field_locked')], 422);
         }
 
-        $before = $member->toArray();
+        $before = $member->auditSnapshot();
         $departs = $validated['field'] === 'left_at' && $before['left_at'] === null && $validated['value'] !== null;
 
         try {
@@ -325,7 +337,7 @@ class MemberController
             return redirect()->route('members.edit', $member)->withErrors($validator);
         }
 
-        $before = $member->toArray();
+        $before = $member->auditSnapshot();
 
         $accountResult = null;
         DB::transaction(function () use ($member, $before, &$accountResult) {
@@ -344,6 +356,7 @@ class MemberController
                 'city' => null,
                 'nuliga_id' => null,
                 'user_id' => null,
+                'notiz' => null,
                 'anonymized_at' => now(),
             ]);
             $this->logChange($member, 'anonymized', $before);

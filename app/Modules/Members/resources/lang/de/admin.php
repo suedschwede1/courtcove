@@ -3,6 +3,24 @@
 declare(strict_types=1);
 
 return [
+    'review' => [
+        'menu' => 'Menü',
+        'preview' => 'Vorschau anzeigen',
+        'generation_report' => 'Ergebnis der Beitragsvorschreibung',
+        'preview_hint' => 'Vorschau: Es wurden keine Beiträge angelegt.',
+        'reason_ready' => 'Wird erstellt',
+        'reason_created' => 'Erstellt',
+        'reason_existing' => 'Bereits vorhanden',
+        'reason_no_category' => 'Keine Beitragskategorie',
+        'reason_no_rate' => 'Kein Jahrestarif',
+        'reason_not_eligible' => 'Im Zieljahr nicht beitragsberechtigt',
+        'mail_status' => 'Versandstatus',
+        'mail_queued' => 'In Warteschlange',
+        'mail_submitted' => 'An Mailtransport übergeben',
+        'mail_failed' => 'Versand fehlgeschlagen',
+        'mail_unknown' => 'Historisch: Status unbekannt',
+    ],
+
     'area' => [
         'eyebrow' => 'Mitgliederverwaltung',
         'nav' => 'Mitgliederverwaltung',
@@ -206,6 +224,8 @@ return [
         'not_per_member' => 'Die Beitragskategorie „:name“ gilt pauschal pro Haushalt und kann keinem einzelnen Mitglied zugeordnet werden.',
     ],
     'dues' => [
+        'payment_locked' => 'Zahlungsgebundene Beiträge zuerst über die Zahlungshistorie stornieren.',
+        'import_missing_rate' => 'Mitglied :member, Jahr :year: kein Tarif; Beitrag nicht angelegt. Nach Tarifpflege Import erneut ausführen.',
         'generate_skipped_deactivated' => ':count Mitglied(er) übersprungen, weil die Beitragskategorie deaktiviert ist.',
         'title' => 'Beiträge',
         'new' => 'Beitrag manuell anlegen',
@@ -359,6 +379,12 @@ return [
         'confirm_delete' => 'Diese Funktion wirklich löschen?',
     ],
     'mail' => [
+        'invalid_import_email' => 'CSV-Zeile :row: ungültige E-Mail-Adresse :email. Import nicht ausgeführt.',
+        'invalid_recipients' => 'Ungültige Empfängeradressen: :addresses. Bitte zuerst die Mitgliederdaten korrigieren.',
+        'no_recipients' => 'Die Auswahl enthält keine Empfänger.',
+        'sender_characters' => 'Der Absendername darf keine Emoji oder andere Vierbyte-Zeichen enthalten.',
+        'send_failed' => 'Versand fehlgeschlagen. Bitte Versandhistorie und Mailkonfiguration prüfen.',
+        'queued' => 'Rundmail für :count Empfänger eingereiht. Der Versandstatus steht in der Historie.',
         'title' => 'Rundmail',
         'config_title' => 'Mail-Konfiguration',
         'bcc' => 'BCC',

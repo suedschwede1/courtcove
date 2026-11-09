@@ -61,6 +61,15 @@ class ImportMembersCommand extends Command
             return self::FAILURE;
         }
 
+        foreach ($rows as $index => $row) {
+            $email = $this->nullable($row['Email'] ?? '');
+            if ($email !== null && ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $this->error(__('members::admin.mail.invalid_import_email', ['row' => $index + 2, 'email' => $email]));
+
+                return self::FAILURE;
+            }
+        }
+
         $joinedAt = (string) ($this->option('joined-at') ?: now()->toDateString());
         $currentYear = now()->year;
 
@@ -207,11 +216,16 @@ class ImportMembersCommand extends Command
             $amount = FeeCategoryRate::query()
                 ->where('fee_category_id', $category->id)
                 ->where('fiscal_year_id', $fiscalYear->id)
-                ->value('amount') ?? 0;
+                ->value('amount');
+            if ($amount === null) {
+                $this->warn(__('members::admin.dues.import_missing_rate', ['member' => $member->fullName(), 'year' => $year]));
+
+                continue;
+            }
 
             $due = MemberDue::firstOrCreate(
                 ['member_id' => $member->id, 'fiscal_year_id' => $fiscalYear->id],
-                ['fee_category_id' => $category->id, 'amount' => $amount],
+                ['fee_category_id' => $category->id, 'amount' => $amount, 'faellig_am' => $fiscalYear->faellig_am ?? $fiscalYear->starts_on],
             );
 
             if ($due->wasRecentlyCreated) {
@@ -226,6 +240,7 @@ class ImportMembersCommand extends Command
                     'note' => 'CSV-Import: '.trim($row['MB'] ?? ''),
                 ]);
                 $due->payments()->attach($payment);
+                $due->update(['status' => 'bezahlt', 'bezahlt_am' => $payment->paid_at]);
             }
         }
 

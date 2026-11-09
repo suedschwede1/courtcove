@@ -543,6 +543,8 @@ final class DatabaseSchemaChecker
                 'updated_at' => fn (Blueprint $t) => $t->timestamp('updated_at')->nullable(),
             ],
             'mail_sends' => [
+                'status' => fn (Blueprint $t) => $t->string('status', 20)->default('unknown'),
+                'submitted_at' => fn (Blueprint $t) => $t->timestamp('submitted_at')->nullable(),
                 'id' => fn (Blueprint $t) => $t->id(),
                 'sent_by_user_id' => fn (Blueprint $t) => $t->unsignedInteger('sent_by_user_id')->nullable(),
                 'audience_key' => fn (Blueprint $t) => $t->string('audience_key', 128),

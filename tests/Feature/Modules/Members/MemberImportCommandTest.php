@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Modules\Members;
 
 use App\Modules\Members\Models\FeeCategory;
+use App\Modules\Members\Models\FeeCategoryRate;
 use App\Modules\Members\Models\FiscalYear;
 use App\Modules\Members\Models\Member;
 use App\Modules\Members\Models\MemberDue;
@@ -15,6 +16,19 @@ use Tests\TestCase;
 class MemberImportCommandTest extends TestCase
 {
     use LazilyRefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // A missing rate is no longer a zero-price tariff. These import scenarios use configured rates.
+        foreach ([now()->year - 1, now()->year] as $year) {
+            $fiscalYear = FiscalYear::create(['name' => (string) $year, 'starts_on' => "$year-01-01", 'ends_on' => "$year-12-31"]);
+            foreach (['Vollzahler', 'Pensionisten'] as $name) {
+                $category = FeeCategory::firstOrCreate(['name' => $name]);
+                FeeCategoryRate::create(['fee_category_id' => $category->id, 'fiscal_year_id' => $fiscalYear->id, 'amount' => 120]);
+            }
+        }
+    }
 
     private function writeCsv(): string
     {

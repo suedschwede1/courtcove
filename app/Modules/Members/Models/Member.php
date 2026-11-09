@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Validation\ValidationException;
 
 /**
  * @property int $id
@@ -50,6 +51,49 @@ class Member extends Model
 
     /** Oldest age that still counts as youth (overview figure and the "Jugend" list filter). */
     public const YOUTH_MAX_AGE = 18;
+
+    /** Fields removed by anonymization; none may be restored by ordinary updates. */
+    public const ANONYMIZED_FIELDS = ['firstname', 'lastname', 'email', 'phone', 'street', 'zip', 'city', 'nuliga_id', 'user_id', 'notiz'];
+
+    protected static function booted(): void
+    {
+        static::updated(function (self $member): void {
+            if ($member->wasChanged('anonymized_at') && $member->anonymized_at !== null) {
+                // Scrub every old copy, while preserving the audit event itself.
+                MemberChange::where('member_id', $member->id)->each(function (MemberChange $change): void {
+                    $change->save();
+                });
+            }
+        });
+    }
+
+    /** Capture role names as well as IDs so later renames/deletions do not rewrite history. */
+    public function auditSnapshot(): array
+    {
+        return [...$this->attributesToArray(), 'club_roles' => $this->clubRoles()->orderBy('club_roles.id')->get()
+            ->map(fn (ClubRole $role): string => $role->name.' (#'.$role->id.')')->implode(', ')];
+    }
+
+    public function save(array $options = []): bool
+    {
+        if (! $this->exists) {
+            return parent::save($options);
+        }
+
+        return $this->getConnection()->transaction(function () use ($options): bool {
+            // Route binding and importers may hold an instance loaded before
+            // another request anonymized it. Serialize against that transition.
+            $stored = static::query()->whereKey($this->getKey())->lockForUpdate()->first();
+            if ($stored?->anonymized_at !== null
+                && ($this->isDirty(self::ANONYMIZED_FIELDS) || $this->isDirty('anonymized_at'))) {
+                throw ValidationException::withMessages([
+                    'member' => __('members::admin.members.anonymize_field_locked'),
+                ]);
+            }
+
+            return parent::save($options);
+        });
+    }
 
     protected $fillable = [
         'member_number', 'nuliga_id', 'user_id', 'firstname', 'lastname', 'birthdate', 'gender',
@@ -283,6 +327,9 @@ class Member extends Model
     /** Setzt das Austrittsdatum und leitet daraus automatisch den Status ab: gesetzt = ausgetreten, geleert = aktiv. */
     public function setLeftAt(?string $date): void
     {
+        if ($date === $this->left_at?->toDateString()) {
+            return;
+        }
         $this->update([
             'left_at' => $date,
             'status' => $date === null ? 'aktiv' : 'ausgetreten',

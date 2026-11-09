@@ -27,6 +27,7 @@ class MembersServiceProvider extends ServiceProvider
                 Console\BackfillPaidOnCommand::class,
                 Console\DeactivateLeftAccountsCommand::class,
                 Console\ImportMembersCommand::class,
+                Console\ReconcileDuesCommand::class,
                 Console\ImportNuligaLicenseCommand::class,
             ]);
         }

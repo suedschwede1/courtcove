@@ -65,6 +65,9 @@
         @endforeach
     </div>
     <x-ui.disclosure class="mbr-more-filters" :summary="__('members::admin.common.more_filters')" :open="$filter->hasMoreFilters()">
+        <x-ui.field class="mbr-filters__field" :label="__('members::admin.fiscal_years.title')" for="mi-fiscal-year">
+            <x-ui.select name="fiscal_year_id" :options="$fiscalYears->pluck('name', 'id')->all()" :selected="(string) ($currentFiscalYear->id ?? '')" />
+        </x-ui.field>
         <x-ui.field class="mbr-filters__field" :label="__('members::admin.members.fee_category')" for="mi-fee-category">
             <x-ui.select name="fee_category" :options="$feeCategories->pluck('name', 'id')->all()" :selected="(string) ($filter->feeCategory ?? '')" :placeholder="__('members::admin.common.all')" />
         </x-ui.field>

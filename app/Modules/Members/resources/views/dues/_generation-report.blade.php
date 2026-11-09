@@ -6,6 +6,7 @@
     use App\Modules\Members\Support\DuesGenerationReport;
 @endphp
 <x-ui.notice :tone="$report->skippedCount() === 0 ? 'good' : 'attention'" data-testid="dues-generation-report">
+    @if(session('dues_report_preview'))<p>{{ __('members::admin.review.preview_hint') }}</p>@endif
     <p class="m-0">
         {{ __('members::admin.dues.report.summary', ['year' => $report->yearName, 'total' => $report->total(), 'members' => $report->createdMembers, 'households' => $report->createdHouseholds]) }}
         @if($report->createdFromMemberCategory > 0)

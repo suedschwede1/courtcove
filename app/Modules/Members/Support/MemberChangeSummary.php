@@ -28,6 +28,8 @@ final class MemberChangeSummary
 
     /** field => label key */
     private const LABELS = [
+        'club_roles' => 'members::admin.members.club_roles',
+        'due' => 'members::admin.dues.title',
         'member_number' => 'members::admin.members.member_number',
         'nuliga_id' => 'members::admin.members.nuliga_id',
         'firstname' => 'members::admin.members.firstname',

@@ -8,6 +8,7 @@ use App\Modules\Members\Models\Payment;
 use App\Modules\Members\Support\MembersFormat;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Shared status rules of a due (member due and household due): paid, open, overdue, the displayed
@@ -20,9 +21,35 @@ trait HasDueStatus
     /** @return BelongsToMany<Payment, $this> */
     abstract public function payments(): BelongsToMany;
 
+    public function save(array $options = []): bool
+    {
+        if (! $this->exists) {
+            return parent::save($options);
+        }
+
+        return $this->getConnection()->transaction(function () use ($options): bool {
+            static::whereKey($this->getKey())->lockForUpdate()->first();
+            if ($this->isDirty('amount') && $this->payments()->lockForUpdate()->first() !== null) {
+                throw ValidationException::withMessages(['amount' => __('members::admin.dues.payment_locked')]);
+            }
+
+            return parent::save($options);
+        });
+    }
+
     public function isPaid(): bool
     {
-        return $this->status === 'bezahlt' || $this->payments()->exists();
+        if ($this->status === 'bezahlt') {
+            return true;
+        }
+        if (! $this->exists) {
+            return false;
+        }
+        if (array_key_exists('payments_exists', $this->getAttributes())) {
+            return (bool) $this->getAttribute('payments_exists');
+        }
+
+        return $this->relationLoaded('payments') ? $this->payments->isNotEmpty() : $this->payments()->exists();
     }
 
     /**
@@ -51,7 +78,7 @@ trait HasDueStatus
      */
     public function scopeOverdue(Builder $query): Builder
     {
-        return $query->where(function (Builder $query): void {
+        return $this->scopeOpen($query)->where(function (Builder $query): void {
             $query->where('status', 'ueberfaellig')
                 ->orWhere(function (Builder $query): void {
                     $query->where('status', 'ausstehend')
@@ -94,6 +121,9 @@ trait HasDueStatus
     /** Der angezeigte Status: "ausstehend" mit verstrichenem Fälligkeitsdatum gilt automatisch als "überfällig". */
     public function displayStatus(): string
     {
+        if ($this->isPaid()) {
+            return 'bezahlt';
+        }
         if ($this->status === 'ausstehend' && $this->faellig_am !== null && $this->faellig_am->endOfDay()->isPast()) {
             return 'ueberfaellig';
         }

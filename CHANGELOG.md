@@ -9,6 +9,9 @@ When adding an entry: describe the *why*/user-facing effect in one line, not the
 `git log` already has that. Add new entries at the top, under today's date.
 
 ## 2026-11-09
+
+- Integrate reviewed member privacy, role audit, tariff import, payment consistency and mail outcome fixes without replacing Stage household billing, cancellation, closed-year rules or the mobile design; add annual preview and regression coverage.
+
 - Design documentation brought up to date: header menu with module dropdown, sidebar per module, module overview and registry, two-day calendar board, WhatsApp account card, security page.
 - Assets rebuilt over the whole tree for the modules overview grid (.ds-module-grid).
 - Menu: the running championship is looked up once per request instead of up to three times (menu, module overview, sidebar); nothing is kept between requests, so a created or finished championship shows at once.

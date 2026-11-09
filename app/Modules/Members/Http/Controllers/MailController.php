@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class MailController
 {
@@ -86,15 +87,18 @@ class MailController
         $sender = $this->validatedSender();
         $addresses = $this->recipientAddresses($validated['audience']);
 
-        if ($addresses->isNotEmpty()) {
-            Mail::bcc($addresses->all())
-                ->queue((new MemberBulkMail($validated['subject'], $validated['body']))
-                    ->from($sender['address'], $sender['name']));
+        $invalid = $addresses->filter(fn (string $address): bool => ! filter_var($address, FILTER_VALIDATE_EMAIL));
+        if ($invalid->isNotEmpty()) {
+            throw ValidationException::withMessages(['audience' => __('members::admin.mail.invalid_recipients', ['addresses' => $invalid->implode(', ')])]);
         }
+        if ($addresses->isEmpty()) {
+            throw ValidationException::withMessages(['audience' => __('members::admin.mail.no_recipients')]);
+        }
+        $send = null;
 
         $definition = $this->audienceDefinitions()[$validated['audience']];
         if ($this->mailSendsTableExists()) {
-            MailSend::create([
+            $send = MailSend::create([
                 'sent_by_user_id' => auth()->user()?->uid,
                 'audience_key' => $validated['audience'],
                 'audience_label' => $definition['label'],
@@ -103,17 +107,31 @@ class MailController
                 'from_address' => $sender['address'],
                 'subject' => $validated['subject'],
                 'body' => $validated['body'],
+                'status' => 'queued',
             ]);
         }
 
+        try {
+            Mail::bcc($addresses->all())->queue((new MemberBulkMail($validated['subject'], $validated['body'], $send?->id))
+                ->from($sender['address'], $sender['name']));
+        } catch (\Throwable $exception) {
+            $send?->update(['status' => 'failed']);
+            report($exception);
+            throw ValidationException::withMessages(['audience' => __('members::admin.mail.send_failed')]);
+        }
+
         return redirect()->route('members.mail.index')
-            ->with('success', __('members::admin.mail.sent', ['count' => $addresses->count()]));
+            ->with('success', __('members::admin.mail.queued', ['count' => $addresses->count()]));
     }
 
     public function updateSender(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'from_name' => ['required', 'string', 'max:128'],
+            'from_name' => ['required', 'string', 'max:128', function (string $attribute, mixed $value, \Closure $fail): void {
+                if (is_string($value) && preg_match('/[\x{10000}-\x{10FFFF}]/u', $value)) {
+                    $fail(__('members::admin.mail.sender_characters'));
+                }
+            }],
             'from_address' => ['required', 'email', 'max:128'],
         ]);
 

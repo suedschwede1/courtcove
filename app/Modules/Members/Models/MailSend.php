@@ -22,7 +22,11 @@ class MailSend extends Model
         'from_address',
         'subject',
         'body',
+        'status',
+        'submitted_at',
     ];
+
+    protected $casts = ['submitted_at' => 'datetime'];
 
     /** @return BelongsTo<User, $this> */
     public function sender(): BelongsTo

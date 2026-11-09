@@ -25,7 +25,7 @@ final class MemberChangeLogger
             'admin_user_id' => auth()->id(),
             'action' => $action,
             'before' => $before,
-            'after' => [...($member->fresh()?->toArray() ?? $member->toArray()), ...$afterExtra],
+            'after' => [...($member->fresh()?->auditSnapshot() ?? $member->auditSnapshot()), ...$afterExtra],
         ]);
     }
 
@@ -36,6 +36,6 @@ final class MemberChangeLogger
      */
     public static function snapshot(Member $member): array
     {
-        return $member->fresh()?->toArray() ?? $member->withoutRelations()->toArray();
+        return $member->fresh()?->auditSnapshot() ?? $member->auditSnapshot();
     }
 }

@@ -204,6 +204,7 @@
                     <th scope="col">{{ __('members::admin.mail.audience') }}</th>
                     <th scope="col">{{ __('members::admin.mail.subject') }}</th>
                     <th scope="col">{{ __('members::admin.mail.recipients') }}</th>
+                    <th scope="col">{{ __('members::admin.review.mail_status') }}</th>
                 </tr>
             </x-slot:head>
             @forelse($mailSendItems as $mailSend)
@@ -211,11 +212,12 @@
                     <td class="tabular-nums" data-label="{{ __('members::admin.mail.sent_at') }}">{{ $mailSend->created_at?->format('d.m.Y H:i') }}</td>
                     <td class="text-ink-2" data-label="{{ __('members::admin.mail.sent_by') }}">{{ $mailSend->sender?->alias ?? '—' }}</td>
                     <td class="text-ink-2" data-label="{{ __('members::admin.mail.audience') }}">{{ $mailSend->audience_label }}</td>
+                    <td>{{ __('members::admin.review.mail_'.($mailSend->status ?? 'unknown')) }}</td>
                     <td class="ds-cell--title" data-label="{{ __('members::admin.mail.subject') }}">{{ $mailSend->subject }}</td>
                     <td class="tabular-nums" data-label="{{ __('members::admin.mail.recipients') }}">{{ $mailSend->recipient_count }}</td>
                 </tr>
             @empty
-                <tr><td colspan="5" class="text-ink-2">{{ __('members::admin.mail.no_history') }}</td></tr>
+                <tr><td colspan="6" class="text-ink-2">{{ __('members::admin.mail.no_history') }}</td></tr>
             @endforelse
         </x-ui.table>
     </x-ui.card>

@@ -61,6 +61,10 @@ abstract class DuskTestCase extends BaseTestCase
             $options->setBinary($binary);
         }
 
+        if ($profile = env('DUSK_CHROME_USER_DATA_DIR')) {
+            $options->addArguments(['--user-data-dir='.$profile]);
+        }
+
         return RemoteWebDriver::create(
             $_ENV['DUSK_DRIVER_URL'] ?? env('DUSK_DRIVER_URL') ?? 'http://localhost:9515',
             DesiredCapabilities::chrome()->setCapability(

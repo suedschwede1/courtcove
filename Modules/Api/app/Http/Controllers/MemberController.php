@@ -19,6 +19,7 @@ class MemberController extends ApiController
 
         $member = DB::transaction(function () use ($request, $validated): Member {
             $member = Member::create($validated);
+            $member->setLeftAt($request->validated()['left_at'] ?? null);
             $member->clubRoles()->sync($request->input('club_roles', []));
             $this->logChange($member, 'created', null);
 
@@ -31,13 +32,15 @@ class MemberController extends ApiController
     public function update(MemberRequest $request, Member $member): JsonResponse
     {
         $validated = collect($request->validated())->except(['left_at', 'club_roles'])->all();
-        $leftAt = $request->validated()['left_at'] ?? null;
-        $before = $member->toArray();
+        $leftAt = $request->has('left_at') ? $request->validated()['left_at'] : $member->left_at?->toDateString();
+        $before = $member->auditSnapshot();
         $departs = $before['left_at'] === null && $leftAt !== null;
 
         DB::transaction(function () use ($request, $member, $validated, $before, $leftAt, $departs): void {
             $member->update($validated);
-            $member->clubRoles()->sync($request->input('club_roles', []));
+            if ($request->has('club_roles')) {
+                $member->clubRoles()->sync($request->validated()['club_roles']);
+            }
             $member->setLeftAt($leftAt);
             $this->logChange($member, $departs ? 'departed' : 'updated', $before);
         });
@@ -52,7 +55,7 @@ class MemberController extends ApiController
             'admin_user_id' => auth()->id(),
             'action' => $action,
             'before' => $before,
-            'after' => $member->fresh()->toArray(),
+            'after' => $member->fresh()->auditSnapshot(),
         ]);
     }
 }

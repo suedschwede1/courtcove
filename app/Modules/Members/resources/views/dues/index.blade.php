@@ -64,6 +64,7 @@
         <x-ui.field class="mbr-filters__field" :label="__('members::admin.dues.generate_year')" for="due-generate-year" :error="$errors->first('fiscal_year_id')">
             <x-ui.select name="fiscal_year_id" :options="$generateFiscalYears->pluck('name', 'id')->all()" :selected="(string) $generateFiscalYearId" x-model="fiscalYearId" />
         </x-ui.field>
+        <x-ui.button type="submit" variant="secondary" :block="false" name="preview" value="1">{{ __('members::admin.review.preview') }}</x-ui.button>
         <x-ui.button type="submit" :block="false" x-text="label">{{ __('members::admin.dues.generate_for', ['year' => $generateFiscalYear->name ?? '']) }}</x-ui.button>
         @unless($yearClosed)
             <x-ui.button variant="secondary" :block="false" icon="plus" class="mbr-dues-tools__toggle" aria-controls="due-compose" x-bind:aria-expanded="composing.toString()" x-on:click="composing = !composing">{{ __('members::admin.dues.new') }}</x-ui.button>

@@ -211,7 +211,7 @@ class MemberDueController
 
         // DuesGenerator runs in one transaction with the year row locked first: a close since validation
         // refuses the whole run, and a close requested meanwhile waits until the dues are committed.
-        $report = app(DuesGenerator::class)->generate($newFiscalYear);
+        $report = app(DuesGenerator::class)->generate($newFiscalYear, $request->boolean('preview'));
 
         $message = __('members::admin.dues.generated', ['count' => $report->total()]);
         // With no rate at all, say why nothing happened.
@@ -225,7 +225,8 @@ class MemberDueController
 
         return redirect()->route('members.dues.index', ['fiscal_year_id' => $fiscalYearId])
             ->with('status', $message)
-            ->with('dues_report', $report->toArray());
+            ->with('dues_report', $report->toArray())
+            ->with('dues_report_preview', $request->boolean('preview'));
     }
 
     /**

@@ -64,6 +64,7 @@ class PaymentController
             'member_due_ids' => ['required_without:household_due_ids', 'array', 'min:1'],
             'member_due_ids.*' => [
                 'integer',
+                'distinct',
                 'exists:member_dues,id,member_id,'.$member->id,
                 function (string $attribute, mixed $value, callable $fail): void {
                     $isAlreadyPaid = MemberDue::query()
@@ -90,6 +91,7 @@ class PaymentController
             'household_due_ids' => ['nullable', 'array', 'min:1'],
             'household_due_ids.*' => [
                 'integer',
+                'distinct',
                 function (string $attribute, mixed $value, callable $fail) use ($member): void {
                     $due = is_int($value) || (is_string($value) && ctype_digit($value))
                         ? self::householdDuesFor($member)->whereKey((int) $value)->with('fiscalYear')->first()
@@ -141,8 +143,14 @@ class PaymentController
 
             // Re-check inside the transaction (with the due rows locked) so two
             // concurrent submissions cannot allocate the same due twice.
-            $alreadyPaid = MemberDue::query()->whereKey($dueIds)->paid()->lockForUpdate()->exists()
-                || HouseholdDue::query()->whereKey($householdDueIds)->paid()->lockForUpdate()->exists();
+            $lockedDues = MemberDue::whereKey($dueIds)->orderBy('id')->lockForUpdate()->get();
+            $lockedHouseholdDues = HouseholdDue::whereKey($householdDueIds)->orderBy('id')->lockForUpdate()->get();
+            $alreadyPaid = $lockedDues->contains(fn (MemberDue $due): bool => $due->isPaid())
+                || $lockedHouseholdDues->contains(fn (HouseholdDue $due): bool => $due->isPaid());
+            $expected = $lockedDues->concat($lockedHouseholdDues)->sum(fn ($due): int => (int) round((float) $due->amount * 100));
+            if ($expected !== (int) round((float) $validated['amount'] * 100)) {
+                throw ValidationException::withMessages(['amount' => __('members::admin.payments.amount_mismatch', ['sum' => MembersFormat::money($expected / 100)])]);
+            }
 
             if ($alreadyPaid) {
                 throw ValidationException::withMessages([

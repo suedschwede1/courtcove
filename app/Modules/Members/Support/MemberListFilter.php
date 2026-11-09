@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Members\Support;
 
+use App\Modules\Members\Models\FiscalYear;
 use App\Modules\Members\Models\Member;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -44,6 +45,7 @@ final readonly class MemberListFilter
         public ?int $feeCategory = null,
         public ?string $dueStatus = null,
         public ?string $household = null,
+        public ?int $fiscalYear = null,
     ) {}
 
     public static function fromRequest(Request $request): self
@@ -56,12 +58,14 @@ final readonly class MemberListFilter
         $feeCategory = self::scalar($request, 'fee_category');
         $dueStatus = self::scalar($request, 'zahlung');
         $household = self::scalar($request, 'haushalt');
+        $fiscalYear = self::scalar($request, 'fiscal_year_id');
 
         return new self(
             chip: in_array($chip, self::FILTERS, true) ? $chip : self::DEFAULT,
             search: mb_substr(trim(self::scalar($request, 'search')), 0, self::SEARCH_MAX),
             feeCategory: ctype_digit($feeCategory) && (int) $feeCategory > 0 ? (int) $feeCategory : null,
             dueStatus: in_array($dueStatus, self::DUE_STATUSES, true) ? $dueStatus : null,
+            fiscalYear: ctype_digit($fiscalYear) && (int) $fiscalYear > 0 ? (int) $fiscalYear : null,
             household: in_array($household, self::HOUSEHOLD_FILTERS, true) ? $household : null,
         );
     }
@@ -70,7 +74,7 @@ final readonly class MemberListFilter
      * @param  Builder<Member>  $query
      * @return Builder<Member>
      */
-    public function apply(Builder $query): Builder
+    public function apply(Builder $query, ?int $fiscalYearId = null): Builder
     {
         match ($this->chip) {
             'aktiv' => $query->where('status', 'aktiv'),
@@ -103,10 +107,13 @@ final readonly class MemberListFilter
 
         if ($this->dueStatus !== null) {
             // Own dues or a household due covering the member (family fee), with the same status logic.
-            $byStatus = function (Builder $dues): void {
+            $fiscalYearId ??= $this->fiscalYear ?? FiscalYear::whereDate('starts_on', '<=', today())->whereDate('ends_on', '>=', today())->value('id')
+                ?? FiscalYear::orderByDesc('starts_on')->value('id');
+            $byStatus = function (Builder $dues) use ($fiscalYearId): void {
+                $dues->where($dues->getModel()->qualifyColumn('fiscal_year_id'), $fiscalYearId ?? 0);
                 match ($this->dueStatus) {
-                    'bezahlt' => $dues->where('status', 'bezahlt'),
-                    'ausstehend' => $dues->where('status', 'ausstehend')
+                    'bezahlt' => $dues->scopes(['paid']),
+                    'ausstehend' => $dues->scopes(['open'])->where('status', 'ausstehend')
                         ->where(fn (Builder $q) => $q->whereNull('faellig_am')->orWhere('faellig_am', '>=', now()->toDateString())),
                     default => $dues->scopes(['overdue']),
                 };
@@ -137,6 +144,7 @@ final readonly class MemberListFilter
             'fee_category' => $this->feeCategory,
             'zahlung' => $this->dueStatus,
             'haushalt' => $this->household,
+            'fiscal_year_id' => $this->fiscalYear,
         ], $overrides);
 
         if (($params['filter'] ?? null) === self::DEFAULT) {

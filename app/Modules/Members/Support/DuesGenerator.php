@@ -34,9 +34,12 @@ final class DuesGenerator
     /** @var array<string, list<array{label: string, url: string}>> */
     private array $skipped = [];
 
+    private bool $preview = false;
+
     /** @throws ValidationException when the year is closed (checked under its row lock) */
-    public function generate(FiscalYear $year): DuesGenerationReport
+    public function generate(FiscalYear $year, bool $preview = false): DuesGenerationReport
     {
+        $this->preview = $preview;
         $this->skipped = array_fill_keys(DuesGenerationReport::REASONS, []);
 
         return DB::transaction(function () use ($year): DuesGenerationReport {
@@ -117,19 +120,22 @@ final class DuesGenerator
                     continue;
                 }
 
-                $due = HouseholdDue::create([
+                $attributes = [
                     'household_id' => $household->id,
                     'fiscal_year_id' => $year->id,
                     'fee_category_id' => $tariff->id,
                     'amount' => $rates[$tariff->id],
                     'status' => 'ausstehend',
                     'faellig_am' => $dueDate,
-                ]);
+                ];
+                $due = $this->preview ? new HouseholdDue($attributes) : HouseholdDue::create($attributes);
                 $created++;
             }
 
             foreach ($coverable as $member) {
-                $due->coveredMembers()->attach($member->id, ['fiscal_year_id' => $year->id]);
+                if (! $this->preview) {
+                    $due->coveredMembers()->attach($member->id, ['fiscal_year_id' => $year->id]);
+                }
                 $coveredIds[$member->id] = true;
             }
         }
@@ -157,7 +163,9 @@ final class DuesGenerator
 
             $link = ['label' => $member->fullName(), 'url' => route('members.edit', $member)];
             // "Last year's category" assumes fiscal years are created in chronological order.
-            $lastDue = $member->dues()->latest('fiscal_year_id')->first();
+            $lastDue = $member->dues()->join('fiscal_years', 'fiscal_years.id', '=', 'member_dues.fiscal_year_id')
+                ->where('fiscal_years.starts_on', '<', $year->starts_on->toDateString())
+                ->orderByDesc('fiscal_years.starts_on')->select('member_dues.*')->first();
             $categoryId = $lastDue !== null ? $lastDue->fee_category_id : $member->fee_category_id;
             $category = $categoryId !== null ? $categories->get($categoryId) : null;
 
@@ -177,14 +185,16 @@ final class DuesGenerator
                 return;
             }
 
-            MemberDue::create([
-                'member_id' => $member->id,
-                'fiscal_year_id' => $year->id,
-                'fee_category_id' => $category->id,
-                'amount' => $rates[$category->id],
-                'status' => 'ausstehend',
-                'faellig_am' => $dueDate,
-            ]);
+            if (! $this->preview) {
+                MemberDue::create([
+                    'member_id' => $member->id,
+                    'fiscal_year_id' => $year->id,
+                    'fee_category_id' => $category->id,
+                    'amount' => $rates[$category->id],
+                    'status' => 'ausstehend',
+                    'faellig_am' => $dueDate,
+                ]);
+            }
             $created++;
             if ($lastDue === null) {
                 $fromMemberCategory++;
