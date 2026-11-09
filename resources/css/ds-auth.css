@@ -305,11 +305,23 @@
         line-height: 1.45;
     }
 
-    .ds-auth__powered {
-        margin: 0;
+    .ds-auth__product {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        margin: 8px 0 0;
+        text-align: center;
+    }
+
+    .ds-auth__product-name {
+        color: var(--color-ink);
+        font: 700 26px / 1.1 var(--font-display);
+    }
+
+    .ds-auth__product-tagline {
         color: var(--color-ink-2);
         font-size: 13px;
-        text-align: center;
     }
 
     .ds-auth__footer > :first-child {

@@ -1,7 +1,7 @@
 @extends('layouts.base')
 
 @section('title')
-    {{ str_replace(':system', $bookingName, __('booking.auth.verify.title')) }}
+    {{ str_replace(':system', $bookingName, __('booking.auth.verify.title')) }} – {{ config('booking.product_name') }}
 @endsection
 
 @section('body')
